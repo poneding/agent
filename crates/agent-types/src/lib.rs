@@ -8,6 +8,7 @@ pub mod ids;
 pub mod schema;
 pub mod state;
 pub mod timestamp;
+pub mod tool;
 
 pub use actor::{ActorKind, ActorRef};
 pub use error::{AgentError, AgentTypesError, RuntimeError, RuntimeWarning};
@@ -16,6 +17,7 @@ pub use ids::*;
 pub use schema::SchemaVersion;
 pub use state::{TaskState, TurnState};
 pub use timestamp::Timestamp;
+pub use tool::*;
 
 /// Returns this crate's stable package name.
 #[must_use]

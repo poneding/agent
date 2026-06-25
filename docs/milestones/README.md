@@ -183,11 +183,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M02-04-audit-trail`.
+Current implementation focus: `M02-05-tool-loop-integration`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M02-04-audit-trail.spec.md`
-- `docs/plans/M02-04-audit-trail.plan.md`
+- `docs/specs/M02-05-tool-loop-integration.spec.md`
+- `docs/plans/M02-05-tool-loop-integration.plan.md`

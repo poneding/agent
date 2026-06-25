@@ -6,7 +6,7 @@ pub mod provider;
 pub mod request;
 pub mod stream;
 
-pub use fake::{FakeModelProvider, FakeModelScript};
+pub use fake::{FakeModelProvider, FakeModelScript, FakeToolCall};
 pub use provider::{ModelError, ModelProvider};
 pub use request::ModelRequest;
 pub use stream::{ModelStreamEvent, ModelStreamResult};

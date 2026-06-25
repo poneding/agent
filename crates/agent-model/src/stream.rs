@@ -9,6 +9,11 @@ pub enum ModelStreamEvent {
     Delta {
         text: String,
     },
+    ToolCall {
+        call_id: String,
+        tool_name: String,
+        input_json: serde_json::Value,
+    },
     Completed {
         finish_reason: String,
         output_token_count: u32,

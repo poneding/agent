@@ -19,6 +19,7 @@ async fn fake_model_streams_scripted_deltas() {
     let provider = FakeModelProvider::new(FakeModelScript {
         request_id: "request-42".to_string(),
         deltas: vec!["hel".to_string(), "lo".to_string()],
+        tool_calls: Vec::new(),
         finish_reason: "stop".to_string(),
     });
 
@@ -52,6 +53,7 @@ async fn fake_model_empty_script_emits_started_and_completed() {
     let provider = FakeModelProvider::new(FakeModelScript {
         request_id: "empty-request".to_string(),
         deltas: Vec::new(),
+        tool_calls: Vec::new(),
         finish_reason: "stop".to_string(),
     });
 

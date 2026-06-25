@@ -30,6 +30,7 @@ fn fake_provider() -> FakeModelProvider {
     FakeModelProvider::new(FakeModelScript {
         request_id: "turn-request-1".to_string(),
         deltas: vec!["hel".to_string(), "lo".to_string()],
+        tool_calls: Vec::new(),
         finish_reason: "stop".to_string(),
     })
 }

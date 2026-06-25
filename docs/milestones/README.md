@@ -40,7 +40,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
 | M02 slice specs | Complete for M02-01 through M02-05 |
-| M02 slice plans | Development-ready for M02-01 through M02-05 |
+| M02 slice plans | Complete for M02-01 through M02-05 |
+| M02 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -183,11 +184,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M02-05-tool-loop-integration`.
+Current implementation focus: `M03-local-coding-loop`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M02-05-tool-loop-integration.spec.md`
-- `docs/plans/M02-05-tool-loop-integration.plan.md`
+- `docs/specs/M03-local-coding-loop.spec.md`
+- `docs/plans/M03-local-coding-loop.plan.md`

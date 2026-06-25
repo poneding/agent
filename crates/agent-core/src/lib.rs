@@ -3,10 +3,12 @@
 
 pub mod context;
 pub mod runtime;
+pub mod tool_loop;
 pub mod turn;
 
 pub use context::ContextAssembler;
 pub use runtime::RuntimeIds;
+pub use tool_loop::{ToolCallRequest, ToolLoop, ToolLoopError, ToolLoopOutcome, ToolLoopStatus};
 pub use turn::{TurnEngine, TurnError, TurnInput, TurnOutcome};
 
 /// Returns a smoke-test banner proving the core crate links model and storage.

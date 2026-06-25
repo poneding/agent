@@ -14,9 +14,14 @@ name = "agent-core"
 version = "0.1.0"
 dependencies = [
  "agent-model",
+ "agent-policy",
+ "agent-sandbox",
  "agent-storage",
+ "agent-tool",
  "agent-types",
  "async-trait",
+ "serde_json",
+ "tempfile",
  "thiserror",
  "tokio",
 ]
@@ -28,6 +33,7 @@ dependencies = [
  "agent-types",
  "async-trait",
  "serde",
+ "serde_json",
  "thiserror",
  "tokio",
 ]

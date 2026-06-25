@@ -2,8 +2,8 @@ use agent_model::{ModelProvider, ModelRequest, ModelStreamEvent};
 use agent_types::{
     ActorKind, ActorRef, AgentError, ContextAssembled, FinalResponseProduced, ModelFinishReason,
     ModelOutputDelta, ModelStreamCompleted, ModelStreamStarted, RuntimeEvent, RuntimeEventPayload,
-    SchemaVersion, Timestamp, TurnCompleted, TurnFailed, TurnStarted, TurnState, TurnStateChanged,
-    UserInputReceived,
+    SchemaVersion, Timestamp, ToolCallProposed, TurnCompleted, TurnFailed, TurnStarted, TurnState,
+    TurnStateChanged, UserInputReceived,
 };
 use thiserror::Error;
 
@@ -143,6 +143,19 @@ impl TurnEngine {
                         RuntimeEventPayload::ModelOutputDelta(ModelOutputDelta { delta: text }),
                     ));
                 }
+                ModelStreamEvent::ToolCall {
+                    call_id,
+                    tool_name,
+                    input_json,
+                } => events.push(event(
+                    input.ids,
+                    ActorRef::system(),
+                    RuntimeEventPayload::ToolCallProposed(ToolCallProposed {
+                        call_id,
+                        tool_name,
+                        input_json,
+                    }),
+                )),
                 ModelStreamEvent::Completed {
                     finish_reason,
                     output_token_count,

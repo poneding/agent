@@ -17,15 +17,15 @@
 - Modify: `crates/agent-model/src/fake.rs`
 - Create: `crates/agent-model/tests/fake_tool_call.rs`
 
-- [ ] **Step 1: Write failing fake tool-call test**
+- [x] **Step 1: Write failing fake tool-call test**
 
 Test that a fake model script emits `ModelStreamEvent::ToolCall` with call ID, tool name, and JSON input.
 
-- [ ] **Step 2: Implement model stream event**
+- [x] **Step 2: Implement model stream event**
 
 Add `ToolCall { call_id, tool_name, input_json }` and script support.
 
-- [ ] **Step 3: Verify focused test**
+- [x] **Step 3: Verify focused test**
 
 ```bash
 cargo test -p agent-model fake_tool_call
@@ -38,7 +38,7 @@ Expected: fake tool-call tests pass.
 **Files:**
 - Create: `crates/agent-core/tests/tool_loop.rs`
 
-- [ ] **Step 1: Write failing integration tests**
+- [x] **Step 1: Write failing integration tests**
 
 Tests must prove:
 
@@ -47,7 +47,7 @@ Tests must prove:
 - ask decision reaches `TurnState::WaitingApproval`
 - audit event order is proposal, decision, execution, observation
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-core tool_loop
@@ -61,19 +61,19 @@ Expected: tests fail before `ToolLoop` exists.
 - Modify: `crates/agent-core/src/lib.rs`
 - Create: `crates/agent-core/src/tool_loop.rs`
 
-- [ ] **Step 1: Define outcome types**
+- [x] **Step 1: Define outcome types**
 
 Implement `ToolLoopOutcome`, `ToolLoopStatus`, and `ToolLoopError`.
 
-- [ ] **Step 2: Implement allow path**
+- [x] **Step 2: Implement allow path**
 
 Validate tool lookup, request policy decision, execute tool on allow, emit audit events, and return observation.
 
-- [ ] **Step 3: Implement deny and ask paths**
+- [x] **Step 3: Implement deny and ask paths**
 
 Deny emits decision and terminal denied outcome. Ask emits decision and waiting-approval outcome without execution.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```bash
 cargo test -p agent-core tool_loop
@@ -87,7 +87,7 @@ Expected: tool loop tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M02-05-tool-loop-integration.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -95,11 +95,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Mark M02 complete**
+- [x] **Step 2: Mark M02 complete**
 
 Update milestone status so M02 is complete and active focus advances to `M03-local-coding-loop`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

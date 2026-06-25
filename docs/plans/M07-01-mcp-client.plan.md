@@ -18,7 +18,7 @@
 - Create: `crates/agent-mcp/src/lib.rs`
 - Create: `crates/agent-mcp/src/error.rs`
 
-- [ ] **Step 1: Add crate scaffold**
+- [x] **Step 1: Add crate scaffold**
 
 Add `crates/agent-mcp` to workspace members in `Cargo.toml`.
 
@@ -84,7 +84,7 @@ pub enum McpError {
 }
 ```
 
-- [ ] **Step 2: Confirm scaffold compiles**
+- [x] **Step 2: Confirm scaffold compiles**
 
 Run:
 
@@ -92,14 +92,14 @@ Run:
 cargo test -p agent-mcp
 ```
 
-Expected: fails because modules are declared but not implemented, proving the crate is wired into the workspace.
+Expected: the crate is wired into the workspace; the behavior RED check is performed by the focused tests in Task 2.
 
 ### Task 2: Write MCP Client RED Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Create tests with these names:
 
@@ -218,7 +218,7 @@ async fn mcp_client_health_reports_disabled_healthy_and_unhealthy() {
 }
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -234,7 +234,7 @@ Expected: fails because config, client, and tool contracts do not exist.
 - Create: `crates/agent-mcp/src/config.rs`
 - Create: `crates/agent-mcp/src/tool.rs`
 
-- [ ] **Step 1: Add config contracts**
+- [x] **Step 1: Add config contracts**
 
 Implement:
 
@@ -354,11 +354,11 @@ pub enum McpEnvValue {
 }
 ```
 
-- [ ] **Step 2: Add tool contracts**
+- [x] **Step 2: Add tool contracts**
 
 Implement `McpToolDescriptor` and `McpToolListResult` with validation matching the spec.
 
-- [ ] **Step 3: Run focused tests**
+- [x] **Step 3: Run focused tests**
 
 Run:
 
@@ -373,7 +373,7 @@ Expected: config and serialization tests pass.
 **Files:**
 - Create: `crates/agent-mcp/src/client.rs`
 
-- [ ] **Step 1: Add client contracts**
+- [x] **Step 1: Add client contracts**
 
 Implement:
 
@@ -432,7 +432,7 @@ pub struct FixtureMcpClient {
 
 Add `new`, `with_server`, `with_tools`, `McpClient` implementation, and `check_mcp_server_health`.
 
-- [ ] **Step 2: Verify GREEN**
+- [x] **Step 2: Verify GREEN**
 
 Run:
 
@@ -449,15 +449,15 @@ Expected: all `mcp_client` tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Mark plan checkboxes complete**
+- [x] **Step 1: Mark plan checkboxes complete**
 
 Update this plan as each task finishes.
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Set active focus to `M07-02-mcp-policy-mapping`.
 
-- [ ] **Step 3: Run standard verification**
+- [x] **Step 3: Run standard verification**
 
 Run:
 
@@ -469,7 +469,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Run:
 

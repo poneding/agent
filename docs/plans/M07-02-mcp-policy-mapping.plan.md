@@ -19,7 +19,7 @@
 - Read: `crates/agent-policy/src/request.rs`
 - Read: `crates/agent-policy/src/capability.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: the spec defines mapping contracts, security defaults, and focused tes
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_policy_mapping.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Create tests with these names:
 
@@ -96,7 +96,7 @@ fn mcp_policy_mapping_rejects_empty_remote_name() {
 }
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -111,7 +111,7 @@ Expected: fails because mapping APIs do not exist.
 **Files:**
 - Modify: `crates/agent-mcp/Cargo.toml`
 
-- [ ] **Step 1: Add local dependencies**
+- [x] **Step 1: Add local dependencies**
 
 Add:
 
@@ -121,7 +121,7 @@ agent-tool = { path = "../agent-tool" }
 agent-types = { path = "../agent-types" }
 ```
 
-- [ ] **Step 2: Confirm metadata**
+- [x] **Step 2: Confirm metadata**
 
 Run:
 
@@ -138,19 +138,19 @@ Expected: metadata succeeds and there is no dependency cycle.
 - Create: `crates/agent-mcp/src/policy.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add tool mapping**
+- [x] **Step 1: Add tool mapping**
 
 Implement `McpLocalToolName`, `McpToolDefinition`, `local_tool_name_for_mcp_tool`, and `mcp_descriptor_to_tool_definition`.
 
-- [ ] **Step 2: Add policy mapping**
+- [x] **Step 2: Add policy mapping**
 
 Implement `McpPermissionProfile`, `McpPolicyMapping`, `default_policy_mapping_for_mcp_tool`, and `permission_request_for_mcp_mapping`.
 
-- [ ] **Step 3: Export contracts**
+- [x] **Step 3: Export contracts**
 
 Update `lib.rs` to export the new modules and public contracts.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run:
 
@@ -167,11 +167,11 @@ Expected: all MCP policy mapping tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M07-03-skill-discovery`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 Run:
 
@@ -183,7 +183,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run:
 

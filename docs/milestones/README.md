@@ -57,6 +57,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M07 slice specs | Complete for M07-01 through M07-04 |
 | M07 slice plans | Complete for M07-01 through M07-04 |
 | M07-01 implementation | Complete |
+| M07-02 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -199,11 +200,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M07-02-mcp-policy-mapping`.
+Current implementation focus: `M07-03-skill-discovery`.
 
 Current planning focus: keep M07 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M07-02-mcp-policy-mapping.spec.md`
-- `docs/plans/M07-02-mcp-policy-mapping.plan.md`
+- `docs/specs/M07-03-skill-discovery.spec.md`
+- `docs/plans/M07-03-skill-discovery.plan.md`

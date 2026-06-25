@@ -39,3 +39,15 @@ pub enum PluginProcessError {
         recoverable: bool,
     },
 }
+
+#[derive(Clone, Debug, Error, Eq, PartialEq)]
+pub enum PluginWasmError {
+    #[error("invalid WASM config: {0}")]
+    InvalidConfig(String),
+    #[error("WASM module exceeded {limit} bytes with {actual} bytes")]
+    ModuleTooLarge { limit: usize, actual: usize },
+    #[error("invalid WASM module: {0}")]
+    InvalidModule(String),
+    #[error("unsupported WASM host call: {name}")]
+    UnsupportedHostCall { name: String },
+}

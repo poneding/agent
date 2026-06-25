@@ -16,7 +16,7 @@
 - Read: `docs/specs/M11-05-wasm-prototype.spec.md`
 - Read: `docs/specs/M11-00-plugin-runtime-technical-design.spec.md`
 
-- [ ] **Step 1: Review WASM constraints**
+- [x] **Step 1: Review WASM constraints**
 
 Run:
 
@@ -31,7 +31,7 @@ Expected: the prototype rejects privileged host behavior.
 **Files:**
 - Create: `crates/agent-plugin/tests/wasm_host.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Add tests:
 
@@ -41,7 +41,7 @@ Add tests:
 - `wasm_host_rejects_manifest_without_entrypoint`
 - `wasm_host_rejects_unsupported_host_call`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -58,11 +58,11 @@ Expected: tests fail because `wasm` module does not exist.
 - Create: `crates/agent-plugin/src/wasm.rs`
 - Modify: `crates/agent-plugin/src/error.rs`
 
-- [ ] **Step 1: Add WASM config and module types**
+- [x] **Step 1: Add WASM config and module types**
 
 Implement `PluginWasmConfig`, `PluginWasmModule`, and `PluginWasmHost`.
 
-- [ ] **Step 2: Add module validation**
+- [x] **Step 2: Add module validation**
 
 Validate:
 
@@ -70,7 +70,7 @@ Validate:
 - version bytes `1, 0, 0, 0`
 - module byte length below `max_module_bytes`
 
-- [ ] **Step 3: Add unsupported host call guard**
+- [x] **Step 3: Add unsupported host call guard**
 
 Expose a method that rejects named host calls with `PluginWasmError::UnsupportedHostCall`.
 
@@ -79,7 +79,7 @@ Expose a method that rejects named host calls with `PluginWasmError::Unsupported
 **Files:**
 - Read: `crates/agent-plugin/tests/wasm_host.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -89,7 +89,7 @@ cargo test -p agent-plugin wasm_host
 
 Expected: WASM tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -108,11 +108,11 @@ Expected: all checks pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M11-05-wasm-prototype.plan.md`
 
-- [ ] **Step 1: Mark M11 complete**
+- [x] **Step 1: Mark M11 complete**
 
 Update milestone status and set active focus to M12 planning.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

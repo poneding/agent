@@ -9,6 +9,7 @@ pub mod host;
 pub mod manifest;
 pub mod process;
 pub mod tool;
+pub mod wasm;
 
 pub use capability::{
     PluginCapabilityKind, PluginCapabilitySet, PluginPermission,
@@ -17,7 +18,7 @@ pub use capability::{
 pub use compatibility::{
     PLUGIN_MANIFEST_SCHEMA_VERSION, PLUGIN_RUNTIME_API_VERSION, check_plugin_compatibility,
 };
-pub use error::{PluginManifestError, PluginProcessError};
+pub use error::{PluginManifestError, PluginProcessError, PluginWasmError};
 pub use hook::{PluginHookEvent, PluginHookOutcome, PluginHookRunner};
 pub use host::PluginProcessHost;
 pub use manifest::{
@@ -33,3 +34,4 @@ pub use process::{
 pub use tool::{
     PluginTool, PluginToolFactory, PluginToolHost, PluginToolInvocation, register_plugin_tools,
 };
+pub use wasm::{PluginWasmConfig, PluginWasmHost, PluginWasmModule, PluginWasmModuleDescription};

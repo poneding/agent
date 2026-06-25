@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M10 and M11-01 through M11-04 are implemented. Current focus is M11-05: WASM Prototype.
+M01-M11 are implemented. Current focus is M12: Production Hardening planning.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M11-05-wasm-prototype.spec.md)
-- [Current plan](docs/plans/M11-05-wasm-prototype.plan.md)
+- [Current spec](docs/specs/M12-production-hardening.spec.md)
+- [Current plan](docs/plans/M12-production-hardening.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

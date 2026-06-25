@@ -90,7 +90,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M11-02 implementation | Complete |
 | M11-03 implementation | Complete |
 | M11-04 implementation | Complete |
-| M11 implementation | In progress |
+| M11-05 implementation | Complete |
+| M11 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -234,11 +235,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M11-05-wasm-prototype`.
+Current implementation focus: `M12-production-hardening` planning.
 
-Current planning focus: keep M11 slice plans updated as implementation progresses.
+Current planning focus: decompose M12 into technical design, slice specs, and slice plans before implementation.
 
-Primary execution documents for the current implementation focus:
+Primary planning documents for the current focus:
 
-- `docs/specs/M11-05-wasm-prototype.spec.md`
-- `docs/plans/M11-05-wasm-prototype.plan.md`
+- `docs/specs/M12-production-hardening.spec.md`
+- `docs/plans/M12-production-hardening.plan.md`

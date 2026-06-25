@@ -105,7 +105,7 @@ Expected: the plan describes plugin tool registration, hook contracts, core inte
 - Read: `docs/specs/M11-05-wasm-prototype.spec.md`
 - Execute: `docs/plans/M11-05-wasm-prototype.plan.md`
 
-- [ ] **Step 1: Follow M11-05 plan**
+- [x] **Step 1: Follow M11-05 plan**
 
 Run:
 

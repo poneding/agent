@@ -1,6 +1,7 @@
-use std::io::Write;
-use std::process::{Command, Stdio};
+use std::io::{Read, Write};
+use std::process::{ChildStderr, ChildStdout, Command, Output, Stdio};
 use std::thread;
+use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 use crate::error::PluginProcessError;
@@ -33,10 +34,15 @@ impl PluginProcessHost {
             .stderr(Stdio::piped())
             .spawn()
             .map_err(|error| PluginProcessError::Spawn(error.to_string()))?;
+        let stdout_reader = read_stdout(child.stdout.take())?;
+        let stderr_reader = read_stderr(child.stderr.take())?;
 
         if let Some(mut stdin) = child.stdin.take() {
             stdin
                 .write_all(&request_json)
+                .map_err(|error| PluginProcessError::Protocol(error.to_string()))?;
+            stdin
+                .flush()
                 .map_err(|error| PluginProcessError::Protocol(error.to_string()))?;
             drop(stdin);
         }
@@ -44,16 +50,20 @@ impl PluginProcessHost {
         let started_at = Instant::now();
         loop {
             match child.try_wait() {
-                Ok(Some(_status)) => {
-                    let output = child
-                        .wait_with_output()
-                        .map_err(|error| PluginProcessError::Spawn(error.to_string()))?;
+                Ok(Some(status)) => {
+                    let output = Output {
+                        status,
+                        stdout: join_pipe_reader(stdout_reader)?,
+                        stderr: join_pipe_reader(stderr_reader)?,
+                    };
                     return decode_output(config, request, output);
                 }
                 Ok(None) => {
                     if started_at.elapsed() >= Duration::from_millis(config.timeout_ms) {
                         let _ = child.kill();
                         let _ = child.wait();
+                        let _ = join_pipe_reader(stdout_reader);
+                        let _ = join_pipe_reader(stderr_reader);
                         return Err(PluginProcessError::Timeout {
                             timeout_ms: config.timeout_ms,
                         });
@@ -64,6 +74,37 @@ impl PluginProcessHost {
             }
         }
     }
+}
+
+fn read_stdout(
+    stdout: Option<ChildStdout>,
+) -> Result<JoinHandle<std::io::Result<Vec<u8>>>, PluginProcessError> {
+    let stdout = stdout
+        .ok_or_else(|| PluginProcessError::Spawn("failed to capture plugin stdout".to_string()))?;
+    Ok(thread::spawn(move || read_to_end(stdout)))
+}
+
+fn read_stderr(
+    stderr: Option<ChildStderr>,
+) -> Result<JoinHandle<std::io::Result<Vec<u8>>>, PluginProcessError> {
+    let stderr = stderr
+        .ok_or_else(|| PluginProcessError::Spawn("failed to capture plugin stderr".to_string()))?;
+    Ok(thread::spawn(move || read_to_end(stderr)))
+}
+
+fn read_to_end(mut reader: impl Read) -> std::io::Result<Vec<u8>> {
+    let mut buffer = Vec::new();
+    reader.read_to_end(&mut buffer)?;
+    Ok(buffer)
+}
+
+fn join_pipe_reader(
+    reader: JoinHandle<std::io::Result<Vec<u8>>>,
+) -> Result<Vec<u8>, PluginProcessError> {
+    reader
+        .join()
+        .map_err(|_| PluginProcessError::Spawn("plugin pipe reader panicked".to_string()))?
+        .map_err(|error| PluginProcessError::Spawn(error.to_string()))
 }
 
 fn validate_config(config: &PluginProcessConfig) -> Result<(), PluginProcessError> {

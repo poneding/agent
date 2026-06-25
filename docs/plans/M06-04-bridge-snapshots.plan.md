@@ -18,11 +18,11 @@
 - Create: `crates/agent-ui-bridge/tests/fixtures/m06_start_turn_command.json`
 - Create: `crates/agent-ui-bridge/tests/fixtures/m06_done_frame.json`
 
-- [ ] **Step 1: Add fixture files**
+- [x] **Step 1: Add fixture files**
 
 Fixture files use schema version `1`, nil-like deterministic UUID strings, and no real secrets.
 
-- [ ] **Step 2: Add failing snapshot tests**
+- [x] **Step 2: Add failing snapshot tests**
 
 Create tests named:
 
@@ -31,7 +31,7 @@ Create tests named:
 - `bridge_snapshots_match_done_frame_fixture`
 - `bridge_snapshots_redact_tool_call_input_from_ui_event`
 
-- [ ] **Step 3: Verify RED or fixture mismatch**
+- [x] **Step 3: Verify RED or fixture mismatch**
 
 Run:
 
@@ -49,11 +49,11 @@ Expected: fails until fixture shape and bridge serialization agree.
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Modify: `crates/agent-ui-bridge/tests/fixtures/*.json`
 
-- [ ] **Step 1: Normalize serialized field order through serde_json values**
+- [x] **Step 1: Normalize serialized field order through serde_json values**
 
 Snapshot tests should compare `serde_json::Value`, not raw strings, so formatting does not cause false failures.
 
-- [ ] **Step 2: Keep compatibility tags stable**
+- [x] **Step 2: Keep compatibility tags stable**
 
 Ensure public enums retain:
 
@@ -61,7 +61,7 @@ Ensure public enums retain:
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 ```
 
-- [ ] **Step 3: Verify bridge snapshots GREEN**
+- [x] **Step 3: Verify bridge snapshots GREEN**
 
 Run:
 
@@ -76,11 +76,11 @@ Expected: all bridge snapshot tests pass.
 **Files:**
 - Modify: `crates/agent-cli/tests/json_mode.rs`
 
-- [ ] **Step 1: Add full-stream assertion**
+- [x] **Step 1: Add full-stream assertion**
 
 Extend the CLI JSON test so every stdout line from `agent-cli --json --local-summary` deserializes into `agent_ui_bridge::UiJsonFrame`, the final line is `Done`, and at least one event line is present before it.
 
-- [ ] **Step 2: Verify CLI JSON contract**
+- [x] **Step 2: Verify CLI JSON contract**
 
 Run:
 
@@ -97,7 +97,7 @@ Expected: CLI JSON stream remains parseable and ends with `Done`.
 - Modify: `docs/plans/M06-04-bridge-snapshots.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -107,11 +107,11 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M06 complete**
+- [x] **Step 2: Mark M06 complete**
 
 Update `docs/milestones/README.md` so M06 implementation is complete and active focus advances to `M07-mcp-skills`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

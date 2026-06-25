@@ -53,6 +53,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M05 implementation | Complete |
 | M06 slice specs | Complete for M06-01 through M06-04 |
 | M06 slice plans | Complete for M06-01 through M06-04 |
+| M06 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -195,11 +196,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M06-04-bridge-snapshots`.
+Current implementation focus: `M07-mcp-skills` slice decomposition.
 
-Current planning focus: M06 slice-level specs and plans are created; next planning document should be a slice-level doc only when implementation reaches M07.
+Current planning focus: create M07 slice-level specs and plans before implementation.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M06-04-bridge-snapshots.spec.md`
-- `docs/plans/M06-04-bridge-snapshots.plan.md`
+- `docs/specs/M07-mcp-skills.spec.md`
+- `docs/plans/M07-mcp-skills.plan.md`

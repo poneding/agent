@@ -55,11 +55,14 @@ fn json_mode_binary_prints_ndjson_frames() {
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let frames = parse_frames(&stdout);
+    let event_count = frames
+        .iter()
+        .filter(|frame| matches!(frame, UiJsonFrame::Event(_)))
+        .count();
 
-    assert!(
-        frames
-            .iter()
-            .any(|frame| matches!(frame, UiJsonFrame::Event(_)))
-    );
-    assert!(matches!(frames.last(), Some(UiJsonFrame::Done { .. })));
+    assert!(event_count > 0);
+    assert!(matches!(
+        frames.last(),
+        Some(UiJsonFrame::Done { event_count: done_count }) if *done_count as usize == event_count
+    ));
 }

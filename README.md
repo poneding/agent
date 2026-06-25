@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M05 and M06-01-M06-03 are implemented. Current focus is M06-04: bridge snapshots.
+M01-M06 are implemented. Current focus is M07: MCP and skills, starting with slice-level specs and plans.
 
 ## Core Ideas
 
@@ -79,8 +79,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M06-04-bridge-snapshots.spec.md)
-- [Current plan](docs/plans/M06-04-bridge-snapshots.plan.md)
+- [Current spec](docs/specs/M07-mcp-skills.spec.md)
+- [Current plan](docs/plans/M07-mcp-skills.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

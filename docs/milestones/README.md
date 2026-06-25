@@ -63,6 +63,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M07 implementation | Complete |
 | M08 slice specs | Complete for M08-01 through M08-04 |
 | M08 slice plans | Complete for M08-01 through M08-04 |
+| M08-01 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -205,11 +206,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M08-01-task-state-machine`.
+Current implementation focus: `M08-02-queue-leases`.
 
 Current planning focus: keep M08 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M08-01-task-state-machine.spec.md`
-- `docs/plans/M08-01-task-state-machine.plan.md`
+- `docs/specs/M08-02-queue-leases.spec.md`
+- `docs/plans/M08-02-queue-leases.plan.md`

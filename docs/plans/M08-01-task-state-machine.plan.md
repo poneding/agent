@@ -17,7 +17,7 @@
 - Create: `crates/agent-scheduler/Cargo.toml`
 - Create: `crates/agent-scheduler/src/lib.rs`
 
-- [ ] **Step 1: Add crate scaffold**
+- [x] **Step 1: Add crate scaffold**
 
 Create the crate with dependencies:
 
@@ -35,7 +35,7 @@ Export placeholder modules only after RED tests are written.
 **Files:**
 - Create: `crates/agent-scheduler/tests/task_state_machine.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -45,7 +45,7 @@ Cover:
 - `task_state_machine_rejects_terminal_transition`
 - `task_state_machine_rejects_empty_summary_and_reason`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -62,19 +62,19 @@ Expected: fails because task contracts do not exist.
 - Create: `crates/agent-scheduler/src/task.rs`
 - Modify: `crates/agent-scheduler/src/lib.rs`
 
-- [ ] **Step 1: Add `SchedulerError`**
+- [x] **Step 1: Add `SchedulerError`**
 
 Add `InvalidTask`, `InvalidTransition`, and `InvalidLease` variants.
 
-- [ ] **Step 2: Add task contracts**
+- [x] **Step 2: Add task contracts**
 
 Implement `TaskKind`, `TaskPriority`, `TaskRun`, and `TaskTransition`.
 
-- [ ] **Step 3: Add transition validation**
+- [x] **Step 3: Add transition validation**
 
 Implement `transition_task_state` using the transition matrix from the spec.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run:
 
@@ -91,11 +91,11 @@ Expected: focused tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M08-02-queue-leases`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -103,7 +103,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

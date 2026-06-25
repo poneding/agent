@@ -17,11 +17,11 @@
 - Create: `crates/agent-tool/Cargo.toml`
 - Create: `crates/agent-tool/src/lib.rs`
 
-- [ ] **Step 1: Add workspace member**
+- [x] **Step 1: Add workspace member**
 
 Add `crates/agent-tool` to the root workspace members.
 
-- [ ] **Step 2: Add crate manifest**
+- [x] **Step 2: Add crate manifest**
 
 Use dependencies:
 
@@ -33,7 +33,7 @@ serde_json = "1"
 thiserror = "2"
 ```
 
-- [ ] **Step 3: Export modules**
+- [x] **Step 3: Export modules**
 
 `src/lib.rs` should export `definition`, `error`, `registry`, and `tool`.
 
@@ -42,7 +42,7 @@ thiserror = "2"
 **Files:**
 - Create: `crates/agent-tool/tests/registry.rs`
 
-- [ ] **Step 1: Add contract tests**
+- [x] **Step 1: Add contract tests**
 
 Tests must prove:
 
@@ -52,7 +52,7 @@ Tests must prove:
 - duplicate names are rejected
 - unknown lookup returns `None`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -70,15 +70,15 @@ Expected: tests fail because contracts are not implemented.
 - Create: `crates/agent-tool/src/tool.rs`
 - Create: `crates/agent-tool/src/registry.rs`
 
-- [ ] **Step 1: Implement public types**
+- [x] **Step 1: Implement public types**
 
 Implement `ToolName`, `ToolDefinition`, `ToolInput`, `ToolOutput`, `ToolError`, `ToolRegistryError`, and `Tool`.
 
-- [ ] **Step 2: Implement registry**
+- [x] **Step 2: Implement registry**
 
 Use a `BTreeMap<ToolName, Arc<dyn Tool>>` so listing and lookup are deterministic.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 Run:
 
@@ -94,7 +94,7 @@ Expected: focused tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M02-01-tool-registry.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -102,11 +102,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M02-01-tool-registry` to `M02-02-policy-engine`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

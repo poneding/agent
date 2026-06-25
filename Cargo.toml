@@ -4,6 +4,7 @@ members = [
     "crates/agent-model",
     "crates/agent-storage",
     "crates/agent-core",
+    "crates/agent-tool",
     "crates/agent-cli",
 ]
 resolver = "2"

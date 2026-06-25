@@ -10,4 +10,6 @@ pub enum DesktopError {
     InvalidPermission(String),
     #[error("invalid desktop diff review: {0}")]
     InvalidDiff(String),
+    #[error("invalid desktop trace timeline: {0}")]
+    InvalidTrace(String),
 }

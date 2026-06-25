@@ -46,6 +46,7 @@ dependencies = [
 name = "agent-desktop"
 version = "0.1.0"
 dependencies = [
+ "agent-core",
  "agent-policy",
  "agent-types",
  "agent-ui-bridge",

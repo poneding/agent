@@ -80,6 +80,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M10-01 implementation | Complete |
 | M10-02 implementation | Complete |
 | M10-03 implementation | Complete |
+| M10-04 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -222,11 +223,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M10-04-trace-timeline`.
+Current implementation focus: `M10-05-settings`.
 
 Current planning focus: keep M10 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M10-04-trace-timeline.spec.md`
-- `docs/plans/M10-04-trace-timeline.plan.md`
+- `docs/specs/M10-05-settings.spec.md`
+- `docs/plans/M10-05-settings.plan.md`

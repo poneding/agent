@@ -16,7 +16,7 @@
 - Read: `docs/specs/M10-04-trace-timeline.spec.md`
 - Read: `crates/agent-core/src/trace.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 ```bash
 sed -n '1,260p' docs/specs/M10-04-trace-timeline.spec.md
@@ -27,7 +27,7 @@ sed -n '1,260p' docs/specs/M10-04-trace-timeline.spec.md
 **Files:**
 - Create: `crates/agent-desktop/tests/trace_timeline.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -37,7 +37,7 @@ Cover:
 - `trace_timeline_rejects_empty_kind_and_summary`
 - `trace_timeline_does_not_expose_secret_like_fields`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-desktop trace_timeline
@@ -53,15 +53,15 @@ Expected: fails because trace timeline contracts do not exist.
 - Modify: `crates/agent-desktop/src/lib.rs`
 - Modify: `crates/agent-desktop/src/error.rs`
 
-- [ ] **Step 1: Add timeline structs**
+- [x] **Step 1: Add timeline structs**
 
 Implement `TraceTimelineSeverity`, `TraceTimelineItem`, and `TraceTimeline`.
 
-- [ ] **Step 2: Add timeline builder**
+- [x] **Step 2: Add timeline builder**
 
 Implement `build_trace_timeline` with sorting, validation, duplicate sequence rejection, and severity mapping.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-desktop trace_timeline
@@ -74,11 +74,11 @@ cargo test -p agent-desktop trace_timeline
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M10-04-trace-timeline.plan.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M10-05-settings`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -86,7 +86,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

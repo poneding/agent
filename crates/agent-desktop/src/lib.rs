@@ -8,6 +8,7 @@ pub mod permission;
 pub mod session;
 pub mod snapshot;
 pub mod task;
+pub mod trace;
 
 pub use conversation::DesktopConversationItem;
 pub use diff::{
@@ -24,3 +25,4 @@ pub use session::{
 };
 pub use snapshot::{DesktopWorkspaceSnapshot, build_workspace_snapshot};
 pub use task::DesktopTaskItem;
+pub use trace::{TraceTimeline, TraceTimelineItem, TraceTimelineSeverity, build_trace_timeline};

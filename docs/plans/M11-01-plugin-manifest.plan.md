@@ -18,7 +18,7 @@
 - Read: `docs/templates/plugin-manifest.template.json`
 - Read: `docs/architecture/plugin-system.md`
 
-- [ ] **Step 1: Review the technical design and slice spec**
+- [x] **Step 1: Review the technical design and slice spec**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: both documents define manifest ownership, schema, compatibility, valid
 **Files:**
 - Create: `crates/agent-plugin/tests/manifest.rs`
 
-- [ ] **Step 1: Create the manifest tests before implementation**
+- [x] **Step 1: Create the manifest tests before implementation**
 
 Add tests with these names:
 
@@ -66,7 +66,7 @@ fn manifest_serializes_stable_shape() {}
 
 Use `include_str!("../../../docs/templates/plugin-manifest.template.json")` for the valid template fixture. Use `serde_json::Value` mutation helpers inside the test file to modify invalid cases.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -86,11 +86,11 @@ Expected: command fails because `agent-plugin` is not yet a workspace crate.
 - Create: `crates/agent-plugin/src/compatibility.rs`
 - Create: `crates/agent-plugin/src/manifest.rs`
 
-- [ ] **Step 1: Add workspace member**
+- [x] **Step 1: Add workspace member**
 
 Add `"crates/agent-plugin"` to the workspace members after `agent-skill` and before `agent-ui-bridge`.
 
-- [ ] **Step 2: Add crate manifest**
+- [x] **Step 2: Add crate manifest**
 
 Use this dependency shape:
 
@@ -104,7 +104,7 @@ serde_json = "1"
 thiserror = "2"
 ```
 
-- [ ] **Step 3: Export modules**
+- [x] **Step 3: Export modules**
 
 `src/lib.rs` exports:
 
@@ -134,7 +134,7 @@ pub use manifest::{
 - Modify: `crates/agent-plugin/src/compatibility.rs`
 - Modify: `crates/agent-plugin/src/manifest.rs`
 
-- [ ] **Step 1: Add typed errors**
+- [x] **Step 1: Add typed errors**
 
 Implement `PluginManifestError` with variants:
 
@@ -146,7 +146,7 @@ Implement `PluginManifestError` with variants:
 - `DuplicateContribution(String)`
 - `InvalidManifest(String)`
 
-- [ ] **Step 2: Add compatibility checks**
+- [x] **Step 2: Add compatibility checks**
 
 Implement constants:
 
@@ -157,7 +157,7 @@ pub const PLUGIN_RUNTIME_API_VERSION: u32 = 1;
 
 Implement `check_plugin_compatibility(&PluginRuntimeCompatibility) -> Result<(), PluginManifestError>` so API versions other than `1` fail.
 
-- [ ] **Step 3: Add manifest types and validation**
+- [x] **Step 3: Add manifest types and validation**
 
 Implement serde-compatible structs and validation from the spec:
 
@@ -175,7 +175,7 @@ Implement serde-compatible structs and validation from the spec:
 **Files:**
 - Read: `crates/agent-plugin/tests/manifest.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -185,7 +185,7 @@ cargo test -p agent-plugin manifest
 
 Expected: all manifest tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -204,11 +204,11 @@ Expected: all checks pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M11-01-plugin-manifest.plan.md`
 
-- [ ] **Step 1: Mark plan items complete**
+- [x] **Step 1: Mark plan items complete**
 
 Check off completed steps in this plan.
 
-- [ ] **Step 2: Update milestone status**
+- [x] **Step 2: Update milestone status**
 
 Mark `M11-01 implementation` complete and set active implementation focus to `M11-02-process-plugin-host`.
 

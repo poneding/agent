@@ -14,6 +14,7 @@ members = [
     "crates/agent-memory",
     "crates/agent-mcp",
     "crates/agent-skill",
+    "crates/agent-plugin",
     "crates/agent-ui-bridge",
     "crates/agent-desktop",
     "crates/agent-cli",

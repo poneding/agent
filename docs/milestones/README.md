@@ -86,6 +86,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M11 technical design | Complete |
 | M11 slice specs | Complete for M11-01 through M11-05 |
 | M11 slice plans | Complete for M11-01 through M11-05 |
+| M11-01 implementation | Complete |
 | M11 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -230,11 +231,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M11-01-plugin-manifest`.
+Current implementation focus: `M11-02-process-plugin-host`.
 
 Current planning focus: keep M11 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M11-01-plugin-manifest.spec.md`
-- `docs/plans/M11-01-plugin-manifest.plan.md`
+- `docs/specs/M11-02-process-plugin-host.spec.md`
+- `docs/plans/M11-02-process-plugin-host.plan.md`

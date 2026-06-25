@@ -41,7 +41,7 @@ Each slice has a milestone-prefixed spec and plan with concrete files, contracts
 - Read: `docs/specs/M11-01-plugin-manifest.spec.md`
 - Execute: `docs/plans/M11-01-plugin-manifest.plan.md`
 
-- [ ] **Step 1: Follow M11-01 plan**
+- [x] **Step 1: Follow M11-01 plan**
 
 Run:
 

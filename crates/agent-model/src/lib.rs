@@ -1,5 +1,15 @@
 #![forbid(unsafe_code)]
-//! Model provider abstractions for the agent.
+//! Model provider contracts for agent.
+
+pub mod fake;
+pub mod provider;
+pub mod request;
+pub mod stream;
+
+pub use fake::{FakeModelProvider, FakeModelScript};
+pub use provider::{ModelError, ModelProvider};
+pub use request::ModelRequest;
+pub use stream::{ModelStreamEvent, ModelStreamResult};
 
 /// Returns a smoke-test string proving the model crate links shared types.
 #[must_use]

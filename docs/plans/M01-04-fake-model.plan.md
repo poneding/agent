@@ -16,7 +16,7 @@
 - Modify: `crates/agent-model/Cargo.toml`
 - Modify: `crates/agent-model/src/lib.rs`
 
-- [ ] **Step 1: Add dependencies**
+- [x] **Step 1: Add dependencies**
 
 Add:
 
@@ -31,7 +31,7 @@ thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt"] }
 ```
 
-- [ ] **Step 2: Export modules**
+- [x] **Step 2: Export modules**
 
 `src/lib.rs` should export:
 
@@ -57,7 +57,7 @@ pub use stream::{ModelStreamEvent, ModelStreamResult};
 - Create: `crates/agent-model/src/stream.rs`
 - Create: `crates/agent-model/src/provider.rs`
 
-- [ ] **Step 1: Define model request**
+- [x] **Step 1: Define model request**
 
 ```rust
 use agent_types::{ConversationId, CorrelationId, TurnId};
@@ -74,7 +74,7 @@ pub struct ModelRequest {
 }
 ```
 
-- [ ] **Step 2: Define stream events**
+- [x] **Step 2: Define stream events**
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -90,7 +90,7 @@ pub enum ModelStreamEvent {
 pub type ModelStreamResult = Vec<ModelStreamEvent>;
 ```
 
-- [ ] **Step 3: Define provider trait**
+- [x] **Step 3: Define provider trait**
 
 ```rust
 use async_trait::async_trait;
@@ -117,7 +117,7 @@ pub trait ModelProvider: Send + Sync {
 - Create: `crates/agent-model/src/fake.rs`
 - Create: `crates/agent-model/tests/fake_model.rs`
 
-- [ ] **Step 1: Implement scripted fake provider**
+- [x] **Step 1: Implement scripted fake provider**
 
 ```rust
 use async_trait::async_trait;
@@ -179,7 +179,7 @@ impl ModelProvider for FakeModelProvider {
 }
 ```
 
-- [ ] **Step 2: Add fake model tests**
+- [x] **Step 2: Add fake model tests**
 
 Tests must prove:
 
@@ -202,7 +202,7 @@ Expected: fake model tests pass.
 **Files:**
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 Run:
 
@@ -214,11 +214,11 @@ cargo test --workspace
 
 Expected: all commands pass.
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M01-04-fake-model` to `M01-05-turn-engine`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run:
 

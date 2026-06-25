@@ -180,11 +180,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M01-04-fake-model`.
+Current implementation focus: `M01-05-turn-engine`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M01-04-fake-model.spec.md`
-- `docs/plans/M01-04-fake-model.plan.md`
+- `docs/specs/M01-05-turn-engine.spec.md`
+- `docs/plans/M01-05-turn-engine.plan.md`

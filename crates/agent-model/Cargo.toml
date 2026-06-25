@@ -8,6 +8,12 @@ authors.workspace = true
 
 [dependencies]
 agent-types = { path = "../agent-types" }
+async-trait = "0.1"
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
 
 [lints]
 workspace = true

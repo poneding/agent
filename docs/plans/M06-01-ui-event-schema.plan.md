@@ -17,7 +17,7 @@
 - Create: `crates/agent-ui-bridge/Cargo.toml`
 - Create: `crates/agent-ui-bridge/src/lib.rs`
 
-- [ ] **Step 1: Add empty crate scaffold**
+- [x] **Step 1: Add empty crate scaffold**
 
 Add `crates/agent-ui-bridge` to workspace members.
 
@@ -52,7 +52,7 @@ Create `src/lib.rs`:
 //! UI bridge contracts for CLI, Desktop, and API clients.
 ```
 
-- [ ] **Step 2: Confirm scaffold compiles**
+- [x] **Step 2: Confirm scaffold compiles**
 
 Run:
 
@@ -67,7 +67,7 @@ Expected: crate compiles with zero tests.
 **Files:**
 - Create: `crates/agent-ui-bridge/tests/ui_event_schema.rs`
 
-- [ ] **Step 1: Add failing schema tests**
+- [x] **Step 1: Add failing schema tests**
 
 Create tests covering:
 
@@ -78,7 +78,7 @@ Create tests covering:
 
 Use deterministic IDs by parsing UUID strings and deterministic timestamps with `time::macros::datetime`.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -95,7 +95,7 @@ Expected: fails because `UiEventEnvelope`, `UiEventPayload`, `UiDiagnosticLevel`
 - Create: `crates/agent-ui-bridge/src/error.rs`
 - Modify: `crates/agent-ui-bridge/src/lib.rs`
 
-- [ ] **Step 1: Add event module**
+- [x] **Step 1: Add event module**
 
 Define `UiEventEnvelope`, `UiEventPayload`, `UiDiagnosticLevel`, and `normalize_runtime_event` exactly as specified in `docs/specs/M06-01-ui-event-schema.spec.md`.
 
@@ -116,7 +116,7 @@ Mapping rules:
 - `RuntimeError` -> `Diagnostic { level: Error, recoverable }`
 - all other payloads -> `Progress`
 
-- [ ] **Step 2: Export contracts**
+- [x] **Step 2: Export contracts**
 
 Update `lib.rs`:
 
@@ -131,7 +131,7 @@ pub use error::UiBridgeError;
 pub use event::{normalize_runtime_event, UiDiagnosticLevel, UiEventEnvelope, UiEventPayload};
 ```
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 Run:
 
@@ -148,7 +148,7 @@ Expected: all UI event schema tests pass.
 - Modify: `README.md`
 - Modify: `docs/plans/M06-01-ui-event-schema.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -158,11 +158,11 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus to `M06-02-ui-command-schema`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

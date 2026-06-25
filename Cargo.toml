@@ -9,6 +9,7 @@ members = [
     "crates/agent-sandbox",
     "crates/agent-context",
     "crates/agent-memory",
+    "crates/agent-ui-bridge",
     "crates/agent-cli",
 ]
 resolver = "2"

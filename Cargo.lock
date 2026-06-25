@@ -116,6 +116,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "agent-ui-bridge"
+version = "0.1.0"
+dependencies = [
+ "agent-types",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "time",
+]
+
+[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"

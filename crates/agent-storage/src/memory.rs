@@ -1,13 +1,16 @@
 use std::collections::{BTreeMap, HashMap};
 
-use agent_types::{ConversationId, EventId, RuntimeEvent};
+use agent_types::{CheckpointId, ConversationId, EventId, RuntimeEvent, TurnId};
 
+use crate::checkpoint::{CheckpointRecord, CheckpointStore, validate_checkpoint};
 use crate::event_store::{EventStore, StorageError, StoredEvent, assign_sequence};
 
 #[derive(Default)]
 pub struct InMemoryEventStore {
     events: HashMap<EventId, StoredEvent>,
     streams: BTreeMap<ConversationId, Vec<EventId>>,
+    checkpoints: HashMap<CheckpointId, CheckpointRecord>,
+    checkpoint_streams: BTreeMap<(ConversationId, Option<TurnId>), Vec<CheckpointId>>,
 }
 
 impl EventStore for InMemoryEventStore {
@@ -43,5 +46,39 @@ impl EventStore for InMemoryEventStore {
 
     fn get(&self, event_id: EventId) -> Result<Option<StoredEvent>, StorageError> {
         Ok(self.events.get(&event_id).cloned())
+    }
+}
+
+impl CheckpointStore for InMemoryEventStore {
+    fn put_checkpoint(&mut self, checkpoint: CheckpointRecord) -> Result<(), StorageError> {
+        validate_checkpoint(&checkpoint)?;
+        if self.checkpoints.contains_key(&checkpoint.checkpoint_id) {
+            return Err(StorageError::DuplicateCheckpoint(checkpoint.checkpoint_id));
+        }
+
+        let key = (checkpoint.conversation_id, checkpoint.turn_id);
+        let checkpoint_id = checkpoint.checkpoint_id;
+        self.checkpoints.insert(checkpoint_id, checkpoint);
+        self.checkpoint_streams
+            .entry(key)
+            .or_default()
+            .push(checkpoint_id);
+        Ok(())
+    }
+
+    fn latest_checkpoint(
+        &self,
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+    ) -> Result<Option<CheckpointRecord>, StorageError> {
+        let Some(ids) = self.checkpoint_streams.get(&(conversation_id, turn_id)) else {
+            return Ok(None);
+        };
+
+        Ok(ids
+            .iter()
+            .filter_map(|id| self.checkpoints.get(id))
+            .max_by_key(|checkpoint| checkpoint.event_seq)
+            .cloned())
     }
 }

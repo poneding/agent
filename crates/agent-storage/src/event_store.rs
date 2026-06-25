@@ -1,12 +1,16 @@
-use agent_types::{ConversationId, EventId, EventSeq, RuntimeEvent};
+use agent_types::{CheckpointId, ConversationId, EventId, EventSeq, RuntimeEvent};
 use thiserror::Error;
 
 #[derive(Debug, Error, Eq, PartialEq)]
 pub enum StorageError {
     #[error("duplicate event id: {0}")]
     DuplicateEvent(EventId),
+    #[error("duplicate checkpoint id: {0}")]
+    DuplicateCheckpoint(CheckpointId),
     #[error("event sequence conflict for conversation")]
     SequenceConflict,
+    #[error("checkpoint is invalid: {0}")]
+    InvalidCheckpoint(String),
     #[error("event payload serialization failed: {0}")]
     Serialization(String),
     #[error("storage backend failed: {0}")]

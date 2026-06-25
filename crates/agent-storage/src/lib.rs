@@ -1,11 +1,13 @@
 #![forbid(unsafe_code)]
 //! Durable storage contracts for agent.
 
+pub mod checkpoint;
 pub mod event_store;
 pub mod memory;
 pub mod replay;
 pub mod sqlite;
 
+pub use checkpoint::{CheckpointRecord, CheckpointStore};
 pub use event_store::{EventStore, StorageError, StoredEvent};
 pub use memory::InMemoryEventStore;
 pub use replay::{ReplayCursor, ReplayEvent};

@@ -14,7 +14,8 @@ This slice delivers:
 
 - in-memory append/read ordering
 - SQLite append/read ordering
-- duplicate EventSeq rejection
+- duplicate EventId rejection
+- conversation/EventSeq uniqueness protection
 - conversation stream replay
 - schema_version preservation
 
@@ -44,7 +45,8 @@ Required tests:
 
 - in-memory append/read ordering
 - SQLite append/read ordering
-- duplicate EventSeq rejection
+- duplicate EventId rejection
+- conversation/EventSeq uniqueness protection
 - conversation stream replay
 - schema_version preservation
 

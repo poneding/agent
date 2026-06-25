@@ -16,7 +16,7 @@
 - Modify: `crates/agent-storage/Cargo.toml`
 - Modify: `crates/agent-storage/src/lib.rs`
 
-- [ ] **Step 1: Add dependencies**
+- [x] **Step 1: Add dependencies**
 
 Add:
 
@@ -28,7 +28,7 @@ serde_json = "1"
 thiserror = "2"
 ```
 
-- [ ] **Step 2: Export modules**
+- [x] **Step 2: Export modules**
 
 `crates/agent-storage/src/lib.rs` should export:
 
@@ -41,7 +41,7 @@ pub mod memory;
 pub mod replay;
 pub mod sqlite;
 
-pub use event_store::{EventStore, StoredEvent};
+pub use event_store::{EventStore, StorageError, StoredEvent};
 pub use memory::InMemoryEventStore;
 pub use replay::{ReplayCursor, ReplayEvent};
 pub use sqlite::SqliteEventStore;
@@ -52,7 +52,7 @@ pub use sqlite::SqliteEventStore;
 **Files:**
 - Create: `crates/agent-storage/src/event_store.rs`
 
-- [ ] **Step 1: Define storage errors and trait**
+- [x] **Step 1: Define storage errors and trait**
 
 Create the public contract:
 
@@ -92,7 +92,7 @@ pub(crate) fn assign_sequence(mut event: RuntimeEvent, next: u64) -> RuntimeEven
 }
 ```
 
-- [ ] **Step 2: Add contract tests**
+- [x] **Step 2: Add contract tests**
 
 Create tests that verify:
 
@@ -115,7 +115,7 @@ Expected: tests fail until in-memory store exists.
 - Create: `crates/agent-storage/src/memory.rs`
 - Create: `crates/agent-storage/tests/event_store.rs`
 
-- [ ] **Step 1: Implement `InMemoryEventStore`**
+- [x] **Step 1: Implement `InMemoryEventStore`**
 
 Use vectors and maps to preserve append order:
 
@@ -169,7 +169,7 @@ impl EventStore for InMemoryEventStore {
 }
 ```
 
-- [ ] **Step 2: Add shared behavior tests**
+- [x] **Step 2: Add shared behavior tests**
 
 `crates/agent-storage/tests/event_store.rs` should build fixed `RuntimeEvent` values and run the same assertions against `InMemoryEventStore`.
 
@@ -187,7 +187,7 @@ Expected: test passes.
 - Create: `crates/agent-storage/src/sqlite.rs`
 - Modify: `crates/agent-storage/tests/event_store.rs`
 
-- [ ] **Step 1: Create SQLite schema on open**
+- [x] **Step 1: Create SQLite schema on open**
 
 `SqliteEventStore::open_in_memory()` should create:
 
@@ -207,7 +207,7 @@ CREATE INDEX IF NOT EXISTS idx_runtime_events_conversation_seq
 ON runtime_events(conversation_id, seq);
 ```
 
-- [ ] **Step 2: Implement append and list**
+- [x] **Step 2: Implement append and list**
 
 SQLite append must:
 
@@ -216,12 +216,13 @@ SQLite append must:
 - serialize the full `RuntimeEvent` after sequence assignment
 - return the stored event
 
-- [ ] **Step 3: Run SQLite tests**
+- [x] **Step 3: Run SQLite tests**
 
 Run:
 
 ```bash
-cargo test -p agent-storage sqlite_assigns_ordered_sequences sqlite_rejects_duplicate_event_id
+cargo test -p agent-storage sqlite_assigns_ordered_sequences
+cargo test -p agent-storage sqlite_rejects_duplicate_event_id
 ```
 
 Expected: SQLite behavior matches in-memory behavior.
@@ -232,7 +233,7 @@ Expected: SQLite behavior matches in-memory behavior.
 - Create: `crates/agent-storage/src/replay.rs`
 - Modify: `crates/agent-storage/tests/event_store.rs`
 
-- [ ] **Step 1: Define replay types**
+- [x] **Step 1: Define replay types**
 
 Create:
 
@@ -252,7 +253,7 @@ pub struct ReplayCursor {
 }
 ```
 
-- [ ] **Step 2: Add replay tests**
+- [x] **Step 2: Add replay tests**
 
 Tests must prove:
 
@@ -264,6 +265,7 @@ Run:
 
 ```bash
 cargo test -p agent-storage replay_returns_ordered_events
+cargo test -p agent-storage replay_from_sequence_skips_prior_events
 ```
 
 Expected: replay tests pass for both in-memory and SQLite stores.
@@ -273,7 +275,7 @@ Expected: replay tests pass for both in-memory and SQLite stores.
 **Files:**
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 Run:
 
@@ -285,11 +287,11 @@ cargo test --workspace
 
 Expected: all commands pass.
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M01-03-storage-replay` to `M01-04-fake-model`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run:
 

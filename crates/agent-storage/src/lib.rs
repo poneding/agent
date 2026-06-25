@@ -1,5 +1,15 @@
 #![forbid(unsafe_code)]
-//! Storage abstractions for runtime events, checkpoints, and artifacts.
+//! Durable storage contracts for agent.
+
+pub mod event_store;
+pub mod memory;
+pub mod replay;
+pub mod sqlite;
+
+pub use event_store::{EventStore, StorageError, StoredEvent};
+pub use memory::InMemoryEventStore;
+pub use replay::{ReplayCursor, ReplayEvent};
+pub use sqlite::SqliteEventStore;
 
 /// Returns a smoke-test string proving the storage crate links shared types.
 #[must_use]

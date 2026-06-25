@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/agent-types",
+    "crates/agent-model",
 ]
 resolver = "2"
 

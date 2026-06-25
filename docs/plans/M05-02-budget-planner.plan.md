@@ -15,7 +15,7 @@
 **Files:**
 - Create: `crates/agent-context/tests/budget_planner.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Add tests named:
 
@@ -26,7 +26,7 @@ Add tests named:
 
 Use three layers with token estimates `40`, `30`, and `50`; set `ContextBudget { max_tokens: 100, reserved_response_tokens: 20 }` so the first two fit and the third is omitted.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-context budget_planner
@@ -41,15 +41,15 @@ Expected: tests fail because budget contracts do not exist.
 - Modify: `crates/agent-context/src/error.rs`
 - Modify: `crates/agent-context/src/lib.rs`
 
-- [ ] **Step 1: Add public budget types**
+- [x] **Step 1: Add public budget types**
 
 Define `ContextBudget`, `BudgetClass`, `BudgetItem`, `BudgetDecision`, and `BudgetPlan`. Export them from `lib.rs`.
 
-- [ ] **Step 2: Add budget error variants**
+- [x] **Step 2: Add budget error variants**
 
 Extend `ContextError` with `InvalidBudget(String)` and `BudgetExceeded(String)`.
 
-- [ ] **Step 3: Verify type-level GREEN progress**
+- [x] **Step 3: Verify type-level GREEN progress**
 
 ```bash
 cargo test -p agent-context context_budget_serializes_stable_shape
@@ -62,18 +62,18 @@ Expected: serialization test passes while behavior tests may still fail.
 **Files:**
 - Modify: `crates/agent-context/src/budget.rs`
 
-- [ ] **Step 1: Implement capacity calculation**
+- [x] **Step 1: Implement capacity calculation**
 
 Return `InvalidBudget("reserved response tokens must be less than max tokens")` when `reserved_response_tokens >= max_tokens`.
 
-- [ ] **Step 2: Implement inclusion and omission**
+- [x] **Step 2: Implement inclusion and omission**
 
 Iterate items in caller order. Include required items if they fit; fail if a required item would exceed capacity. Include optional items only if they fit; otherwise push `(layer, "budget_exceeded")` to `omitted`.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-context budget_planner
+cargo test -p agent-context --test budget_planner
 ```
 
 Expected: all budget planner tests pass.
@@ -85,7 +85,7 @@ Expected: all budget planner tests pass.
 - Modify: `docs/plans/M05-02-budget-planner.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -93,11 +93,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M05-02-budget-planner` to `M05-03-pinning-compact`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

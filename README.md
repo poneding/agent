@@ -79,8 +79,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current milestone spec](docs/specs/M05-02-budget-planner.spec.md)
-- [Current milestone plan](docs/plans/M05-02-budget-planner.plan.md)
+- [Current milestone spec](docs/specs/M05-03-pinning-compact.spec.md)
+- [Current milestone plan](docs/plans/M05-03-pinning-compact.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

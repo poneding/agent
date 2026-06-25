@@ -1,9 +1,13 @@
 #![forbid(unsafe_code)]
 //! Context assembly contracts for agent.
 
+pub mod budget;
 pub mod error;
 pub mod prompt;
 
+pub use budget::{
+    BudgetClass, BudgetDecision, BudgetItem, BudgetPlan, ContextBudget, plan_context_budget,
+};
 pub use error::ContextError;
 pub use prompt::{
     PromptBundle, PromptLayer, PromptLayerKind, PromptMessage, assemble_prompt_bundle,

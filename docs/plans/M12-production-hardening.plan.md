@@ -106,7 +106,7 @@ Follow `docs/plans/M12-01-schema-migration.plan.md` exactly: write RED tests, ve
 - Execute: `docs/plans/M12-05-platform-capability-report.plan.md`
 - Execute: `docs/plans/M12-06-benchmarks.plan.md`
 
-- [ ] **Step 1: Implement M12-02 telemetry**
+- [x] **Step 1: Implement M12-02 telemetry**
 
 Complete the telemetry crate and commit `feat: add m12 telemetry`.
 

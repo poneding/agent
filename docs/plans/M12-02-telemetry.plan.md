@@ -17,7 +17,7 @@
 - Read: `docs/specs/M12-00-production-hardening-technical-design.spec.md`
 - Read: `Cargo.toml`
 
-- [ ] **Step 1: Review telemetry crate boundary**
+- [x] **Step 1: Review telemetry crate boundary**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: telemetry is provider-neutral and lower-level than `agent-core`.
 - Create: `crates/agent-telemetry/Cargo.toml`
 - Create: `crates/agent-telemetry/src/lib.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Add tests:
 
@@ -44,7 +44,9 @@ Add tests:
 - `telemetry_redacts_secret_like_attributes`
 - `telemetry_trace_context_rejects_empty_identifiers`
 
-- [ ] **Step 2: Verify RED**
+The tests define the public API for `TraceContext`, `TelemetrySpan`, `TelemetryMetric`, `TelemetryAttribute`, `TelemetryError`, `TelemetryRecord`, `TelemetrySink`, and `InMemoryTelemetrySink`.
+
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -65,19 +67,19 @@ Expected: tests fail because telemetry contracts are not implemented.
 - Create: `crates/agent-telemetry/src/metric.rs`
 - Create: `crates/agent-telemetry/src/sink.rs`
 
-- [ ] **Step 1: Register workspace crate**
+- [x] **Step 1: Register workspace crate**
 
 Add `crates/agent-telemetry` to workspace members and define dependencies on `agent-types`, `serde`, `serde_json`, and `thiserror`.
 
-- [ ] **Step 2: Implement span and trace context types**
+- [x] **Step 2: Implement span and trace context types**
 
 Implement `TraceContext`, `TelemetrySpan`, `TelemetryAttribute`, and validation constructors.
 
-- [ ] **Step 3: Implement metric types**
+- [x] **Step 3: Implement metric types**
 
 Implement `TelemetryMetric` with finite numeric validation and explicit unit validation.
 
-- [ ] **Step 4: Implement sink and redaction**
+- [x] **Step 4: Implement sink and redaction**
 
 Implement `TelemetrySink`, `InMemoryTelemetrySink`, and redaction for secret-like attribute keys.
 
@@ -86,7 +88,7 @@ Implement `TelemetrySink`, `InMemoryTelemetrySink`, and redaction for secret-lik
 **Files:**
 - Read: `crates/agent-telemetry/tests/telemetry.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -96,7 +98,7 @@ cargo test -p agent-telemetry telemetry
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -115,7 +117,7 @@ Expected: all checks pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M12-02-telemetry.plan.md`
 
-- [ ] **Step 1: Commit**
+- [x] **Step 1: Commit**
 
 Run:
 

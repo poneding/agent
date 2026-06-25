@@ -10,6 +10,17 @@
 
 ---
 
+## Slice Execution Order
+
+Execute M06 through the slice-level plans below. Do not implement this milestone directly from the generic milestone tasks.
+
+1. `docs/plans/M06-01-ui-event-schema.plan.md`
+2. `docs/plans/M06-02-ui-command-schema.plan.md`
+3. `docs/plans/M06-03-cli-json-mode.plan.md`
+4. `docs/plans/M06-04-bridge-snapshots.plan.md`
+
+M06 is complete only after all four slice plans are checked, committed, and verified with the standard workspace commands.
+
 ### Task 1: Confirm Milestone Inputs
 
 **Files:**

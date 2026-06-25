@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M05 are implemented. Current focus is M06: JSON mode and the UI bridge, starting with slice-level specs and plans.
+M01-M05 are implemented. Current focus is M06-01: the UI event schema for JSON mode and the UI bridge.
 
 ## Core Ideas
 
@@ -79,8 +79,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current milestone spec](docs/specs/M06-json-ui-bridge.spec.md)
-- [Current milestone plan](docs/plans/M06-json-ui-bridge.plan.md)
+- [Current spec](docs/specs/M06-01-ui-event-schema.spec.md)
+- [Current plan](docs/plans/M06-01-ui-event-schema.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

@@ -51,6 +51,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M05 slice specs | Complete for M05-01 through M05-05 |
 | M05 slice plans | Complete for M05-01 through M05-05 |
 | M05 implementation | Complete |
+| M06 slice specs | Complete for M06-01 through M06-04 |
+| M06 slice plans | Complete for M06-01 through M06-04 |
 
 ## Milestone Spec and Plan Index
 
@@ -120,18 +122,18 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M05-04 Conversation Memory | `docs/specs/M05-04-conversation-memory.spec.md` | `docs/plans/M05-04-conversation-memory.plan.md` | Conversation-scoped memory records with add, retrieve, and delete behavior. |
 | M05-05 Project Memory | `docs/specs/M05-05-project-memory.spec.md` | `docs/plans/M05-05-project-memory.plan.md` | Project-scoped memory with audit entries and context integration coverage. |
 
+## M06 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M06-01 UI Event Schema | `docs/specs/M06-01-ui-event-schema.spec.md` | `docs/plans/M06-01-ui-event-schema.plan.md` | UI bridge crate, UI-safe event envelopes, and runtime event normalization. |
+| M06-02 UI Command Schema | `docs/specs/M06-02-ui-command-schema.spec.md` | `docs/plans/M06-02-ui-command-schema.plan.md` | UI command envelopes, client metadata, command variants, and validation. |
+| M06-03 CLI JSON Mode | `docs/specs/M06-03-cli-json-mode.spec.md` | `docs/plans/M06-03-cli-json-mode.plan.md` | `--json` CLI output mode with newline-delimited UI bridge frames. |
+| M06-04 Bridge Snapshots | `docs/specs/M06-04-bridge-snapshots.spec.md` | `docs/plans/M06-04-bridge-snapshots.plan.md` | Stable bridge snapshots and M06 completion verification. |
+
 ## Later Milestone Slice Candidates
 
 These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M06 JSON Mode and UI Bridge
-
-| Slice | Outcome |
-|---|---|
-| M06-01 UI Event Schema | Stable event schema for UI clients. |
-| M06-02 UI Command Schema | Stable command schema for UI clients. |
-| M06-03 CLI JSON Mode | JSON event stream mode over runtime events. |
-| M06-04 Bridge Snapshots | Snapshot tests for UI-facing runtime events. |
 
 ### M07 MCP and Skills
 
@@ -193,11 +195,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M06-json-ui-bridge` slice decomposition.
+Current implementation focus: `M06-01-ui-event-schema`.
 
-Current planning focus: create M06 slice-level specs and plans before implementation.
+Current planning focus: M06 slice-level specs and plans are created; next planning document should be a slice-level doc only when implementation reaches M07.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M06-json-ui-bridge.spec.md`
-- `docs/plans/M06-json-ui-bridge.plan.md`
+- `docs/specs/M06-01-ui-event-schema.spec.md`
+- `docs/plans/M06-01-ui-event-schema.plan.md`

@@ -71,6 +71,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M09 slice specs | Complete for M09-01 through M09-04 |
 | M09 slice plans | Complete for M09-01 through M09-04 |
 | M09-01 implementation | Complete |
+| M09-02 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -213,11 +214,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M09-02-conflict-detection`.
+Current implementation focus: `M09-03-subagent-handoff`.
 
 Current planning focus: keep M09 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M09-02-conflict-detection.spec.md`
-- `docs/plans/M09-02-conflict-detection.plan.md`
+- `docs/specs/M09-03-subagent-handoff.spec.md`
+- `docs/plans/M09-03-subagent-handoff.plan.md`

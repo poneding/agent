@@ -16,7 +16,7 @@
 - Read: `docs/specs/M09-02-conflict-detection.spec.md`
 - Read: `crates/agent-worktree/src/lib.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 ```bash
 sed -n '1,260p' docs/specs/M09-02-conflict-detection.spec.md
@@ -27,7 +27,7 @@ sed -n '1,260p' docs/specs/M09-02-conflict-detection.spec.md
 **Files:**
 - Create: `crates/agent-worktree/tests/conflict_detection.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -38,7 +38,7 @@ Cover:
 - `conflict_detection_reports_add_add_different_hash`
 - `conflict_detection_rejects_invalid_paths`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-worktree conflict_detection
@@ -52,15 +52,15 @@ Expected: fails because conflict APIs do not exist.
 - Create: `crates/agent-worktree/src/conflict.rs`
 - Modify: `crates/agent-worktree/src/lib.rs`
 
-- [ ] **Step 1: Add conflict contracts**
+- [x] **Step 1: Add conflict contracts**
 
 Implement `FileChange`, `ChangeKind`, `ConflictKind`, `Conflict`, and `ConflictReport`.
 
-- [ ] **Step 2: Add pure detector**
+- [x] **Step 2: Add pure detector**
 
 Implement `detect_conflicts` with stable path sorting and validation.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-worktree conflict_detection
@@ -73,11 +73,11 @@ cargo test -p agent-worktree conflict_detection
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M09-02-conflict-detection.plan.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M09-03-subagent-handoff`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -85,7 +85,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

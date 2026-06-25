@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M08 and M09-01 are implemented. Current focus is M09-02: conflict detection.
+M01-M08 and M09-01 through M09-02 are implemented. Current focus is M09-03: subagent handoff.
 
 ## Core Ideas
 
@@ -80,8 +80,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M09-02-conflict-detection.spec.md)
-- [Current plan](docs/plans/M09-02-conflict-detection.plan.md)
+- [Current spec](docs/specs/M09-03-subagent-handoff.spec.md)
+- [Current plan](docs/plans/M09-03-subagent-handoff.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

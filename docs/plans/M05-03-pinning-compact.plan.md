@@ -15,7 +15,7 @@
 **Files:**
 - Create: `crates/agent-context/tests/pinning_compact.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Add tests named:
 
@@ -26,7 +26,7 @@ Add tests named:
 
 Use two pinned messages and three unpinned messages. Assert the pinned IDs and messages are unchanged and summary text is stable across two calls.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-context pinning_compact
@@ -41,15 +41,15 @@ Expected: tests fail because compaction contracts do not exist.
 - Modify: `crates/agent-context/src/error.rs`
 - Modify: `crates/agent-context/src/lib.rs`
 
-- [ ] **Step 1: Add public compact types**
+- [x] **Step 1: Add public compact types**
 
 Define `PinnedMessage`, `CompactionSummary`, `CompactRequest`, and `CompactResult`. Export them from `lib.rs`.
 
-- [ ] **Step 2: Add compaction errors**
+- [x] **Step 2: Add compaction errors**
 
 Extend `ContextError` with `InvalidPin(String)` and `InvalidCompaction(String)`.
 
-- [ ] **Step 3: Verify type-level GREEN progress**
+- [x] **Step 3: Verify type-level GREEN progress**
 
 ```bash
 cargo test -p agent-context compact_messages_rejects_duplicate_pin_ids
@@ -62,18 +62,18 @@ Expected: duplicate pin test fails with the expected variant once validation is 
 **Files:**
 - Modify: `crates/agent-context/src/compact.rs`
 
-- [ ] **Step 1: Validate pins**
+- [x] **Step 1: Validate pins**
 
 Reject empty pin IDs, empty reasons, and duplicate pin IDs. Keep original pin order.
 
-- [ ] **Step 2: Build deterministic summary**
+- [x] **Step 2: Build deterministic summary**
 
 For unpinned messages, join snippets as `"{role}: {content}"` separated by `"\n"`. Truncate by estimated token count using the existing `PromptMessage` content words as the approximation.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-context pinning_compact
+cargo test -p agent-context --test pinning_compact
 ```
 
 Expected: all pinning and compaction tests pass.
@@ -85,7 +85,7 @@ Expected: all pinning and compaction tests pass.
 - Modify: `docs/plans/M05-03-pinning-compact.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -93,11 +93,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M05-03-pinning-compact` to `M05-04-conversation-memory`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

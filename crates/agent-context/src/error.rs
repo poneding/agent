@@ -8,4 +8,8 @@ pub enum ContextError {
     InvalidBudget(String),
     #[error("context budget exceeded: {0}")]
     BudgetExceeded(String),
+    #[error("pinned message is invalid: {0}")]
+    InvalidPin(String),
+    #[error("compaction request is invalid: {0}")]
+    InvalidCompaction(String),
 }

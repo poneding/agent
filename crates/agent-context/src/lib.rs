@@ -2,11 +2,15 @@
 //! Context assembly contracts for agent.
 
 pub mod budget;
+pub mod compact;
 pub mod error;
 pub mod prompt;
 
 pub use budget::{
     BudgetClass, BudgetDecision, BudgetItem, BudgetPlan, ContextBudget, plan_context_budget,
+};
+pub use compact::{
+    CompactRequest, CompactResult, CompactionSummary, PinnedMessage, compact_messages,
 };
 pub use error::ContextError;
 pub use prompt::{

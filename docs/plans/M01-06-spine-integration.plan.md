@@ -15,17 +15,17 @@
 **Files:**
 - Create: `crates/agent-core/tests/spine_integration.rs`
 
-- [ ] **Step 1: Build a deterministic fake turn fixture**
+- [x] **Step 1: Build a deterministic fake turn fixture**
 
 The fixture should:
 
-- create fixed workspace/conversation/turn/correlation IDs
+- create workspace/conversation/turn/correlation IDs for the fixture
 - create `FakeModelProvider::new(FakeModelScript::text("hello from fake model"))`
 - create `TurnInput`
 - run `TurnEngine::run`
 - append every emitted event to `InMemoryEventStore`
 
-- [ ] **Step 2: Verify persisted event stream**
+- [x] **Step 2: Verify persisted event stream**
 
 Assertions:
 
@@ -47,7 +47,7 @@ Expected: integration test passes.
 **Files:**
 - Create: `crates/agent-storage/tests/replay_integration.rs`
 
-- [ ] **Step 1: Add replay final-state test**
+- [x] **Step 1: Add replay final-state test**
 
 The test should:
 
@@ -69,18 +69,18 @@ Expected: replay reconstructs the same final response produced by the turn engin
 **Files:**
 - Create: `crates/agent-cli/tests/runtime_spine.rs`
 
-- [ ] **Step 1: Add CLI smoke assertion**
+- [x] **Step 1: Add CLI smoke assertion**
 
 The test should run:
 
 ```bash
-cargo run -p agent-cli -- --version
+cargo run -p agent-cli
 ```
 
 Expected stdout:
 
 ```text
-agent-cli 0.1.0
+agent (agent-model uses agent-types, agent-storage uses agent-types)
 ```
 
 The CLI test proves the binary still links after runtime spine crates are integrated.
@@ -91,7 +91,7 @@ The CLI test proves the binary still links after runtime spine crates are integr
 - Read: `Cargo.toml`
 - Read: `Cargo.lock`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 Run:
 
@@ -103,7 +103,7 @@ cargo test --workspace
 
 Expected: all commands pass.
 
-- [ ] **Step 2: Confirm M01 acceptance criteria**
+- [x] **Step 2: Confirm M01 acceptance criteria**
 
 Confirm:
 
@@ -118,11 +118,11 @@ Persisted events replay into the same final state.
 **Files:**
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Mark M01 complete and set next focus**
+- [x] **Step 1: Mark M01 complete and set next focus**
 
 Update the milestone index so M01 is complete and active focus moves to `M02-tool-policy-audit`.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

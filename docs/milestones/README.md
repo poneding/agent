@@ -37,7 +37,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Milestone-level specs | Complete for M01-M12 |
 | Milestone-level plans | Complete for M01-M12 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
-| M01 slice plans | Development-ready for M01-01 through M01-06 |
+| M01 slice plans | Complete for M01-01 through M01-06 |
+| M01 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -180,11 +181,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M01-06-spine-integration`.
+Current implementation focus: `M02-tool-policy-audit`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M01-06-spine-integration.spec.md`
-- `docs/plans/M01-06-spine-integration.plan.md`
+- `docs/specs/M02-tool-policy-audit.spec.md`
+- `docs/plans/M02-tool-policy-audit.plan.md`

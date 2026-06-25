@@ -18,7 +18,7 @@
 - Read: `crates/agent-model/src/request.rs`
 - Read: `crates/agent-model/src/stream.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: the spec defines fixture-backed request mapping and stream parsing.
 **Files:**
 - Create: `crates/agent-model/tests/openai_compatible.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests:
 
@@ -43,12 +43,12 @@ Add tests:
 - `openai_compatible_stream_parser_ignores_done_marker`
 - `openai_compatible_errors_redact_response_bodies`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
 ```bash
-cargo test -p agent-model openai_compatible
+cargo test -p agent-model --test openai_compatible
 ```
 
 Expected: tests fail because adapter contracts do not exist.
@@ -59,15 +59,15 @@ Expected: tests fail because adapter contracts do not exist.
 - Create: `crates/agent-model/src/openai_compatible.rs`
 - Modify: `crates/agent-model/src/lib.rs`
 
-- [ ] **Step 1: Add request builder**
+- [x] **Step 1: Add request builder**
 
 Build Responses API-style JSON containing `model`, `input`, and `stream`.
 
-- [ ] **Step 2: Add fixture transport and parser**
+- [x] **Step 2: Add fixture transport and parser**
 
 Implement a fixture transport trait and parse synthetic SSE chunks into `ModelStreamEvent` values.
 
-- [ ] **Step 3: Add provider wrapper**
+- [x] **Step 3: Add provider wrapper**
 
 Implement `OpenAiCompatibleProvider` behind `ModelProvider` using fixture transport for tests.
 
@@ -79,12 +79,12 @@ Implement `OpenAiCompatibleProvider` behind `ModelProvider` using fixture transp
 - Modify: `docs/plans/M13-real-model-providers-config.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
 ```bash
-cargo test -p agent-model openai_compatible
+cargo test -p agent-model --test openai_compatible
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
@@ -92,7 +92,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

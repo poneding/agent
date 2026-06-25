@@ -108,8 +108,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M13-01 implementation | Complete |
 | M13-02 implementation | Complete |
 | M13-03 implementation | Complete |
-| M13-04 implementation | In progress |
-| M13-05 implementation | Planned |
+| M13-04 implementation | Complete |
+| M13-05 implementation | In progress |
 | M13 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -263,9 +263,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M13-04-openai-compatible-adapter`.
+Current implementation focus: `M13-05-cli-model-selection`.
 
 Primary planning documents for the current focus:
 
-- `docs/specs/M13-04-openai-compatible-adapter.spec.md`
-- `docs/plans/M13-04-openai-compatible-adapter.plan.md`
+- `docs/specs/M13-05-cli-model-selection.spec.md`
+- `docs/plans/M13-05-cli-model-selection.plan.md`

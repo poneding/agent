@@ -4,6 +4,7 @@
 pub mod config;
 pub mod fake;
 pub mod invocation_policy;
+pub mod openai_compatible;
 pub mod provider;
 pub mod registry;
 pub mod request;
@@ -17,6 +18,11 @@ pub use fake::{FakeModelProvider, FakeModelScript, FakeToolCall};
 pub use invocation_policy::{
     ModelFailureKind, ModelFallbackChain, ModelInvocationPolicy, ModelInvocationPolicyError,
     ModelRetryPolicy,
+};
+pub use openai_compatible::{
+    FixtureOpenAiCompatibleTransport, OpenAiCompatibleError, OpenAiCompatibleHttpRequest,
+    OpenAiCompatibleHttpResponse, OpenAiCompatibleProvider, OpenAiCompatibleTransport,
+    build_openai_compatible_request_body, parse_openai_compatible_sse,
 };
 pub use provider::{ModelError, ModelProvider};
 pub use registry::{

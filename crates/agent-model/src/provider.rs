@@ -8,6 +8,12 @@ use crate::stream::ModelStreamResult;
 pub enum ModelError {
     #[error("model script failed: {0}")]
     Script(String),
+    #[error("model provider failed [{code}]: {message}")]
+    Provider {
+        code: String,
+        message: String,
+        retryable: bool,
+    },
 }
 
 #[async_trait]

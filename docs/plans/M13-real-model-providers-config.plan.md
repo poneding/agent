@@ -111,7 +111,7 @@ Complete provider registry and capability negotiation, then commit `feat: add m1
 
 Complete timeout, retry, and fallback contracts, then commit `feat: add m13 model invocation policy`.
 
-- [ ] **Step 3: Implement M13-04 OpenAI-compatible adapter**
+- [x] **Step 3: Implement M13-04 OpenAI-compatible adapter**
 
 Complete fixture-backed adapter request and stream parsing, then commit `feat: add m13 openai compatible adapter`.
 

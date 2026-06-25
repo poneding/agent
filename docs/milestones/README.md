@@ -65,6 +65,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M08 slice plans | Complete for M08-01 through M08-04 |
 | M08-01 implementation | Complete |
 | M08-02 implementation | Complete |
+| M08-03 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -207,11 +208,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M08-03-quotas`.
+Current implementation focus: `M08-04-notifications`.
 
 Current planning focus: keep M08 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M08-03-quotas.spec.md`
-- `docs/plans/M08-03-quotas.plan.md`
+- `docs/specs/M08-04-notifications.spec.md`
+- `docs/plans/M08-04-notifications.plan.md`

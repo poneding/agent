@@ -2,8 +2,9 @@ use agent_types::{TaskId, TaskState, Timestamp};
 use time::Duration;
 
 use crate::{
-    LeaseStatus, RetryDecision, RetryPolicy, SchedulerError, TaskLease, TaskLeaseId, TaskPriority,
-    TaskRun, TaskTransition, transition_task_state,
+    LeaseStatus, QuotaDecision, QuotaPolicy, QuotaSnapshot, RetryDecision, RetryPolicy,
+    SchedulerError, TaskLease, TaskLeaseId, TaskPriority, TaskRun, TaskTransition,
+    evaluate_task_quota, transition_task_state,
 };
 
 pub trait TaskQueue {
@@ -13,6 +14,14 @@ pub trait TaskQueue {
         &mut self,
         worker_id: &str,
         now: Timestamp,
+    ) -> Result<Option<TaskLease>, SchedulerError>;
+
+    fn acquire_next_with_quota(
+        &mut self,
+        worker_id: &str,
+        now: Timestamp,
+        policy: &QuotaPolicy,
+        snapshot: &QuotaSnapshot,
     ) -> Result<Option<TaskLease>, SchedulerError>;
 
     fn complete(
@@ -99,8 +108,9 @@ impl InMemoryTaskQueue {
         Ok(())
     }
 
-    fn next_ready_task_index(&self, now: Timestamp) -> Option<usize> {
-        self.tasks
+    fn ready_task_indices(&self, now: Timestamp) -> Vec<usize> {
+        let mut indices = self
+            .tasks
             .iter()
             .enumerate()
             .filter(|(_, entry)| {
@@ -108,13 +118,49 @@ impl InMemoryTaskQueue {
                     && entry.active_lease.is_none()
                     && entry.available_at <= now
             })
-            .min_by(|(_, left), (_, right)| {
-                priority_rank(left.run.priority)
-                    .cmp(&priority_rank(right.run.priority))
-                    .then_with(|| left.run.created_at.cmp(&right.run.created_at))
-                    .then_with(|| left.run.task_id.cmp(&right.run.task_id))
-            })
             .map(|(index, _)| index)
+            .collect::<Vec<_>>();
+        indices.sort_by(|left, right| {
+            let left = &self.tasks[*left];
+            let right = &self.tasks[*right];
+            priority_rank(left.run.priority)
+                .cmp(&priority_rank(right.run.priority))
+                .then_with(|| left.run.created_at.cmp(&right.run.created_at))
+                .then_with(|| left.run.task_id.cmp(&right.run.task_id))
+        });
+        indices
+    }
+
+    fn validate_worker_id(worker_id: &str) -> Result<(), SchedulerError> {
+        if worker_id.trim().is_empty() {
+            return Err(SchedulerError::InvalidLease(
+                "worker_id cannot be empty".to_string(),
+            ));
+        }
+        Ok(())
+    }
+
+    fn lease_task_at_index(
+        &mut self,
+        task_index: usize,
+        worker_id: &str,
+        now: Timestamp,
+    ) -> Result<TaskLease, SchedulerError> {
+        let task_id = self.tasks[task_index].run.task_id;
+        let next_run = transition_task_state(
+            &self.tasks[task_index].run,
+            TaskTransition {
+                from: TaskState::Queued,
+                to: TaskState::Running,
+                reason: "lease acquired".to_string(),
+                at: now,
+            },
+        )?;
+        let lease = self.build_lease(task_id, worker_id, now)?;
+
+        self.tasks[task_index].run = next_run;
+        self.tasks[task_index].active_lease = Some(lease.id.clone());
+        Ok(lease)
     }
 
     fn active_lease_index(&self, lease_id: &TaskLeaseId) -> Result<usize, SchedulerError> {
@@ -218,32 +264,37 @@ impl TaskQueue for InMemoryTaskQueue {
         worker_id: &str,
         now: Timestamp,
     ) -> Result<Option<TaskLease>, SchedulerError> {
-        if worker_id.trim().is_empty() {
-            return Err(SchedulerError::InvalidLease(
-                "worker_id cannot be empty".to_string(),
-            ));
-        }
+        Self::validate_worker_id(worker_id)?;
 
         self.wake_ready_sleeping_tasks(now)?;
-        let Some(task_index) = self.next_ready_task_index(now) else {
+        let Some(task_index) = self.ready_task_indices(now).into_iter().next() else {
             return Ok(None);
         };
 
-        let task_id = self.tasks[task_index].run.task_id;
-        let next_run = transition_task_state(
-            &self.tasks[task_index].run,
-            TaskTransition {
-                from: TaskState::Queued,
-                to: TaskState::Running,
-                reason: "lease acquired".to_string(),
-                at: now,
-            },
-        )?;
-        let lease = self.build_lease(task_id, worker_id, now)?;
+        self.lease_task_at_index(task_index, worker_id, now)
+            .map(Some)
+    }
 
-        self.tasks[task_index].run = next_run;
-        self.tasks[task_index].active_lease = Some(lease.id.clone());
-        Ok(Some(lease))
+    fn acquire_next_with_quota(
+        &mut self,
+        worker_id: &str,
+        now: Timestamp,
+        policy: &QuotaPolicy,
+        snapshot: &QuotaSnapshot,
+    ) -> Result<Option<TaskLease>, SchedulerError> {
+        Self::validate_worker_id(worker_id)?;
+        self.wake_ready_sleeping_tasks(now)?;
+
+        for task_index in self.ready_task_indices(now) {
+            if evaluate_task_quota(policy, snapshot, &self.tasks[task_index].run)
+                == QuotaDecision::Allow
+            {
+                return self
+                    .lease_task_at_index(task_index, worker_id, now)
+                    .map(Some);
+            }
+        }
+        Ok(None)
     }
 
     fn complete(

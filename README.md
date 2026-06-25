@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M07 and M08-01 through M08-02 are implemented. Current focus is M08-03: quotas.
+M01-M07 and M08-01 through M08-03 are implemented. Current focus is M08-04: notifications.
 
 ## Core Ideas
 
@@ -80,8 +80,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M08-03-quotas.spec.md)
-- [Current plan](docs/plans/M08-03-quotas.plan.md)
+- [Current spec](docs/specs/M08-04-notifications.spec.md)
+- [Current plan](docs/plans/M08-04-notifications.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

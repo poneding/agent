@@ -16,7 +16,7 @@
 - Read: `docs/specs/M08-03-quotas.spec.md`
 - Read: `crates/agent-scheduler/src/queue.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 ```bash
 sed -n '1,260p' docs/specs/M08-03-quotas.spec.md
@@ -27,7 +27,7 @@ sed -n '1,260p' docs/specs/M08-03-quotas.spec.md
 **Files:**
 - Create: `crates/agent-scheduler/tests/quotas.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -37,7 +37,7 @@ Cover:
 - `quotas_reject_background_and_cron_limits`
 - `quotas_queue_acquire_skips_rejected_candidate`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-scheduler quotas
@@ -50,19 +50,19 @@ cargo test -p agent-scheduler quotas
 - Modify: `crates/agent-scheduler/src/queue.rs`
 - Modify: `crates/agent-scheduler/src/lib.rs`
 
-- [ ] **Step 1: Add quota contracts**
+- [x] **Step 1: Add quota contracts**
 
 Implement `QuotaPolicy`, `QuotaSnapshot`, `QuotaDecision`, and `QuotaRejection`.
 
-- [ ] **Step 2: Add pure evaluator**
+- [x] **Step 2: Add pure evaluator**
 
 Implement `evaluate_task_quota`.
 
-- [ ] **Step 3: Add queue quota-aware acquisition**
+- [x] **Step 3: Add queue quota-aware acquisition**
 
 Add an acquisition path that evaluates candidates before leasing.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```bash
 cargo test -p agent-scheduler quotas
@@ -75,11 +75,11 @@ cargo test -p agent-scheduler quotas
 - Modify: `docs/milestones/README.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M08-04-notifications`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -87,7 +87,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

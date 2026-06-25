@@ -15,11 +15,11 @@
 **Files:**
 - Create: `crates/agent-core/tests/recovery_flow.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Tests must prove planning without checkpoint, planning from latest checkpoint, replay from checkpoint tail, idempotency-aware resume, and corrupt checkpoint diagnostics.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-core recovery_flow
@@ -33,19 +33,19 @@ Expected: tests fail because recovery contracts do not exist.
 - Create: `crates/agent-core/src/recovery.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Define `RecoveryPlan` and `RecoveryOutcome`**
+- [x] **Step 1: Define `RecoveryPlan` and `RecoveryOutcome`**
 
 Use the fields from `docs/specs/M04-03-recovery-flow.spec.md`.
 
-- [ ] **Step 2: Implement planner**
+- [x] **Step 2: Implement planner**
 
 Select the latest checkpoint for the conversation/turn and compute the replay cursor.
 
-- [ ] **Step 3: Implement recovery runner**
+- [x] **Step 3: Implement recovery runner**
 
 Replay events from the cursor and reuse recorded idempotent side effects.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```bash
 cargo test -p agent-core recovery_flow
@@ -59,7 +59,7 @@ Expected: focused recovery tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M04-03-recovery-flow.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -67,11 +67,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M04-03-recovery-flow` to `M04-04-trace-commands`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

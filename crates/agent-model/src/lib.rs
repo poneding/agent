@@ -1,11 +1,16 @@
 #![forbid(unsafe_code)]
 //! Model provider contracts for agent.
 
+pub mod config;
 pub mod fake;
 pub mod provider;
 pub mod request;
 pub mod stream;
 
+pub use config::{
+    ModelConfigError, ModelEndpointConfig, ModelProviderCatalog, ModelProviderConfig,
+    ModelProviderKind, SecretRef,
+};
 pub use fake::{FakeModelProvider, FakeModelScript, FakeToolCall};
 pub use provider::{ModelError, ModelProvider};
 pub use request::ModelRequest;

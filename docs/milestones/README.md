@@ -102,6 +102,15 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M12-05 implementation | Complete |
 | M12-06 implementation | Complete |
 | M12 implementation | Complete |
+| M13 technical design | Complete |
+| M13 slice specs | Complete for M13-01 through M13-05 |
+| M13 slice plans | Complete for M13-01 through M13-05 |
+| M13-01 implementation | Complete |
+| M13-02 implementation | In progress |
+| M13-03 implementation | Planned |
+| M13-04 implementation | Planned |
+| M13-05 implementation | Planned |
+| M13 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -119,6 +128,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M10 Desktop Preview | `docs/specs/M10-desktop-preview.spec.md` | `docs/plans/M10-desktop-preview.plan.md` | Provide a visual Desktop client over the shared runtime bridge. |
 | M11 Plugin Runtime | `docs/specs/M11-plugin-runtime.spec.md` | `docs/plans/M11-plugin-runtime.plan.md` | Open the runtime to controlled third-party extension through manifests, process isolation, declared capabilities, tools, hooks, and a WASM prototype. |
 | M12 Production Hardening | `docs/specs/M12-production-hardening.spec.md` | `docs/plans/M12-production-hardening.plan.md` | Make the runtime reliable for daily use and external integration with migrations, telemetry, audit export, memory portability, platform reports, and benchmarks. |
+| M13 Real Model Providers and Runtime Configuration | `docs/specs/M13-real-model-providers-config.spec.md` | `docs/plans/M13-real-model-providers-config.plan.md` | Add provider configuration, registry, invocation policy, OpenAI-compatible adapter contracts, and CLI model selection. |
 
 ## M01 Slice Index
 
@@ -240,11 +250,22 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M12-05 Platform Capability Report | `docs/specs/M12-05-platform-capability-report.spec.md` | `docs/plans/M12-05-platform-capability-report.plan.md` | Cross-platform sandbox capability reporting. |
 | M12-06 Benchmarks | `docs/specs/M12-06-benchmarks.spec.md` | `docs/plans/M12-06-benchmarks.plan.md` | Deterministic runtime benchmark smoke scenarios. |
 
+## M13 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M13-00 Real Model Providers and Runtime Configuration Technical Design | `docs/specs/M13-00-real-model-providers-config-technical-design.spec.md` | `docs/plans/M13-00-real-model-providers-config-technical-design.plan.md` | Provider config, secret refs, registry, invocation policy, adapter, CLI/Desktop, privacy, and test boundaries. |
+| M13-01 Provider Config | `docs/specs/M13-01-provider-config.spec.md` | `docs/plans/M13-01-provider-config.plan.md` | Provider config, endpoint config, secret refs, catalog validation, and stable serde contracts. |
+| M13-02 Provider Registry Capabilities | `docs/specs/M13-02-provider-registry-capabilities.spec.md` | `docs/plans/M13-02-provider-registry-capabilities.plan.md` | Registry lookup, duplicate safety, and capability negotiation. |
+| M13-03 Invocation Policy | `docs/specs/M13-03-invocation-policy.spec.md` | `docs/plans/M13-03-invocation-policy.plan.md` | Timeout, retry, and fallback decision contracts. |
+| M13-04 OpenAI-Compatible Adapter | `docs/specs/M13-04-openai-compatible-adapter.spec.md` | `docs/plans/M13-04-openai-compatible-adapter.plan.md` | Fixture-backed request mapping and streaming parser for OpenAI-compatible Responses API shape. |
+| M13-05 CLI Model Selection | `docs/specs/M13-05-cli-model-selection.spec.md` | `docs/plans/M13-05-cli-model-selection.plan.md` | CLI provider/model flags and UI-safe selection output. |
+
 ## Active Work
 
-Current implementation focus: M12 complete; next milestone planning has not started.
+Current implementation focus: `M13-02-provider-registry-capabilities`.
 
-Primary planning documents for the completed M12 milestone:
+Primary planning documents for the current focus:
 
-- `docs/specs/M12-production-hardening.spec.md`
-- `docs/plans/M12-production-hardening.plan.md`
+- `docs/specs/M13-02-provider-registry-capabilities.spec.md`
+- `docs/plans/M13-02-provider-registry-capabilities.plan.md`

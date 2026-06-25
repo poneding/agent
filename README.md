@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M12 are implemented. Current focus is post-M12 planning.
+M01-M12 and M13-01 are implemented. Current focus is M13-02: provider registry capabilities.
 
 ## Core Ideas
 
@@ -82,9 +82,9 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [M12 spec](docs/specs/M12-production-hardening.spec.md)
-- [M12 plan](docs/plans/M12-production-hardening.plan.md)
-- [M12 technical design](docs/specs/M12-00-production-hardening-technical-design.spec.md)
+- [Current spec](docs/specs/M13-02-provider-registry-capabilities.spec.md)
+- [Current plan](docs/plans/M13-02-provider-registry-capabilities.plan.md)
+- [M13 technical design](docs/specs/M13-00-real-model-providers-config-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

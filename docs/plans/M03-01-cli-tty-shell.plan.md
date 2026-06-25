@@ -18,7 +18,7 @@
 - Create: `crates/agent-cli/src/output.rs`
 - Modify: `crates/agent-cli/src/main.rs`
 
-- [ ] **Step 1: Write failing parser tests**
+- [x] **Step 1: Write failing parser tests**
 
 Create `crates/agent-cli/tests/cli_modes.rs` with tests for:
 
@@ -28,7 +28,7 @@ Create `crates/agent-cli/tests/cli_modes.rs` with tests for:
 - `--tty`
 - unknown flag error
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-cli cli_modes
@@ -36,11 +36,11 @@ cargo test -p agent-cli cli_modes
 
 Expected: tests fail because `agent_cli::CliCommand` and parser functions do not exist.
 
-- [ ] **Step 3: Implement parser and output contracts**
+- [x] **Step 3: Implement parser and output contracts**
 
 Implement `CliCommand`, `CliOutput`, and `parse_cli_command`.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```bash
 cargo test -p agent-cli cli_modes
@@ -54,11 +54,11 @@ Expected: parser tests pass.
 - Modify: `crates/agent-cli/src/command.rs`
 - Create: `crates/agent-cli/tests/slash_commands.rs`
 
-- [ ] **Step 1: Write failing slash tests**
+- [x] **Step 1: Write failing slash tests**
 
 Tests must prove `/help`, `/status`, `/exit`, and unknown slash commands return deterministic `CliOutput`.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-cli slash_commands
@@ -66,11 +66,11 @@ cargo test -p agent-cli slash_commands
 
 Expected: tests fail before slash command parser exists.
 
-- [ ] **Step 3: Implement slash command parsing**
+- [x] **Step 3: Implement slash command parsing**
 
 Implement `SlashCommand` and `handle_slash_command`.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```bash
 cargo test -p agent-cli slash_commands
@@ -85,15 +85,15 @@ Expected: slash command tests pass.
 - Modify: `crates/agent-cli/tests/cli_smoke.rs`
 - Modify: `crates/agent-cli/tests/runtime_spine.rs`
 
-- [ ] **Step 1: Add binary smoke tests**
+- [x] **Step 1: Add binary smoke tests**
 
 Tests must prove `agent-cli --version`, `agent-cli`, and `agent-cli --prompt hello` print exact expected output.
 
-- [ ] **Step 2: Implement binary adapter**
+- [x] **Step 2: Implement binary adapter**
 
 `main.rs` should call `parse_cli_command` and print `CliOutput.stdout`.
 
-- [ ] **Step 3: Run focused CLI tests**
+- [x] **Step 3: Run focused CLI tests**
 
 ```bash
 cargo test -p agent-cli
@@ -107,7 +107,7 @@ Expected: all CLI tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M03-01-cli-tty-shell.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -115,11 +115,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M03-01-cli-tty-shell` to `M03-02-file-edit-tool`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

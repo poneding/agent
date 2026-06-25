@@ -8,6 +8,7 @@ authors.workspace = true
 
 [dependencies]
 agent-core = { path = "../agent-core" }
+thiserror = "2"
 
 [lints]
 workspace = true

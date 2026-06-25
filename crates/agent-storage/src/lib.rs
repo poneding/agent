@@ -11,6 +11,9 @@ pub fn storage_layer_name() -> String {
 mod tests {
     #[test]
     fn exposes_storage_layer_identity() {
-        assert_eq!(crate::storage_layer_name(), "agent-storage uses agent-types");
+        assert_eq!(
+            crate::storage_layer_name(),
+            "agent-storage uses agent-types"
+        );
     }
 }

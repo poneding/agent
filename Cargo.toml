@@ -8,6 +8,7 @@ members = [
     "crates/agent-policy",
     "crates/agent-sandbox",
     "crates/agent-scheduler",
+    "crates/agent-worktree",
     "crates/agent-context",
     "crates/agent-memory",
     "crates/agent-mcp",

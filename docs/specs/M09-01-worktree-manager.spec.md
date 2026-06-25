@@ -94,7 +94,7 @@ pub struct WorktreeLease {
 }
 
 pub trait WorktreeManager {
-    fn plan(&self, request: WorktreeRequest, now: Timestamp) -> Result<WorktreeLease, WorktreeError>;
+    fn plan(&mut self, request: WorktreeRequest, now: Timestamp) -> Result<WorktreeLease, WorktreeError>;
     fn activate(&mut self, lease_id: &WorktreeLeaseId, now: Timestamp) -> Result<WorktreeLease, WorktreeError>;
     fn release(&mut self, lease_id: &WorktreeLeaseId, now: Timestamp) -> Result<WorktreeLease, WorktreeError>;
     fn get(&self, lease_id: &WorktreeLeaseId) -> Option<&WorktreeLease>;

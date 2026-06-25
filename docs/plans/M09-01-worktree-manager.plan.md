@@ -18,7 +18,7 @@
 - Create: `crates/agent-worktree/src/lib.rs`
 - Create: `crates/agent-worktree/src/error.rs`
 
-- [ ] **Step 1: Add crate scaffold**
+- [x] **Step 1: Add crate scaffold**
 
 Add `crates/agent-worktree` to workspace members.
 
@@ -36,7 +36,7 @@ thiserror = "2"
 **Files:**
 - Create: `crates/agent-worktree/tests/worktree_manager.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -46,7 +46,7 @@ Cover:
 - `worktree_manager_rejects_unknown_lease`
 - `worktree_manager_rejects_duplicate_release`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-worktree worktree_manager
@@ -61,15 +61,15 @@ Expected: fails because `agent-worktree` contracts do not exist.
 - Create: `crates/agent-worktree/src/manager.rs`
 - Modify: `crates/agent-worktree/src/lib.rs`
 
-- [ ] **Step 1: Add lease contracts**
+- [x] **Step 1: Add lease contracts**
 
 Implement `WorktreeLeaseId`, `WorktreeLeaseState`, `WorktreeCleanupPolicy`, `WorktreeRequest`, and `WorktreeLease`.
 
-- [ ] **Step 2: Add manager behavior**
+- [x] **Step 2: Add manager behavior**
 
 Implement `WorktreeManager` and `InMemoryWorktreeManager`.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-worktree worktree_manager
@@ -82,11 +82,11 @@ cargo test -p agent-worktree worktree_manager
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M09-01-worktree-manager.plan.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M09-02-conflict-detection`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -94,7 +94,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

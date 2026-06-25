@@ -15,7 +15,7 @@
 **Files:**
 - Create: `crates/agent-ui-bridge/tests/ui_command_schema.rs`
 
-- [ ] **Step 1: Add failing command tests**
+- [x] **Step 1: Add failing command tests**
 
 Create tests named:
 
@@ -27,7 +27,7 @@ Create tests named:
 
 The tests should import `UiCommandEnvelope`, `UiCommand`, `UiClientInfo`, `UiPermissionDecision`, and `validate_ui_command`.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -43,7 +43,7 @@ Expected: fails because command contracts do not exist.
 - Create: `crates/agent-ui-bridge/src/command.rs`
 - Modify: `crates/agent-ui-bridge/src/lib.rs`
 
-- [ ] **Step 1: Add command module**
+- [x] **Step 1: Add command module**
 
 Define:
 
@@ -100,7 +100,7 @@ pub enum UiPermissionDecision {
 }
 ```
 
-- [ ] **Step 2: Add validation**
+- [x] **Step 2: Add validation**
 
 Add:
 
@@ -115,7 +115,7 @@ Validation rules:
 - `CancelTurn.reason` must not be empty after trimming.
 - `PermissionResponse.request_id` and `reason` must not be empty after trimming.
 
-- [ ] **Step 3: Export command contracts**
+- [x] **Step 3: Export command contracts**
 
 Update `lib.rs` to export:
 
@@ -127,7 +127,7 @@ pub use command::{
 };
 ```
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run:
 
@@ -144,7 +144,7 @@ Expected: all UI command schema tests pass.
 - Modify: `README.md`
 - Modify: `docs/plans/M06-02-ui-command-schema.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -154,11 +154,11 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus to `M06-03-cli-json-mode`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

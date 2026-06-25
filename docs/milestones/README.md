@@ -195,11 +195,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M06-02-ui-command-schema`.
+Current implementation focus: `M06-03-cli-json-mode`.
 
 Current planning focus: M06 slice-level specs and plans are created; next planning document should be a slice-level doc only when implementation reaches M07.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M06-02-ui-command-schema.spec.md`
-- `docs/plans/M06-02-ui-command-schema.plan.md`
+- `docs/specs/M06-03-cli-json-mode.spec.md`
+- `docs/plans/M06-03-cli-json-mode.plan.md`

@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M05 and M06-01 are implemented. Current focus is M06-02: the UI command schema.
+M01-M05 and M06-01-M06-02 are implemented. Current focus is M06-03: CLI JSON mode.
 
 ## Core Ideas
 
@@ -79,8 +79,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M06-02-ui-command-schema.spec.md)
-- [Current plan](docs/plans/M06-02-ui-command-schema.plan.md)
+- [Current spec](docs/specs/M06-03-cli-json-mode.spec.md)
+- [Current plan](docs/plans/M06-03-cli-json-mode.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

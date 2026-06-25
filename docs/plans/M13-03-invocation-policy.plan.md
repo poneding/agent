@@ -17,7 +17,7 @@
 - Read: `crates/agent-model/src/provider.rs`
 - Read: `crates/agent-model/src/registry.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -32,7 +32,7 @@ Expected: the spec defines timeout, retry, and fallback contracts.
 **Files:**
 - Create: `crates/agent-model/tests/invocation_policy.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests:
 
@@ -42,12 +42,12 @@ Add tests:
 - `fallback_chain_rejects_empty_and_duplicate_provider_ids`
 - `fallback_chain_selects_first_compatible_provider`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
 ```bash
-cargo test -p agent-model invocation_policy
+cargo test -p agent-model --test invocation_policy
 ```
 
 Expected: tests fail because invocation policy contracts do not exist.
@@ -58,11 +58,11 @@ Expected: tests fail because invocation policy contracts do not exist.
 - Create: `crates/agent-model/src/invocation_policy.rs`
 - Modify: `crates/agent-model/src/lib.rs`
 
-- [ ] **Step 1: Add policy types**
+- [x] **Step 1: Add policy types**
 
 Implement `ModelInvocationPolicy`, `ModelRetryPolicy`, and `ModelFallbackChain`.
 
-- [ ] **Step 2: Add decision helpers**
+- [x] **Step 2: Add decision helpers**
 
 Implement retry classification and first-compatible fallback selection using registry capabilities.
 
@@ -74,12 +74,12 @@ Implement retry classification and first-compatible fallback selection using reg
 - Modify: `docs/plans/M13-real-model-providers-config.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
 ```bash
-cargo test -p agent-model invocation_policy
+cargo test -p agent-model --test invocation_policy
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
@@ -87,7 +87,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

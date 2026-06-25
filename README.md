@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M12 and M13-01-M13-02 are implemented. Current focus is M13-03: invocation policy.
+M01-M12 and M13-01-M13-03 are implemented. Current focus is M13-04: OpenAI-compatible adapter.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M13-03-invocation-policy.spec.md)
-- [Current plan](docs/plans/M13-03-invocation-policy.plan.md)
+- [Current spec](docs/specs/M13-04-openai-compatible-adapter.spec.md)
+- [Current plan](docs/plans/M13-04-openai-compatible-adapter.plan.md)
 - [M13 technical design](docs/specs/M13-00-real-model-providers-config-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

@@ -3,6 +3,7 @@
 
 pub mod config;
 pub mod fake;
+pub mod invocation_policy;
 pub mod provider;
 pub mod registry;
 pub mod request;
@@ -13,6 +14,10 @@ pub use config::{
     ModelProviderKind, SecretRef,
 };
 pub use fake::{FakeModelProvider, FakeModelScript, FakeToolCall};
+pub use invocation_policy::{
+    ModelFailureKind, ModelFallbackChain, ModelInvocationPolicy, ModelInvocationPolicyError,
+    ModelRetryPolicy,
+};
 pub use provider::{ModelError, ModelProvider};
 pub use registry::{
     ModelCapabilities, ModelCapability, ModelProviderRegistry, ModelRegistryError,

@@ -107,7 +107,7 @@ Follow `docs/plans/M13-01-provider-config.plan.md`: write RED tests, verify fail
 
 Complete provider registry and capability negotiation, then commit `feat: add m13 provider registry`.
 
-- [ ] **Step 2: Implement M13-03 invocation policy**
+- [x] **Step 2: Implement M13-03 invocation policy**
 
 Complete timeout, retry, and fallback contracts, then commit `feat: add m13 model invocation policy`.
 

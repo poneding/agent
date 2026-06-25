@@ -48,6 +48,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M04 slice specs | Complete for M04-01 through M04-05 |
 | M04 slice plans | Complete for M04-01 through M04-05 |
 | M04 implementation | Complete |
+| M05 slice specs | Complete for M05-01 through M05-05 |
+| M05 slice plans | Complete for M05-01 through M05-05 |
 
 ## Milestone Spec and Plan Index
 
@@ -107,19 +109,19 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M04-04 Trace Commands | `docs/specs/M04-04-trace-commands.spec.md` | `docs/plans/M04-04-trace-commands.plan.md` | Trace query contracts and deterministic CLI trace summaries. |
 | M04-05 Replay Compatibility | `docs/specs/M04-05-replay-compatibility.spec.md` | `docs/plans/M04-05-replay-compatibility.plan.md` | Versioned replay fixtures and compatibility diagnostics. |
 
+## M05 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M05-01 Prompt Layers | `docs/specs/M05-01-prompt-layers.spec.md` | `docs/plans/M05-01-prompt-layers.plan.md` | Deterministic prompt layer assembly in `agent-context`. |
+| M05-02 Budget Planner | `docs/specs/M05-02-budget-planner.spec.md` | `docs/plans/M05-02-budget-planner.plan.md` | Token budget allocation, required overflow errors, and optional omission reporting. |
+| M05-03 Pinning and Compact | `docs/specs/M05-03-pinning-compact.spec.md` | `docs/plans/M05-03-pinning-compact.plan.md` | Pinned constraints plus deterministic rolling summary compaction. |
+| M05-04 Conversation Memory | `docs/specs/M05-04-conversation-memory.spec.md` | `docs/plans/M05-04-conversation-memory.plan.md` | Conversation-scoped memory records with add, retrieve, and delete behavior. |
+| M05-05 Project Memory | `docs/specs/M05-05-project-memory.spec.md` | `docs/plans/M05-05-project-memory.plan.md` | Project-scoped memory with audit entries and context integration coverage. |
+
 ## Later Milestone Slice Candidates
 
 These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M05 Context and Memory MVP
-
-| Slice | Outcome |
-|---|---|
-| M05-01 Prompt Layers | Deterministic prompt layer assembly. |
-| M05-02 Budget Planner | Token budget allocation and priority ordering. |
-| M05-03 Pinning and Compact | Pinned constraints plus rolling summary compaction. |
-| M05-04 Conversation Memory | Conversation-scoped memory records. |
-| M05-05 Project Memory | Project-scoped memory with audit and deletion. |
 
 ### M06 JSON Mode and UI Bridge
 
@@ -190,11 +192,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M05-context-memory`.
+Current implementation focus: `M05-01-prompt-layers`.
 
-Current planning focus: create M05 slice-level specs and plans before implementation begins.
+Current planning focus: M05 slice-level specs and plans are created; next planning document should be a slice-level doc only when implementation reaches M06.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M05-context-memory.spec.md`
-- `docs/plans/M05-context-memory.plan.md`
+- `docs/specs/M05-01-prompt-layers.spec.md`
+- `docs/plans/M05-01-prompt-layers.plan.md`

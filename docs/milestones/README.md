@@ -106,8 +106,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M13 slice specs | Complete for M13-01 through M13-05 |
 | M13 slice plans | Complete for M13-01 through M13-05 |
 | M13-01 implementation | Complete |
-| M13-02 implementation | In progress |
-| M13-03 implementation | Planned |
+| M13-02 implementation | Complete |
+| M13-03 implementation | In progress |
 | M13-04 implementation | Planned |
 | M13-05 implementation | Planned |
 | M13 implementation | In progress |
@@ -263,9 +263,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M13-02-provider-registry-capabilities`.
+Current implementation focus: `M13-03-invocation-policy`.
 
 Primary planning documents for the current focus:
 
-- `docs/specs/M13-02-provider-registry-capabilities.spec.md`
-- `docs/plans/M13-02-provider-registry-capabilities.plan.md`
+- `docs/specs/M13-03-invocation-policy.spec.md`
+- `docs/plans/M13-03-invocation-policy.plan.md`

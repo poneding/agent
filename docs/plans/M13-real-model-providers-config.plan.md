@@ -103,7 +103,7 @@ Follow `docs/plans/M13-01-provider-config.plan.md`: write RED tests, verify fail
 - Execute: `docs/plans/M13-04-openai-compatible-adapter.plan.md`
 - Execute: `docs/plans/M13-05-cli-model-selection.plan.md`
 
-- [ ] **Step 1: Implement M13-02 provider registry capabilities**
+- [x] **Step 1: Implement M13-02 provider registry capabilities**
 
 Complete provider registry and capability negotiation, then commit `feat: add m13 provider registry`.
 

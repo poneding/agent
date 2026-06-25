@@ -4,6 +4,7 @@
 pub mod config;
 pub mod fake;
 pub mod provider;
+pub mod registry;
 pub mod request;
 pub mod stream;
 
@@ -13,6 +14,10 @@ pub use config::{
 };
 pub use fake::{FakeModelProvider, FakeModelScript, FakeToolCall};
 pub use provider::{ModelError, ModelProvider};
+pub use registry::{
+    ModelCapabilities, ModelCapability, ModelProviderRegistry, ModelRegistryError,
+    ModelRequestRequirements, RegisteredModelProvider,
+};
 pub use request::ModelRequest;
 pub use stream::{ModelStreamEvent, ModelStreamResult};
 

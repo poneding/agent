@@ -17,7 +17,7 @@
 - Read: `crates/agent-model/src/provider.rs`
 - Read: `crates/agent-model/src/config.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -32,7 +32,7 @@ Expected: the spec defines registry and capability behavior.
 **Files:**
 - Create: `crates/agent-model/tests/provider_registry.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests:
 
@@ -42,7 +42,7 @@ Add tests:
 - `provider_registry_accepts_compatible_capabilities`
 - `provider_registry_reports_missing_capabilities`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -58,15 +58,15 @@ Expected: tests fail because registry contracts do not exist.
 - Create: `crates/agent-model/src/registry.rs`
 - Modify: `crates/agent-model/src/lib.rs`
 
-- [ ] **Step 1: Add capability types**
+- [x] **Step 1: Add capability types**
 
 Implement `ModelCapabilities` and `ModelRequestRequirements` with stable serde shapes.
 
-- [ ] **Step 2: Add registry**
+- [x] **Step 2: Add registry**
 
 Implement `ModelProviderRegistry`, provider registration, provider lookup, duplicate detection, and capability negotiation.
 
-- [ ] **Step 3: Export registry types**
+- [x] **Step 3: Export registry types**
 
 Export registry and capability contracts from `agent-model`.
 
@@ -78,7 +78,7 @@ Export registry and capability contracts from `agent-model`.
 - Modify: `docs/plans/M13-real-model-providers-config.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -91,7 +91,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

@@ -79,8 +79,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current milestone spec](docs/specs/M05-04-conversation-memory.spec.md)
-- [Current milestone plan](docs/plans/M05-04-conversation-memory.plan.md)
+- [Current milestone spec](docs/specs/M05-05-project-memory.spec.md)
+- [Current milestone plan](docs/plans/M05-05-project-memory.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

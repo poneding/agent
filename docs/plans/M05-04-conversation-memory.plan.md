@@ -20,7 +20,7 @@
 - Create: `crates/agent-memory/src/record.rs`
 - Create: `crates/agent-memory/src/store.rs`
 
-- [ ] **Step 1: Add failing crate smoke test**
+- [x] **Step 1: Add failing crate smoke test**
 
 Create `crates/agent-memory/tests/conversation_memory.rs` with:
 
@@ -33,7 +33,7 @@ fn memory_sensitivity_uses_snake_case_json() {
 }
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-memory memory_sensitivity_uses_snake_case_json
@@ -41,11 +41,11 @@ cargo test -p agent-memory memory_sensitivity_uses_snake_case_json
 
 Expected: fails because `agent-memory` is not a workspace crate yet.
 
-- [ ] **Step 3: Add crate scaffold**
+- [x] **Step 3: Add crate scaffold**
 
 Add `crates/agent-memory` to workspace members. Create crate dependencies on `agent-types`, `serde`, `serde_json`, and `thiserror`. Export `MemoryError`, `MemoryRecord`, `MemoryScope`, `MemorySensitivity`, `MemorySource`, `MemoryStore`, and `InMemoryMemoryStore`.
 
-- [ ] **Step 4: Verify crate smoke GREEN**
+- [x] **Step 4: Verify crate smoke GREEN**
 
 ```bash
 cargo test -p agent-memory memory_sensitivity_uses_snake_case_json
@@ -58,7 +58,7 @@ Expected: smoke test passes.
 **Files:**
 - Modify: `crates/agent-memory/tests/conversation_memory.rs`
 
-- [ ] **Step 1: Add failing behavior tests**
+- [x] **Step 1: Add failing behavior tests**
 
 Add tests named:
 
@@ -70,7 +70,7 @@ Add tests named:
 
 Use two conversation IDs and records with confidence `80`.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-memory conversation_memory
@@ -86,22 +86,22 @@ Expected: behavior tests fail because store contracts are not implemented.
 - Modify: `crates/agent-memory/src/store.rs`
 - Modify: `crates/agent-memory/src/lib.rs`
 
-- [ ] **Step 1: Implement memory contracts**
+- [x] **Step 1: Implement memory contracts**
 
 Define memory enums and structs from the spec. Derive serde traits for durable public data.
 
-- [ ] **Step 2: Implement validation**
+- [x] **Step 2: Implement validation**
 
 Reject empty IDs, empty text, empty source descriptions, and confidence outside `1..=100`.
 
-- [ ] **Step 3: Implement in-memory scoped store**
+- [x] **Step 3: Implement in-memory scoped store**
 
 Use `BTreeMap<MemoryScope, BTreeMap<String, MemoryRecord>>` so list order is deterministic by record ID.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```bash
-cargo test -p agent-memory conversation_memory
+cargo test -p agent-memory --test conversation_memory
 ```
 
 Expected: all conversation memory tests pass.
@@ -113,7 +113,7 @@ Expected: all conversation memory tests pass.
 - Modify: `docs/plans/M05-04-conversation-memory.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -121,11 +121,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M05-04-conversation-memory` to `M05-05-project-memory`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

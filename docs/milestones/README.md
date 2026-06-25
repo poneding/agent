@@ -192,11 +192,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M05-04-conversation-memory`.
+Current implementation focus: `M05-05-project-memory`.
 
 Current planning focus: M05 slice-level specs and plans are created; next planning document should be a slice-level doc only when implementation reaches M06.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M05-04-conversation-memory.spec.md`
-- `docs/plans/M05-04-conversation-memory.plan.md`
+- `docs/specs/M05-05-project-memory.spec.md`
+- `docs/plans/M05-05-project-memory.plan.md`

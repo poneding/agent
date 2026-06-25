@@ -10,6 +10,17 @@
 
 ---
 
+## Slice Execution Order
+
+Do not implement this milestone directly from the milestone-level plan. Execute the slice plans in order:
+
+1. `docs/plans/M07-01-mcp-client.plan.md`
+2. `docs/plans/M07-02-mcp-policy-mapping.plan.md`
+3. `docs/plans/M07-03-skill-discovery.plan.md`
+4. `docs/plans/M07-04-mcp-skill-traceability.plan.md`
+
+Each slice must be implemented with RED/GREEN tests, standard verification, progress updates, and a dedicated commit.
+
 ### Task 1: Confirm Milestone Inputs
 
 **Files:**

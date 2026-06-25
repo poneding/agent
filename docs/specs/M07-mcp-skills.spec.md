@@ -18,6 +18,13 @@ This milestone delivers:
 - SkillManifest contract
 - SkillPromptContribution contract
 
+Implementation is split across:
+
+- `M07-01-mcp-client`
+- `M07-02-mcp-policy-mapping`
+- `M07-03-skill-discovery`
+- `M07-04-mcp-skill-traceability`
+
 Implementation primarily touches:
 
 - `agent-mcp`

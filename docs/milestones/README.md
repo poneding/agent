@@ -25,7 +25,7 @@ docs/
 
 Use milestone-prefixed filenames for milestone-level planning, such as `M01-runtime-spine.spec.md` and `M01-runtime-spine.plan.md`. Use slice-prefixed filenames for implementation slices inside a milestone, such as `M01-01-workspace-scaffold.spec.md` and `M01-01-workspace-scaffold.plan.md`.
 
-Milestone-level spec/plan pairs are required for every planned milestone. Slice-level spec/plan pairs are required when a milestone is actively decomposed for implementation; M01 is decomposed now because it establishes the runtime spine.
+Milestone-level spec/plan pairs are required for every planned milestone. Slice-level spec/plan pairs are required when a milestone is actively decomposed for implementation.
 
 ## Planning Status
 
@@ -54,6 +54,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M06 slice specs | Complete for M06-01 through M06-04 |
 | M06 slice plans | Complete for M06-01 through M06-04 |
 | M06 implementation | Complete |
+| M07 slice specs | Complete for M07-01 through M07-04 |
+| M07 slice plans | Complete for M07-01 through M07-04 |
 
 ## Milestone Spec and Plan Index
 
@@ -132,18 +134,18 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M06-03 CLI JSON Mode | `docs/specs/M06-03-cli-json-mode.spec.md` | `docs/plans/M06-03-cli-json-mode.plan.md` | `--json` CLI output mode with newline-delimited UI bridge frames. |
 | M06-04 Bridge Snapshots | `docs/specs/M06-04-bridge-snapshots.spec.md` | `docs/plans/M06-04-bridge-snapshots.plan.md` | Stable bridge snapshots and M06 completion verification. |
 
+## M07 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M07-01 MCP Client | `docs/specs/M07-01-mcp-client.spec.md` | `docs/plans/M07-01-mcp-client.plan.md` | Server configuration, tool discovery, and health checks. |
+| M07-02 MCP Policy Mapping | `docs/specs/M07-02-mcp-policy-mapping.spec.md` | `docs/plans/M07-02-mcp-policy-mapping.plan.md` | MCP tools mapped into local capability checks. |
+| M07-03 Skill Discovery | `docs/specs/M07-03-skill-discovery.spec.md` | `docs/plans/M07-03-skill-discovery.plan.md` | Skill roots, metadata, source tracking, and prompt contribution. |
+| M07-04 MCP/Skill Traceability | `docs/specs/M07-04-mcp-skill-traceability.spec.md` | `docs/plans/M07-04-mcp-skill-traceability.plan.md` | Runtime traces expose source and permission metadata. |
+
 ## Later Milestone Slice Candidates
 
 These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M07 MCP and Skills
-
-| Slice | Outcome |
-|---|---|
-| M07-01 MCP Client | Server configuration, tool discovery, and health checks. |
-| M07-02 MCP Policy Mapping | MCP tools mapped into local capability checks. |
-| M07-03 Skill Discovery | Skill roots, metadata, source tracking, and prompt contribution. |
-| M07-04 MCP/Skill Traceability | Runtime traces expose source and permission metadata. |
 
 ### M08 Background Tasks and Scheduler
 
@@ -196,11 +198,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M07-mcp-skills` slice decomposition.
+Current implementation focus: `M07-01-mcp-client`.
 
-Current planning focus: create M07 slice-level specs and plans before implementation.
+Current planning focus: keep M07 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M07-mcp-skills.spec.md`
-- `docs/plans/M07-mcp-skills.plan.md`
+- `docs/specs/M07-01-mcp-client.spec.md`
+- `docs/plans/M07-01-mcp-client.plan.md`

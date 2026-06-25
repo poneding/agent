@@ -1,5 +1,7 @@
 [workspace]
-members = []
+members = [
+    "crates/agent-types",
+]
 resolver = "2"
 
 [workspace.package]

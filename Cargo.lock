@@ -30,6 +30,7 @@ dependencies = [
  "agent-context",
  "agent-memory",
  "agent-model",
+ "agent-plugin",
  "agent-policy",
  "agent-sandbox",
  "agent-storage",

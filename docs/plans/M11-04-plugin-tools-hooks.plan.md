@@ -18,7 +18,7 @@
 - Read: `crates/agent-tool/src/registry.rs`
 - Read: `crates/agent-core/src/tool_loop.rs`
 
-- [ ] **Step 1: Review registry and tool loop contracts**
+- [x] **Step 1: Review registry and tool loop contracts**
 
 Run:
 
@@ -35,7 +35,7 @@ Expected: plugin tools can use the existing `Tool` trait and `ToolLoop`.
 - Create: `crates/agent-plugin/tests/plugin_tools_hooks.rs`
 - Create: `crates/agent-core/tests/m11_plugin_runtime_integration.rs`
 
-- [ ] **Step 1: Add failing plugin crate tests**
+- [x] **Step 1: Add failing plugin crate tests**
 
 Add tests:
 
@@ -46,7 +46,7 @@ Add tests:
 - `plugin_tool_maps_host_error_to_tool_error`
 - `plugin_hook_runner_records_success_and_failure`
 
-- [ ] **Step 2: Add failing core integration test**
+- [x] **Step 2: Add failing core integration test**
 
 Add test:
 
@@ -54,7 +54,7 @@ Add test:
 
 The integration test should register a plugin tool, configure `StaticPolicyEngine` to allow the tool scope, run `ToolLoop`, and assert event payload order includes proposal, permission decision, execution start, execution completion, and observation.
 
-- [ ] **Step 3: Verify RED**
+- [x] **Step 3: Verify RED**
 
 Run:
 
@@ -72,15 +72,15 @@ Expected: tests fail because plugin tool and hook contracts do not exist yet.
 - Create: `crates/agent-plugin/src/tool.rs`
 - Modify: `crates/agent-plugin/src/error.rs`
 
-- [ ] **Step 1: Add `PluginToolHost` and invocation types**
+- [x] **Step 1: Add `PluginToolHost` and invocation types**
 
 Define a host trait that returns `ToolOutput` and receives plugin name, tool name, call id, and input JSON.
 
-- [ ] **Step 2: Implement `PluginTool`**
+- [x] **Step 2: Implement `PluginTool`**
 
 Implement `agent_tool::Tool` for `PluginTool`.
 
-- [ ] **Step 3: Implement registration helper**
+- [x] **Step 3: Implement registration helper**
 
 Implement `register_plugin_tools` and return registered names.
 
@@ -89,11 +89,11 @@ Implement `register_plugin_tools` and return registered names.
 **Files:**
 - Create: `crates/agent-plugin/src/hook.rs`
 
-- [ ] **Step 1: Add hook event and outcome types**
+- [x] **Step 1: Add hook event and outcome types**
 
 Implement serde-compatible hook event names and result summaries.
 
-- [ ] **Step 2: Add hook runner**
+- [x] **Step 2: Add hook runner**
 
 Implement a deterministic in-memory runner that accepts hook callbacks for M11 tests and records success/failure outcomes.
 
@@ -103,7 +103,7 @@ Implement a deterministic in-memory runner that accepts hook callbacks for M11 t
 - Read: `crates/agent-plugin/tests/plugin_tools_hooks.rs`
 - Read: `crates/agent-core/tests/m11_plugin_runtime_integration.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -114,7 +114,7 @@ cargo test -p agent-core m11_plugin_runtime_integration
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -133,7 +133,7 @@ Expected: all checks pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M11-04-plugin-tools-hooks.plan.md`
 
-- [ ] **Step 1: Commit**
+- [x] **Step 1: Commit**
 
 Run:
 

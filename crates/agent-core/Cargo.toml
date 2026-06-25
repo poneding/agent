@@ -20,6 +20,7 @@ thiserror = "2"
 [dev-dependencies]
 agent-context = { path = "../agent-context" }
 agent-memory = { path = "../agent-memory" }
+agent-plugin = { path = "../agent-plugin" }
 async-trait = "0.1"
 tokio = { version = "1", features = ["macros", "rt"] }
 

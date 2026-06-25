@@ -89,6 +89,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M11-01 implementation | Complete |
 | M11-02 implementation | Complete |
 | M11-03 implementation | Complete |
+| M11-04 implementation | Complete |
 | M11 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -233,11 +234,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M11-04-plugin-tools-hooks`.
+Current implementation focus: `M11-05-wasm-prototype`.
 
 Current planning focus: keep M11 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M11-04-plugin-tools-hooks.spec.md`
-- `docs/plans/M11-04-plugin-tools-hooks.plan.md`
+- `docs/specs/M11-05-wasm-prototype.spec.md`
+- `docs/plans/M11-05-wasm-prototype.plan.md`

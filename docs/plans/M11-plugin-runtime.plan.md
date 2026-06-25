@@ -89,7 +89,7 @@ Expected: the plan describes capability validation, policy request mapping, even
 - Read: `docs/specs/M11-04-plugin-tools-hooks.spec.md`
 - Execute: `docs/plans/M11-04-plugin-tools-hooks.plan.md`
 
-- [ ] **Step 1: Follow M11-04 plan**
+- [x] **Step 1: Follow M11-04 plan**
 
 Run:
 

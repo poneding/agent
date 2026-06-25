@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M09 and M10-01 are implemented. Current focus is M10-02: conversation and tasks.
+M01-M09 and M10-01 through M10-02 are implemented. Current focus is M10-03: permissions and diffs.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M10-02-conversation-tasks.spec.md)
-- [Current plan](docs/plans/M10-02-conversation-tasks.plan.md)
+- [Current spec](docs/specs/M10-03-permissions-diffs.spec.md)
+- [Current plan](docs/plans/M10-03-permissions-diffs.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

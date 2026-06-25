@@ -78,6 +78,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M10 slice specs | Complete for M10-01 through M10-05 |
 | M10 slice plans | Complete for M10-01 through M10-05 |
 | M10-01 implementation | Complete |
+| M10-02 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -220,11 +221,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M10-02-conversation-tasks`.
+Current implementation focus: `M10-03-permissions-diffs`.
 
 Current planning focus: keep M10 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M10-02-conversation-tasks.spec.md`
-- `docs/plans/M10-02-conversation-tasks.plan.md`
+- `docs/specs/M10-03-permissions-diffs.spec.md`
+- `docs/plans/M10-03-permissions-diffs.plan.md`

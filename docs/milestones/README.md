@@ -186,11 +186,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M03-04-git-tools`.
+Current implementation focus: `M03-05-local-coding-e2e`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M03-04-git-tools.spec.md`
-- `docs/plans/M03-04-git-tools.plan.md`
+- `docs/specs/M03-05-local-coding-e2e.spec.md`
+- `docs/plans/M03-05-local-coding-e2e.plan.md`

@@ -15,11 +15,11 @@
 **Files:**
 - Create: `crates/agent-tool/tests/git_tools.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Tests must prove clean status, modified status, diff output, non-Git error, traversal rejection, and registry registration.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-tool git_tools
@@ -34,15 +34,15 @@ Expected: tests fail because Git tools do not exist.
 - Create: `crates/agent-tool/src/builtins/git_diff.rs`
 - Modify: `crates/agent-tool/src/builtins/mod.rs`
 
-- [ ] **Step 1: Implement status tool**
+- [x] **Step 1: Implement status tool**
 
 Run `git status --porcelain` inside validated cwd and return JSON file entries.
 
-- [ ] **Step 2: Implement diff tool**
+- [x] **Step 2: Implement diff tool**
 
 Run `git diff -- <path>` inside validated cwd and return JSON `{ "diff": "..." }`.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-tool git_tools
@@ -56,7 +56,7 @@ Expected: focused tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M03-04-git-tools.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -64,11 +64,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M03-04-git-tools` to `M03-05-local-coding-e2e`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

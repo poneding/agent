@@ -10,6 +10,7 @@ members = [
     "crates/agent-context",
     "crates/agent-memory",
     "crates/agent-mcp",
+    "crates/agent-skill",
     "crates/agent-ui-bridge",
     "crates/agent-cli",
 ]

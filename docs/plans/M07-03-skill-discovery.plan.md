@@ -18,7 +18,7 @@
 - Create: `crates/agent-skill/src/lib.rs`
 - Create: `crates/agent-skill/src/error.rs`
 
-- [ ] **Step 1: Add crate scaffold**
+- [x] **Step 1: Add crate scaffold**
 
 Add `crates/agent-skill` to workspace members.
 
@@ -63,7 +63,7 @@ pub use manifest::{SkillId, SkillManifest};
 pub use prompt::{skill_prompt_layer, SkillPromptContribution};
 ```
 
-- [ ] **Step 2: Confirm scaffold compiles**
+- [x] **Step 2: Confirm scaffold compiles**
 
 Run:
 
@@ -78,7 +78,7 @@ Expected: fails because modules are declared but not implemented.
 **Files:**
 - Create: `crates/agent-skill/tests/skill_discovery.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Create tests with these names:
 
@@ -161,7 +161,7 @@ fn skill_discovery_converts_prompt_to_context_layer() {
 }
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -178,19 +178,19 @@ Expected: fails because skill contracts do not exist.
 - Create: `crates/agent-skill/src/prompt.rs`
 - Modify: `crates/agent-skill/src/error.rs`
 
-- [ ] **Step 1: Add error type**
+- [x] **Step 1: Add error type**
 
 Implement `SkillError` variants: `RootNotFound`, `ManifestNotFound`, `InvalidManifest`, `InvalidPrompt`, and `Io`.
 
-- [ ] **Step 2: Add `SkillId` and `SkillManifest`**
+- [x] **Step 2: Add `SkillId` and `SkillManifest`**
 
 Implement ID validation and front matter deserialization target.
 
-- [ ] **Step 3: Add prompt contribution conversion**
+- [x] **Step 3: Add prompt contribution conversion**
 
 Implement `SkillPromptContribution` and `skill_prompt_layer`.
 
-- [ ] **Step 4: Run focused prompt test**
+- [x] **Step 4: Run focused prompt test**
 
 Run:
 
@@ -205,15 +205,15 @@ Expected: prompt conversion test passes.
 **Files:**
 - Create: `crates/agent-skill/src/discovery.rs`
 
-- [ ] **Step 1: Add discovery contracts**
+- [x] **Step 1: Add discovery contracts**
 
 Implement `SkillRoot`, `SkillSource`, `SkillDiscoveryConfig`, `DiscoveredSkill`, and `discover_skills`.
 
-- [ ] **Step 2: Parse `SKILL.md`**
+- [x] **Step 2: Parse `SKILL.md`**
 
 Split front matter between the first two `---` separators, parse YAML metadata, and use the remaining Markdown body as prompt content.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 Run:
 
@@ -230,11 +230,11 @@ Expected: all skill discovery tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M07-04-mcp-skill-traceability`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 Run:
 
@@ -246,7 +246,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run:
 

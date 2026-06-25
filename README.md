@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M08 are implemented. Current focus is M09 planning: worktree isolation and subagents.
+M01-M08 are implemented. Current focus is M09-01: worktree manager.
 
 ## Core Ideas
 
@@ -80,8 +80,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M09-worktree-subagents.spec.md)
-- [Current plan](docs/plans/M09-worktree-subagents.plan.md)
+- [Current spec](docs/specs/M09-01-worktree-manager.spec.md)
+- [Current plan](docs/plans/M09-01-worktree-manager.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

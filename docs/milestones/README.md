@@ -68,6 +68,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M08-03 implementation | Complete |
 | M08-04 implementation | Complete |
 | M08 implementation | Complete |
+| M09 slice specs | Complete for M09-01 through M09-04 |
+| M09 slice plans | Complete for M09-01 through M09-04 |
 
 ## Milestone Spec and Plan Index
 
@@ -164,18 +166,18 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M08-03 Quotas | `docs/specs/M08-03-quotas.spec.md` | `docs/plans/M08-03-quotas.plan.md` | Workspace and system concurrency quota evaluation. |
 | M08-04 Notifications | `docs/specs/M08-04-notifications.spec.md` | `docs/plans/M08-04-notifications.plan.md` | Task notifications, runtime events, and UI bridge normalization. |
 
+## M09 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M09-01 Worktree Manager | `docs/specs/M09-01-worktree-manager.spec.md` | `docs/plans/M09-01-worktree-manager.plan.md` | Worktree lease lifecycle contracts and in-memory manager. |
+| M09-02 Conflict Detection | `docs/specs/M09-02-conflict-detection.spec.md` | `docs/plans/M09-02-conflict-detection.plan.md` | Deterministic conflict reports for lead/subagent changed-file sets. |
+| M09-03 Subagent Handoff | `docs/specs/M09-03-subagent-handoff.spec.md` | `docs/plans/M09-03-subagent-handoff.plan.md` | Subagent profiles, handoff envelopes, and capability reduction. |
+| M09-04 Team Blackboard | `docs/specs/M09-04-team-blackboard.spec.md` | `docs/plans/M09-04-team-blackboard.plan.md` | Shared findings, review output, artifacts, and trace links. |
+
 ## Later Milestone Slice Candidates
 
 These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M09 Worktree Isolation and Subagents
-
-| Slice | Outcome |
-|---|---|
-| M09-01 Worktree Manager | Git worktree creation, cleanup, and status tracking. |
-| M09-02 Conflict Detection | File locks, changed-file tracking, and conflict reports. |
-| M09-03 Subagent Handoff | Role definition, handoff envelope, and capability reduction. |
-| M09-04 Team Blackboard | Shared findings, review output, artifacts, and trace links. |
 
 ### M10 Desktop Preview
 
@@ -210,11 +212,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M09-worktree-subagents` planning.
+Current implementation focus: `M09-01-worktree-manager`.
 
-Current planning focus: decompose M09 into slice-level specs and plans before implementation.
+Current planning focus: keep M09 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M09-worktree-subagents.spec.md`
-- `docs/plans/M09-worktree-subagents.plan.md`
+- `docs/specs/M09-01-worktree-manager.spec.md`
+- `docs/plans/M09-01-worktree-manager.plan.md`

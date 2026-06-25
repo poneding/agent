@@ -17,7 +17,7 @@
 - Read: `crates/agent-sandbox/src/lib.rs`
 - Read: `crates/agent-sandbox/tests/path.rs`
 
-- [ ] **Step 1: Review sandbox ownership**
+- [x] **Step 1: Review sandbox ownership**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: platform reporting belongs in `agent-sandbox`.
 **Files:**
 - Create: `crates/agent-sandbox/tests/platform_report.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Add tests:
 
@@ -43,7 +43,9 @@ Add tests:
 - `platform_report_represents_unsupported_capabilities`
 - `platform_report_includes_plugin_isolation_capabilities`
 
-- [ ] **Step 2: Verify RED**
+The tests define the public API for `PlatformCapabilityReport`, `SandboxCapability`, `CapabilityStatus`, `PluginIsolationCapability`, `SecretProviderCapability`, and `PlatformReportError`.
+
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -59,15 +61,15 @@ Expected: tests fail because platform report contracts do not exist.
 - Modify: `crates/agent-sandbox/src/lib.rs`
 - Create: `crates/agent-sandbox/src/platform.rs`
 
-- [ ] **Step 1: Add report types**
+- [x] **Step 1: Add report types**
 
 Implement `PlatformCapabilityReport`, `SandboxCapability`, `PluginIsolationCapability`, `SecretProviderCapability`, and `PlatformReportError`.
 
-- [ ] **Step 2: Add deterministic builder**
+- [x] **Step 2: Add deterministic builder**
 
 Implement a builder that accepts explicit capability values and rejects empty OS names.
 
-- [ ] **Step 3: Add default report**
+- [x] **Step 3: Add default report**
 
 Implement `PlatformCapabilityReport::current()` using `std::env::consts::OS` and conservative capability defaults.
 
@@ -76,7 +78,7 @@ Implement `PlatformCapabilityReport::current()` using `std::env::consts::OS` and
 **Files:**
 - Read: `crates/agent-sandbox/tests/platform_report.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -86,7 +88,7 @@ cargo test -p agent-sandbox platform_report
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -105,7 +107,7 @@ Expected: all checks pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M12-05-platform-capability-report.plan.md`
 
-- [ ] **Step 1: Commit**
+- [x] **Step 1: Commit**
 
 Run:
 

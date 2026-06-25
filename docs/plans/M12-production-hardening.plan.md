@@ -118,7 +118,7 @@ Complete audit export bundles and commit `feat: add m12 audit export`.
 
 Complete memory archives and commit `feat: add m12 memory portability`.
 
-- [ ] **Step 4: Implement M12-05 platform capability report**
+- [x] **Step 4: Implement M12-05 platform capability report**
 
 Complete sandbox capability reports and commit `feat: add m12 platform report`.
 

@@ -42,6 +42,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M02 slice specs | Complete for M02-01 through M02-05 |
 | M02 slice plans | Complete for M02-01 through M02-05 |
 | M02 implementation | Complete |
+| M03 slice specs | Complete for M03-01 through M03-05 |
+| M03 slice plans | Development-ready for M03-01 through M03-05 |
 
 ## Milestone Spec and Plan Index
 
@@ -81,19 +83,19 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M02-04 Audit Trail | `docs/specs/M02-04-audit-trail.spec.md` | `docs/plans/M02-04-audit-trail.plan.md` | Tool and permission audit payloads in runtime events. |
 | M02-05 Tool Loop Integration | `docs/specs/M02-05-tool-loop-integration.spec.md` | `docs/plans/M02-05-tool-loop-integration.plan.md` | Fake model tool call through validation, policy, execution, audit, and observation. |
 
+## M03 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M03-01 CLI TTY Shell | `docs/specs/M03-01-cli-tty-shell.spec.md` | `docs/plans/M03-01-cli-tty-shell.plan.md` | CLI mode parsing, slash commands, and deterministic batch output. |
+| M03-02 File Edit Tool | `docs/specs/M03-02-file-edit-tool.spec.md` | `docs/plans/M03-02-file-edit-tool.plan.md` | Diff-oriented workspace-confined file edit preview and apply tool. |
+| M03-03 Shell Tool | `docs/specs/M03-03-shell-tool.spec.md` | `docs/plans/M03-03-shell-tool.plan.md` | Controlled command execution with cwd confinement, timeout, and captured output. |
+| M03-04 Git Tools | `docs/specs/M03-04-git-tools.spec.md` | `docs/plans/M03-04-git-tools.plan.md` | Read-only Git status and diff inspection tools. |
+| M03-05 Local Coding E2E | `docs/specs/M03-05-local-coding-e2e.spec.md` | `docs/plans/M03-05-local-coding-e2e.plan.md` | Deterministic local coding workflow with edit, shell, Git, policy, audit, and summary. |
+
 ## Later Milestone Slice Candidates
 
 These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M03 Local Coding Loop
-
-| Slice | Outcome |
-|---|---|
-| M03-01 CLI TTY Shell | Interactive CLI with streaming output and slash command foundation. |
-| M03-02 File Edit Tool | Diff-oriented file write/edit flow with approval points. |
-| M03-03 Shell Tool | Command execution with cwd, timeout, environment allowlist, and captured output. |
-| M03-04 Git Tools | Status and diff inspection tools. |
-| M03-05 Local Coding E2E | Agent inspects a repo, edits a file, runs an approved command, and reports results. |
 
 ### M04 Checkpoint, Recovery, and Trace Replay
 
@@ -184,11 +186,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M03-local-coding-loop`.
+Current implementation focus: `M03-01-cli-tty-shell`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M03-local-coding-loop.spec.md`
-- `docs/plans/M03-local-coding-loop.plan.md`
+- `docs/specs/M03-01-cli-tty-shell.spec.md`
+- `docs/plans/M03-01-cli-tty-shell.plan.md`

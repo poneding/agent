@@ -15,11 +15,11 @@
 **Files:**
 - Create: `crates/agent-tool/tests/shell_command_tool.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Tests must prove successful command capture, non-zero status capture, timeout, stderr capture, and cwd traversal rejection.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-tool shell_command_tool
@@ -33,15 +33,15 @@ Expected: tests fail because `ShellCommandTool` does not exist.
 - Create: `crates/agent-tool/src/builtins/shell_command.rs`
 - Modify: `crates/agent-tool/src/builtins/mod.rs`
 
-- [ ] **Step 1: Implement input parsing**
+- [x] **Step 1: Implement input parsing**
 
 Accept `program`, `args`, `cwd`, `timeout_ms`, and `env` JSON fields.
 
-- [ ] **Step 2: Implement execution and timeout**
+- [x] **Step 2: Implement execution and timeout**
 
 Spawn the program with explicit args and kill it on timeout.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-tool shell_command_tool
@@ -55,7 +55,7 @@ Expected: focused tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M03-03-shell-tool.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -63,11 +63,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M03-03-shell-tool` to `M03-04-git-tools`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

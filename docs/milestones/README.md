@@ -186,11 +186,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M03-03-shell-tool`.
+Current implementation focus: `M03-04-git-tools`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M03-03-shell-tool.spec.md`
-- `docs/plans/M03-03-shell-tool.plan.md`
+- `docs/specs/M03-04-git-tools.spec.md`
+- `docs/plans/M03-04-git-tools.plan.md`

@@ -79,8 +79,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current milestone spec](docs/specs/M01-runtime-spine.spec.md)
-- [Current milestone plan](docs/plans/M01-runtime-spine.plan.md)
+- [Current milestone spec](docs/specs/M04-05-replay-compatibility.spec.md)
+- [Current milestone plan](docs/plans/M04-05-replay-compatibility.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

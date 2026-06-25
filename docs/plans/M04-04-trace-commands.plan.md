@@ -15,11 +15,11 @@
 **Files:**
 - Create: `crates/agent-core/tests/trace_query.rs`
 
-- [ ] **Step 1: Add failing trace tests**
+- [x] **Step 1: Add failing trace tests**
 
 Tests must prove tool/policy filtering, checkpoint rendering, final response rendering, empty trace output, and secret-like value redaction.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-core trace_query
@@ -33,15 +33,15 @@ Expected: tests fail because trace contracts do not exist.
 - Create: `crates/agent-core/src/trace.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Define `TraceQuery` and `TraceEntry`**
+- [x] **Step 1: Define `TraceQuery` and `TraceEntry`**
 
 Use the fields from `docs/specs/M04-04-trace-commands.spec.md`.
 
-- [ ] **Step 2: Implement trace builder**
+- [x] **Step 2: Implement trace builder**
 
 Map runtime events into stable summaries and apply query filters.
 
-- [ ] **Step 3: Verify core GREEN**
+- [x] **Step 3: Verify core GREEN**
 
 ```bash
 cargo test -p agent-core trace_query
@@ -55,15 +55,15 @@ Expected: focused trace tests pass.
 - Modify: `crates/agent-cli/src/command.rs`
 - Create: `crates/agent-cli/tests/trace_commands.rs`
 
-- [ ] **Step 1: Add failing CLI test**
+- [x] **Step 1: Add failing CLI test**
 
 Test `agent-cli --trace-summary` prints deterministic trace entries for the local coding fixture.
 
-- [ ] **Step 2: Implement CLI renderer**
+- [x] **Step 2: Implement CLI renderer**
 
 Render `TraceEntry` rows with `seq`, `kind`, and `summary`.
 
-- [ ] **Step 3: Verify CLI GREEN**
+- [x] **Step 3: Verify CLI GREEN**
 
 ```bash
 cargo test -p agent-cli trace_commands
@@ -77,7 +77,7 @@ Expected: CLI trace test passes.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M04-04-trace-commands.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -85,11 +85,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M04-04-trace-commands` to `M04-05-replay-compatibility`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

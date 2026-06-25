@@ -7,6 +7,7 @@ pub mod local_coding;
 pub mod recovery;
 pub mod runtime;
 pub mod tool_loop;
+pub mod trace;
 pub mod turn;
 
 pub use context::ContextAssembler;
@@ -18,6 +19,7 @@ pub use local_coding::{
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
 pub use runtime::RuntimeIds;
 pub use tool_loop::{ToolCallRequest, ToolLoop, ToolLoopError, ToolLoopOutcome, ToolLoopStatus};
+pub use trace::{TraceEntry, TraceError, TraceQuery, build_trace};
 pub use turn::{TurnEngine, TurnError, TurnInput, TurnOutcome};
 
 /// Returns a smoke-test banner proving the core crate links model and storage.

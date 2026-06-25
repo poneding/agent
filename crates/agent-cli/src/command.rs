@@ -1,6 +1,7 @@
 use thiserror::Error;
 
 use crate::output::CliOutput;
+use agent_storage::EventStore;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CliCommand {
@@ -9,6 +10,7 @@ pub enum CliCommand {
     BatchPrompt { prompt: String },
     TtyShell,
     LocalSummary,
+    TraceSummary,
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -33,6 +35,7 @@ where
         "--version" | "-V" => Ok(CliCommand::Version),
         "--tty" => Ok(CliCommand::TtyShell),
         "--local-summary" => Ok(CliCommand::LocalSummary),
+        "--trace-summary" => Ok(CliCommand::TraceSummary),
         "--prompt" | "-p" => {
             let prompt = args
                 .next()
@@ -58,7 +61,44 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             Ok(run) => CliOutput::exit(render_local_coding_summary(&run.outcome)),
             Err(error) => CliOutput::exit(format!("local coding summary failed: {error}\n")),
         },
+        CliCommand::TraceSummary => match render_local_trace_summary() {
+            Ok(output) => CliOutput::exit(output),
+            Err(error) => CliOutput::exit(format!("trace summary failed: {error}\n")),
+        },
     }
+}
+
+fn render_local_trace_summary() -> Result<String, String> {
+    let run = agent_core::run_local_coding_fixture().map_err(|error| error.to_string())?;
+    let conversation_id = run
+        .events
+        .first()
+        .map(|event| event.conversation_id)
+        .ok_or_else(|| "local coding fixture produced no events".to_string())?;
+    let mut store = agent_storage::InMemoryEventStore::default();
+    for event in run.events {
+        store.append(event).map_err(|error| error.to_string())?;
+    }
+    let entries = agent_core::build_trace(
+        &store,
+        agent_core::TraceQuery {
+            conversation_id,
+            include_tools: true,
+            include_policy: true,
+            include_checkpoints: true,
+            include_final: true,
+        },
+    )
+    .map_err(|error| error.to_string())?;
+    Ok(render_trace_summary(&entries))
+}
+
+#[must_use]
+pub fn render_trace_summary(entries: &[agent_core::TraceEntry]) -> String {
+    entries
+        .iter()
+        .map(|entry| format!("{} {} {}\n", entry.seq, entry.kind, entry.summary))
+        .collect()
 }
 
 #[must_use]

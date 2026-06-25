@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M09 and M10-01 through M10-04 are implemented. Current focus is M10-05: settings.
+M01-M10 are implemented. Current focus is M11: Plugin Runtime planning.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M10-05-settings.spec.md)
-- [Current plan](docs/plans/M10-05-settings.plan.md)
+- [Current spec](docs/specs/M11-plugin-runtime.spec.md)
+- [Current plan](docs/plans/M11-plugin-runtime.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

@@ -12,4 +12,6 @@ pub enum DesktopError {
     InvalidDiff(String),
     #[error("invalid desktop trace timeline: {0}")]
     InvalidTrace(String),
+    #[error("invalid desktop settings: {0}")]
+    InvalidSettings(String),
 }

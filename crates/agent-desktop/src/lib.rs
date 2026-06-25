@@ -6,6 +6,7 @@ pub mod diff;
 pub mod error;
 pub mod permission;
 pub mod session;
+pub mod settings;
 pub mod snapshot;
 pub mod task;
 pub mod trace;
@@ -22,6 +23,10 @@ pub use permission::{
 pub use session::{
     DesktopRoute, DesktopSession, DesktopSessionState, disconnect_desktop_session,
     start_desktop_session, switch_desktop_route,
+};
+pub use settings::{
+    DesktopSettings, DesktopTheme, McpSettings, MemorySettings, ModelSettings, PolicySettings,
+    UiSettings, validate_desktop_settings,
 };
 pub use snapshot::{DesktopWorkspaceSnapshot, build_workspace_snapshot};
 pub use task::DesktopTaskItem;

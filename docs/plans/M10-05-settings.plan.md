@@ -16,7 +16,7 @@
 - Read: `docs/specs/M10-05-settings.spec.md`
 - Read: `docs/architecture/configuration.md`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 ```bash
 sed -n '1,260p' docs/specs/M10-05-settings.spec.md
@@ -27,7 +27,7 @@ sed -n '1,260p' docs/specs/M10-05-settings.spec.md
 **Files:**
 - Create: `crates/agent-desktop/tests/settings.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -37,7 +37,7 @@ Cover:
 - `settings_rejects_invalid_policy_decision`
 - `settings_serialized_shape_excludes_secret_like_keys`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-desktop settings
@@ -52,15 +52,15 @@ Expected: fails because settings contracts do not exist.
 - Modify: `crates/agent-desktop/src/lib.rs`
 - Modify: `crates/agent-desktop/src/error.rs`
 
-- [ ] **Step 1: Add settings structs**
+- [x] **Step 1: Add settings structs**
 
 Implement `DesktopSettings`, `ModelSettings`, `PolicySettings`, `MemorySettings`, `McpSettings`, `DesktopTheme`, and `UiSettings`.
 
-- [ ] **Step 2: Add defaults and validation**
+- [x] **Step 2: Add defaults and validation**
 
 Implement conservative defaults and settings validation.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-desktop settings
@@ -73,11 +73,11 @@ cargo test -p agent-desktop settings
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M10-05-settings.plan.md`
 
-- [ ] **Step 1: Mark M10 complete**
+- [x] **Step 1: Mark M10 complete**
 
 Set active focus to M11 planning.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -85,7 +85,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

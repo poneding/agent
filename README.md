@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M10 are implemented. Current focus is M11: Plugin Runtime planning.
+M01-M10 are implemented. Current focus is M11-01: Plugin Manifest.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M11-plugin-runtime.spec.md)
-- [Current plan](docs/plans/M11-plugin-runtime.plan.md)
+- [Current spec](docs/specs/M11-01-plugin-manifest.spec.md)
+- [Current plan](docs/plans/M11-01-plugin-manifest.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

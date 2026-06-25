@@ -83,6 +83,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M10-04 implementation | Complete |
 | M10-05 implementation | Complete |
 | M10 implementation | Complete |
+| M11 technical design | Complete |
+| M11 slice specs | Complete for M11-01 through M11-05 |
+| M11 slice plans | Complete for M11-01 through M11-05 |
+| M11 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -198,19 +202,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M10-04 Trace Timeline | `docs/specs/M10-04-trace-timeline.spec.md` | `docs/plans/M10-04-trace-timeline.plan.md` | Ordered, UI-safe runtime trace timeline. |
 | M10-05 Settings | `docs/specs/M10-05-settings.spec.md` | `docs/plans/M10-05-settings.plan.md` | Model, policy, memory, MCP, and UI settings snapshot. |
 
+## M11 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M11-00 Plugin Runtime Technical Design | `docs/specs/M11-00-plugin-runtime-technical-design.spec.md` | `docs/plans/M11-00-plugin-runtime-technical-design.plan.md` | Architecture baseline for manifest, compatibility, isolation, capabilities, tools, hooks, WASM, security, and tests. |
+| M11-01 Plugin Manifest | `docs/specs/M11-01-plugin-manifest.spec.md` | `docs/plans/M11-01-plugin-manifest.plan.md` | `agent-plugin` crate, manifest schema, validation, and compatibility checks. |
+| M11-02 Process Plugin Host | `docs/specs/M11-02-process-plugin-host.spec.md` | `docs/plans/M11-02-process-plugin-host.plan.md` | Process plugin protocol, fixture execution, host errors, timeout, and output limits. |
+| M11-03 Plugin Capabilities | `docs/specs/M11-03-plugin-capabilities.spec.md` | `docs/plans/M11-03-plugin-capabilities.plan.md` | Capability declaration validation and policy request mapping. |
+| M11-04 Plugin Tools and Hooks | `docs/specs/M11-04-plugin-tools-hooks.spec.md` | `docs/plans/M11-04-plugin-tools-hooks.plan.md` | Plugin tool registration through `ToolRegistry`, shared `ToolLoop` policy path, and hook contracts. |
+| M11-05 WASM Prototype | `docs/specs/M11-05-wasm-prototype.spec.md` | `docs/plans/M11-05-wasm-prototype.plan.md` | Constrained WASM module validation and non-privileged host prototype. |
+
 ## Later Milestone Slice Candidates
 
 These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M11 Plugin Runtime
-
-| Slice | Outcome |
-|---|---|
-| M11-01 Plugin Manifest | Manifest schema, validation, and compatibility checks. |
-| M11-02 Process Plugin Host | Process-based plugin execution. |
-| M11-03 Plugin Capabilities | Capability and permission declaration validation. |
-| M11-04 Plugin Tools and Hooks | Plugin-provided tools and lifecycle hooks. |
-| M11-05 WASM Prototype | Constrained WASM plugin host prototype. |
 
 ### M12 Production Hardening
 
@@ -225,11 +230,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M11-plugin-runtime`.
+Current implementation focus: `M11-01-plugin-manifest`.
 
-Current planning focus: decompose M11 into slice-level specs and plans before implementation.
+Current planning focus: keep M11 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M11-plugin-runtime.spec.md`
-- `docs/plans/M11-plugin-runtime.plan.md`
+- `docs/specs/M11-01-plugin-manifest.spec.md`
+- `docs/plans/M11-01-plugin-manifest.plan.md`

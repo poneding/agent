@@ -10,183 +10,107 @@
 
 ---
 
-### Task 1: Confirm Milestone Inputs
+### Task 1: Establish Technical Design And Slice Plans
 
 **Files:**
 - Read: `docs/specs/M11-plugin-runtime.spec.md`
-- Read: `docs/milestones/README.md`
-- Read: `docs/PRD.md`
+- Create: `docs/specs/M11-00-plugin-runtime-technical-design.spec.md`
+- Create: `docs/plans/M11-00-plugin-runtime-technical-design.plan.md`
+- Create: `docs/specs/M11-01-plugin-manifest.spec.md`
+- Create: `docs/plans/M11-01-plugin-manifest.plan.md`
+- Create: `docs/specs/M11-02-process-plugin-host.spec.md`
+- Create: `docs/plans/M11-02-process-plugin-host.plan.md`
+- Create: `docs/specs/M11-03-plugin-capabilities.spec.md`
+- Create: `docs/plans/M11-03-plugin-capabilities.plan.md`
+- Create: `docs/specs/M11-04-plugin-tools-hooks.spec.md`
+- Create: `docs/plans/M11-04-plugin-tools-hooks.plan.md`
+- Create: `docs/specs/M11-05-wasm-prototype.spec.md`
+- Create: `docs/plans/M11-05-wasm-prototype.plan.md`
 
-- [ ] **Step 1: Review the milestone spec**
+- [x] **Step 1: Write M11 technical design**
 
-Run:
+The design defines manifest schema, version gates, isolation modes, process protocol, capability mapping, plugin tool registration, hook rules, WASM prototype constraints, security, and tests.
 
-```bash
-sed -n '1,260p' docs/specs/M11-plugin-runtime.spec.md
-```
+- [x] **Step 2: Write M11 slice specs and plans**
 
-Expected: the spec describes purpose, scope, contracts, tests, and acceptance criteria for M11.
+Each slice has a milestone-prefixed spec and plan with concrete files, contracts, test names, verification commands, and commit boundaries.
 
-- [ ] **Step 2: Confirm workspace health before changes**
-
-Run:
-
-```bash
-cargo test --workspace
-```
-
-Expected: existing workspace tests pass before this milestone begins.
-
-### Task 2: Add Contract Tests First
+### Task 2: Implement M11-01 Plugin Manifest
 
 **Files:**
-- Create/Modify: `crates/agent-core/tests/m11_plugin_runtime.rs`
+- Read: `docs/specs/M11-01-plugin-manifest.spec.md`
+- Execute: `docs/plans/M11-01-plugin-manifest.plan.md`
 
-- [ ] **Step 1: Write tests for milestone behavior**
-
-Cover these behaviors:
-
-- manifest parser tests
-- compatibility matrix tests
-- process plugin fixture tests
-- capability validation tests
-- plugin tool policy tests
-
-Create focused tests with names that describe the contract being proven.
-
-Recommended test names:
-
-- `m11_plugin_runtime_validates_public_contracts`
-- `m11_plugin_runtime_rejects_invalid_inputs`
-- `m11_plugin_runtime_emits_expected_runtime_events`
-- `m11_plugin_runtime_preserves_serialized_shape`
-- `m11_plugin_runtime_reports_recoverable_errors`
-
-- [ ] **Step 2: Run the focused tests and verify failure**
+- [ ] **Step 1: Follow M11-01 plan**
 
 Run:
 
 ```bash
-cargo test --workspace m11_plugin_runtime
+sed -n '1,260p' docs/plans/M11-01-plugin-manifest.plan.md
 ```
 
-Expected: tests fail because the milestone contracts are not implemented yet.
+Expected: the plan describes the RED tests, implementation files, verification commands, and commit for plugin manifest support.
 
-### Task 3: Implement Milestone Contracts
+### Task 3: Implement M11-02 Process Plugin Host
 
 **Files:**
-- Modify/Create: `crates/agent-plugin/src/lib.rs`
-- Modify/Create: `crates/agent-tool/src/lib.rs`
-- Modify/Create: `crates/agent-policy/src/lib.rs`
-- Modify/Create: `crates/agent-sandbox/src/lib.rs`
-- Modify/Create: `crates/agent-core/src/lib.rs`
-- Modify/Create: `crates/agent-types/src/lib.rs`
+- Read: `docs/specs/M11-02-process-plugin-host.spec.md`
+- Execute: `docs/plans/M11-02-process-plugin-host.plan.md`
 
-- [ ] **Step 1: Add or extend crate modules**
-
-Implement the public contracts listed in the spec:
-
-- PluginManifest contract
-- PluginCompatibility contract
-- PluginProcessHost contract
-- PluginCapability contract
-- PluginHook contract
-
-- [ ] **Step 2: Keep dependency direction clean**
+- [ ] **Step 1: Follow M11-02 plan**
 
 Run:
 
 ```bash
-cargo metadata --no-deps --format-version 1
+sed -n '1,260p' docs/plans/M11-02-process-plugin-host.plan.md
 ```
 
-Expected: metadata succeeds and newly touched crates do not introduce reverse dependencies into lower-level crates.
+Expected: the plan describes process protocol tests, host implementation, verification commands, and commit.
 
-- [ ] **Step 3: Run focused tests and verify success**
-
-Run:
-
-```bash
-cargo test --workspace m11_plugin_runtime
-```
-
-Expected: focused milestone tests pass.
-
-### Task 4: Add Integration Coverage
+### Task 4: Implement M11-03 Plugin Capabilities
 
 **Files:**
-- Create/Modify: `crates/agent-core/tests/m11_plugin_runtime_integration.rs`
+- Read: `docs/specs/M11-03-plugin-capabilities.spec.md`
+- Execute: `docs/plans/M11-03-plugin-capabilities.plan.md`
 
-- [ ] **Step 1: Add integration assertions for acceptance criteria**
-
-Acceptance criteria to encode:
-
-- A plugin can register a tool through a declared capability.
-- Plugin tool calls pass through the same policy, sandbox, event, and audit path as built-in tools.
-
-- [ ] **Step 2: Run integration tests**
+- [ ] **Step 1: Follow M11-03 plan**
 
 Run:
 
 ```bash
-cargo test --workspace m11_plugin_runtime_integration
+sed -n '1,260p' docs/plans/M11-03-plugin-capabilities.plan.md
 ```
 
-Expected: integration tests pass and fail deterministically when the milestone behavior is removed.
+Expected: the plan describes capability validation, policy request mapping, event tests, verification commands, and commit.
 
-### Task 5: Run Full Verification
+### Task 5: Implement M11-04 Plugin Tools And Hooks
 
 **Files:**
-- Read: `Cargo.toml`
-- Read: `Cargo.lock`
+- Read: `docs/specs/M11-04-plugin-tools-hooks.spec.md`
+- Execute: `docs/plans/M11-04-plugin-tools-hooks.plan.md`
 
-- [ ] **Step 1: Format check**
-
-Run:
-
-```bash
-cargo fmt --all -- --check
-```
-
-Expected: formatting check passes.
-
-- [ ] **Step 2: Lint check**
+- [ ] **Step 1: Follow M11-04 plan**
 
 Run:
 
 ```bash
-cargo clippy --workspace --all-targets -- -D warnings
+sed -n '1,260p' docs/plans/M11-04-plugin-tools-hooks.plan.md
 ```
 
-Expected: clippy passes without warnings.
+Expected: the plan describes plugin tool registration, hook contracts, core integration tests, verification commands, and commit.
 
-- [ ] **Step 3: Full test suite**
-
-Run:
-
-```bash
-cargo test --workspace
-```
-
-Expected: all workspace tests pass.
-
-### Task 6: Update Progress and Commit
+### Task 6: Implement M11-05 WASM Prototype
 
 **Files:**
-- Modify: `docs/milestones/README.md`
-- Modify: `README.md`
+- Read: `docs/specs/M11-05-wasm-prototype.spec.md`
+- Execute: `docs/plans/M11-05-wasm-prototype.plan.md`
 
-- [ ] **Step 1: Update active milestone status**
-
-Update `docs/milestones/README.md` so the completed milestone is marked as complete or the active focus advances to the next milestone.
-
-- [ ] **Step 2: Commit the milestone**
+- [ ] **Step 1: Follow M11-05 plan**
 
 Run:
 
 ```bash
-git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md
-git commit -m "feat: complete m11 plugin runtime"
+sed -n '1,260p' docs/plans/M11-05-wasm-prototype.plan.md
 ```
 
-Expected: commit succeeds with source, tests, and documentation staged together.
+Expected: the plan describes WASM validation tests, prototype implementation, verification commands, M11 completion status update, and commit.

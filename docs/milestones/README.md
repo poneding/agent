@@ -92,6 +92,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M11-04 implementation | Complete |
 | M11-05 implementation | Complete |
 | M11 implementation | Complete |
+| M12 technical design | Complete |
+| M12 slice specs | Complete for M12-01 through M12-06 |
+| M12 slice plans | Complete for M12-01 through M12-06 |
+| M12-01 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -218,28 +222,23 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M11-04 Plugin Tools and Hooks | `docs/specs/M11-04-plugin-tools-hooks.spec.md` | `docs/plans/M11-04-plugin-tools-hooks.plan.md` | Plugin tool registration through `ToolRegistry`, shared `ToolLoop` policy path, and hook contracts. |
 | M11-05 WASM Prototype | `docs/specs/M11-05-wasm-prototype.spec.md` | `docs/plans/M11-05-wasm-prototype.plan.md` | Constrained WASM module validation and non-privileged host prototype. |
 
-## Later Milestone Slice Candidates
+## M12 Slice Index
 
-These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M12 Production Hardening
-
-| Slice | Outcome |
-|---|---|
-| M12-01 Schema Migration | Event, checkpoint, memory, config, and plugin schema migrations. |
-| M12-02 Telemetry | OpenTelemetry spans, metrics, and structured logs. |
-| M12-03 Audit Export | Exportable audit records and trace bundles. |
-| M12-04 Memory Portability | Memory import/export and retention controls. |
-| M12-05 Platform Capability Report | Cross-platform sandbox capability reporting. |
-| M12-06 Benchmarks | Turn latency, event throughput, tool dispatch, and compaction benchmarks. |
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M12-00 Production Hardening Technical Design | `docs/specs/M12-00-production-hardening-technical-design.spec.md` | `docs/plans/M12-00-production-hardening-technical-design.plan.md` | M12 crate ownership, contract, privacy, compatibility, and verification baseline. |
+| M12-01 Schema Migration | `docs/specs/M12-01-schema-migration.spec.md` | `docs/plans/M12-01-schema-migration.plan.md` | Event, checkpoint, memory, config, and plugin schema migration contracts. |
+| M12-02 Telemetry | `docs/specs/M12-02-telemetry.spec.md` | `docs/plans/M12-02-telemetry.plan.md` | Provider-neutral spans, metrics, trace context, redaction, and in-memory sink. |
+| M12-03 Audit Export | `docs/specs/M12-03-audit-export.spec.md` | `docs/plans/M12-03-audit-export.plan.md` | Exportable audit records and trace bundles. |
+| M12-04 Memory Portability | `docs/specs/M12-04-memory-portability.spec.md` | `docs/plans/M12-04-memory-portability.plan.md` | Memory import/export archives and retention controls. |
+| M12-05 Platform Capability Report | `docs/specs/M12-05-platform-capability-report.spec.md` | `docs/plans/M12-05-platform-capability-report.plan.md` | Cross-platform sandbox capability reporting. |
+| M12-06 Benchmarks | `docs/specs/M12-06-benchmarks.spec.md` | `docs/plans/M12-06-benchmarks.plan.md` | Deterministic runtime benchmark smoke scenarios. |
 
 ## Active Work
 
-Current implementation focus: `M12-production-hardening` planning.
-
-Current planning focus: decompose M12 into technical design, slice specs, and slice plans before implementation.
+Current implementation focus: `M12-01-schema-migration`.
 
 Primary planning documents for the current focus:
 
-- `docs/specs/M12-production-hardening.spec.md`
-- `docs/plans/M12-production-hardening.plan.md`
+- `docs/specs/M12-01-schema-migration.spec.md`
+- `docs/plans/M12-01-schema-migration.plan.md`

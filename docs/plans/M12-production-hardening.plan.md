@@ -2,194 +2,160 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the runtime reliable for daily use and external integration with migrations, telemetry, audit export, memory portability, platform reports, and benchmarks.
+**Goal:** Complete M12 through independently testable slices for migrations, telemetry, audit export, memory portability, platform reports, and benchmarks.
 
-**Architecture:** Implement this milestone behind the crate boundaries named in the matching spec. Keep shared contracts in lower-level crates, route orchestration through `agent-core`, and expose user-facing behavior through CLI or UI bridge crates only when the spec calls for it.
+**Architecture:** Treat this file as the M12 coordination plan, not a single implementation batch. Each slice owns its own spec and plan, lands in its own focused commit, and preserves the crate boundaries defined by `docs/specs/M12-00-production-hardening-technical-design.spec.md`.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, serde-compatible contracts where durable or wire formats are involved, Tokio for async runtime paths that need it, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, serde-compatible durable contracts, thiserror error types, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
-### Task 1: Confirm Milestone Inputs
+### Task 1: Establish M12 Technical Design
 
 **Files:**
-- Read: `docs/specs/M12-production-hardening.spec.md`
-- Read: `docs/milestones/README.md`
-- Read: `docs/PRD.md`
+- Create: `docs/specs/M12-00-production-hardening-technical-design.spec.md`
+- Create: `docs/plans/M12-00-production-hardening-technical-design.plan.md`
 
-- [ ] **Step 1: Review the milestone spec**
+- [x] **Step 1: Write the M12 technical design baseline**
 
-Run:
+Define crate ownership, dependency direction, migration rules, telemetry rules, audit export rules, memory archive rules, platform report rules, benchmark rules, privacy constraints, and verification gates.
 
-```bash
-sed -n '1,260p' docs/specs/M12-production-hardening.spec.md
-```
+- [x] **Step 2: Create the M12 design execution plan**
 
-Expected: the spec describes purpose, scope, contracts, tests, and acceptance criteria for M12.
+Record the documentation work and slice decomposition tasks.
 
-- [ ] **Step 2: Confirm workspace health before changes**
-
-Run:
-
-```bash
-cargo test --workspace
-```
-
-Expected: existing workspace tests pass before this milestone begins.
-
-### Task 2: Add Contract Tests First
+### Task 2: Decompose M12 Into Slice Specs And Plans
 
 **Files:**
-- Create/Modify: `crates/agent-core/tests/m12_production_hardening.rs`
+- Create: `docs/specs/M12-01-schema-migration.spec.md`
+- Create: `docs/plans/M12-01-schema-migration.plan.md`
+- Create: `docs/specs/M12-02-telemetry.spec.md`
+- Create: `docs/plans/M12-02-telemetry.plan.md`
+- Create: `docs/specs/M12-03-audit-export.spec.md`
+- Create: `docs/plans/M12-03-audit-export.plan.md`
+- Create: `docs/specs/M12-04-memory-portability.spec.md`
+- Create: `docs/plans/M12-04-memory-portability.plan.md`
+- Create: `docs/specs/M12-05-platform-capability-report.spec.md`
+- Create: `docs/plans/M12-05-platform-capability-report.plan.md`
+- Create: `docs/specs/M12-06-benchmarks.spec.md`
+- Create: `docs/plans/M12-06-benchmarks.plan.md`
 
-- [ ] **Step 1: Write tests for milestone behavior**
+- [x] **Step 1: Create slice specs**
 
-Cover these behaviors:
+Each slice spec defines purpose, scope, architecture, file layout, public contracts, state and failure handling, security and privacy constraints, tests, acceptance criteria, and completion signal.
 
-- migration fixture tests
-- telemetry field tests
-- audit export tests
-- memory archive tests
-- platform report tests
-- benchmark smoke tests
+- [x] **Step 2: Create slice plans**
 
-Create focused tests with names that describe the contract being proven.
+Each slice plan defines exact files, RED tests, focused verification commands, workspace verification gates, status updates, and commit boundaries.
 
-Recommended test names:
-
-- `m12_production_hardening_validates_public_contracts`
-- `m12_production_hardening_rejects_invalid_inputs`
-- `m12_production_hardening_emits_expected_runtime_events`
-- `m12_production_hardening_preserves_serialized_shape`
-- `m12_production_hardening_reports_recoverable_errors`
-
-- [ ] **Step 2: Run the focused tests and verify failure**
-
-Run:
-
-```bash
-cargo test --workspace m12_production_hardening
-```
-
-Expected: tests fail because the milestone contracts are not implemented yet.
-
-### Task 3: Implement Milestone Contracts
+### Task 3: Sync Documentation Navigation
 
 **Files:**
-- Modify/Create: `crates/agent-storage/src/lib.rs`
-- Modify/Create: `crates/agent-telemetry/src/lib.rs`
-- Modify/Create: `crates/agent-memory/src/lib.rs`
-- Modify/Create: `crates/agent-sandbox/src/lib.rs`
-- Modify/Create: `crates/agent-core/src/lib.rs`
-- Modify/Create: `crates/agent-cli/src/lib.rs`
+- Modify: `README.md`
+- Modify: `docs/milestones/README.md`
+- Modify: `docs/plans/M12-production-hardening.plan.md`
 
-- [ ] **Step 1: Add or extend crate modules**
+- [x] **Step 1: Point active work at M12-01**
 
-Implement the public contracts listed in the spec:
+Update README and milestone navigation so the current spec and plan are:
 
-- SchemaMigration contract
-- TelemetrySpan contract
-- AuditExport contract
-- MemoryArchive contract
-- PlatformCapabilityReport contract
-- BenchmarkScenario contract
-
-- [ ] **Step 2: Keep dependency direction clean**
-
-Run:
-
-```bash
-cargo metadata --no-deps --format-version 1
+```text
+docs/specs/M12-01-schema-migration.spec.md
+docs/plans/M12-01-schema-migration.plan.md
 ```
 
-Expected: metadata succeeds and newly touched crates do not introduce reverse dependencies into lower-level crates.
-
-- [ ] **Step 3: Run focused tests and verify success**
-
-Run:
-
-```bash
-cargo test --workspace m12_production_hardening
-```
-
-Expected: focused milestone tests pass.
-
-### Task 4: Add Integration Coverage
-
-**Files:**
-- Create/Modify: `crates/agent-core/tests/m12_production_hardening_integration.rs`
-
-- [ ] **Step 1: Add integration assertions for acceptance criteria**
-
-Acceptance criteria to encode:
-
-- Users can upgrade data safely.
-- Runtime behavior is observable in logs, metrics, traces, and audit exports.
-- Core benchmarks are tracked and repeatable.
-
-- [ ] **Step 2: Run integration tests**
-
-Run:
-
-```bash
-cargo test --workspace m12_production_hardening_integration
-```
-
-Expected: integration tests pass and fail deterministically when the milestone behavior is removed.
-
-### Task 5: Run Full Verification
-
-**Files:**
-- Read: `Cargo.toml`
-- Read: `Cargo.lock`
-
-- [ ] **Step 1: Format check**
+- [x] **Step 2: Run workspace verification**
 
 Run:
 
 ```bash
 cargo fmt --all -- --check
-```
-
-Expected: formatting check passes.
-
-- [ ] **Step 2: Lint check**
-
-Run:
-
-```bash
 cargo clippy --workspace --all-targets -- -D warnings
-```
-
-Expected: clippy passes without warnings.
-
-- [ ] **Step 3: Full test suite**
-
-Run:
-
-```bash
 cargo test --workspace
 ```
 
-Expected: all workspace tests pass.
+Expected: all checks pass.
 
-### Task 6: Update Progress and Commit
-
-**Files:**
-- Modify: `docs/milestones/README.md`
-- Modify: `README.md`
-
-- [ ] **Step 1: Update active milestone status**
-
-Update `docs/milestones/README.md` so the completed milestone is marked as complete or the active focus advances to the next milestone.
-
-- [ ] **Step 2: Commit the milestone**
+- [x] **Step 3: Commit documentation decomposition**
 
 Run:
 
 ```bash
-git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md
-git commit -m "feat: complete m12 production hardening"
+git add docs README.md AGENTS.md
+git commit -m "docs: decompose m12 production hardening"
 ```
 
-Expected: commit succeeds with source, tests, and documentation staged together.
+Expected: commit succeeds.
+
+### Task 4: Implement M12-01 Schema Migration
+
+**Files:**
+- Read: `docs/specs/M12-01-schema-migration.spec.md`
+- Execute: `docs/plans/M12-01-schema-migration.plan.md`
+
+- [ ] **Step 1: Complete M12-01 using TDD**
+
+Follow `docs/plans/M12-01-schema-migration.plan.md` exactly: write RED tests, verify failure, implement the migration module, verify focused tests, run workspace gates, update status, and commit.
+
+### Task 5: Implement Remaining M12 Slices In Order
+
+**Files:**
+- Execute: `docs/plans/M12-02-telemetry.plan.md`
+- Execute: `docs/plans/M12-03-audit-export.plan.md`
+- Execute: `docs/plans/M12-04-memory-portability.plan.md`
+- Execute: `docs/plans/M12-05-platform-capability-report.plan.md`
+- Execute: `docs/plans/M12-06-benchmarks.plan.md`
+
+- [ ] **Step 1: Implement M12-02 telemetry**
+
+Complete the telemetry crate and commit `feat: add m12 telemetry`.
+
+- [ ] **Step 2: Implement M12-03 audit export**
+
+Complete audit export bundles and commit `feat: add m12 audit export`.
+
+- [ ] **Step 3: Implement M12-04 memory portability**
+
+Complete memory archives and commit `feat: add m12 memory portability`.
+
+- [ ] **Step 4: Implement M12-05 platform capability report**
+
+Complete sandbox capability reports and commit `feat: add m12 platform report`.
+
+- [ ] **Step 5: Implement M12-06 benchmarks**
+
+Complete deterministic benchmark smoke scenarios and commit `feat: add m12 benchmarks`.
+
+### Task 6: Complete M12
+
+**Files:**
+- Modify: `README.md`
+- Modify: `docs/milestones/README.md`
+- Modify: `docs/plans/M12-production-hardening.plan.md`
+
+- [ ] **Step 1: Run final workspace gates**
+
+Run:
+
+```bash
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+```
+
+Expected: all checks pass.
+
+- [ ] **Step 2: Mark M12 complete**
+
+Update M12 planning status and advance active focus to the next milestone.
+
+- [ ] **Step 3: Commit M12 completion status**
+
+Run:
+
+```bash
+git add docs README.md AGENTS.md
+git commit -m "docs: mark m12 production hardening complete"
+```
+
+Expected: commit succeeds.

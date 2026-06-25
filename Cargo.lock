@@ -43,6 +43,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "agent-desktop"
+version = "0.1.0"
+dependencies = [
+ "agent-types",
+ "agent-ui-bridge",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "agent-mcp"
 version = "0.1.0"
 dependencies = [

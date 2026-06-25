@@ -18,7 +18,7 @@
 - Create: `crates/agent-desktop/src/lib.rs`
 - Create: `crates/agent-desktop/src/error.rs`
 
-- [ ] **Step 1: Add crate scaffold**
+- [x] **Step 1: Add crate scaffold**
 
 Add `crates/agent-desktop` to workspace members.
 
@@ -37,7 +37,7 @@ thiserror = "2"
 **Files:**
 - Create: `crates/agent-desktop/tests/desktop_shell.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -47,7 +47,7 @@ Cover:
 - `desktop_shell_rejects_empty_client_version`
 - `desktop_shell_rejects_route_switch_after_disconnect`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-desktop desktop_shell
@@ -61,15 +61,15 @@ Expected: fails because `agent-desktop` shell contracts do not exist.
 - Create: `crates/agent-desktop/src/session.rs`
 - Modify: `crates/agent-desktop/src/lib.rs`
 
-- [ ] **Step 1: Add session contracts**
+- [x] **Step 1: Add session contracts**
 
 Implement `DesktopSessionState`, `DesktopRoute`, and `DesktopSession`.
 
-- [ ] **Step 2: Add session transitions**
+- [x] **Step 2: Add session transitions**
 
 Implement `start_desktop_session`, `switch_desktop_route`, and `disconnect_desktop_session`.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-desktop desktop_shell
@@ -82,11 +82,11 @@ cargo test -p agent-desktop desktop_shell
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M10-01-desktop-shell.plan.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M10-02-conversation-tasks`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -94,7 +94,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

@@ -15,6 +15,7 @@ members = [
     "crates/agent-mcp",
     "crates/agent-skill",
     "crates/agent-ui-bridge",
+    "crates/agent-desktop",
     "crates/agent-cli",
 ]
 resolver = "2"

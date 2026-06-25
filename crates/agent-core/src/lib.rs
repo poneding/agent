@@ -2,6 +2,7 @@
 //! Core runtime orchestration for agent.
 
 pub mod audit_export;
+pub mod benchmark;
 pub mod context;
 pub mod idempotency;
 pub mod local_coding;
@@ -14,6 +15,10 @@ pub mod turn;
 pub use audit_export::{
     AuditEventCategory, AuditExportBundle, AuditExportError, AuditExportOptions, AuditExportRecord,
     TraceExportSummary, export_audit_bundle, export_audit_bundle_at,
+};
+pub use benchmark::{
+    BenchmarkEnvironment, BenchmarkError, BenchmarkResult, BenchmarkRunner, BenchmarkScenario,
+    run_smoke_benchmarks, smoke_benchmark_scenarios,
 };
 pub use context::ContextAssembler;
 pub use idempotency::{IdempotentToolError, IdempotentToolExecutor, IdempotentToolOutcome};

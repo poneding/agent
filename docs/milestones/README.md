@@ -100,7 +100,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M12-03 implementation | Complete |
 | M12-04 implementation | Complete |
 | M12-05 implementation | Complete |
-| M12-06 implementation | In progress |
+| M12-06 implementation | Complete |
+| M12 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -241,9 +242,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M12-06-benchmarks`.
+Current implementation focus: M12 complete; next milestone planning has not started.
 
-Primary planning documents for the current focus:
+Primary planning documents for the completed M12 milestone:
 
-- `docs/specs/M12-06-benchmarks.spec.md`
-- `docs/plans/M12-06-benchmarks.plan.md`
+- `docs/specs/M12-production-hardening.spec.md`
+- `docs/plans/M12-production-hardening.plan.md`

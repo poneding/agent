@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M11 and M12-01-M12-05 are implemented. Current focus is M12-06: Benchmarks.
+M01-M12 are implemented. Current focus is post-M12 planning.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M12-06-benchmarks.spec.md)
-- [Current plan](docs/plans/M12-06-benchmarks.plan.md)
+- [M12 spec](docs/specs/M12-production-hardening.spec.md)
+- [M12 plan](docs/plans/M12-production-hardening.plan.md)
 - [M12 technical design](docs/specs/M12-00-production-hardening-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

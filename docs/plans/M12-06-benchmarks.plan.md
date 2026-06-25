@@ -17,7 +17,7 @@
 - Read: `crates/agent-core/src/lib.rs`
 - Read: `crates/agent-core/tests/spine_integration.rs`
 
-- [ ] **Step 1: Review deterministic benchmark scope**
+- [x] **Step 1: Review deterministic benchmark scope**
 
 Run:
 
@@ -32,7 +32,7 @@ Expected: M12 benchmarks are smoke scenarios, not statistical performance claims
 **Files:**
 - Create: `crates/agent-core/tests/benchmarks.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Add tests:
 
@@ -42,7 +42,9 @@ Add tests:
 - `benchmarks_result_includes_environment_summary`
 - `benchmarks_smoke_scenarios_execute_without_external_services`
 
-- [ ] **Step 2: Verify RED**
+The tests define the public API for `BenchmarkScenario`, `BenchmarkResult`, `BenchmarkEnvironment`, `BenchmarkRunner`, `BenchmarkError`, and `run_smoke_benchmarks`.
+
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -58,15 +60,15 @@ Expected: tests fail because benchmark contracts do not exist.
 - Modify: `crates/agent-core/src/lib.rs`
 - Create: `crates/agent-core/src/benchmark.rs`
 
-- [ ] **Step 1: Add benchmark types**
+- [x] **Step 1: Add benchmark types**
 
 Implement `BenchmarkScenario`, `BenchmarkResult`, `BenchmarkEnvironment`, `BenchmarkRunner`, and `BenchmarkError`.
 
-- [ ] **Step 2: Add deterministic runner**
+- [x] **Step 2: Add deterministic runner**
 
 Implement a runner that validates scenarios, executes a provided deterministic operation, and records elapsed micros and operation count.
 
-- [ ] **Step 3: Add smoke scenarios**
+- [x] **Step 3: Add smoke scenarios**
 
 Implement local smoke scenario builders for replay, tool dispatch, event append, and context compaction using fake or in-memory data.
 
@@ -75,7 +77,7 @@ Implement local smoke scenario builders for replay, tool dispatch, event append,
 **Files:**
 - Read: `crates/agent-core/tests/benchmarks.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -85,7 +87,7 @@ cargo test -p agent-core benchmarks
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -105,11 +107,11 @@ Expected: all checks pass.
 - Modify: `docs/plans/M12-06-benchmarks.plan.md`
 - Modify: `docs/plans/M12-production-hardening.plan.md`
 
-- [ ] **Step 1: Mark M12 complete**
+- [x] **Step 1: Mark M12 complete**
 
 Update milestone status and active focus after all M12 acceptance criteria pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

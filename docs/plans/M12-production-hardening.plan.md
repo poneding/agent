@@ -122,7 +122,7 @@ Complete memory archives and commit `feat: add m12 memory portability`.
 
 Complete sandbox capability reports and commit `feat: add m12 platform report`.
 
-- [ ] **Step 5: Implement M12-06 benchmarks**
+- [x] **Step 5: Implement M12-06 benchmarks**
 
 Complete deterministic benchmark smoke scenarios and commit `feat: add m12 benchmarks`.
 
@@ -133,7 +133,7 @@ Complete deterministic benchmark smoke scenarios and commit `feat: add m12 bench
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M12-production-hardening.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -145,11 +145,11 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M12 complete**
+- [x] **Step 2: Mark M12 complete**
 
 Update M12 planning status and advance active focus to the next milestone.
 
-- [ ] **Step 3: Commit M12 completion status**
+- [x] **Step 3: Commit M12 completion status**
 
 Run:
 

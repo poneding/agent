@@ -10,6 +10,17 @@
 
 ---
 
+## Slice Execution Order
+
+Do not implement this milestone directly from the milestone-level plan. Execute the slice plans in order:
+
+1. `docs/plans/M08-01-task-state-machine.plan.md`
+2. `docs/plans/M08-02-queue-leases.plan.md`
+3. `docs/plans/M08-03-quotas.plan.md`
+4. `docs/plans/M08-04-notifications.plan.md`
+
+Each slice must be implemented with RED/GREEN tests, standard verification, progress updates, and a dedicated commit.
+
 ### Task 1: Confirm Milestone Inputs
 
 **Files:**

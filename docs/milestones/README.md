@@ -61,6 +61,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M07-03 implementation | Complete |
 | M07-04 implementation | Complete |
 | M07 implementation | Complete |
+| M08 slice specs | Complete for M08-01 through M08-04 |
+| M08 slice plans | Complete for M08-01 through M08-04 |
 
 ## Milestone Spec and Plan Index
 
@@ -148,18 +150,18 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M07-03 Skill Discovery | `docs/specs/M07-03-skill-discovery.spec.md` | `docs/plans/M07-03-skill-discovery.plan.md` | Skill roots, metadata, source tracking, and prompt contribution. |
 | M07-04 MCP/Skill Traceability | `docs/specs/M07-04-mcp-skill-traceability.spec.md` | `docs/plans/M07-04-mcp-skill-traceability.plan.md` | Runtime traces expose source and permission metadata. |
 
+## M08 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M08-01 Task State Machine | `docs/specs/M08-01-task-state-machine.spec.md` | `docs/plans/M08-01-task-state-machine.plan.md` | Durable task-run state machine and legal transitions. |
+| M08-02 Queue and Leases | `docs/specs/M08-02-queue-leases.spec.md` | `docs/plans/M08-02-queue-leases.plan.md` | In-memory queue, leases, cancellation, pause/resume, and retry decisions. |
+| M08-03 Quotas | `docs/specs/M08-03-quotas.spec.md` | `docs/plans/M08-03-quotas.plan.md` | Workspace and system concurrency quota evaluation. |
+| M08-04 Notifications | `docs/specs/M08-04-notifications.spec.md` | `docs/plans/M08-04-notifications.plan.md` | Task notifications, runtime events, and UI bridge normalization. |
+
 ## Later Milestone Slice Candidates
 
 These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M08 Background Tasks and Scheduler
-
-| Slice | Outcome |
-|---|---|
-| M08-01 Task State Machine | Durable task lifecycle and transitions. |
-| M08-02 Queue and Leases | Local durable queue, leases, cancellation, pause/resume, and retries. |
-| M08-03 Quotas | Time, concurrency, model usage, and tool class limits. |
-| M08-04 Notifications | Waiting-approval and completion notification events. |
 
 ### M09 Worktree Isolation and Subagents
 
@@ -203,11 +205,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M08-scheduler-background-tasks` slice decomposition.
+Current implementation focus: `M08-01-task-state-machine`.
 
-Current planning focus: create M08 slice-level specs and plans before implementation.
+Current planning focus: keep M08 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M08-scheduler-background-tasks.spec.md`
-- `docs/plans/M08-scheduler-background-tasks.plan.md`
+- `docs/specs/M08-01-task-state-machine.spec.md`
+- `docs/plans/M08-01-task-state-machine.plan.md`

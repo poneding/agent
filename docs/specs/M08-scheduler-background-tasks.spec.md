@@ -18,6 +18,13 @@ This milestone delivers:
 - QuotaPolicy contract
 - TaskNotification contract
 
+Implementation is split across:
+
+- `M08-01-task-state-machine`
+- `M08-02-queue-leases`
+- `M08-03-quotas`
+- `M08-04-notifications`
+
 Implementation primarily touches:
 
 - `agent-scheduler`

@@ -17,11 +17,11 @@
 - Create: `crates/agent-storage/tests/fixtures/m04_trace_v1.json`
 - Create: `crates/agent-core/tests/recovery_compatibility.rs`
 
-- [ ] **Step 1: Add failing fixture tests**
+- [x] **Step 1: Add failing fixture tests**
 
 Tests must prove fixture JSON parsing, old trace replay, checkpoint fixture replay, unsupported future version diagnostics, and final summary reconstruction.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test --workspace replay_compatibility
@@ -35,15 +35,15 @@ Expected: tests fail because compatibility loader contracts do not exist.
 - Create: `crates/agent-storage/src/compatibility.rs`
 - Modify: `crates/agent-storage/src/lib.rs`
 
-- [ ] **Step 1: Define `ReplayCompatibilityReport`**
+- [x] **Step 1: Define `ReplayCompatibilityReport`**
 
 Use the fields from `docs/specs/M04-05-replay-compatibility.spec.md`.
 
-- [ ] **Step 2: Implement fixture parsing**
+- [x] **Step 2: Implement fixture parsing**
 
 Parse fixture schema version, runtime events, checkpoints, and expected summary.
 
-- [ ] **Step 3: Verify storage GREEN**
+- [x] **Step 3: Verify storage GREEN**
 
 ```bash
 cargo test -p agent-storage replay_compatibility
@@ -56,11 +56,11 @@ Expected: storage compatibility tests pass.
 **Files:**
 - Modify: `crates/agent-core/tests/recovery_compatibility.rs`
 
-- [ ] **Step 1: Reconstruct outcome from fixture**
+- [x] **Step 1: Reconstruct outcome from fixture**
 
 Use loaded fixture events to rebuild final summary and audit count.
 
-- [ ] **Step 2: Verify core GREEN**
+- [x] **Step 2: Verify core GREEN**
 
 ```bash
 cargo test -p agent-core recovery_compatibility
@@ -74,7 +74,7 @@ Expected: core compatibility tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M04-05-replay-compatibility.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -82,11 +82,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Mark M04 complete**
+- [x] **Step 2: Mark M04 complete**
 
 Update milestone status so M04 is complete and active focus advances to `M05-context-memory`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

@@ -46,7 +46,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M03 slice plans | Complete for M03-01 through M03-05 |
 | M03 implementation | Complete |
 | M04 slice specs | Complete for M04-01 through M04-05 |
-| M04 slice plans | Development-ready for M04-01 through M04-05 |
+| M04 slice plans | Complete for M04-01 through M04-05 |
+| M04 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -189,11 +190,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M04-05-replay-compatibility`.
+Current implementation focus: `M05-context-memory`.
 
-Current planning focus: M04 slice-level specs and plans are created; next planning document should be a slice-level doc only when implementation reaches M05.
+Current planning focus: create M05 slice-level specs and plans before implementation begins.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M04-05-replay-compatibility.spec.md`
-- `docs/plans/M04-05-replay-compatibility.plan.md`
+- `docs/specs/M05-context-memory.spec.md`
+- `docs/plans/M05-context-memory.plan.md`

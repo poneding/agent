@@ -2,6 +2,7 @@
 //! Durable storage contracts for agent.
 
 pub mod checkpoint;
+pub mod compatibility;
 pub mod event_store;
 pub mod idempotency;
 pub mod memory;
@@ -9,6 +10,10 @@ pub mod replay;
 pub mod sqlite;
 
 pub use checkpoint::{CheckpointRecord, CheckpointStore};
+pub use compatibility::{
+    ReplayCompatibilityError, ReplayCompatibilityExpected, ReplayCompatibilityFixture,
+    ReplayCompatibilityReport, check_replay_compatibility, load_replay_fixture_json,
+};
 pub use event_store::{EventStore, StorageError, StoredEvent};
 pub use idempotency::{IdempotencyKey, IdempotencyStore, ToolEffectRecord};
 pub use memory::InMemoryEventStore;

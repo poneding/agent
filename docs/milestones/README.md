@@ -192,11 +192,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M05-01-prompt-layers`.
+Current implementation focus: `M05-02-budget-planner`.
 
 Current planning focus: M05 slice-level specs and plans are created; next planning document should be a slice-level doc only when implementation reaches M06.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M05-01-prompt-layers.spec.md`
-- `docs/plans/M05-01-prompt-layers.plan.md`
+- `docs/specs/M05-02-budget-planner.spec.md`
+- `docs/plans/M05-02-budget-planner.plan.md`

@@ -19,7 +19,7 @@
 - Create: `crates/agent-context/src/error.rs`
 - Create: `crates/agent-context/src/prompt.rs`
 
-- [ ] **Step 1: Add failing crate smoke test**
+- [x] **Step 1: Add failing crate smoke test**
 
 Create `crates/agent-context/tests/prompt_layers.rs` with:
 
@@ -32,7 +32,7 @@ fn prompt_layers_expose_public_kind_contract() {
 }
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-context prompt_layers_expose_public_kind_contract
@@ -40,11 +40,11 @@ cargo test -p agent-context prompt_layers_expose_public_kind_contract
 
 Expected: fails because `agent-context` is not a workspace crate yet.
 
-- [ ] **Step 3: Add crate scaffold**
+- [x] **Step 3: Add crate scaffold**
 
 Add `crates/agent-context` to workspace members. Create `Cargo.toml` with dependencies on `agent-types`, `serde`, `serde_json`, and `thiserror`. Create `lib.rs` that re-exports `ContextError`, `PromptBundle`, `PromptLayer`, `PromptLayerKind`, `PromptMessage`, and `assemble_prompt_bundle`.
 
-- [ ] **Step 4: Verify crate smoke GREEN**
+- [x] **Step 4: Verify crate smoke GREEN**
 
 ```bash
 cargo test -p agent-context prompt_layers_expose_public_kind_contract
@@ -57,7 +57,7 @@ Expected: the smoke test passes.
 **Files:**
 - Modify: `crates/agent-context/tests/prompt_layers.rs`
 
-- [ ] **Step 1: Add failing behavior tests**
+- [x] **Step 1: Add failing behavior tests**
 
 Add tests named:
 
@@ -68,7 +68,7 @@ Add tests named:
 
 Use `assemble_prompt_bundle` with layers for `system`, `project`, and `user`; assert ordered message contents and total `estimated_tokens`.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-context prompt_layers
@@ -83,15 +83,15 @@ Expected: tests fail because prompt assembly is not implemented.
 - Modify: `crates/agent-context/src/prompt.rs`
 - Modify: `crates/agent-context/src/lib.rs`
 
-- [ ] **Step 1: Implement public contracts**
+- [x] **Step 1: Implement public contracts**
 
 Define `PromptLayerKind`, `PromptLayer`, `PromptMessage`, `PromptBundle`, and `ContextError`. Derive `Clone`, `Debug`, `Eq`, `PartialEq`, `Serialize`, and `Deserialize` where durable or test-facing.
 
-- [ ] **Step 2: Implement deterministic ordering**
+- [x] **Step 2: Implement deterministic ordering**
 
 Implement `assemble_prompt_bundle` by validating each layer, sorting by descending `priority`, preserving tie order with an enumerated index, mapping kinds to roles, and summing `token_estimate`.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-context prompt_layers
@@ -106,7 +106,7 @@ Expected: prompt layer tests pass.
 - Modify: `docs/plans/M05-01-prompt-layers.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -114,11 +114,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M05-01-prompt-layers` to `M05-02-budget-planner`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

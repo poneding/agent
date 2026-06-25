@@ -7,6 +7,7 @@ members = [
     "crates/agent-tool",
     "crates/agent-policy",
     "crates/agent-sandbox",
+    "crates/agent-context",
     "crates/agent-cli",
 ]
 resolver = "2"

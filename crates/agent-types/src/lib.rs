@@ -4,6 +4,7 @@
 pub mod actor;
 pub mod error;
 pub mod event;
+pub mod external;
 pub mod ids;
 pub mod schema;
 pub mod state;
@@ -13,6 +14,7 @@ pub mod tool;
 pub use actor::{ActorKind, ActorRef};
 pub use error::{AgentError, AgentTypesError, RuntimeError, RuntimeWarning};
 pub use event::*;
+pub use external::*;
 pub use ids::*;
 pub use schema::SchemaVersion;
 pub use state::{TaskState, TurnState};

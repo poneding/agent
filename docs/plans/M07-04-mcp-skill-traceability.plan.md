@@ -18,7 +18,7 @@
 - Read: `crates/agent-ui-bridge/src/event.rs`
 - Read: `crates/agent-core/tests`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -35,7 +35,7 @@ Expected: the spec defines trace payloads, serialization requirements, UI normal
 - Create: `crates/agent-ui-bridge/tests/m07_traceability.rs`
 - Create: `crates/agent-core/tests/m07_mcp_skill_traceability.rs`
 
-- [ ] **Step 1: Add agent-types serialization tests**
+- [x] **Step 1: Add agent-types serialization tests**
 
 Cover:
 
@@ -43,7 +43,7 @@ Cover:
 - `m07_external_trace_serializes_skill_prompt_contribution_without_body`
 - `m07_external_trace_serializes_mcp_policy_mapping`
 
-- [ ] **Step 2: Add UI bridge normalization tests**
+- [x] **Step 2: Add UI bridge normalization tests**
 
 Cover:
 
@@ -51,11 +51,11 @@ Cover:
 - Skill prompt contribution normalizes without the prompt body.
 - MCP policy mapping normalizes with action and resource metadata.
 
-- [ ] **Step 3: Add core fixture test**
+- [x] **Step 3: Add core fixture test**
 
 Build deterministic `RuntimeEvent` fixtures that include MCP and skill trace payloads and assert they serialize through the existing runtime event envelope.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -72,11 +72,11 @@ Expected: fails because trace payloads do not exist.
 - Modify: `crates/agent-types/src/event.rs`
 - Modify: `crates/agent-types/src/lib.rs`
 
-- [ ] **Step 1: Add external trace contracts**
+- [x] **Step 1: Add external trace contracts**
 
 Implement the payload structs from the spec in `external.rs`.
 
-- [ ] **Step 2: Extend `RuntimeEventPayload`**
+- [x] **Step 2: Extend `RuntimeEventPayload`**
 
 Add variants:
 
@@ -88,11 +88,11 @@ SkillDiscoveredRecorded(crate::external::SkillDiscoveredRecorded),
 SkillPromptContributionRecorded(crate::external::SkillPromptContributionRecorded),
 ```
 
-- [ ] **Step 3: Export `external` module**
+- [x] **Step 3: Export `external` module**
 
 Update `agent-types/src/lib.rs`.
 
-- [ ] **Step 4: Run agent-types tests**
+- [x] **Step 4: Run agent-types tests**
 
 Run:
 
@@ -108,15 +108,15 @@ Expected: trace serialization tests pass.
 - Modify: `crates/agent-ui-bridge/src/event.rs`
 - Modify: `crates/agent-ui-bridge/tests/m07_traceability.rs`
 
-- [ ] **Step 1: Add UI payload variants or progress mapping**
+- [x] **Step 1: Add UI payload variants or progress mapping**
 
 Represent trace payloads with safe summaries that preserve source IDs, counts, local tool names, permission action, and source paths.
 
-- [ ] **Step 2: Ensure raw prompt body and schemas are absent**
+- [x] **Step 2: Ensure raw prompt body and schemas are absent**
 
 Assertions must serialize the UI payload and check that known raw prompt body and schema strings are absent.
 
-- [ ] **Step 3: Verify UI tests**
+- [x] **Step 3: Verify UI tests**
 
 Run:
 
@@ -133,7 +133,7 @@ Expected: UI traceability tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run focused core test**
+- [x] **Step 1: Run focused core test**
 
 Run:
 
@@ -143,11 +143,11 @@ cargo test -p agent-core m07_mcp_skill_traceability
 
 Expected: core trace fixture test passes.
 
-- [ ] **Step 2: Mark M07 complete**
+- [x] **Step 2: Mark M07 complete**
 
 Update milestone status so M07 slice specs, plans, and implementation are complete. Advance active focus to M08 planning.
 
-- [ ] **Step 3: Run standard verification**
+- [x] **Step 3: Run standard verification**
 
 Run:
 
@@ -159,7 +159,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Run:
 

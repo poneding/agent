@@ -79,6 +79,11 @@ pub enum RuntimeEventPayload {
     CheckpointRecorded(CheckpointRecorded),
     ReplayStarted(ReplayStarted),
     ReplayCompleted(ReplayCompleted),
+    McpServerHealthRecorded(crate::external::McpServerHealthRecorded),
+    McpToolsDiscovered(crate::external::McpToolsDiscovered),
+    McpPolicyMappingRecorded(crate::external::McpPolicyMappingRecorded),
+    SkillDiscoveredRecorded(crate::external::SkillDiscoveredRecorded),
+    SkillPromptContributionRecorded(crate::external::SkillPromptContributionRecorded),
     RuntimeWarning(crate::error::RuntimeWarning),
     RuntimeError(crate::error::RuntimeError),
 }

@@ -59,6 +59,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M07-01 implementation | Complete |
 | M07-02 implementation | Complete |
 | M07-03 implementation | Complete |
+| M07-04 implementation | Complete |
+| M07 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -201,11 +203,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M07-04-mcp-skill-traceability`.
+Current implementation focus: `M08-scheduler-background-tasks` slice decomposition.
 
-Current planning focus: keep M07 slice plans updated as implementation progresses.
+Current planning focus: create M08 slice-level specs and plans before implementation.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M07-04-mcp-skill-traceability.spec.md`
-- `docs/plans/M07-04-mcp-skill-traceability.plan.md`
+- `docs/specs/M08-scheduler-background-tasks.spec.md`
+- `docs/plans/M08-scheduler-background-tasks.plan.md`

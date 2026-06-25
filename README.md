@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M06 are implemented. Current focus is M07-04: MCP and skill traceability.
+M01-M07 are implemented. Current focus is M08: scheduler and background tasks.
 
 ## Core Ideas
 
@@ -80,8 +80,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M07-04-mcp-skill-traceability.spec.md)
-- [Current plan](docs/plans/M07-04-mcp-skill-traceability.plan.md)
+- [Current spec](docs/specs/M08-scheduler-background-tasks.spec.md)
+- [Current plan](docs/plans/M08-scheduler-background-tasks.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

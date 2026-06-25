@@ -68,6 +68,11 @@ pub enum UiEventPayload {
     Progress {
         message: String,
     },
+    ExternalTrace {
+        source_kind: String,
+        source_id: String,
+        summary: String,
+    },
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -195,6 +200,56 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
         RuntimeEventPayload::ReplayCompleted(replay) => UiEventPayload::Progress {
             message: format!("replay completed: {} events", replay.event_count),
         },
+        RuntimeEventPayload::McpServerHealthRecorded(recorded) => UiEventPayload::ExternalTrace {
+            source_kind: "mcp_server".to_string(),
+            source_id: recorded.server_id.clone(),
+            summary: format!(
+                "MCP server health {}: {}",
+                recorded.status, recorded.message
+            ),
+        },
+        RuntimeEventPayload::McpToolsDiscovered(discovered) => UiEventPayload::ExternalTrace {
+            source_kind: "mcp_server".to_string(),
+            source_id: discovered.server_id.clone(),
+            summary: format!(
+                "discovered {} MCP tools: {}",
+                discovered.tool_count,
+                discovered.local_tool_names.join(", ")
+            ),
+        },
+        RuntimeEventPayload::McpPolicyMappingRecorded(mapping) => UiEventPayload::ExternalTrace {
+            source_kind: "mcp_server".to_string(),
+            source_id: mapping.server_id.clone(),
+            summary: format!(
+                "mapped MCP tool {} -> {} action={} scope={}:{}",
+                mapping.remote_tool_name,
+                mapping.local_tool_name,
+                mapping.action,
+                mapping.resource_kind,
+                mapping.resource_pattern
+            ),
+        },
+        RuntimeEventPayload::SkillDiscoveredRecorded(discovered) => UiEventPayload::ExternalTrace {
+            source_kind: "skill".to_string(),
+            source_id: discovered.skill_id.clone(),
+            summary: format!(
+                "discovered skill {} from {}",
+                discovered.name, discovered.source_path
+            ),
+        },
+        RuntimeEventPayload::SkillPromptContributionRecorded(contribution) => {
+            UiEventPayload::ExternalTrace {
+                source_kind: "skill".to_string(),
+                source_id: contribution.skill_id.clone(),
+                summary: format!(
+                    "skill prompt layer {} priority={} tokens={} source={}",
+                    contribution.layer_id,
+                    contribution.priority,
+                    contribution.token_estimate,
+                    contribution.source_path
+                ),
+            }
+        }
         RuntimeEventPayload::ConversationStarted(started) => UiEventPayload::Progress {
             message: started.title.clone(),
         },

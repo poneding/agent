@@ -45,6 +45,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M03 slice specs | Complete for M03-01 through M03-05 |
 | M03 slice plans | Complete for M03-01 through M03-05 |
 | M03 implementation | Complete |
+| M04 slice specs | Complete for M04-01 through M04-05 |
+| M04 slice plans | Development-ready for M04-01 through M04-05 |
 
 ## Milestone Spec and Plan Index
 
@@ -94,19 +96,19 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M03-04 Git Tools | `docs/specs/M03-04-git-tools.spec.md` | `docs/plans/M03-04-git-tools.plan.md` | Read-only Git status and diff inspection tools. |
 | M03-05 Local Coding E2E | `docs/specs/M03-05-local-coding-e2e.spec.md` | `docs/plans/M03-05-local-coding-e2e.plan.md` | Deterministic local coding workflow with edit, shell, Git, policy, audit, and summary. |
 
+## M04 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M04-01 Checkpoint Store | `docs/specs/M04-01-checkpoint-store.spec.md` | `docs/plans/M04-01-checkpoint-store.plan.md` | Durable checkpoint records and in-memory/SQLite checkpoint stores. |
+| M04-02 Idempotency | `docs/specs/M04-02-idempotency.spec.md` | `docs/plans/M04-02-idempotency.plan.md` | Idempotency keys, completed tool-effect records, and replay-safe execution wrapper. |
+| M04-03 Recovery Flow | `docs/specs/M04-03-recovery-flow.spec.md` | `docs/plans/M04-03-recovery-flow.plan.md` | Recovery plans that resume from checkpoint plus event-log tail. |
+| M04-04 Trace Commands | `docs/specs/M04-04-trace-commands.spec.md` | `docs/plans/M04-04-trace-commands.plan.md` | Trace query contracts and deterministic CLI trace summaries. |
+| M04-05 Replay Compatibility | `docs/specs/M04-05-replay-compatibility.spec.md` | `docs/plans/M04-05-replay-compatibility.plan.md` | Versioned replay fixtures and compatibility diagnostics. |
+
 ## Later Milestone Slice Candidates
 
 These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M04 Checkpoint, Recovery, and Trace Replay
-
-| Slice | Outcome |
-|---|---|
-| M04-01 Checkpoint Store | Durable snapshots of turn/task state. |
-| M04-02 Idempotency | Idempotency keys for side-effecting tool calls. |
-| M04-03 Recovery Flow | Resume interrupted turns from checkpoint plus event log. |
-| M04-04 Trace Commands | CLI commands for inspecting events, tool calls, policy decisions, and final state. |
-| M04-05 Replay Compatibility | Replay tests and schema compatibility checks. |
 
 ### M05 Context and Memory MVP
 
@@ -187,11 +189,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M04-checkpoint-recovery-trace`.
+Current implementation focus: `M04-01-checkpoint-store`.
 
-Current planning focus: decompose `M04-checkpoint-recovery-trace` into slice-level specs and plans before implementation.
+Current planning focus: M04 slice-level specs and plans are created; next planning document should be a slice-level doc only when implementation reaches M05.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M04-checkpoint-recovery-trace.spec.md`
-- `docs/plans/M04-checkpoint-recovery-trace.plan.md`
+- `docs/specs/M04-01-checkpoint-store.spec.md`
+- `docs/plans/M04-01-checkpoint-store.plan.md`

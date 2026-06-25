@@ -25,6 +25,8 @@ dependencies = [
 name = "agent-core"
 version = "0.1.0"
 dependencies = [
+ "agent-context",
+ "agent-memory",
  "agent-model",
  "agent-policy",
  "agent-sandbox",

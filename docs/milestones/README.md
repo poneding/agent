@@ -50,6 +50,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M04 implementation | Complete |
 | M05 slice specs | Complete for M05-01 through M05-05 |
 | M05 slice plans | Complete for M05-01 through M05-05 |
+| M05 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -192,11 +193,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M05-05-project-memory`.
+Current implementation focus: `M06-json-ui-bridge` slice decomposition.
 
-Current planning focus: M05 slice-level specs and plans are created; next planning document should be a slice-level doc only when implementation reaches M06.
+Current planning focus: create M06 slice-level specs and plans before implementation.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M05-05-project-memory.spec.md`
-- `docs/plans/M05-05-project-memory.plan.md`
+- `docs/specs/M06-json-ui-bridge.spec.md`
+- `docs/plans/M06-json-ui-bridge.plan.md`

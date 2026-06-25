@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-Architecture and planning are in progress. Implementation starts with the runtime spine: workspace scaffold, event model, event storage, fake model provider, turn engine, and replayable integration tests.
+M01-M05 are implemented. Current focus is M06: JSON mode and the UI bridge, starting with slice-level specs and plans.
 
 ## Core Ideas
 
@@ -79,8 +79,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current milestone spec](docs/specs/M05-05-project-memory.spec.md)
-- [Current milestone plan](docs/plans/M05-05-project-memory.plan.md)
+- [Current milestone spec](docs/specs/M06-json-ui-bridge.spec.md)
+- [Current milestone plan](docs/plans/M06-json-ui-bridge.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

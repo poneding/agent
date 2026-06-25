@@ -98,7 +98,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M12-01 implementation | Complete |
 | M12-02 implementation | Complete |
 | M12-03 implementation | Complete |
-| M12-04 implementation | In progress |
+| M12-04 implementation | Complete |
+| M12-05 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -239,9 +240,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M12-04-memory-portability`.
+Current implementation focus: `M12-05-platform-capability-report`.
 
 Primary planning documents for the current focus:
 
-- `docs/specs/M12-04-memory-portability.spec.md`
-- `docs/plans/M12-04-memory-portability.plan.md`
+- `docs/specs/M12-05-platform-capability-report.spec.md`
+- `docs/plans/M12-05-platform-capability-report.plan.md`

@@ -18,7 +18,7 @@
 - Read: `crates/agent-memory/tests/conversation_memory.rs`
 - Read: `crates/agent-memory/tests/project_memory.rs`
 
-- [ ] **Step 1: Review memory contracts**
+- [x] **Step 1: Review memory contracts**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: archive contracts stay in `agent-memory`.
 **Files:**
 - Create: `crates/agent-memory/tests/memory_archive.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Add tests:
 
@@ -44,7 +44,9 @@ Add tests:
 - `memory_archive_import_preserves_scope_and_sensitivity`
 - `memory_archive_round_trip_returns_expected_records`
 
-- [ ] **Step 2: Verify RED**
+The tests define the public API for `MemoryArchive`, `MemoryArchiveManifest`, `MemoryArchiveRecord`, `MemoryRetentionPolicy`, `MemoryImportOutcome`, `MemoryImportReport`, `MemoryArchiveError`, `export_memory_archive`, and `import_memory_archive`.
+
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -60,15 +62,15 @@ Expected: tests fail because archive contracts do not exist.
 - Modify: `crates/agent-memory/src/lib.rs`
 - Create: `crates/agent-memory/src/archive.rs`
 
-- [ ] **Step 1: Add archive types**
+- [x] **Step 1: Add archive types**
 
 Implement `MemoryArchive`, `MemoryArchiveManifest`, `MemoryArchiveRecord`, `MemoryRetentionPolicy`, `MemoryImportReport`, and `MemoryArchiveError`.
 
-- [ ] **Step 2: Add export helper**
+- [x] **Step 2: Add export helper**
 
 Implement deterministic export from memory records into an archive while applying retention policy.
 
-- [ ] **Step 3: Add import validation**
+- [x] **Step 3: Add import validation**
 
 Reject unsupported versions, duplicate ids, empty content, invalid scopes, and sensitivity downgrades.
 
@@ -77,7 +79,7 @@ Reject unsupported versions, duplicate ids, empty content, invalid scopes, and s
 **Files:**
 - Read: `crates/agent-memory/tests/memory_archive.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -87,7 +89,7 @@ cargo test -p agent-memory memory_archive
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -106,7 +108,7 @@ Expected: all checks pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M12-04-memory-portability.plan.md`
 
-- [ ] **Step 1: Commit**
+- [x] **Step 1: Commit**
 
 Run:
 

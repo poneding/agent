@@ -1,11 +1,17 @@
 #![forbid(unsafe_code)]
 //! Scoped memory contracts for agent.
 
+pub mod archive;
 pub mod audit;
 pub mod error;
 pub mod record;
 pub mod store;
 
+pub use archive::{
+    MEMORY_ARCHIVE_SCHEMA_VERSION, MemoryArchive, MemoryArchiveError, MemoryArchiveManifest,
+    MemoryArchiveRecord, MemoryImportOutcome, MemoryImportReport, MemoryRetentionPolicy,
+    export_memory_archive, import_memory_archive,
+};
 pub use audit::{AuditedMemoryStore, MemoryAuditAction, MemoryAuditEntry};
 pub use error::MemoryError;
 pub use record::{MemoryRecord, MemoryScope, MemorySensitivity, MemorySource};

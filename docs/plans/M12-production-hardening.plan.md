@@ -114,7 +114,7 @@ Complete the telemetry crate and commit `feat: add m12 telemetry`.
 
 Complete audit export bundles and commit `feat: add m12 audit export`.
 
-- [ ] **Step 3: Implement M12-04 memory portability**
+- [x] **Step 3: Implement M12-04 memory portability**
 
 Complete memory archives and commit `feat: add m12 memory portability`.
 

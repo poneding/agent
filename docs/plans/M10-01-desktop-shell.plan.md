@@ -1,0 +1,102 @@
+# M10-01 Desktop Shell Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add `agent-desktop` with typed Desktop session and shell route contracts.
+
+**Architecture:** `agent-desktop` depends on `agent-types` and `agent-ui-bridge` only in this slice. Runtime execution remains in `agent-core`; this crate exposes presentation contracts that a future native Desktop UI can consume.
+
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `agent-types`, `agent-ui-bridge`, Cargo fmt, Cargo clippy, Cargo test.
+
+---
+
+### Task 1: Scaffold `agent-desktop`
+
+**Files:**
+- Modify: `Cargo.toml`
+- Create: `crates/agent-desktop/Cargo.toml`
+- Create: `crates/agent-desktop/src/lib.rs`
+- Create: `crates/agent-desktop/src/error.rs`
+
+- [ ] **Step 1: Add crate scaffold**
+
+Add `crates/agent-desktop` to workspace members.
+
+Create the crate with dependencies:
+
+```toml
+[dependencies]
+agent-types = { path = "../agent-types" }
+agent-ui-bridge = { path = "../agent-ui-bridge" }
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+```
+
+### Task 2: Write Desktop Shell RED Tests
+
+**Files:**
+- Create: `crates/agent-desktop/tests/desktop_shell.rs`
+
+- [ ] **Step 1: Add failing tests**
+
+Cover:
+
+- `desktop_shell_serializes_session_shape`
+- `desktop_shell_starts_on_conversation_route`
+- `desktop_shell_switches_routes`
+- `desktop_shell_rejects_empty_client_version`
+- `desktop_shell_rejects_route_switch_after_disconnect`
+
+- [ ] **Step 2: Verify RED**
+
+```bash
+cargo test -p agent-desktop desktop_shell
+```
+
+Expected: fails because `agent-desktop` shell contracts do not exist.
+
+### Task 3: Implement Desktop Shell Contracts
+
+**Files:**
+- Create: `crates/agent-desktop/src/session.rs`
+- Modify: `crates/agent-desktop/src/lib.rs`
+
+- [ ] **Step 1: Add session contracts**
+
+Implement `DesktopSessionState`, `DesktopRoute`, and `DesktopSession`.
+
+- [ ] **Step 2: Add session transitions**
+
+Implement `start_desktop_session`, `switch_desktop_route`, and `disconnect_desktop_session`.
+
+- [ ] **Step 3: Verify GREEN**
+
+```bash
+cargo test -p agent-desktop desktop_shell
+```
+
+### Task 4: Update Progress and Commit
+
+**Files:**
+- Modify: `README.md`
+- Modify: `docs/milestones/README.md`
+- Modify: `docs/plans/M10-01-desktop-shell.plan.md`
+
+- [ ] **Step 1: Advance active focus**
+
+Set active focus to `M10-02-conversation-tasks`.
+
+- [ ] **Step 2: Run standard verification**
+
+```bash
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md
+git commit -m "feat: add m10 desktop shell"
+```

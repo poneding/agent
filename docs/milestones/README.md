@@ -75,6 +75,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M09-03 implementation | Complete |
 | M09-04 implementation | Complete |
 | M09 implementation | Complete |
+| M10 slice specs | Complete for M10-01 through M10-05 |
+| M10 slice plans | Complete for M10-01 through M10-05 |
 
 ## Milestone Spec and Plan Index
 
@@ -180,19 +182,19 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M09-03 Subagent Handoff | `docs/specs/M09-03-subagent-handoff.spec.md` | `docs/plans/M09-03-subagent-handoff.plan.md` | Subagent profiles, handoff envelopes, and capability reduction. |
 | M09-04 Team Blackboard | `docs/specs/M09-04-team-blackboard.spec.md` | `docs/plans/M09-04-team-blackboard.plan.md` | Shared findings, review output, artifacts, and trace links. |
 
+## M10 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M10-01 Desktop Shell | `docs/specs/M10-01-desktop-shell.spec.md` | `docs/plans/M10-01-desktop-shell.plan.md` | Desktop shell session, route, and lifecycle contracts. |
+| M10-02 Conversation and Tasks | `docs/specs/M10-02-conversation-tasks.spec.md` | `docs/plans/M10-02-conversation-tasks.plan.md` | Conversation list, task list, and workspace snapshot view models. |
+| M10-03 Permissions and Diffs | `docs/specs/M10-03-permissions-diffs.spec.md` | `docs/plans/M10-03-permissions-diffs.plan.md` | Permission dialog and diff review contracts. |
+| M10-04 Trace Timeline | `docs/specs/M10-04-trace-timeline.spec.md` | `docs/plans/M10-04-trace-timeline.plan.md` | Ordered, UI-safe runtime trace timeline. |
+| M10-05 Settings | `docs/specs/M10-05-settings.spec.md` | `docs/plans/M10-05-settings.plan.md` | Model, policy, memory, MCP, and UI settings snapshot. |
+
 ## Later Milestone Slice Candidates
 
 These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M10 Desktop Preview
-
-| Slice | Outcome |
-|---|---|
-| M10-01 Desktop Shell | Desktop app connected through the UI bridge. |
-| M10-02 Conversation and Tasks | Conversation view and task list. |
-| M10-03 Permissions and Diffs | Permission dialog and diff review. |
-| M10-04 Trace Timeline | Visual model/tool/policy trace timeline. |
-| M10-05 Settings | Model, policy, MCP, and memory settings surface. |
 
 ### M11 Plugin Runtime
 
@@ -217,11 +219,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M10-desktop-preview`.
+Current implementation focus: `M10-01-desktop-shell`.
 
-Current planning focus: decompose M10 into slice-level specs and plans before implementation.
+Current planning focus: keep M10 slice plans updated as implementation progresses.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M10-desktop-preview.spec.md`
-- `docs/plans/M10-desktop-preview.plan.md`
+- `docs/specs/M10-01-desktop-shell.spec.md`
+- `docs/plans/M10-01-desktop-shell.plan.md`

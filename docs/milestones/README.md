@@ -39,6 +39,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
+| M02 slice specs | Complete for M02-01 through M02-05 |
+| M02 slice plans | Development-ready for M02-01 through M02-05 |
 
 ## Milestone Spec and Plan Index
 
@@ -68,19 +70,19 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M01-05 Turn Engine | `docs/specs/M01-05-turn-engine.spec.md` | `docs/plans/M01-05-turn-engine.plan.md` | Minimal turn state machine that emits events and reaches a final response. |
 | M01-06 Spine Integration | `docs/specs/M01-06-spine-integration.spec.md` | `docs/plans/M01-06-spine-integration.plan.md` | End-to-end fake turn test with persisted events and replayed final state. |
 
+## M02 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M02-01 Tool Registry | `docs/specs/M02-01-tool-registry.spec.md` | `docs/plans/M02-01-tool-registry.plan.md` | Tool contracts, registry lookup, and duplicate-safe registration. |
+| M02-02 Policy Engine | `docs/specs/M02-02-policy-engine.spec.md` | `docs/plans/M02-02-policy-engine.plan.md` | Permission requests, allow/deny/ask decisions, and leases. |
+| M02-03 Read-Only Built-ins | `docs/specs/M02-03-read-only-builtins.spec.md` | `docs/plans/M02-03-read-only-builtins.plan.md` | Sandboxed read-only file and search tools. |
+| M02-04 Audit Trail | `docs/specs/M02-04-audit-trail.spec.md` | `docs/plans/M02-04-audit-trail.plan.md` | Tool and permission audit payloads in runtime events. |
+| M02-05 Tool Loop Integration | `docs/specs/M02-05-tool-loop-integration.spec.md` | `docs/plans/M02-05-tool-loop-integration.plan.md` | Fake model tool call through validation, policy, execution, audit, and observation. |
+
 ## Later Milestone Slice Candidates
 
 These slices guide future decomposition. Their milestone-level specs and plans already exist; slice-level specs/plans should be created when the milestone becomes active.
-
-### M02 Tool, Policy, and Audit Kernel
-
-| Slice | Outcome |
-|---|---|
-| M02-01 Tool Registry | Tool trait, registry, schemas, and deterministic tool dispatch. |
-| M02-02 Policy Engine | Capability model, allow/deny/ask decisions, and leases. |
-| M02-03 Read-Only Built-ins | File read, file search, and workspace metadata tools. |
-| M02-04 Audit Trail | Tool proposal, policy decision, tool execution, and result records. |
-| M02-05 Tool Loop Integration | Fake model proposes a tool call; runtime validates, authorizes, executes, observes, and continues. |
 
 ### M03 Local Coding Loop
 
@@ -181,11 +183,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M02-tool-policy-audit`.
+Current implementation focus: `M02-01-tool-registry`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M02-tool-policy-audit.spec.md`
-- `docs/plans/M02-tool-policy-audit.plan.md`
+- `docs/specs/M02-01-tool-registry.spec.md`
+- `docs/plans/M02-01-tool-registry.plan.md`

@@ -16,7 +16,7 @@
 - Modify: `crates/agent-core/Cargo.toml`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add dependencies**
+- [x] **Step 1: Add dependencies**
 
 Add:
 
@@ -31,7 +31,7 @@ thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt"] }
 ```
 
-- [ ] **Step 2: Export modules**
+- [x] **Step 2: Export modules**
 
 `src/lib.rs` should export:
 
@@ -45,7 +45,7 @@ pub mod turn;
 
 pub use context::ContextAssembler;
 pub use runtime::RuntimeIds;
-pub use turn::{TurnEngine, TurnInput, TurnOutcome};
+pub use turn::{TurnEngine, TurnError, TurnInput, TurnOutcome};
 ```
 
 ### Task 2: Define Runtime IDs and Context Assembly
@@ -54,7 +54,7 @@ pub use turn::{TurnEngine, TurnInput, TurnOutcome};
 - Create: `crates/agent-core/src/runtime.rs`
 - Create: `crates/agent-core/src/context.rs`
 
-- [ ] **Step 1: Define runtime identity bundle**
+- [x] **Step 1: Define runtime identity bundle**
 
 ```rust
 use agent_types::{ConversationId, CorrelationId, TurnId, WorkspaceId};
@@ -68,7 +68,7 @@ pub struct RuntimeIds {
 }
 ```
 
-- [ ] **Step 2: Define minimal context assembler**
+- [x] **Step 2: Define minimal context assembler**
 
 ```rust
 #[derive(Clone, Debug, Default)]
@@ -88,7 +88,7 @@ impl ContextAssembler {
 - Create: `crates/agent-core/src/turn.rs`
 - Create: `crates/agent-core/tests/turn_engine.rs`
 
-- [ ] **Step 1: Define turn input and outcome**
+- [x] **Step 1: Define turn input and outcome**
 
 ```rust
 use agent_model::{ModelProvider, ModelRequest, ModelStreamEvent};
@@ -118,12 +118,15 @@ pub struct TurnOutcome {
 
 #[derive(Debug, Error)]
 pub enum TurnError {
-    #[error("model stream failed: {0}")]
-    Model(String),
+    #[error("model stream failed: {message}")]
+    Model {
+        message: String,
+        events: Vec<RuntimeEvent>,
+    },
 }
 ```
 
-- [ ] **Step 2: Implement `TurnEngine::run`**
+- [x] **Step 2: Implement `TurnEngine::run`**
 
 `TurnEngine::run` should:
 
@@ -135,8 +138,9 @@ pub enum TurnError {
 - emit `ModelOutputDelta` per delta
 - emit `FinalResponseProduced`
 - emit `TurnCompleted` with `Done`
+- return `TurnError::Model` with failure events when the provider fails
 
-- [ ] **Step 3: Add turn engine tests**
+- [x] **Step 3: Add turn engine tests**
 
 Tests must prove:
 
@@ -159,7 +163,7 @@ Expected: turn engine tests pass.
 **Files:**
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 Run:
 
@@ -171,11 +175,11 @@ cargo test --workspace
 
 Expected: all commands pass.
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M01-05-turn-engine` to `M01-06-spine-integration`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run:
 

@@ -1,5 +1,13 @@
 #![forbid(unsafe_code)]
-//! Core runtime orchestration for the agent.
+//! Core runtime orchestration for agent.
+
+pub mod context;
+pub mod runtime;
+pub mod turn;
+
+pub use context::ContextAssembler;
+pub use runtime::RuntimeIds;
+pub use turn::{TurnEngine, TurnError, TurnInput, TurnOutcome};
 
 /// Returns a smoke-test banner proving the core crate links model and storage.
 #[must_use]

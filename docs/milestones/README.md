@@ -180,11 +180,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M01-05-turn-engine`.
+Current implementation focus: `M01-06-spine-integration`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M01-05-turn-engine.spec.md`
-- `docs/plans/M01-05-turn-engine.plan.md`
+- `docs/specs/M01-06-spine-integration.spec.md`
+- `docs/plans/M01-06-spine-integration.plan.md`

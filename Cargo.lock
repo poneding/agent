@@ -16,6 +16,9 @@ dependencies = [
  "agent-model",
  "agent-storage",
  "agent-types",
+ "async-trait",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]

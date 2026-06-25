@@ -1,12 +1,17 @@
 #![forbid(unsafe_code)]
 //! Plugin runtime contracts for agent.
 
+pub mod capability;
 pub mod compatibility;
 pub mod error;
 pub mod host;
 pub mod manifest;
 pub mod process;
 
+pub use capability::{
+    PluginCapabilityKind, PluginCapabilitySet, PluginPermission,
+    permission_request_for_plugin_tool, validate_plugin_capabilities,
+};
 pub use compatibility::{
     PLUGIN_MANIFEST_SCHEMA_VERSION, PLUGIN_RUNTIME_API_VERSION, check_plugin_compatibility,
 };

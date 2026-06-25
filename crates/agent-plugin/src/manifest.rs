@@ -6,6 +6,7 @@ use agent_tool::ToolName;
 use serde::de::Error as _;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::capability::{PluginCapabilityKind, PluginPermission};
 use crate::compatibility::{PLUGIN_MANIFEST_SCHEMA_VERSION, check_plugin_compatibility};
 use crate::error::PluginManifestError;
 
@@ -105,9 +106,9 @@ pub struct PluginIsolation {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PluginCapabilityManifest {
-    pub kind: String,
+    pub kind: PluginCapabilityKind,
     pub name: String,
-    pub permissions: Vec<String>,
+    pub permissions: Vec<PluginPermission>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -193,16 +194,16 @@ fn validate_capabilities(
     let mut seen = BTreeSet::new();
 
     for capability in capabilities {
-        validate_non_empty("capability kind", &capability.kind)?;
         validate_non_empty("capability name", &capability.name)?;
 
-        let key = format!("{}:{}", capability.kind, capability.name);
+        let key = format!("{}:{}", capability.kind.as_str(), capability.name);
         if !seen.insert(key.clone()) {
             return Err(PluginManifestError::DuplicateContribution(key));
         }
 
         for permission in &capability.permissions {
-            validate_non_empty("capability permission", permission)?;
+            validate_non_empty("capability permission resource", &permission.resource)?;
+            validate_non_empty("capability permission action", &permission.action)?;
         }
     }
 

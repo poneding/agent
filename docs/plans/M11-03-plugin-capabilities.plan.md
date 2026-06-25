@@ -17,7 +17,7 @@
 - Read: `crates/agent-policy/src/capability.rs`
 - Read: `crates/agent-policy/src/request.rs`
 
-- [ ] **Step 1: Review capability mapping**
+- [x] **Step 1: Review capability mapping**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: the spec maps plugin tool use into the current policy model.
 - Create: `crates/agent-plugin/tests/capabilities.rs`
 - Modify/Create: `crates/agent-types/tests/m11_plugin_capabilities.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Add tests:
 
@@ -42,10 +42,10 @@ Add tests:
 - `plugin_capabilities_reject_missing_hook_capability`
 - `plugin_capabilities_reject_duplicate_capability`
 - `plugin_capabilities_reject_empty_permission_parts`
-- `plugin_tool_permission_request_maps_to_tool_scope`
-- `plugin_capability_event_serializes_stable_shape`
+- `plugin_capabilities_tool_permission_request_maps_to_tool_scope`
+- `m11_plugin_capabilities_event_serializes_stable_shape`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -66,15 +66,15 @@ Expected: tests fail because capability validation and event payloads do not exi
 - Modify: `crates/agent-types/src/external.rs`
 - Modify: `crates/agent-types/src/event.rs`
 
-- [ ] **Step 1: Add capability types**
+- [x] **Step 1: Add capability types**
 
 Implement capability kind, permission, and capability set contracts from the spec.
 
-- [ ] **Step 2: Add validation**
+- [x] **Step 2: Add validation**
 
 Implement validation for matching tool/hook declarations, duplicate capabilities, and non-empty permission parts.
 
-- [ ] **Step 3: Add policy request mapping**
+- [x] **Step 3: Add policy request mapping**
 
 Implement `permission_request_for_plugin_tool` using:
 
@@ -83,7 +83,7 @@ Implement `permission_request_for_plugin_tool` using:
 - resource pattern equal to the local tool name
 - reason string `plugin tool execution requested: <plugin_name>`
 
-- [ ] **Step 4: Add event payload**
+- [x] **Step 4: Add event payload**
 
 Add a stable external event payload for plugin capability validation summary.
 
@@ -93,7 +93,7 @@ Add a stable external event payload for plugin capability validation summary.
 - Read: `crates/agent-plugin/tests/capabilities.rs`
 - Read: `crates/agent-types/tests/m11_plugin_capabilities.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -104,7 +104,7 @@ cargo test -p agent-types m11_plugin_capabilities
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -123,7 +123,7 @@ Expected: all checks pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M11-03-plugin-capabilities.plan.md`
 
-- [ ] **Step 1: Commit**
+- [x] **Step 1: Commit**
 
 Run:
 

@@ -46,3 +46,11 @@ pub struct SkillPromptContributionRecorded {
     pub token_estimate: u32,
     pub source_path: String,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct PluginCapabilityValidated {
+    pub plugin_name: String,
+    pub capability_count: u32,
+    pub tool_count: u32,
+    pub hook_count: u32,
+}

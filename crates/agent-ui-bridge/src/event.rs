@@ -262,6 +262,16 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
                 ),
             }
         }
+        RuntimeEventPayload::PluginCapabilityValidated(validated) => {
+            UiEventPayload::ExternalTrace {
+                source_kind: "plugin".to_string(),
+                source_id: validated.plugin_name.clone(),
+                summary: format!(
+                    "validated {} plugin capabilities: tools={} hooks={}",
+                    validated.capability_count, validated.tool_count, validated.hook_count
+                ),
+            }
+        }
         RuntimeEventPayload::ConversationStarted(started) => UiEventPayload::Progress {
             message: started.title.clone(),
         },

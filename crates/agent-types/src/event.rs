@@ -85,6 +85,7 @@ pub enum RuntimeEventPayload {
     McpPolicyMappingRecorded(crate::external::McpPolicyMappingRecorded),
     SkillDiscoveredRecorded(crate::external::SkillDiscoveredRecorded),
     SkillPromptContributionRecorded(crate::external::SkillPromptContributionRecorded),
+    PluginCapabilityValidated(crate::external::PluginCapabilityValidated),
     RuntimeWarning(crate::error::RuntimeWarning),
     RuntimeError(crate::error::RuntimeError),
 }

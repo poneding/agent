@@ -73,7 +73,7 @@ Expected: the plan describes process protocol tests, host implementation, verifi
 - Read: `docs/specs/M11-03-plugin-capabilities.spec.md`
 - Execute: `docs/plans/M11-03-plugin-capabilities.plan.md`
 
-- [ ] **Step 1: Follow M11-03 plan**
+- [x] **Step 1: Follow M11-03 plan**
 
 Run:
 

@@ -3,6 +3,7 @@ members = [
     "crates/agent-types",
     "crates/agent-model",
     "crates/agent-storage",
+    "crates/agent-core",
 ]
 resolver = "2"
 

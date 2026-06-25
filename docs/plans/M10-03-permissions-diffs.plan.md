@@ -17,7 +17,7 @@
 - Read: `crates/agent-policy/src/request.rs`
 - Read: `crates/agent-tool/src/builtins/edit_file.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 ```bash
 sed -n '1,280p' docs/specs/M10-03-permissions-diffs.spec.md
@@ -28,7 +28,7 @@ sed -n '1,280p' docs/specs/M10-03-permissions-diffs.spec.md
 **Files:**
 - Create: `crates/agent-desktop/tests/permissions_diffs.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -38,7 +38,7 @@ Cover:
 - `permissions_diffs_serializes_diff_review_shape`
 - `permissions_diffs_rejects_unsafe_diff_paths`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-desktop permissions_diffs
@@ -55,15 +55,15 @@ Expected: fails because permission and diff contracts do not exist.
 - Modify: `crates/agent-desktop/src/lib.rs`
 - Modify: `crates/agent-desktop/src/error.rs`
 
-- [ ] **Step 1: Add permission contracts**
+- [x] **Step 1: Add permission contracts**
 
 Implement `PermissionDialogStatus`, `DesktopPermissionDecision`, `PermissionDialog`, and permission transition helpers.
 
-- [ ] **Step 2: Add diff review contracts**
+- [x] **Step 2: Add diff review contracts**
 
 Implement `DiffReviewStatus`, `DiffFileSummary`, `DiffReview`, and diff transition helpers.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-desktop permissions_diffs
@@ -76,11 +76,11 @@ cargo test -p agent-desktop permissions_diffs
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M10-03-permissions-diffs.plan.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M10-04-trace-timeline`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -88,7 +88,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

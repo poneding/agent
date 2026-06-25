@@ -2,13 +2,22 @@
 //! Desktop presentation contracts for agent.
 
 pub mod conversation;
+pub mod diff;
 pub mod error;
+pub mod permission;
 pub mod session;
 pub mod snapshot;
 pub mod task;
 
 pub use conversation::DesktopConversationItem;
+pub use diff::{
+    DiffFileSummary, DiffReview, DiffReviewStatus, approve_diff_review, reject_diff_review,
+};
 pub use error::DesktopError;
+pub use permission::{
+    DesktopPermissionDecision, PermissionDialog, PermissionDialogStatus, expire_permission_dialog,
+    resolve_permission_dialog,
+};
 pub use session::{
     DesktopRoute, DesktopSession, DesktopSessionState, disconnect_desktop_session,
     start_desktop_session, switch_desktop_route,

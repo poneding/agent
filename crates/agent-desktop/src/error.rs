@@ -6,4 +6,8 @@ pub enum DesktopError {
     InvalidSession(String),
     #[error("invalid desktop snapshot: {0}")]
     InvalidSnapshot(String),
+    #[error("invalid desktop permission dialog: {0}")]
+    InvalidPermission(String),
+    #[error("invalid desktop diff review: {0}")]
+    InvalidDiff(String),
 }

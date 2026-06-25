@@ -6,4 +6,6 @@ pub enum TeamError {
     InvalidHandoff(String),
     #[error("invalid handoff transition: {0}")]
     InvalidTransition(String),
+    #[error("invalid team blackboard entry: {0}")]
+    InvalidBlackboard(String),
 }

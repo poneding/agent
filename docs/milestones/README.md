@@ -73,6 +73,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M09-01 implementation | Complete |
 | M09-02 implementation | Complete |
 | M09-03 implementation | Complete |
+| M09-04 implementation | Complete |
+| M09 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -215,11 +217,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M09-04-team-blackboard`.
+Current implementation focus: `M10-desktop-preview`.
 
-Current planning focus: keep M09 slice plans updated as implementation progresses.
+Current planning focus: decompose M10 into slice-level specs and plans before implementation.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M09-04-team-blackboard.spec.md`
-- `docs/plans/M09-04-team-blackboard.plan.md`
+- `docs/specs/M10-desktop-preview.spec.md`
+- `docs/plans/M10-desktop-preview.plan.md`

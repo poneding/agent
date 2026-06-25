@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M08 and M09-01 through M09-03 are implemented. Current focus is M09-04: team blackboard.
+M01-M09 are implemented. Current focus is M10: Desktop Preview planning.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M09-04-team-blackboard.spec.md)
-- [Current plan](docs/plans/M09-04-team-blackboard.plan.md)
+- [Current spec](docs/specs/M10-desktop-preview.spec.md)
+- [Current plan](docs/plans/M10-desktop-preview.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

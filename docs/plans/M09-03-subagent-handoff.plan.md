@@ -18,7 +18,7 @@
 - Create: `crates/agent-team/src/lib.rs`
 - Create: `crates/agent-team/src/error.rs`
 
-- [ ] **Step 1: Add crate scaffold**
+- [x] **Step 1: Add crate scaffold**
 
 Add `crates/agent-team` to workspace members.
 
@@ -37,7 +37,7 @@ thiserror = "2"
 **Files:**
 - Create: `crates/agent-team/tests/subagent_handoff.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -47,7 +47,7 @@ Cover:
 - `subagent_handoff_rejects_invalid_inputs`
 - `subagent_handoff_rejects_terminal_status_transition`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-team subagent_handoff
@@ -62,15 +62,15 @@ Expected: fails because `agent-team` contracts do not exist.
 - Create: `crates/agent-team/src/handoff.rs`
 - Modify: `crates/agent-team/src/lib.rs`
 
-- [ ] **Step 1: Add capability contracts**
+- [x] **Step 1: Add capability contracts**
 
 Implement `CapabilityGrant`, `CapabilitySet`, and `reduce_capabilities`.
 
-- [ ] **Step 2: Add subagent handoff contracts**
+- [x] **Step 2: Add subagent handoff contracts**
 
 Implement `SubagentRole`, `SubagentProfile`, `HandoffStatus`, `HandoffEnvelope`, and status transition validation.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-team subagent_handoff
@@ -83,11 +83,11 @@ cargo test -p agent-team subagent_handoff
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M09-03-subagent-handoff.plan.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M09-04-team-blackboard`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -95,7 +95,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

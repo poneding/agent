@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M08 and M09-01 through M09-02 are implemented. Current focus is M09-03: subagent handoff.
+M01-M08 and M09-01 through M09-03 are implemented. Current focus is M09-04: team blackboard.
 
 ## Core Ideas
 
@@ -58,6 +58,8 @@ crates/
   agent-context/
   agent-memory/
   agent-scheduler/
+  agent-worktree/
+  agent-team/
   agent-mcp/
   agent-skill/
   agent-plugin/
@@ -80,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M09-03-subagent-handoff.spec.md)
-- [Current plan](docs/plans/M09-03-subagent-handoff.plan.md)
+- [Current spec](docs/specs/M09-04-team-blackboard.spec.md)
+- [Current plan](docs/plans/M09-04-team-blackboard.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

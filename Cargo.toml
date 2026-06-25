@@ -9,6 +9,7 @@ members = [
     "crates/agent-sandbox",
     "crates/agent-scheduler",
     "crates/agent-worktree",
+    "crates/agent-team",
     "crates/agent-context",
     "crates/agent-memory",
     "crates/agent-mcp",

@@ -1,5 +1,21 @@
 #![forbid(unsafe_code)]
-//! Shared types for the agent.
+//! Shared durable contracts for agent.
+
+pub mod actor;
+pub mod error;
+pub mod event;
+pub mod ids;
+pub mod schema;
+pub mod state;
+pub mod timestamp;
+
+pub use actor::{ActorKind, ActorRef};
+pub use error::{AgentError, AgentTypesError, RuntimeError, RuntimeWarning};
+pub use event::*;
+pub use ids::*;
+pub use schema::SchemaVersion;
+pub use state::{TaskState, TurnState};
+pub use timestamp::Timestamp;
 
 /// Returns this crate's stable package name.
 #[must_use]

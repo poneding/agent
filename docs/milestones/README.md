@@ -180,11 +180,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M01-02-event-model`.
+Current implementation focus: `M01-03-storage-replay`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M01-02-event-model.spec.md`
-- `docs/plans/M01-02-event-model.plan.md`
+- `docs/specs/M01-03-storage-replay.spec.md`
+- `docs/plans/M01-03-storage-replay.plan.md`

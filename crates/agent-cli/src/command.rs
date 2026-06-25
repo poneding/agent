@@ -2,6 +2,7 @@ use thiserror::Error;
 
 use crate::output::CliOutput;
 use agent_storage::EventStore;
+use agent_ui_bridge::{UiJsonFrame, encode_json_frame, normalize_runtime_event};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CliCommand {
@@ -11,6 +12,18 @@ pub enum CliCommand {
     TtyShell,
     LocalSummary,
     TraceSummary,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum OutputMode {
+    Text,
+    Json,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CliInvocation {
+    pub command: CliCommand,
+    pub output_mode: OutputMode,
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -46,6 +59,28 @@ where
     }
 }
 
+pub fn parse_cli_invocation<I, S>(args: I) -> Result<CliInvocation, CliError>
+where
+    I: IntoIterator<Item = S>,
+    S: Into<String>,
+{
+    let mut output_mode = OutputMode::Text;
+    let mut command_args = Vec::new();
+
+    for arg in args.into_iter().map(Into::into) {
+        if arg == "--json" {
+            output_mode = OutputMode::Json;
+        } else {
+            command_args.push(arg);
+        }
+    }
+
+    Ok(CliInvocation {
+        command: parse_cli_command(command_args)?,
+        output_mode,
+    })
+}
+
 #[must_use]
 pub fn render_cli_command(command: CliCommand) -> CliOutput {
     match command {
@@ -65,6 +100,56 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             Ok(output) => CliOutput::exit(output),
             Err(error) => CliOutput::exit(format!("trace summary failed: {error}\n")),
         },
+    }
+}
+
+#[must_use]
+pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
+    match invocation.output_mode {
+        OutputMode::Text => render_cli_command(invocation.command),
+        OutputMode::Json => render_json_command(invocation.command),
+    }
+}
+
+fn render_json_command(command: CliCommand) -> CliOutput {
+    match command {
+        CliCommand::LocalSummary => match agent_core::run_local_coding_fixture() {
+            Ok(run) => {
+                let mut stdout = String::new();
+                let mut event_count = 0;
+
+                for event in run.events {
+                    let ui_event = normalize_runtime_event(&event);
+                    stdout.push_str(&json_frame_line(UiJsonFrame::Event(ui_event)));
+                    event_count += 1;
+                }
+
+                stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count }));
+                CliOutput::exit(stdout)
+            }
+            Err(error) => CliOutput::exit(json_frame_line(UiJsonFrame::Error {
+                code: "local_summary_failed".to_string(),
+                message: error.to_string(),
+                recoverable: false,
+            })),
+        },
+        other => CliOutput::exit(json_frame_line(UiJsonFrame::Error {
+            code: "unsupported_json_command".to_string(),
+            message: format!("{other:?} does not support JSON output"),
+            recoverable: false,
+        })),
+    }
+}
+
+fn json_frame_line(frame: UiJsonFrame) -> String {
+    match encode_json_frame(&frame) {
+        Ok(line) => line,
+        Err(error) => {
+            format!(
+                "{{\"type\":\"error\",\"data\":{{\"code\":\"json_encode_failed\",\"message\":\"{}\",\"recoverable\":false}}}}\n",
+                error.to_string().replace('"', "\\\"")
+            )
+        }
     }
 }
 

@@ -15,7 +15,7 @@
 **Files:**
 - Create: `crates/agent-ui-bridge/tests/json_frame.rs`
 
-- [ ] **Step 1: Add failing frame tests**
+- [x] **Step 1: Add failing frame tests**
 
 Create tests named:
 
@@ -25,7 +25,7 @@ Create tests named:
 
 The tests should import `UiJsonFrame` and `encode_json_frame`.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -42,7 +42,7 @@ Expected: fails because frame contracts do not exist.
 - Modify: `crates/agent-ui-bridge/src/lib.rs`
 - Modify: `crates/agent-ui-bridge/src/error.rs`
 
-- [ ] **Step 1: Add frame module**
+- [x] **Step 1: Add frame module**
 
 Define:
 
@@ -68,7 +68,7 @@ pub fn encode_json_frame(frame: &UiJsonFrame) -> Result<String, UiBridgeError> {
 
 Add `From<serde_json::Error>` for `UiBridgeError`.
 
-- [ ] **Step 2: Export frame contracts**
+- [x] **Step 2: Export frame contracts**
 
 Update `lib.rs` to export:
 
@@ -78,7 +78,7 @@ pub mod frame;
 pub use frame::{encode_json_frame, UiJsonFrame};
 ```
 
-- [ ] **Step 3: Verify frame GREEN**
+- [x] **Step 3: Verify frame GREEN**
 
 Run:
 
@@ -93,7 +93,7 @@ Expected: all frame tests pass.
 **Files:**
 - Create: `crates/agent-cli/tests/json_mode.rs`
 
-- [ ] **Step 1: Add failing CLI tests**
+- [x] **Step 1: Add failing CLI tests**
 
 Create tests named:
 
@@ -107,7 +107,7 @@ Expected behavior:
 - `render_cli_invocation` returns JSON lines that deserialize into `UiJsonFrame`.
 - The binary command `agent-cli --json --local-summary` prints at least one `event` frame and one `done` frame.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -125,7 +125,7 @@ Expected: fails because `--json` mode contracts do not exist.
 - Modify: `crates/agent-cli/src/main.rs`
 - Modify: `crates/agent-cli/src/lib.rs`
 
-- [ ] **Step 1: Add dependency**
+- [x] **Step 1: Add dependency**
 
 Add to `agent-cli` dependencies:
 
@@ -133,7 +133,7 @@ Add to `agent-cli` dependencies:
 agent-ui-bridge = { path = "../agent-ui-bridge" }
 ```
 
-- [ ] **Step 2: Add invocation contracts**
+- [x] **Step 2: Add invocation contracts**
 
 Add:
 
@@ -153,15 +153,15 @@ pub struct CliInvocation {
 
 Add `parse_cli_invocation`; keep `parse_cli_command` backward compatible by returning the command from text-mode parsing.
 
-- [ ] **Step 3: Add JSON renderer**
+- [x] **Step 3: Add JSON renderer**
 
 Add `render_cli_invocation`. For `OutputMode::Text`, delegate to `render_cli_command`. For `OutputMode::Json` and `CliCommand::LocalSummary`, run `agent_core::run_local_coding_fixture()`, normalize each runtime event with `normalize_runtime_event`, encode each `UiJsonFrame::Event`, and append `UiJsonFrame::Done { event_count }`.
 
-- [ ] **Step 4: Update main**
+- [x] **Step 4: Update main**
 
 `main` should call `parse_cli_invocation` and `render_cli_invocation`.
 
-- [ ] **Step 5: Verify CLI GREEN**
+- [x] **Step 5: Verify CLI GREEN**
 
 Run:
 
@@ -178,7 +178,7 @@ Expected: all JSON mode tests pass and existing CLI tests still pass.
 - Modify: `README.md`
 - Modify: `docs/plans/M06-03-cli-json-mode.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -188,11 +188,11 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus to `M06-04-bridge-snapshots`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

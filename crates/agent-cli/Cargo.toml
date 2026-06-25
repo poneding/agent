@@ -9,7 +9,11 @@ authors.workspace = true
 [dependencies]
 agent-core = { path = "../agent-core" }
 agent-storage = { path = "../agent-storage" }
+agent-ui-bridge = { path = "../agent-ui-bridge" }
 thiserror = "2"
+
+[dev-dependencies]
+serde_json = "1"
 
 [lints]
 workspace = true

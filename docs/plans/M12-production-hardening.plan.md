@@ -110,7 +110,7 @@ Follow `docs/plans/M12-01-schema-migration.plan.md` exactly: write RED tests, ve
 
 Complete the telemetry crate and commit `feat: add m12 telemetry`.
 
-- [ ] **Step 2: Implement M12-03 audit export**
+- [x] **Step 2: Implement M12-03 audit export**
 
 Complete audit export bundles and commit `feat: add m12 audit export`.
 

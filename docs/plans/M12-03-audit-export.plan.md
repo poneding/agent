@@ -17,7 +17,7 @@
 - Read: `crates/agent-core/src/lib.rs`
 - Read: `crates/agent-types/src/event.rs`
 
-- [ ] **Step 1: Review event payloads**
+- [x] **Step 1: Review event payloads**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: audit export derives from existing runtime events.
 **Files:**
 - Create: `crates/agent-core/tests/audit_export.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Add tests:
 
@@ -43,7 +43,9 @@ Add tests:
 - `audit_export_allows_empty_event_list`
 - `audit_export_rejects_invalid_options`
 
-- [ ] **Step 2: Verify RED**
+The tests define the public API for `AuditExportOptions`, `AuditExportBundle`, `AuditExportRecord`, `TraceExportSummary`, `AuditEventCategory`, `AuditExportError`, and `export_audit_bundle_at`.
+
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -59,15 +61,15 @@ Expected: tests fail because audit export contracts do not exist.
 - Modify: `crates/agent-core/src/lib.rs`
 - Create: `crates/agent-core/src/audit_export.rs`
 
-- [ ] **Step 1: Add export contracts**
+- [x] **Step 1: Add export contracts**
 
 Implement `AuditExportOptions`, `AuditExportBundle`, `AuditExportRecord`, `TraceExportSummary`, and `AuditExportError`.
 
-- [ ] **Step 2: Add event conversion**
+- [x] **Step 2: Add event conversion**
 
 Convert permission, tool, model, lifecycle, external trace, warning, and error payloads into bounded audit summaries.
 
-- [ ] **Step 3: Add redaction and truncation**
+- [x] **Step 3: Add redaction and truncation**
 
 Redact secret-like keys and values and truncate payload summaries above `max_payload_bytes`.
 
@@ -76,7 +78,7 @@ Redact secret-like keys and values and truncate payload summaries above `max_pay
 **Files:**
 - Read: `crates/agent-core/tests/audit_export.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -86,7 +88,7 @@ cargo test -p agent-core audit_export
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -105,7 +107,7 @@ Expected: all checks pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M12-03-audit-export.plan.md`
 
-- [ ] **Step 1: Commit**
+- [x] **Step 1: Commit**
 
 Run:
 

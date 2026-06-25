@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 //! Core runtime orchestration for agent.
 
+pub mod audit_export;
 pub mod context;
 pub mod idempotency;
 pub mod local_coding;
@@ -10,6 +11,10 @@ pub mod tool_loop;
 pub mod trace;
 pub mod turn;
 
+pub use audit_export::{
+    AuditEventCategory, AuditExportBundle, AuditExportError, AuditExportOptions, AuditExportRecord,
+    TraceExportSummary, export_audit_bundle, export_audit_bundle_at,
+};
 pub use context::ContextAssembler;
 pub use idempotency::{IdempotentToolError, IdempotentToolExecutor, IdempotentToolOutcome};
 pub use local_coding::{

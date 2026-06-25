@@ -37,6 +37,7 @@ dependencies = [
  "agent-tool",
  "agent-types",
  "async-trait",
+ "serde",
  "serde_json",
  "tempfile",
  "thiserror",

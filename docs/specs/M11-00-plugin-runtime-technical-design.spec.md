@@ -128,7 +128,7 @@ Dynamic libraries are intentionally out of scope for M11 because they share proc
 
 ## Process Protocol
 
-Process plugins communicate through one JSON request and one JSON response per call in M11.
+Process plugins communicate through one newline-terminated JSON request and one newline-terminated JSON response per call in M11.
 
 Tool call request:
 

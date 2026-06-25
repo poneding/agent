@@ -30,6 +30,8 @@ Owned by other specs:
 
 Process host code lives in `agent-plugin`. It does not register tools directly and does not evaluate policy.
 
+M11 process calls use one newline-terminated JSON request and one newline-terminated JSON response per invocation.
+
 ```mermaid
 flowchart TD
   manifest["PluginManifest"] --> host["PluginProcessHost"]
@@ -103,6 +105,7 @@ pub struct PluginProcessResponse {
 - mismatched call id fails
 - missing entrypoint fails before spawn
 - output limit is enforced
+- timeout is enforced
 
 ## Acceptance Criteria
 

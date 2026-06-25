@@ -57,7 +57,7 @@ Expected: the plan describes the RED tests, implementation files, verification c
 - Read: `docs/specs/M11-02-process-plugin-host.spec.md`
 - Execute: `docs/plans/M11-02-process-plugin-host.plan.md`
 
-- [ ] **Step 1: Follow M11-02 plan**
+- [x] **Step 1: Follow M11-02 plan**
 
 Run:
 

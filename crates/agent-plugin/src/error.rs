@@ -17,3 +17,25 @@ pub enum PluginManifestError {
     #[error("invalid plugin manifest: {0}")]
     InvalidManifest(String),
 }
+
+#[derive(Clone, Debug, Error, Eq, PartialEq)]
+pub enum PluginProcessError {
+    #[error("invalid plugin process config: {0}")]
+    InvalidConfig(String),
+    #[error("failed to spawn plugin process: {0}")]
+    Spawn(String),
+    #[error("plugin process exited unsuccessfully with code {code:?}: {stderr}")]
+    Exit { code: Option<i32>, stderr: String },
+    #[error("plugin process timed out after {timeout_ms}ms")]
+    Timeout { timeout_ms: u64 },
+    #[error("plugin process stdout exceeded {limit} bytes with {actual} bytes")]
+    OutputTooLarge { limit: usize, actual: usize },
+    #[error("plugin process protocol error: {0}")]
+    Protocol(String),
+    #[error("plugin process returned error {error_code}: {message}")]
+    Plugin {
+        error_code: String,
+        message: String,
+        recoverable: bool,
+    },
+}

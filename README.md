@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M10 and M11-01 are implemented. Current focus is M11-02: Process Plugin Host.
+M01-M10 and M11-01 through M11-02 are implemented. Current focus is M11-03: Plugin Capabilities.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M11-02-process-plugin-host.spec.md)
-- [Current plan](docs/plans/M11-02-process-plugin-host.plan.md)
+- [Current spec](docs/specs/M11-03-plugin-capabilities.spec.md)
+- [Current plan](docs/plans/M11-03-plugin-capabilities.plan.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

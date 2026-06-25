@@ -60,7 +60,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run:
 

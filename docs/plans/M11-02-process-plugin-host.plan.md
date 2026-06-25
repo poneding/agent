@@ -17,7 +17,7 @@
 - Read: `docs/specs/M11-02-process-plugin-host.spec.md`
 - Read: `crates/agent-plugin/src/manifest.rs`
 
-- [ ] **Step 1: Review process protocol**
+- [x] **Step 1: Review process protocol**
 
 Run:
 
@@ -32,7 +32,7 @@ Expected: the process request/response protocol and failure modes are explicit.
 **Files:**
 - Create: `crates/agent-plugin/tests/process_host.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Add tests:
 
@@ -42,10 +42,11 @@ Add tests:
 - `process_host_rejects_mismatched_call_id`
 - `process_host_rejects_missing_entrypoint`
 - `process_host_rejects_oversized_stdout`
+- `process_host_times_out_slow_process`
 
-Use the current test binary path as the fixture entrypoint when possible. The fixture mode is activated by a command-line argument such as `--plugin-fixture=echo`.
+Use serialized Unix fixture scripts as the process entrypoint. Each fixture reads stdin and emits one JSON response or a controlled failure.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -63,19 +64,20 @@ Expected: tests fail because `host` and `process` modules do not exist.
 - Create: `crates/agent-plugin/src/process.rs`
 - Modify: `crates/agent-plugin/src/error.rs`
 
-- [ ] **Step 1: Add protocol types**
+- [x] **Step 1: Add protocol types**
 
 Define request, response, kind, and result enums using serde with `snake_case` names.
 
-- [ ] **Step 2: Add host error variants**
+- [x] **Step 2: Add host error variants**
 
 Add `PluginProcessError` variants for invalid config, spawn, exit, timeout, output too large, and protocol failures.
 
-- [ ] **Step 3: Add process host**
+- [x] **Step 3: Add process host**
 
 Implement `PluginProcessHost::invoke_tool(config, request)` so it:
 
 - serializes a request to JSON
+- writes the request as one newline-terminated JSON frame
 - passes JSON to the process
 - reads stdout
 - checks output limit
@@ -88,7 +90,7 @@ Implement `PluginProcessHost::invoke_tool(config, request)` so it:
 **Files:**
 - Read: `crates/agent-plugin/tests/process_host.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -98,7 +100,7 @@ cargo test -p agent-plugin process_host
 
 Expected: process host tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -117,11 +119,11 @@ Expected: all checks pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M11-02-process-plugin-host.plan.md`
 
-- [ ] **Step 1: Mark plan items complete**
+- [x] **Step 1: Mark plan items complete**
 
 Check off completed steps in this plan.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

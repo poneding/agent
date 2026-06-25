@@ -68,6 +68,11 @@ pub enum UiEventPayload {
     Progress {
         message: String,
     },
+    TaskNotification {
+        task_id: TaskId,
+        kind: String,
+        summary: String,
+    },
     ExternalTrace {
         source_kind: String,
         source_id: String,
@@ -185,6 +190,13 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
         RuntimeEventPayload::TaskStateChanged(changed) => UiEventPayload::Progress {
             message: format!("task state changed: {:?} -> {:?}", changed.from, changed.to),
         },
+        RuntimeEventPayload::TaskNotificationRecorded(recorded) => {
+            UiEventPayload::TaskNotification {
+                task_id: recorded.task_id,
+                kind: recorded.kind.clone(),
+                summary: recorded.summary.clone(),
+            }
+        }
         RuntimeEventPayload::ToolExecutionStarted(started) => UiEventPayload::Progress {
             message: format!(
                 "tool execution started: {} {}",

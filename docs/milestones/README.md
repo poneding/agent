@@ -66,6 +66,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M08-01 implementation | Complete |
 | M08-02 implementation | Complete |
 | M08-03 implementation | Complete |
+| M08-04 implementation | Complete |
+| M08 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -208,11 +210,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M08-04-notifications`.
+Current implementation focus: `M09-worktree-subagents` planning.
 
-Current planning focus: keep M08 slice plans updated as implementation progresses.
+Current planning focus: decompose M09 into slice-level specs and plans before implementation.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M08-04-notifications.spec.md`
-- `docs/plans/M08-04-notifications.plan.md`
+- `docs/specs/M09-worktree-subagents.spec.md`
+- `docs/plans/M09-worktree-subagents.plan.md`

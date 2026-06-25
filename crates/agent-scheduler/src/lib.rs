@@ -3,6 +3,7 @@
 
 pub mod error;
 pub mod lease;
+pub mod notification;
 pub mod queue;
 pub mod quota;
 pub mod retry;
@@ -10,6 +11,9 @@ pub mod task;
 
 pub use error::SchedulerError;
 pub use lease::{LeaseStatus, TaskLease, TaskLeaseId};
+pub use notification::{
+    InMemoryTaskNotificationSink, TaskNotification, TaskNotificationKind, TaskNotificationSink,
+};
 pub use queue::{InMemoryTaskQueue, TaskQueue};
 pub use quota::{QuotaDecision, QuotaPolicy, QuotaRejection, QuotaSnapshot, evaluate_task_quota};
 pub use retry::{RetryDecision, RetryPolicy};

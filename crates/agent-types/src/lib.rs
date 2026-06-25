@@ -8,6 +8,7 @@ pub mod external;
 pub mod ids;
 pub mod schema;
 pub mod state;
+pub mod task;
 pub mod timestamp;
 pub mod tool;
 
@@ -18,6 +19,7 @@ pub use external::*;
 pub use ids::*;
 pub use schema::SchemaVersion;
 pub use state::{TaskState, TurnState};
+pub use task::*;
 pub use timestamp::Timestamp;
 pub use tool::*;
 

@@ -70,6 +70,7 @@ pub enum RuntimeEventPayload {
     TurnCompleted(TurnCompleted),
     TurnFailed(TurnFailed),
     TaskStateChanged(TaskStateChanged),
+    TaskNotificationRecorded(crate::task::TaskNotificationRecorded),
     ToolCallProposed(crate::tool::ToolCallProposed),
     PermissionDecisionRecorded(crate::tool::PermissionDecisionRecorded),
     ToolExecutionStarted(crate::tool::ToolExecutionStarted),

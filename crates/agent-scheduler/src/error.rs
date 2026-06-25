@@ -8,4 +8,6 @@ pub enum SchedulerError {
     InvalidTransition(String),
     #[error("invalid task lease: {0}")]
     InvalidLease(String),
+    #[error("task notification failed: {0}")]
+    NotificationFailed(String),
 }

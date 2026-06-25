@@ -17,7 +17,7 @@
 - Read: `crates/agent-types/src/event.rs`
 - Read: `crates/agent-ui-bridge/src/event.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 ```bash
 sed -n '1,280p' docs/specs/M08-04-notifications.spec.md
@@ -30,7 +30,7 @@ sed -n '1,280p' docs/specs/M08-04-notifications.spec.md
 - Create: `crates/agent-types/tests/m08_task_notifications.rs`
 - Create: `crates/agent-ui-bridge/tests/m08_task_notifications.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -39,10 +39,11 @@ Cover:
 - UI bridge normalization without raw prompt/tool content
 - waiting-approval and completion notification shapes
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
-cargo test --workspace m08_task_notifications notifications
+cargo test --workspace m08_task_notifications
+cargo test -p agent-scheduler notifications
 ```
 
 Expected: fails because notification contracts do not exist.
@@ -56,22 +57,23 @@ Expected: fails because notification contracts do not exist.
 - Modify: `crates/agent-types/src/lib.rs`
 - Modify: `crates/agent-ui-bridge/src/event.rs`
 
-- [ ] **Step 1: Add scheduler notification contracts**
+- [x] **Step 1: Add scheduler notification contracts**
 
 Implement `TaskNotificationKind`, `TaskNotification`, and `TaskNotificationSink`.
 
-- [ ] **Step 2: Add runtime event payload**
+- [x] **Step 2: Add runtime event payload**
 
 Implement `TaskNotificationRecorded` and add a `RuntimeEventPayload` variant.
 
-- [ ] **Step 3: Add UI normalization**
+- [x] **Step 3: Add UI normalization**
 
 Map task notification events to UI-safe summaries.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```bash
-cargo test --workspace m08_task_notifications notifications
+cargo test --workspace m08_task_notifications
+cargo test -p agent-scheduler notifications
 ```
 
 ### Task 4: Complete M08
@@ -81,11 +83,11 @@ cargo test --workspace m08_task_notifications notifications
 - Modify: `docs/milestones/README.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Mark M08 complete**
+- [x] **Step 1: Mark M08 complete**
 
 Set active focus to M09 planning.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -93,7 +95,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

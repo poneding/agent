@@ -16,7 +16,7 @@
 - Read: `docs/specs/M08-02-queue-leases.spec.md`
 - Read: `crates/agent-scheduler/src/task.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 ```bash
 sed -n '1,280p' docs/specs/M08-02-queue-leases.spec.md
@@ -27,7 +27,7 @@ sed -n '1,280p' docs/specs/M08-02-queue-leases.spec.md
 **Files:**
 - Create: `crates/agent-scheduler/tests/queue_leases.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Cover:
 
@@ -37,7 +37,7 @@ Cover:
 - `queue_leases_cancel_pause_and_resume_update_state`
 - `queue_leases_release_expired_leases_requeues_task`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-scheduler queue_leases
@@ -53,19 +53,19 @@ Expected: fails because queue and lease APIs do not exist.
 - Create: `crates/agent-scheduler/src/queue.rs`
 - Modify: `crates/agent-scheduler/src/lib.rs`
 
-- [ ] **Step 1: Add lease contracts**
+- [x] **Step 1: Add lease contracts**
 
 Implement `TaskLeaseId`, `TaskLease`, and `LeaseStatus`.
 
-- [ ] **Step 2: Add retry contracts**
+- [x] **Step 2: Add retry contracts**
 
 Implement `RetryPolicy` and `RetryDecision`.
 
-- [ ] **Step 3: Add `TaskQueue` and `InMemoryTaskQueue`**
+- [x] **Step 3: Add `TaskQueue` and `InMemoryTaskQueue`**
 
 Implement enqueue, acquire, complete, fail, cancel, pause, resume, and release-expired behavior.
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 ```bash
 cargo test -p agent-scheduler queue_leases
@@ -78,11 +78,11 @@ cargo test -p agent-scheduler queue_leases
 - Modify: `docs/milestones/README.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Advance active focus**
+- [x] **Step 1: Advance active focus**
 
 Set active focus to `M08-03-quotas`.
 
-- [ ] **Step 2: Run standard verification**
+- [x] **Step 2: Run standard verification**
 
 ```bash
 cargo fmt --all -- --check
@@ -90,7 +90,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

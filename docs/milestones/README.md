@@ -43,7 +43,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M02 slice plans | Complete for M02-01 through M02-05 |
 | M02 implementation | Complete |
 | M03 slice specs | Complete for M03-01 through M03-05 |
-| M03 slice plans | Development-ready for M03-01 through M03-05 |
+| M03 slice plans | Complete for M03-01 through M03-05 |
+| M03 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -186,11 +187,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M03-05-local-coding-e2e`.
+Current implementation focus: `M04-checkpoint-recovery-trace`.
 
-Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
+Current planning focus: decompose `M04-checkpoint-recovery-trace` into slice-level specs and plans before implementation.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M03-05-local-coding-e2e.spec.md`
-- `docs/plans/M03-05-local-coding-e2e.plan.md`
+- `docs/specs/M04-checkpoint-recovery-trace.spec.md`
+- `docs/plans/M04-checkpoint-recovery-trace.plan.md`

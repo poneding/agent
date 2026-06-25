@@ -2,11 +2,16 @@
 //! Core runtime orchestration for agent.
 
 pub mod context;
+pub mod local_coding;
 pub mod runtime;
 pub mod tool_loop;
 pub mod turn;
 
 pub use context::ContextAssembler;
+pub use local_coding::{
+    LocalCodingError, LocalCodingOutcome, LocalCodingRun, replay_local_coding_outcome,
+    run_local_coding_fixture, run_local_coding_fixture_with_shell_denied,
+};
 pub use runtime::RuntimeIds;
 pub use tool_loop::{ToolCallRequest, ToolLoop, ToolLoopError, ToolLoopOutcome, ToolLoopStatus};
 pub use turn::{TurnEngine, TurnError, TurnInput, TurnOutcome};

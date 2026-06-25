@@ -8,6 +8,7 @@ pub enum CliCommand {
     RuntimeBanner,
     BatchPrompt { prompt: String },
     TtyShell,
+    LocalSummary,
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -31,6 +32,7 @@ where
     match first.as_str() {
         "--version" | "-V" => Ok(CliCommand::Version),
         "--tty" => Ok(CliCommand::TtyShell),
+        "--local-summary" => Ok(CliCommand::LocalSummary),
         "--prompt" | "-p" => {
             let prompt = args
                 .next()
@@ -52,7 +54,34 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             CliOutput::exit(format!("agent-cli batch prompt: {prompt}\n"))
         }
         CliCommand::TtyShell => CliOutput::keep_running("agent-cli tty shell ready\n"),
+        CliCommand::LocalSummary => match agent_core::run_local_coding_fixture() {
+            Ok(run) => CliOutput::exit(render_local_coding_summary(&run.outcome)),
+            Err(error) => CliOutput::exit(format!("local coding summary failed: {error}\n")),
+        },
     }
+}
+
+#[must_use]
+pub fn render_local_coding_summary(outcome: &agent_core::LocalCodingOutcome) -> String {
+    let mut output = format!("{}\n", outcome.final_answer);
+    output.push_str("Changed files:\n");
+    if outcome.changed_files.is_empty() {
+        output.push_str("- none\n");
+    } else {
+        for file in &outcome.changed_files {
+            output.push_str(&format!("- {file}\n"));
+        }
+    }
+    output.push_str("Command results:\n");
+    if outcome.command_results.is_empty() {
+        output.push_str("- none\n");
+    } else {
+        for result in &outcome.command_results {
+            output.push_str(&format!("- {result}\n"));
+        }
+    }
+    output.push_str(&format!("Audit events: {}\n", outcome.audit_event_count));
+    output
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]

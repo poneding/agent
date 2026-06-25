@@ -17,7 +17,7 @@
 - Create: `crates/agent-policy/Cargo.toml`
 - Create: `crates/agent-policy/src/lib.rs`
 
-- [ ] **Step 1: Add workspace member and manifest**
+- [x] **Step 1: Add workspace member and manifest**
 
 Dependencies:
 
@@ -29,7 +29,7 @@ thiserror = "2"
 uuid = { version = "1", features = ["v4", "serde"] }
 ```
 
-- [ ] **Step 2: Export modules**
+- [x] **Step 2: Export modules**
 
 Export `capability`, `decision`, `engine`, `error`, `lease`, and `request`.
 
@@ -38,7 +38,7 @@ Export `capability`, `decision`, `engine`, `error`, `lease`, and `request`.
 **Files:**
 - Create: `crates/agent-policy/tests/policy_engine.rs`
 
-- [ ] **Step 1: Add tests**
+- [x] **Step 1: Add tests**
 
 Tests must prove:
 
@@ -48,7 +48,7 @@ Tests must prove:
 - allow can issue a lease linked to the request
 - request and decision serialize to stable JSON
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-policy policy_engine
@@ -66,15 +66,15 @@ Expected: tests fail before contracts exist.
 - Create: `crates/agent-policy/src/lease.rs`
 - Create: `crates/agent-policy/src/request.rs`
 
-- [ ] **Step 1: Implement data contracts**
+- [x] **Step 1: Implement data contracts**
 
 Implement `CapabilityAction`, `ResourceKind`, `ResourceScope`, `PermissionRequest`, `PolicyDecision`, and `PermissionLease`.
 
-- [ ] **Step 2: Implement static engine**
+- [x] **Step 2: Implement static engine**
 
 Implement `StaticPolicyEngine` with explicit rules and default `Ask`.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-policy policy_engine
@@ -88,7 +88,7 @@ Expected: focused tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M02-02-policy-engine.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -96,11 +96,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M02-02-policy-engine` to `M02-03-read-only-builtins`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

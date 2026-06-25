@@ -183,11 +183,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M02-02-policy-engine`.
+Current implementation focus: `M02-03-read-only-builtins`.
 
 Current planning focus: all milestone-level specs and plans are created; the next planning document should be a slice-level doc only when implementation reaches a milestone that needs further decomposition.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M02-02-policy-engine.spec.md`
-- `docs/plans/M02-02-policy-engine.plan.md`
+- `docs/specs/M02-03-read-only-builtins.spec.md`
+- `docs/plans/M02-03-read-only-builtins.plan.md`

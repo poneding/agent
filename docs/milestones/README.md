@@ -189,11 +189,11 @@ These slices guide future decomposition. Their milestone-level specs and plans a
 
 ## Active Work
 
-Current implementation focus: `M04-02-idempotency`.
+Current implementation focus: `M04-03-recovery-flow`.
 
 Current planning focus: M04 slice-level specs and plans are created; next planning document should be a slice-level doc only when implementation reaches M05.
 
 Primary execution documents for the current implementation focus:
 
-- `docs/specs/M04-02-idempotency.spec.md`
-- `docs/plans/M04-02-idempotency.plan.md`
+- `docs/specs/M04-03-recovery-flow.spec.md`
+- `docs/plans/M04-03-recovery-flow.plan.md`

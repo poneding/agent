@@ -4,6 +4,9 @@ use agent_types::{CheckpointId, ConversationId, EventId, RuntimeEvent, TurnId};
 
 use crate::checkpoint::{CheckpointRecord, CheckpointStore, validate_checkpoint};
 use crate::event_store::{EventStore, StorageError, StoredEvent, assign_sequence};
+use crate::idempotency::{
+    IdempotencyKey, IdempotencyStore, ToolEffectRecord, conflict, validate_effect,
+};
 
 #[derive(Default)]
 pub struct InMemoryEventStore {
@@ -11,6 +14,7 @@ pub struct InMemoryEventStore {
     streams: BTreeMap<ConversationId, Vec<EventId>>,
     checkpoints: HashMap<CheckpointId, CheckpointRecord>,
     checkpoint_streams: BTreeMap<(ConversationId, Option<TurnId>), Vec<CheckpointId>>,
+    effects: HashMap<IdempotencyKey, ToolEffectRecord>,
 }
 
 impl EventStore for InMemoryEventStore {
@@ -46,6 +50,29 @@ impl EventStore for InMemoryEventStore {
 
     fn get(&self, event_id: EventId) -> Result<Option<StoredEvent>, StorageError> {
         Ok(self.events.get(&event_id).cloned())
+    }
+}
+
+impl IdempotencyStore for InMemoryEventStore {
+    fn record_effect(&mut self, record: ToolEffectRecord) -> Result<(), StorageError> {
+        validate_effect(&record)?;
+        if let Some(existing) = self.effects.get(&record.key) {
+            if existing.input_hash == record.input_hash {
+                return Ok(());
+            }
+            return Err(conflict(
+                &record.key,
+                &existing.input_hash,
+                &record.input_hash,
+            ));
+        }
+
+        self.effects.insert(record.key.clone(), record);
+        Ok(())
+    }
+
+    fn get_effect(&self, key: &IdempotencyKey) -> Result<Option<ToolEffectRecord>, StorageError> {
+        Ok(self.effects.get(key).cloned())
     }
 }
 

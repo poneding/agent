@@ -3,12 +3,14 @@
 
 pub mod checkpoint;
 pub mod event_store;
+pub mod idempotency;
 pub mod memory;
 pub mod replay;
 pub mod sqlite;
 
 pub use checkpoint::{CheckpointRecord, CheckpointStore};
 pub use event_store::{EventStore, StorageError, StoredEvent};
+pub use idempotency::{IdempotencyKey, IdempotencyStore, ToolEffectRecord};
 pub use memory::InMemoryEventStore;
 pub use replay::{ReplayCursor, ReplayEvent};
 pub use sqlite::SqliteEventStore;

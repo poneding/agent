@@ -5,6 +5,9 @@ use rusqlite::{Connection, ErrorCode, OptionalExtension, Transaction, params};
 
 use crate::checkpoint::{CheckpointRecord, CheckpointStore, validate_checkpoint};
 use crate::event_store::{EventStore, StorageError, StoredEvent, assign_sequence};
+use crate::idempotency::{
+    IdempotencyKey, IdempotencyStore, ToolEffectRecord, conflict, validate_effect,
+};
 
 pub struct SqliteEventStore {
     conn: Connection,
@@ -49,6 +52,15 @@ impl SqliteEventStore {
 
                 CREATE INDEX IF NOT EXISTS idx_checkpoints_conversation_turn_seq
                 ON checkpoints(conversation_id, turn_id, event_seq);
+
+                CREATE TABLE IF NOT EXISTS tool_effects (
+                  idempotency_key TEXT PRIMARY KEY,
+                  call_id TEXT NOT NULL,
+                  tool_name TEXT NOT NULL,
+                  input_hash TEXT NOT NULL,
+                  output_json TEXT NOT NULL,
+                  completed_at TEXT NOT NULL
+                );
                 ",
             )
             .map_err(backend)
@@ -92,24 +104,78 @@ impl SqliteEventStore {
     }
 }
 
+impl IdempotencyStore for SqliteEventStore {
+    fn record_effect(&mut self, record: ToolEffectRecord) -> Result<(), StorageError> {
+        validate_effect(&record)?;
+        if let Some(existing) = self.get_effect(&record.key)? {
+            if existing.input_hash == record.input_hash {
+                return Ok(());
+            }
+            return Err(conflict(
+                &record.key,
+                &existing.input_hash,
+                &record.input_hash,
+            ));
+        }
+
+        let output_json = serde_json::to_string(&record.output_json)
+            .map_err(|error| StorageError::Serialization(error.to_string()))?;
+        let completed_at = serialize_timestamp(record.completed_at)?;
+
+        self.conn
+            .execute(
+                r"
+                INSERT INTO tool_effects (
+                    idempotency_key,
+                    call_id,
+                    tool_name,
+                    input_hash,
+                    output_json,
+                    completed_at
+                )
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+                ",
+                params![
+                    record.key.to_string(),
+                    record.call_id,
+                    record.tool_name,
+                    record.input_hash,
+                    output_json,
+                    completed_at
+                ],
+            )
+            .map_err(backend)?;
+        Ok(())
+    }
+
+    fn get_effect(&self, key: &IdempotencyKey) -> Result<Option<ToolEffectRecord>, StorageError> {
+        self.conn
+            .query_row(
+                r"
+                SELECT
+                    idempotency_key,
+                    call_id,
+                    tool_name,
+                    input_hash,
+                    output_json,
+                    completed_at
+                FROM tool_effects
+                WHERE idempotency_key = ?1
+                ",
+                params![key.to_string()],
+                effect_from_row,
+            )
+            .optional()
+            .map_err(backend)
+    }
+}
+
 impl CheckpointStore for SqliteEventStore {
     fn put_checkpoint(&mut self, checkpoint: CheckpointRecord) -> Result<(), StorageError> {
         validate_checkpoint(&checkpoint)?;
         let state_json = serde_json::to_string(&checkpoint.state_json)
             .map_err(|error| StorageError::Serialization(error.to_string()))?;
-        let created_at = serde_json::to_value(checkpoint.created_at)
-            .and_then(|value| {
-                value.as_str().map_or_else(
-                    || {
-                        Err(serde_json::Error::io(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            "created_at must serialize as string",
-                        )))
-                    },
-                    |value| Ok(value.to_string()),
-                )
-            })
-            .map_err(|error| StorageError::Serialization(error.to_string()))?;
+        let created_at = serialize_timestamp(checkpoint.created_at)?;
         let turn_id = checkpoint.turn_id.map(|turn_id| turn_id.to_string());
 
         self.conn
@@ -309,6 +375,41 @@ fn checkpoint_from_row(row: &rusqlite::Row<'_>) -> Result<CheckpointRecord, rusq
         created_at: serde_json::from_value(serde_json::Value::String(created_at))
             .map_err(sql_deserialize_error)?,
     })
+}
+
+fn effect_from_row(row: &rusqlite::Row<'_>) -> Result<ToolEffectRecord, rusqlite::Error> {
+    let key: String = row.get(0)?;
+    let call_id: String = row.get(1)?;
+    let tool_name: String = row.get(2)?;
+    let input_hash: String = row.get(3)?;
+    let output_json: String = row.get(4)?;
+    let completed_at: String = row.get(5)?;
+
+    Ok(ToolEffectRecord {
+        key: parse_sql_value(key)?,
+        call_id,
+        tool_name,
+        input_hash,
+        output_json: serde_json::from_str(&output_json).map_err(sql_deserialize_error)?,
+        completed_at: serde_json::from_value(serde_json::Value::String(completed_at))
+            .map_err(sql_deserialize_error)?,
+    })
+}
+
+fn serialize_timestamp(timestamp: agent_types::Timestamp) -> Result<String, StorageError> {
+    serde_json::to_value(timestamp)
+        .and_then(|value| {
+            value.as_str().map_or_else(
+                || {
+                    Err(serde_json::Error::io(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        "timestamp must serialize as string",
+                    )))
+                },
+                |value| Ok(value.to_string()),
+            )
+        })
+        .map_err(|error| StorageError::Serialization(error.to_string()))
 }
 
 fn parse_sql_value<T>(value: String) -> Result<T, rusqlite::Error>

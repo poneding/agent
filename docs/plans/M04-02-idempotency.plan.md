@@ -15,11 +15,11 @@
 **Files:**
 - Create: `crates/agent-storage/tests/idempotency_store.rs`
 
-- [ ] **Step 1: Add failing store tests**
+- [x] **Step 1: Add failing store tests**
 
 Tests must prove key validation, record/get behavior, duplicate same-key behavior, and mismatched input hash diagnostics.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 cargo test -p agent-storage idempotency_store
@@ -35,15 +35,15 @@ Expected: tests fail because idempotency contracts do not exist.
 - Modify: `crates/agent-storage/src/memory.rs`
 - Modify: `crates/agent-storage/src/sqlite.rs`
 
-- [ ] **Step 1: Define `IdempotencyKey`, `ToolEffectRecord`, and `IdempotencyStore`**
+- [x] **Step 1: Define `IdempotencyKey`, `ToolEffectRecord`, and `IdempotencyStore`**
 
 Follow the fields in `docs/specs/M04-02-idempotency.spec.md`.
 
-- [ ] **Step 2: Implement in-memory and SQLite stores**
+- [x] **Step 2: Implement in-memory and SQLite stores**
 
 Store records by key and reject incompatible duplicate input hashes.
 
-- [ ] **Step 3: Verify storage GREEN**
+- [x] **Step 3: Verify storage GREEN**
 
 ```bash
 cargo test -p agent-storage idempotency_store
@@ -58,15 +58,15 @@ Expected: focused storage tests pass.
 - Modify: `crates/agent-core/src/lib.rs`
 - Create: `crates/agent-core/tests/idempotent_tool_replay.rs`
 
-- [ ] **Step 1: Add failing core tests**
+- [x] **Step 1: Add failing core tests**
 
 Tests must prove first execution runs the tool, second execution with the same key returns stored output, and failed tool calls are not recorded.
 
-- [ ] **Step 2: Implement wrapper**
+- [x] **Step 2: Implement wrapper**
 
 Wrap existing `ToolLoop` execution and persist `ToolEffectRecord` only after `ToolLoopStatus::Completed`.
 
-- [ ] **Step 3: Verify core GREEN**
+- [x] **Step 3: Verify core GREEN**
 
 ```bash
 cargo test -p agent-core idempotent_tool_replay
@@ -80,7 +80,7 @@ Expected: focused core tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M04-02-idempotency.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -88,11 +88,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M04-02-idempotency` to `M04-03-recovery-flow`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

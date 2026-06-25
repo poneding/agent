@@ -11,6 +11,18 @@ pub enum StorageError {
     SequenceConflict,
     #[error("checkpoint is invalid: {0}")]
     InvalidCheckpoint(String),
+    #[error("idempotency key is invalid: {0}")]
+    InvalidIdempotencyKey(String),
+    #[error("idempotency record is invalid: {0}")]
+    InvalidIdempotencyRecord(String),
+    #[error(
+        "idempotency key conflict for {key}: existing input hash {existing_hash}, new input hash {new_hash}"
+    )]
+    IdempotencyConflict {
+        key: String,
+        existing_hash: String,
+        new_hash: String,
+    },
     #[error("event payload serialization failed: {0}")]
     Serialization(String),
     #[error("storage backend failed: {0}")]

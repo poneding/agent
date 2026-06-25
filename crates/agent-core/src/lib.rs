@@ -2,12 +2,14 @@
 //! Core runtime orchestration for agent.
 
 pub mod context;
+pub mod idempotency;
 pub mod local_coding;
 pub mod runtime;
 pub mod tool_loop;
 pub mod turn;
 
 pub use context::ContextAssembler;
+pub use idempotency::{IdempotentToolError, IdempotentToolExecutor, IdempotentToolOutcome};
 pub use local_coding::{
     LocalCodingError, LocalCodingOutcome, LocalCodingRun, replay_local_coding_outcome,
     run_local_coding_fixture, run_local_coding_fixture_with_shell_denied,

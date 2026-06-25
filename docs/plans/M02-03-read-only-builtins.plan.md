@@ -18,7 +18,7 @@
 - Create: `crates/agent-sandbox/src/lib.rs`
 - Create: `crates/agent-sandbox/src/path.rs`
 
-- [ ] **Step 1: Add workspace member and manifest**
+- [x] **Step 1: Add workspace member and manifest**
 
 Dependencies:
 
@@ -30,7 +30,7 @@ thiserror = "2"
 tempfile = "3"
 ```
 
-- [ ] **Step 2: Write path tests**
+- [x] **Step 2: Write path tests**
 
 Create tests for normal relative paths, `..` traversal, absolute paths, and symlink escape.
 
@@ -40,7 +40,7 @@ Create tests for normal relative paths, `..` traversal, absolute paths, and syml
 - Create: `crates/agent-sandbox/tests/path.rs`
 - Modify: `crates/agent-sandbox/src/path.rs`
 
-- [ ] **Step 1: Verify RED**
+- [x] **Step 1: Verify RED**
 
 ```bash
 cargo test -p agent-sandbox path
@@ -48,11 +48,11 @@ cargo test -p agent-sandbox path
 
 Expected: tests fail before path confinement exists.
 
-- [ ] **Step 2: Implement `WorkspaceSandbox`**
+- [x] **Step 2: Implement `WorkspaceSandbox`**
 
 Implement `resolve_read_path(&self, relative_path: &str)` and reject paths outside the root.
 
-- [ ] **Step 3: Verify GREEN**
+- [x] **Step 3: Verify GREEN**
 
 ```bash
 cargo test -p agent-sandbox path
@@ -69,15 +69,15 @@ Expected: sandbox tests pass.
 - Create: `crates/agent-tool/src/builtins/search_text.rs`
 - Create: `crates/agent-tool/tests/read_only_builtins.rs`
 
-- [ ] **Step 1: Write failing built-in tests**
+- [x] **Step 1: Write failing built-in tests**
 
 Tests must prove read file returns content, search returns matching lines, traversal is rejected, and tools can be registered.
 
-- [ ] **Step 2: Implement tools**
+- [x] **Step 2: Implement tools**
 
 Implement `ReadFileTool` and `SearchTextTool` as `Tool` implementations using `WorkspaceSandbox`.
 
-- [ ] **Step 3: Verify focused tests**
+- [x] **Step 3: Verify focused tests**
 
 ```bash
 cargo test -p agent-tool read_only_builtins
@@ -91,7 +91,7 @@ Expected: built-in tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M02-03-read-only-builtins.plan.md`
 
-- [ ] **Step 1: Run standard checks**
+- [x] **Step 1: Run standard checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -99,11 +99,11 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-- [ ] **Step 2: Advance active focus**
+- [x] **Step 2: Advance active focus**
 
 Update active focus from `M02-03-read-only-builtins` to `M02-04-audit-trail`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md AGENTS.md

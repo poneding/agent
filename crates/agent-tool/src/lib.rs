@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 //! Tool contracts and registry for agent.
 
+pub mod builtins;
 pub mod definition;
 pub mod error;
 pub mod registry;

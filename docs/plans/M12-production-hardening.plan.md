@@ -93,7 +93,7 @@ Expected: commit succeeds.
 - Read: `docs/specs/M12-01-schema-migration.spec.md`
 - Execute: `docs/plans/M12-01-schema-migration.plan.md`
 
-- [ ] **Step 1: Complete M12-01 using TDD**
+- [x] **Step 1: Complete M12-01 using TDD**
 
 Follow `docs/plans/M12-01-schema-migration.plan.md` exactly: write RED tests, verify failure, implement the migration module, verify focused tests, run workspace gates, update status, and commit.
 

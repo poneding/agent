@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M11 are implemented. Current focus is M12-01: Schema Migration.
+M01-M11 and M12-01 are implemented. Current focus is M12-02: Telemetry.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M12-01-schema-migration.spec.md)
-- [Current plan](docs/plans/M12-01-schema-migration.plan.md)
+- [Current spec](docs/specs/M12-02-telemetry.spec.md)
+- [Current plan](docs/plans/M12-02-telemetry.plan.md)
 - [M12 technical design](docs/specs/M12-00-production-hardening-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

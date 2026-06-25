@@ -6,6 +6,7 @@ pub mod compatibility;
 pub mod event_store;
 pub mod idempotency;
 pub mod memory;
+pub mod migration;
 pub mod replay;
 pub mod sqlite;
 
@@ -17,6 +18,10 @@ pub use compatibility::{
 pub use event_store::{EventStore, StorageError, StoredEvent};
 pub use idempotency::{IdempotencyKey, IdempotencyStore, ToolEffectRecord};
 pub use memory::InMemoryEventStore;
+pub use migration::{
+    MigrationDiagnostic, MigrationDiagnosticSeverity, MigrationError, MigrationOutcome,
+    MigrationRegistry, MigrationReport, SchemaFamily, SchemaMigration, SchemaVersion,
+};
 pub use replay::{ReplayCursor, ReplayEvent};
 pub use sqlite::SqliteEventStore;
 

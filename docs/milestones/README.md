@@ -95,7 +95,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M12 technical design | Complete |
 | M12 slice specs | Complete for M12-01 through M12-06 |
 | M12 slice plans | Complete for M12-01 through M12-06 |
-| M12-01 implementation | In progress |
+| M12-01 implementation | Complete |
+| M12-02 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -236,9 +237,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M12-01-schema-migration`.
+Current implementation focus: `M12-02-telemetry`.
 
 Primary planning documents for the current focus:
 
-- `docs/specs/M12-01-schema-migration.spec.md`
-- `docs/plans/M12-01-schema-migration.plan.md`
+- `docs/specs/M12-02-telemetry.spec.md`
+- `docs/plans/M12-02-telemetry.plan.md`

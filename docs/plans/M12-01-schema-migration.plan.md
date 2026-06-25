@@ -18,7 +18,7 @@
 - Read: `crates/agent-storage/src/lib.rs`
 - Read: `crates/agent-storage/Cargo.toml`
 
-- [ ] **Step 1: Review migration scope**
+- [x] **Step 1: Review migration scope**
 
 Run:
 
@@ -36,7 +36,7 @@ Expected: migration ownership stays in `agent-storage`, and `serde`, `serde_json
 **Files:**
 - Create: `crates/agent-storage/tests/schema_migration.rs`
 
-- [ ] **Step 1: Add failing tests**
+- [x] **Step 1: Add failing tests**
 
 Create `crates/agent-storage/tests/schema_migration.rs` with this content:
 
@@ -212,6 +212,22 @@ fn schema_migration_report_serializes_stable_shape() {
     );
 }
 
+#[test]
+fn schema_migration_invalid_fixture_json_returns_recoverable_error() {
+    let registry = MigrationRegistry::new();
+
+    let error = registry
+        .migrate_json_str(
+            SchemaFamily::Event,
+            "{not-json",
+            SchemaVersion(1),
+            SchemaVersion(2),
+        )
+        .expect_err("invalid fixture json is recoverable");
+
+    assert!(matches!(error, MigrationError::Json(message) if !message.is_empty()));
+}
+
 #[derive(Clone, Copy, Debug)]
 struct ConfigPermissionMigration {
     emits_diagnostic: bool,
@@ -367,7 +383,7 @@ fn schema_migration_fixture_upgrades_event_payload() {
 }
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -383,7 +399,7 @@ Expected: compile failure mentioning missing migration types such as `MigrationR
 - Modify: `crates/agent-storage/src/lib.rs`
 - Create: `crates/agent-storage/src/migration.rs`
 
-- [ ] **Step 1: Add module exports**
+- [x] **Step 1: Add module exports**
 
 Modify `crates/agent-storage/src/lib.rs`:
 
@@ -396,7 +412,7 @@ pub use migration::{
 };
 ```
 
-- [ ] **Step 2: Add public migration types**
+- [x] **Step 2: Add public migration types**
 
 Create `crates/agent-storage/src/migration.rs` with these public contracts:
 
@@ -484,6 +500,8 @@ pub enum MigrationError {
         from_version: SchemaVersion,
         to_version: SchemaVersion,
     },
+    #[error("migration fixture json is invalid: {0}")]
+    Json(String),
     #[error("migration {migration_id} failed: {message}")]
     ApplyFailed {
         migration_id: String,
@@ -497,7 +515,7 @@ pub enum MigrationError {
 }
 ```
 
-- [ ] **Step 3: Add registry execution**
+- [x] **Step 3: Add registry execution**
 
 Implement `MigrationRegistry` in `migration.rs`:
 
@@ -546,6 +564,18 @@ impl MigrationRegistry {
 
         self.migrations.push(Box::new(migration));
         Ok(())
+    }
+
+    pub fn migrate_json_str(
+        &self,
+        family: SchemaFamily,
+        input: &str,
+        from_version: SchemaVersion,
+        to_version: SchemaVersion,
+    ) -> Result<MigrationOutcome, MigrationError> {
+        let input = serde_json::from_str(input)
+            .map_err(|error| MigrationError::Json(error.to_string()))?;
+        self.migrate(family, input, from_version, to_version)
     }
 
     pub fn migrate(
@@ -626,7 +656,7 @@ impl MigrationRegistry {
 }
 ```
 
-- [ ] **Step 4: Add diagnostics and helper functions**
+- [x] **Step 4: Add diagnostics and helper functions**
 
 Complete `migration.rs` with:
 
@@ -675,7 +705,7 @@ Also add private helpers for `MigrationReport::blocked_missing_step`, `Migration
 - Read: `crates/agent-storage/src/migration.rs`
 - Read: `crates/agent-storage/src/lib.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -683,9 +713,9 @@ Run:
 cargo test -p agent-storage schema_migration
 ```
 
-Expected: all six schema migration tests pass.
+Expected: all seven schema migration tests pass.
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 Run:
 
@@ -705,7 +735,7 @@ Expected: all checks pass.
 - Modify: `docs/plans/M12-01-schema-migration.plan.md`
 - Modify: `docs/plans/M12-production-hardening.plan.md`
 
-- [ ] **Step 1: Mark M12-01 complete and advance active focus**
+- [x] **Step 1: Mark M12-01 complete and advance active focus**
 
 Update:
 
@@ -723,7 +753,7 @@ M12-01 implementation: Complete
 Current focus: M12-02 Telemetry
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

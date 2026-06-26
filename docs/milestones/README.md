@@ -110,7 +110,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M13-03 implementation | Complete |
 | M13-04 implementation | Complete |
 | M13-05 implementation | Complete |
-| M13 implementation | In progress |
+| M13 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -263,7 +263,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M13 completion.
+Current implementation focus: M13 complete; next milestone planning has not started.
 
 Primary planning documents for the completed M13 milestone:
 

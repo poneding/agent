@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M12 and M13-01-M13-05 are implemented. Current focus is M13 completion.
+M01-M13 are implemented. Current focus is post-M13 planning.
 
 ## Core Ideas
 

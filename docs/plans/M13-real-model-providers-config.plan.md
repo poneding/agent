@@ -126,7 +126,7 @@ Complete CLI model selection wiring, then commit `feat: add m13 cli model select
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M13-real-model-providers-config.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -138,11 +138,11 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M13 complete**
+- [x] **Step 2: Mark M13 complete**
 
 Update M13 planning status and advance active focus to the next milestone.
 
-- [ ] **Step 3: Commit M13 completion status**
+- [x] **Step 3: Commit M13 completion status**
 
 Run:
 

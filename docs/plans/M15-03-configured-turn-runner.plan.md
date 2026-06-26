@@ -18,7 +18,7 @@
 - Read: `crates/agent-core/src/turn.rs`
 - Read: `crates/agent-core/tests/turn_engine.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: the spec defines configured turn input, outcome, errors, and tests.
 **Files:**
 - Create: `crates/agent-core/tests/configured_turn_runner.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests named:
 
@@ -42,7 +42,7 @@ Add tests named:
 - `configured_turn_runner_resolution_failure_prevents_model_call`
 - `configured_turn_runner_success_emits_final_response`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -57,7 +57,7 @@ Expected: tests fail because configured turn runner contracts do not exist.
 **Files:**
 - Modify: `crates/agent-core/src/model_runtime.rs`
 
-- [ ] **Step 1: Add configured turn contracts**
+- [x] **Step 1: Add configured turn contracts**
 
 Implement:
 
@@ -65,7 +65,7 @@ Implement:
 - `ConfiguredTurnOutcome`
 - `ConfiguredTurnRunner`
 
-- [ ] **Step 2: Wire resolver and turn engine**
+- [x] **Step 2: Wire resolver and turn engine**
 
 Rules:
 
@@ -73,7 +73,7 @@ Rules:
 - use selected provider/model from resolved runtime
 - return final message, events, and attempt history
 
-- [ ] **Step 3: Verify focused tests**
+- [x] **Step 3: Verify focused tests**
 
 Run:
 
@@ -91,7 +91,7 @@ Expected: focused tests pass.
 - Modify: `docs/plans/M15-03-configured-turn-runner.plan.md`
 - Modify: `docs/plans/M15-config-driven-turn-execution.plan.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -103,7 +103,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

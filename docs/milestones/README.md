@@ -125,7 +125,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M15 slice plans | Complete for M15-01 through M15-05 |
 | M15-01 implementation | Complete |
 | M15-02 implementation | Complete |
-| M15-03 implementation | In progress |
+| M15-03 implementation | Complete |
+| M15-04 implementation | In progress |
 | M15 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -303,9 +304,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M15-03-configured-turn-runner`.
+Current implementation focus: `M15-04-cli-prompt-runtime`.
 
 Primary planning documents for the current focus:
 
-- `docs/specs/M15-03-configured-turn-runner.spec.md`
-- `docs/plans/M15-03-configured-turn-runner.plan.md`
+- `docs/specs/M15-04-cli-prompt-runtime.spec.md`
+- `docs/plans/M15-04-cli-prompt-runtime.plan.md`

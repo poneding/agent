@@ -102,7 +102,7 @@ Complete provider selection and capability checks, then commit `feat: add m15 mo
 
 Complete retry and fallback invocation execution, then commit `feat: add m15 invocation policy runner`.
 
-- [ ] **Step 3: Implement M15-03 configured turn runner**
+- [x] **Step 3: Implement M15-03 configured turn runner**
 
 Complete config-driven turn execution through `TurnEngine`, then commit `feat: add m15 configured turn runner`.
 

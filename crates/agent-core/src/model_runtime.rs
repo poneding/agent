@@ -1,5 +1,5 @@
 use std::fmt;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use agent_model::{
     ModelCapabilities, ModelCapability, ModelError, ModelFailureKind, ModelInvocationPolicy,
@@ -10,6 +10,9 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::config::EffectiveRuntimeConfig;
+use crate::runtime::RuntimeIds;
+use crate::turn::{TurnEngine, TurnError, TurnInput};
+use agent_types::RuntimeEvent;
 
 #[derive(Clone)]
 pub struct ConfiguredModelRuntime {
@@ -237,6 +240,119 @@ impl ModelInvocationRunner {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ConfiguredTurnInput {
+    pub ids: RuntimeIds,
+    pub user_message: String,
+    pub effective_config: EffectiveRuntimeConfig,
+    pub requirements: ModelRequestRequirements,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ConfiguredTurnOutcome {
+    pub final_message: String,
+    pub selected_provider: String,
+    pub selected_model: String,
+    pub events: Vec<RuntimeEvent>,
+    pub attempts: Vec<ModelInvocationAttempt>,
+}
+
+pub struct ConfiguredTurnRunner;
+
+impl ConfiguredTurnRunner {
+    pub async fn run(
+        input: ConfiguredTurnInput,
+        registry: &ModelProviderRegistry,
+    ) -> Result<ConfiguredTurnOutcome, ConfiguredTurnError> {
+        if input.user_message.trim().is_empty() {
+            return Err(ConfiguredTurnError::InvalidInput {
+                field: "user_message".to_string(),
+                message: "user message must not be empty".to_string(),
+            });
+        }
+
+        let runtime =
+            ModelRuntimeResolver::resolve(&input.effective_config, registry, &input.requirements)?;
+        let policy_provider = PolicyModelProvider::new(
+            runtime.clone(),
+            registry.clone(),
+            input.requirements.clone(),
+        );
+        let turn_input = TurnInput {
+            ids: input.ids,
+            user_message: input.user_message,
+            provider: runtime.provider_id.clone(),
+            model: runtime.model.clone(),
+        };
+
+        match TurnEngine::default()
+            .run(turn_input, &policy_provider)
+            .await
+        {
+            Ok(outcome) => Ok(ConfiguredTurnOutcome {
+                final_message: outcome.final_message,
+                selected_provider: runtime.provider_id,
+                selected_model: runtime.model,
+                events: outcome.events,
+                attempts: policy_provider.attempts(),
+            }),
+            Err(TurnError::Model { message, events }) => Err(ConfiguredTurnError::Model {
+                message,
+                events,
+                attempts: policy_provider.attempts(),
+            }),
+        }
+    }
+}
+
+struct PolicyModelProvider {
+    runtime: ConfiguredModelRuntime,
+    registry: ModelProviderRegistry,
+    requirements: ModelRequestRequirements,
+    attempts: Arc<Mutex<Vec<ModelInvocationAttempt>>>,
+}
+
+impl PolicyModelProvider {
+    fn new(
+        runtime: ConfiguredModelRuntime,
+        registry: ModelProviderRegistry,
+        requirements: ModelRequestRequirements,
+    ) -> Self {
+        Self {
+            runtime,
+            registry,
+            requirements,
+            attempts: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+
+    fn attempts(&self) -> Vec<ModelInvocationAttempt> {
+        self.attempts.lock().expect("attempts lock").clone()
+    }
+}
+
+#[async_trait::async_trait]
+impl ModelProvider for PolicyModelProvider {
+    async fn stream(&self, request: ModelRequest) -> Result<ModelStreamResult, ModelError> {
+        match ModelInvocationRunner::run(&self.runtime, &self.registry, &self.requirements, request)
+            .await
+        {
+            Ok(outcome) => {
+                *self.attempts.lock().expect("attempts lock") = outcome.attempts;
+                Ok(outcome.stream)
+            }
+            Err(error) => {
+                *self.attempts.lock().expect("attempts lock") = error.attempts().to_vec();
+                Err(ModelError::Provider {
+                    code: "model.invocation_policy.failed".to_string(),
+                    message: error.to_string(),
+                    retryable: false,
+                })
+            }
+        }
+    }
+}
+
 async fn invoke(
     provider: Arc<dyn ModelProvider>,
     provider_id: &str,
@@ -382,6 +498,16 @@ pub enum ModelInvocationError {
 }
 
 impl ModelInvocationError {
+    #[must_use]
+    pub fn attempts(&self) -> &[ModelInvocationAttempt] {
+        match self {
+            Self::SelectedProviderUnavailable { attempts, .. }
+            | Self::FallbackProviderNotRegistered { attempts, .. }
+            | Self::FallbackMissingCapabilities { attempts, .. }
+            | Self::InvocationFailed { attempts, .. } => attempts,
+        }
+    }
+
     fn selected_provider_unavailable(error: ModelRegistryError) -> Self {
         match error {
             ModelRegistryError::ProviderNotFound { id } => Self::SelectedProviderUnavailable {
@@ -396,4 +522,18 @@ impl ModelInvocationError {
             },
         }
     }
+}
+
+#[derive(Clone, Debug, Error, Eq, PartialEq)]
+pub enum ConfiguredTurnError {
+    #[error("invalid configured turn input at {field}: {message}")]
+    InvalidInput { field: String, message: String },
+    #[error(transparent)]
+    Runtime(#[from] ModelRuntimeError),
+    #[error("configured turn model failed: {message}")]
+    Model {
+        message: String,
+        events: Vec<RuntimeEvent>,
+        attempts: Vec<ModelInvocationAttempt>,
+    },
 }

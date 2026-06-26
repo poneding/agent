@@ -35,7 +35,8 @@ pub use local_coding::{
     run_local_coding_fixture, run_local_coding_fixture_with_shell_denied,
 };
 pub use model_runtime::{
-    ConfiguredModelRuntime, ModelInvocationAttempt, ModelInvocationError, ModelInvocationOutcome,
+    ConfiguredModelRuntime, ConfiguredTurnError, ConfiguredTurnInput, ConfiguredTurnOutcome,
+    ConfiguredTurnRunner, ModelInvocationAttempt, ModelInvocationError, ModelInvocationOutcome,
     ModelInvocationRunner, ModelRuntimeError, ModelRuntimeResolver,
 };
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};

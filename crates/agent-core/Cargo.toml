@@ -13,6 +13,7 @@ agent-sandbox = { path = "../agent-sandbox" }
 agent-storage = { path = "../agent-storage" }
 agent-tool = { path = "../agent-tool" }
 agent-types = { path = "../agent-types" }
+async-trait = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tempfile = "3"
@@ -23,7 +24,6 @@ toml = "0.8"
 agent-context = { path = "../agent-context" }
 agent-memory = { path = "../agent-memory" }
 agent-plugin = { path = "../agent-plugin" }
-async-trait = "0.1"
 tokio = { version = "1", features = ["macros", "rt"] }
 
 [lints]

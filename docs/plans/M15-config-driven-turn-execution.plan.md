@@ -98,7 +98,7 @@ Expected: commit succeeds with M15 planning docs.
 
 Complete provider selection and capability checks, then commit `feat: add m15 model runtime resolver`.
 
-- [ ] **Step 2: Implement M15-02 invocation policy runner**
+- [x] **Step 2: Implement M15-02 invocation policy runner**
 
 Complete retry and fallback invocation execution, then commit `feat: add m15 invocation policy runner`.
 

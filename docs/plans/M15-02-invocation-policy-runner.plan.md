@@ -18,7 +18,7 @@
 - Read: `crates/agent-model/src/invocation_policy.rs`
 - Read: `crates/agent-model/src/provider.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: the spec defines retry/fallback behavior, attempts, and failure handli
 **Files:**
 - Create: `crates/agent-core/tests/model_invocation_policy_runner.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests named:
 
@@ -42,7 +42,7 @@ Add tests named:
 - `model_invocation_policy_uses_fallback_provider`
 - `model_invocation_policy_reports_missing_fallback_safely`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -57,7 +57,7 @@ Expected: tests fail because invocation runner contracts do not exist.
 **Files:**
 - Modify: `crates/agent-core/src/model_runtime.rs`
 
-- [ ] **Step 1: Add attempt and outcome contracts**
+- [x] **Step 1: Add attempt and outcome contracts**
 
 Implement:
 
@@ -65,7 +65,7 @@ Implement:
 - `ModelInvocationOutcome`
 - `ModelInvocationRunner`
 
-- [ ] **Step 2: Implement retry and fallback**
+- [x] **Step 2: Implement retry and fallback**
 
 Rules:
 
@@ -74,7 +74,7 @@ Rules:
 - attempt fallback providers in configured order
 - record provider/model/attempt index for each try
 
-- [ ] **Step 3: Verify focused tests**
+- [x] **Step 3: Verify focused tests**
 
 Run:
 
@@ -92,7 +92,7 @@ Expected: focused tests pass.
 - Modify: `docs/plans/M15-02-invocation-policy-runner.plan.md`
 - Modify: `docs/plans/M15-config-driven-turn-execution.plan.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -104,7 +104,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

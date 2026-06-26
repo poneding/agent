@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M13 are implemented. Current focus is post-M13 planning.
+M01-M13 are implemented. Current focus is M14-01: secret resolver contracts.
 
 ## Core Ideas
 
@@ -82,9 +82,9 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [M13 spec](docs/specs/M13-real-model-providers-config.spec.md)
-- [M13 plan](docs/plans/M13-real-model-providers-config.plan.md)
-- [M13 technical design](docs/specs/M13-00-real-model-providers-config-technical-design.spec.md)
+- [Current spec](docs/specs/M14-01-secret-resolver.spec.md)
+- [Current plan](docs/plans/M14-01-secret-resolver.plan.md)
+- [M14 technical design](docs/specs/M14-00-runtime-configuration-secrets-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

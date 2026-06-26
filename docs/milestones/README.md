@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M12 |
-| Milestone-level plans | Complete for M01-M12 |
+| Milestone-level specs | Complete for M01-M14 |
+| Milestone-level plans | Complete for M01-M14 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -111,6 +111,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M13-04 implementation | Complete |
 | M13-05 implementation | Complete |
 | M13 implementation | Complete |
+| M14 technical design | Complete |
+| M14 slice specs | Complete for M14-01 through M14-05 |
+| M14 slice plans | Complete for M14-01 through M14-05 |
+| M14-01 implementation | In progress |
+| M14 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -129,6 +134,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M11 Plugin Runtime | `docs/specs/M11-plugin-runtime.spec.md` | `docs/plans/M11-plugin-runtime.plan.md` | Open the runtime to controlled third-party extension through manifests, process isolation, declared capabilities, tools, hooks, and a WASM prototype. |
 | M12 Production Hardening | `docs/specs/M12-production-hardening.spec.md` | `docs/plans/M12-production-hardening.plan.md` | Make the runtime reliable for daily use and external integration with migrations, telemetry, audit export, memory portability, platform reports, and benchmarks. |
 | M13 Real Model Providers and Runtime Configuration | `docs/specs/M13-real-model-providers-config.spec.md` | `docs/plans/M13-real-model-providers-config.plan.md` | Add provider configuration, registry, invocation policy, OpenAI-compatible adapter contracts, and CLI model selection. |
+| M14 Runtime Configuration and Secrets | `docs/specs/M14-runtime-configuration-secrets.spec.md` | `docs/plans/M14-runtime-configuration-secrets.plan.md` | Load durable runtime config, resolve secret handles safely, layer model settings, and expose CLI/Desktop-safe diagnostics. |
 
 ## M01 Slice Index
 
@@ -261,11 +267,22 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M13-04 OpenAI-Compatible Adapter | `docs/specs/M13-04-openai-compatible-adapter.spec.md` | `docs/plans/M13-04-openai-compatible-adapter.plan.md` | Fixture-backed request mapping and streaming parser for OpenAI-compatible Responses API shape. |
 | M13-05 CLI Model Selection | `docs/specs/M13-05-cli-model-selection.spec.md` | `docs/plans/M13-05-cli-model-selection.plan.md` | CLI provider/model flags and UI-safe selection output. |
 
+## M14 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M14-00 Runtime Configuration and Secrets Technical Design | `docs/specs/M14-00-runtime-configuration-secrets-technical-design.spec.md` | `docs/plans/M14-00-runtime-configuration-secrets-technical-design.plan.md` | Architecture baseline for secret resolvers, config schema, layering, CLI diagnostics, UI snapshots, privacy, and tests. |
+| M14-01 Secret Resolver | `docs/specs/M14-01-secret-resolver.spec.md` | `docs/plans/M14-01-secret-resolver.plan.md` | Redacted secret value and provider-neutral resolver contracts in `agent-model`. |
+| M14-02 Config File Loader | `docs/specs/M14-02-config-file-loader.spec.md` | `docs/plans/M14-02-config-file-loader.plan.md` | Schema version 1 TOML config loading into model catalog and invocation policy contracts. |
+| M14-03 Config Layering | `docs/specs/M14-03-config-layering.spec.md` | `docs/plans/M14-03-config-layering.plan.md` | Deterministic config source precedence and explicit provider/model overrides. |
+| M14-04 CLI Config Diagnostics | `docs/specs/M14-04-cli-config-diagnostics.spec.md` | `docs/plans/M14-04-cli-config-diagnostics.plan.md` | CLI config-check flags and UI-safe JSON diagnostics. |
+| M14-05 UI Config Snapshot | `docs/specs/M14-05-ui-config-snapshot.spec.md` | `docs/plans/M14-05-ui-config-snapshot.plan.md` | Shared UI/Desktop config snapshot contracts without secret values. |
+
 ## Active Work
 
-Current implementation focus: M13 complete; next milestone planning has not started.
+Current implementation focus: `M14-01-secret-resolver`.
 
-Primary planning documents for the completed M13 milestone:
+Primary planning documents for the current focus:
 
-- `docs/specs/M13-real-model-providers-config.spec.md`
-- `docs/plans/M13-real-model-providers-config.plan.md`
+- `docs/specs/M14-01-secret-resolver.spec.md`
+- `docs/plans/M14-01-secret-resolver.plan.md`

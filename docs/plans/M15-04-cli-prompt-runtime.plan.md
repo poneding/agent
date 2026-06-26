@@ -18,7 +18,7 @@
 - Read: `crates/agent-cli/tests/cli_modes.rs`
 - Read: `crates/agent-cli/tests/cli_smoke.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: the spec defines prompt execution behavior, config handling, and priva
 - Create: `crates/agent-cli/tests/prompt_runtime.rs`
 - Modify: `crates/agent-cli/tests/cli_modes.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests named:
 
@@ -45,7 +45,7 @@ Add tests named:
 
 Update existing prompt render assertions so prompt output is a runtime final response instead of a static echo.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -61,19 +61,19 @@ Expected: tests fail because CLI prompt runtime still does not call configured t
 - Modify: `crates/agent-cli/src/command.rs`
 - Modify: `crates/agent-cli/src/lib.rs` if new helpers are public
 
-- [ ] **Step 1: Build effective config for prompt**
+- [x] **Step 1: Build effective config for prompt**
 
 Reuse config-check loading/layering helpers and explicit provider/model overrides.
 
-- [ ] **Step 2: Build fake provider registry**
+- [x] **Step 2: Build fake provider registry**
 
 Register executable fake providers from effective config. Use deterministic script text based on the prompt, such as `fake response: <prompt>`.
 
-- [ ] **Step 3: Run configured turn and render final text**
+- [x] **Step 3: Run configured turn and render final text**
 
 Call `ConfiguredTurnRunner` and render only final response in text mode.
 
-- [ ] **Step 4: Verify focused tests**
+- [x] **Step 4: Verify focused tests**
 
 Run:
 
@@ -91,7 +91,7 @@ Expected: focused tests pass.
 - Modify: `docs/plans/M15-04-cli-prompt-runtime.plan.md`
 - Modify: `docs/plans/M15-config-driven-turn-execution.plan.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -103,7 +103,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

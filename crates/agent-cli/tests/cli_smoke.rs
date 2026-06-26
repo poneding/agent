@@ -22,7 +22,7 @@ fn prints_batch_prompt_output() {
     assert!(output.status.success());
     assert_eq!(
         String::from_utf8_lossy(&output.stdout),
-        "agent-cli batch prompt: hello\n"
+        "fake response: hello\n"
     );
     assert!(output.stderr.is_empty());
 }

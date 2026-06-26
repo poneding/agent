@@ -9,9 +9,11 @@ dependencies = [
  "agent-core",
  "agent-model",
  "agent-storage",
+ "agent-types",
  "agent-ui-bridge",
  "serde_json",
  "thiserror",
+ "tokio",
 ]
 
 [[package]]

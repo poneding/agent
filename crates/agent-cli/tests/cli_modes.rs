@@ -88,6 +88,6 @@ fn cli_modes_render_deterministic_output() {
         prompt: "hello".to_string(),
     });
 
-    assert_eq!(output.stdout, "agent-cli batch prompt: hello\n");
+    assert_eq!(output.stdout, "fake response: hello\n");
     assert!(output.exit);
 }

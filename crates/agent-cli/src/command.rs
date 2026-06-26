@@ -1,18 +1,22 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use thiserror::Error;
 
 use crate::output::CliOutput;
 use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
-    ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigOverride, EffectiveRuntimeConfig,
-    RuntimeModelConfig,
+    ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigOverride, ConfiguredTurnInput,
+    ConfiguredTurnRunner, EffectiveRuntimeConfig, RuntimeIds, RuntimeModelConfig,
 };
 use agent_model::{
-    ModelConfigError, ModelEndpointConfig, ModelFallbackChain, ModelInvocationPolicy,
-    ModelProviderCatalog, ModelProviderConfig, ModelProviderKind, ModelRetryPolicy,
+    FakeModelProvider, FakeModelScript, ModelCapabilities, ModelConfigError, ModelEndpointConfig,
+    ModelFallbackChain, ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig,
+    ModelProviderKind, ModelProviderRegistry, ModelRequestRequirements, ModelRetryPolicy,
+    RegisteredModelProvider,
 };
 use agent_storage::EventStore;
+use agent_types::{ConversationId, CorrelationId, TurnId, WorkspaceId};
 use agent_ui_bridge::{
     UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiJsonFrame,
     UiModelProviderSummary, encode_json_frame, normalize_runtime_event,
@@ -114,6 +118,8 @@ pub enum CliError {
         message: String,
         diagnostics: Vec<ConfigDiagnostic>,
     },
+    #[error("prompt runtime failed: {message}")]
+    PromptRuntimeFailed { message: String },
 }
 
 pub fn parse_cli_command<I, S>(args: I) -> Result<CliCommand, CliError>
@@ -189,7 +195,7 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
         }
         CliCommand::RuntimeBanner => CliOutput::exit(format!("{}\n", agent_core::runtime_banner())),
         CliCommand::BatchPrompt { prompt } => {
-            CliOutput::exit(format!("agent-cli batch prompt: {prompt}\n"))
+            render_prompt_runtime(prompt, None, ConfigOverride::default())
         }
         CliCommand::TtyShell => CliOutput::keep_running("agent-cli tty shell ready\n"),
         CliCommand::LocalSummary => match agent_core::run_local_coding_fixture() {
@@ -210,6 +216,9 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
         OutputMode::Text => match invocation.command {
             CliCommand::ConfigCheck => {
                 render_text_config_check(invocation.config_path, invocation.config_override)
+            }
+            CliCommand::BatchPrompt { prompt } => {
+                render_prompt_runtime(prompt, invocation.config_path, invocation.config_override)
             }
             command => render_cli_command(command),
         },
@@ -259,6 +268,123 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
             }));
             CliOutput::exit(stdout)
         }
+    }
+}
+
+fn render_prompt_runtime(
+    prompt: String,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> CliOutput {
+    match run_prompt_runtime(prompt, config_path, config_override) {
+        Ok(final_message) => CliOutput::exit(format!("{final_message}\n")),
+        Err(error) => CliOutput::failure(format!("{error}\n"), 2),
+    }
+}
+
+fn run_prompt_runtime(
+    prompt: String,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> Result<String, CliError> {
+    let effective = evaluate_config_check(config_path, config_override)?;
+    let registry = fake_provider_registry(&effective, &prompt)?;
+    let input = ConfiguredTurnInput {
+        ids: runtime_ids(),
+        user_message: prompt,
+        effective_config: effective,
+        requirements: prompt_requirements(),
+    };
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .build()
+        .map_err(|error| CliError::PromptRuntimeFailed {
+            message: error.to_string(),
+        })?;
+    let outcome = runtime
+        .block_on(ConfiguredTurnRunner::run(input, &registry))
+        .map_err(|error| CliError::PromptRuntimeFailed {
+            message: error.to_string(),
+        })?;
+    Ok(outcome.final_message)
+}
+
+fn fake_provider_registry(
+    effective: &EffectiveRuntimeConfig,
+    prompt: &str,
+) -> Result<ModelProviderRegistry, CliError> {
+    let providers = effective
+        .config
+        .model
+        .catalog
+        .providers
+        .iter()
+        .filter(|provider| provider.enabled && provider.kind == ModelProviderKind::Fake)
+        .map(|provider| {
+            RegisteredModelProvider::new(
+                provider.clone(),
+                fake_capabilities(),
+                Arc::new(FakeModelProvider::new(FakeModelScript::text(
+                    &fake_response(prompt),
+                ))),
+            )
+            .map_err(|error| CliError::PromptRuntimeFailed {
+                message: error.to_string(),
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    ModelProviderRegistry::new(providers).map_err(|error| CliError::PromptRuntimeFailed {
+        message: error.to_string(),
+    })
+}
+
+fn fake_response(prompt: &str) -> String {
+    format!("fake response: {}", redact_secret_like_text(prompt))
+}
+
+fn redact_secret_like_text(input: &str) -> String {
+    input
+        .split_whitespace()
+        .map(|part| {
+            let lower = part.to_ascii_lowercase();
+            if part.starts_with("sk-")
+                || lower.contains("api_key")
+                || lower.contains("token")
+                || lower.contains("password")
+            {
+                "[redacted]"
+            } else {
+                part
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn fake_capabilities() -> ModelCapabilities {
+    ModelCapabilities {
+        streaming: true,
+        tool_calls: false,
+        structured_outputs: false,
+        max_context_tokens: Some(4096),
+    }
+}
+
+fn prompt_requirements() -> ModelRequestRequirements {
+    ModelRequestRequirements {
+        streaming: true,
+        tool_calls: false,
+        structured_outputs: false,
+        min_context_tokens: Some(1024),
+    }
+}
+
+fn runtime_ids() -> RuntimeIds {
+    RuntimeIds {
+        workspace_id: WorkspaceId::new(),
+        conversation_id: ConversationId::new(),
+        turn_id: TurnId::new(),
+        correlation_id: CorrelationId::new(),
     }
 }
 

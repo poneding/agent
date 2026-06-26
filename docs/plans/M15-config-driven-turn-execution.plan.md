@@ -106,7 +106,7 @@ Complete retry and fallback invocation execution, then commit `feat: add m15 inv
 
 Complete config-driven turn execution through `TurnEngine`, then commit `feat: add m15 configured turn runner`.
 
-- [ ] **Step 4: Implement M15-04 CLI prompt runtime**
+- [x] **Step 4: Implement M15-04 CLI prompt runtime**
 
 Complete text-mode CLI prompt execution through configured runtime, then commit `feat: add m15 cli prompt runtime`.
 

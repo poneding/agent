@@ -8,6 +8,7 @@ pub mod openai_compatible;
 pub mod provider;
 pub mod registry;
 pub mod request;
+pub mod secrets;
 pub mod stream;
 
 pub use config::{
@@ -30,6 +31,9 @@ pub use registry::{
     ModelRequestRequirements, RegisteredModelProvider,
 };
 pub use request::ModelRequest;
+pub use secrets::{
+    EnvSecretResolver, InMemorySecretResolver, SecretResolutionError, SecretResolver, SecretValue,
+};
 pub use stream::{ModelStreamEvent, ModelStreamResult};
 
 /// Returns a smoke-test string proving the model crate links shared types.

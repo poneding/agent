@@ -17,7 +17,7 @@
 - Read: `crates/agent-model/src/config.rs`
 - Read: `crates/agent-model/src/lib.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -32,7 +32,7 @@ Expected: the spec defines resolver contracts, privacy rules, tests, and accepta
 **Files:**
 - Create: `crates/agent-model/tests/secret_resolver.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests named:
 
@@ -43,7 +43,7 @@ Add tests named:
 - `env_secret_resolver_reads_env_provider`
 - `env_secret_resolver_rejects_non_env_provider`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -59,7 +59,7 @@ Expected: tests fail because `agent_model::secrets` does not exist.
 - Create: `crates/agent-model/src/secrets.rs`
 - Modify: `crates/agent-model/src/lib.rs`
 
-- [ ] **Step 1: Add implementation**
+- [x] **Step 1: Add implementation**
 
 Implement:
 
@@ -71,7 +71,7 @@ Implement:
 
 Ensure `SecretValue` does not derive `Serialize` and formats as `<redacted>`.
 
-- [ ] **Step 2: Export contracts**
+- [x] **Step 2: Export contracts**
 
 Update `crates/agent-model/src/lib.rs` with:
 
@@ -83,7 +83,7 @@ pub use secrets::{
 };
 ```
 
-- [ ] **Step 3: Verify focused tests**
+- [x] **Step 3: Verify focused tests**
 
 Run:
 
@@ -101,7 +101,7 @@ Expected: all secret resolver tests pass.
 - Modify: `docs/plans/M14-runtime-configuration-secrets.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -113,7 +113,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

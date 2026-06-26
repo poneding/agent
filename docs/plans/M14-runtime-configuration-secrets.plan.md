@@ -94,7 +94,7 @@ Expected: commit succeeds with M14 planning docs.
 - Execute: `docs/plans/M14-04-cli-config-diagnostics.plan.md`
 - Execute: `docs/plans/M14-05-ui-config-snapshot.plan.md`
 
-- [ ] **Step 1: Implement M14-01 secret resolver**
+- [x] **Step 1: Implement M14-01 secret resolver**
 
 Complete redacted secret value and resolver contracts, then commit `feat: add m14 secret resolver`.
 

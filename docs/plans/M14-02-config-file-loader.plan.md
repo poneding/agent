@@ -19,7 +19,7 @@
 - Read: `crates/agent-model/src/config.rs`
 - Read: `crates/agent-model/src/invocation_policy.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: the spec defines TOML schema, contracts, validation, and tests.
 **Files:**
 - Create: `crates/agent-core/tests/runtime_config_loader.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests named:
 
@@ -45,7 +45,7 @@ Add tests named:
 - `runtime_config_loader_reports_invalid_provider_field_path`
 - `runtime_config_loader_reports_missing_file`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -62,7 +62,7 @@ Expected: tests fail because runtime config loading is not implemented.
 - Create: `crates/agent-core/src/config.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add dependency**
+- [x] **Step 1: Add dependency**
 
 Add to `crates/agent-core/Cargo.toml`:
 
@@ -70,7 +70,7 @@ Add to `crates/agent-core/Cargo.toml`:
 toml = "0.8"
 ```
 
-- [ ] **Step 2: Add config contracts**
+- [x] **Step 2: Add config contracts**
 
 Implement:
 
@@ -83,7 +83,7 @@ Implement:
 - `load_agent_config_toml`
 - `load_agent_config_file`
 
-- [ ] **Step 3: Map TOML into model contracts**
+- [x] **Step 3: Map TOML into model contracts**
 
 Use existing constructors for:
 
@@ -94,7 +94,7 @@ Use existing constructors for:
 - `ModelRetryPolicy`
 - `ModelFallbackChain`
 
-- [ ] **Step 4: Verify focused tests**
+- [x] **Step 4: Verify focused tests**
 
 Run:
 
@@ -112,7 +112,7 @@ Expected: focused tests pass.
 - Modify: `docs/plans/M14-runtime-configuration-secrets.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -124,7 +124,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

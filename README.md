@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M13 and M14-01 are implemented. Current focus is M14-02: config file loader.
+M01-M13 and M14-01-M14-02 are implemented. Current focus is M14-03: config layering.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M14-02-config-file-loader.spec.md)
-- [Current plan](docs/plans/M14-02-config-file-loader.plan.md)
+- [Current spec](docs/specs/M14-03-config-layering.spec.md)
+- [Current plan](docs/plans/M14-03-config-layering.plan.md)
 - [M14 technical design](docs/specs/M14-00-runtime-configuration-secrets-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

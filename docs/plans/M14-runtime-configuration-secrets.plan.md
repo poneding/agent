@@ -98,7 +98,7 @@ Expected: commit succeeds with M14 planning docs.
 
 Complete redacted secret value and resolver contracts, then commit `feat: add m14 secret resolver`.
 
-- [ ] **Step 2: Implement M14-02 config file loader**
+- [x] **Step 2: Implement M14-02 config file loader**
 
 Complete schema version 1 TOML loading and validation, then commit `feat: add m14 runtime config loader`.
 

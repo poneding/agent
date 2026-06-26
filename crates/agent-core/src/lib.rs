@@ -3,6 +3,7 @@
 
 pub mod audit_export;
 pub mod benchmark;
+pub mod config;
 pub mod context;
 pub mod idempotency;
 pub mod local_coding;
@@ -19,6 +20,10 @@ pub use audit_export::{
 pub use benchmark::{
     BenchmarkEnvironment, BenchmarkError, BenchmarkResult, BenchmarkRunner, BenchmarkScenario,
     run_smoke_benchmarks, smoke_benchmark_scenarios,
+};
+pub use config::{
+    AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
+    ConfigDiagnosticSeverity, RuntimeModelConfig, load_agent_config_file, load_agent_config_toml,
 };
 pub use context::ContextAssembler;
 pub use idempotency::{IdempotentToolError, IdempotentToolExecutor, IdempotentToolOutcome};

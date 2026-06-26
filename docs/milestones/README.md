@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M14 |
-| Milestone-level plans | Complete for M01-M14 |
+| Milestone-level specs | Complete for M01-M15 |
+| Milestone-level plans | Complete for M01-M15 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -120,6 +120,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M14-04 implementation | Complete |
 | M14-05 implementation | Complete |
 | M14 implementation | Complete |
+| M15 technical design | Complete |
+| M15 slice specs | Complete for M15-01 through M15-05 |
+| M15 slice plans | Complete for M15-01 through M15-05 |
+| M15-01 implementation | In progress |
+| M15 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -139,6 +144,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M12 Production Hardening | `docs/specs/M12-production-hardening.spec.md` | `docs/plans/M12-production-hardening.plan.md` | Make the runtime reliable for daily use and external integration with migrations, telemetry, audit export, memory portability, platform reports, and benchmarks. |
 | M13 Real Model Providers and Runtime Configuration | `docs/specs/M13-real-model-providers-config.spec.md` | `docs/plans/M13-real-model-providers-config.plan.md` | Add provider configuration, registry, invocation policy, OpenAI-compatible adapter contracts, and CLI model selection. |
 | M14 Runtime Configuration and Secrets | `docs/specs/M14-runtime-configuration-secrets.spec.md` | `docs/plans/M14-runtime-configuration-secrets.plan.md` | Load durable runtime config, resolve secret handles safely, layer model settings, and expose CLI/Desktop-safe diagnostics. |
+| M15 Config-Driven Turn Execution | `docs/specs/M15-config-driven-turn-execution.spec.md` | `docs/plans/M15-config-driven-turn-execution.plan.md` | Use effective runtime config to resolve providers, execute prompt turns, emit JSON events, and persist replayable turn records. |
 
 ## M01 Slice Index
 
@@ -282,11 +288,22 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M14-04 CLI Config Diagnostics | `docs/specs/M14-04-cli-config-diagnostics.spec.md` | `docs/plans/M14-04-cli-config-diagnostics.plan.md` | CLI config-check flags and UI-safe JSON diagnostics. |
 | M14-05 UI Config Snapshot | `docs/specs/M14-05-ui-config-snapshot.spec.md` | `docs/plans/M14-05-ui-config-snapshot.plan.md` | Shared UI/Desktop config snapshot contracts without secret values. |
 
+## M15 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M15-00 Config-Driven Turn Execution Technical Design | `docs/specs/M15-00-config-driven-turn-execution-technical-design.spec.md` | `docs/plans/M15-00-config-driven-turn-execution-technical-design.plan.md` | Architecture baseline for provider resolution, invocation policy, configured turns, CLI prompt execution, JSON output, and persistence. |
+| M15-01 Model Runtime Resolver | `docs/specs/M15-01-model-runtime-resolver.spec.md` | `docs/plans/M15-01-model-runtime-resolver.plan.md` | Effective config resolves to a registered executable provider with capability checks. |
+| M15-02 Invocation Policy Runner | `docs/specs/M15-02-invocation-policy-runner.spec.md` | `docs/plans/M15-02-invocation-policy-runner.plan.md` | Retry and fallback model invocation behavior around registered providers. |
+| M15-03 Configured Turn Runner | `docs/specs/M15-03-configured-turn-runner.spec.md` | `docs/plans/M15-03-configured-turn-runner.plan.md` | Turn execution through effective config, model registry, and `TurnEngine`. |
+| M15-04 CLI Prompt Runtime | `docs/specs/M15-04-cli-prompt-runtime.spec.md` | `docs/plans/M15-04-cli-prompt-runtime.plan.md` | Text-mode `--prompt` executes a config-driven runtime turn. |
+| M15-05 Persisted Turn Events | `docs/specs/M15-05-persisted-turn-events.spec.md` | `docs/plans/M15-05-persisted-turn-events.plan.md` | Config-driven turn events persist and replay through storage and JSON frames. |
+
 ## Active Work
 
-Current implementation focus: next milestone planning.
+Current implementation focus: `M15-01-model-runtime-resolver`.
 
-Latest completed implementation slice:
+Primary planning documents for the current focus:
 
-- `docs/specs/M14-05-ui-config-snapshot.spec.md`
-- `docs/plans/M14-05-ui-config-snapshot.plan.md`
+- `docs/specs/M15-01-model-runtime-resolver.spec.md`
+- `docs/plans/M15-01-model-runtime-resolver.plan.md`

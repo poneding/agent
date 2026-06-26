@@ -18,7 +18,7 @@
 - Read: `crates/agent-core/src/config.rs`
 - Read: `crates/agent-model/src/registry.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: the spec defines resolver contracts, errors, security constraints, and
 **Files:**
 - Create: `crates/agent-core/tests/model_runtime_resolver.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests named:
 
@@ -43,7 +43,7 @@ Add tests named:
 - `model_runtime_resolver_rejects_missing_capabilities`
 - `model_runtime_resolver_error_output_excludes_secret_values`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -59,7 +59,7 @@ Expected: tests fail because `agent_core::model_runtime` does not exist.
 - Create: `crates/agent-core/src/model_runtime.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add public contracts**
+- [x] **Step 1: Add public contracts**
 
 Implement:
 
@@ -67,7 +67,7 @@ Implement:
 - `ModelRuntimeResolver`
 - `ModelRuntimeError`
 
-- [ ] **Step 2: Implement selection logic**
+- [x] **Step 2: Implement selection logic**
 
 Rules:
 
@@ -76,7 +76,7 @@ Rules:
 - call `ModelProviderRegistry::require_capabilities`
 - return provider handle, capabilities, and invocation policy
 
-- [ ] **Step 3: Verify focused tests**
+- [x] **Step 3: Verify focused tests**
 
 Run:
 
@@ -94,7 +94,7 @@ Expected: focused tests pass.
 - Modify: `docs/plans/M15-01-model-runtime-resolver.plan.md`
 - Modify: `docs/plans/M15-config-driven-turn-execution.plan.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -106,7 +106,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

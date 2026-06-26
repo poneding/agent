@@ -7,6 +7,7 @@ pub mod config;
 pub mod context;
 pub mod idempotency;
 pub mod local_coding;
+pub mod model_runtime;
 pub mod recovery;
 pub mod runtime;
 pub mod tool_loop;
@@ -33,6 +34,7 @@ pub use local_coding::{
     LocalCodingError, LocalCodingOutcome, LocalCodingRun, replay_local_coding_outcome,
     run_local_coding_fixture, run_local_coding_fixture_with_shell_denied,
 };
+pub use model_runtime::{ConfiguredModelRuntime, ModelRuntimeError, ModelRuntimeResolver};
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
 pub use runtime::RuntimeIds;
 pub use tool_loop::{ToolCallRequest, ToolLoop, ToolLoopError, ToolLoopOutcome, ToolLoopStatus};

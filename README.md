@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M14 are implemented. Current focus is M15-01: model runtime resolver.
+M01-M14 are implemented. Current focus is M15-02: invocation policy runner.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M15-01-model-runtime-resolver.spec.md)
-- [Current plan](docs/plans/M15-01-model-runtime-resolver.plan.md)
+- [Current spec](docs/specs/M15-02-invocation-policy-runner.spec.md)
+- [Current plan](docs/plans/M15-02-invocation-policy-runner.plan.md)
 - [M15 technical design](docs/specs/M15-00-config-driven-turn-execution-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

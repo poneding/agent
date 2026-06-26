@@ -94,7 +94,7 @@ Expected: commit succeeds with M15 planning docs.
 - Execute: `docs/plans/M15-04-cli-prompt-runtime.plan.md`
 - Execute: `docs/plans/M15-05-persisted-turn-events.plan.md`
 
-- [ ] **Step 1: Implement M15-01 model runtime resolver**
+- [x] **Step 1: Implement M15-01 model runtime resolver**
 
 Complete provider selection and capability checks, then commit `feat: add m15 model runtime resolver`.
 

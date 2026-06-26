@@ -123,7 +123,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M15 technical design | Complete |
 | M15 slice specs | Complete for M15-01 through M15-05 |
 | M15 slice plans | Complete for M15-01 through M15-05 |
-| M15-01 implementation | In progress |
+| M15-01 implementation | Complete |
+| M15-02 implementation | In progress |
 | M15 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -301,9 +302,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M15-01-model-runtime-resolver`.
+Current implementation focus: `M15-02-invocation-policy-runner`.
 
 Primary planning documents for the current focus:
 
-- `docs/specs/M15-01-model-runtime-resolver.spec.md`
-- `docs/plans/M15-01-model-runtime-resolver.plan.md`
+- `docs/specs/M15-02-invocation-policy-runner.spec.md`
+- `docs/plans/M15-02-invocation-policy-runner.plan.md`

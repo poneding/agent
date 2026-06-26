@@ -18,7 +18,7 @@
 - Read: `crates/agent-cli/tests/cli_modes.rs`
 - Read: `crates/agent-cli/tests/json_mode.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: the spec defines provider/model CLI selection and JSON output behavior
 - Modify: `crates/agent-cli/tests/cli_modes.rs`
 - Modify: `crates/agent-cli/tests/json_mode.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests:
 
@@ -43,12 +43,12 @@ Add tests:
 - `json_mode_renders_selected_provider_and_model`
 - `json_mode_does_not_render_secret_references`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
 ```bash
-cargo test -p agent-cli cli_modes_parse_provider_and_model_flags json_mode_renders_selected_provider_and_model
+cargo test -p agent-cli --test cli_modes --test json_mode
 ```
 
 Expected: tests fail because CLI selection is not implemented.
@@ -59,11 +59,11 @@ Expected: tests fail because CLI selection is not implemented.
 - Modify: `crates/agent-cli/src/lib.rs`
 - Modify: `crates/agent-cli/src/main.rs`
 
-- [ ] **Step 1: Extend CLI options**
+- [x] **Step 1: Extend CLI options**
 
 Add provider/model flags and validation that rejects empty values.
 
-- [ ] **Step 2: Render UI-safe selection**
+- [x] **Step 2: Render UI-safe selection**
 
 Include selected provider/model in JSON mode and avoid secret reference output.
 
@@ -75,12 +75,12 @@ Include selected provider/model in JSON mode and avoid secret reference output.
 - Modify: `docs/plans/M13-real-model-providers-config.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
 ```bash
-cargo test -p agent-cli cli_modes json_mode
+cargo test -p agent-cli --test cli_modes --test json_mode
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
@@ -88,7 +88,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

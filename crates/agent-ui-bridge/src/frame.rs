@@ -6,6 +6,10 @@ use crate::{UiBridgeError, UiEventEnvelope};
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum UiJsonFrame {
     Event(UiEventEnvelope),
+    ModelSelection {
+        provider: String,
+        model: String,
+    },
     Done {
         event_count: u64,
     },

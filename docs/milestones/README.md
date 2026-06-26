@@ -109,7 +109,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M13-02 implementation | Complete |
 | M13-03 implementation | Complete |
 | M13-04 implementation | Complete |
-| M13-05 implementation | In progress |
+| M13-05 implementation | Complete |
 | M13 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -263,9 +263,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M13-05-cli-model-selection`.
+Current implementation focus: M13 completion.
 
-Primary planning documents for the current focus:
+Primary planning documents for the completed M13 milestone:
 
-- `docs/specs/M13-05-cli-model-selection.spec.md`
-- `docs/plans/M13-05-cli-model-selection.plan.md`
+- `docs/specs/M13-real-model-providers-config.spec.md`
+- `docs/plans/M13-real-model-providers-config.plan.md`

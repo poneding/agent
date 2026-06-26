@@ -1,4 +1,7 @@
-use agent_cli::{CliCommand, CliError, parse_cli_command, render_cli_command};
+use agent_cli::{
+    CliCommand, CliError, ModelSelection, OutputMode, parse_cli_command, parse_cli_invocation,
+    render_cli_command,
+};
 
 #[test]
 fn cli_modes_parse_version_flag() {
@@ -24,6 +27,45 @@ fn cli_modes_parse_batch_prompt() {
             prompt: "hello".to_string(),
         }
     );
+}
+
+#[test]
+fn cli_modes_parse_provider_and_model_flags() {
+    let invocation = parse_cli_invocation([
+        "--provider",
+        "openai",
+        "--model",
+        "gpt-4.1-mini",
+        "--prompt",
+        "hello",
+    ])
+    .expect("parse provider and model");
+
+    assert_eq!(
+        invocation.command,
+        CliCommand::BatchPrompt {
+            prompt: "hello".to_string(),
+        }
+    );
+    assert_eq!(invocation.output_mode, OutputMode::Text);
+    assert_eq!(
+        invocation.model_selection,
+        ModelSelection {
+            provider: "openai".to_string(),
+            model: "gpt-4.1-mini".to_string(),
+        }
+    );
+}
+
+#[test]
+fn cli_modes_reject_empty_provider_and_model_flags() {
+    let provider_err =
+        parse_cli_invocation(["--provider", "", "--prompt", "hello"]).expect_err("empty provider");
+    let model_err =
+        parse_cli_invocation(["--model", "", "--prompt", "hello"]).expect_err("empty model");
+
+    assert_eq!(provider_err, CliError::EmptyModelProvider);
+    assert_eq!(model_err, CliError::EmptyModelName);
 }
 
 #[test]

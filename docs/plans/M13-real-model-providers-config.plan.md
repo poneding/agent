@@ -115,7 +115,7 @@ Complete timeout, retry, and fallback contracts, then commit `feat: add m13 mode
 
 Complete fixture-backed adapter request and stream parsing, then commit `feat: add m13 openai compatible adapter`.
 
-- [ ] **Step 4: Implement M13-05 CLI model selection**
+- [x] **Step 4: Implement M13-05 CLI model selection**
 
 Complete CLI model selection wiring, then commit `feat: add m13 cli model selection`.
 

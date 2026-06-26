@@ -8,6 +8,7 @@ authors.workspace = true
 
 [dependencies]
 agent-core = { path = "../agent-core" }
+agent-model = { path = "../agent-model" }
 agent-storage = { path = "../agent-storage" }
 agent-ui-bridge = { path = "../agent-ui-bridge" }
 thiserror = "2"

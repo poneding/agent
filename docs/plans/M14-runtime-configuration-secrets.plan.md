@@ -106,7 +106,7 @@ Complete schema version 1 TOML loading and validation, then commit `feat: add m1
 
 Complete deterministic model config layering and overrides, then commit `feat: add m14 config layering`.
 
-- [ ] **Step 4: Implement M14-04 CLI config diagnostics**
+- [x] **Step 4: Implement M14-04 CLI config diagnostics**
 
 Complete CLI config-check flags and diagnostics, then commit `feat: add m14 cli config diagnostics`.
 

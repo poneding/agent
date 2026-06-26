@@ -18,7 +18,7 @@
 - Read: `crates/agent-cli/tests/cli_modes.rs`
 - Read: `crates/agent-cli/tests/json_mode.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: the spec defines config flags, diagnostics, JSON behavior, and privacy
 **Files:**
 - Create: `crates/agent-cli/tests/config_diagnostics.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests named:
 
@@ -43,7 +43,7 @@ Add tests named:
 - `cli_config_diagnostics_invalid_toml_exits_non_zero`
 - `cli_config_diagnostics_redacts_secret_like_values`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -60,7 +60,7 @@ Expected: tests fail because config-check CLI behavior does not exist.
 - Modify: `crates/agent-cli/src/lib.rs`
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 
-- [ ] **Step 1: Extend CLI invocation**
+- [x] **Step 1: Extend CLI invocation**
 
 Add:
 
@@ -69,11 +69,11 @@ Add:
 - `--config <path>`
 - `--config-check`
 
-- [ ] **Step 2: Render text and JSON diagnostics**
+- [x] **Step 2: Render text and JSON diagnostics**
 
 Text mode prints a concise config summary. JSON mode emits parseable frames and never includes raw secret values.
 
-- [ ] **Step 3: Verify focused tests**
+- [x] **Step 3: Verify focused tests**
 
 Run:
 
@@ -91,7 +91,7 @@ Expected: focused tests pass.
 - Modify: `docs/plans/M14-runtime-configuration-secrets.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -103,7 +103,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

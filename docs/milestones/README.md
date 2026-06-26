@@ -117,7 +117,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M14-01 implementation | Complete |
 | M14-02 implementation | Complete |
 | M14-03 implementation | Complete |
-| M14-04 implementation | In progress |
+| M14-04 implementation | Complete |
+| M14-05 implementation | In progress |
 | M14 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -283,9 +284,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M14-04-cli-config-diagnostics`.
+Current implementation focus: `M14-05-ui-config-snapshot`.
 
 Primary planning documents for the current focus:
 
-- `docs/specs/M14-04-cli-config-diagnostics.spec.md`
-- `docs/plans/M14-04-cli-config-diagnostics.plan.md`
+- `docs/specs/M14-05-ui-config-snapshot.spec.md`
+- `docs/plans/M14-05-ui-config-snapshot.plan.md`

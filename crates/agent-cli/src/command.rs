@@ -1,7 +1,16 @@
+use std::path::PathBuf;
+
 use thiserror::Error;
 
 use crate::output::CliOutput;
-use agent_model::{ModelConfigError, ModelEndpointConfig, ModelProviderConfig, ModelProviderKind};
+use agent_core::{
+    AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
+    ConfigLayer, ConfigLayerKind, ConfigOverride, EffectiveRuntimeConfig, RuntimeModelConfig,
+};
+use agent_model::{
+    ModelConfigError, ModelEndpointConfig, ModelFallbackChain, ModelInvocationPolicy,
+    ModelProviderCatalog, ModelProviderConfig, ModelProviderKind, ModelRetryPolicy,
+};
 use agent_storage::EventStore;
 use agent_ui_bridge::{UiJsonFrame, encode_json_frame, normalize_runtime_event};
 
@@ -16,6 +25,7 @@ pub enum CliCommand {
     TtyShell,
     LocalSummary,
     TraceSummary,
+    ConfigCheck,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -77,6 +87,8 @@ pub struct CliInvocation {
     pub command: CliCommand,
     pub output_mode: OutputMode,
     pub model_selection: ModelSelection,
+    pub config_path: Option<PathBuf>,
+    pub config_override: ConfigOverride,
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -93,6 +105,11 @@ pub enum CliError {
     InvalidModelProvider(String),
     #[error("invalid model selection: {0}")]
     InvalidModelSelection(String),
+    #[error("config check failed: {message}")]
+    ConfigCheckFailed {
+        message: String,
+        diagnostics: Vec<ConfigDiagnostic>,
+    },
 }
 
 pub fn parse_cli_command<I, S>(args: I) -> Result<CliCommand, CliError>
@@ -110,6 +127,7 @@ where
         "--tty" => Ok(CliCommand::TtyShell),
         "--local-summary" => Ok(CliCommand::LocalSummary),
         "--trace-summary" => Ok(CliCommand::TraceSummary),
+        "--config-check" => Ok(CliCommand::ConfigCheck),
         "--prompt" | "-p" => {
             let prompt = args
                 .next()
@@ -129,6 +147,7 @@ where
     let mut command_args = Vec::new();
     let mut provider = None;
     let mut model = None;
+    let mut config_path = None;
     let mut args = args.into_iter().map(Into::into);
 
     while let Some(arg) = args.next() {
@@ -136,9 +155,15 @@ where
             "--json" => output_mode = OutputMode::Json,
             "--provider" => provider = Some(take_flag_value(&mut args, &arg)?),
             "--model" => model = Some(take_flag_value(&mut args, &arg)?),
+            "--config" => config_path = Some(PathBuf::from(take_flag_value(&mut args, &arg)?)),
             _ => command_args.push(arg),
         }
     }
+
+    let config_override = ConfigOverride {
+        provider: provider.clone(),
+        model: model.clone(),
+    };
 
     Ok(CliInvocation {
         command: parse_cli_command(command_args)?,
@@ -147,6 +172,8 @@ where
             provider.unwrap_or_else(|| DEFAULT_MODEL_PROVIDER.to_string()),
             model.unwrap_or_else(|| DEFAULT_MODEL_NAME.to_string()),
         )?,
+        config_path,
+        config_override,
     })
 }
 
@@ -169,21 +196,31 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             Ok(output) => CliOutput::exit(output),
             Err(error) => CliOutput::exit(format!("trace summary failed: {error}\n")),
         },
+        CliCommand::ConfigCheck => render_text_config_check(None, ConfigOverride::default()),
     }
 }
 
 #[must_use]
 pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
     match invocation.output_mode {
-        OutputMode::Text => render_cli_command(invocation.command),
-        OutputMode::Json => render_json_invocation(invocation.command, invocation.model_selection),
+        OutputMode::Text => match invocation.command {
+            CliCommand::ConfigCheck => {
+                render_text_config_check(invocation.config_path, invocation.config_override)
+            }
+            command => render_cli_command(command),
+        },
+        OutputMode::Json => render_json_invocation(invocation),
     }
 }
 
-fn render_json_invocation(command: CliCommand, model_selection: ModelSelection) -> CliOutput {
-    let mut stdout = render_model_selection_frame(&model_selection);
+fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
+    if invocation.command == CliCommand::ConfigCheck {
+        return render_json_config_check(invocation.config_path, invocation.config_override);
+    }
 
-    match command {
+    let mut stdout = render_model_selection_frame(&invocation.model_selection);
+
+    match invocation.command {
         CliCommand::LocalSummary => match agent_core::run_local_coding_fixture() {
             Ok(run) => {
                 let mut event_count = 0;
@@ -218,6 +255,179 @@ fn render_json_invocation(command: CliCommand, model_selection: ModelSelection) 
             }));
             CliOutput::exit(stdout)
         }
+    }
+}
+
+fn render_text_config_check(
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> CliOutput {
+    match evaluate_config_check(config_path, config_override) {
+        Ok(effective) => CliOutput::exit(render_config_summary_text(&effective)),
+        Err(error) => CliOutput::failure(format!("{error}\n"), 2),
+    }
+}
+
+fn render_json_config_check(
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> CliOutput {
+    match evaluate_config_check(config_path, config_override) {
+        Ok(effective) => {
+            let mut stdout = String::new();
+            for diagnostic in &effective.diagnostics {
+                stdout.push_str(&json_frame_line(config_diagnostic_frame(diagnostic)));
+            }
+            stdout.push_str(&json_frame_line(config_summary_frame(&effective)));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::exit(stdout)
+        }
+        Err(error) => {
+            let mut stdout = String::new();
+            if let CliError::ConfigCheckFailed {
+                message,
+                diagnostics,
+            } = &error
+            {
+                for diagnostic in diagnostics {
+                    stdout.push_str(&json_frame_line(config_diagnostic_frame(diagnostic)));
+                }
+                stdout.push_str(&json_frame_line(UiJsonFrame::Error {
+                    code: "config_check_failed".to_string(),
+                    message: message.clone(),
+                    recoverable: false,
+                }));
+            }
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::failure(stdout, 2)
+        }
+    }
+}
+
+fn evaluate_config_check(
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> Result<EffectiveRuntimeConfig, CliError> {
+    let mut layers = vec![ConfigLayer {
+        kind: ConfigLayerKind::BuiltIn,
+        source: "built-in".to_string(),
+        config: built_in_runtime_config()?,
+    }];
+
+    if let Some(path) = config_path {
+        let source = path.display().to_string();
+        let config = agent_core::load_agent_config_file(&path).map_err(map_agent_config_error)?;
+        layers.push(ConfigLayer {
+            kind: ConfigLayerKind::User,
+            source,
+            config,
+        });
+    }
+
+    agent_core::build_effective_runtime_config(layers, config_override)
+        .map_err(map_agent_config_error)
+}
+
+fn built_in_runtime_config() -> Result<AgentRuntimeConfig, CliError> {
+    let endpoint = ModelEndpointConfig::new(None, 30_000)
+        .map_err(|error| CliError::InvalidModelSelection(error.to_string()))?;
+    let provider = ModelProviderConfig::new(
+        DEFAULT_MODEL_PROVIDER,
+        ModelProviderKind::Fake,
+        DEFAULT_MODEL_NAME,
+        endpoint,
+        None,
+        true,
+    )
+    .map_err(map_model_config_error)?;
+    let catalog = ModelProviderCatalog::new(vec![provider]).map_err(map_model_config_error)?;
+    let retry = ModelRetryPolicy::new(1, Vec::new())
+        .map_err(|error| CliError::InvalidModelSelection(error.to_string()))?;
+    let fallback = ModelFallbackChain::new(Vec::<String>::new())
+        .map_err(|error| CliError::InvalidModelSelection(error.to_string()))?;
+    let invocation_policy = ModelInvocationPolicy::new(30_000, retry, fallback)
+        .map_err(|error| CliError::InvalidModelSelection(error.to_string()))?;
+
+    Ok(AgentRuntimeConfig {
+        schema_version: AGENT_CONFIG_SCHEMA_VERSION,
+        model: RuntimeModelConfig {
+            default_provider: DEFAULT_MODEL_PROVIDER.to_string(),
+            catalog,
+            invocation_policy,
+        },
+    })
+}
+
+fn render_config_summary_text(effective: &EffectiveRuntimeConfig) -> String {
+    let provider_ids = config_provider_ids(effective).join(", ");
+    format!(
+        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nLayers: {}\nDiagnostics: {}\n",
+        effective.selected_provider,
+        effective.selected_model,
+        provider_ids,
+        effective.layers.len(),
+        effective.diagnostics.len()
+    )
+}
+
+fn config_summary_frame(effective: &EffectiveRuntimeConfig) -> UiJsonFrame {
+    UiJsonFrame::ConfigSummary {
+        selected_provider: effective.selected_provider.clone(),
+        selected_model: effective.selected_model.clone(),
+        provider_ids: config_provider_ids(effective),
+        layer_count: effective.layers.len() as u64,
+        diagnostic_count: effective.diagnostics.len() as u64,
+    }
+}
+
+fn config_provider_ids(effective: &EffectiveRuntimeConfig) -> Vec<String> {
+    let mut provider_ids = effective
+        .config
+        .model
+        .catalog
+        .providers
+        .iter()
+        .map(|provider| provider.id.clone())
+        .collect::<Vec<_>>();
+    provider_ids.sort();
+    provider_ids
+}
+
+fn config_diagnostic_frame(diagnostic: &ConfigDiagnostic) -> UiJsonFrame {
+    UiJsonFrame::ConfigDiagnostic {
+        severity: format!("{:?}", diagnostic.severity).to_ascii_lowercase(),
+        code: diagnostic.code.clone(),
+        message: diagnostic.message.clone(),
+        field_path: diagnostic.field_path.clone(),
+        source: diagnostic.source.clone(),
+    }
+}
+
+fn map_agent_config_error(error: AgentConfigError) -> CliError {
+    let diagnostics = match &error {
+        AgentConfigError::InvalidConfig { diagnostics } => diagnostics.clone(),
+        _ => Vec::new(),
+    };
+    CliError::ConfigCheckFailed {
+        message: format_agent_config_error(error),
+        diagnostics,
+    }
+}
+
+fn format_agent_config_error(error: AgentConfigError) -> String {
+    match error {
+        AgentConfigError::InvalidConfig { diagnostics } => diagnostics
+            .into_iter()
+            .map(|diagnostic| {
+                let field = diagnostic
+                    .field_path
+                    .map(|field_path| format!(" at {field_path}"))
+                    .unwrap_or_default();
+                format!("{}{}: {}", diagnostic.code, field, diagnostic.message)
+            })
+            .collect::<Vec<_>>()
+            .join("; "),
+        other => other.to_string(),
     }
 }
 

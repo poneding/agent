@@ -10,6 +10,20 @@ pub enum UiJsonFrame {
         provider: String,
         model: String,
     },
+    ConfigSummary {
+        selected_provider: String,
+        selected_model: String,
+        provider_ids: Vec<String>,
+        layer_count: u64,
+        diagnostic_count: u64,
+    },
+    ConfigDiagnostic {
+        severity: String,
+        code: String,
+        message: String,
+        field_path: Option<String>,
+        source: Option<String>,
+    },
     Done {
         event_count: u64,
     },

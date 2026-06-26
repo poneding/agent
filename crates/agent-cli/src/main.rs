@@ -5,6 +5,9 @@ fn main() {
         Ok(invocation) => {
             let output = agent_cli::render_cli_invocation(invocation);
             print!("{}", output.stdout);
+            if output.status_code != 0 {
+                std::process::exit(output.status_code);
+            }
         }
         Err(error) => {
             eprintln!("{error}");

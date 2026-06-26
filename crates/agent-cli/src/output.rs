@@ -2,6 +2,7 @@
 pub struct CliOutput {
     pub stdout: String,
     pub exit: bool,
+    pub status_code: i32,
 }
 
 impl CliOutput {
@@ -10,6 +11,16 @@ impl CliOutput {
         Self {
             stdout: stdout.into(),
             exit: true,
+            status_code: 0,
+        }
+    }
+
+    #[must_use]
+    pub fn failure(stdout: impl Into<String>, status_code: i32) -> Self {
+        Self {
+            stdout: stdout.into(),
+            exit: true,
+            status_code,
         }
     }
 
@@ -18,6 +29,7 @@ impl CliOutput {
         Self {
             stdout: stdout.into(),
             exit: false,
+            status_code: 0,
         }
     }
 }

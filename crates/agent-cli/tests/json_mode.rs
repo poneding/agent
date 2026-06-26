@@ -4,6 +4,7 @@ use agent_cli::{
     CliCommand, CliInvocation, ModelSelection, OutputMode, parse_cli_invocation,
     render_cli_invocation,
 };
+use agent_core::ConfigOverride;
 use agent_ui_bridge::UiJsonFrame;
 
 fn parse_frames(output: &str) -> Vec<UiJsonFrame> {
@@ -24,6 +25,8 @@ fn json_mode_parse_json_local_summary() {
             command: CliCommand::LocalSummary,
             output_mode: OutputMode::Json,
             model_selection: ModelSelection::default(),
+            config_path: None,
+            config_override: ConfigOverride::default(),
         }
     );
 }
@@ -34,6 +37,8 @@ fn json_mode_renders_parseable_bridge_frames() {
         command: CliCommand::LocalSummary,
         output_mode: OutputMode::Json,
         model_selection: ModelSelection::default(),
+        config_path: None,
+        config_override: ConfigOverride::default(),
     });
 
     assert!(output.exit);
@@ -55,6 +60,8 @@ fn json_mode_renders_selected_provider_and_model() {
         output_mode: OutputMode::Json,
         model_selection: ModelSelection::new("openai", "gpt-4.1-mini")
             .expect("valid model selection"),
+        config_path: None,
+        config_override: ConfigOverride::default(),
     });
 
     let frames = parse_frames(&output.stdout);
@@ -81,6 +88,8 @@ fn json_mode_does_not_render_secret_references() {
         output_mode: OutputMode::Json,
         model_selection: ModelSelection::new("openai", "gpt-4.1-mini")
             .expect("valid model selection"),
+        config_path: None,
+        config_override: ConfigOverride::default(),
     });
 
     assert!(!output.stdout.contains("OPENAI_API_KEY"));

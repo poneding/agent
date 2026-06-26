@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use agent_model::{
@@ -46,6 +47,21 @@ impl ConfigDiagnostic {
             source: None,
         }
     }
+
+    fn warning(
+        code: impl Into<String>,
+        message: impl Into<String>,
+        field_path: Option<String>,
+        source: Option<String>,
+    ) -> Self {
+        Self {
+            severity: ConfigDiagnosticSeverity::Warning,
+            code: code.into(),
+            message: message.into(),
+            field_path,
+            source,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -68,6 +84,62 @@ pub enum AgentConfigError {
     InvalidConfig { diagnostics: Vec<ConfigDiagnostic> },
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ConfigLayerKind {
+    BuiltIn,
+    User,
+    Workspace,
+    Project,
+    Session,
+    Task,
+    Explicit,
+}
+
+impl ConfigLayerKind {
+    const fn precedence(self) -> u8 {
+        match self {
+            Self::BuiltIn => 0,
+            Self::User => 1,
+            Self::Workspace => 2,
+            Self::Project => 3,
+            Self::Session => 4,
+            Self::Task => 5,
+            Self::Explicit => 6,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ConfigLayer {
+    pub kind: ConfigLayerKind,
+    pub source: String,
+    pub config: AgentRuntimeConfig,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ConfigOverride {
+    pub provider: Option<String>,
+    pub model: Option<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ConfigLayerSummary {
+    pub kind: ConfigLayerKind,
+    pub source: String,
+    pub default_provider: String,
+    pub provider_ids: Vec<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct EffectiveRuntimeConfig {
+    pub config: AgentRuntimeConfig,
+    pub selected_provider: String,
+    pub selected_model: String,
+    pub layers: Vec<ConfigLayerSummary>,
+    pub diagnostics: Vec<ConfigDiagnostic>,
+}
+
 pub fn load_agent_config_toml(input: &str) -> Result<AgentRuntimeConfig, AgentConfigError> {
     reject_raw_secret_value_keys(input)?;
     let raw: RawAgentConfig = toml::from_str(input).map_err(|error| AgentConfigError::Parse {
@@ -82,6 +154,133 @@ pub fn load_agent_config_file(path: &Path) -> Result<AgentRuntimeConfig, AgentCo
         message: error.to_string(),
     })?;
     load_agent_config_toml(&input)
+}
+
+pub fn build_effective_runtime_config(
+    layers: Vec<ConfigLayer>,
+    config_override: ConfigOverride,
+) -> Result<EffectiveRuntimeConfig, AgentConfigError> {
+    if layers.is_empty() {
+        return Err(invalid_config(ConfigDiagnostic::error(
+            "config.layers.empty",
+            "at least one config layer is required",
+            Some("layers".to_string()),
+        )));
+    }
+
+    let mut ordered_layers = layers.into_iter().enumerate().collect::<Vec<_>>();
+    ordered_layers.sort_by_key(|(index, layer)| (layer.kind.precedence(), *index));
+
+    let mut schema_version = AGENT_CONFIG_SCHEMA_VERSION;
+    let mut default_provider = String::new();
+    let mut invocation_policy = None;
+    let mut providers = BTreeMap::new();
+    let mut summaries = Vec::with_capacity(ordered_layers.len());
+    let mut diagnostics = Vec::new();
+
+    for (_, layer) in ordered_layers {
+        schema_version = layer.config.schema_version;
+        default_provider = layer.config.model.default_provider.clone();
+        invocation_policy = Some(layer.config.model.invocation_policy.clone());
+        summaries.push(layer_summary(&layer));
+
+        for provider in layer.config.model.catalog.providers {
+            let provider_id = provider.id.clone();
+            if providers.insert(provider_id.clone(), provider).is_some() {
+                diagnostics.push(ConfigDiagnostic::warning(
+                    "config.layer.provider_overridden",
+                    format!("provider {provider_id} was overridden by a higher-priority layer"),
+                    Some(format!("model.providers.{provider_id}")),
+                    Some(layer.source.clone()),
+                ));
+            }
+        }
+    }
+
+    let catalog =
+        ModelProviderCatalog::new(providers.into_values().collect()).map_err(|error| {
+            invalid_config(model_catalog_diagnostic(
+                error,
+                "model.providers".to_string(),
+            ))
+        })?;
+    let invocation_policy = invocation_policy.expect("non-empty layers set invocation policy");
+    let config = AgentRuntimeConfig {
+        schema_version,
+        model: RuntimeModelConfig {
+            default_provider,
+            catalog,
+            invocation_policy,
+        },
+    };
+    let selected_provider = config_override
+        .provider
+        .unwrap_or_else(|| config.model.default_provider.clone())
+        .trim()
+        .to_string();
+    if selected_provider.is_empty() {
+        return Err(invalid_config(selection_diagnostic(
+            "selected provider must not be empty",
+            "model.selected_provider",
+        )));
+    }
+    let provider = config
+        .model
+        .catalog
+        .providers
+        .iter()
+        .find(|provider| provider.id == selected_provider)
+        .ok_or_else(|| {
+            invalid_config(selection_diagnostic(
+                format!("selected provider {selected_provider} was not found"),
+                "model.selected_provider",
+            ))
+        })?;
+    if !provider.enabled {
+        return Err(invalid_config(selection_diagnostic(
+            format!("selected provider {selected_provider} is disabled"),
+            "model.selected_provider",
+        )));
+    }
+    let selected_model = if let Some(model) = config_override.model {
+        let model = model.trim().to_string();
+        if model.is_empty() {
+            return Err(invalid_config(selection_diagnostic(
+                "selected model must not be empty",
+                "model.selected_model",
+            )));
+        }
+        model
+    } else {
+        provider.default_model.clone()
+    };
+
+    Ok(EffectiveRuntimeConfig {
+        config,
+        selected_provider,
+        selected_model,
+        layers: summaries,
+        diagnostics,
+    })
+}
+
+fn layer_summary(layer: &ConfigLayer) -> ConfigLayerSummary {
+    let mut provider_ids = layer
+        .config
+        .model
+        .catalog
+        .providers
+        .iter()
+        .map(|provider| provider.id.clone())
+        .collect::<Vec<_>>();
+    provider_ids.sort();
+
+    ConfigLayerSummary {
+        kind: layer.kind,
+        source: layer.source.clone(),
+        default_provider: layer.config.model.default_provider.clone(),
+        provider_ids,
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -312,6 +511,14 @@ fn invocation_diagnostic(
         "model.invocation.invalid",
         format!("invalid model invocation policy: {error}"),
         Some(field_path),
+    )
+}
+
+fn selection_diagnostic(message: impl Into<String>, field_path: &str) -> ConfigDiagnostic {
+    ConfigDiagnostic::error(
+        "config.selection.invalid",
+        message,
+        Some(field_path.to_string()),
     )
 }
 

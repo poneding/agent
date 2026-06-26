@@ -102,7 +102,7 @@ Complete redacted secret value and resolver contracts, then commit `feat: add m1
 
 Complete schema version 1 TOML loading and validation, then commit `feat: add m14 runtime config loader`.
 
-- [ ] **Step 3: Implement M14-03 config layering**
+- [x] **Step 3: Implement M14-03 config layering**
 
 Complete deterministic model config layering and overrides, then commit `feat: add m14 config layering`.
 

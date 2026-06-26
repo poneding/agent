@@ -17,7 +17,7 @@
 - Read: `crates/agent-core/src/config.rs`
 - Read: `crates/agent-core/tests/runtime_config_loader.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -32,7 +32,7 @@ Expected: the spec defines layer precedence, overrides, diagnostics, and tests.
 **Files:**
 - Create: `crates/agent-core/tests/runtime_config_layering.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests named:
 
@@ -42,7 +42,7 @@ Add tests named:
 - `config_layering_rejects_disabled_selected_provider`
 - `config_layering_summary_serializes_without_secret_values`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -57,7 +57,7 @@ Expected: tests fail because layering contracts do not exist.
 **Files:**
 - Modify: `crates/agent-core/src/config.rs`
 
-- [ ] **Step 1: Add layer contracts**
+- [x] **Step 1: Add layer contracts**
 
 Implement:
 
@@ -68,7 +68,7 @@ Implement:
 - `EffectiveRuntimeConfig`
 - `build_effective_runtime_config`
 
-- [ ] **Step 2: Implement deterministic merge**
+- [x] **Step 2: Implement deterministic merge**
 
 Rules:
 
@@ -78,7 +78,7 @@ Rules:
 - apply explicit provider/model overrides last
 - reject disabled or missing selected providers
 
-- [ ] **Step 3: Verify focused tests**
+- [x] **Step 3: Verify focused tests**
 
 Run:
 
@@ -96,7 +96,7 @@ Expected: focused tests pass.
 - Modify: `docs/plans/M14-runtime-configuration-secrets.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -108,7 +108,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

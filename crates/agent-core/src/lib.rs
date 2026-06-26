@@ -23,7 +23,9 @@ pub use benchmark::{
 };
 pub use config::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
-    ConfigDiagnosticSeverity, RuntimeModelConfig, load_agent_config_file, load_agent_config_toml,
+    ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigLayerSummary, ConfigOverride,
+    EffectiveRuntimeConfig, RuntimeModelConfig, build_effective_runtime_config,
+    load_agent_config_file, load_agent_config_toml,
 };
 pub use context::ContextAssembler;
 pub use idempotency::{IdempotentToolError, IdempotentToolExecutor, IdempotentToolOutcome};

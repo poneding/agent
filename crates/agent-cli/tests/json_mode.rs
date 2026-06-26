@@ -5,7 +5,7 @@ use agent_cli::{
     render_cli_invocation,
 };
 use agent_core::ConfigOverride;
-use agent_ui_bridge::UiJsonFrame;
+use agent_ui_bridge::{UiEventPayload, UiJsonFrame};
 
 fn parse_frames(output: &str) -> Vec<UiJsonFrame> {
     output
@@ -53,29 +53,31 @@ fn json_mode_renders_parseable_bridge_frames() {
 
 #[test]
 fn json_mode_renders_selected_provider_and_model() {
-    let output = render_cli_invocation(CliInvocation {
-        command: CliCommand::BatchPrompt {
-            prompt: "hello".to_string(),
-        },
-        output_mode: OutputMode::Json,
-        model_selection: ModelSelection::new("openai", "gpt-4.1-mini")
-            .expect("valid model selection"),
-        config_path: None,
-        config_override: ConfigOverride::default(),
-    });
+    let output = render_cli_invocation(
+        parse_cli_invocation([
+            "--json",
+            "--provider",
+            "fake",
+            "--model",
+            "fake-custom",
+            "--prompt",
+            "hello",
+        ])
+        .expect("parse json prompt"),
+    );
 
     let frames = parse_frames(&output.stdout);
 
     assert_eq!(
         frames.first(),
         Some(&UiJsonFrame::ModelSelection {
-            provider: "openai".to_string(),
-            model: "gpt-4.1-mini".to_string(),
+            provider: "fake".to_string(),
+            model: "fake-custom".to_string(),
         })
     );
     assert!(matches!(
         frames.last(),
-        Some(UiJsonFrame::Done { event_count: 0 })
+        Some(UiJsonFrame::Done { event_count }) if *event_count > 0
     ));
 }
 
@@ -119,4 +121,56 @@ fn json_mode_binary_prints_ndjson_frames() {
         frames.last(),
         Some(UiJsonFrame::Done { event_count: done_count }) if *done_count as usize == event_count
     ));
+}
+
+#[test]
+fn json_mode_prompt_runtime_emits_event_frames() {
+    let output = render_cli_invocation(
+        parse_cli_invocation(["--json", "--prompt", "hello"]).expect("parse json prompt"),
+    );
+
+    assert_eq!(output.status_code, 0);
+    let frames = parse_frames(&output.stdout);
+    let event_count = frames
+        .iter()
+        .filter(|frame| matches!(frame, UiJsonFrame::Event(_)))
+        .count();
+
+    assert!(event_count > 0);
+    assert!(frames.iter().any(|frame| matches!(
+        frame,
+        UiJsonFrame::Event(event)
+            if matches!(
+                &event.payload,
+                UiEventPayload::FinalResponse { message }
+                    if message == "fake response: hello"
+            )
+    )));
+    assert!(matches!(
+        frames.last(),
+        Some(UiJsonFrame::Done { event_count: done_count }) if *done_count as usize == event_count
+    ));
+}
+
+#[test]
+fn json_mode_prompt_runtime_excludes_secret_like_values() {
+    let output = render_cli_invocation(
+        parse_cli_invocation([
+            "--json",
+            "--prompt",
+            "hello sk-test-secret api_key token password",
+        ])
+        .expect("parse json prompt"),
+    );
+
+    let frames = parse_frames(&output.stdout);
+
+    assert!(frames.iter().any(|frame| matches!(
+        frame,
+        UiJsonFrame::Event(event)
+            if matches!(&event.payload, UiEventPayload::FinalResponse { .. })
+    )));
+    assert!(!output.stdout.contains("sk-test-secret"));
+    assert!(!output.stdout.contains("api_key"));
+    assert!(!output.stdout.contains("password"));
 }

@@ -110,7 +110,7 @@ Complete config-driven turn execution through `TurnEngine`, then commit `feat: a
 
 Complete text-mode CLI prompt execution through configured runtime, then commit `feat: add m15 cli prompt runtime`.
 
-- [ ] **Step 5: Implement M15-05 persisted turn events**
+- [x] **Step 5: Implement M15-05 persisted turn events**
 
 Complete persistence and JSON prompt event replay coverage, then commit `feat: add m15 persisted turn events`.
 
@@ -121,7 +121,7 @@ Complete persistence and JSON prompt event replay coverage, then commit `feat: a
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M15-config-driven-turn-execution.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -133,11 +133,11 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M15 complete**
+- [x] **Step 2: Mark M15 complete**
 
 Update M15 planning status and advance active focus to the next milestone.
 
-- [ ] **Step 3: Commit M15 completion status**
+- [x] **Step 3: Commit M15 completion status**
 
 Run:
 

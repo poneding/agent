@@ -36,8 +36,9 @@ pub use local_coding::{
 };
 pub use model_runtime::{
     ConfiguredModelRuntime, ConfiguredTurnError, ConfiguredTurnInput, ConfiguredTurnOutcome,
-    ConfiguredTurnRunner, ModelInvocationAttempt, ModelInvocationError, ModelInvocationOutcome,
-    ModelInvocationRunner, ModelRuntimeError, ModelRuntimeResolver,
+    ConfiguredTurnPersistenceError, ConfiguredTurnRunner, ModelInvocationAttempt,
+    ModelInvocationError, ModelInvocationOutcome, ModelInvocationRunner, ModelRuntimeError,
+    ModelRuntimeResolver,
 };
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
 pub use runtime::RuntimeIds;

@@ -7,7 +7,8 @@ use crate::output::CliOutput;
 use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
     ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigOverride, ConfiguredTurnInput,
-    ConfiguredTurnRunner, EffectiveRuntimeConfig, RuntimeIds, RuntimeModelConfig,
+    ConfiguredTurnOutcome, ConfiguredTurnRunner, EffectiveRuntimeConfig, RuntimeIds,
+    RuntimeModelConfig,
 };
 use agent_model::{
     FakeModelProvider, FakeModelScript, ModelCapabilities, ModelConfigError, ModelEndpointConfig,
@@ -256,10 +257,12 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
                 CliOutput::exit(stdout)
             }
         },
-        CliCommand::BatchPrompt { .. } => {
-            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
-            CliOutput::exit(stdout)
-        }
+        CliCommand::BatchPrompt { prompt } => render_json_prompt_runtime(
+            stdout,
+            prompt,
+            invocation.config_path,
+            invocation.config_override,
+        ),
         other => {
             stdout.push_str(&json_frame_line(UiJsonFrame::Error {
                 code: "unsupported_json_command".to_string(),
@@ -287,11 +290,20 @@ fn run_prompt_runtime(
     config_path: Option<PathBuf>,
     config_override: ConfigOverride,
 ) -> Result<String, CliError> {
+    Ok(run_prompt_runtime_outcome(prompt, config_path, config_override)?.final_message)
+}
+
+fn run_prompt_runtime_outcome(
+    prompt: String,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> Result<ConfiguredTurnOutcome, CliError> {
+    let safe_prompt = redact_secret_like_text(&prompt);
     let effective = evaluate_config_check(config_path, config_override)?;
-    let registry = fake_provider_registry(&effective, &prompt)?;
+    let registry = fake_provider_registry(&effective, &safe_prompt)?;
     let input = ConfiguredTurnInput {
         ids: runtime_ids(),
-        user_message: prompt,
+        user_message: safe_prompt,
         effective_config: effective,
         requirements: prompt_requirements(),
     };
@@ -300,12 +312,41 @@ fn run_prompt_runtime(
         .map_err(|error| CliError::PromptRuntimeFailed {
             message: error.to_string(),
         })?;
-    let outcome = runtime
+    runtime
         .block_on(ConfiguredTurnRunner::run(input, &registry))
         .map_err(|error| CliError::PromptRuntimeFailed {
             message: error.to_string(),
-        })?;
-    Ok(outcome.final_message)
+        })
+}
+
+fn render_json_prompt_runtime(
+    mut stdout: String,
+    prompt: String,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> CliOutput {
+    match run_prompt_runtime_outcome(prompt, config_path, config_override) {
+        Ok(outcome) => {
+            let mut event_count = 0;
+            for event in outcome.events {
+                stdout.push_str(&json_frame_line(UiJsonFrame::Event(
+                    normalize_runtime_event(&event),
+                )));
+                event_count += 1;
+            }
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count }));
+            CliOutput::exit(stdout)
+        }
+        Err(error) => {
+            stdout.push_str(&json_frame_line(UiJsonFrame::Error {
+                code: "prompt_runtime_failed".to_string(),
+                message: error.to_string(),
+                recoverable: false,
+            }));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::failure(stdout, 2)
+        }
+    }
 }
 
 fn fake_provider_registry(

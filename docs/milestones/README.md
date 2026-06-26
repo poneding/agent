@@ -127,8 +127,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M15-02 implementation | Complete |
 | M15-03 implementation | Complete |
 | M15-04 implementation | Complete |
-| M15-05 implementation | In progress |
-| M15 implementation | In progress |
+| M15-05 implementation | Complete |
+| M15 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -305,9 +305,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M15-05-persisted-turn-events`.
+Current implementation focus: `next-milestone-planning`.
 
-Primary planning documents for the current focus:
+Most recent completed planning documents:
 
 - `docs/specs/M15-05-persisted-turn-events.spec.md`
 - `docs/plans/M15-05-persisted-turn-events.plan.md`

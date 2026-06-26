@@ -12,6 +12,7 @@ use thiserror::Error;
 use crate::config::EffectiveRuntimeConfig;
 use crate::runtime::RuntimeIds;
 use crate::turn::{TurnEngine, TurnError, TurnInput};
+use agent_storage::EventStore;
 use agent_types::RuntimeEvent;
 
 #[derive(Clone)]
@@ -303,6 +304,45 @@ impl ConfiguredTurnRunner {
             }),
         }
     }
+
+    pub async fn run_and_persist<S>(
+        input: ConfiguredTurnInput,
+        registry: &ModelProviderRegistry,
+        store: &mut S,
+    ) -> Result<ConfiguredTurnOutcome, ConfiguredTurnPersistenceError>
+    where
+        S: EventStore,
+    {
+        match Self::run(input, registry).await {
+            Ok(outcome) => {
+                append_events(store, &outcome.events)?;
+                Ok(outcome)
+            }
+            Err(error) => {
+                if let ConfiguredTurnError::Model { events, .. } = &error {
+                    append_events(store, events)?;
+                }
+                Err(ConfiguredTurnPersistenceError::Turn(error))
+            }
+        }
+    }
+}
+
+fn append_events<S>(
+    store: &mut S,
+    events: &[RuntimeEvent],
+) -> Result<(), ConfiguredTurnPersistenceError>
+where
+    S: EventStore,
+{
+    for event in events {
+        store
+            .append(event.clone())
+            .map_err(|error| ConfiguredTurnPersistenceError::Storage {
+                message: error.to_string(),
+            })?;
+    }
+    Ok(())
 }
 
 struct PolicyModelProvider {
@@ -536,4 +576,12 @@ pub enum ConfiguredTurnError {
         events: Vec<RuntimeEvent>,
         attempts: Vec<ModelInvocationAttempt>,
     },
+}
+
+#[derive(Debug, Error, Eq, PartialEq)]
+pub enum ConfiguredTurnPersistenceError {
+    #[error(transparent)]
+    Turn(#[from] ConfiguredTurnError),
+    #[error("configured turn event persistence failed: {message}")]
+    Storage { message: String },
 }

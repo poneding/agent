@@ -18,7 +18,7 @@
 - Read: `crates/agent-storage/src/lib.rs`
 - Read: `crates/agent-cli/tests/json_mode.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: the spec defines persistence, replay, JSON output, and privacy require
 - Create: `crates/agent-core/tests/configured_turn_persistence.rs`
 - Modify: `crates/agent-cli/tests/json_mode.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add tests named:
 
@@ -43,7 +43,7 @@ Add tests named:
 - `json_mode_prompt_runtime_emits_event_frames`
 - `json_mode_prompt_runtime_excludes_secret_like_values`
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -60,15 +60,15 @@ Expected: tests fail because persistence and JSON prompt frames are not implemen
 - Modify: `crates/agent-core/src/model_runtime.rs`
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Add persistence helper**
+- [x] **Step 1: Add persistence helper**
 
 Append emitted configured-turn events to an `EventStore` and return the configured turn outcome.
 
-- [ ] **Step 2: Render JSON prompt events**
+- [x] **Step 2: Render JSON prompt events**
 
 For `--json --prompt`, emit normalized `UiJsonFrame::Event` lines followed by `Done` with the event count.
 
-- [ ] **Step 3: Verify focused tests**
+- [x] **Step 3: Verify focused tests**
 
 Run:
 
@@ -87,7 +87,7 @@ Expected: focused tests pass.
 - Modify: `docs/plans/M15-05-persisted-turn-events.plan.md`
 - Modify: `docs/plans/M15-config-driven-turn-execution.plan.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -99,7 +99,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

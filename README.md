@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M14 are implemented. Current focus is M15-05: persisted turn events.
+M01-M15 are implemented. Current focus is next milestone planning.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M15-05-persisted-turn-events.spec.md)
-- [Current plan](docs/plans/M15-05-persisted-turn-events.plan.md)
+- [Latest completed spec](docs/specs/M15-05-persisted-turn-events.spec.md)
+- [Latest completed plan](docs/plans/M15-05-persisted-turn-events.plan.md)
 - [M15 technical design](docs/specs/M15-00-config-driven-turn-execution-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

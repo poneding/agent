@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M13 and M14-01-M14-04 are implemented. Current focus is M14-05: UI config snapshot.
+M01-M14 are implemented. Current focus is next milestone planning.
 
 ## Core Ideas
 
@@ -82,8 +82,8 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Current spec](docs/specs/M14-05-ui-config-snapshot.spec.md)
-- [Current plan](docs/plans/M14-05-ui-config-snapshot.plan.md)
+- [Latest completed spec](docs/specs/M14-05-ui-config-snapshot.spec.md)
+- [Latest completed plan](docs/plans/M14-05-ui-config-snapshot.plan.md)
 - [M14 technical design](docs/specs/M14-00-runtime-configuration-secrets-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

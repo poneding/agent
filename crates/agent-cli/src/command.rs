@@ -5,14 +5,18 @@ use thiserror::Error;
 use crate::output::CliOutput;
 use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
-    ConfigLayer, ConfigLayerKind, ConfigOverride, EffectiveRuntimeConfig, RuntimeModelConfig,
+    ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigOverride, EffectiveRuntimeConfig,
+    RuntimeModelConfig,
 };
 use agent_model::{
     ModelConfigError, ModelEndpointConfig, ModelFallbackChain, ModelInvocationPolicy,
     ModelProviderCatalog, ModelProviderConfig, ModelProviderKind, ModelRetryPolicy,
 };
 use agent_storage::EventStore;
-use agent_ui_bridge::{UiJsonFrame, encode_json_frame, normalize_runtime_event};
+use agent_ui_bridge::{
+    UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiJsonFrame,
+    UiModelProviderSummary, encode_json_frame, normalize_runtime_event,
+};
 
 const DEFAULT_MODEL_PROVIDER: &str = "fake";
 const DEFAULT_MODEL_NAME: &str = "fake-scripted";
@@ -274,34 +278,41 @@ fn render_json_config_check(
 ) -> CliOutput {
     match evaluate_config_check(config_path, config_override) {
         Ok(effective) => {
+            let snapshot = match ui_config_snapshot(&effective) {
+                Ok(snapshot) => snapshot,
+                Err(error) => return render_json_config_check_error(error),
+            };
             let mut stdout = String::new();
             for diagnostic in &effective.diagnostics {
                 stdout.push_str(&json_frame_line(config_diagnostic_frame(diagnostic)));
             }
+            stdout.push_str(&json_frame_line(UiJsonFrame::ConfigSnapshot(snapshot)));
             stdout.push_str(&json_frame_line(config_summary_frame(&effective)));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
         }
-        Err(error) => {
-            let mut stdout = String::new();
-            if let CliError::ConfigCheckFailed {
-                message,
-                diagnostics,
-            } = &error
-            {
-                for diagnostic in diagnostics {
-                    stdout.push_str(&json_frame_line(config_diagnostic_frame(diagnostic)));
-                }
-                stdout.push_str(&json_frame_line(UiJsonFrame::Error {
-                    code: "config_check_failed".to_string(),
-                    message: message.clone(),
-                    recoverable: false,
-                }));
-            }
-            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
-            CliOutput::failure(stdout, 2)
-        }
+        Err(error) => render_json_config_check_error(error),
     }
+}
+
+fn render_json_config_check_error(error: CliError) -> CliOutput {
+    let mut stdout = String::new();
+    if let CliError::ConfigCheckFailed {
+        message,
+        diagnostics,
+    } = &error
+    {
+        for diagnostic in diagnostics {
+            stdout.push_str(&json_frame_line(config_diagnostic_frame(diagnostic)));
+        }
+        stdout.push_str(&json_frame_line(UiJsonFrame::Error {
+            code: "config_check_failed".to_string(),
+            message: message.clone(),
+            recoverable: false,
+        }));
+    }
+    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+    CliOutput::failure(stdout, 2)
 }
 
 fn evaluate_config_check(
@@ -393,6 +404,64 @@ fn config_provider_ids(effective: &EffectiveRuntimeConfig) -> Vec<String> {
     provider_ids
 }
 
+fn ui_config_snapshot(effective: &EffectiveRuntimeConfig) -> Result<UiConfigSnapshot, CliError> {
+    let providers = effective
+        .config
+        .model
+        .catalog
+        .providers
+        .iter()
+        .map(|provider| {
+            UiModelProviderSummary::new(
+                provider.id.clone(),
+                model_provider_kind_label(provider.kind),
+                provider.default_model.clone(),
+                provider.enabled,
+            )
+            .map_err(map_ui_bridge_error)
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let diagnostics = effective
+        .diagnostics
+        .iter()
+        .map(ui_config_diagnostic)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    UiConfigSnapshot::new(
+        effective.selected_provider.clone(),
+        effective.selected_model.clone(),
+        providers,
+        diagnostics,
+    )
+    .map_err(map_ui_bridge_error)
+}
+
+fn ui_config_diagnostic(diagnostic: &ConfigDiagnostic) -> Result<UiConfigDiagnostic, CliError> {
+    UiConfigDiagnostic::new(
+        ui_config_diagnostic_severity(diagnostic.severity),
+        diagnostic.code.clone(),
+        diagnostic.message.clone(),
+        diagnostic.field_path.clone(),
+        diagnostic.source.clone(),
+    )
+    .map_err(map_ui_bridge_error)
+}
+
+fn ui_config_diagnostic_severity(severity: ConfigDiagnosticSeverity) -> UiConfigDiagnosticSeverity {
+    match severity {
+        ConfigDiagnosticSeverity::Info => UiConfigDiagnosticSeverity::Info,
+        ConfigDiagnosticSeverity::Warning => UiConfigDiagnosticSeverity::Warning,
+        ConfigDiagnosticSeverity::Error => UiConfigDiagnosticSeverity::Error,
+    }
+}
+
+fn model_provider_kind_label(kind: ModelProviderKind) -> &'static str {
+    match kind {
+        ModelProviderKind::Fake => "fake",
+        ModelProviderKind::OpenAiCompatible => "open_ai_compatible",
+    }
+}
+
 fn config_diagnostic_frame(diagnostic: &ConfigDiagnostic) -> UiJsonFrame {
     UiJsonFrame::ConfigDiagnostic {
         severity: format!("{:?}", diagnostic.severity).to_ascii_lowercase(),
@@ -411,6 +480,13 @@ fn map_agent_config_error(error: AgentConfigError) -> CliError {
     CliError::ConfigCheckFailed {
         message: format_agent_config_error(error),
         diagnostics,
+    }
+}
+
+fn map_ui_bridge_error(error: UiBridgeError) -> CliError {
+    CliError::ConfigCheckFailed {
+        message: error.to_string(),
+        diagnostics: Vec::new(),
     }
 }
 

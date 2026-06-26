@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::DesktopError;
+use agent_ui_bridge::UiConfigSnapshot;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DesktopSettings {
@@ -99,4 +100,26 @@ fn validate_policy_decision(value: &str) -> Result<(), DesktopError> {
             "unsupported policy default decision: {other}"
         ))),
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DesktopConfigSnapshot {
+    pub snapshot: UiConfigSnapshot,
+}
+
+impl DesktopConfigSnapshot {
+    pub fn new(snapshot: UiConfigSnapshot) -> Result<Self, DesktopError> {
+        validate_config_selection("selected provider", &snapshot.selected_provider)?;
+        validate_config_selection("selected model", &snapshot.selected_model)?;
+        Ok(Self { snapshot })
+    }
+}
+
+fn validate_config_selection(label: &str, value: &str) -> Result<(), DesktopError> {
+    if value.trim().is_empty() {
+        return Err(DesktopError::InvalidSnapshot(format!(
+            "{label} cannot be empty"
+        )));
+    }
+    Ok(())
 }

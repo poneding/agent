@@ -130,6 +130,16 @@ fn cli_config_diagnostics_json_renders_config_summary() {
         Some(UiJsonFrame::ConfigDiagnostic { code, .. })
             if code == "config.layer.provider_overridden"
     ));
+    let snapshot = frames.iter().find_map(|frame| {
+        if let UiJsonFrame::ConfigSnapshot(snapshot) = frame {
+            Some(snapshot)
+        } else {
+            None
+        }
+    });
+    let snapshot = snapshot.expect("config snapshot frame");
+    assert_eq!(snapshot.selected_provider, "fake");
+    assert_eq!(snapshot.selected_model, "fake-custom");
     let summary = frames.iter().find_map(|frame| {
         if let UiJsonFrame::ConfigSummary {
             selected_provider,

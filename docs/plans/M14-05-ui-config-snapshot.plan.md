@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add UI bridge and Desktop config snapshot contracts.
+**Goal:** Add UI bridge, CLI JSON, and Desktop config snapshot contracts.
 
-**Architecture:** Convert effective runtime config into UI-safe snapshot types in `agent-ui-bridge`; `agent-desktop` can consume those snapshots without loading config files or resolving secrets.
+**Architecture:** Convert effective runtime config into UI-safe snapshot types in `agent-ui-bridge`; CLI JSON can emit those snapshots, and `agent-desktop` can consume them without loading config files or resolving secrets.
 
 **Tech Stack:** Rust 2024 edition, serde, serde_json snapshot tests, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -18,7 +18,7 @@
 - Read: `crates/agent-desktop/src/lib.rs`
 - Read: `crates/agent-desktop/tests/settings.rs`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -33,8 +33,9 @@ Expected: the spec defines UI snapshot contracts, state handling, and privacy te
 **Files:**
 - Create: `crates/agent-ui-bridge/tests/config_snapshot.rs`
 - Create: `crates/agent-desktop/tests/config_snapshot.rs`
+- Modify: `crates/agent-cli/tests/config_diagnostics.rs`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Add UI bridge tests:
 
@@ -48,7 +49,9 @@ Add Desktop tests:
 - `desktop_config_snapshot_rejects_empty_selection`
 - `desktop_config_snapshot_accepts_ui_bridge_snapshot`
 
-- [ ] **Step 2: Verify RED**
+Extend CLI config diagnostics tests so JSON config-check output includes `UiJsonFrame::ConfigSnapshot`.
+
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -64,9 +67,10 @@ Expected: tests fail because snapshot contracts do not exist.
 **Files:**
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Modify: `crates/agent-ui-bridge/src/lib.rs`
+- Modify: `crates/agent-cli/src/command.rs`
 - Modify: `crates/agent-desktop/src/lib.rs`
 
-- [ ] **Step 1: Add UI bridge snapshot types**
+- [x] **Step 1: Add UI bridge snapshot types**
 
 Implement:
 
@@ -76,11 +80,15 @@ Implement:
 - `UiConfigDiagnosticSeverity`
 - `UiJsonFrame::ConfigSnapshot`
 
-- [ ] **Step 2: Add Desktop wrapper**
+- [x] **Step 2: Emit CLI snapshot frame**
+
+Convert effective config-check output into `UiConfigSnapshot` and emit `UiJsonFrame::ConfigSnapshot` in JSON mode.
+
+- [x] **Step 3: Add Desktop wrapper**
 
 Implement a small Desktop view model that validates selected provider/model and wraps `UiConfigSnapshot`.
 
-- [ ] **Step 3: Verify focused tests**
+- [x] **Step 4: Verify focused tests**
 
 Run:
 
@@ -99,7 +107,7 @@ Expected: focused tests pass.
 - Modify: `docs/plans/M14-runtime-configuration-secrets.plan.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Run gates**
+- [x] **Step 1: Run gates**
 
 Run:
 
@@ -111,7 +119,7 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run:
 

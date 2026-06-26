@@ -11,4 +11,7 @@ pub use command::{
 };
 pub use error::UiBridgeError;
 pub use event::{UiDiagnosticLevel, UiEventEnvelope, UiEventPayload, normalize_runtime_event};
-pub use frame::{UiJsonFrame, encode_json_frame};
+pub use frame::{
+    UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiJsonFrame,
+    UiModelProviderSummary, encode_json_frame,
+};

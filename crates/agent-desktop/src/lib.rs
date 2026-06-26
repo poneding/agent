@@ -25,8 +25,8 @@ pub use session::{
     start_desktop_session, switch_desktop_route,
 };
 pub use settings::{
-    DesktopSettings, DesktopTheme, McpSettings, MemorySettings, ModelSettings, PolicySettings,
-    UiSettings, validate_desktop_settings,
+    DesktopConfigSnapshot, DesktopSettings, DesktopTheme, McpSettings, MemorySettings,
+    ModelSettings, PolicySettings, UiSettings, validate_desktop_settings,
 };
 pub use snapshot::{DesktopWorkspaceSnapshot, build_workspace_snapshot};
 pub use task::DesktopTaskItem;

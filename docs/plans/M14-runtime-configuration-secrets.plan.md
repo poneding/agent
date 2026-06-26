@@ -110,7 +110,7 @@ Complete deterministic model config layering and overrides, then commit `feat: a
 
 Complete CLI config-check flags and diagnostics, then commit `feat: add m14 cli config diagnostics`.
 
-- [ ] **Step 5: Implement M14-05 UI config snapshot**
+- [x] **Step 5: Implement M14-05 UI config snapshot**
 
 Complete UI/Desktop config snapshot contracts, then commit `feat: add m14 ui config snapshot`.
 
@@ -121,7 +121,7 @@ Complete UI/Desktop config snapshot contracts, then commit `feat: add m14 ui con
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M14-runtime-configuration-secrets.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -133,11 +133,11 @@ cargo test --workspace
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M14 complete**
+- [x] **Step 2: Mark M14 complete**
 
 Update M14 planning status and advance active focus to the next milestone.
 
-- [ ] **Step 3: Commit M14 completion status**
+- [x] **Step 3: Commit M14 completion status**
 
 Run:
 

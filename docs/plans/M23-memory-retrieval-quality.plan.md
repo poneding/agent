@@ -38,11 +38,11 @@ Document slice order and deterministic fixture strategy.
 - Create: `docs/specs/M23-05-memory-editor-portability.spec.md`
 - Create: `docs/plans/M23-05-memory-editor-portability.plan.md`
 
-- [ ] **Step 1: Create slice specs**
+- [x] **Step 1: Create slice specs**
 
 Each slice defines retrieval behavior, privacy controls, and tests.
 
-- [ ] **Step 2: Create slice plans**
+- [x] **Step 2: Create slice plans**
 
 Each plan starts with deterministic retrieval tests before implementation.
 

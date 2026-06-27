@@ -188,9 +188,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M22-04 implementation | Complete |
 | M22-05 implementation | Complete |
 | M22 implementation | Complete |
-| M23-M25 implementation slice specs | Planned |
-| M23-M25 implementation slice plans | Planned |
-| M23-M25 implementation | Planned |
+| M23 slice specs | Complete for M23-01 through M23-05 |
+| M23 slice plans | Complete for M23-01 through M23-05 |
+| M23 implementation | Planned |
+| M24-M25 implementation slice specs | Planned |
+| M24-M25 implementation slice plans | Planned |
+| M24-M25 implementation | Planned |
 
 ## Milestone Spec and Plan Index
 
@@ -459,6 +462,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M23-00 Memory Retrieval Technical Design | `docs/specs/M23-00-memory-retrieval-technical-design.spec.md` | `docs/plans/M23-00-memory-retrieval-technical-design.plan.md` | Architecture baseline for embedding providers, hybrid memory retrieval, reranking, write proposals, deletion, rebuilds, and influence traces. |
+| M23-01 Embedding Provider Contracts | `docs/specs/M23-01-embedding-provider-contracts.spec.md` | `docs/plans/M23-01-embedding-provider-contracts.plan.md` | Async embedding contracts, vector metadata, validation, redaction, and deterministic fixture provider. |
+| M23-02 Memory Index and Hybrid Query | `docs/specs/M23-02-memory-index-hybrid-query.spec.md` | `docs/plans/M23-02-memory-index-hybrid-query.plan.md` | Local memory index, lexical retrieval, optional semantic scoring, hybrid fusion, and deterministic candidate ordering. |
+| M23-03 Memory Rerank and Influence Trace | `docs/specs/M23-03-memory-rerank-influence-trace.spec.md` | `docs/plans/M23-03-memory-rerank-influence-trace.plan.md` | Deterministic reranking, selected/rejected reasons, privacy-safe influence traces, and prompt-layer conversion. |
+| M23-04 Memory Write Proposals | `docs/specs/M23-04-memory-write-proposals.spec.md` | `docs/plans/M23-04-memory-write-proposals.plan.md` | Reviewed memory write proposals, explicit state transitions, conversion to records, and safe diagnostics. |
+| M23-05 Memory Editor and Portability | `docs/specs/M23-05-memory-editor-portability.spec.md` | `docs/plans/M23-05-memory-editor-portability.plan.md` | Tombstones, rebuild/import/export safeguards, memory summaries, and CLI memory commands. |
 
 ## M24 Slice Index
 
@@ -488,4 +496,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M23 slice decomposition from `docs/plans/M23-memory-retrieval-quality.plan.md`
+- M23-01 Embedding Provider Contracts

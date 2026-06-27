@@ -18,7 +18,7 @@
 - Read: `docs/specs/M23-01-embedding-provider-contracts.spec.md`
 - Read: `crates/agent-memory/src/record.rs`
 
-- [ ] **Step 1: Review index scope**
+- [x] **Step 1: Review index scope**
 
 Run:
 
@@ -33,19 +33,19 @@ Expected: query validation, filtering, scoring, and deterministic ordering are c
 **Files:**
 - Create: `crates/agent-memory/tests/memory_index_hybrid_query.rs`
 
-- [ ] **Step 1: Add lexical retrieval tests**
+- [x] **Step 1: Add lexical retrieval tests**
 
 Cover indexing, token matching, scope filtering, sensitivity ceiling, top-k, minimum score, and tie ordering.
 
-- [ ] **Step 2: Add semantic fixture tests**
+- [x] **Step 2: Add semantic fixture tests**
 
 Cover query vectors, cosine similarity, missing embeddings fallback, and hybrid weights.
 
-- [ ] **Step 3: Add invalid query tests**
+- [x] **Step 3: Add invalid query tests**
 
 Cover empty query text, empty scopes, zero top-k, invalid weights, and non-finite scores.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -61,19 +61,19 @@ Expected: tests fail because index contracts are missing.
 - Create: `crates/agent-memory/src/index.rs`
 - Modify: `crates/agent-memory/src/lib.rs`
 
-- [ ] **Step 1: Add query and candidate contracts**
+- [x] **Step 1: Add query and candidate contracts**
 
 Implement `HybridMemoryQuery`, `MemoryRetrievalCandidate`, index stats, and validation helpers.
 
-- [ ] **Step 2: Add lexical scoring**
+- [x] **Step 2: Add lexical scoring**
 
 Normalize terms, count matches, compute bounded lexical scores, and preserve matched terms.
 
-- [ ] **Step 3: Add semantic scoring**
+- [x] **Step 3: Add semantic scoring**
 
 Store embedding vectors by record id and compute cosine similarity when query embeddings are supplied or fixture semantics are available.
 
-- [ ] **Step 4: Add hybrid ordering**
+- [x] **Step 4: Add hybrid ordering**
 
 Fuse scores by weights, filter by `minimum_score`, apply `top_k`, and sort deterministically.
 
@@ -82,7 +82,7 @@ Fuse scores by weights, filter by `minimum_score`, apply `top_k`, and sort deter
 **Files:**
 - Read: `crates/agent-memory/tests/memory_index_hybrid_query.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -92,7 +92,7 @@ cargo test -p agent-memory memory_index_hybrid_query
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace checks**
+- [x] **Step 2: Run workspace checks**
 
 Run:
 
@@ -111,11 +111,11 @@ Expected: all checks pass.
 - Modify: `docs/plans/M23-memory-retrieval-quality.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Mark M23-02 complete**
+- [x] **Step 1: Mark M23-02 complete**
 
 Advance active implementation focus to M23-03.
 
-- [ ] **Step 2: Commit M23-02**
+- [x] **Step 2: Commit M23-02**
 
 Run:
 

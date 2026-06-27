@@ -59,7 +59,7 @@ Each plan starts with deterministic retrieval tests before implementation.
 
 Add embedding provider traits, vector metadata, and deterministic fixtures.
 
-- [ ] **Step 2: Implement hybrid memory index**
+- [x] **Step 2: Implement hybrid memory index**
 
 Combine lexical and semantic retrieval with scope and sensitivity filters.
 

@@ -5,6 +5,7 @@ pub mod archive;
 pub mod audit;
 pub mod embedding;
 pub mod error;
+pub mod index;
 pub mod record;
 pub mod store;
 
@@ -19,6 +20,9 @@ pub use embedding::{
     EmbeddingProvider, EmbeddingRequest, EmbeddingVector,
 };
 pub use error::MemoryError;
+pub use index::{
+    HybridMemoryQuery, InMemoryMemoryIndex, MemoryIndex, MemoryIndexStats, MemoryRetrievalCandidate,
+};
 pub use record::{MemoryRecord, MemoryScope, MemorySensitivity, MemorySource};
 pub use store::{InMemoryMemoryStore, MemoryStore};
 

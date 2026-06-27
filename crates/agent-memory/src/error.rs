@@ -6,6 +6,8 @@ pub enum MemoryError {
     InvalidRecord(String),
     #[error("memory embedding is invalid: {0}")]
     InvalidEmbedding(String),
+    #[error("memory query is invalid: {0}")]
+    InvalidQuery(String),
     #[error("duplicate memory record: {0}")]
     DuplicateRecord(String),
 }

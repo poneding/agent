@@ -31,6 +31,9 @@ use agent_plugin::{
     validate_plugin_manifest,
 };
 use agent_policy::{CapabilityAction, ResourceKind};
+use agent_skill::{
+    ManagedSkillRoot, ManagedSkillRootRegistry, SkillRootError, SkillRootInspection,
+};
 use agent_storage::EventStore;
 use agent_types::{ConversationId, CorrelationId, RuntimeEventPayload, TurnId, WorkspaceId};
 use agent_ui_bridge::{
@@ -60,6 +63,7 @@ pub enum CliCommand {
     TraceSummary,
     ConfigCheck,
     Plugin(PluginCommand),
+    SkillRoot(SkillRootCommand),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -83,6 +87,16 @@ pub enum PluginCommand {
     Remove {
         id: String,
     },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SkillRootCommand {
+    Add { path: PathBuf, enable: bool },
+    List,
+    Inspect { id: String },
+    Enable { id: String },
+    Disable { id: String },
+    Remove { id: String },
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -219,6 +233,7 @@ where
         "prompt" => parse_prompt_command(&mut args),
         "repl" => parse_repl_command(&mut args),
         "plugin" => parse_plugin_command(&mut args),
+        "skill" => parse_skill_command(&mut args),
         "--prompt" | "-p" => {
             let prompt = args
                 .next()
@@ -297,6 +312,10 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             let mut runtime = PluginCommandRuntime::default();
             render_plugin_command(&mut runtime, command, OutputMode::Text)
         }
+        CliCommand::SkillRoot(command) => {
+            let mut runtime = SkillRootCommandRuntime::default();
+            render_skill_root_command(&mut runtime, command, OutputMode::Text)
+        }
     }
 }
 
@@ -332,6 +351,10 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             CliCommand::Plugin(command) => {
                 let mut runtime = PluginCommandRuntime::default();
                 render_plugin_command(&mut runtime, command, OutputMode::Text)
+            }
+            CliCommand::SkillRoot(command) => {
+                let mut runtime = SkillRootCommandRuntime::default();
+                render_skill_root_command(&mut runtime, command, OutputMode::Text)
             }
             command => render_cli_command(command),
         },
@@ -371,6 +394,10 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if let CliCommand::Plugin(command) = invocation.command {
         let mut runtime = PluginCommandRuntime::default();
         return render_plugin_command(&mut runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::SkillRoot(command) = invocation.command {
+        let mut runtime = SkillRootCommandRuntime::default();
+        return render_skill_root_command(&mut runtime, command, OutputMode::Json);
     }
 
     let mut stdout = render_model_selection_frame(&invocation.model_selection);
@@ -490,6 +517,85 @@ where
     };
 
     Ok(CliCommand::Plugin(command))
+}
+
+fn parse_skill_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(scope) = args.next() else {
+        return Err(CliError::MissingValue("skill".to_string()));
+    };
+    if scope != "roots" {
+        return Err(CliError::UnknownArgument(format!("skill {scope}")));
+    }
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("skill roots".to_string()));
+    };
+
+    let command = match subcommand.as_str() {
+        "add" => parse_skill_root_add(args)?,
+        "list" => {
+            no_plugin_extra_args(args, "skill roots list")?;
+            SkillRootCommand::List
+        }
+        "inspect" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("skill roots inspect".to_string()))?;
+            no_plugin_extra_args(args, "skill roots inspect")?;
+            SkillRootCommand::Inspect { id }
+        }
+        "enable" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("skill roots enable".to_string()))?;
+            no_plugin_extra_args(args, "skill roots enable")?;
+            SkillRootCommand::Enable { id }
+        }
+        "disable" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("skill roots disable".to_string()))?;
+            no_plugin_extra_args(args, "skill roots disable")?;
+            SkillRootCommand::Disable { id }
+        }
+        "remove" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("skill roots remove".to_string()))?;
+            no_plugin_extra_args(args, "skill roots remove")?;
+            SkillRootCommand::Remove { id }
+        }
+        _ => {
+            return Err(CliError::UnknownArgument(format!(
+                "skill roots {subcommand}"
+            )));
+        }
+    };
+
+    Ok(CliCommand::SkillRoot(command))
+}
+
+fn parse_skill_root_add<I>(args: &mut I) -> Result<SkillRootCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let path = args
+        .next()
+        .ok_or_else(|| CliError::MissingValue("skill roots add".to_string()))?;
+    let mut enable = false;
+    for arg in args {
+        match arg.as_str() {
+            "--enable" => enable = true,
+            _ => return Err(CliError::UnknownArgument(format!("skill roots add {arg}"))),
+        }
+    }
+
+    Ok(SkillRootCommand::Add {
+        path: PathBuf::from(path),
+        enable,
+    })
 }
 
 fn parse_plugin_install<I>(args: &mut I) -> Result<PluginCommand, CliError>
@@ -923,6 +1029,266 @@ fn render_plugin_error(error: PluginCommandError, output_mode: OutputMode) -> Cl
             2,
         ),
     }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct SkillRootCommandRuntime {
+    roots: ManagedSkillRootRegistry,
+    registry: ExtensionRegistry,
+}
+
+impl SkillRootCommandRuntime {
+    #[must_use]
+    pub const fn roots(&self) -> &ManagedSkillRootRegistry {
+        &self.roots
+    }
+
+    #[must_use]
+    pub const fn registry(&self) -> &ExtensionRegistry {
+        &self.registry
+    }
+}
+
+enum SkillRootCommandResponse {
+    Added(ManagedSkillRoot),
+    List(Vec<ManagedSkillRoot>),
+    Inspection(SkillRootInspection),
+    Enabled(ManagedSkillRoot),
+    Disabled(ManagedSkillRoot),
+    Removed(ManagedSkillRoot),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct SkillRootCommandError {
+    message: String,
+}
+
+impl SkillRootCommandError {
+    fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: redact_secret_like_text(&message.into()),
+        }
+    }
+}
+
+#[must_use]
+pub fn render_skill_root_command(
+    runtime: &mut SkillRootCommandRuntime,
+    command: SkillRootCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match run_skill_root_command(runtime, command) {
+        Ok(response) => render_skill_root_response(response, output_mode),
+        Err(error) => render_skill_root_error(error, output_mode),
+    }
+}
+
+fn run_skill_root_command(
+    runtime: &mut SkillRootCommandRuntime,
+    command: SkillRootCommand,
+) -> Result<SkillRootCommandResponse, SkillRootCommandError> {
+    match command {
+        SkillRootCommand::Add { path, enable } => {
+            let root = runtime.roots.add(path, enable).map_err(skill_root_error)?;
+            let inspection = runtime
+                .roots
+                .inspect(&root.root_id)
+                .map_err(skill_root_error)?;
+            upsert_skill_root_record(&mut runtime.registry, &inspection)?;
+            Ok(SkillRootCommandResponse::Added(root))
+        }
+        SkillRootCommand::List => Ok(SkillRootCommandResponse::List(runtime.roots.list())),
+        SkillRootCommand::Inspect { id } => {
+            let inspection = runtime.roots.inspect(&id).map_err(skill_root_error)?;
+            upsert_skill_root_record(&mut runtime.registry, &inspection)?;
+            Ok(SkillRootCommandResponse::Inspection(inspection))
+        }
+        SkillRootCommand::Enable { id } => {
+            let root = runtime.roots.enable(&id).map_err(skill_root_error)?;
+            let inspection = runtime.roots.inspect(&id).map_err(skill_root_error)?;
+            upsert_skill_root_record(&mut runtime.registry, &inspection)?;
+            Ok(SkillRootCommandResponse::Enabled(root))
+        }
+        SkillRootCommand::Disable { id } => {
+            let root = runtime.roots.disable(&id).map_err(skill_root_error)?;
+            let inspection = runtime.roots.inspect(&id).map_err(skill_root_error)?;
+            upsert_skill_root_record(&mut runtime.registry, &inspection)?;
+            Ok(SkillRootCommandResponse::Disabled(root))
+        }
+        SkillRootCommand::Remove { id } => {
+            let root = runtime.roots.remove(&id).map_err(skill_root_error)?;
+            if let Ok(extension_id) = ExtensionId::new(id) {
+                let _ = runtime.registry.remove(&extension_id);
+            }
+            Ok(SkillRootCommandResponse::Removed(root))
+        }
+    }
+}
+
+fn upsert_skill_root_record(
+    registry: &mut ExtensionRegistry,
+    inspection: &SkillRootInspection,
+) -> Result<(), SkillRootCommandError> {
+    registry
+        .upsert(skill_root_record(inspection)?)
+        .map_err(skill_registry_error)
+}
+
+fn skill_root_record(
+    inspection: &SkillRootInspection,
+) -> Result<ExtensionRecord, SkillRootCommandError> {
+    let root = &inspection.root;
+    ExtensionRecord::new(
+        ExtensionId::new(root.root_id.as_str()).map_err(skill_registry_error)?,
+        ExtensionKind::SkillRoot,
+        ExtensionSource::new(
+            ExtensionSourceKind::LocalPath,
+            root.path.display().to_string(),
+            root.path.display().to_string(),
+            root.source_hash.clone(),
+        )
+        .map_err(skill_registry_error)?,
+        root.enabled,
+        Option::<String>::None,
+        ExtensionCompatibility::supported(1),
+        inspection
+            .discovered
+            .iter()
+            .map(|skill| {
+                ExtensionCapabilitySummary::new(
+                    "skill",
+                    skill.skill_id.clone(),
+                    Vec::<ExtensionPermissionSummary>::new(),
+                )
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(skill_registry_error)?,
+        Vec::new(),
+        skill_root_health(inspection),
+    )
+    .map_err(skill_registry_error)
+}
+
+fn skill_root_health(inspection: &SkillRootInspection) -> ExtensionHealth {
+    if !inspection.root.enabled {
+        return ExtensionHealth::disabled("skill root disabled");
+    }
+    if inspection
+        .diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.severity == "error")
+    {
+        return ExtensionHealth::unhealthy("skill root has diagnostics");
+    }
+    ExtensionHealth::healthy("skill root discovered")
+}
+
+fn render_skill_root_response(
+    response: SkillRootCommandResponse,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => render_skill_root_text_response(response),
+        OutputMode::Json => render_skill_root_json_response(response),
+    }
+}
+
+fn render_skill_root_text_response(response: SkillRootCommandResponse) -> CliOutput {
+    match response {
+        SkillRootCommandResponse::Added(root) => CliOutput::exit(format!(
+            "Added skill root {}\nenabled={}\n",
+            root.root_id, root.enabled
+        )),
+        SkillRootCommandResponse::List(roots) if roots.is_empty() => {
+            CliOutput::exit("No skill roots registered\n")
+        }
+        SkillRootCommandResponse::List(roots) => CliOutput::exit(
+            roots
+                .iter()
+                .map(|root| format!("{} enabled={}", root.root_id, root.enabled))
+                .collect::<Vec<_>>()
+                .join("\n")
+                + "\n",
+        ),
+        SkillRootCommandResponse::Inspection(inspection) => {
+            let mut output = format!(
+                "Skill root {}\nenabled={}\ndiscovered={}\n",
+                inspection.root.root_id,
+                inspection.root.enabled,
+                inspection.discovered.len()
+            );
+            for diagnostic in inspection.diagnostics {
+                output.push_str(&format!("{} {}\n", diagnostic.severity, diagnostic.code));
+            }
+            CliOutput::exit(output)
+        }
+        SkillRootCommandResponse::Enabled(root) => {
+            CliOutput::exit(format!("Enabled skill root {}\n", root.root_id))
+        }
+        SkillRootCommandResponse::Disabled(root) => {
+            CliOutput::exit(format!("Disabled skill root {}\n", root.root_id))
+        }
+        SkillRootCommandResponse::Removed(root) => {
+            CliOutput::exit(format!("Removed skill root {}\n", root.root_id))
+        }
+    }
+}
+
+fn render_skill_root_json_response(response: SkillRootCommandResponse) -> CliOutput {
+    let value = match response {
+        SkillRootCommandResponse::Added(root) => serde_json::json!({
+            "type": "skill_root_added",
+            "data": root,
+        }),
+        SkillRootCommandResponse::List(roots) => serde_json::json!({
+            "type": "skill_root_list",
+            "data": {
+                "roots": roots,
+            },
+        }),
+        SkillRootCommandResponse::Inspection(inspection) => serde_json::json!({
+            "type": "skill_root_inspection",
+            "data": inspection,
+        }),
+        SkillRootCommandResponse::Enabled(root) => serde_json::json!({
+            "type": "skill_root_enabled",
+            "data": root,
+        }),
+        SkillRootCommandResponse::Disabled(root) => serde_json::json!({
+            "type": "skill_root_disabled",
+            "data": root,
+        }),
+        SkillRootCommandResponse::Removed(root) => serde_json::json!({
+            "type": "skill_root_removed",
+            "data": root,
+        }),
+    };
+    CliOutput::exit(json_value_frame_line(value))
+}
+
+fn render_skill_root_error(error: SkillRootCommandError, output_mode: OutputMode) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => {
+            CliOutput::failure(format!("skill root command failed: {}\n", error.message), 2)
+        }
+        OutputMode::Json => CliOutput::failure(
+            json_value_frame_line(serde_json::json!({
+                "type": "skill_root_error",
+                "data": {
+                    "message": error.message,
+                },
+            })),
+            2,
+        ),
+    }
+}
+
+fn skill_root_error(error: SkillRootError) -> SkillRootCommandError {
+    SkillRootCommandError::new(error.to_string())
+}
+
+fn skill_registry_error(error: ExtensionRegistryError) -> SkillRootCommandError {
+    SkillRootCommandError::new(error.to_string())
 }
 
 fn parse_extension_id(id: &str) -> Result<ExtensionId, PluginCommandError> {

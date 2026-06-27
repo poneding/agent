@@ -20,6 +20,7 @@ agent-core = { path = "../agent-core" }
 agent-model = { path = "../agent-model" }
 agent-plugin = { path = "../agent-plugin" }
 agent-policy = { path = "../agent-policy" }
+agent-skill = { path = "../agent-skill" }
 agent-storage = { path = "../agent-storage" }
 agent-types = { path = "../agent-types" }
 agent-tui = { path = "../agent-tui" }
@@ -31,6 +32,7 @@ thiserror = "2"
 tokio = { version = "1", features = ["rt"] }
 
 [dev-dependencies]
+tempfile = "3"
 
 [lints]
 workspace = true

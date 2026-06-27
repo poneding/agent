@@ -17,6 +17,7 @@ dependencies = [
  "agent-model",
  "agent-plugin",
  "agent-policy",
+ "agent-skill",
  "agent-storage",
  "agent-tui",
  "agent-types",
@@ -24,6 +25,7 @@ dependencies = [
  "futures-util",
  "serde",
  "serde_json",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
 ]

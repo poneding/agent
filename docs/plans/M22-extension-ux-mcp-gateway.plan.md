@@ -63,7 +63,7 @@ Track installed plugins, skill roots, MCP servers, and enablement state.
 
 Add install, list, enable, disable, remove, and inspect flows.
 
-- [ ] **Step 3: Implement skill root management**
+- [x] **Step 3: Implement skill root management**
 
 Add skill discovery diagnostics and source tracking.
 

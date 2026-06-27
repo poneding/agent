@@ -55,7 +55,7 @@ Each plan starts with deterministic retrieval tests before implementation.
 - Execute: `docs/plans/M23-04-memory-write-proposals.plan.md`
 - Execute: `docs/plans/M23-05-memory-editor-portability.plan.md`
 
-- [ ] **Step 1: Implement embedding provider contracts**
+- [x] **Step 1: Implement embedding provider contracts**
 
 Add embedding provider traits, vector metadata, and deterministic fixtures.
 

@@ -3,6 +3,7 @@
 
 pub mod archive;
 pub mod audit;
+pub mod embedding;
 pub mod error;
 pub mod record;
 pub mod store;
@@ -13,6 +14,10 @@ pub use archive::{
     export_memory_archive, import_memory_archive,
 };
 pub use audit::{AuditedMemoryStore, MemoryAuditAction, MemoryAuditEntry};
+pub use embedding::{
+    DeterministicEmbeddingProvider, EmbeddingBatch, EmbeddingInput, EmbeddingMetadata,
+    EmbeddingProvider, EmbeddingRequest, EmbeddingVector,
+};
 pub use error::MemoryError;
 pub use record::{MemoryRecord, MemoryScope, MemorySensitivity, MemorySource};
 pub use store::{InMemoryMemoryStore, MemoryStore};

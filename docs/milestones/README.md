@@ -190,7 +190,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M22 implementation | Complete |
 | M23 slice specs | Complete for M23-01 through M23-05 |
 | M23 slice plans | Complete for M23-01 through M23-05 |
-| M23 implementation | Planned |
+| M23-01 implementation | Complete |
+| M23 implementation | In Progress |
 | M24-M25 implementation slice specs | Planned |
 | M24-M25 implementation slice plans | Planned |
 | M24-M25 implementation | Planned |
@@ -486,8 +487,8 @@ Current implementation focus: `M23 Memory Retrieval Quality`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M22-05-extension-health-ui.spec.md`
-- `docs/plans/M22-05-extension-health-ui.plan.md`
+- `docs/specs/M23-01-embedding-provider-contracts.spec.md`
+- `docs/plans/M23-01-embedding-provider-contracts.plan.md`
 
 Most recent completed technical design documents:
 
@@ -496,4 +497,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M23-01 Embedding Provider Contracts
+- M23-02 Memory Index and Hybrid Query

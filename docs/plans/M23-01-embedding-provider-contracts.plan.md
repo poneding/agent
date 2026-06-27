@@ -18,7 +18,7 @@
 - Read: `crates/agent-memory/src/record.rs`
 - Read: `crates/agent-memory/src/error.rs`
 
-- [ ] **Step 1: Review embedding scope**
+- [x] **Step 1: Review embedding scope**
 
 Run:
 
@@ -33,19 +33,19 @@ Expected: trait ownership, validation rules, and fixture behavior are clear.
 **Files:**
 - Create: `crates/agent-memory/tests/embedding_provider.rs`
 
-- [ ] **Step 1: Add fixture determinism tests**
+- [x] **Step 1: Add fixture determinism tests**
 
 Cover repeated requests, stable vector dimensions, stable content hashes, and input-order preservation.
 
-- [ ] **Step 2: Add validation tests**
+- [x] **Step 2: Add validation tests**
 
 Cover empty provider/model/input fields, duplicate record ids, expected dimension mismatch, and non-finite vector rejection.
 
-- [ ] **Step 3: Add redaction tests**
+- [x] **Step 3: Add redaction tests**
 
 Ensure errors do not include raw `sk-`, `token`, `password`, `api_key`, or memory text.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -63,19 +63,19 @@ Expected: tests fail because embedding contracts are missing.
 - Modify: `crates/agent-memory/src/error.rs`
 - Modify if needed: `Cargo.toml`
 
-- [ ] **Step 1: Add public types and trait**
+- [x] **Step 1: Add public types and trait**
 
 Implement `EmbeddingProvider`, `EmbeddingRequest`, `EmbeddingInput`, `EmbeddingBatch`, `EmbeddingVector`, and `EmbeddingMetadata`.
 
-- [ ] **Step 2: Add validation**
+- [x] **Step 2: Add validation**
 
 Reject empty fields, duplicate ids, empty batches, mismatched dimensions, and non-finite vector values with secret-safe errors.
 
-- [ ] **Step 3: Add deterministic fixture provider**
+- [x] **Step 3: Add deterministic fixture provider**
 
 Generate stable vectors from record id and text hash without network, env, time, or randomness.
 
-- [ ] **Step 4: Export contracts**
+- [x] **Step 4: Export contracts**
 
 Re-export embedding contracts from `agent-memory`.
 
@@ -84,7 +84,7 @@ Re-export embedding contracts from `agent-memory`.
 **Files:**
 - Read: `crates/agent-memory/tests/embedding_provider.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -94,7 +94,7 @@ cargo test -p agent-memory embedding_provider
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace checks**
+- [x] **Step 2: Run workspace checks**
 
 Run:
 
@@ -113,11 +113,11 @@ Expected: all checks pass.
 - Modify: `docs/plans/M23-memory-retrieval-quality.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Mark M23-01 complete**
+- [x] **Step 1: Mark M23-01 complete**
 
 Advance active implementation focus to M23-02.
 
-- [ ] **Step 2: Commit M23-01**
+- [x] **Step 2: Commit M23-01**
 
 Run:
 

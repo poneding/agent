@@ -18,7 +18,7 @@
 - Read: `crates/agent-plugin/src/manifest.rs`
 - Read: `crates/agent-plugin/src/capability.rs`
 
-- [ ] **Step 1: Review plugin UX scope**
+- [x] **Step 1: Review plugin UX scope**
 
 Run:
 
@@ -36,19 +36,19 @@ Expected: commands, capability review, failure handling, and fixture requirement
 - Create: `crates/agent-plugin/tests/fixtures/hello-process-plugin/plugin.sh`
 - Create: `crates/agent-plugin/tests/fixtures/invalid-plugin/plugin.json`
 
-- [ ] **Step 1: Add parser and output tests**
+- [x] **Step 1: Add parser and output tests**
 
 Cover `install`, `list`, `inspect`, `enable`, `disable`, and `remove` in text and JSON modes.
 
-- [ ] **Step 2: Add capability review tests**
+- [x] **Step 2: Add capability review tests**
 
 Cover enable failure without `--accept-capabilities` and success with explicit acceptance.
 
-- [ ] **Step 3: Add invalid fixture tests**
+- [x] **Step 3: Add invalid fixture tests**
 
 Cover missing path, invalid manifest, unsupported compatibility, and duplicate plugin id.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -65,19 +65,19 @@ Expected: tests fail because commands are missing.
 - Modify: `crates/agent-plugin/src/lib.rs`
 - Modify: `crates/agent-plugin/src/manifest.rs`
 
-- [ ] **Step 1: Add command parsing**
+- [x] **Step 1: Add command parsing**
 
 Add plugin subcommands without changing existing prompt, JSON, and TUI entrypoint behavior.
 
-- [ ] **Step 2: Add install report builder**
+- [x] **Step 2: Add install report builder**
 
 Build `PluginInstallRequest` and `PluginInstallReport` from plugin manifest validation and registry mutation.
 
-- [ ] **Step 3: Add enable/disable/remove flows**
+- [x] **Step 3: Add enable/disable/remove flows**
 
 Use M22-01 registry transitions and enforce explicit capability review before enabling.
 
-- [ ] **Step 4: Add safe renderers**
+- [x] **Step 4: Add safe renderers**
 
 Render stable text and JSON outputs without raw env values or secret-like diagnostics.
 
@@ -86,7 +86,7 @@ Render stable text and JSON outputs without raw env values or secret-like diagno
 **Files:**
 - Read: `crates/agent-cli/tests/plugin_commands.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -96,7 +96,7 @@ cargo test -p agent-cli plugin_commands
 
 Expected: focused plugin command tests pass.
 
-- [ ] **Step 2: Run workspace checks**
+- [x] **Step 2: Run workspace checks**
 
 Run:
 
@@ -115,11 +115,11 @@ Expected: all checks pass.
 - Modify: `docs/plans/M22-extension-ux-mcp-gateway.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Mark M22-02 complete**
+- [x] **Step 1: Mark M22-02 complete**
 
 Advance active implementation focus to M22-03.
 
-- [ ] **Step 2: Commit M22-02**
+- [x] **Step 2: Commit M22-02**
 
 Run:
 

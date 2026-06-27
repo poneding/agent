@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "name": "Bad Plugin",
+  "version": "0.1.0",
+  "runtime_compatibility": {
+    "min_agent_version": "0.1.0",
+    "api_version": 1
+  },
+  "isolation": {
+    "mode": "process",
+    "entrypoint": "plugin.sh"
+  },
+  "capabilities": [],
+  "tools": [],
+  "hooks": [],
+  "configuration_schema": {}
+}

@@ -183,6 +183,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M22 slice specs | Complete for M22-01 through M22-05 |
 | M22 slice plans | Complete for M22-01 through M22-05 |
 | M22-01 implementation | Complete |
+| M22-02 implementation | Complete |
 | M22 implementation | In Progress |
 | M23-M25 implementation slice specs | Planned |
 | M23-M25 implementation slice plans | Planned |

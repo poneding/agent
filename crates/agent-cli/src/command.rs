@@ -1,7 +1,9 @@
+use std::fs;
 use std::io;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use serde::Serialize;
 use thiserror::Error;
 
 use crate::output::CliOutput;
@@ -13,14 +15,22 @@ use agent_context::{
 use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
     ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigOverride, ConfiguredTurnError,
-    ConfiguredTurnInput, ConfiguredTurnRunner, EffectiveRuntimeConfig, RuntimeIds,
-    RuntimeModelConfig,
+    ConfiguredTurnInput, ConfiguredTurnRunner, EffectiveRuntimeConfig, ExtensionCapabilitySummary,
+    ExtensionCompatibility, ExtensionHealth, ExtensionId, ExtensionKind,
+    ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
+    ExtensionSource, ExtensionSourceKind, RuntimeIds, RuntimeModelConfig,
 };
 use agent_model::{
     EnvSecretResolver, ModelConfigError, ModelEndpointConfig, ModelFallbackChain,
     ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig, ModelProviderKind,
     ModelProviderRegistry, ModelRequestRequirements, ModelRetryPolicy,
 };
+use agent_plugin::{
+    PLUGIN_RUNTIME_API_VERSION, PluginManifest, PluginManifestError, PluginPermission,
+    check_plugin_compatibility, parse_plugin_manifest_json, validate_plugin_capabilities,
+    validate_plugin_manifest,
+};
+use agent_policy::{CapabilityAction, ResourceKind};
 use agent_storage::EventStore;
 use agent_types::{ConversationId, CorrelationId, RuntimeEventPayload, TurnId, WorkspaceId};
 use agent_ui_bridge::{
@@ -49,6 +59,30 @@ pub enum CliCommand {
     LocalSummary,
     TraceSummary,
     ConfigCheck,
+    Plugin(PluginCommand),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PluginCommand {
+    Install {
+        path: PathBuf,
+        enable: bool,
+        accept_capabilities: bool,
+    },
+    List,
+    Inspect {
+        id: String,
+    },
+    Enable {
+        id: String,
+        accept_capabilities: bool,
+    },
+    Disable {
+        id: String,
+    },
+    Remove {
+        id: String,
+    },
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -184,6 +218,7 @@ where
         "--config-check" => Ok(CliCommand::ConfigCheck),
         "prompt" => parse_prompt_command(&mut args),
         "repl" => parse_repl_command(&mut args),
+        "plugin" => parse_plugin_command(&mut args),
         "--prompt" | "-p" => {
             let prompt = args
                 .next()
@@ -258,6 +293,10 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             Err(error) => CliOutput::exit(format!("trace summary failed: {error}\n")),
         },
         CliCommand::ConfigCheck => render_text_config_check(None, ConfigOverride::default()),
+        CliCommand::Plugin(command) => {
+            let mut runtime = PluginCommandRuntime::default();
+            render_plugin_command(&mut runtime, command, OutputMode::Text)
+        }
     }
 }
 
@@ -290,6 +329,10 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             }
             CliCommand::PromptProfiles => render_prompt_profiles_text(),
             CliCommand::PromptInspect => render_prompt_inspection_text(),
+            CliCommand::Plugin(command) => {
+                let mut runtime = PluginCommandRuntime::default();
+                render_plugin_command(&mut runtime, command, OutputMode::Text)
+            }
             command => render_cli_command(command),
         },
         OutputMode::Json => render_json_invocation(invocation),
@@ -324,6 +367,10 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     }
     if invocation.command == CliCommand::PromptInspect {
         return render_prompt_inspection_json();
+    }
+    if let CliCommand::Plugin(command) = invocation.command {
+        let mut runtime = PluginCommandRuntime::default();
+        return render_plugin_command(&mut runtime, command, OutputMode::Json);
     }
 
     let mut stdout = render_model_selection_frame(&invocation.model_selection);
@@ -401,6 +448,493 @@ where
         return Err(CliError::UnknownArgument(extra));
     }
     Ok(command)
+}
+
+fn parse_plugin_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("plugin".to_string()));
+    };
+
+    let command = match subcommand.as_str() {
+        "install" => parse_plugin_install(args)?,
+        "list" => {
+            no_plugin_extra_args(args, "plugin list")?;
+            PluginCommand::List
+        }
+        "inspect" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("plugin inspect".to_string()))?;
+            no_plugin_extra_args(args, "plugin inspect")?;
+            PluginCommand::Inspect { id }
+        }
+        "enable" => parse_plugin_enable(args)?,
+        "disable" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("plugin disable".to_string()))?;
+            no_plugin_extra_args(args, "plugin disable")?;
+            PluginCommand::Disable { id }
+        }
+        "remove" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("plugin remove".to_string()))?;
+            no_plugin_extra_args(args, "plugin remove")?;
+            PluginCommand::Remove { id }
+        }
+        _ => return Err(CliError::UnknownArgument(format!("plugin {subcommand}"))),
+    };
+
+    Ok(CliCommand::Plugin(command))
+}
+
+fn parse_plugin_install<I>(args: &mut I) -> Result<PluginCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let path = args
+        .next()
+        .ok_or_else(|| CliError::MissingValue("plugin install".to_string()))?;
+    let mut enable = false;
+    let mut accept_capabilities = false;
+
+    for arg in args {
+        match arg.as_str() {
+            "--enable" => enable = true,
+            "--accept-capabilities" => accept_capabilities = true,
+            _ => return Err(CliError::UnknownArgument(format!("plugin install {arg}"))),
+        }
+    }
+
+    Ok(PluginCommand::Install {
+        path: PathBuf::from(path),
+        enable,
+        accept_capabilities,
+    })
+}
+
+fn parse_plugin_enable<I>(args: &mut I) -> Result<PluginCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let id = args
+        .next()
+        .ok_or_else(|| CliError::MissingValue("plugin enable".to_string()))?;
+    let mut accept_capabilities = false;
+
+    for arg in args {
+        match arg.as_str() {
+            "--accept-capabilities" => accept_capabilities = true,
+            _ => return Err(CliError::UnknownArgument(format!("plugin enable {arg}"))),
+        }
+    }
+
+    Ok(PluginCommand::Enable {
+        id,
+        accept_capabilities,
+    })
+}
+
+fn no_plugin_extra_args<I>(args: &mut I, command_name: &str) -> Result<(), CliError>
+where
+    I: Iterator<Item = String>,
+{
+    if let Some(extra) = args.next() {
+        return Err(CliError::UnknownArgument(format!("{command_name} {extra}")));
+    }
+    Ok(())
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct PluginCommandRuntime {
+    registry: ExtensionRegistry,
+}
+
+impl PluginCommandRuntime {
+    #[must_use]
+    pub const fn registry(&self) -> &ExtensionRegistry {
+        &self.registry
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct PluginInstallReport {
+    pub extension_id: String,
+    pub manifest_name: String,
+    pub version: String,
+    pub enabled: bool,
+    pub compatibility: String,
+    pub capability_review_required: bool,
+    pub diagnostics: Vec<PluginInstallDiagnostic>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct PluginInstallDiagnostic {
+    pub severity: String,
+    pub code: String,
+    pub message: String,
+}
+
+#[must_use]
+pub fn render_plugin_command(
+    runtime: &mut PluginCommandRuntime,
+    command: PluginCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match run_plugin_command(runtime, command) {
+        Ok(response) => render_plugin_response(response, output_mode),
+        Err(error) => render_plugin_error(error, output_mode),
+    }
+}
+
+enum PluginCommandResponse {
+    Install(PluginInstallReport),
+    List(Vec<ExtensionRecord>),
+    Inspect(ExtensionRecord),
+    Enabled(ExtensionRecord),
+    Disabled(ExtensionRecord),
+    Removed(ExtensionRecord),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct PluginCommandError {
+    message: String,
+}
+
+impl PluginCommandError {
+    fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: redact_secret_like_text(&message.into()),
+        }
+    }
+}
+
+fn run_plugin_command(
+    runtime: &mut PluginCommandRuntime,
+    command: PluginCommand,
+) -> Result<PluginCommandResponse, PluginCommandError> {
+    match command {
+        PluginCommand::Install {
+            path,
+            enable,
+            accept_capabilities,
+        } => install_plugin(runtime, &path, enable, accept_capabilities)
+            .map(PluginCommandResponse::Install),
+        PluginCommand::List => Ok(PluginCommandResponse::List(runtime.registry.list())),
+        PluginCommand::Inspect { id } => {
+            let id = parse_extension_id(&id)?;
+            let record =
+                runtime.registry.get(&id).cloned().ok_or_else(|| {
+                    PluginCommandError::new(format!("plugin {id} is not installed"))
+                })?;
+            Ok(PluginCommandResponse::Inspect(record))
+        }
+        PluginCommand::Enable {
+            id,
+            accept_capabilities,
+        } => {
+            let id = parse_extension_id(&id)?;
+            if !accept_capabilities {
+                return Err(PluginCommandError::new(
+                    "capability review is required before enabling plugin",
+                ));
+            }
+            let mut record =
+                runtime.registry.get(&id).cloned().ok_or_else(|| {
+                    PluginCommandError::new(format!("plugin {id} is not installed"))
+                })?;
+            record.enabled = true;
+            record.health = ExtensionHealth::healthy("enabled");
+            runtime
+                .registry
+                .upsert(record.clone())
+                .map_err(plugin_registry_error)?;
+            Ok(PluginCommandResponse::Enabled(record))
+        }
+        PluginCommand::Disable { id } => {
+            let id = parse_extension_id(&id)?;
+            runtime
+                .registry
+                .disable(&id)
+                .map(PluginCommandResponse::Disabled)
+                .map_err(plugin_registry_error)
+        }
+        PluginCommand::Remove { id } => {
+            let id = parse_extension_id(&id)?;
+            runtime
+                .registry
+                .remove(&id)
+                .map(PluginCommandResponse::Removed)
+                .map_err(plugin_registry_error)
+        }
+    }
+}
+
+fn install_plugin(
+    runtime: &mut PluginCommandRuntime,
+    path: &Path,
+    enable: bool,
+    accept_capabilities: bool,
+) -> Result<PluginInstallReport, PluginCommandError> {
+    if enable && !accept_capabilities {
+        return Err(PluginCommandError::new(
+            "capability review is required before enabling plugin",
+        ));
+    }
+
+    let manifest_path = plugin_manifest_path(path);
+    let manifest_json = fs::read_to_string(&manifest_path).map_err(|error| {
+        PluginCommandError::new(format!(
+            "plugin install failed: could not read {}: {error}",
+            manifest_path.display()
+        ))
+    })?;
+    let manifest = parse_plugin_manifest_json(&manifest_json).map_err(plugin_manifest_error)?;
+    let compatibility = plugin_compatibility(&manifest);
+    if compatibility.is_supported() {
+        validate_plugin_manifest(&manifest).map_err(plugin_manifest_error)?;
+    }
+    validate_plugin_capabilities(&manifest).map_err(plugin_manifest_error)?;
+
+    let id = ExtensionId::new(manifest.name.as_str()).map_err(plugin_registry_error)?;
+    if runtime.registry.get(&id).is_some() {
+        return Err(PluginCommandError::new(format!(
+            "plugin {} is already installed",
+            manifest.name
+        )));
+    }
+
+    let record = plugin_record(&manifest, path, enable, compatibility)?;
+    let report = plugin_install_report(&record, &manifest, accept_capabilities);
+    runtime
+        .registry
+        .upsert(record)
+        .map_err(plugin_registry_error)?;
+    Ok(report)
+}
+
+fn plugin_manifest_path(path: &Path) -> PathBuf {
+    if path.is_dir() {
+        path.join("plugin.json")
+    } else {
+        path.to_path_buf()
+    }
+}
+
+fn plugin_compatibility(manifest: &PluginManifest) -> ExtensionCompatibility {
+    match check_plugin_compatibility(&manifest.runtime_compatibility) {
+        Ok(()) => ExtensionCompatibility::supported(manifest.runtime_compatibility.api_version),
+        Err(error) => ExtensionCompatibility::unsupported(
+            manifest.runtime_compatibility.api_version,
+            PLUGIN_RUNTIME_API_VERSION,
+            error.to_string(),
+        ),
+    }
+}
+
+fn plugin_record(
+    manifest: &PluginManifest,
+    path: &Path,
+    enabled: bool,
+    compatibility: ExtensionCompatibility,
+) -> Result<ExtensionRecord, PluginCommandError> {
+    ExtensionRecord::new(
+        ExtensionId::new(manifest.name.as_str()).map_err(plugin_registry_error)?,
+        ExtensionKind::Plugin,
+        ExtensionSource::new(
+            ExtensionSourceKind::LocalPath,
+            path.display().to_string(),
+            path.display().to_string(),
+            Option::<String>::None,
+        )
+        .map_err(plugin_registry_error)?,
+        enabled,
+        Some(manifest.version.clone()),
+        compatibility,
+        manifest
+            .capabilities
+            .iter()
+            .map(plugin_capability_summary)
+            .collect::<Result<Vec<_>, _>>()?,
+        Vec::new(),
+        ExtensionHealth::healthy("installed"),
+    )
+    .map_err(plugin_registry_error)
+}
+
+fn plugin_capability_summary(
+    capability: &agent_plugin::PluginCapabilityManifest,
+) -> Result<ExtensionCapabilitySummary, PluginCommandError> {
+    ExtensionCapabilitySummary::new(
+        capability.kind.to_string(),
+        capability.name.clone(),
+        capability
+            .permissions
+            .iter()
+            .map(plugin_permission_summary)
+            .collect::<Result<Vec<_>, _>>()?,
+    )
+    .map_err(plugin_registry_error)
+}
+
+fn plugin_permission_summary(
+    permission: &PluginPermission,
+) -> Result<ExtensionPermissionSummary, PluginCommandError> {
+    ExtensionPermissionSummary::new(
+        plugin_resource_kind(&permission.resource),
+        plugin_action(&permission.action)?,
+        permission.to_string(),
+    )
+    .map_err(plugin_registry_error)
+}
+
+fn plugin_resource_kind(resource: &str) -> ResourceKind {
+    match resource {
+        "fs" | "file" | "filesystem" => ResourceKind::File,
+        "command" | "cmd" | "shell" => ResourceKind::Command,
+        "network" | "net" | "http" => ResourceKind::Network,
+        "workspace" => ResourceKind::Workspace,
+        _ => ResourceKind::Tool,
+    }
+}
+
+fn plugin_action(action: &str) -> Result<CapabilityAction, PluginCommandError> {
+    match action {
+        "read" => Ok(CapabilityAction::Read),
+        "search" => Ok(CapabilityAction::Search),
+        "execute" | "write" => Ok(CapabilityAction::Execute),
+        "network" => Ok(CapabilityAction::Network),
+        other => Err(PluginCommandError::new(format!(
+            "unsupported plugin permission action: {other}"
+        ))),
+    }
+}
+
+fn plugin_install_report(
+    record: &ExtensionRecord,
+    manifest: &PluginManifest,
+    accept_capabilities: bool,
+) -> PluginInstallReport {
+    PluginInstallReport {
+        extension_id: record.id.as_str().to_string(),
+        manifest_name: manifest.name.as_str().to_string(),
+        version: manifest.version.clone(),
+        enabled: record.enabled,
+        compatibility: record.compatibility.summary(),
+        capability_review_required: !accept_capabilities && !manifest.capabilities.is_empty(),
+        diagnostics: Vec::new(),
+    }
+}
+
+fn render_plugin_response(response: PluginCommandResponse, output_mode: OutputMode) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => render_plugin_text_response(response),
+        OutputMode::Json => render_plugin_json_response(response),
+    }
+}
+
+fn render_plugin_text_response(response: PluginCommandResponse) -> CliOutput {
+    match response {
+        PluginCommandResponse::Install(report) => CliOutput::exit(format!(
+            "Installed plugin {}\nenabled={}\ncompatibility={}\ncapability_review_required={}\n",
+            report.extension_id,
+            report.enabled,
+            report.compatibility,
+            report.capability_review_required
+        )),
+        PluginCommandResponse::List(records) if records.is_empty() => {
+            CliOutput::exit("No plugins installed\n")
+        }
+        PluginCommandResponse::List(records) => CliOutput::exit(
+            records
+                .iter()
+                .map(|record| format!("{} enabled={}", record.id, record.enabled))
+                .collect::<Vec<_>>()
+                .join("\n")
+                + "\n",
+        ),
+        PluginCommandResponse::Inspect(record) => CliOutput::exit(format!(
+            "Plugin {}\nenabled={}\nhealth={:?}\ncapabilities={}\n",
+            record.id,
+            record.enabled,
+            record.health.status,
+            record.declared_capabilities.len()
+        )),
+        PluginCommandResponse::Enabled(record) => {
+            CliOutput::exit(format!("Enabled plugin {}\n", record.id))
+        }
+        PluginCommandResponse::Disabled(record) => {
+            CliOutput::exit(format!("Disabled plugin {}\n", record.id))
+        }
+        PluginCommandResponse::Removed(record) => {
+            CliOutput::exit(format!("Removed plugin {}\n", record.id))
+        }
+    }
+}
+
+fn render_plugin_json_response(response: PluginCommandResponse) -> CliOutput {
+    let value = match response {
+        PluginCommandResponse::Install(report) => serde_json::json!({
+            "type": "plugin_install",
+            "data": report,
+        }),
+        PluginCommandResponse::List(records) => serde_json::json!({
+            "type": "plugin_list",
+            "data": {
+                "plugins": records,
+            },
+        }),
+        PluginCommandResponse::Inspect(record) => serde_json::json!({
+            "type": "plugin_inspect",
+            "data": record,
+        }),
+        PluginCommandResponse::Enabled(record) => serde_json::json!({
+            "type": "plugin_enabled",
+            "data": record,
+        }),
+        PluginCommandResponse::Disabled(record) => serde_json::json!({
+            "type": "plugin_disabled",
+            "data": record,
+        }),
+        PluginCommandResponse::Removed(record) => serde_json::json!({
+            "type": "plugin_removed",
+            "data": record,
+        }),
+    };
+    CliOutput::exit(json_value_frame_line(value))
+}
+
+fn render_plugin_error(error: PluginCommandError, output_mode: OutputMode) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => {
+            CliOutput::failure(format!("plugin install failed: {}\n", error.message), 2)
+        }
+        OutputMode::Json => CliOutput::failure(
+            json_value_frame_line(serde_json::json!({
+                "type": "plugin_error",
+                "data": {
+                    "message": error.message,
+                },
+            })),
+            2,
+        ),
+    }
+}
+
+fn parse_extension_id(id: &str) -> Result<ExtensionId, PluginCommandError> {
+    ExtensionId::new(id).map_err(plugin_registry_error)
+}
+
+fn plugin_manifest_error(error: PluginManifestError) -> PluginCommandError {
+    PluginCommandError::new(format!("plugin install failed: {error}"))
+}
+
+fn plugin_registry_error(error: ExtensionRegistryError) -> PluginCommandError {
+    PluginCommandError::new(error.to_string())
 }
 
 fn no_extra_args<I>(

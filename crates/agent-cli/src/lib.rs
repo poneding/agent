@@ -13,10 +13,11 @@ pub use approval::{
     render_json_approval_frame,
 };
 pub use command::{
-    CliCommand, CliError, CliInvocation, InteractiveMode, ModelSelection, OutputMode, SlashCommand,
-    StdioProfile, handle_slash_command, parse_cli_command, parse_cli_invocation,
+    CliCommand, CliError, CliInvocation, InteractiveMode, ModelSelection, OutputMode,
+    PluginCommand, PluginCommandRuntime, PluginInstallDiagnostic, PluginInstallReport,
+    SlashCommand, StdioProfile, handle_slash_command, parse_cli_command, parse_cli_invocation,
     render_cli_command, render_cli_invocation, render_cli_invocation_with_stdio,
-    run_plain_repl_stdio,
+    render_plugin_command, run_plain_repl_stdio,
 };
 pub use output::CliOutput;
 pub use repl::{

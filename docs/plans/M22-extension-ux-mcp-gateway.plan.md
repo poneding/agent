@@ -59,7 +59,7 @@ Each plan includes fixture plugins or MCP servers and denial tests.
 
 Track installed plugins, skill roots, MCP servers, and enablement state.
 
-- [ ] **Step 2: Implement plugin install commands**
+- [x] **Step 2: Implement plugin install commands**
 
 Add install, list, enable, disable, remove, and inspect flows.
 

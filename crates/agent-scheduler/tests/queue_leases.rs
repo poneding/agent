@@ -109,7 +109,7 @@ fn queue_leases_failure_schedules_retry_until_exhausted() {
         .unwrap();
 
     match retry {
-        RetryDecision::RetryAt { task, run_at } => {
+        RetryDecision::RetryAt { task, run_at, .. } => {
             assert_eq!(task.task_id, task_id);
             assert_eq!(task.state, TaskState::Sleeping);
             assert_eq!(task.attempt, 1);

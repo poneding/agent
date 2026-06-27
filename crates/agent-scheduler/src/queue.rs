@@ -3,8 +3,9 @@ use time::Duration;
 
 use crate::{
     LeaseStatus, QuotaDecision, QuotaPolicy, QuotaSnapshot, RetryDecision, RetryPolicy,
-    SchedulerError, TaskLease, TaskLeaseId, TaskPriority, TaskRun, TaskTransition,
-    evaluate_task_quota, transition_task_state,
+    SchedulerError, StaleLeaseDisposition, StaleLeaseRecoveryPolicy, TaskLease, TaskLeaseId,
+    TaskPriority, TaskRecoveryReport, TaskRun, TaskTransition, evaluate_task_quota,
+    transition_task_state,
 };
 
 pub trait TaskQueue {
@@ -217,6 +218,66 @@ impl InMemoryTaskQueue {
         let max_attempts = run.max_attempts.min(self.retry_policy.max_attempts);
         next_attempt < max_attempts
     }
+
+    #[must_use]
+    pub fn recover_expired_leases(
+        &mut self,
+        policy: &StaleLeaseRecoveryPolicy,
+        now: Timestamp,
+    ) -> TaskRecoveryReport {
+        let (_, report) = self.recover_expired_leases_internal(now, policy.disposition);
+        report
+    }
+
+    fn recover_expired_leases_internal(
+        &mut self,
+        now: Timestamp,
+        disposition: StaleLeaseDisposition,
+    ) -> (Vec<TaskLease>, TaskRecoveryReport) {
+        let mut expired = Vec::new();
+        let mut report = TaskRecoveryReport::default();
+
+        for lease_index in 0..self.leases.len() {
+            if self.leases[lease_index].status != LeaseStatus::Active
+                || self.leases[lease_index].expires_at > now
+            {
+                continue;
+            }
+
+            self.leases[lease_index].status = LeaseStatus::Expired;
+            let lease = self.leases[lease_index].clone();
+            report.expired_leases += 1;
+            if let Ok(task_index) = self.task_index(lease.task_id)
+                && self.tasks[task_index].active_lease.as_ref() == Some(&lease.id)
+                && !self.tasks[task_index].run.state.is_terminal()
+            {
+                self.tasks[task_index].active_lease = None;
+                self.tasks[task_index].available_at = now;
+                let target_state = match disposition {
+                    StaleLeaseDisposition::Requeue => TaskState::Queued,
+                    StaleLeaseDisposition::Fail => TaskState::Failed,
+                };
+                if let Ok(next) = transition_task_state(
+                    &self.tasks[task_index].run,
+                    TaskTransition {
+                        from: self.tasks[task_index].run.state,
+                        to: target_state,
+                        reason: "stale lease expired".to_string(),
+                        at: now,
+                    },
+                ) {
+                    self.tasks[task_index].run = next;
+                    match disposition {
+                        StaleLeaseDisposition::Requeue => report.requeued_tasks += 1,
+                        StaleLeaseDisposition::Fail => report.failed_tasks += 1,
+                    }
+                }
+            }
+            expired.push(lease);
+        }
+
+        (expired, report)
+    }
 }
 
 impl Default for InMemoryTaskQueue {
@@ -376,7 +437,7 @@ impl TaskQueue for InMemoryTaskQueue {
                 TaskTransition {
                     from: TaskState::Running,
                     to: TaskState::Sleeping,
-                    reason: error,
+                    reason: error.clone(),
                     at: now,
                 },
             )?;
@@ -386,6 +447,7 @@ impl TaskQueue for InMemoryTaskQueue {
             Ok(RetryDecision::RetryAt {
                 task: sleeping,
                 run_at,
+                error,
             })
         } else {
             let failed = transition_task_state(
@@ -525,29 +587,8 @@ impl TaskQueue for InMemoryTaskQueue {
     }
 
     fn release_expired_leases(&mut self, now: Timestamp) -> Vec<TaskLease> {
-        let mut expired = Vec::new();
-        for lease_index in 0..self.leases.len() {
-            if self.leases[lease_index].status != LeaseStatus::Active
-                || self.leases[lease_index].expires_at > now
-            {
-                continue;
-            }
-
-            self.leases[lease_index].status = LeaseStatus::Expired;
-            let lease = self.leases[lease_index].clone();
-            if let Ok(task_index) = self.task_index(lease.task_id)
-                && self.tasks[task_index].active_lease.as_ref() == Some(&lease.id)
-                && !self.tasks[task_index].run.state.is_terminal()
-            {
-                self.tasks[task_index].active_lease = None;
-                self.tasks[task_index].available_at = now;
-                let mut run = self.tasks[task_index].run.clone();
-                run.state = TaskState::Queued;
-                run.updated_at = now;
-                self.tasks[task_index].run = run;
-            }
-            expired.push(lease);
-        }
+        let (expired, _) =
+            self.recover_expired_leases_internal(now, StaleLeaseDisposition::Requeue);
         expired
     }
 }

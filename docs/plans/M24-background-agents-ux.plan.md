@@ -67,7 +67,7 @@ Connect scheduler leases to comprehensive turn execution.
 
 Pause tasks for approvals and notify UI clients.
 
-- [ ] **Step 4: Add quotas, retries, and recovery**
+- [x] **Step 4: Add quotas, retries, and recovery**
 
 Enforce budgets and recover from stale leases.
 

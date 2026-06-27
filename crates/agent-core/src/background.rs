@@ -20,6 +20,7 @@ use crate::{
 pub struct BackgroundTaskRunnerInput {
     pub worker_id: String,
     pub now: Timestamp,
+    pub cancellation_requested: bool,
 }
 
 impl BackgroundTaskRunnerInput {
@@ -38,7 +39,14 @@ impl BackgroundTaskRunnerInput {
         Ok(Self {
             worker_id: worker_id.to_string(),
             now,
+            cancellation_requested: false,
         })
+    }
+
+    #[must_use]
+    pub const fn with_cancellation_requested(mut self, cancellation_requested: bool) -> Self {
+        self.cancellation_requested = cancellation_requested;
+        self
     }
 }
 
@@ -206,6 +214,27 @@ impl BackgroundTaskRunner {
             .get_task(lease.task_id)
             .cloned()
             .ok_or(BackgroundRunnerError::MissingLeasedTask(lease.task_id))?;
+
+        if input.cancellation_requested {
+            let summary = "background task cancellation requested";
+            let cancelled = queue.cancel(task.task_id, summary.to_string(), input.now)?;
+            notify_task(
+                &mut notifications,
+                cancelled.task_id,
+                TaskNotificationKind::Cancelled,
+                summary,
+                input.now,
+                None,
+            )?;
+            return Ok(Some(BackgroundTaskRunOutcome {
+                task_id: cancelled.task_id,
+                final_state: cancelled.state,
+                event_count: 0,
+                trace_id: None,
+                summary: summary.to_string(),
+                approval_id: None,
+            }));
+        }
 
         match executor.execute_task_turn(&task).await {
             Ok(result) => {

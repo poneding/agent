@@ -18,7 +18,7 @@
 - Read: `crates/agent-scheduler/src/retry.rs`
 - Read: `crates/agent-scheduler/src/queue.rs`
 
-- [ ] **Step 1: Review quota and recovery scope**
+- [x] **Step 1: Review quota and recovery scope**
 
 Expected: quota dimensions, retry decisions, stale lease recovery, and cancellation behavior are clear.
 
@@ -28,19 +28,19 @@ Expected: quota dimensions, retry decisions, stale lease recovery, and cancellat
 - Create: `crates/agent-scheduler/tests/task_quotas_retries_recovery.rs`
 - Create if needed: `crates/agent-core/tests/background_task_cancellation.rs`
 
-- [ ] **Step 1: Add quota tests**
+- [x] **Step 1: Add quota tests**
 
 Cover running, model call, tool call, wall-clock, output byte, and worktree quota rejection.
 
-- [ ] **Step 2: Add retry tests**
+- [x] **Step 2: Add retry tests**
 
 Cover retry backoff, sleeping-to-queued wakeup, and retry exhaustion.
 
-- [ ] **Step 3: Add stale lease recovery tests**
+- [x] **Step 3: Add stale lease recovery tests**
 
 Cover expired active leases requeue/fail according to policy.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 ```bash
 cargo test -p agent-scheduler task_quotas_retries_recovery
@@ -56,31 +56,31 @@ cargo test -p agent-scheduler task_quotas_retries_recovery
 - Modify: `crates/agent-scheduler/src/lib.rs`
 - Modify if needed: `crates/agent-core/src/background.rs`
 
-- [ ] **Step 1: Add usage quota contracts**
+- [x] **Step 1: Add usage quota contracts**
 
 Implement task usage snapshots and quota rejection summaries.
 
-- [ ] **Step 2: Extend retry visibility**
+- [x] **Step 2: Extend retry visibility**
 
 Expose attempt summaries, next run time, and exhausted failure reason.
 
-- [ ] **Step 3: Add stale lease recovery report**
+- [x] **Step 3: Add stale lease recovery report**
 
 Implement deterministic recovery for expired leases.
 
-- [ ] **Step 4: Add cancellation propagation hooks**
+- [x] **Step 4: Add cancellation propagation hooks**
 
 Runner observes cancellation and maps it to scheduler state.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 ```bash
 cargo test -p agent-scheduler task_quotas_retries_recovery
 ```
 
-- [ ] **Step 2: Run workspace checks**
+- [x] **Step 2: Run workspace checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -90,11 +90,11 @@ cargo test --workspace
 
 ### Task 5: Update Status and Commit
 
-- [ ] **Step 1: Mark M24-04 complete**
+- [x] **Step 1: Mark M24-04 complete**
 
 Advance focus to M24-05.
 
-- [ ] **Step 2: Commit M24-04**
+- [x] **Step 2: Commit M24-04**
 
 ```bash
 git add crates docs README.md Cargo.toml Cargo.lock

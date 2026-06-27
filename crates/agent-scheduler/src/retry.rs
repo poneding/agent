@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{SchedulerError, TaskRun};
+use agent_types::{TaskId, TaskState, Timestamp};
+
+use crate::{SchedulerError, TaskRun, redact_task_text};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct RetryPolicy {
@@ -53,10 +55,51 @@ impl Default for RetryPolicy {
 pub enum RetryDecision {
     RetryAt {
         task: TaskRun,
-        run_at: agent_types::Timestamp,
+        run_at: Timestamp,
+        error: String,
     },
     Exhausted {
         task: TaskRun,
         error: String,
     },
+}
+
+impl RetryDecision {
+    #[must_use]
+    pub fn summary(&self) -> RetryAttemptSummary {
+        match self {
+            Self::RetryAt {
+                task,
+                run_at,
+                error,
+            } => RetryAttemptSummary {
+                task_id: task.task_id,
+                state: task.state,
+                attempt: task.attempt,
+                max_attempts: task.max_attempts,
+                next_run_at: Some(*run_at),
+                error: Some(redact_task_text(error)),
+            },
+            Self::Exhausted { task, error } => RetryAttemptSummary {
+                task_id: task.task_id,
+                state: task.state,
+                attempt: task.attempt,
+                max_attempts: task.max_attempts,
+                next_run_at: None,
+                error: Some(redact_task_text(error)),
+            },
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct RetryAttemptSummary {
+    pub task_id: TaskId,
+    pub state: TaskState,
+    pub attempt: u32,
+    pub max_attempts: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub next_run_at: Option<Timestamp>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
 }

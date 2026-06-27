@@ -23,8 +23,10 @@ thiserror = "2"
 toml = "0.8"
 
 [dev-dependencies]
+agent-mcp = { path = "../agent-mcp" }
 agent-memory = { path = "../agent-memory" }
 agent-plugin = { path = "../agent-plugin" }
+futures = "0.3"
 tokio = { version = "1", features = ["macros", "rt", "time"] }
 
 [lints]

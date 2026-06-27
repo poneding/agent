@@ -58,3 +58,22 @@ impl McpToolListResult {
         Self { server_id, tools }
     }
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpToolCallRequest {
+    pub server_id: McpServerId,
+    pub remote_tool_name: String,
+    pub input_json: serde_json::Value,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpToolCallResult {
+    pub output_json: serde_json::Value,
+}
+
+impl McpToolCallResult {
+    #[must_use]
+    pub fn new(output_json: serde_json::Value) -> Self {
+        Self { output_json }
+    }
+}

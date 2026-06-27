@@ -19,7 +19,7 @@
 - Read: `crates/agent-mcp/src/policy.rs`
 - Read: `crates/agent-core/src/tool_loop.rs`
 
-- [ ] **Step 1: Review MCP gateway scope**
+- [x] **Step 1: Review MCP gateway scope**
 
 Run:
 
@@ -35,19 +35,19 @@ Expected: gateway discovery, policy, execution, and failure requirements are cle
 - Create: `crates/agent-mcp/tests/mcp_gateway.rs`
 - Create: `crates/agent-core/tests/mcp_gateway_tool_loop.rs`
 
-- [ ] **Step 1: Add discovery tests**
+- [x] **Step 1: Add discovery tests**
 
 Cover disabled, healthy, unhealthy, duplicate local names, timeout, and source metadata.
 
-- [ ] **Step 2: Add execution tests**
+- [x] **Step 2: Add execution tests**
 
 Cover allowed call, denied call, remote error, oversized response, and redacted input/output traces.
 
-- [ ] **Step 3: Add core integration test**
+- [x] **Step 3: Add core integration test**
 
 Prove a comprehensive turn can execute an MCP-backed tool through `ToolLoop` and record normal tool events.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -66,19 +66,19 @@ Expected: tests fail because gateway contracts are missing.
 - Modify: `crates/agent-mcp/src/client.rs`
 - Modify: `crates/agent-core/src/model_runtime.rs`
 
-- [ ] **Step 1: Add gateway client and report contracts**
+- [x] **Step 1: Add gateway client and report contracts**
 
 Implement `McpGatewayClient`, `McpGateway`, `McpGatewayReport`, `McpGatewayTool`, and `McpToolCallRequest`.
 
-- [ ] **Step 2: Register local tools**
+- [x] **Step 2: Register local tools**
 
 Convert healthy descriptors into `agent-tool` entries named `mcp.<server>.<tool>` with source metadata.
 
-- [ ] **Step 3: Enforce policy**
+- [x] **Step 3: Enforce policy**
 
 Ensure remote calls use existing policy requests and denied calls never reach the MCP client.
 
-- [ ] **Step 4: Add execution and observation conversion**
+- [x] **Step 4: Add execution and observation conversion**
 
 Bound remote responses and convert them to normal tool outputs and observations.
 
@@ -88,7 +88,7 @@ Bound remote responses and convert them to normal tool outputs and observations.
 - Read: `crates/agent-mcp/tests/mcp_gateway.rs`
 - Read: `crates/agent-core/tests/mcp_gateway_tool_loop.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -99,7 +99,7 @@ cargo test -p agent-core mcp_gateway_tool_loop
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace checks**
+- [x] **Step 2: Run workspace checks**
 
 Run:
 
@@ -118,11 +118,11 @@ Expected: all checks pass.
 - Modify: `docs/plans/M22-extension-ux-mcp-gateway.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Mark M22-04 complete**
+- [x] **Step 1: Mark M22-04 complete**
 
 Advance active implementation focus to M22-05.
 
-- [ ] **Step 2: Commit M22-04**
+- [x] **Step 2: Commit M22-04**
 
 Run:
 

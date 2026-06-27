@@ -1,9 +1,13 @@
 use std::collections::BTreeMap;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use crate::{McpError, McpServerConfig, McpServerId, McpToolDescriptor, McpToolListResult};
+use crate::{
+    McpError, McpServerConfig, McpServerId, McpToolCallRequest, McpToolCallResult,
+    McpToolDescriptor, McpToolListResult,
+};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpServerCapabilities {
@@ -62,10 +66,17 @@ pub trait McpClient: Send + Sync {
     async fn list_tools(&self, server_id: &McpServerId) -> Result<McpToolListResult, McpError>;
 }
 
+#[async_trait]
+pub trait McpGatewayClient: McpClient {
+    async fn call_tool(&self, request: McpToolCallRequest) -> Result<McpToolCallResult, McpError>;
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct FixtureMcpClient {
     servers: BTreeMap<McpServerId, McpInitializeResult>,
     tools: BTreeMap<McpServerId, McpToolListResult>,
+    tool_results: BTreeMap<(McpServerId, String), Result<McpToolCallResult, McpError>>,
+    calls: Arc<Mutex<BTreeMap<(McpServerId, String), u32>>>,
 }
 
 impl FixtureMcpClient {
@@ -86,6 +97,43 @@ impl FixtureMcpClient {
             .insert(server_id.clone(), McpToolListResult::new(server_id, tools));
         self
     }
+
+    #[must_use]
+    pub fn with_tool_result(
+        mut self,
+        server_id: McpServerId,
+        remote_tool_name: impl Into<String>,
+        result: McpToolCallResult,
+    ) -> Self {
+        self.tool_results
+            .insert((server_id, remote_tool_name.into()), Ok(result));
+        self
+    }
+
+    #[must_use]
+    pub fn with_tool_error(
+        mut self,
+        server_id: McpServerId,
+        remote_tool_name: impl Into<String>,
+        error: McpError,
+    ) -> Self {
+        self.tool_results
+            .insert((server_id, remote_tool_name.into()), Err(error));
+        self
+    }
+
+    #[must_use]
+    pub fn call_count(&self, server_id: &str, remote_tool_name: &str) -> u32 {
+        let Ok(server_id) = McpServerId::new(server_id) else {
+            return 0;
+        };
+        *self
+            .calls
+            .lock()
+            .expect("fixture mcp calls")
+            .get(&(server_id, remote_tool_name.to_string()))
+            .unwrap_or(&0)
+    }
 }
 
 #[async_trait]
@@ -102,6 +150,23 @@ impl McpClient for FixtureMcpClient {
             .get(server_id)
             .cloned()
             .ok_or_else(|| McpError::ServerNotFound(server_id.to_string()))
+    }
+}
+
+#[async_trait]
+impl McpGatewayClient for FixtureMcpClient {
+    async fn call_tool(&self, request: McpToolCallRequest) -> Result<McpToolCallResult, McpError> {
+        let key = (request.server_id, request.remote_tool_name);
+        *self
+            .calls
+            .lock()
+            .expect("fixture mcp calls")
+            .entry(key.clone())
+            .or_default() += 1;
+        self.tool_results
+            .get(&key)
+            .cloned()
+            .unwrap_or_else(|| Err(McpError::ServerNotFound(key.0.to_string())))
     }
 }
 

@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[derive(Debug, Error, Eq, PartialEq)]
+#[derive(Clone, Debug, Error, Eq, PartialEq)]
 pub enum McpError {
     #[error("invalid MCP config: {0}")]
     InvalidConfig(String),

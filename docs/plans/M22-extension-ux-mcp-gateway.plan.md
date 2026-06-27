@@ -67,7 +67,7 @@ Add install, list, enable, disable, remove, and inspect flows.
 
 Add skill discovery diagnostics and source tracking.
 
-- [ ] **Step 4: Implement MCP gateway tools**
+- [x] **Step 4: Implement MCP gateway tools**
 
 Expose MCP tools as local tools routed through policy and audit.
 

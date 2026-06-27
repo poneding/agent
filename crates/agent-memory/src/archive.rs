@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{MemoryRecord, MemoryScope, MemorySensitivity, MemorySource};
+use crate::{MemoryRecord, MemoryScope, MemorySensitivity, MemorySource, MemoryTombstone};
 
 pub const MEMORY_ARCHIVE_SCHEMA_VERSION: u32 = 1;
 
@@ -12,6 +12,8 @@ pub struct MemoryArchive {
     pub schema_version: u32,
     pub manifest: MemoryArchiveManifest,
     pub records: Vec<MemoryArchiveRecord>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tombstones: Vec<MemoryTombstone>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -97,6 +99,10 @@ pub enum MemoryArchiveError {
     DuplicateRecordId { id: String },
     #[error("memory archive record {id} is invalid: {reason}")]
     InvalidRecord { id: String, reason: String },
+    #[error("memory archive tombstone {id} is invalid: {reason}")]
+    InvalidTombstone { id: String, reason: String },
+    #[error("memory archive record conflicts with tombstone: {id}")]
+    TombstoneConflict { id: String },
 }
 
 pub fn export_memory_archive(
@@ -133,6 +139,7 @@ pub fn export_memory_archive(
             sensitive_record_count,
         },
         records,
+        tombstones: Vec::new(),
     })
 }
 

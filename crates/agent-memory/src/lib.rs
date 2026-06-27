@@ -3,6 +3,7 @@
 
 pub mod archive;
 pub mod audit;
+pub mod editor;
 pub mod embedding;
 pub mod error;
 pub mod index;
@@ -10,6 +11,7 @@ pub mod proposal;
 pub mod record;
 pub mod rerank;
 pub mod store;
+pub mod tombstone;
 pub mod trace;
 
 pub use archive::{
@@ -18,6 +20,10 @@ pub use archive::{
     export_memory_archive, import_memory_archive,
 };
 pub use audit::{AuditedMemoryStore, MemoryAuditAction, MemoryAuditEntry};
+pub use editor::{
+    InMemoryMemoryEditor, MemoryEditor, MemoryEditorSummary, MemoryImportPolicy,
+    MemoryIndexRebuildReport, MemoryTombstoneConflictPolicy,
+};
 pub use embedding::{
     DeterministicEmbeddingProvider, EmbeddingBatch, EmbeddingInput, EmbeddingMetadata,
     EmbeddingProvider, EmbeddingRequest, EmbeddingVector,
@@ -36,6 +42,7 @@ pub use rerank::{
     MemoryRetrievalReason, MemoryRetrievalResult, MemorySelectedCandidate,
 };
 pub use store::{InMemoryMemoryStore, MemoryStore};
+pub use tombstone::MemoryTombstone;
 pub(crate) use trace::stable_trace_hash;
 pub use trace::{MemoryInfluenceEntry, MemoryInfluenceTrace};
 

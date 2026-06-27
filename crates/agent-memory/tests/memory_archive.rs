@@ -135,6 +135,7 @@ fn memory_archive_import_rejects_duplicate_ids() {
                 MemorySensitivity::Internal,
             )),
         ],
+        tombstones: Vec::new(),
     };
 
     let error = import_memory_archive(&duplicate).expect_err("duplicate ids rejected");

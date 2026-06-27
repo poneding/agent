@@ -71,7 +71,7 @@ Return selected memories, scores, reasons, and safe trace summaries.
 
 Separate proposed memories from committed records with approval policy.
 
-- [ ] **Step 5: Implement editor and portability updates**
+- [x] **Step 5: Implement editor and portability updates**
 
 Expose list, inspect, delete, export, import, and tombstone behavior.
 
@@ -82,7 +82,7 @@ Expose list, inspect, delete, export, import, and tombstone behavior.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M23-memory-retrieval-quality.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -92,11 +92,11 @@ cargo xtask check
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M23 complete**
+- [x] **Step 2: Mark M23 complete**
 
 Update milestone status and advance active focus to M24.
 
-- [ ] **Step 3: Commit M23 completion**
+- [x] **Step 3: Commit M23 completion**
 
 Run:
 

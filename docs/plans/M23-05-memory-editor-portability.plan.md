@@ -18,7 +18,7 @@
 - Read: `crates/agent-memory/src/archive.rs`
 - Read: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Review editor and portability scope**
+- [x] **Step 1: Review editor and portability scope**
 
 Run:
 
@@ -34,19 +34,19 @@ Expected: tombstone, rebuild, import/export, CLI, and redaction requirements are
 - Create: `crates/agent-memory/tests/memory_editor_portability.rs`
 - Create: `crates/agent-cli/tests/memory_commands.rs`
 
-- [ ] **Step 1: Add tombstone and rebuild tests**
+- [x] **Step 1: Add tombstone and rebuild tests**
 
 Cover delete, repeated delete, rebuild skipping tombstones, and stale embedding cleanup.
 
-- [ ] **Step 2: Add import/export tests**
+- [x] **Step 2: Add import/export tests**
 
 Cover tombstone preservation, conflict rejection/skipping, sensitive export behavior, and corrupted archive failure.
 
-- [ ] **Step 3: Add CLI command tests**
+- [x] **Step 3: Add CLI command tests**
 
 Cover `agent memory list|inspect|delete|export|import|rebuild-index` in text and JSON modes.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -67,19 +67,19 @@ Expected: tests fail because editor, tombstone, and CLI contracts are missing.
 - Modify: `crates/agent-cli/src/command.rs`
 - Modify if needed: `crates/agent-ui-bridge/src/frame.rs`
 
-- [ ] **Step 1: Add tombstone contracts**
+- [x] **Step 1: Add tombstone contracts**
 
 Implement `MemoryTombstone`, tombstone store behavior, idempotent delete, and redacted delete reasons.
 
-- [ ] **Step 2: Add rebuild and portability behavior**
+- [x] **Step 2: Add rebuild and portability behavior**
 
 Implement `MemoryIndexRebuildReport`, import tombstone checks, export policy defaults, and stale embedding cleanup hooks.
 
-- [ ] **Step 3: Add memory summaries**
+- [x] **Step 3: Add memory summaries**
 
 Implement UI-safe summaries with preview omission for sensitive memories and stable ordering.
 
-- [ ] **Step 4: Add CLI commands**
+- [x] **Step 4: Add CLI commands**
 
 Parse and render memory list, inspect, delete, export, import, and rebuild-index commands in text/JSON modes.
 
@@ -89,7 +89,7 @@ Parse and render memory list, inspect, delete, export, import, and rebuild-index
 - Read: `crates/agent-memory/tests/memory_editor_portability.rs`
 - Read: `crates/agent-cli/tests/memory_commands.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -100,7 +100,7 @@ cargo test -p agent-cli memory_commands
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run final M23 checks**
+- [x] **Step 2: Run final M23 checks**
 
 Run:
 
@@ -118,11 +118,11 @@ Expected: workspace checks pass.
 - Modify: `docs/plans/M23-05-memory-editor-portability.plan.md`
 - Modify: `docs/plans/M23-memory-retrieval-quality.plan.md`
 
-- [ ] **Step 1: Mark M23-05 and M23 complete**
+- [x] **Step 1: Mark M23-05 and M23 complete**
 
 Update milestone status and advance active focus to M24.
 
-- [ ] **Step 2: Commit M23 completion**
+- [x] **Step 2: Commit M23 completion**
 
 Run:
 

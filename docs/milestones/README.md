@@ -194,7 +194,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M23-02 implementation | Complete |
 | M23-03 implementation | Complete |
 | M23-04 implementation | Complete |
-| M23 implementation | In Progress |
+| M23-05 implementation | Complete |
+| M23 implementation | Complete |
 | M24-M25 implementation slice specs | Planned |
 | M24-M25 implementation slice plans | Planned |
 | M24-M25 implementation | Planned |
@@ -486,18 +487,18 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M23 Memory Retrieval Quality`.
+Current implementation focus: `M24 Background Agents UX`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M23-04-memory-write-proposals.spec.md`
-- `docs/plans/M23-04-memory-write-proposals.plan.md`
+- `docs/specs/M23-05-memory-editor-portability.spec.md`
+- `docs/plans/M23-05-memory-editor-portability.plan.md`
 
 Most recent completed technical design documents:
 
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M25-00-packaging-release-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M25-00-packaging-release-technical-design.plan.md`
 
-Next implementation slice:
+Next implementation milestone:
 
-- M23-05 Memory Editor and Portability
+- M24 Background Agents UX

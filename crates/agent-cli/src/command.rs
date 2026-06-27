@@ -20,6 +20,11 @@ use agent_core::{
     ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
     ExtensionSource, ExtensionSourceKind, RuntimeIds, RuntimeModelConfig,
 };
+use agent_memory::{
+    InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
+    MemoryError, MemoryImportPolicy, MemoryRecord, MemoryRetentionPolicy, MemoryScope,
+    MemorySensitivity, MemorySource, MemoryTombstone,
+};
 use agent_model::{
     EnvSecretResolver, ModelConfigError, ModelEndpointConfig, ModelFallbackChain,
     ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig, ModelProviderKind,
@@ -35,7 +40,9 @@ use agent_skill::{
     ManagedSkillRoot, ManagedSkillRootRegistry, SkillRootError, SkillRootInspection,
 };
 use agent_storage::EventStore;
-use agent_types::{ConversationId, CorrelationId, RuntimeEventPayload, TurnId, WorkspaceId};
+use agent_types::{
+    ConversationId, CorrelationId, EventId, RuntimeEventPayload, TurnId, WorkspaceId,
+};
 use agent_ui_bridge::{
     UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
     UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
@@ -66,6 +73,7 @@ pub enum CliCommand {
     Plugin(PluginCommand),
     SkillRoot(SkillRootCommand),
     Extension(ExtensionCommand),
+    Memory(MemoryCommand),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -106,6 +114,16 @@ pub enum ExtensionCommand {
     List,
     Inspect { id: String },
     Health,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum MemoryCommand {
+    List,
+    Inspect { id: String },
+    Delete { id: String, reason: String },
+    Export,
+    Import { path: PathBuf },
+    RebuildIndex,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -244,6 +262,7 @@ where
         "plugin" => parse_plugin_command(&mut args),
         "skill" => parse_skill_command(&mut args),
         "extension" => parse_extension_command(&mut args),
+        "memory" => parse_memory_command(&mut args),
         "--prompt" | "-p" => {
             let prompt = args
                 .next()
@@ -330,6 +349,10 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             let mut runtime = ExtensionCommandRuntime::default();
             render_extension_command(&mut runtime, command, OutputMode::Text)
         }
+        CliCommand::Memory(command) => {
+            let mut runtime = MemoryCommandRuntime::default();
+            render_memory_command(&mut runtime, command, OutputMode::Text)
+        }
     }
 }
 
@@ -373,6 +396,10 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             CliCommand::Extension(command) => {
                 let mut runtime = ExtensionCommandRuntime::default();
                 render_extension_command(&mut runtime, command, OutputMode::Text)
+            }
+            CliCommand::Memory(command) => {
+                let mut runtime = MemoryCommandRuntime::default();
+                render_memory_command(&mut runtime, command, OutputMode::Text)
             }
             command => render_cli_command(command),
         },
@@ -420,6 +447,10 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if let CliCommand::Extension(command) = invocation.command {
         let mut runtime = ExtensionCommandRuntime::default();
         return render_extension_command(&mut runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::Memory(command) = invocation.command {
+        let mut runtime = MemoryCommandRuntime::default();
+        return render_memory_command(&mut runtime, command, OutputMode::Json);
     }
 
     let mut stdout = render_model_selection_frame(&invocation.model_selection);
@@ -627,6 +658,73 @@ where
     };
 
     Ok(CliCommand::Extension(command))
+}
+
+fn parse_memory_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("memory".to_string()));
+    };
+
+    let command = match subcommand.as_str() {
+        "list" => {
+            no_plugin_extra_args(args, "memory list")?;
+            MemoryCommand::List
+        }
+        "inspect" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("memory inspect".to_string()))?;
+            no_plugin_extra_args(args, "memory inspect")?;
+            MemoryCommand::Inspect { id }
+        }
+        "delete" => parse_memory_delete(args)?,
+        "export" => {
+            no_plugin_extra_args(args, "memory export")?;
+            MemoryCommand::Export
+        }
+        "import" => {
+            let path = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("memory import".to_string()))?;
+            no_plugin_extra_args(args, "memory import")?;
+            MemoryCommand::Import {
+                path: PathBuf::from(path),
+            }
+        }
+        "rebuild-index" => {
+            no_plugin_extra_args(args, "memory rebuild-index")?;
+            MemoryCommand::RebuildIndex
+        }
+        _ => return Err(CliError::UnknownArgument(format!("memory {subcommand}"))),
+    };
+
+    Ok(CliCommand::Memory(command))
+}
+
+fn parse_memory_delete<I>(args: &mut I) -> Result<MemoryCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let id = args
+        .next()
+        .ok_or_else(|| CliError::MissingValue("memory delete".to_string()))?;
+    let mut reason = None;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--reason" => reason = Some(take_flag_value(args, &arg)?),
+            _ => return Err(CliError::UnknownArgument(format!("memory delete {arg}"))),
+        }
+    }
+
+    Ok(MemoryCommand::Delete {
+        id,
+        reason: reason
+            .ok_or_else(|| CliError::MissingValue("memory delete --reason".to_string()))?,
+    })
 }
 
 fn parse_skill_root_add<I>(args: &mut I) -> Result<SkillRootCommand, CliError>
@@ -1622,6 +1720,313 @@ fn skill_root_error(error: SkillRootError) -> SkillRootCommandError {
 
 fn skill_registry_error(error: ExtensionRegistryError) -> SkillRootCommandError {
     SkillRootCommandError::new(error.to_string())
+}
+
+#[derive(Clone, Debug)]
+pub struct MemoryCommandRuntime {
+    editor: InMemoryMemoryEditor,
+}
+
+impl Default for MemoryCommandRuntime {
+    fn default() -> Self {
+        let mut editor = InMemoryMemoryEditor::default();
+        let scope = fixture_memory_scope();
+        let _ = editor.add_record(fixture_memory_record(
+            "public-memory",
+            "public fixture memory for memory commands",
+            MemorySensitivity::Public,
+            scope.clone(),
+        ));
+        let _ = editor.add_record(fixture_memory_record(
+            "sensitive-memory",
+            "private raw memory must not render",
+            MemorySensitivity::Sensitive,
+            scope,
+        ));
+        let _ = editor.upsert_embedding_marker("public-memory");
+        let _ = editor.upsert_embedding_marker("stale-memory");
+        Self { editor }
+    }
+}
+
+enum MemoryCommandResponse {
+    List(Vec<MemoryEditorSummary>),
+    Inspect(MemoryEditorSummary),
+    Deleted(MemoryTombstone),
+    Export(MemoryArchive),
+    Import {
+        report: agent_memory::MemoryImportReport,
+        tombstones: usize,
+    },
+    Rebuild(agent_memory::MemoryIndexRebuildReport),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct MemoryCommandError {
+    message: String,
+}
+
+impl MemoryCommandError {
+    fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: redact_secret_like_text(&message.into()),
+        }
+    }
+}
+
+#[must_use]
+pub fn render_memory_command(
+    runtime: &mut MemoryCommandRuntime,
+    command: MemoryCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match run_memory_command(runtime, command) {
+        Ok(response) => render_memory_response(response, output_mode),
+        Err(error) => render_memory_error(error, output_mode),
+    }
+}
+
+fn run_memory_command(
+    runtime: &mut MemoryCommandRuntime,
+    command: MemoryCommand,
+) -> Result<MemoryCommandResponse, MemoryCommandError> {
+    match command {
+        MemoryCommand::List => Ok(MemoryCommandResponse::List(runtime.editor.summaries())),
+        MemoryCommand::Inspect { id } => {
+            let summary = find_memory_summary(&runtime.editor, &id)
+                .ok_or_else(|| MemoryCommandError::new(format!("memory {id} is missing")))?;
+            Ok(MemoryCommandResponse::Inspect(summary))
+        }
+        MemoryCommand::Delete { id, reason } => {
+            let scope = find_memory_scope(&runtime.editor, &id)
+                .ok_or_else(|| MemoryCommandError::new(format!("memory {id} is missing")))?;
+            let tombstone = runtime
+                .editor
+                .delete_memory(&scope, &id, &reason, Some(fixture_event_id()))
+                .map_err(memory_error)?;
+            Ok(MemoryCommandResponse::Deleted(tombstone))
+        }
+        MemoryCommand::Export => {
+            let archive = runtime
+                .editor
+                .export_archive(MemoryRetentionPolicy {
+                    include_sensitive: false,
+                    max_records: None,
+                })
+                .map_err(memory_archive_error)?;
+            Ok(MemoryCommandResponse::Export(archive))
+        }
+        MemoryCommand::Import { path } => {
+            let archive_json = fs::read_to_string(&path).map_err(|error| {
+                MemoryCommandError::new(format!(
+                    "could not read memory archive {}: {error}",
+                    path.display()
+                ))
+            })?;
+            let archive =
+                serde_json::from_str::<MemoryArchive>(&archive_json).map_err(|error| {
+                    MemoryCommandError::new(format!("could not parse memory archive: {error}"))
+                })?;
+            let tombstones = archive.tombstones.len();
+            let outcome = runtime
+                .editor
+                .import_archive(
+                    &archive,
+                    MemoryImportPolicy {
+                        tombstone_conflicts: agent_memory::MemoryTombstoneConflictPolicy::Skip,
+                    },
+                )
+                .map_err(memory_archive_error)?;
+            Ok(MemoryCommandResponse::Import {
+                report: outcome.report,
+                tombstones,
+            })
+        }
+        MemoryCommand::RebuildIndex => {
+            let report = runtime.editor.rebuild_index().map_err(memory_error)?;
+            Ok(MemoryCommandResponse::Rebuild(report))
+        }
+    }
+}
+
+fn render_memory_response(response: MemoryCommandResponse, output_mode: OutputMode) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => render_memory_text_response(response),
+        OutputMode::Json => render_memory_json_response(response),
+    }
+}
+
+fn render_memory_text_response(response: MemoryCommandResponse) -> CliOutput {
+    match response {
+        MemoryCommandResponse::List(summaries) if summaries.is_empty() => {
+            CliOutput::exit("No memories\n")
+        }
+        MemoryCommandResponse::List(summaries) => CliOutput::exit(
+            summaries
+                .iter()
+                .map(|summary| {
+                    format!(
+                        "{} sensitivity={} confidence={} preview={}",
+                        summary.id,
+                        memory_sensitivity_label(summary.sensitivity),
+                        summary.confidence,
+                        summary.text_preview.as_deref().unwrap_or("redacted")
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join("\n")
+                + "\n",
+        ),
+        MemoryCommandResponse::Inspect(summary) => CliOutput::exit(format!(
+            "Memory {}\nsensitivity={}\nconfidence={}\nsource={}\npreview={}\n",
+            summary.id,
+            memory_sensitivity_label(summary.sensitivity),
+            summary.confidence,
+            summary.source_description,
+            summary.text_preview.as_deref().unwrap_or("redacted")
+        )),
+        MemoryCommandResponse::Deleted(tombstone) => CliOutput::exit(format!(
+            "Deleted memory {}\ntombstone={}\nreason={}\n",
+            tombstone.record_id, tombstone.tombstone_id, tombstone.reason
+        )),
+        MemoryCommandResponse::Export(archive) => CliOutput::exit(format!(
+            "Exported memory records={} tombstones={}\n",
+            archive.records.len(),
+            archive.tombstones.len()
+        )),
+        MemoryCommandResponse::Import { report, tombstones } => CliOutput::exit(format!(
+            "Imported memory accepted={} skipped={} rejected={} tombstones={}\n",
+            report.accepted, report.skipped, report.rejected, tombstones
+        )),
+        MemoryCommandResponse::Rebuild(report) => CliOutput::exit(format!(
+            "Memory index rebuilt indexed_records={} skipped_tombstoned={} stale_embeddings_removed={}\n",
+            report.indexed_records, report.skipped_tombstoned, report.stale_embeddings_removed
+        )),
+    }
+}
+
+fn render_memory_json_response(response: MemoryCommandResponse) -> CliOutput {
+    let value = match response {
+        MemoryCommandResponse::List(summaries) => serde_json::json!({
+            "type": "memory_list",
+            "data": {
+                "memories": summaries,
+            },
+        }),
+        MemoryCommandResponse::Inspect(summary) => serde_json::json!({
+            "type": "memory_inspect",
+            "data": {
+                "memory": summary,
+            },
+        }),
+        MemoryCommandResponse::Deleted(tombstone) => serde_json::json!({
+            "type": "memory_deleted",
+            "data": {
+                "tombstone": tombstone,
+            },
+        }),
+        MemoryCommandResponse::Export(archive) => serde_json::json!({
+            "type": "memory_export",
+            "data": {
+                "archive": archive,
+            },
+        }),
+        MemoryCommandResponse::Import { report, tombstones } => serde_json::json!({
+            "type": "memory_import",
+            "data": {
+                "report": report,
+                "tombstones": tombstones,
+            },
+        }),
+        MemoryCommandResponse::Rebuild(report) => serde_json::json!({
+            "type": "memory_rebuild",
+            "data": {
+                "report": report,
+            },
+        }),
+    };
+    CliOutput::exit(json_value_frame_line(value))
+}
+
+fn render_memory_error(error: MemoryCommandError, output_mode: OutputMode) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => {
+            CliOutput::failure(format!("memory command failed: {}\n", error.message), 2)
+        }
+        OutputMode::Json => CliOutput::failure(
+            json_value_frame_line(serde_json::json!({
+                "type": "memory_error",
+                "data": {
+                    "message": error.message,
+                },
+            })),
+            2,
+        ),
+    }
+}
+
+fn find_memory_summary(editor: &InMemoryMemoryEditor, id: &str) -> Option<MemoryEditorSummary> {
+    editor
+        .summaries()
+        .into_iter()
+        .find(|summary| summary.id == id)
+}
+
+fn find_memory_scope(editor: &InMemoryMemoryEditor, id: &str) -> Option<MemoryScope> {
+    editor
+        .active_records()
+        .into_iter()
+        .find(|record| record.id == id)
+        .map(|record| record.scope)
+}
+
+fn fixture_memory_record(
+    id: &str,
+    text: &str,
+    sensitivity: MemorySensitivity,
+    scope: MemoryScope,
+) -> MemoryRecord {
+    MemoryRecord {
+        id: id.to_string(),
+        scope,
+        text: text.to_string(),
+        source: MemorySource {
+            event_id: Some(fixture_event_id()),
+            description: "memory command fixture".to_string(),
+        },
+        confidence: 90,
+        sensitivity,
+    }
+}
+
+fn fixture_memory_scope() -> MemoryScope {
+    MemoryScope::Project {
+        workspace_id: "00000000-0000-0000-0000-000000002635"
+            .parse::<WorkspaceId>()
+            .expect("fixture workspace id"),
+    }
+}
+
+fn fixture_event_id() -> EventId {
+    "00000000-0000-0000-0000-000000002636"
+        .parse::<EventId>()
+        .expect("fixture event id")
+}
+
+fn memory_sensitivity_label(sensitivity: MemorySensitivity) -> &'static str {
+    match sensitivity {
+        MemorySensitivity::Public => "public",
+        MemorySensitivity::Internal => "internal",
+        MemorySensitivity::Sensitive => "sensitive",
+    }
+}
+
+fn memory_error(error: MemoryError) -> MemoryCommandError {
+    MemoryCommandError::new(error.to_string())
+}
+
+fn memory_archive_error(error: MemoryArchiveError) -> MemoryCommandError {
+    MemoryCommandError::new(error.to_string())
 }
 
 fn parse_extension_id(id: &str) -> Result<ExtensionId, PluginCommandError> {

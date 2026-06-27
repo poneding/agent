@@ -13,7 +13,7 @@ pub use command::{
 pub use error::UiBridgeError;
 pub use event::{
     UiApprovalPreviewSummary, UiApprovalRequest, UiDiagnosticLevel, UiEventEnvelope,
-    UiEventPayload, normalize_runtime_event,
+    UiEventPayload, UiTaskNotification, normalize_runtime_event,
 };
 pub use frame::{
     UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiExtensionCapabilityReview,

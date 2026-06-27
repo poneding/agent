@@ -227,14 +227,10 @@ impl TracePanelState {
                 source_kind.clone(),
                 format!("{source_id}: {summary}"),
             )),
-            UiEventPayload::TaskNotification {
-                task_id,
-                kind,
-                summary,
-            } => self.push(TracePanelEntry::new(
+            UiEventPayload::TaskNotification(notification) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Task,
-                format!("task {kind}"),
-                format!("{task_id}: {summary}"),
+                format!("task {}", notification.kind),
+                format!("{}: {}", notification.task_id, notification.summary),
             )),
             UiEventPayload::Permission {
                 request_id,

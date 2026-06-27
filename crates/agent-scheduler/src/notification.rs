@@ -1,7 +1,9 @@
-use agent_types::{TaskId, TaskNotificationRecorded, Timestamp};
+use agent_types::{ApprovalRequestId, TaskId, TaskNotificationRecorded, Timestamp};
 use serde::{Deserialize, Serialize};
 
-use crate::SchedulerError;
+use crate::{SchedulerError, redact_task_text};
+
+const MAX_NOTIFICATION_SUMMARY_CHARS: usize = 160;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -9,6 +11,7 @@ pub enum TaskNotificationKind {
     Queued,
     Leased,
     WaitingApproval,
+    Resumed,
     Completed,
     Failed,
     Cancelled,
@@ -23,6 +26,7 @@ impl TaskNotificationKind {
             Self::Queued => "queued",
             Self::Leased => "leased",
             Self::WaitingApproval => "waiting_approval",
+            Self::Resumed => "resumed",
             Self::Completed => "completed",
             Self::Failed => "failed",
             Self::Cancelled => "cancelled",
@@ -38,6 +42,8 @@ pub struct TaskNotification {
     pub kind: TaskNotificationKind,
     pub summary: String,
     pub occurred_at: Timestamp,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approval_id: Option<ApprovalRequestId>,
 }
 
 impl TaskNotification {
@@ -47,7 +53,7 @@ impl TaskNotification {
         summary: impl Into<String>,
         occurred_at: Timestamp,
     ) -> Result<Self, SchedulerError> {
-        let summary = summary.into().trim().to_string();
+        let summary = normalize_notification_summary(summary);
         if summary.is_empty() {
             return Err(SchedulerError::InvalidTask(
                 "task notification summary cannot be empty".to_string(),
@@ -59,7 +65,14 @@ impl TaskNotification {
             kind,
             summary,
             occurred_at,
+            approval_id: None,
         })
+    }
+
+    #[must_use]
+    pub fn with_approval_id(mut self, approval_id: ApprovalRequestId) -> Self {
+        self.approval_id = Some(approval_id);
+        self
     }
 
     #[must_use]
@@ -68,6 +81,7 @@ impl TaskNotification {
             task_id: self.task_id,
             kind: self.kind.as_str().to_string(),
             summary: self.summary.clone(),
+            approval_id: self.approval_id,
         }
     }
 }
@@ -90,7 +104,27 @@ impl InMemoryTaskNotificationSink {
 
 impl TaskNotificationSink for InMemoryTaskNotificationSink {
     fn notify(&mut self, notification: TaskNotification) -> Result<(), SchedulerError> {
+        if self.notifications.iter().any(|existing| {
+            existing.task_id == notification.task_id
+                && existing.kind == notification.kind
+                && existing.approval_id == notification.approval_id
+        }) {
+            return Ok(());
+        }
         self.notifications.push(notification);
         Ok(())
+    }
+}
+
+fn normalize_notification_summary(summary: impl Into<String>) -> String {
+    let redacted = redact_task_text(&summary.into());
+    let trimmed = redacted.trim();
+    if trimmed.chars().count() > MAX_NOTIFICATION_SUMMARY_CHARS {
+        trimmed
+            .chars()
+            .take(MAX_NOTIFICATION_SUMMARY_CHARS)
+            .collect()
+    } else {
+        trimmed.to_string()
     }
 }

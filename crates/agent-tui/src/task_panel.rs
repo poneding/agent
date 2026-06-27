@@ -1,4 +1,4 @@
-use agent_types::TaskId;
+use agent_types::{ApprovalRequestId, TaskId};
 use agent_ui_bridge::{UiEventPayload, UiJsonFrame, UiTaskSummary};
 
 const DEFAULT_TASK_NOTIFICATION_LIMIT: usize = 100;
@@ -8,21 +8,35 @@ pub struct TaskPanelNotification {
     pub task_id: TaskId,
     pub kind: String,
     pub summary: String,
+    pub approval_id: Option<ApprovalRequestId>,
 }
 
 impl TaskPanelNotification {
     #[must_use]
-    pub fn new(task_id: TaskId, kind: impl Into<String>, summary: impl Into<String>) -> Self {
+    pub fn new(
+        task_id: TaskId,
+        kind: impl Into<String>,
+        summary: impl Into<String>,
+        approval_id: Option<ApprovalRequestId>,
+    ) -> Self {
         Self {
             task_id,
             kind: kind.into(),
             summary: summary.into(),
+            approval_id,
         }
     }
 
     #[must_use]
     pub fn render_line(&self) -> String {
-        format!("{} {}: {}", self.task_id, self.kind, self.summary)
+        if let Some(approval_id) = self.approval_id {
+            format!(
+                "{} {} [{}]: {}",
+                self.task_id, self.kind, approval_id, self.summary
+            )
+        } else {
+            format!("{} {}: {}", self.task_id, self.kind, self.summary)
+        }
     }
 }
 
@@ -49,19 +63,15 @@ impl TaskPanelState {
                 self.tasks = snapshot.tasks.clone();
             }
             UiJsonFrame::Event(event) => {
-                let UiEventPayload::TaskNotification {
-                    task_id,
-                    kind,
-                    summary,
-                } = &event.payload
-                else {
+                let UiEventPayload::TaskNotification(notification) = &event.payload else {
                     return;
                 };
 
                 self.push(TaskPanelNotification::new(
-                    *task_id,
-                    kind.clone(),
-                    summary.clone(),
+                    notification.task_id,
+                    notification.kind.clone(),
+                    notification.summary.clone(),
+                    notification.approval_id,
                 ));
             }
             _ => {}

@@ -203,6 +203,7 @@ impl RecordingExecutor {
                 event_count: 1,
                 trace_id: Some("trace".to_string()),
                 summary: summary.to_string(),
+                approval_id: None,
             }),
             executed_task_count: 0,
         }

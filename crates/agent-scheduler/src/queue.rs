@@ -1,4 +1,4 @@
-use agent_types::{TaskId, TaskState, Timestamp};
+use agent_types::{ApprovalRequestId, TaskId, TaskState, Timestamp};
 use time::Duration;
 
 use crate::{
@@ -38,6 +38,14 @@ pub trait TaskQueue {
         error: String,
         now: Timestamp,
     ) -> Result<RetryDecision, SchedulerError>;
+
+    fn wait_for_approval(
+        &mut self,
+        lease_id: &TaskLeaseId,
+        approval_id: ApprovalRequestId,
+        reason: impl Into<String>,
+        now: Timestamp,
+    ) -> Result<TaskRun, SchedulerError>;
 
     fn cancel(
         &mut self,
@@ -398,6 +406,45 @@ impl TaskQueue for InMemoryTaskQueue {
         }
     }
 
+    fn wait_for_approval(
+        &mut self,
+        lease_id: &TaskLeaseId,
+        _approval_id: ApprovalRequestId,
+        reason: impl Into<String>,
+        now: Timestamp,
+    ) -> Result<TaskRun, SchedulerError> {
+        let reason = reason.into();
+        if reason.trim().is_empty() {
+            return Err(SchedulerError::InvalidTransition(
+                "approval wait reason cannot be empty".to_string(),
+            ));
+        }
+
+        let lease_index = self.active_lease_index(lease_id)?;
+        let task_id = self.leases[lease_index].task_id;
+        let task_index = self.task_index(task_id)?;
+        if self.tasks[task_index].active_lease.as_ref() != Some(lease_id) {
+            return Err(SchedulerError::InvalidLease(
+                "lease does not own task".to_string(),
+            ));
+        }
+
+        let next = transition_task_state(
+            &self.tasks[task_index].run,
+            TaskTransition {
+                from: TaskState::Running,
+                to: TaskState::WaitingApproval,
+                reason,
+                at: now,
+            },
+        )?;
+        self.tasks[task_index].run = next.clone();
+        self.tasks[task_index].active_lease = None;
+        self.tasks[task_index].available_at = now;
+        self.leases[lease_index].status = LeaseStatus::Completed;
+        Ok(next)
+    }
+
     fn cancel(
         &mut self,
         task_id: TaskId,
@@ -456,10 +503,16 @@ impl TaskQueue for InMemoryTaskQueue {
         now: Timestamp,
     ) -> Result<TaskRun, SchedulerError> {
         let task_index = self.task_index(task_id)?;
+        let from = self.tasks[task_index].run.state;
+        if !matches!(from, TaskState::Paused | TaskState::WaitingApproval) {
+            return Err(SchedulerError::InvalidTransition(format!(
+                "task cannot resume from {from:?}"
+            )));
+        }
         let next = transition_task_state(
             &self.tasks[task_index].run,
             TaskTransition {
-                from: TaskState::Paused,
+                from,
                 to: TaskState::Queued,
                 reason,
                 at: now,

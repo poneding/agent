@@ -63,7 +63,7 @@ Expose create, list, pause, resume, cancel, inspect, and schedule commands.
 
 Connect scheduler leases to comprehensive turn execution.
 
-- [ ] **Step 3: Add approvals and notifications**
+- [x] **Step 3: Add approvals and notifications**
 
 Pause tasks for approvals and notify UI clients.
 

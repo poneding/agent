@@ -1,6 +1,12 @@
 use agent_model::{ModelProviderRegistry, ModelRequestRequirements};
-use agent_scheduler::{RetryDecision, SchedulerError, TaskQueue, TaskRun, redact_task_text};
-use agent_types::{CorrelationId, TaskId, TaskState, Timestamp, TurnId};
+use agent_scheduler::{
+    RetryDecision, SchedulerError, TaskNotification, TaskNotificationKind, TaskNotificationSink,
+    TaskQueue, TaskRun, redact_task_text,
+};
+use agent_types::{
+    ApprovalRequestId, CorrelationId, RuntimeEvent, RuntimeEventPayload, TaskId, TaskState,
+    Timestamp, TurnId,
+};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -43,6 +49,8 @@ pub struct BackgroundTaskRunOutcome {
     pub event_count: usize,
     pub trace_id: Option<String>,
     pub summary: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approval_id: Option<ApprovalRequestId>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -50,6 +58,77 @@ pub struct BackgroundTaskTurnResult {
     pub event_count: usize,
     pub trace_id: Option<String>,
     pub summary: String,
+    pub approval_id: Option<ApprovalRequestId>,
+}
+
+impl BackgroundTaskTurnResult {
+    #[must_use]
+    pub fn completed(
+        summary: impl Into<String>,
+        event_count: usize,
+        trace_id: Option<String>,
+    ) -> Self {
+        Self {
+            event_count,
+            trace_id,
+            summary: summary.into(),
+            approval_id: None,
+        }
+    }
+
+    #[must_use]
+    pub fn waiting_approval(
+        approval_id: ApprovalRequestId,
+        summary: impl Into<String>,
+        event_count: usize,
+    ) -> Self {
+        Self {
+            event_count,
+            trace_id: None,
+            summary: summary.into(),
+            approval_id: Some(approval_id),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum BackgroundApprovalDecisionKind {
+    Allow,
+    Deny,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BackgroundApprovalDecision {
+    pub task_id: TaskId,
+    pub approval_id: ApprovalRequestId,
+    pub kind: BackgroundApprovalDecisionKind,
+    pub reason: String,
+    pub decided_at: Timestamp,
+}
+
+impl BackgroundApprovalDecision {
+    pub fn new(
+        task_id: TaskId,
+        approval_id: ApprovalRequestId,
+        kind: BackgroundApprovalDecisionKind,
+        reason: impl Into<String>,
+        decided_at: Timestamp,
+    ) -> Result<Self, BackgroundRunnerError> {
+        let reason = bounded_summary(&reason.into());
+        if reason.is_empty() {
+            return Err(BackgroundRunnerError::InvalidInput(
+                "approval decision reason cannot be empty".to_string(),
+            ));
+        }
+
+        Ok(Self {
+            task_id,
+            approval_id,
+            kind,
+            reason,
+            decided_at,
+        })
+    }
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -89,6 +168,36 @@ impl BackgroundTaskRunner {
         Q: TaskQueue + ?Sized,
         E: BackgroundTaskTurnExecutor + Send + ?Sized,
     {
+        self.run_one_internal(queue, executor, input, None).await
+    }
+
+    pub async fn run_one_with_notifications<Q, E, S>(
+        &self,
+        queue: &mut Q,
+        executor: &mut E,
+        notifications: &mut S,
+        input: BackgroundTaskRunnerInput,
+    ) -> Result<Option<BackgroundTaskRunOutcome>, BackgroundRunnerError>
+    where
+        Q: TaskQueue + ?Sized,
+        E: BackgroundTaskTurnExecutor + Send + ?Sized,
+        S: TaskNotificationSink,
+    {
+        self.run_one_internal(queue, executor, input, Some(notifications))
+            .await
+    }
+
+    async fn run_one_internal<Q, E>(
+        &self,
+        queue: &mut Q,
+        executor: &mut E,
+        input: BackgroundTaskRunnerInput,
+        mut notifications: Option<&mut dyn TaskNotificationSink>,
+    ) -> Result<Option<BackgroundTaskRunOutcome>, BackgroundRunnerError>
+    where
+        Q: TaskQueue + ?Sized,
+        E: BackgroundTaskTurnExecutor + Send + ?Sized,
+    {
         let Some(lease) = queue.acquire_next(&input.worker_id, input.now)? else {
             return Ok(None);
         };
@@ -100,24 +209,128 @@ impl BackgroundTaskRunner {
 
         match executor.execute_task_turn(&task).await {
             Ok(result) => {
+                let summary = bounded_summary(&result.summary);
+                let trace_id = normalize_trace_id(result.trace_id);
+                if let Some(approval_id) = result.approval_id {
+                    let waiting = queue.wait_for_approval(
+                        &lease.id,
+                        approval_id,
+                        summary.clone(),
+                        input.now,
+                    )?;
+                    notify_task(
+                        &mut notifications,
+                        waiting.task_id,
+                        TaskNotificationKind::WaitingApproval,
+                        &summary,
+                        input.now,
+                        Some(approval_id),
+                    )?;
+                    return Ok(Some(BackgroundTaskRunOutcome {
+                        task_id: waiting.task_id,
+                        final_state: waiting.state,
+                        event_count: result.event_count,
+                        trace_id,
+                        summary,
+                        approval_id: Some(approval_id),
+                    }));
+                }
+
                 let completed = queue.complete(&lease.id, input.now)?;
+                notify_task(
+                    &mut notifications,
+                    completed.task_id,
+                    TaskNotificationKind::Completed,
+                    &summary,
+                    input.now,
+                    None,
+                )?;
                 Ok(Some(BackgroundTaskRunOutcome {
                     task_id: completed.task_id,
                     final_state: completed.state,
                     event_count: result.event_count,
-                    trace_id: normalize_trace_id(result.trace_id),
-                    summary: bounded_summary(&result.summary),
+                    trace_id,
+                    summary,
+                    approval_id: None,
                 }))
             }
             Err(error) => {
                 let decision = queue.fail(&lease.id, error.message.clone(), input.now)?;
-                Ok(Some(outcome_from_retry_decision(
-                    decision,
-                    error.message,
-                    None,
-                )))
+                let outcome = outcome_from_retry_decision(decision, error.message, None);
+                if let Some(kind) = notification_kind_for_state(outcome.final_state) {
+                    notify_task(
+                        &mut notifications,
+                        outcome.task_id,
+                        kind,
+                        &outcome.summary,
+                        input.now,
+                        None,
+                    )?;
+                }
+                Ok(Some(outcome))
             }
         }
+    }
+
+    pub fn resolve_approval<Q, S>(
+        &self,
+        queue: &mut Q,
+        notifications: &mut S,
+        decision: BackgroundApprovalDecision,
+    ) -> Result<BackgroundTaskRunOutcome, BackgroundRunnerError>
+    where
+        Q: TaskQueue + ?Sized,
+        S: TaskNotificationSink,
+    {
+        let current_state = queue
+            .get_task(decision.task_id)
+            .map(|task| task.state)
+            .ok_or(BackgroundRunnerError::MissingLeasedTask(decision.task_id))?;
+        if current_state != TaskState::WaitingApproval {
+            return Err(BackgroundRunnerError::Scheduler(
+                SchedulerError::InvalidTransition(format!(
+                    "approval can only resolve waiting task, got {current_state:?}"
+                )),
+            ));
+        }
+
+        let (task, notification_kind) = match decision.kind {
+            BackgroundApprovalDecisionKind::Allow => (
+                queue.resume(
+                    decision.task_id,
+                    decision.reason.clone(),
+                    decision.decided_at,
+                )?,
+                TaskNotificationKind::Resumed,
+            ),
+            BackgroundApprovalDecisionKind::Deny => (
+                queue.cancel(
+                    decision.task_id,
+                    decision.reason.clone(),
+                    decision.decided_at,
+                )?,
+                TaskNotificationKind::Cancelled,
+            ),
+        };
+        let summary = bounded_summary(&decision.reason);
+        let mut optional_sink: Option<&mut dyn TaskNotificationSink> = Some(notifications);
+        notify_task(
+            &mut optional_sink,
+            task.task_id,
+            notification_kind,
+            &summary,
+            decision.decided_at,
+            Some(decision.approval_id),
+        )?;
+
+        Ok(BackgroundTaskRunOutcome {
+            task_id: task.task_id,
+            final_state: task.state,
+            event_count: 0,
+            trace_id: None,
+            summary,
+            approval_id: Some(decision.approval_id),
+        })
     }
 }
 
@@ -169,13 +382,25 @@ impl BackgroundTaskTurnExecutor for ComprehensiveBackgroundTurnExecutor {
             .map_err(|error| BackgroundTaskTurnError::new(error.to_string()))?;
 
         match outcome.terminal_state {
-            AgentLoopTerminalState::Done => Ok(BackgroundTaskTurnResult {
-                event_count: outcome.events.len(),
-                trace_id: Some(task.task_id.to_string()),
-                summary: outcome
+            AgentLoopTerminalState::Done => Ok(BackgroundTaskTurnResult::completed(
+                outcome
                     .final_message
                     .unwrap_or_else(|| "background task completed".to_string()),
-            }),
+                outcome.events.len(),
+                Some(task.task_id.to_string()),
+            )),
+            AgentLoopTerminalState::WaitingApproval => {
+                let approval_id = latest_approval_request_id(&outcome.events).ok_or_else(|| {
+                    BackgroundTaskTurnError::new(
+                        "background turn is waiting for approval without an approval request",
+                    )
+                })?;
+                Ok(BackgroundTaskTurnResult::waiting_approval(
+                    approval_id,
+                    "background task waiting for approval",
+                    outcome.events.len(),
+                ))
+            }
             state => Err(BackgroundTaskTurnError::new(format!(
                 "background turn ended in {state:?}"
             ))),
@@ -206,9 +431,51 @@ fn outcome_from_retry_decision(
                 event_count: 0,
                 trace_id,
                 summary: bounded_summary(&summary),
+                approval_id: None,
             }
         }
     }
+}
+
+fn notify_task(
+    notifications: &mut Option<&mut dyn TaskNotificationSink>,
+    task_id: TaskId,
+    kind: TaskNotificationKind,
+    summary: &str,
+    occurred_at: Timestamp,
+    approval_id: Option<ApprovalRequestId>,
+) -> Result<(), SchedulerError> {
+    let Some(sink) = notifications.as_mut() else {
+        return Ok(());
+    };
+    let mut notification = TaskNotification::new(task_id, kind, summary, occurred_at)?;
+    if let Some(approval_id) = approval_id {
+        notification = notification.with_approval_id(approval_id);
+    }
+    sink.notify(notification)
+}
+
+fn notification_kind_for_state(state: TaskState) -> Option<TaskNotificationKind> {
+    match state {
+        TaskState::Queued => Some(TaskNotificationKind::Queued),
+        TaskState::Running => Some(TaskNotificationKind::Leased),
+        TaskState::WaitingApproval => Some(TaskNotificationKind::WaitingApproval),
+        TaskState::Succeeded => Some(TaskNotificationKind::Completed),
+        TaskState::Failed => Some(TaskNotificationKind::Failed),
+        TaskState::Cancelled => Some(TaskNotificationKind::Cancelled),
+        TaskState::Expired => Some(TaskNotificationKind::Expired),
+        TaskState::Created | TaskState::Sleeping | TaskState::Paused => None,
+    }
+}
+
+fn latest_approval_request_id(events: &[RuntimeEvent]) -> Option<ApprovalRequestId> {
+    events.iter().rev().find_map(|event| {
+        if let RuntimeEventPayload::ApprovalRequested(requested) = &event.payload {
+            Some(requested.request_id)
+        } else {
+            None
+        }
+    })
 }
 
 fn normalize_trace_id(value: Option<String>) -> Option<String> {

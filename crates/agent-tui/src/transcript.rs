@@ -281,9 +281,14 @@ impl TranscriptState {
                 ),
                 false,
             )),
-            UiEventPayload::TaskNotification { kind, summary, .. } => self.push(
-                TranscriptItem::new(TranscriptItemKind::Progress, kind, summary, false),
-            ),
+            UiEventPayload::TaskNotification(notification) => {
+                self.push(TranscriptItem::new(
+                    TranscriptItemKind::Progress,
+                    &notification.kind,
+                    &notification.summary,
+                    false,
+                ));
+            }
             UiEventPayload::ExternalTrace {
                 source_kind,
                 source_id,

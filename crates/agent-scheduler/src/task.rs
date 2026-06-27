@@ -125,7 +125,12 @@ fn is_allowed_transition(from: TaskState, to: TaskState) -> bool {
                 | TaskState::Failed
                 | TaskState::Cancelled
         ),
-        TaskState::WaitingApproval => matches!(to, TaskState::Running | TaskState::Cancelled),
+        TaskState::WaitingApproval => {
+            matches!(
+                to,
+                TaskState::Queued | TaskState::Running | TaskState::Cancelled
+            )
+        }
         TaskState::Sleeping => matches!(
             to,
             TaskState::Queued | TaskState::Paused | TaskState::Cancelled | TaskState::Expired

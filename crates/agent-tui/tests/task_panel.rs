@@ -1,6 +1,6 @@
 use agent_tui::{ComposerAction, TaskPanelState, TuiAction, TuiApp, render_app_to_string};
 use agent_types::{ConversationId, CorrelationId, EventId, SchemaVersion, TaskId, Timestamp};
-use agent_ui_bridge::{UiEventEnvelope, UiEventPayload, UiJsonFrame};
+use agent_ui_bridge::{UiEventEnvelope, UiEventPayload, UiJsonFrame, UiTaskNotification};
 
 fn event(payload: UiEventPayload) -> UiJsonFrame {
     UiJsonFrame::Event(UiEventEnvelope {
@@ -17,11 +17,12 @@ fn event(payload: UiEventPayload) -> UiJsonFrame {
 }
 
 fn task_notification(task_id: TaskId, kind: &str, summary: &str) -> UiJsonFrame {
-    event(UiEventPayload::TaskNotification {
+    event(UiEventPayload::TaskNotification(UiTaskNotification {
         task_id,
         kind: kind.to_string(),
         summary: summary.to_string(),
-    })
+        approval_id: None,
+    }))
 }
 
 #[test]

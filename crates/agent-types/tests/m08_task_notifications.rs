@@ -33,6 +33,7 @@ fn m08_task_notifications_serialize_runtime_event_shape() {
             task_id,
             kind: "waiting_approval".to_string(),
             summary: "waiting for tool approval".to_string(),
+            approval_id: None,
         }),
     );
 

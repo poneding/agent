@@ -1,7 +1,9 @@
 use agent_policy::{CapabilityAction, PendingApproval, ResourceKind};
+use agent_scheduler::redact_task_text;
 use agent_types::{
-    CheckpointId, ClientKind, ConversationId, CorrelationId, EventId, EventSeq, RuntimeEvent,
-    RuntimeEventPayload, SchemaVersion, TaskId, Timestamp, TurnId, TurnState, WorkspaceTrustLevel,
+    ApprovalRequestId, CheckpointId, ClientKind, ConversationId, CorrelationId, EventId, EventSeq,
+    RuntimeEvent, RuntimeEventPayload, SchemaVersion, TaskId, Timestamp, TurnId, TurnState,
+    WorkspaceTrustLevel,
 };
 use serde::{Deserialize, Serialize};
 
@@ -79,11 +81,7 @@ pub enum UiEventPayload {
     Progress {
         message: String,
     },
-    TaskNotification {
-        task_id: TaskId,
-        kind: String,
-        summary: String,
-    },
+    TaskNotification(UiTaskNotification),
     ExternalTrace {
         source_kind: String,
         source_id: String,
@@ -119,6 +117,15 @@ impl UiApprovalRequest {
             expires_at: approval.expires_at,
         }
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTaskNotification {
+    pub task_id: TaskId,
+    pub kind: String,
+    pub summary: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approval_id: Option<ApprovalRequestId>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -306,11 +313,12 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
             message: format!("task state changed: {:?} -> {:?}", changed.from, changed.to),
         },
         RuntimeEventPayload::TaskNotificationRecorded(recorded) => {
-            UiEventPayload::TaskNotification {
+            UiEventPayload::TaskNotification(UiTaskNotification {
                 task_id: recorded.task_id,
                 kind: recorded.kind.clone(),
-                summary: recorded.summary.clone(),
-            }
+                summary: bounded_ui_summary(&recorded.summary),
+                approval_id: recorded.approval_id,
+            })
         }
         RuntimeEventPayload::ToolExecutionStarted(started) => UiEventPayload::Progress {
             message: format!(
@@ -390,6 +398,16 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
         RuntimeEventPayload::ConversationStarted(started) => UiEventPayload::Progress {
             message: started.title.clone(),
         },
+    }
+}
+
+fn bounded_ui_summary(value: &str) -> String {
+    let redacted = redact_task_text(value);
+    let trimmed = redacted.trim();
+    if trimmed.chars().count() > 160 {
+        trimmed.chars().take(160).collect()
+    } else {
+        trimmed.to_string()
     }
 }
 

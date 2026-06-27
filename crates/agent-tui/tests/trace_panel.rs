@@ -5,7 +5,9 @@ use agent_types::{
     CheckpointId, ConversationId, CorrelationId, EventId, SchemaVersion, TaskId, Timestamp,
     TurnState,
 };
-use agent_ui_bridge::{UiDiagnosticLevel, UiEventEnvelope, UiEventPayload, UiJsonFrame};
+use agent_ui_bridge::{
+    UiDiagnosticLevel, UiEventEnvelope, UiEventPayload, UiJsonFrame, UiTaskNotification,
+};
 
 fn event(payload: UiEventPayload) -> UiJsonFrame {
     UiJsonFrame::Event(UiEventEnvelope {
@@ -117,11 +119,14 @@ fn trace_panel_includes_task_notifications_as_trace_entries() {
     let mut panel = TracePanelState::default();
     let task_id = TaskId::new();
 
-    panel.reduce_frame(&event(UiEventPayload::TaskNotification {
-        task_id,
-        kind: "running".to_string(),
-        summary: "background agent started".to_string(),
-    }));
+    panel.reduce_frame(&event(UiEventPayload::TaskNotification(
+        UiTaskNotification {
+            task_id,
+            kind: "running".to_string(),
+            summary: "background agent started".to_string(),
+            approval_id: None,
+        },
+    )));
 
     assert_eq!(panel.entries.len(), 1);
     assert_eq!(panel.entries[0].title, "task running");

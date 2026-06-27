@@ -2,7 +2,7 @@ use agent_types::{
     ActorRef, ConversationId, CorrelationId, EventId, RuntimeEvent, RuntimeEventPayload,
     SchemaVersion, TaskId, TaskNotificationRecorded, Timestamp, WorkspaceId,
 };
-use agent_ui_bridge::{UiEventPayload, normalize_runtime_event};
+use agent_ui_bridge::{UiEventPayload, UiTaskNotification, normalize_runtime_event};
 use time::macros::datetime;
 
 fn id<T>(value: &str) -> T
@@ -41,6 +41,7 @@ fn m08_task_notifications_normalize_to_ui_payload() {
             task_id,
             kind: "completed".to_string(),
             summary: "workspace indexing completed".to_string(),
+            approval_id: None,
         }),
     );
 
@@ -49,11 +50,12 @@ fn m08_task_notifications_normalize_to_ui_payload() {
     assert_eq!(ui_event.task_id, Some(task_id));
     assert_eq!(
         ui_event.payload,
-        UiEventPayload::TaskNotification {
+        UiEventPayload::TaskNotification(UiTaskNotification {
             task_id,
             kind: "completed".to_string(),
             summary: "workspace indexing completed".to_string(),
-        }
+            approval_id: None,
+        })
     );
 }
 
@@ -66,6 +68,7 @@ fn m08_task_notifications_ui_payload_excludes_raw_secret_like_content() {
             task_id,
             kind: "waiting_approval".to_string(),
             summary: "waiting for approval".to_string(),
+            approval_id: None,
         }),
     );
 

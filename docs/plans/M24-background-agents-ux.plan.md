@@ -55,7 +55,7 @@ Each plan includes scheduler integration tests and recovery commands.
 - Execute: `docs/plans/M24-04-task-quotas-retries-recovery.plan.md`
 - Execute: `docs/plans/M24-05-task-artifacts-review.plan.md`
 
-- [ ] **Step 1: Add task command bridge**
+- [x] **Step 1: Add task command bridge**
 
 Expose create, list, pause, resume, cancel, inspect, and schedule commands.
 

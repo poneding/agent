@@ -19,7 +19,7 @@
 - Read: `crates/agent-ui-bridge/src/frame.rs`
 - Read: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Review task command scope**
+- [x] **Step 1: Review task command scope**
 
 Run:
 
@@ -36,19 +36,19 @@ Expected: command contracts, UI summaries, CLI surface, and acceptance criteria 
 - Create: `crates/agent-ui-bridge/tests/task_command_bridge.rs`
 - Create: `crates/agent-cli/tests/task_commands.rs`
 
-- [ ] **Step 1: Add scheduler command tests**
+- [x] **Step 1: Add scheduler command tests**
 
 Cover create, list, inspect, pause, resume, cancel, update schedule, validation, and deterministic ordering.
 
-- [ ] **Step 2: Add UI bridge snapshot tests**
+- [x] **Step 2: Add UI bridge snapshot tests**
 
 Cover task summary shape, redacted prompt summary, schedule labels, and command error shape.
 
-- [ ] **Step 3: Add CLI command tests**
+- [x] **Step 3: Add CLI command tests**
 
 Cover `agent task create|list|inspect|pause|resume|cancel|schedule` in text and JSON modes.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -71,19 +71,19 @@ Expected: tests fail because command bridge contracts are missing.
 - Modify: `crates/agent-tui/src/task_panel.rs`
 - Modify: `crates/agent-desktop/src/task.rs`
 
-- [ ] **Step 1: Add task command contracts**
+- [x] **Step 1: Add task command contracts**
 
 Implement `BackgroundAgentTask`, task schedule, create request, command enum, command response, and summaries.
 
-- [ ] **Step 2: Add in-memory command service**
+- [x] **Step 2: Add in-memory command service**
 
 Implement create/list/inspect/pause/resume/cancel/update schedule using scheduler state transitions.
 
-- [ ] **Step 3: Add UI bridge summaries**
+- [x] **Step 3: Add UI bridge summaries**
 
 Normalize scheduler task records into UI-safe snapshots with bounded/redacted prompt summaries.
 
-- [ ] **Step 4: Add CLI/TUI/Desktop renderers**
+- [x] **Step 4: Add CLI/TUI/Desktop renderers**
 
 Add task commands and task summary panels/models without putting mutation logic in UI crates.
 
@@ -93,7 +93,7 @@ Add task commands and task summary panels/models without putting mutation logic 
 - Read: `crates/agent-scheduler/tests/task_command_bridge.rs`
 - Read: `crates/agent-cli/tests/task_commands.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -105,7 +105,7 @@ cargo test -p agent-cli task_commands
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace checks**
+- [x] **Step 2: Run workspace checks**
 
 Run:
 
@@ -125,11 +125,11 @@ Expected: all checks pass.
 - Modify: `docs/plans/M24-01-task-command-bridge.plan.md`
 - Modify: `docs/plans/M24-background-agents-ux.plan.md`
 
-- [ ] **Step 1: Mark M24-01 complete**
+- [x] **Step 1: Mark M24-01 complete**
 
 Advance active implementation focus to M24-02.
 
-- [ ] **Step 2: Commit M24-01**
+- [x] **Step 2: Commit M24-01**
 
 Run:
 

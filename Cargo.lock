@@ -18,6 +18,7 @@ dependencies = [
  "agent-model",
  "agent-plugin",
  "agent-policy",
+ "agent-scheduler",
  "agent-skill",
  "agent-storage",
  "agent-tui",
@@ -265,6 +266,7 @@ name = "agent-ui-bridge"
 version = "0.1.0"
 dependencies = [
  "agent-policy",
+ "agent-scheduler",
  "agent-types",
  "serde",
  "serde_json",

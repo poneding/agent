@@ -198,7 +198,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M23 implementation | Complete |
 | M24 implementation slice specs | Complete for M24-01 through M24-05 |
 | M24 implementation slice plans | Complete for M24-01 through M24-05 |
-| M24 implementation | Planned |
+| M24-01 implementation | Complete |
+| M24 implementation | In progress |
 | M25 implementation slice specs | Planned |
 | M25 implementation slice plans | Planned |
 | M25 implementation | Planned |
@@ -495,12 +496,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M24 Background Agents UX`.
+Current implementation focus: `M24-02 Background Turn Runner`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M23-05-memory-editor-portability.spec.md`
-- `docs/plans/M23-05-memory-editor-portability.plan.md`
+- `docs/specs/M24-01-task-command-bridge.spec.md`
+- `docs/plans/M24-01-task-command-bridge.plan.md`
 
 Most recent completed technical design documents:
 
@@ -509,4 +510,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M24-01 Task Command Bridge
+- M24-02 Background Turn Runner

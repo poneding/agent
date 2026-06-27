@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 //! Scheduler contracts for durable tasks and background work.
 
+pub mod command;
 pub mod error;
 pub mod lease;
 pub mod notification;
@@ -9,6 +10,10 @@ pub mod quota;
 pub mod retry;
 pub mod task;
 
+pub use command::{
+    BackgroundAgentTask, InMemoryTaskCommandService, TaskCommand, TaskCommandResponse,
+    TaskCommandService, TaskCreateRequest, TaskSchedule, TaskScheduleUpdate, redact_task_text,
+};
 pub use error::SchedulerError;
 pub use lease::{LeaseStatus, TaskLease, TaskLeaseId};
 pub use notification::{

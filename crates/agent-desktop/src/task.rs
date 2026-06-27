@@ -1,4 +1,5 @@
 use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
+use agent_ui_bridge::UiTaskSummary;
 use serde::{Deserialize, Serialize};
 
 use crate::DesktopError;
@@ -36,5 +37,20 @@ impl DesktopTaskItem {
     pub(crate) fn validate(&self) -> Result<(), DesktopError> {
         validate_non_empty("task summary", self.summary.clone())?;
         Ok(())
+    }
+}
+
+impl TryFrom<&UiTaskSummary> for DesktopTaskItem {
+    type Error = DesktopError;
+
+    fn try_from(summary: &UiTaskSummary) -> Result<Self, Self::Error> {
+        Self::new(
+            summary.task_id,
+            summary.workspace_id,
+            summary.conversation_id,
+            summary.state,
+            summary.prompt_summary.clone(),
+            summary.updated_at,
+        )
     }
 }

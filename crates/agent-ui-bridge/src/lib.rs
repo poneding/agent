@@ -19,5 +19,5 @@ pub use frame::{
     UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiExtensionCapabilityReview,
     UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary, UiJsonFrame,
     UiModelProviderSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
-    encode_json_frame,
+    UiTaskCommandError, UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
 };

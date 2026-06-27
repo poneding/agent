@@ -1,4 +1,5 @@
 use agent_policy::ApprovalResponse;
+use agent_scheduler::TaskCommand;
 use agent_types::{
     ApprovalRequestId, ClientKind, ConversationId, CorrelationId, SchemaVersion, Timestamp, TurnId,
     WorkspaceId,
@@ -54,6 +55,7 @@ pub enum UiCommand {
         include_checkpoints: bool,
         include_final: bool,
     },
+    Task(TaskCommand),
     Ping,
 }
 

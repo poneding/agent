@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M23 are implemented, and M24-M25 continue the productization path from runtime spine to background and release workflows.
+M01-M23 and M24-01 are implemented, and M24-M25 continue the productization path from runtime spine to background and release workflows.
 
 ## Core Ideas
 
@@ -101,10 +101,10 @@ Run `cargo xtask help` for the full command list.
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M23-05-memory-editor-portability.spec.md)
-- [Latest completed plan](docs/plans/M23-05-memory-editor-portability.plan.md)
-- [Next implementation spec](docs/specs/M24-01-task-command-bridge.spec.md)
-- [Next implementation plan](docs/plans/M24-01-task-command-bridge.plan.md)
+- [Latest completed spec](docs/specs/M24-01-task-command-bridge.spec.md)
+- [Latest completed plan](docs/plans/M24-01-task-command-bridge.plan.md)
+- [Next implementation spec](docs/specs/M24-02-background-turn-runner.spec.md)
+- [Next implementation plan](docs/plans/M24-02-background-turn-runner.plan.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

@@ -147,6 +147,16 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::TaskSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "tasks",
+                format!(
+                    "{} tasks, {} errors",
+                    snapshot.tasks.len(),
+                    snapshot.errors.len()
+                ),
+                false,
+            )),
             UiJsonFrame::Done { event_count } => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "done",

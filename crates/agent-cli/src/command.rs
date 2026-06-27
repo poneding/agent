@@ -36,18 +36,24 @@ use agent_plugin::{
     validate_plugin_manifest,
 };
 use agent_policy::{CapabilityAction, ResourceKind};
+use agent_scheduler::{
+    InMemoryTaskCommandService, SchedulerError, TaskCommand as SchedulerTaskCommand,
+    TaskCommandResponse, TaskCreateRequest, TaskPriority, TaskSchedule, TaskScheduleUpdate,
+};
 use agent_skill::{
     ManagedSkillRoot, ManagedSkillRootRegistry, SkillRootError, SkillRootInspection,
 };
 use agent_storage::EventStore;
 use agent_types::{
-    ConversationId, CorrelationId, EventId, RuntimeEventPayload, TurnId, WorkspaceId,
+    ConversationId, CorrelationId, EventId, RuntimeEventPayload, TaskId, Timestamp, TurnId,
+    WorkspaceId,
 };
 use agent_ui_bridge::{
     UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
     UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
     UiJsonFrame, UiModelProviderSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary,
-    UiPromptSummary, encode_json_frame, normalize_runtime_event,
+    UiPromptSummary, UiTaskCommandError, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
+    normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -74,6 +80,7 @@ pub enum CliCommand {
     SkillRoot(SkillRootCommand),
     Extension(ExtensionCommand),
     Memory(MemoryCommand),
+    Task(TaskCliCommand),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -124,6 +131,36 @@ pub enum MemoryCommand {
     Export,
     Import { path: PathBuf },
     RebuildIndex,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TaskCliCommand {
+    Create {
+        prompt: String,
+        priority: TaskPriority,
+        schedule: TaskSchedule,
+    },
+    List,
+    Inspect {
+        id: String,
+    },
+    Pause {
+        id: String,
+        reason: String,
+    },
+    Resume {
+        id: String,
+        reason: String,
+    },
+    Cancel {
+        id: String,
+        reason: String,
+    },
+    Schedule {
+        id: String,
+        schedule: TaskSchedule,
+        reason: String,
+    },
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -263,6 +300,7 @@ where
         "skill" => parse_skill_command(&mut args),
         "extension" => parse_extension_command(&mut args),
         "memory" => parse_memory_command(&mut args),
+        "task" => parse_task_command(&mut args),
         "--prompt" | "-p" => {
             let prompt = args
                 .next()
@@ -353,6 +391,10 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             let mut runtime = MemoryCommandRuntime::default();
             render_memory_command(&mut runtime, command, OutputMode::Text)
         }
+        CliCommand::Task(command) => {
+            let mut runtime = TaskCommandRuntime::fixture();
+            render_task_command(&mut runtime, command, OutputMode::Text)
+        }
     }
 }
 
@@ -400,6 +442,10 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             CliCommand::Memory(command) => {
                 let mut runtime = MemoryCommandRuntime::default();
                 render_memory_command(&mut runtime, command, OutputMode::Text)
+            }
+            CliCommand::Task(command) => {
+                let mut runtime = TaskCommandRuntime::fixture();
+                render_task_command(&mut runtime, command, OutputMode::Text)
             }
             command => render_cli_command(command),
         },
@@ -451,6 +497,10 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if let CliCommand::Memory(command) = invocation.command {
         let mut runtime = MemoryCommandRuntime::default();
         return render_memory_command(&mut runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::Task(command) = invocation.command {
+        let mut runtime = TaskCommandRuntime::fixture();
+        return render_task_command(&mut runtime, command, OutputMode::Json);
     }
 
     let mut stdout = render_model_selection_frame(&invocation.model_selection);
@@ -704,6 +754,135 @@ where
     Ok(CliCommand::Memory(command))
 }
 
+fn parse_task_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("task".to_string()));
+    };
+
+    let command = match subcommand.as_str() {
+        "create" => parse_task_create(args)?,
+        "list" => {
+            no_plugin_extra_args(args, "task list")?;
+            TaskCliCommand::List
+        }
+        "inspect" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("task inspect".to_string()))?;
+            no_plugin_extra_args(args, "task inspect")?;
+            TaskCliCommand::Inspect { id }
+        }
+        "pause" => parse_task_reason_command(args, "task pause")
+            .map(|(id, reason)| TaskCliCommand::Pause { id, reason })?,
+        "resume" => parse_task_reason_command(args, "task resume")
+            .map(|(id, reason)| TaskCliCommand::Resume { id, reason })?,
+        "cancel" => parse_task_reason_command(args, "task cancel")
+            .map(|(id, reason)| TaskCliCommand::Cancel { id, reason })?,
+        "schedule" => parse_task_schedule(args)?,
+        _ => return Err(CliError::UnknownArgument(format!("task {subcommand}"))),
+    };
+
+    Ok(CliCommand::Task(command))
+}
+
+fn parse_task_create<I>(args: &mut I) -> Result<TaskCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut prompt = None;
+    let mut priority = TaskPriority::Normal;
+    let mut schedule = TaskSchedule::OneShot { run_at: None };
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--prompt" => prompt = Some(take_flag_value(args, &arg)?),
+            "--priority" => priority = parse_task_priority(&take_flag_value(args, &arg)?)?,
+            "--cron" => {
+                schedule = TaskSchedule::Cron {
+                    expression: take_flag_value(args, &arg)?,
+                };
+            }
+            "--once" => schedule = TaskSchedule::OneShot { run_at: None },
+            _ => return Err(CliError::UnknownArgument(format!("task create {arg}"))),
+        }
+    }
+
+    Ok(TaskCliCommand::Create {
+        prompt: prompt.ok_or_else(|| CliError::MissingValue("task create --prompt".to_string()))?,
+        priority,
+        schedule,
+    })
+}
+
+fn parse_task_reason_command<I>(
+    args: &mut I,
+    command_name: &str,
+) -> Result<(String, String), CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let id = args
+        .next()
+        .ok_or_else(|| CliError::MissingValue(command_name.to_string()))?;
+    let mut reason = None;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--reason" => reason = Some(take_flag_value(args, &arg)?),
+            _ => return Err(CliError::UnknownArgument(format!("{command_name} {arg}"))),
+        }
+    }
+
+    Ok((
+        id,
+        reason.ok_or_else(|| CliError::MissingValue(format!("{command_name} --reason")))?,
+    ))
+}
+
+fn parse_task_schedule<I>(args: &mut I) -> Result<TaskCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let id = args
+        .next()
+        .ok_or_else(|| CliError::MissingValue("task schedule".to_string()))?;
+    let mut schedule = None;
+    let mut reason = None;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--cron" => {
+                schedule = Some(TaskSchedule::Cron {
+                    expression: take_flag_value(args, &arg)?,
+                });
+            }
+            "--once" => schedule = Some(TaskSchedule::OneShot { run_at: None }),
+            "--reason" => reason = Some(take_flag_value(args, &arg)?),
+            _ => return Err(CliError::UnknownArgument(format!("task schedule {arg}"))),
+        }
+    }
+
+    Ok(TaskCliCommand::Schedule {
+        id,
+        schedule: schedule
+            .ok_or_else(|| CliError::MissingValue("task schedule --cron|--once".to_string()))?,
+        reason: reason
+            .ok_or_else(|| CliError::MissingValue("task schedule --reason".to_string()))?,
+    })
+}
+
+fn parse_task_priority(value: &str) -> Result<TaskPriority, CliError> {
+    match value {
+        "low" => Ok(TaskPriority::Low),
+        "normal" => Ok(TaskPriority::Normal),
+        "high" => Ok(TaskPriority::High),
+        other => Err(CliError::UnknownArgument(format!("task priority {other}"))),
+    }
+}
+
 fn parse_memory_delete<I>(args: &mut I) -> Result<MemoryCommand, CliError>
 where
     I: Iterator<Item = String>,
@@ -803,6 +982,222 @@ where
         return Err(CliError::UnknownArgument(format!("{command_name} {extra}")));
     }
     Ok(())
+}
+
+#[derive(Clone, Debug)]
+pub struct TaskCommandRuntime {
+    service: InMemoryTaskCommandService,
+    workspace_id: WorkspaceId,
+}
+
+impl TaskCommandRuntime {
+    #[must_use]
+    pub fn fixture() -> Self {
+        Self {
+            service: InMemoryTaskCommandService::default(),
+            workspace_id: "00000000-0000-0000-0000-000000002401"
+                .parse()
+                .expect("fixture workspace id is valid"),
+        }
+    }
+
+    #[must_use]
+    pub const fn service(&self) -> &InMemoryTaskCommandService {
+        &self.service
+    }
+}
+
+#[must_use]
+pub fn render_task_command(
+    runtime: &mut TaskCommandRuntime,
+    command: TaskCliCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match run_task_command(runtime, command) {
+        Ok(response) => render_task_response(response, output_mode),
+        Err(error) => render_task_error(error, output_mode),
+    }
+}
+
+fn run_task_command(
+    runtime: &mut TaskCommandRuntime,
+    command: TaskCliCommand,
+) -> Result<TaskCommandResponse, SchedulerError> {
+    let now = Timestamp::now_utc();
+    let command = match command {
+        TaskCliCommand::Create {
+            prompt,
+            priority,
+            schedule,
+        } => SchedulerTaskCommand::Create(TaskCreateRequest::new(
+            runtime.workspace_id,
+            None,
+            prompt,
+            schedule,
+            priority,
+        )?),
+        TaskCliCommand::List => SchedulerTaskCommand::List,
+        TaskCliCommand::Inspect { id } => SchedulerTaskCommand::Inspect {
+            task_id: parse_task_id(&id)?,
+        },
+        TaskCliCommand::Pause { id, reason } => SchedulerTaskCommand::Pause {
+            task_id: parse_task_id(&id)?,
+            reason,
+        },
+        TaskCliCommand::Resume { id, reason } => SchedulerTaskCommand::Resume {
+            task_id: parse_task_id(&id)?,
+            reason,
+        },
+        TaskCliCommand::Cancel { id, reason } => SchedulerTaskCommand::Cancel {
+            task_id: parse_task_id(&id)?,
+            reason,
+        },
+        TaskCliCommand::Schedule {
+            id,
+            schedule,
+            reason,
+        } => SchedulerTaskCommand::UpdateSchedule(TaskScheduleUpdate::new(
+            parse_task_id(&id)?,
+            schedule,
+            reason,
+        )?),
+    };
+    runtime.service.handle(command, now)
+}
+
+fn parse_task_id(value: &str) -> Result<TaskId, SchedulerError> {
+    value
+        .parse()
+        .map_err(|error| SchedulerError::InvalidTask(format!("invalid task id: {error}")))
+}
+
+fn render_task_response(response: TaskCommandResponse, output_mode: OutputMode) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => render_task_text_response(response),
+        OutputMode::Json => render_task_json_response(response),
+    }
+}
+
+fn render_task_text_response(response: TaskCommandResponse) -> CliOutput {
+    match response {
+        TaskCommandResponse::Created(task) => {
+            CliOutput::exit(format_task_action("Created task", &task))
+        }
+        TaskCommandResponse::Listed(tasks) if tasks.is_empty() => CliOutput::exit("No tasks\n"),
+        TaskCommandResponse::Listed(tasks) => CliOutput::exit(
+            tasks
+                .iter()
+                .map(format_task_line)
+                .collect::<Vec<_>>()
+                .join("\n")
+                + "\n",
+        ),
+        TaskCommandResponse::Inspected(task) => CliOutput::exit(format!(
+            "Task {}\nworkspace={}\nstate={}\npriority={}\nschedule={}\nprompt={}\n",
+            task.task_id,
+            task.workspace_id,
+            task_state_label(task.state),
+            task_priority_label(task.priority),
+            task.schedule.label(),
+            agent_scheduler::redact_task_text(&task.prompt)
+        )),
+        TaskCommandResponse::Paused(task) => {
+            CliOutput::exit(format_task_action("Paused task", &task))
+        }
+        TaskCommandResponse::Resumed(task) => {
+            CliOutput::exit(format_task_action("Resumed task", &task))
+        }
+        TaskCommandResponse::Cancelled(task) => {
+            CliOutput::exit(format_task_action("Cancelled task", &task))
+        }
+        TaskCommandResponse::ScheduleUpdated(task) => {
+            CliOutput::exit(format_task_action("Updated task schedule", &task))
+        }
+    }
+}
+
+fn render_task_json_response(response: TaskCommandResponse) -> CliOutput {
+    let tasks = match response {
+        TaskCommandResponse::Created(task)
+        | TaskCommandResponse::Inspected(task)
+        | TaskCommandResponse::Paused(task)
+        | TaskCommandResponse::Resumed(task)
+        | TaskCommandResponse::Cancelled(task)
+        | TaskCommandResponse::ScheduleUpdated(task) => vec![task],
+        TaskCommandResponse::Listed(tasks) => tasks,
+    };
+
+    match task_snapshot(tasks, Vec::new()) {
+        Ok(snapshot) => CliOutput::exit(json_frame_line(UiJsonFrame::TaskSnapshot(snapshot))),
+        Err(error) => CliOutput::failure(format!("{error}\n"), 2),
+    }
+}
+
+fn render_task_error(error: SchedulerError, output_mode: OutputMode) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => CliOutput::failure(format!("task command failed: {error}\n"), 2),
+        OutputMode::Json => {
+            let ui_error =
+                UiTaskCommandError::recoverable("task_command_failed", error.to_string());
+            match ui_error.and_then(|error| UiTaskSnapshot::new(Vec::new(), vec![error])) {
+                Ok(snapshot) => {
+                    CliOutput::failure(json_frame_line(UiJsonFrame::TaskSnapshot(snapshot)), 2)
+                }
+                Err(error) => CliOutput::failure(format!("{error}\n"), 2),
+            }
+        }
+    }
+}
+
+fn task_snapshot(
+    tasks: Vec<agent_scheduler::BackgroundAgentTask>,
+    errors: Vec<UiTaskCommandError>,
+) -> Result<UiTaskSnapshot, UiBridgeError> {
+    UiTaskSnapshot::new(
+        tasks
+            .iter()
+            .map(UiTaskSummary::from_task)
+            .collect::<Result<Vec<_>, _>>()?,
+        errors,
+    )
+}
+
+fn format_task_action(label: &str, task: &agent_scheduler::BackgroundAgentTask) -> String {
+    format!("{label} {}\n{}\n", task.task_id, format_task_line(task))
+}
+
+fn format_task_line(task: &agent_scheduler::BackgroundAgentTask) -> String {
+    format!(
+        "{} state={} priority={} schedule={} prompt={}",
+        task.task_id,
+        task_state_label(task.state),
+        task_priority_label(task.priority),
+        task.schedule.label(),
+        agent_scheduler::redact_task_text(&task.prompt)
+    )
+}
+
+fn task_state_label(state: agent_types::TaskState) -> &'static str {
+    match state {
+        agent_types::TaskState::Created => "created",
+        agent_types::TaskState::Queued => "queued",
+        agent_types::TaskState::Running => "running",
+        agent_types::TaskState::WaitingApproval => "waiting_approval",
+        agent_types::TaskState::Sleeping => "sleeping",
+        agent_types::TaskState::Paused => "paused",
+        agent_types::TaskState::Succeeded => "succeeded",
+        agent_types::TaskState::Failed => "failed",
+        agent_types::TaskState::Cancelled => "cancelled",
+        agent_types::TaskState::Expired => "expired",
+    }
+}
+
+fn task_priority_label(priority: TaskPriority) -> &'static str {
+    match priority {
+        TaskPriority::Low => "low",
+        TaskPriority::Normal => "normal",
+        TaskPriority::High => "high",
+    }
 }
 
 #[derive(Clone, Debug, Default)]

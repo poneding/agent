@@ -16,10 +16,11 @@ pub use command::{
     CliCommand, CliError, CliInvocation, ExtensionCommand, ExtensionCommandRuntime,
     InteractiveMode, MemoryCommand, MemoryCommandRuntime, ModelSelection, OutputMode,
     PluginCommand, PluginCommandRuntime, PluginInstallDiagnostic, PluginInstallReport,
-    SkillRootCommand, SkillRootCommandRuntime, SlashCommand, StdioProfile, handle_slash_command,
-    parse_cli_command, parse_cli_invocation, render_cli_command, render_cli_invocation,
-    render_cli_invocation_with_stdio, render_extension_command, render_memory_command,
-    render_plugin_command, render_skill_root_command, run_plain_repl_stdio,
+    SkillRootCommand, SkillRootCommandRuntime, SlashCommand, StdioProfile, TaskCliCommand,
+    TaskCommandRuntime, handle_slash_command, parse_cli_command, parse_cli_invocation,
+    render_cli_command, render_cli_invocation, render_cli_invocation_with_stdio,
+    render_extension_command, render_memory_command, render_plugin_command,
+    render_skill_root_command, render_task_command, run_plain_repl_stdio,
 };
 pub use output::CliOutput;
 pub use repl::{

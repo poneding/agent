@@ -1,3 +1,5 @@
+use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
+use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
 use serde::{Deserialize, Serialize};
 
 use crate::{UiBridgeError, UiEventEnvelope};
@@ -389,12 +391,127 @@ impl UiExtensionDiagnostic {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTaskSnapshot {
+    pub tasks: Vec<UiTaskSummary>,
+    pub errors: Vec<UiTaskCommandError>,
+}
+
+impl UiTaskSnapshot {
+    pub fn new(
+        mut tasks: Vec<UiTaskSummary>,
+        errors: Vec<UiTaskCommandError>,
+    ) -> Result<Self, UiBridgeError> {
+        tasks.sort_by_key(|task| task.task_id);
+
+        Ok(Self { tasks, errors })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTaskSummary {
+    pub task_id: TaskId,
+    pub workspace_id: WorkspaceId,
+    pub conversation_id: Option<ConversationId>,
+    pub state: TaskState,
+    pub priority: TaskPriority,
+    pub schedule: UiTaskScheduleSummary,
+    pub prompt_summary: String,
+    pub latest_run_summary: Option<String>,
+    pub created_at: Timestamp,
+    pub updated_at: Timestamp,
+}
+
+impl UiTaskSummary {
+    pub fn from_task(task: &BackgroundAgentTask) -> Result<Self, UiBridgeError> {
+        let prompt_summary = bounded_task_text(&task.prompt);
+        validate_non_empty("task prompt summary", &prompt_summary)?;
+
+        Ok(Self {
+            task_id: task.task_id,
+            workspace_id: task.workspace_id,
+            conversation_id: task.conversation_id,
+            state: task.state,
+            priority: task.priority,
+            schedule: UiTaskScheduleSummary::from_schedule(&task.schedule)?,
+            prompt_summary,
+            latest_run_summary: task
+                .latest_run_summary
+                .clone()
+                .map(|summary| bounded_task_text(&summary)),
+            created_at: task.created_at,
+            updated_at: task.updated_at,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTaskScheduleSummary {
+    pub kind: String,
+    pub label: String,
+}
+
+impl UiTaskScheduleSummary {
+    pub fn from_schedule(schedule: &TaskSchedule) -> Result<Self, UiBridgeError> {
+        let kind = match schedule {
+            TaskSchedule::OneShot { .. } => "one_shot",
+            TaskSchedule::Cron { .. } => "cron",
+        }
+        .to_string();
+        let label = bounded_task_text(&schedule.label());
+        validate_non_empty("task schedule label", &label)?;
+
+        Ok(Self { kind, label })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTaskCommandError {
+    pub code: String,
+    pub message: String,
+    pub recoverable: bool,
+}
+
+impl UiTaskCommandError {
+    pub fn recoverable(
+        code: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        Self::new(code, message, true)
+    }
+
+    pub fn fatal(
+        code: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        Self::new(code, message, false)
+    }
+
+    fn new(
+        code: impl Into<String>,
+        message: impl Into<String>,
+        recoverable: bool,
+    ) -> Result<Self, UiBridgeError> {
+        let code = code.into();
+        let message = bounded_task_text(&message.into());
+        validate_non_empty("task command error code", &code)?;
+        validate_non_empty("task command error message", &message)?;
+
+        Ok(Self {
+            code,
+            message,
+            recoverable,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum UiJsonFrame {
     Event(UiEventEnvelope),
     ConfigSnapshot(UiConfigSnapshot),
     PromptSummary(UiPromptSummary),
     ExtensionSnapshot(UiExtensionSnapshot),
+    TaskSnapshot(UiTaskSnapshot),
     ModelSelection {
         provider: String,
         model: String,
@@ -458,6 +575,16 @@ fn redact_secret_like_text(value: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+fn bounded_task_text(value: &str) -> String {
+    let redacted = redact_task_text(value);
+    let redacted = redacted.trim();
+    if redacted.chars().count() > 120 {
+        redacted.chars().take(120).collect()
+    } else {
+        redacted.to_string()
+    }
 }
 
 fn is_secret_like_token(value: &str) -> bool {

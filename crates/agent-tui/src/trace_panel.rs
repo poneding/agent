@@ -131,6 +131,15 @@ impl TracePanelState {
                     snapshot.capability_reviews.len()
                 ),
             )),
+            UiJsonFrame::TaskSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "tasks",
+                format!(
+                    "{} tasks, {} errors",
+                    snapshot.tasks.len(),
+                    snapshot.errors.len()
+                ),
+            )),
             UiJsonFrame::Done { event_count } => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "done",

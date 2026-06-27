@@ -21,6 +21,7 @@ agent-memory = { path = "../agent-memory" }
 agent-model = { path = "../agent-model" }
 agent-plugin = { path = "../agent-plugin" }
 agent-policy = { path = "../agent-policy" }
+agent-scheduler = { path = "../agent-scheduler" }
 agent-skill = { path = "../agent-skill" }
 agent-storage = { path = "../agent-storage" }
 agent-types = { path = "../agent-types" }

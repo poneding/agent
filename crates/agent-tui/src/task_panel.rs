@@ -1,5 +1,5 @@
 use agent_types::TaskId;
-use agent_ui_bridge::{UiEventPayload, UiJsonFrame};
+use agent_ui_bridge::{UiEventPayload, UiJsonFrame, UiTaskSummary};
 
 const DEFAULT_TASK_NOTIFICATION_LIMIT: usize = 100;
 
@@ -28,6 +28,7 @@ impl TaskPanelNotification {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TaskPanelState {
+    pub tasks: Vec<UiTaskSummary>,
     pub notifications: Vec<TaskPanelNotification>,
     limit: usize,
 }
@@ -36,43 +37,54 @@ impl TaskPanelState {
     #[must_use]
     pub fn with_limit(limit: usize) -> Self {
         Self {
+            tasks: Vec::new(),
             notifications: Vec::new(),
             limit: limit.max(1),
         }
     }
 
     pub fn reduce_frame(&mut self, frame: &UiJsonFrame) {
-        let UiJsonFrame::Event(event) = frame else {
-            return;
-        };
+        match frame {
+            UiJsonFrame::TaskSnapshot(snapshot) => {
+                self.tasks = snapshot.tasks.clone();
+            }
+            UiJsonFrame::Event(event) => {
+                let UiEventPayload::TaskNotification {
+                    task_id,
+                    kind,
+                    summary,
+                } = &event.payload
+                else {
+                    return;
+                };
 
-        let UiEventPayload::TaskNotification {
-            task_id,
-            kind,
-            summary,
-        } = &event.payload
-        else {
-            return;
-        };
-
-        self.push(TaskPanelNotification::new(
-            *task_id,
-            kind.clone(),
-            summary.clone(),
-        ));
+                self.push(TaskPanelNotification::new(
+                    *task_id,
+                    kind.clone(),
+                    summary.clone(),
+                ));
+            }
+            _ => {}
+        }
     }
 
     #[must_use]
     pub fn render_text(&self) -> String {
-        if self.notifications.is_empty() {
+        if self.tasks.is_empty() && self.notifications.is_empty() {
             return "No task notifications".to_string();
         }
 
-        self.notifications
+        let mut lines = self
+            .tasks
             .iter()
-            .map(TaskPanelNotification::render_line)
-            .collect::<Vec<_>>()
-            .join("\n")
+            .map(|task| format!("{} {:?}: {}", task.task_id, task.state, task.prompt_summary))
+            .collect::<Vec<_>>();
+        lines.extend(
+            self.notifications
+                .iter()
+                .map(TaskPanelNotification::render_line),
+        );
+        lines.join("\n")
     }
 
     fn push(&mut self, notification: TaskPanelNotification) {

@@ -1,17 +1,24 @@
 use agent_context::{
     BudgetClass, BudgetDecision, BudgetItem, ContextBudget, ContextError, PromptLayer,
-    PromptLayerKind, plan_context_budget,
+    PromptLayerKind, PromptLayerPolicy, PromptLayerSensitivity, PromptLayerSource,
+    PromptLayerVisibility, plan_context_budget,
 };
 use serde_json::json;
 
 fn layer(id: &str, tokens: u32) -> PromptLayer {
-    PromptLayer {
-        id: id.to_string(),
-        kind: PromptLayerKind::Project,
-        priority: 10,
-        content: format!("{id} content"),
-        token_estimate: tokens,
-    }
+    PromptLayer::new(
+        id,
+        PromptLayerKind::Project,
+        10,
+        format!("{id} content"),
+        tokens,
+        PromptLayerSource::BuiltIn,
+        PromptLayerVisibility::Full,
+        PromptLayerSensitivity::Public,
+        PromptLayerPolicy::Optional,
+        1,
+    )
+    .expect("valid prompt layer")
 }
 
 fn item(id: &str, tokens: u32, class: BudgetClass) -> BudgetItem {

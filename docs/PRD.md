@@ -2,7 +2,7 @@
 
 ## 1. Product Overview
 
-agent is a local-first, extensible runtime for building secure, auditable, high-performance AI agents. It provides the core execution engine for CLI, Desktop, background automations, coding agents, multi-agent teams, MCP integrations, plugins, tools, memory, and traceable long-running workflows.
+agent is a local-first, extensible runtime for building secure, auditable, high-performance AI agents. It provides the core execution engine for CLI, terminal TUI, Desktop, background automations, coding agents, multi-agent teams, MCP integrations, plugins, tools, memory, and traceable long-running workflows.
 
 The product is a platform layer rather than a single agent application. Its core value is a durable runtime spine that turns model output into controlled, observable, recoverable actions.
 
@@ -10,14 +10,14 @@ The product is a platform layer rather than a single agent application. Its core
 
 | User | Need |
 |---|---|
-| Individual developers | Run coding agents safely inside local repositories through CLI or Desktop. |
+| Individual developers | Run coding agents safely inside local repositories through CLI, terminal TUI, or Desktop. |
 | Agent product builders | Build custom agents without reimplementing model, tool, memory, policy, and recovery infrastructure. |
 | Platform teams | Standardize permissions, audit, plugins, MCP, tasks, and traceability across agent workflows. |
 | Power users | Inspect, replay, debug, schedule, and extend agent behavior. |
 
 ## 3. Product Goals
 
-- Provide one shared Rust runtime for CLI and Desktop.
+- Provide one shared Rust runtime for CLI, terminal TUI, and Desktop.
 - Support complete agent turns with model streaming, tool use, permission gating, recovery, memory, and persistence.
 - Make every meaningful runtime action observable, auditable, and replayable.
 - Enable provider-agnostic model integration and tool-agnostic execution.
@@ -138,11 +138,12 @@ The product is a platform layer rather than a single agent application. Its core
 - Support slash commands, multiline input, history, completion, status inspection, tool dry-run, permission simulation, breakpoints, checkpoint replay, trace replay, and plugin debugging.
 - Provide the same debugging capabilities in CLI and Desktop.
 
-### 5.13 CLI
+### 5.13 CLI and Terminal TUI
 
-- Support TTY interactive mode, JSON event stream mode, and batch mode.
+- Support batch mode, JSON event stream mode, plain REPL mode, and full-screen TUI REPL mode.
+- Make `agent` with no arguments enter the TUI REPL when stdin and stdout are interactive terminals.
 - Support slash commands for model, tools, permissions, memory, compact, tasks, agents, MCP, plugins, trace, replay, and status.
-- Display streaming output, diffs, approvals, task status, errors, and verification results.
+- Display streaming output, diffs, approvals, task status, errors, and verification results in terminal-appropriate forms.
 
 ### 5.14 Desktop
 

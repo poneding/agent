@@ -1,10 +1,11 @@
 use agent_types::{
     ActorRef, ClientKind, ConversationId, CorrelationId, EventId, EventSeq, ModelOutputDelta,
-    RuntimeEvent, RuntimeEventPayload, SchemaVersion, Timestamp, ToolCallProposed, TurnId,
-    WorkspaceId,
+    PromptLayerHashRecord, PromptSnapshotRecorded, RuntimeEvent, RuntimeEventPayload,
+    SchemaVersion, Timestamp, ToolCallProposed, TurnId, WorkspaceId,
 };
 use agent_ui_bridge::{
-    UiClientInfo, UiCommand, UiCommandEnvelope, UiJsonFrame, normalize_runtime_event,
+    UiClientInfo, UiCommand, UiCommandEnvelope, UiEventPayload, UiJsonFrame,
+    normalize_runtime_event,
 };
 use serde_json::{Value, json};
 use time::macros::datetime;
@@ -111,5 +112,59 @@ fn bridge_snapshots_redact_tool_call_input_from_ui_event() {
                 "tool_name": "shell_command"
             }
         })
+    );
+}
+
+#[test]
+fn prompt_snapshot_event_normalizes_to_ui_prompt_summary() {
+    let event = runtime_event(RuntimeEventPayload::PromptSnapshotRecorded(
+        PromptSnapshotRecorded {
+            profile_id: "default".to_string(),
+            profile_version: 1,
+            bundle_hash: "fnv1a64:bundle".to_string(),
+            layer_hashes: vec![PromptLayerHashRecord {
+                layer_id: "system".to_string(),
+                source_hash: "fnv1a64:source".to_string(),
+                content_hash: "fnv1a64:content".to_string(),
+            }],
+            diagnostic_count: 2,
+            message_count: 4,
+            estimated_tokens: 140,
+        },
+    ));
+
+    let ui_event = normalize_runtime_event(&event);
+    let UiEventPayload::PromptSummary(summary) = ui_event.payload else {
+        panic!("expected prompt summary payload");
+    };
+
+    assert_eq!(summary.profile_id, "default");
+    assert_eq!(summary.profile_version, 1);
+    assert_eq!(summary.display_name, "default");
+    assert_eq!(summary.bundle_hash, "fnv1a64:bundle");
+    assert_eq!(summary.estimated_tokens, 140);
+    assert_eq!(summary.message_count, 4);
+    assert_eq!(summary.layers.len(), 1);
+    assert_eq!(summary.layers[0].layer_id, "system");
+    assert_eq!(
+        summary.layers[0].source_hash.as_deref(),
+        Some("fnv1a64:source")
+    );
+    assert_eq!(
+        summary.layers[0].content_hash.as_deref(),
+        Some("fnv1a64:content")
+    );
+    assert_eq!(summary.layers[0].content_preview, None);
+    assert!(
+        summary
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "prompt.snapshot.partial_metadata")
+    );
+    assert!(
+        summary
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "prompt.snapshot.diagnostics_recorded")
     );
 }

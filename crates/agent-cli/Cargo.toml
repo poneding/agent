@@ -6,17 +6,28 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 
+[[bin]]
+name = "agent"
+path = "src/bin/agent.rs"
+
+[[bin]]
+name = "agent-cli"
+path = "src/bin/agent-cli.rs"
+
 [dependencies]
+agent-context = { path = "../agent-context" }
 agent-core = { path = "../agent-core" }
 agent-model = { path = "../agent-model" }
 agent-storage = { path = "../agent-storage" }
 agent-types = { path = "../agent-types" }
+agent-tui = { path = "../agent-tui" }
 agent-ui-bridge = { path = "../agent-ui-bridge" }
+futures-util = "0.3"
+serde_json = "1"
 thiserror = "2"
 tokio = { version = "1", features = ["rt"] }
 
 [dev-dependencies]
-serde_json = "1"
 
 [lints]
 workspace = true

@@ -23,7 +23,8 @@ pub use invocation_policy::{
 pub use openai_compatible::{
     FixtureOpenAiCompatibleTransport, OpenAiCompatibleError, OpenAiCompatibleHttpRequest,
     OpenAiCompatibleHttpResponse, OpenAiCompatibleProvider, OpenAiCompatibleTransport,
-    build_openai_compatible_request_body, parse_openai_compatible_sse,
+    ReqwestOpenAiCompatibleTransport, build_openai_compatible_request_body,
+    parse_openai_compatible_sse,
 };
 pub use provider::{ModelError, ModelProvider};
 pub use registry::{
@@ -34,7 +35,10 @@ pub use request::ModelRequest;
 pub use secrets::{
     EnvSecretResolver, InMemorySecretResolver, SecretResolutionError, SecretResolver, SecretValue,
 };
-pub use stream::{ModelStreamEvent, ModelStreamResult};
+pub use stream::{
+    ModelEventStream, ModelStreamEvent, ModelStreamResult, collect_model_event_stream,
+    model_error_to_stream, model_events_to_stream,
+};
 
 /// Returns a smoke-test string proving the model crate links shared types.
 #[must_use]

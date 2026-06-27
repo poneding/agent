@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::provider::{ModelError, ModelProvider};
 use crate::request::ModelRequest;
-use crate::stream::{ModelStreamEvent, ModelStreamResult};
+use crate::stream::{ModelEventStream, ModelStreamEvent, model_events_to_stream};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FakeToolCall {
@@ -59,7 +59,7 @@ impl FakeModelProvider {
 
 #[async_trait]
 impl ModelProvider for FakeModelProvider {
-    async fn stream(&self, _request: ModelRequest) -> Result<ModelStreamResult, ModelError> {
+    async fn stream(&self, _request: ModelRequest) -> Result<ModelEventStream, ModelError> {
         let mut events =
             Vec::with_capacity(self.script.deltas.len() + self.script.tool_calls.len() + 2);
         events.push(ModelStreamEvent::Started {
@@ -88,6 +88,6 @@ impl ModelProvider for FakeModelProvider {
                 .map(|delta| delta.len() as u32)
                 .sum(),
         });
-        Ok(events)
+        Ok(model_events_to_stream(events))
     }
 }

@@ -8,7 +8,7 @@ fn prints_version() {
         .expect("agent-cli binary should run");
 
     assert!(output.status.success());
-    assert_eq!(String::from_utf8_lossy(&output.stdout), "agent-cli 0.1.0\n");
+    assert_eq!(String::from_utf8_lossy(&output.stdout), "agent 0.1.0\n");
     assert!(output.stderr.is_empty());
 }
 

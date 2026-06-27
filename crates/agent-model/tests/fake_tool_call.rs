@@ -1,5 +1,6 @@
 use agent_model::{
     FakeModelProvider, FakeModelScript, ModelProvider, ModelRequest, ModelStreamEvent,
+    collect_model_event_stream,
 };
 use agent_types::{ConversationId, CorrelationId, TurnId};
 use serde_json::json;
@@ -23,10 +24,13 @@ async fn fake_model_emits_scripted_tool_call() {
         json!({ "path": "README.md" }),
     ));
 
-    let events = provider
+    let stream = provider
         .stream(model_request())
         .await
         .expect("stream fake model");
+    let events = collect_model_event_stream(stream)
+        .await
+        .expect("collect stream");
 
     assert_eq!(
         events,

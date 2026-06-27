@@ -7,6 +7,7 @@ license.workspace = true
 authors.workspace = true
 
 [dependencies]
+agent-context = { path = "../agent-context" }
 agent-model = { path = "../agent-model" }
 agent-policy = { path = "../agent-policy" }
 agent-sandbox = { path = "../agent-sandbox" }
@@ -14,6 +15,7 @@ agent-storage = { path = "../agent-storage" }
 agent-tool = { path = "../agent-tool" }
 agent-types = { path = "../agent-types" }
 async-trait = "0.1"
+futures-util = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tempfile = "3"
@@ -21,10 +23,9 @@ thiserror = "2"
 toml = "0.8"
 
 [dev-dependencies]
-agent-context = { path = "../agent-context" }
 agent-memory = { path = "../agent-memory" }
 agent-plugin = { path = "../agent-plugin" }
-tokio = { version = "1", features = ["macros", "rt"] }
+tokio = { version = "1", features = ["macros", "rt", "time"] }
 
 [lints]
 workspace = true

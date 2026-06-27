@@ -7,11 +7,16 @@ pub mod event;
 pub mod frame;
 
 pub use command::{
-    UiClientInfo, UiCommand, UiCommandEnvelope, UiPermissionDecision, validate_ui_command,
+    UiApprovalDecision, UiClientInfo, UiCommand, UiCommandEnvelope, UiPermissionDecision,
+    validate_ui_command,
 };
 pub use error::UiBridgeError;
-pub use event::{UiDiagnosticLevel, UiEventEnvelope, UiEventPayload, normalize_runtime_event};
+pub use event::{
+    UiApprovalPreviewSummary, UiApprovalRequest, UiDiagnosticLevel, UiEventEnvelope,
+    UiEventPayload, normalize_runtime_event,
+};
 pub use frame::{
     UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiJsonFrame,
-    UiModelProviderSummary, encode_json_frame,
+    UiModelProviderSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
+    encode_json_frame,
 };

@@ -1,5 +1,6 @@
 use agent_model::{
     FakeModelProvider, FakeModelScript, ModelProvider, ModelRequest, ModelStreamEvent,
+    collect_model_event_stream,
 };
 use agent_types::{ConversationId, CorrelationId, TurnId};
 
@@ -23,10 +24,13 @@ async fn fake_model_streams_scripted_deltas() {
         finish_reason: "stop".to_string(),
     });
 
-    let events = provider
+    let stream = provider
         .stream(model_request())
         .await
         .expect("stream fake model");
+    let events = collect_model_event_stream(stream)
+        .await
+        .expect("collect stream");
 
     assert_eq!(
         events,
@@ -57,10 +61,13 @@ async fn fake_model_empty_script_emits_started_and_completed() {
         finish_reason: "stop".to_string(),
     });
 
-    let events = provider
+    let stream = provider
         .stream(model_request())
         .await
         .expect("stream fake model");
+    let events = collect_model_event_stream(stream)
+        .await
+        .expect("collect stream");
 
     assert_eq!(
         events,

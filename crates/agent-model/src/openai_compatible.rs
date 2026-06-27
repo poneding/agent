@@ -1,7 +1,9 @@
 use std::fmt;
 use std::sync::Arc;
+use std::time::Duration;
 
 use async_trait::async_trait;
+use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use thiserror::Error;
@@ -9,7 +11,10 @@ use thiserror::Error;
 use crate::config::{ModelProviderConfig, ModelProviderKind, SecretRef};
 use crate::provider::{ModelError, ModelProvider};
 use crate::request::ModelRequest;
-use crate::stream::{ModelStreamEvent, ModelStreamResult};
+use crate::secrets::SecretResolver;
+use crate::stream::{
+    ModelEventStream, ModelStreamEvent, ModelStreamResult, model_events_to_stream,
+};
 
 const DEFAULT_OPENAI_COMPATIBLE_BASE_URL: &str = "https://api.openai.com/v1";
 
@@ -70,6 +75,97 @@ impl OpenAiCompatibleTransport for FixtureOpenAiCompatibleTransport {
 }
 
 #[derive(Clone)]
+pub struct ReqwestOpenAiCompatibleTransport {
+    client: reqwest::Client,
+    secret_resolver: Arc<dyn SecretResolver>,
+}
+
+impl ReqwestOpenAiCompatibleTransport {
+    #[must_use]
+    pub fn new(secret_resolver: Arc<dyn SecretResolver>) -> Self {
+        Self {
+            client: reqwest::Client::new(),
+            secret_resolver,
+        }
+    }
+
+    #[must_use]
+    pub fn with_client(secret_resolver: Arc<dyn SecretResolver>, client: reqwest::Client) -> Self {
+        Self {
+            client,
+            secret_resolver,
+        }
+    }
+}
+
+impl fmt::Debug for ReqwestOpenAiCompatibleTransport {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ReqwestOpenAiCompatibleTransport")
+            .field("client", &"<reqwest client>")
+            .field("secret_resolver", &"<redacted>")
+            .finish()
+    }
+}
+
+#[async_trait]
+impl OpenAiCompatibleTransport for ReqwestOpenAiCompatibleTransport {
+    async fn send(
+        &self,
+        request: OpenAiCompatibleHttpRequest,
+    ) -> Result<OpenAiCompatibleHttpResponse, OpenAiCompatibleError> {
+        let secret = self
+            .secret_resolver
+            .resolve(&request.secret_ref)
+            .map_err(|error| OpenAiCompatibleError::SecretResolution {
+                message: error.to_string(),
+            })?;
+        let response = self
+            .client
+            .post(&request.url)
+            .timeout(Duration::from_millis(request.timeout_ms))
+            .bearer_auth(secret.expose_secret())
+            .json(&request.body)
+            .send()
+            .await
+            .map_err(|error| OpenAiCompatibleError::Transport {
+                message: redact_secret_like(&sanitize_url_in_message(&error.to_string())),
+            })?;
+
+        let status = response.status();
+        let request_id = response
+            .headers()
+            .get("x-request-id")
+            .or_else(|| response.headers().get("openai-request-id"))
+            .and_then(|value| value.to_str().ok())
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or("reqwest-response")
+            .to_string();
+
+        if !status.is_success() {
+            let body = response.text().await.unwrap_or_default();
+            return Err(OpenAiCompatibleError::provider_response(
+                status.as_u16(),
+                &body,
+            ));
+        }
+
+        let mut sse_chunks = Vec::new();
+        let mut bytes = response.bytes_stream();
+        while let Some(chunk) = bytes.next().await {
+            let chunk = chunk.map_err(|error| OpenAiCompatibleError::Transport {
+                message: redact_secret_like(&sanitize_url_in_message(&error.to_string())),
+            })?;
+            sse_chunks.push(String::from_utf8_lossy(&chunk).to_string());
+        }
+
+        Ok(OpenAiCompatibleHttpResponse {
+            request_id,
+            sse_chunks,
+        })
+    }
+}
+
+#[derive(Clone)]
 pub struct OpenAiCompatibleProvider {
     config: ModelProviderConfig,
     secret_ref: SecretRef,
@@ -119,7 +215,7 @@ impl fmt::Debug for OpenAiCompatibleProvider {
 
 #[async_trait]
 impl ModelProvider for OpenAiCompatibleProvider {
-    async fn stream(&self, request: ModelRequest) -> Result<ModelStreamResult, ModelError> {
+    async fn stream(&self, request: ModelRequest) -> Result<ModelEventStream, ModelError> {
         let http_request = OpenAiCompatibleHttpRequest {
             url: openai_compatible_responses_url(&self.config),
             secret_ref: self.secret_ref.clone(),
@@ -127,7 +223,8 @@ impl ModelProvider for OpenAiCompatibleProvider {
             timeout_ms: self.config.endpoint.timeout_ms,
         };
         let response = self.transport.send(http_request).await?;
-        parse_openai_compatible_sse(&response.request_id, &response).map_err(Into::into)
+        let events = parse_openai_compatible_sse(&response.request_id, &response)?;
+        Ok(model_events_to_stream(events))
     }
 }
 
@@ -216,6 +313,8 @@ pub enum OpenAiCompatibleError {
     InvalidProviderKind { provider_id: String },
     #[error("invalid OpenAI-compatible provider config: {message}")]
     InvalidConfig { message: String },
+    #[error("OpenAI-compatible secret resolution failed: {message}")]
+    SecretResolution { message: String },
     #[error("OpenAI-compatible transport failed: {message}")]
     Transport { message: String },
     #[error("OpenAI-compatible provider returned status {status}: {body_summary}")]
@@ -239,6 +338,7 @@ impl OpenAiCompatibleError {
             Self::MissingSecretRef { .. } => "model.openai_compatible.missing_secret_ref",
             Self::InvalidProviderKind { .. } => "model.openai_compatible.invalid_provider_kind",
             Self::InvalidConfig { .. } => "model.openai_compatible.invalid_config",
+            Self::SecretResolution { .. } => "model.openai_compatible.secret_resolution",
             Self::Transport { .. } => "model.openai_compatible.transport",
             Self::ProviderResponse { .. } => "model.openai_compatible.provider_response",
             Self::InvalidStreamEvent { .. } => "model.openai_compatible.invalid_stream_event",
@@ -252,7 +352,8 @@ impl OpenAiCompatibleError {
             Self::ProviderResponse { status, .. } => *status == 429 || *status >= 500,
             Self::MissingSecretRef { .. }
             | Self::InvalidProviderKind { .. }
-            | Self::InvalidConfig { .. } => false,
+            | Self::InvalidConfig { .. }
+            | Self::SecretResolution { .. } => false,
         }
     }
 }
@@ -298,7 +399,12 @@ fn parse_sse_frame(frame: &str) -> Option<(Option<String>, String)> {
 fn redact_secret_like(input: &str) -> String {
     let mut redacted = input.to_string();
     for token in input.split(|ch: char| !(ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_'))) {
-        if token.starts_with("sk-") {
+        let lower = token.to_ascii_lowercase();
+        if token.starts_with("sk-")
+            || lower.contains("api_key")
+            || lower.contains("token")
+            || lower.contains("password")
+        {
             redacted = redacted.replace(token, "[redacted]");
         }
     }
@@ -307,4 +413,30 @@ fn redact_secret_like(input: &str) -> String {
         redacted.push_str("...");
     }
     redacted
+}
+
+fn sanitize_url_in_message(input: &str) -> String {
+    input
+        .split_whitespace()
+        .map(|part| {
+            if part.starts_with("http://") || part.starts_with("https://") {
+                sanitize_url(part)
+            } else {
+                part.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn sanitize_url(input: &str) -> String {
+    let Some((scheme, rest)) = input.split_once("://") else {
+        return input.to_string();
+    };
+    let rest = rest.split_once('@').map(|(_, tail)| tail).unwrap_or(rest);
+    let (host_path, query_suffix) = match rest.split_once('?') {
+        Some((host_path, _query)) => (host_path, "?<redacted>"),
+        None => (rest, ""),
+    };
+    format!("{scheme}://{host_path}{query_suffix}")
 }

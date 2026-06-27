@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M15 |
-| Milestone-level plans | Complete for M01-M15 |
+| Milestone-level specs | Complete for M01-M25 |
+| Milestone-level plans | Complete for M01-M25 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -129,6 +129,58 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M15-04 implementation | Complete |
 | M15-05 implementation | Complete |
 | M15 implementation | Complete |
+| M16-M25 technical design | Complete for M16-00 through M25-00 |
+| M16 slice specs | Complete for M16-01 through M16-05 |
+| M16 slice plans | Complete for M16-01 through M16-05 |
+| M16-01 implementation | Complete |
+| M16-02 implementation | Complete |
+| M16-03 implementation | Complete |
+| M16-04 implementation | Complete |
+| M16-05 implementation | Complete |
+| M16 implementation | Complete |
+| M17 implementation slice specs | Complete for M17-01 through M17-05 |
+| M17 implementation slice plans | Complete for M17-01 through M17-05 |
+| M17-01 implementation | Complete |
+| M17-02 implementation | Complete |
+| M17-03 implementation | Complete |
+| M17-04 implementation | Complete |
+| M17-05 implementation | Complete |
+| M17 implementation | Complete |
+| M18 slice specs | Complete for M18-01 through M18-05 |
+| M18 slice plans | Complete for M18-01 through M18-05 |
+| M18-01 implementation | Complete |
+| M18-02 implementation | Complete |
+| M18-03 implementation | Complete |
+| M18-04 implementation | Complete |
+| M18-05 implementation | Complete |
+| M18 implementation | Complete |
+| M19 slice specs | Complete for M19-01 through M19-05 |
+| M19 slice plans | Complete for M19-01 through M19-05 |
+| M19-01 implementation | Complete |
+| M19-02 implementation | Complete |
+| M19-03 implementation | Complete |
+| M19-04 implementation | Complete |
+| M19-05 implementation | Complete |
+| M19 implementation | Complete |
+| M20 slice specs | Complete for M20-01 through M20-07 |
+| M20 slice plans | Complete for M20-01 through M20-07 |
+| M20-01 implementation | Complete |
+| M20-02 implementation | Complete |
+| M20-03 implementation | Complete |
+| M20-04 implementation | Complete |
+| M20-05 implementation | Complete |
+| M20-06 implementation | Complete |
+| M20-07 implementation | Complete |
+| M20 implementation | Complete |
+| M21 slice specs | Complete for M21-01 through M21-05 |
+| M21 slice plans | Complete for M21-01 through M21-05 |
+| M21-01 implementation | Complete |
+| M21-02 implementation | Complete |
+| M21-03 implementation | Complete |
+| M21 implementation | In Progress |
+| M22-M25 implementation slice specs | Planned |
+| M22-M25 implementation slice plans | Planned |
+| M22-M25 implementation | Planned |
 
 ## Milestone Spec and Plan Index
 
@@ -149,6 +201,16 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M13 Real Model Providers and Runtime Configuration | `docs/specs/M13-real-model-providers-config.spec.md` | `docs/plans/M13-real-model-providers-config.plan.md` | Add provider configuration, registry, invocation policy, OpenAI-compatible adapter contracts, and CLI model selection. |
 | M14 Runtime Configuration and Secrets | `docs/specs/M14-runtime-configuration-secrets.spec.md` | `docs/plans/M14-runtime-configuration-secrets.plan.md` | Load durable runtime config, resolve secret handles safely, layer model settings, and expose CLI/Desktop-safe diagnostics. |
 | M15 Config-Driven Turn Execution | `docs/specs/M15-config-driven-turn-execution.spec.md` | `docs/plans/M15-config-driven-turn-execution.plan.md` | Use effective runtime config to resolve providers, execute prompt turns, emit JSON events, and persist replayable turn records. |
+| M16 Prompt Runtime and Dynamic Prompt Management | `docs/specs/M16-prompt-runtime-dynamic-management.spec.md` | `docs/plans/M16-prompt-runtime-dynamic-management.plan.md` | Add versioned prompt profiles, dynamic overlays, source diagnostics, and replayable prompt snapshots. |
+| M17 Live Model Runtime and Streaming | `docs/specs/M17-live-model-runtime-streaming.spec.md` | `docs/plans/M17-live-model-runtime-streaming.plan.md` | Add real OpenAI-compatible HTTP transport, true model streaming, secret injection, and streamed CLI/JSON output. |
+| M18 Agent Tool Loop Runtime | `docs/specs/M18-agent-tool-loop-runtime.spec.md` | `docs/plans/M18-agent-tool-loop-runtime.plan.md` | Build the comprehensive model-tool-observation loop with guards, idempotency, and replayable tool traces. |
+| M19 Interactive Approval and Safe Local Actions | `docs/specs/M19-interactive-approval-safe-actions.spec.md` | `docs/plans/M19-interactive-approval-safe-actions.plan.md` | Turn policy asks into durable approval flows for file edits, commands, Git, MCP, plugins, and background work. |
+| M20 Terminal UX and TUI REPL | `docs/specs/M20-terminal-ux-tui-repl.spec.md` | `docs/plans/M20-terminal-ux-tui-repl.plan.md` | Make `agent` open a Ratatui-powered terminal REPL while preserving batch, JSON, and plain REPL modes. |
+| M21 Desktop GUI MVP | `docs/specs/M21-desktop-gui-mvp.spec.md` | `docs/plans/M21-desktop-gui-mvp.plan.md` | Build a runnable Tauri Desktop MVP over the shared runtime bridge. |
+| M22 Extension UX and MCP Gateway | `docs/specs/M22-extension-ux-mcp-gateway.spec.md` | `docs/plans/M22-extension-ux-mcp-gateway.plan.md` | Make plugins, skills, and MCP servers installable, manageable, permissioned, and executable through a gateway. |
+| M23 Memory Retrieval Quality | `docs/specs/M23-memory-retrieval-quality.spec.md` | `docs/plans/M23-memory-retrieval-quality.plan.md` | Add embeddings, hybrid retrieval, reranking hooks, retention controls, and auditable memory influence traces. |
+| M24 Background Agents UX | `docs/specs/M24-background-agents-ux.spec.md` | `docs/plans/M24-background-agents-ux.plan.md` | Make long-running and scheduled agent tasks manageable across CLI, TUI, and Desktop-facing bridge surfaces. |
+| M25 Packaging, Settings, and Updates | `docs/specs/M25-packaging-release-settings-updates.spec.md` | `docs/plans/M25-packaging-release-settings-updates.plan.md` | Prepare repeatable local distribution with packaging, settings, secrets, migrations, release channels, and update flows. |
 
 ## M01 Slice Index
 
@@ -303,11 +365,112 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M15-04 CLI Prompt Runtime | `docs/specs/M15-04-cli-prompt-runtime.spec.md` | `docs/plans/M15-04-cli-prompt-runtime.plan.md` | Text-mode `--prompt` executes a config-driven runtime turn. |
 | M15-05 Persisted Turn Events | `docs/specs/M15-05-persisted-turn-events.spec.md` | `docs/plans/M15-05-persisted-turn-events.plan.md` | Config-driven turn events persist and replay through storage and JSON frames. |
 
+## M16 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M16-00 Prompt Runtime Technical Design | `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` | `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` | Architecture baseline for prompt profiles, overlays, snapshots, diagnostics, replay, CLI, and UI boundaries. |
+| M16-01 Prompt Profile Contracts | `docs/specs/M16-01-prompt-profile-contracts.spec.md` | `docs/plans/M16-01-prompt-profile-contracts.plan.md` | Versioned prompt profiles, layer ids, source metadata, visibility, sensitivity, policy, and validation contracts in `agent-context`. |
+| M16-02 Prompt Overlays and Diagnostics | `docs/specs/M16-02-prompt-overlays-diagnostics.spec.md` | `docs/plans/M16-02-prompt-overlays-diagnostics.plan.md` | Deterministic overlay application, required-layer enforcement, budget omissions, and content-safe diagnostics. |
+| M16-03 Prompt Snapshot Persistence | `docs/specs/M16-03-prompt-snapshot-persistence.spec.md` | `docs/plans/M16-03-prompt-snapshot-persistence.plan.md` | Stable prompt snapshots and persisted runtime events before model invocation. |
+| M16-04 CLI Prompt Inspection | `docs/specs/M16-04-cli-prompt-inspection.spec.md` | `docs/plans/M16-04-cli-prompt-inspection.plan.md` | `agent prompt profiles` and `agent prompt inspect` commands with safe text and JSON output. |
+| M16-05 UI Prompt Summary | `docs/specs/M16-05-ui-prompt-summary.spec.md` | `docs/plans/M16-05-ui-prompt-summary.plan.md` | Shared UI bridge prompt summary contracts for CLI JSON, TUI, and Desktop. |
+
+## M17 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M17-00 Live Model Runtime Technical Design | `docs/specs/M17-00-live-model-runtime-technical-design.spec.md` | `docs/plans/M17-00-live-model-runtime-technical-design.plan.md` | Architecture baseline for streaming provider traits, reqwest transport, SSE parsing, retry, cancellation, CLI streaming, and fixture tests. |
+| M17-01 Model Stream Trait | `docs/specs/M17-01-model-stream-trait.spec.md` | `docs/plans/M17-01-model-stream-trait.plan.md` | Replace collected provider results with true async model event streams while preserving fake-provider compatibility. |
+| M17-02 OpenAI Reqwest Transport | `docs/specs/M17-02-openai-reqwest-transport.spec.md` | `docs/plans/M17-02-openai-reqwest-transport.plan.md` | Add reqwest-backed OpenAI-compatible streaming transport with late secret injection and offline tests. |
+| M17-03 Live Provider Registration | `docs/specs/M17-03-live-provider-registration.spec.md` | `docs/plans/M17-03-live-provider-registration.plan.md` | Build CLI provider registries from effective config without provider-specific code leaking into core. |
+| M17-04 CLI Streaming Output | `docs/specs/M17-04-cli-streaming-output.spec.md` | `docs/plans/M17-04-cli-streaming-output.plan.md` | Render streamed text and NDJSON frames incrementally from configured turns. |
+| M17-05 Streaming Retry, Cancellation, and Replay | `docs/specs/M17-05-streaming-retry-cancel-replay.spec.md` | `docs/plans/M17-05-streaming-retry-cancel-replay.plan.md` | Make streamed model execution retryable, cancellable, and replayable through event-sourced traces. |
+
+## M18 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M18-00 Agent Tool Loop Technical Design | `docs/specs/M18-00-agent-tool-loop-technical-design.spec.md` | `docs/plans/M18-00-agent-tool-loop-technical-design.plan.md` | Architecture baseline for comprehensive model-tool-observation loops, tool call accumulation, observations, guards, idempotency, and recovery. |
+| M18-01 Comprehensive Turn Runner | `docs/specs/M18-01-comprehensive-turn-runner.spec.md` | `docs/plans/M18-01-comprehensive-turn-runner.plan.md` | Core comprehensive runner contracts that stream one model turn and stop on final response or tool proposal. |
+| M18-02 Streaming Tool Call Accumulator | `docs/specs/M18-02-streaming-tool-call-accumulator.spec.md` | `docs/plans/M18-02-streaming-tool-call-accumulator.plan.md` | Normalize model tool-call stream events into executable requests or recoverable observations. |
+| M18-03 Tool Observation Context | `docs/specs/M18-03-tool-observation-context.spec.md` | `docs/plans/M18-03-tool-observation-context.plan.md` | Execute allowed tool calls and feed bounded observations back into continuation model turns. |
+| M18-04 Loop Guards and Idempotency | `docs/specs/M18-04-loop-guards-idempotency.spec.md` | `docs/plans/M18-04-loop-guards-idempotency.plan.md` | Enforce loop budgets and make completed tool effects replay-safe. |
+| M18-05 Local Coding Real Loop E2E | `docs/specs/M18-05-local-coding-real-loop-e2e.spec.md` | `docs/plans/M18-05-local-coding-real-loop-e2e.plan.md` | Prove the comprehensive loop through a deterministic local coding workflow using real built-in tools. |
+
+## M19 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M19-00 Interactive Approval Technical Design | `docs/specs/M19-00-interactive-approval-technical-design.spec.md` | `docs/plans/M19-00-interactive-approval-technical-design.plan.md` | Architecture baseline for durable pending approvals, preview payloads, leases, resume, CLI prompts, and UI bridge contracts. |
+| M19-01 Pending Approval Contracts | `docs/specs/M19-01-pending-approval-contracts.spec.md` | `docs/plans/M19-01-pending-approval-contracts.plan.md` | Durable approval records, response contracts, lease scope clamping, resume tokens, and status transitions. |
+| M19-02 UI Approval Bridge | `docs/specs/M19-02-ui-approval-bridge.spec.md` | `docs/plans/M19-02-ui-approval-bridge.plan.md` | UI-safe approval request and response schemas shared by CLI, TUI, Desktop, and JSON clients. |
+| M19-03 Tool Preview Payloads | `docs/specs/M19-03-tool-preview-payloads.spec.md` | `docs/plans/M19-03-tool-preview-payloads.plan.md` | Secret-safe file, command, Git, MCP, plugin, and background task previews for approval. |
+| M19-04 CLI Approval Prompt | `docs/specs/M19-04-cli-approval-prompt.spec.md` | `docs/plans/M19-04-cli-approval-prompt.plan.md` | Plain terminal approval prompts while preserving batch and JSON safety. |
+| M19-05 Approval Resume and Recovery | `docs/specs/M19-05-approval-resume-recovery.spec.md` | `docs/plans/M19-05-approval-resume-recovery.plan.md` | Persist pending approvals, suspend turns, resume approved work, and reject denied or expired work. |
+
+## M20 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M20-00 Terminal UX and TUI Technical Design | `docs/specs/M20-00-terminal-ux-tui-technical-design.spec.md` | `docs/plans/M20-00-terminal-ux-tui-technical-design.plan.md` | Architecture baseline for the `agent` binary, TTY dispatch, `agent-tui`, Ratatui app state, terminal lifecycle, and bridge-driven panels. |
+| M20-01 Agent Binary Entrypoint | `docs/specs/M20-01-agent-binary-entrypoint.spec.md` | `docs/plans/M20-01-agent-binary-entrypoint.plan.md` | Installed `agent` command, mode parsing, TTY dispatch, and script-safe batch/JSON preservation. |
+| M20-02 Ratatui Shell | `docs/specs/M20-02-ratatui-shell.spec.md` | `docs/plans/M20-02-ratatui-shell.plan.md` | `agent-tui` crate, terminal lifecycle, pure app state, and base Ratatui layout. |
+| M20-03 TUI Composer REPL | `docs/specs/M20-03-tui-composer-repl.spec.md` | `docs/plans/M20-03-tui-composer-repl.plan.md` | Composer state, multiline input, history, slash commands, and submit effects. |
+| M20-04 Streaming Transcript | `docs/specs/M20-04-streaming-transcript.spec.md` | `docs/plans/M20-04-streaming-transcript.plan.md` | UI bridge frame reducer and live transcript rendering for model, tool, approval, diagnostic, and final events. |
+| M20-05 Approval and Diff Panels | `docs/specs/M20-05-approval-diff-panels.spec.md` | `docs/plans/M20-05-approval-diff-panels.plan.md` | Pending approval and diff side panels with explicit allow/deny bridge commands. |
+| M20-06 Trace and Task Panels | `docs/specs/M20-06-trace-task-panels.spec.md` | `docs/plans/M20-06-trace-task-panels.plan.md` | Trace timeline and task notification panels derived from UI-safe bridge events. |
+| M20-07 Plain REPL Fallback | `docs/specs/M20-07-plain-repl-fallback.spec.md` | `docs/plans/M20-07-plain-repl-fallback.plan.md` | Line-oriented fallback REPL for constrained terminals and explicit plain mode. |
+
+## M21 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M21-00 Desktop GUI Technical Design | `docs/specs/M21-00-desktop-gui-technical-design.spec.md` | `docs/plans/M21-00-desktop-gui-technical-design.plan.md` | Architecture baseline for Tauri Desktop, Rust commands, frontend layout, bridge sessions, settings, recovery states, and smoke tests. |
+| M21-01 Tauri Shell | `docs/specs/M21-01-tauri-shell.spec.md` | `docs/plans/M21-01-tauri-shell.plan.md` | Runnable Tauri shell with safe bootstrap diagnostics and no runtime side effects. |
+| M21-02 Desktop Bridge Session | `docs/specs/M21-02-desktop-bridge-session.spec.md` | `docs/plans/M21-02-desktop-bridge-session.plan.md` | Typed Desktop runtime session commands, UI command validation, and bounded UI-safe frame delivery. |
+| M21-03 Conversation and Task UI | `docs/specs/M21-03-conversation-task-ui.spec.md` | `docs/plans/M21-03-conversation-task-ui.plan.md` | Conversation, transcript, composer, task list, and task detail views backed by snapshots and bridge frames. |
+| M21-04 Approval and Diff UI | `docs/specs/M21-04-approval-diff-ui.spec.md` | `docs/plans/M21-04-approval-diff-ui.plan.md` | Desktop approval queue, approval detail, diff preview, and typed approval resolution command. |
+| M21-05 Trace and Settings UI | `docs/specs/M21-05-trace-settings-ui.spec.md` | `docs/plans/M21-05-trace-settings-ui.plan.md` | Trace timeline, secret-safe settings view, validation diagnostics, and Desktop MVP smoke coverage. |
+
+## M22 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M22-00 Extension UX and MCP Gateway Technical Design | `docs/specs/M22-00-extension-ux-mcp-gateway-technical-design.spec.md` | `docs/plans/M22-00-extension-ux-mcp-gateway-technical-design.plan.md` | Architecture baseline for extension registry, plugin install UX, skill roots, MCP gateway, capability review, health, and isolation. |
+
+## M23 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M23-00 Memory Retrieval Technical Design | `docs/specs/M23-00-memory-retrieval-technical-design.spec.md` | `docs/plans/M23-00-memory-retrieval-technical-design.plan.md` | Architecture baseline for embedding providers, hybrid memory retrieval, reranking, write proposals, deletion, rebuilds, and influence traces. |
+
+## M24 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M24-00 Background Agents Technical Design | `docs/specs/M24-00-background-agents-technical-design.spec.md` | `docs/plans/M24-00-background-agents-technical-design.plan.md` | Architecture baseline for background task commands, runners, approvals, notifications, quotas, retries, recovery, artifacts, and reviews. |
+
+## M25 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M25-00 Packaging and Release Technical Design | `docs/specs/M25-00-packaging-release-technical-design.spec.md` | `docs/plans/M25-00-packaging-release-technical-design.plan.md` | Architecture baseline for platform paths, settings, keychain secrets, migrations, release artifacts, Desktop bundles, channels, and updates. |
+
 ## Active Work
 
-Current implementation focus: `next-milestone-planning`.
+Current implementation focus: `M21-04 Approval and Diff UI`.
 
-Most recent completed planning documents:
+Most recent completed implementation documents:
 
-- `docs/specs/M15-05-persisted-turn-events.spec.md`
-- `docs/plans/M15-05-persisted-turn-events.plan.md`
+- `docs/specs/M21-03-conversation-task-ui.spec.md`
+- `docs/plans/M21-03-conversation-task-ui.plan.md`
+
+Most recent completed technical design documents:
+
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M25-00-packaging-release-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M25-00-packaging-release-technical-design.plan.md`
+
+Next implementation slice:
+
+- M21-04 Approval and Diff UI

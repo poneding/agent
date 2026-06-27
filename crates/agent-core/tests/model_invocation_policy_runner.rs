@@ -7,10 +7,11 @@ use agent_core::{
     RuntimeModelConfig, build_effective_runtime_config,
 };
 use agent_model::{
-    ModelCapabilities, ModelEndpointConfig, ModelError, ModelFailureKind, ModelFallbackChain,
-    ModelInvocationPolicy, ModelProvider, ModelProviderCatalog, ModelProviderConfig,
-    ModelProviderKind, ModelProviderRegistry, ModelRequest, ModelRequestRequirements,
-    ModelRetryPolicy, ModelStreamEvent, ModelStreamResult, RegisteredModelProvider,
+    ModelCapabilities, ModelEndpointConfig, ModelError, ModelEventStream, ModelFailureKind,
+    ModelFallbackChain, ModelInvocationPolicy, ModelProvider, ModelProviderCatalog,
+    ModelProviderConfig, ModelProviderKind, ModelProviderRegistry, ModelRequest,
+    ModelRequestRequirements, ModelRetryPolicy, ModelStreamEvent, ModelStreamResult,
+    RegisteredModelProvider, model_events_to_stream,
 };
 use agent_types::{ConversationId, CorrelationId, TurnId};
 use async_trait::async_trait;
@@ -148,13 +149,14 @@ impl RecordingProvider {
 
 #[async_trait]
 impl ModelProvider for RecordingProvider {
-    async fn stream(&self, request: ModelRequest) -> Result<ModelStreamResult, ModelError> {
+    async fn stream(&self, request: ModelRequest) -> Result<ModelEventStream, ModelError> {
         self.requests.lock().expect("requests lock").push(request);
         self.outcomes
             .lock()
             .expect("outcomes lock")
             .pop_front()
             .unwrap_or_else(|| Err(ModelError::Script("script exhausted".to_string())))
+            .map(model_events_to_stream)
     }
 }
 

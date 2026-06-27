@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use thiserror::Error;
 
 use crate::request::ModelRequest;
-use crate::stream::ModelStreamResult;
+use crate::stream::ModelEventStream;
 
 #[derive(Debug, Error, Eq, PartialEq)]
 pub enum ModelError {
@@ -18,5 +18,5 @@ pub enum ModelError {
 
 #[async_trait]
 pub trait ModelProvider: Send + Sync {
-    async fn stream(&self, request: ModelRequest) -> Result<ModelStreamResult, ModelError>;
+    async fn stream(&self, request: ModelRequest) -> Result<ModelEventStream, ModelError>;
 }

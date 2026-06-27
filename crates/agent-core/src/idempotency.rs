@@ -124,6 +124,7 @@ fn replayed_outcome(ids: RuntimeIds, record: &ToolEffectRecord) -> ToolLoopOutco
         status: ToolLoopStatus::Completed,
         turn_state: TurnState::Observed,
         observation: Some(observation.clone()),
+        pending_approval: None,
         events: vec![RuntimeEvent {
             schema_version: SchemaVersion::current(),
             id: agent_types::EventId::new(),

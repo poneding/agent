@@ -1,0 +1,20 @@
+[package]
+name = "agent-tui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+agent-types = { path = "../agent-types" }
+agent-ui-bridge = { path = "../agent-ui-bridge" }
+crossterm = "0.28.1"
+ratatui = "0.29.0"
+thiserror = "2"
+tui-textarea = "0.7.0"
+
+[dev-dependencies]
+
+[lints]
+workspace = true

@@ -7,10 +7,11 @@ use agent_core::{
     RuntimeModelConfig, build_effective_runtime_config,
 };
 use agent_model::{
-    ModelCapabilities, ModelEndpointConfig, ModelError, ModelFallbackChain, ModelInvocationPolicy,
-    ModelProvider, ModelProviderCatalog, ModelProviderConfig, ModelProviderKind,
-    ModelProviderRegistry, ModelRequest, ModelRequestRequirements, ModelRetryPolicy,
-    ModelStreamEvent, ModelStreamResult, RegisteredModelProvider,
+    ModelCapabilities, ModelEndpointConfig, ModelError, ModelEventStream, ModelFallbackChain,
+    ModelInvocationPolicy, ModelProvider, ModelProviderCatalog, ModelProviderConfig,
+    ModelProviderKind, ModelProviderRegistry, ModelRequest, ModelRequestRequirements,
+    ModelRetryPolicy, ModelStreamEvent, ModelStreamResult, RegisteredModelProvider,
+    model_events_to_stream,
 };
 use agent_types::{
     ConversationId, CorrelationId, RuntimeEventPayload, TurnId, TurnState, WorkspaceId,
@@ -150,13 +151,14 @@ impl RecordingProvider {
 
 #[async_trait]
 impl ModelProvider for RecordingProvider {
-    async fn stream(&self, request: ModelRequest) -> Result<ModelStreamResult, ModelError> {
+    async fn stream(&self, request: ModelRequest) -> Result<ModelEventStream, ModelError> {
         self.requests.lock().expect("requests lock").push(request);
         self.outcomes
             .lock()
             .expect("outcomes lock")
             .pop_front()
             .unwrap_or_else(|| Err(ModelError::Script("script exhausted".to_string())))
+            .map(model_events_to_stream)
     }
 }
 
@@ -220,6 +222,40 @@ async fn configured_turn_runner_resolution_failure_prevents_model_call() {
         ) if provider_id == "primary"
     ));
     assert!(unused_requests.lock().expect("requests").is_empty());
+}
+
+#[tokio::test]
+async fn configured_turn_runner_collects_streamed_model_events() {
+    let config = provider_config("streaming", "streaming-model");
+    let effective = effective_config("streaming", vec![config.clone()]);
+    let (provider, _requests) = RecordingProvider::scripted(vec![Ok(vec![
+        ModelStreamEvent::Started {
+            request_id: "request-streaming".to_string(),
+        },
+        ModelStreamEvent::Delta {
+            text: "hel".to_string(),
+        },
+        ModelStreamEvent::Delta {
+            text: "lo".to_string(),
+        },
+        ModelStreamEvent::Completed {
+            finish_reason: "stop".to_string(),
+            output_token_count: 5,
+        },
+    ])]);
+    let registry = registry(vec![registered(config, provider)]);
+
+    let outcome = ConfiguredTurnRunner::run(configured_input("say hello", effective), &registry)
+        .await
+        .expect("configured turn");
+
+    assert_eq!(outcome.final_message, "hello");
+    let delta_count = outcome
+        .events
+        .iter()
+        .filter(|event| matches!(event.payload, RuntimeEventPayload::ModelOutputDelta(_)))
+        .count();
+    assert_eq!(delta_count, 2);
 }
 
 #[tokio::test]

@@ -1,19 +1,37 @@
 use std::fmt;
+use std::pin::Pin;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
+use agent_context::{
+    PromptAssemblyRequest, PromptBudget, PromptLayer, PromptLayerKind, PromptLayerPolicy,
+    PromptLayerSensitivity, PromptLayerSource, PromptLayerVisibility, PromptProfile,
+    PromptProfileId, PromptRuntime, PromptSnapshot,
+};
 use agent_model::{
     ModelCapabilities, ModelCapability, ModelError, ModelFailureKind, ModelInvocationPolicy,
     ModelProvider, ModelProviderRegistry, ModelRegistryError, ModelRequest,
-    ModelRequestRequirements, ModelStreamResult,
+    ModelRequestRequirements, ModelStreamEvent, ModelStreamResult, collect_model_event_stream,
 };
+use agent_policy::PolicyEngine;
+use agent_storage::{EventStore, IdempotencyKey, IdempotencyStore};
+use agent_tool::ToolRegistry;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::config::EffectiveRuntimeConfig;
+use crate::idempotency::IdempotentToolExecutor;
 use crate::runtime::RuntimeIds;
-use crate::turn::{TurnEngine, TurnError, TurnInput};
-use agent_storage::EventStore;
-use agent_types::RuntimeEvent;
+use crate::tool_loop::{
+    AccumulatedToolCall, ToolCallAccumulator, ToolCallRequest, ToolLoop, ToolLoopStatus,
+    ToolObservationMessage,
+};
+use crate::turn::{CancellationToken, TurnEngine, TurnError, TurnInput, TurnStreamOptions};
+use agent_types::{
+    ActorRef, PromptLayerHashRecord, PromptSnapshotRecorded, RuntimeError, RuntimeEvent,
+    RuntimeEventPayload, SchemaVersion, Timestamp,
+};
+use futures_util::{Stream, StreamExt, stream};
 
 #[derive(Clone)]
 pub struct ConfiguredModelRuntime {
@@ -250,6 +268,59 @@ pub struct ConfiguredTurnInput {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ComprehensiveTurnInput {
+    pub ids: RuntimeIds,
+    pub user_message: String,
+    pub effective_config: EffectiveRuntimeConfig,
+    pub requirements: ModelRequestRequirements,
+    pub loop_budget: AgentLoopBudget,
+}
+
+pub struct ComprehensiveTurnResources<'a, P>
+where
+    P: PolicyEngine + ?Sized,
+{
+    pub tools: &'a ToolRegistry,
+    pub policy: &'a P,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AgentLoopBudget {
+    pub max_model_turns: u32,
+    pub max_tool_calls: u32,
+    pub max_wall_time_ms: u64,
+    pub max_observation_bytes: u64,
+    pub max_consecutive_invalid_tool_calls: u32,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum AgentLoopTerminalState {
+    Done,
+    WaitingApproval,
+    Failed,
+    Cancelled,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum AgentLoopFailureReason {
+    MaxModelTurnsExceeded,
+    MaxToolCallsExceeded,
+    MaxWallTimeExceeded,
+    MaxObservationBytesExceeded,
+    MaxConsecutiveInvalidToolCallsExceeded,
+    InvalidBudget,
+    Runtime(String),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AgentLoopOutcome {
+    pub terminal_state: AgentLoopTerminalState,
+    pub final_message: Option<String>,
+    pub failure_reason: Option<AgentLoopFailureReason>,
+    pub events: Vec<RuntimeEvent>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ConfiguredTurnOutcome {
     pub final_message: String,
     pub selected_provider: String,
@@ -258,12 +329,151 @@ pub struct ConfiguredTurnOutcome {
     pub attempts: Vec<ModelInvocationAttempt>,
 }
 
+pub type ConfiguredTurnEventStream =
+    Pin<Box<dyn Stream<Item = Result<RuntimeEvent, ConfiguredTurnError>> + Send>>;
+
+pub struct ConfiguredTurnStream {
+    pub selected_provider: String,
+    pub selected_model: String,
+    pub attempts: Vec<ModelInvocationAttempt>,
+    pub events: ConfiguredTurnEventStream,
+    attempt_log: Arc<Mutex<Vec<ModelInvocationAttempt>>>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ConfiguredTurnStreamOptions {
+    pub cancellation: CancellationToken,
+}
+
 pub struct ConfiguredTurnRunner;
+
+pub struct ComprehensiveTurnRunner;
+
+impl ComprehensiveTurnRunner {
+    pub async fn run(
+        input: ComprehensiveTurnInput,
+        registry: &ModelProviderRegistry,
+    ) -> Result<AgentLoopOutcome, ConfiguredTurnError> {
+        let configured = ConfiguredTurnInput {
+            ids: input.ids,
+            user_message: input.user_message,
+            effective_config: input.effective_config,
+            requirements: input.requirements,
+        };
+        let stream = ConfiguredTurnRunner::run_stream(configured, registry).await?;
+        collect_comprehensive_turn_stream(stream).await
+    }
+
+    pub async fn run_with_resources<P>(
+        input: ComprehensiveTurnInput,
+        registry: &ModelProviderRegistry,
+        resources: ComprehensiveTurnResources<'_, P>,
+    ) -> Result<AgentLoopOutcome, ConfiguredTurnError>
+    where
+        P: PolicyEngine + ?Sized,
+    {
+        run_comprehensive_resource_loop(input, registry, |ids, _model_turn_index, call| {
+            ToolLoop
+                .run(ids, call, resources.tools, resources.policy)
+                .map_err(tool_execution_error)
+        })
+        .await
+    }
+
+    pub async fn run_with_idempotency<P, S>(
+        input: ComprehensiveTurnInput,
+        registry: &ModelProviderRegistry,
+        resources: ComprehensiveTurnResources<'_, P>,
+        effects: &mut S,
+    ) -> Result<AgentLoopOutcome, ConfiguredTurnError>
+    where
+        P: PolicyEngine + ?Sized,
+        S: IdempotencyStore + ?Sized,
+    {
+        let executor = IdempotentToolExecutor::default();
+        run_comprehensive_resource_loop(input, registry, |ids, model_turn_index, call| {
+            let key = comprehensive_idempotency_key(ids, model_turn_index, &call)?;
+            executor
+                .run(ids, key, call, resources.tools, resources.policy, effects)
+                .map(|outcome| outcome.tool)
+                .map_err(|error| ConfiguredTurnError::InvalidInput {
+                    field: "idempotency".to_string(),
+                    message: error.to_string(),
+                })
+        })
+        .await
+    }
+}
 
 impl ConfiguredTurnRunner {
     pub async fn run(
         input: ConfiguredTurnInput,
         registry: &ModelProviderRegistry,
+    ) -> Result<ConfiguredTurnOutcome, ConfiguredTurnError> {
+        let stream = Self::run_stream(input, registry).await?;
+        collect_configured_turn_stream(stream).await
+    }
+
+    pub async fn run_stream(
+        input: ConfiguredTurnInput,
+        registry: &ModelProviderRegistry,
+    ) -> Result<ConfiguredTurnStream, ConfiguredTurnError> {
+        Self::run_stream_with_options(input, registry, ConfiguredTurnStreamOptions::default()).await
+    }
+
+    pub async fn run_stream_with_options(
+        input: ConfiguredTurnInput,
+        registry: &ModelProviderRegistry,
+        options: ConfiguredTurnStreamOptions,
+    ) -> Result<ConfiguredTurnStream, ConfiguredTurnError> {
+        let prompt_snapshot_event = prompt_snapshot_event(input.ids, &input.user_message)?;
+        let runtime =
+            ModelRuntimeResolver::resolve(&input.effective_config, registry, &input.requirements)?;
+        let attempts = vec![attempt(&runtime.provider_id, &runtime.model, 1)];
+        let policy_provider = Arc::new(PolicyModelProvider::new(
+            runtime.clone(),
+            registry.clone(),
+            input.requirements.clone(),
+        ));
+        let attempt_log = Arc::clone(&policy_provider.attempts);
+        let turn_input = TurnInput {
+            ids: input.ids,
+            user_message: input.user_message,
+            provider: runtime.provider_id.clone(),
+            model: runtime.model.clone(),
+        };
+        let error_attempts = attempts.clone();
+        let turn_events = TurnEngine::default().run_stream_with_options(
+            turn_input,
+            policy_provider,
+            TurnStreamOptions {
+                cancellation: options.cancellation,
+            },
+        );
+        let events = stream::iter([Ok(prompt_snapshot_event)]).chain(turn_events.map(
+            move |event| match event {
+                Ok(event) => Ok(event),
+                Err(TurnError::Model { message, .. }) => Err(ConfiguredTurnError::Model {
+                    message,
+                    events: Vec::new(),
+                    attempts: error_attempts.clone(),
+                }),
+            },
+        ));
+
+        Ok(ConfiguredTurnStream {
+            selected_provider: runtime.provider_id,
+            selected_model: runtime.model,
+            attempts,
+            events: Box::pin(events),
+            attempt_log,
+        })
+    }
+
+    async fn run_with_prompt_snapshot_event(
+        input: ConfiguredTurnInput,
+        registry: &ModelProviderRegistry,
+        prompt_snapshot_event: RuntimeEvent,
     ) -> Result<ConfiguredTurnOutcome, ConfiguredTurnError> {
         if input.user_message.trim().is_empty() {
             return Err(ConfiguredTurnError::InvalidInput {
@@ -290,18 +500,24 @@ impl ConfiguredTurnRunner {
             .run(turn_input, &policy_provider)
             .await
         {
-            Ok(outcome) => Ok(ConfiguredTurnOutcome {
-                final_message: outcome.final_message,
-                selected_provider: runtime.provider_id,
-                selected_model: runtime.model,
-                events: outcome.events,
-                attempts: policy_provider.attempts(),
-            }),
-            Err(TurnError::Model { message, events }) => Err(ConfiguredTurnError::Model {
-                message,
-                events,
-                attempts: policy_provider.attempts(),
-            }),
+            Ok(outcome) => {
+                let events = prepend_event(prompt_snapshot_event, outcome.events);
+                Ok(ConfiguredTurnOutcome {
+                    final_message: outcome.final_message,
+                    selected_provider: runtime.provider_id,
+                    selected_model: runtime.model,
+                    events,
+                    attempts: policy_provider.attempts(),
+                })
+            }
+            Err(TurnError::Model { message, events }) => {
+                let events = prepend_event(prompt_snapshot_event, events);
+                Err(ConfiguredTurnError::Model {
+                    message,
+                    events,
+                    attempts: policy_provider.attempts(),
+                })
+            }
         }
     }
 
@@ -313,19 +529,580 @@ impl ConfiguredTurnRunner {
     where
         S: EventStore,
     {
-        match Self::run(input, registry).await {
+        let prompt_snapshot_event = prompt_snapshot_event(input.ids, &input.user_message)?;
+        append_events(store, std::slice::from_ref(&prompt_snapshot_event))?;
+
+        match Self::run_with_prompt_snapshot_event(input, registry, prompt_snapshot_event).await {
             Ok(outcome) => {
-                append_events(store, &outcome.events)?;
+                append_events(store, tail_events(&outcome.events))?;
                 Ok(outcome)
             }
             Err(error) => {
                 if let ConfiguredTurnError::Model { events, .. } = &error {
-                    append_events(store, events)?;
+                    append_events(store, tail_events(events))?;
                 }
                 Err(ConfiguredTurnPersistenceError::Turn(error))
             }
         }
     }
+}
+
+async fn run_comprehensive_resource_loop<F>(
+    input: ComprehensiveTurnInput,
+    registry: &ModelProviderRegistry,
+    mut execute_tool: F,
+) -> Result<AgentLoopOutcome, ConfiguredTurnError>
+where
+    F: FnMut(
+        RuntimeIds,
+        u32,
+        ToolCallRequest,
+    ) -> Result<crate::ToolLoopOutcome, ConfiguredTurnError>,
+{
+    let mut all_events = Vec::new();
+    let mut observations = Vec::new();
+    let mut guard = AgentLoopGuardState::new();
+
+    if invalid_loop_budget(&input.loop_budget) {
+        return Ok(failed_loop_outcome(
+            input.ids,
+            all_events,
+            AgentLoopFailureReason::InvalidBudget,
+        ));
+    }
+
+    for model_turn_index in 0..input.loop_budget.max_model_turns {
+        if wall_time_exceeded(&guard, input.loop_budget.max_wall_time_ms) {
+            return Ok(failed_loop_outcome(
+                input.ids,
+                all_events,
+                AgentLoopFailureReason::MaxWallTimeExceeded,
+            ));
+        }
+        guard.model_turns += 1;
+        let configured = ConfiguredTurnInput {
+            ids: input.ids,
+            user_message: compose_continuation_message(&input.user_message, &observations),
+            effective_config: input.effective_config.clone(),
+            requirements: input.requirements.clone(),
+        };
+        let stream = ConfiguredTurnRunner::run_stream(configured, registry).await?;
+
+        match collect_resource_model_turn(stream).await? {
+            ResourceModelTurn::Final {
+                final_message,
+                events,
+            } => {
+                all_events.extend(events);
+                return Ok(AgentLoopOutcome {
+                    terminal_state: AgentLoopTerminalState::Done,
+                    final_message,
+                    failure_reason: None,
+                    events: all_events,
+                });
+            }
+            ResourceModelTurn::ToolCall { call, events } => {
+                all_events.extend(events);
+                if guard.tool_calls >= input.loop_budget.max_tool_calls {
+                    return Ok(failed_loop_outcome(
+                        input.ids,
+                        all_events,
+                        AgentLoopFailureReason::MaxToolCallsExceeded,
+                    ));
+                }
+                if wall_time_exceeded(&guard, input.loop_budget.max_wall_time_ms) {
+                    return Ok(failed_loop_outcome(
+                        input.ids,
+                        all_events,
+                        AgentLoopFailureReason::MaxWallTimeExceeded,
+                    ));
+                }
+                guard.tool_calls += 1;
+                let tool_outcome = execute_tool(input.ids, model_turn_index, call.clone())?;
+                let status = tool_outcome.status;
+                let observation = observation_from_tool_outcome(
+                    &call,
+                    status,
+                    tool_outcome.observation.as_deref(),
+                    input.loop_budget.max_observation_bytes,
+                );
+                all_events.extend(tool_outcome.events);
+
+                if status == ToolLoopStatus::WaitingApproval {
+                    return Ok(AgentLoopOutcome {
+                        terminal_state: AgentLoopTerminalState::WaitingApproval,
+                        final_message: None,
+                        failure_reason: None,
+                        events: all_events,
+                    });
+                }
+
+                guard.consecutive_invalid_tool_calls = 0;
+                guard.observation_bytes = guard
+                    .observation_bytes
+                    .saturating_add(observation.observation.len() as u64);
+                if guard.observation_bytes > input.loop_budget.max_observation_bytes {
+                    return Ok(failed_loop_outcome(
+                        input.ids,
+                        all_events,
+                        AgentLoopFailureReason::MaxObservationBytesExceeded,
+                    ));
+                }
+                observations.push(observation.observation);
+            }
+            ResourceModelTurn::Observation {
+                observation,
+                events,
+            } => {
+                all_events.extend(events);
+                guard.consecutive_invalid_tool_calls += 1;
+                if guard.consecutive_invalid_tool_calls
+                    > input.loop_budget.max_consecutive_invalid_tool_calls
+                {
+                    return Ok(failed_loop_outcome(
+                        input.ids,
+                        all_events,
+                        AgentLoopFailureReason::MaxConsecutiveInvalidToolCallsExceeded,
+                    ));
+                }
+                guard.observation_bytes = guard
+                    .observation_bytes
+                    .saturating_add(observation.observation.len() as u64);
+                if guard.observation_bytes > input.loop_budget.max_observation_bytes {
+                    return Ok(failed_loop_outcome(
+                        input.ids,
+                        all_events,
+                        AgentLoopFailureReason::MaxObservationBytesExceeded,
+                    ));
+                }
+                observations.push(observation.observation);
+            }
+        }
+    }
+
+    Ok(failed_loop_outcome(
+        input.ids,
+        all_events,
+        AgentLoopFailureReason::MaxModelTurnsExceeded,
+    ))
+}
+
+#[derive(Debug)]
+struct AgentLoopGuardState {
+    model_turns: u32,
+    tool_calls: u32,
+    observation_bytes: u64,
+    consecutive_invalid_tool_calls: u32,
+    started_at: Instant,
+}
+
+impl AgentLoopGuardState {
+    fn new() -> Self {
+        Self {
+            model_turns: 0,
+            tool_calls: 0,
+            observation_bytes: 0,
+            consecutive_invalid_tool_calls: 0,
+            started_at: Instant::now(),
+        }
+    }
+}
+
+fn invalid_loop_budget(budget: &AgentLoopBudget) -> bool {
+    budget.max_model_turns == 0
+        || budget.max_tool_calls == 0
+        || budget.max_wall_time_ms == 0
+        || budget.max_observation_bytes == 0
+        || budget.max_consecutive_invalid_tool_calls == 0
+}
+
+fn wall_time_exceeded(guard: &AgentLoopGuardState, max_wall_time_ms: u64) -> bool {
+    guard.started_at.elapsed().as_millis() > u128::from(max_wall_time_ms)
+}
+
+fn failed_loop_outcome(
+    ids: RuntimeIds,
+    mut events: Vec<RuntimeEvent>,
+    reason: AgentLoopFailureReason,
+) -> AgentLoopOutcome {
+    events.push(runtime_error_event(ids, &reason));
+    AgentLoopOutcome {
+        terminal_state: AgentLoopTerminalState::Failed,
+        final_message: None,
+        failure_reason: Some(reason),
+        events,
+    }
+}
+
+fn runtime_error_event(ids: RuntimeIds, reason: &AgentLoopFailureReason) -> RuntimeEvent {
+    RuntimeEvent {
+        schema_version: SchemaVersion::current(),
+        id: agent_types::EventId::new(),
+        seq: None,
+        occurred_at: Timestamp::now_utc(),
+        workspace_id: ids.workspace_id,
+        conversation_id: ids.conversation_id,
+        turn_id: Some(ids.turn_id),
+        task_id: None,
+        agent_id: None,
+        team_id: None,
+        actor: ActorRef::system(),
+        correlation_id: ids.correlation_id,
+        causation_id: None,
+        payload: RuntimeEventPayload::RuntimeError(RuntimeError {
+            code: failure_reason_code(reason).to_string(),
+            message: failure_reason_message(reason),
+            recoverable: false,
+        }),
+    }
+}
+
+fn failure_reason_code(reason: &AgentLoopFailureReason) -> &'static str {
+    match reason {
+        AgentLoopFailureReason::MaxModelTurnsExceeded => "max_model_turns_exceeded",
+        AgentLoopFailureReason::MaxToolCallsExceeded => "max_tool_calls_exceeded",
+        AgentLoopFailureReason::MaxWallTimeExceeded => "max_wall_time_exceeded",
+        AgentLoopFailureReason::MaxObservationBytesExceeded => "max_observation_bytes_exceeded",
+        AgentLoopFailureReason::MaxConsecutiveInvalidToolCallsExceeded => {
+            "max_consecutive_invalid_tool_calls_exceeded"
+        }
+        AgentLoopFailureReason::InvalidBudget => "invalid_loop_budget",
+        AgentLoopFailureReason::Runtime(_) => "agent_loop_runtime_error",
+    }
+}
+
+fn failure_reason_message(reason: &AgentLoopFailureReason) -> String {
+    match reason {
+        AgentLoopFailureReason::MaxModelTurnsExceeded => {
+            "model turn budget was exhausted".to_string()
+        }
+        AgentLoopFailureReason::MaxToolCallsExceeded => {
+            "tool call budget was exhausted".to_string()
+        }
+        AgentLoopFailureReason::MaxWallTimeExceeded => {
+            "wall-clock budget was exhausted".to_string()
+        }
+        AgentLoopFailureReason::MaxObservationBytesExceeded => {
+            "tool observation byte budget was exhausted".to_string()
+        }
+        AgentLoopFailureReason::MaxConsecutiveInvalidToolCallsExceeded => {
+            "invalid tool-call proposal budget was exhausted".to_string()
+        }
+        AgentLoopFailureReason::InvalidBudget => "loop budget values must be non-zero".to_string(),
+        AgentLoopFailureReason::Runtime(message) => message.clone(),
+    }
+}
+
+fn tool_execution_error(error: crate::ToolLoopError) -> ConfiguredTurnError {
+    ConfiguredTurnError::InvalidInput {
+        field: "tool_call".to_string(),
+        message: error.to_string(),
+    }
+}
+
+fn comprehensive_idempotency_key(
+    ids: RuntimeIds,
+    model_turn_index: u32,
+    call: &ToolCallRequest,
+) -> Result<IdempotencyKey, ConfiguredTurnError> {
+    let input_hash = stable_tool_input_hash(call);
+    IdempotencyKey::new(format!(
+        "turn:{}:{}:{}:{}:{}:{}:{}",
+        ids.workspace_id,
+        ids.conversation_id,
+        ids.turn_id,
+        model_turn_index,
+        call.call_id,
+        call.tool_name,
+        input_hash
+    ))
+    .map_err(|error| ConfiguredTurnError::InvalidInput {
+        field: "idempotency_key".to_string(),
+        message: error.to_string(),
+    })
+}
+
+fn stable_tool_input_hash(call: &ToolCallRequest) -> String {
+    let input =
+        serde_json::to_string(&call.input_json).unwrap_or_else(|_| call.input_json.to_string());
+    let mut hash = FNV_OFFSET_BASIS;
+    hash = fnv1a(hash, call.tool_name.as_bytes());
+    hash = fnv1a(hash, b"\0");
+    hash = fnv1a(hash, input.as_bytes());
+    format!("fnv1a64:{hash:016x}")
+}
+
+const FNV_OFFSET_BASIS: u64 = 0xcbf2_9ce4_8422_2325;
+const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
+
+fn fnv1a(mut hash: u64, bytes: &[u8]) -> u64 {
+    for byte in bytes {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(FNV_PRIME);
+    }
+    hash
+}
+
+enum ResourceModelTurn {
+    Final {
+        final_message: Option<String>,
+        events: Vec<RuntimeEvent>,
+    },
+    ToolCall {
+        call: ToolCallRequest,
+        events: Vec<RuntimeEvent>,
+    },
+    Observation {
+        observation: ToolObservationMessage,
+        events: Vec<RuntimeEvent>,
+    },
+}
+
+async fn collect_resource_model_turn(
+    turn_stream: ConfiguredTurnStream,
+) -> Result<ResourceModelTurn, ConfiguredTurnError> {
+    let ConfiguredTurnStream {
+        attempts,
+        attempt_log,
+        mut events,
+        ..
+    } = turn_stream;
+    let mut collected_events = Vec::new();
+    let mut final_message = None;
+    let mut accumulator = ToolCallAccumulator::default();
+
+    while let Some(event) = events.next().await {
+        match event {
+            Ok(event) => {
+                match &event.payload {
+                    RuntimeEventPayload::ToolCallProposed(proposed) => {
+                        let accumulated = accumulator.push_tool_call(
+                            proposed.call_id.clone(),
+                            proposed.tool_name.clone(),
+                            proposed.input_json.clone(),
+                        );
+                        collected_events.push(event);
+                        return Ok(match accumulated {
+                            AccumulatedToolCall::Ready(call) => ResourceModelTurn::ToolCall {
+                                call,
+                                events: collected_events,
+                            },
+                            AccumulatedToolCall::Observation(observation) => {
+                                ResourceModelTurn::Observation {
+                                    observation,
+                                    events: collected_events,
+                                }
+                            }
+                        });
+                    }
+                    RuntimeEventPayload::FinalResponseProduced(response) => {
+                        final_message = Some(response.message.clone());
+                    }
+                    _ => {}
+                }
+                collected_events.push(event);
+            }
+            Err(ConfiguredTurnError::Model { message, .. }) => {
+                let attempts = logged_attempts_or_initial(&attempt_log, attempts);
+                return Err(ConfiguredTurnError::Model {
+                    message,
+                    events: collected_events,
+                    attempts,
+                });
+            }
+            Err(error) => return Err(error),
+        }
+    }
+
+    Ok(ResourceModelTurn::Final {
+        final_message,
+        events: collected_events,
+    })
+}
+
+async fn collect_comprehensive_turn_stream(
+    turn_stream: ConfiguredTurnStream,
+) -> Result<AgentLoopOutcome, ConfiguredTurnError> {
+    let ConfiguredTurnStream {
+        attempts,
+        attempt_log,
+        mut events,
+        ..
+    } = turn_stream;
+    let mut collected_events = Vec::new();
+    let mut final_message = None;
+
+    while let Some(event) = events.next().await {
+        match event {
+            Ok(event) => {
+                match &event.payload {
+                    RuntimeEventPayload::ToolCallProposed(_) => {
+                        collected_events.push(event);
+                        return Ok(AgentLoopOutcome {
+                            terminal_state: AgentLoopTerminalState::WaitingApproval,
+                            final_message: None,
+                            failure_reason: None,
+                            events: collected_events,
+                        });
+                    }
+                    RuntimeEventPayload::FinalResponseProduced(response) => {
+                        final_message = Some(response.message.clone());
+                    }
+                    _ => {}
+                }
+                collected_events.push(event);
+            }
+            Err(ConfiguredTurnError::Model { message, .. }) => {
+                let attempts = logged_attempts_or_initial(&attempt_log, attempts);
+                return Err(ConfiguredTurnError::Model {
+                    message,
+                    events: collected_events,
+                    attempts,
+                });
+            }
+            Err(error) => return Err(error),
+        }
+    }
+
+    Ok(AgentLoopOutcome {
+        terminal_state: AgentLoopTerminalState::Done,
+        final_message,
+        failure_reason: None,
+        events: collected_events,
+    })
+}
+
+async fn collect_configured_turn_stream(
+    turn_stream: ConfiguredTurnStream,
+) -> Result<ConfiguredTurnOutcome, ConfiguredTurnError> {
+    let ConfiguredTurnStream {
+        selected_provider,
+        selected_model,
+        attempts,
+        attempt_log,
+        mut events,
+    } = turn_stream;
+    let mut collected_events = Vec::new();
+    let mut final_message = String::new();
+
+    while let Some(event) = events.next().await {
+        match event {
+            Ok(event) => {
+                if let RuntimeEventPayload::FinalResponseProduced(response) = &event.payload {
+                    final_message = response.message.clone();
+                }
+                collected_events.push(event);
+            }
+            Err(ConfiguredTurnError::Model { message, .. }) => {
+                let attempts = logged_attempts_or_initial(&attempt_log, attempts);
+                return Err(ConfiguredTurnError::Model {
+                    message,
+                    events: collected_events,
+                    attempts,
+                });
+            }
+            Err(error) => return Err(error),
+        }
+    }
+
+    let attempts = logged_attempts_or_initial(&attempt_log, attempts);
+    Ok(ConfiguredTurnOutcome {
+        final_message,
+        selected_provider,
+        selected_model,
+        events: collected_events,
+        attempts,
+    })
+}
+
+fn logged_attempts_or_initial(
+    attempt_log: &Arc<Mutex<Vec<ModelInvocationAttempt>>>,
+    initial_attempts: Vec<ModelInvocationAttempt>,
+) -> Vec<ModelInvocationAttempt> {
+    let attempts = attempt_log.lock().expect("attempts lock").clone();
+    if attempts.is_empty() {
+        initial_attempts
+    } else {
+        attempts
+    }
+}
+
+fn prepend_event(first: RuntimeEvent, mut rest: Vec<RuntimeEvent>) -> Vec<RuntimeEvent> {
+    let mut events = Vec::with_capacity(rest.len() + 1);
+    events.push(first);
+    events.append(&mut rest);
+    events
+}
+
+fn compose_continuation_message(base: &str, observations: &[String]) -> String {
+    if observations.is_empty() {
+        return base.to_string();
+    }
+
+    format!("{base}\n\n{}", observations.join("\n"))
+}
+
+fn observation_from_tool_outcome(
+    call: &ToolCallRequest,
+    status: ToolLoopStatus,
+    observation: Option<&str>,
+    max_observation_bytes: u64,
+) -> ToolObservationMessage {
+    let raw = match status {
+        ToolLoopStatus::Completed => observation.unwrap_or("tool completed without output"),
+        ToolLoopStatus::Denied => "tool call was denied by policy",
+        ToolLoopStatus::WaitingApproval => "tool call is waiting for approval",
+        ToolLoopStatus::Failed => "tool execution failed",
+    };
+    let (bounded, truncated) = truncate_utf8(&redact_secret_like(raw), max_observation_bytes);
+    ToolObservationMessage {
+        call_id: call.call_id.clone(),
+        tool_name: call.tool_name.clone(),
+        observation: format!(
+            "tool observation for {} ({}): {}",
+            call.tool_name, call.call_id, bounded
+        ),
+        truncated,
+    }
+}
+
+fn truncate_utf8(input: &str, max_bytes: u64) -> (String, bool) {
+    let max_bytes = usize::try_from(max_bytes).unwrap_or(usize::MAX);
+    if input.len() <= max_bytes {
+        return (input.to_string(), false);
+    }
+    if max_bytes == 0 {
+        return (String::new(), true);
+    }
+
+    let mut end = max_bytes.min(input.len());
+    while end > 0 && !input.is_char_boundary(end) {
+        end -= 1;
+    }
+    (input[..end].to_string(), true)
+}
+
+fn redact_secret_like(input: &str) -> String {
+    input
+        .split_whitespace()
+        .map(|part| {
+            let lower = part.to_ascii_lowercase();
+            if part.starts_with("sk-")
+                || lower.contains("api_key")
+                || lower.contains("token")
+                || lower.contains("password")
+            {
+                "[REDACTED]"
+            } else {
+                part
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn tail_events(events: &[RuntimeEvent]) -> &[RuntimeEvent] {
+    events.get(1..).unwrap_or_default()
 }
 
 fn append_events<S>(
@@ -343,6 +1120,101 @@ where
             })?;
     }
     Ok(())
+}
+
+fn prompt_snapshot_event(
+    ids: RuntimeIds,
+    user_message: &str,
+) -> Result<RuntimeEvent, ConfiguredTurnError> {
+    if user_message.trim().is_empty() {
+        return Err(ConfiguredTurnError::InvalidInput {
+            field: "user_message".to_string(),
+            message: "user message must not be empty".to_string(),
+        });
+    }
+
+    let profile = PromptProfile::new(
+        PromptProfileId::new("default").expect("built-in profile id is valid"),
+        1,
+        "Default Agent",
+        vec![agent_context::PromptLayerId::new("system").expect("built-in layer id is valid")],
+        PromptBudget::new(16_384, 4_096).expect("built-in prompt budget is valid"),
+    )
+    .expect("built-in prompt profile is valid");
+    let layers = vec![
+        PromptLayer::new(
+            "system",
+            PromptLayerKind::Runtime,
+            1_000,
+            "agent runtime safety and integrity instructions",
+            8,
+            PromptLayerSource::BuiltIn,
+            PromptLayerVisibility::Hidden,
+            PromptLayerSensitivity::Public,
+            PromptLayerPolicy::Required,
+            1,
+        )
+        .expect("built-in system layer is valid"),
+        PromptLayer::new(
+            "user",
+            PromptLayerKind::User,
+            0,
+            user_message,
+            user_message.len() as u32,
+            PromptLayerSource::SessionOverlay {
+                command_id: "user_message".to_string(),
+            },
+            PromptLayerVisibility::Full,
+            PromptLayerSensitivity::UserPrivate,
+            PromptLayerPolicy::Optional,
+            1,
+        )
+        .expect("validated non-empty user message creates a layer"),
+    ];
+    let outcome = PromptRuntime
+        .assemble(PromptAssemblyRequest {
+            profile,
+            layers,
+            overlays: Vec::new(),
+        })
+        .map_err(|error| ConfiguredTurnError::InvalidInput {
+            field: "prompt".to_string(),
+            message: error.to_string(),
+        })?;
+    let snapshot = PromptSnapshot::from_assembly(&outcome.bundle, &outcome.report);
+
+    Ok(RuntimeEvent {
+        schema_version: SchemaVersion::current(),
+        id: agent_types::EventId::new(),
+        seq: None,
+        occurred_at: Timestamp::now_utc(),
+        workspace_id: ids.workspace_id,
+        conversation_id: ids.conversation_id,
+        turn_id: Some(ids.turn_id),
+        task_id: None,
+        agent_id: None,
+        team_id: None,
+        actor: ActorRef::system(),
+        correlation_id: ids.correlation_id,
+        causation_id: None,
+        payload: RuntimeEventPayload::PromptSnapshotRecorded(PromptSnapshotRecorded {
+            profile_id: snapshot.profile_id.as_str().to_string(),
+            profile_version: snapshot.profile_version,
+            bundle_hash: snapshot.bundle_hash,
+            layer_hashes: snapshot
+                .layer_hashes
+                .into_iter()
+                .map(|hash| PromptLayerHashRecord {
+                    layer_id: hash.layer_id.as_str().to_string(),
+                    source_hash: hash.source_hash,
+                    content_hash: hash.content_hash,
+                })
+                .collect(),
+            diagnostic_count: snapshot.diagnostics.len() as u32,
+            message_count: snapshot.message_count,
+            estimated_tokens: snapshot.estimated_tokens,
+        }),
+    })
 }
 
 struct PolicyModelProvider {
@@ -373,23 +1245,299 @@ impl PolicyModelProvider {
 
 #[async_trait::async_trait]
 impl ModelProvider for PolicyModelProvider {
-    async fn stream(&self, request: ModelRequest) -> Result<ModelStreamResult, ModelError> {
-        match ModelInvocationRunner::run(&self.runtime, &self.registry, &self.requirements, request)
-            .await
-        {
-            Ok(outcome) => {
-                *self.attempts.lock().expect("attempts lock") = outcome.attempts;
-                Ok(outcome.stream)
+    async fn stream(
+        &self,
+        request: ModelRequest,
+    ) -> Result<agent_model::ModelEventStream, ModelError> {
+        Ok(Box::pin(stream::unfold(
+            StreamingInvocationState::new(
+                self.runtime.clone(),
+                self.registry.clone(),
+                self.requirements.clone(),
+                request,
+                Arc::clone(&self.attempts),
+            ),
+            next_streaming_invocation_item,
+        )))
+    }
+}
+
+struct StreamingInvocationState {
+    runtime: ConfiguredModelRuntime,
+    registry: ModelProviderRegistry,
+    requirements: ModelRequestRequirements,
+    request_template: ModelRequest,
+    attempts: Arc<Mutex<Vec<ModelInvocationAttempt>>>,
+    selected_attempts_started: u32,
+    fallback_index: usize,
+    next_attempt_index: u32,
+    use_model_override: bool,
+    current_provider_id: Option<String>,
+    current_model: Option<String>,
+    current_stream: Option<agent_model::ModelEventStream>,
+    crossed_side_effect_boundary: bool,
+    last_failure: Option<InvocationFailure>,
+    terminal_error: Option<ModelError>,
+    done: bool,
+}
+
+impl StreamingInvocationState {
+    fn new(
+        runtime: ConfiguredModelRuntime,
+        registry: ModelProviderRegistry,
+        requirements: ModelRequestRequirements,
+        request_template: ModelRequest,
+        attempts: Arc<Mutex<Vec<ModelInvocationAttempt>>>,
+    ) -> Self {
+        let use_model_override = registry
+            .get(&runtime.provider_id)
+            .map(|provider| runtime.model != provider.config.default_model)
+            .unwrap_or(true);
+        attempts.lock().expect("attempts lock").clear();
+
+        Self {
+            runtime,
+            registry,
+            requirements,
+            request_template,
+            attempts,
+            selected_attempts_started: 0,
+            fallback_index: 0,
+            next_attempt_index: 1,
+            use_model_override,
+            current_provider_id: None,
+            current_model: None,
+            current_stream: None,
+            crossed_side_effect_boundary: false,
+            last_failure: None,
+            terminal_error: None,
+            done: false,
+        }
+    }
+
+    fn attempts_snapshot(&self) -> Vec<ModelInvocationAttempt> {
+        self.attempts.lock().expect("attempts lock").clone()
+    }
+
+    fn push_attempt(&mut self, provider_id: &str, model: &str) {
+        let attempt = attempt(provider_id, model, self.next_attempt_index);
+        self.next_attempt_index += 1;
+        self.attempts.lock().expect("attempts lock").push(attempt);
+    }
+
+    fn selected_retry_available(&self, failure: &InvocationFailure) -> bool {
+        self.current_provider_id.as_deref() == Some(self.runtime.provider_id.as_str())
+            && failure.retryable
+            && self
+                .runtime
+                .invocation_policy
+                .retry
+                .is_retryable(failure.failure_kind)
+            && self.selected_attempts_started < self.runtime.invocation_policy.retry.max_attempts
+    }
+
+    fn fallback_available(&self) -> bool {
+        self.fallback_index < self.runtime.invocation_policy.fallback.provider_ids.len()
+    }
+
+    fn next_candidate(
+        &mut self,
+    ) -> Result<Option<StreamingInvocationCandidate>, ModelInvocationError> {
+        if self.selected_attempts_started < self.runtime.invocation_policy.retry.max_attempts {
+            self.selected_attempts_started += 1;
+            let provider_id = self.runtime.provider_id.clone();
+            let model = self.runtime.model.clone();
+            self.push_attempt(&provider_id, &model);
+            return Ok(Some(StreamingInvocationCandidate {
+                provider_id,
+                model,
+                provider: Arc::clone(&self.runtime.provider),
+            }));
+        }
+
+        if self.fallback_index < self.runtime.invocation_policy.fallback.provider_ids.len() {
+            let fallback_provider_id =
+                self.runtime.invocation_policy.fallback.provider_ids[self.fallback_index].clone();
+            self.fallback_index += 1;
+            let registered = match self
+                .registry
+                .require_capabilities(&fallback_provider_id, &self.requirements)
+            {
+                Ok(registered) => registered,
+                Err(ModelRegistryError::ProviderNotFound { id }) => {
+                    return Err(ModelInvocationError::FallbackProviderNotRegistered {
+                        provider_id: id,
+                        attempts: self.attempts_snapshot(),
+                    });
+                }
+                Err(ModelRegistryError::MissingCapabilities {
+                    provider_id,
+                    missing,
+                }) => {
+                    return Err(ModelInvocationError::FallbackMissingCapabilities {
+                        provider_id,
+                        missing,
+                        attempts: self.attempts_snapshot(),
+                    });
+                }
+                Err(error) => {
+                    return Err(ModelInvocationError::SelectedProviderUnavailable {
+                        provider_id: fallback_provider_id,
+                        message: error.to_string(),
+                        attempts: self.attempts_snapshot(),
+                    });
+                }
+            };
+            let model = if self.use_model_override {
+                self.runtime.model.clone()
+            } else {
+                registered.config.default_model.clone()
+            };
+            let provider = registered.provider();
+            self.push_attempt(&fallback_provider_id, &model);
+            return Ok(Some(StreamingInvocationCandidate {
+                provider_id: fallback_provider_id,
+                model,
+                provider,
+            }));
+        }
+
+        Ok(None)
+    }
+
+    fn handle_failure(&mut self, error: ModelError) {
+        let provider_id = self
+            .current_provider_id
+            .clone()
+            .unwrap_or_else(|| self.runtime.provider_id.clone());
+        let model = self
+            .current_model
+            .clone()
+            .unwrap_or_else(|| self.runtime.model.clone());
+        let failure = InvocationFailure::new(provider_id, model, error);
+        let retry_selected = self.selected_retry_available(&failure);
+        self.last_failure = Some(failure);
+        self.current_stream = None;
+        self.current_provider_id = None;
+        self.current_model = None;
+        self.crossed_side_effect_boundary = false;
+
+        if retry_selected {
+            return;
+        }
+
+        self.selected_attempts_started = self.runtime.invocation_policy.retry.max_attempts;
+        if !self.fallback_available() {
+            self.terminal_error = Some(invocation_error_to_model_error(
+                self.last_failure_error()
+                    .expect("failure was recorded before terminal error"),
+            ));
+        }
+    }
+
+    fn last_failure_error(&self) -> Option<ModelInvocationError> {
+        let failure = self.last_failure.as_ref()?;
+        Some(ModelInvocationError::InvocationFailed {
+            provider_id: failure.provider_id.clone(),
+            model: failure.model.clone(),
+            failure_kind: failure.failure_kind,
+            retryable: failure.retryable,
+            message: failure.message.clone(),
+            attempts: self.attempts_snapshot(),
+        })
+    }
+}
+
+struct StreamingInvocationCandidate {
+    provider_id: String,
+    model: String,
+    provider: Arc<dyn ModelProvider>,
+}
+
+async fn next_streaming_invocation_item(
+    mut state: StreamingInvocationState,
+) -> Option<(
+    Result<ModelStreamEvent, ModelError>,
+    StreamingInvocationState,
+)> {
+    loop {
+        if state.done {
+            return None;
+        }
+
+        if let Some(error) = state.terminal_error.take() {
+            state.done = true;
+            return Some((Err(error), state));
+        }
+
+        if state.current_stream.is_none() {
+            let candidate = match state.next_candidate() {
+                Ok(Some(candidate)) => candidate,
+                Ok(None) => {
+                    if let Some(error) = state.last_failure_error() {
+                        state.terminal_error = Some(invocation_error_to_model_error(error));
+                        continue;
+                    }
+                    state.done = true;
+                    return None;
+                }
+                Err(error) => {
+                    state.terminal_error = Some(invocation_error_to_model_error(error));
+                    continue;
+                }
+            };
+            let mut request = state.request_template.clone();
+            request.provider = candidate.provider_id.clone();
+            request.model = candidate.model.clone();
+            state.current_provider_id = Some(candidate.provider_id);
+            state.current_model = Some(candidate.model);
+            state.crossed_side_effect_boundary = false;
+
+            match candidate.provider.stream(request).await {
+                Ok(stream) => state.current_stream = Some(stream),
+                Err(error) => state.handle_failure(error),
             }
-            Err(error) => {
-                *self.attempts.lock().expect("attempts lock") = error.attempts().to_vec();
-                Err(ModelError::Provider {
-                    code: "model.invocation_policy.failed".to_string(),
-                    message: error.to_string(),
-                    retryable: false,
-                })
+            continue;
+        }
+
+        let stream = state
+            .current_stream
+            .as_mut()
+            .expect("current stream checked above");
+        match stream.next().await {
+            Some(Ok(event)) => {
+                if model_event_crosses_side_effect_boundary(&event) {
+                    state.crossed_side_effect_boundary = true;
+                }
+                return Some((Ok(event), state));
+            }
+            Some(Err(error)) => {
+                if state.crossed_side_effect_boundary {
+                    state.done = true;
+                    return Some((Err(error), state));
+                }
+                state.handle_failure(error);
+            }
+            None => {
+                state.done = true;
+                return None;
             }
         }
+    }
+}
+
+fn model_event_crosses_side_effect_boundary(event: &ModelStreamEvent) -> bool {
+    matches!(
+        event,
+        ModelStreamEvent::Delta { .. } | ModelStreamEvent::ToolCall { .. }
+    )
+}
+
+fn invocation_error_to_model_error(error: ModelInvocationError) -> ModelError {
+    ModelError::Provider {
+        code: "model.invocation_policy.failed".to_string(),
+        message: error.to_string(),
+        retryable: false,
     }
 }
 
@@ -402,7 +1550,8 @@ async fn invoke(
     let mut request = request_template.clone();
     request.provider = provider_id.to_string();
     request.model = model.to_string();
-    provider.stream(request).await
+    let stream = provider.stream(request).await?;
+    collect_model_event_stream(stream).await
 }
 
 fn attempt(provider_id: &str, model: &str, attempt_index: u32) -> ModelInvocationAttempt {

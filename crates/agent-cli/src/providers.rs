@@ -1,0 +1,115 @@
+use std::sync::Arc;
+
+use agent_core::EffectiveRuntimeConfig;
+use agent_model::{
+    FakeModelProvider, FakeModelScript, ModelCapabilities, ModelProviderKind,
+    ModelProviderRegistry, OpenAiCompatibleProvider, RegisteredModelProvider,
+    ReqwestOpenAiCompatibleTransport, SecretResolver,
+};
+
+use crate::command::CliError;
+
+pub fn build_model_provider_registry(
+    effective: &EffectiveRuntimeConfig,
+    prompt: &str,
+    secret_resolver: Arc<dyn SecretResolver>,
+) -> Result<ModelProviderRegistry, CliError> {
+    let mut providers = Vec::new();
+
+    for provider in effective
+        .config
+        .model
+        .catalog
+        .providers
+        .iter()
+        .filter(|provider| provider.enabled)
+    {
+        let registered = match provider.kind {
+            ModelProviderKind::Fake => RegisteredModelProvider::new(
+                provider.clone(),
+                fake_capabilities(),
+                Arc::new(FakeModelProvider::new(FakeModelScript::text(
+                    &fake_response(prompt),
+                ))),
+            )
+            .map_err(|error| prompt_runtime_error(error.to_string()))?,
+            ModelProviderKind::OpenAiCompatible => {
+                let Some(secret_ref) = provider.api_key.as_ref() else {
+                    return Err(prompt_runtime_error(format!(
+                        "model provider {} secret reference is missing",
+                        provider.id
+                    )));
+                };
+                secret_resolver.resolve(secret_ref).map_err(|_| {
+                    prompt_runtime_error(format!(
+                        "model provider {} secret could not be resolved before live invocation",
+                        provider.id
+                    ))
+                })?;
+                let transport = Arc::new(ReqwestOpenAiCompatibleTransport::new(Arc::clone(
+                    &secret_resolver,
+                )));
+                let provider_impl = OpenAiCompatibleProvider::new(provider.clone(), transport)
+                    .map_err(|error| {
+                        prompt_runtime_error(redact_secret_like_text(&error.to_string()))
+                    })?;
+                RegisteredModelProvider::new(
+                    provider.clone(),
+                    openai_compatible_capabilities(),
+                    Arc::new(provider_impl),
+                )
+                .map_err(|error| prompt_runtime_error(error.to_string()))?
+            }
+        };
+        providers.push(registered);
+    }
+
+    ModelProviderRegistry::new(providers).map_err(|error| prompt_runtime_error(error.to_string()))
+}
+
+fn prompt_runtime_error(message: impl Into<String>) -> CliError {
+    CliError::PromptRuntimeFailed {
+        message: message.into(),
+    }
+}
+
+fn fake_response(prompt: &str) -> String {
+    format!("fake response: {}", redact_secret_like_text(prompt))
+}
+
+pub(crate) fn redact_secret_like_text(input: &str) -> String {
+    input
+        .split_whitespace()
+        .map(|part| {
+            let lower = part.to_ascii_lowercase();
+            if part.starts_with("sk-")
+                || lower.contains("api_key")
+                || lower.contains("token")
+                || lower.contains("password")
+            {
+                "[redacted]"
+            } else {
+                part
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn fake_capabilities() -> ModelCapabilities {
+    ModelCapabilities {
+        streaming: true,
+        tool_calls: false,
+        structured_outputs: false,
+        max_context_tokens: Some(4096),
+    }
+}
+
+fn openai_compatible_capabilities() -> ModelCapabilities {
+    ModelCapabilities {
+        streaming: true,
+        tool_calls: false,
+        structured_outputs: false,
+        max_context_tokens: Some(128_000),
+    }
+}

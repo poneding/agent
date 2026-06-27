@@ -1,6 +1,6 @@
 use agent_core::{RuntimeIds, TurnEngine, TurnError, TurnInput};
 use agent_model::{
-    FakeModelProvider, FakeModelScript, ModelError, ModelProvider, ModelRequest, ModelStreamResult,
+    FakeModelProvider, FakeModelScript, ModelError, ModelEventStream, ModelProvider, ModelRequest,
 };
 use agent_types::{
     ConversationId, CorrelationId, RuntimeEvent, RuntimeEventPayload, TurnId, TurnState,
@@ -120,7 +120,7 @@ struct FailingProvider;
 
 #[async_trait]
 impl ModelProvider for FailingProvider {
-    async fn stream(&self, _request: ModelRequest) -> Result<ModelStreamResult, ModelError> {
+    async fn stream(&self, _request: ModelRequest) -> Result<ModelEventStream, ModelError> {
         Err(ModelError::Script("provider unavailable".to_string()))
     }
 }

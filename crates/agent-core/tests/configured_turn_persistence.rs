@@ -6,9 +6,10 @@ use agent_core::{
     build_effective_runtime_config,
 };
 use agent_model::{
-    FakeModelProvider, FakeModelScript, ModelCapabilities, ModelEndpointConfig, ModelFallbackChain,
-    ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig, ModelProviderKind,
-    ModelProviderRegistry, ModelRequestRequirements, ModelRetryPolicy, RegisteredModelProvider,
+    FakeModelProvider, FakeModelScript, ModelCapabilities, ModelEndpointConfig, ModelError,
+    ModelEventStream, ModelFallbackChain, ModelInvocationPolicy, ModelProvider,
+    ModelProviderCatalog, ModelProviderConfig, ModelProviderKind, ModelProviderRegistry,
+    ModelRequest, ModelRequestRequirements, ModelRetryPolicy, RegisteredModelProvider,
 };
 use agent_storage::{EventStore, InMemoryEventStore, ReplayCursor};
 use agent_types::{ConversationId, CorrelationId, RuntimeEventPayload, TurnId, WorkspaceId};
@@ -100,6 +101,28 @@ fn registry(provider: ModelProviderConfig) -> ModelProviderRegistry {
     .expect("registry")
 }
 
+#[derive(Debug)]
+struct FailingModelProvider;
+
+#[async_trait::async_trait]
+impl ModelProvider for FailingModelProvider {
+    async fn stream(&self, _request: ModelRequest) -> Result<ModelEventStream, ModelError> {
+        Err(ModelError::Provider {
+            code: "test.provider_failed".to_string(),
+            message: "provider failed".to_string(),
+            retryable: false,
+        })
+    }
+}
+
+fn failing_registry(provider: ModelProviderConfig) -> ModelProviderRegistry {
+    ModelProviderRegistry::new(vec![
+        RegisteredModelProvider::new(provider, capabilities(), Arc::new(FailingModelProvider))
+            .expect("registered provider"),
+    ])
+    .expect("registry")
+}
+
 #[tokio::test]
 async fn configured_turn_persistence_appends_events_in_order() {
     let ids = runtime_ids();
@@ -164,4 +187,72 @@ async fn configured_turn_persistence_replays_final_response() {
     assert!(!persisted_json.contains("sk-test-secret"));
     assert!(!persisted_json.contains("api_key"));
     assert!(!persisted_json.contains("password"));
+}
+
+#[tokio::test]
+async fn configured_turn_persistence_records_prompt_snapshot_before_model_stream() {
+    let ids = runtime_ids();
+    let provider = provider_config("fake", "fake-scripted");
+    let registry = registry(provider.clone());
+    let mut store = InMemoryEventStore::default();
+
+    ConfiguredTurnRunner::run_and_persist(configured_input(ids, provider), &registry, &mut store)
+        .await
+        .expect("persist configured turn");
+
+    let stored = store
+        .list_by_conversation(ids.conversation_id)
+        .expect("list persisted events");
+    let snapshot_index = stored
+        .iter()
+        .position(|stored| {
+            matches!(
+                stored.event.payload,
+                RuntimeEventPayload::PromptSnapshotRecorded(_)
+            )
+        })
+        .expect("prompt snapshot event exists");
+    let model_stream_index = stored
+        .iter()
+        .position(|stored| {
+            matches!(
+                stored.event.payload,
+                RuntimeEventPayload::ModelStreamStarted(_)
+            )
+        })
+        .expect("model stream event exists");
+
+    assert!(snapshot_index < model_stream_index);
+}
+
+#[tokio::test]
+async fn configured_turn_persistence_keeps_prompt_snapshot_when_model_fails() {
+    let ids = runtime_ids();
+    let provider = provider_config("fake", "fake-scripted");
+    let registry = failing_registry(provider.clone());
+    let mut store = InMemoryEventStore::default();
+
+    ConfiguredTurnRunner::run_and_persist(configured_input(ids, provider), &registry, &mut store)
+        .await
+        .expect_err("model failure is returned");
+
+    let stored = store
+        .list_by_conversation(ids.conversation_id)
+        .expect("list persisted events");
+
+    assert!(
+        stored.iter().any(|stored| {
+            matches!(
+                stored.event.payload,
+                RuntimeEventPayload::PromptSnapshotRecorded(_)
+            )
+        }),
+        "prompt snapshot event should remain persisted"
+    );
+    assert!(
+        stored
+            .iter()
+            .any(|stored| matches!(stored.event.payload, RuntimeEventPayload::TurnFailed(_))),
+        "turn failure event should also be persisted"
+    );
 }

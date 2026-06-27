@@ -76,6 +76,22 @@ fn cli_prompt_runtime_runs_default_fake_turn() {
 }
 
 #[test]
+fn cli_prompt_runtime_text_streams_deltas_without_json_frames() {
+    let output = Command::new(env!("CARGO_BIN_EXE_agent-cli"))
+        .args(["--prompt", "hello"])
+        .output()
+        .expect("agent-cli binary should run");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    assert_eq!(stdout, "fake response: hello\n");
+    assert!(!stdout.contains("\"type\""));
+    assert!(!stdout.contains("model_delta"));
+    assert!(output.stderr.is_empty());
+}
+
+#[test]
 fn cli_prompt_runtime_uses_configured_fake_provider() {
     let path = write_config("fake", &fake_config_toml());
 
@@ -93,7 +109,7 @@ fn cli_prompt_runtime_uses_configured_fake_provider() {
 }
 
 #[test]
-fn cli_prompt_runtime_rejects_unregistered_openai_provider_safely() {
+fn cli_prompt_runtime_rejects_missing_openai_secret_safely() {
     let path = write_config("openai", &openai_config_toml());
 
     let output = Command::new(env!("CARGO_BIN_EXE_agent-cli"))
@@ -103,7 +119,11 @@ fn cli_prompt_runtime_rejects_unregistered_openai_provider_safely() {
 
     assert_eq!(output.status.code(), Some(2));
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("model provider is not registered: openai"));
+    assert!(stdout.contains("prompt runtime failed"));
+    assert!(stdout.contains("openai"));
+    assert!(stdout.contains("secret"));
+    assert!(!stdout.contains("model provider is not registered: openai"));
+    assert!(!stdout.contains("OPENAI_API_KEY"));
     assert!(output.stderr.is_empty());
 }
 

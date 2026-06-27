@@ -4,7 +4,7 @@ use agent_model::{
     FixtureOpenAiCompatibleTransport, ModelEndpointConfig, ModelError, ModelProvider,
     ModelProviderConfig, ModelProviderKind, ModelRequest, ModelStreamEvent, OpenAiCompatibleError,
     OpenAiCompatibleHttpResponse, OpenAiCompatibleProvider, SecretRef,
-    build_openai_compatible_request_body, parse_openai_compatible_sse,
+    build_openai_compatible_request_body, collect_model_event_stream, parse_openai_compatible_sse,
 };
 use agent_types::{ConversationId, CorrelationId, TurnId};
 use serde_json::json;
@@ -85,10 +85,13 @@ async fn openai_compatible_stream_parser_maps_delta_and_completed_events() {
     )
     .expect("valid provider");
 
-    let events = provider
+    let stream = provider
         .stream(model_request())
         .await
         .expect("stream fixture response");
+    let events = collect_model_event_stream(stream)
+        .await
+        .expect("collect stream");
 
     assert_eq!(
         events,

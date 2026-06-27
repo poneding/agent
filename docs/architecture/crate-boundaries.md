@@ -18,6 +18,7 @@ agent-types
   <- agent-core
        <- agent-ui-bridge
        <- agent-cli
+       <- agent-tui
        <- agent-desktop
 ```
 
@@ -39,8 +40,9 @@ Plugin, MCP, sandbox, and telemetry crates integrate through typed interfaces an
 | `agent-scheduler` | Durable task queue, leases, retries, quotas | Turn internals |
 | `agent-mcp` | MCP client/server/gateway protocol mapping | Local policy bypass |
 | `agent-plugin` | Plugin manifest, loading, compatibility, isolation | Core side effects without policy |
-| `agent-ui-bridge` | UI command/event protocol | CLI/Desktop presentation decisions |
-| `agent-cli` | TTY, JSON mode, REPL commands | Runtime business logic |
+| `agent-ui-bridge` | UI command/event protocol | CLI/TUI/Desktop presentation decisions |
+| `agent-cli` | binary entrypoint, mode dispatch, batch, JSON, and plain REPL commands | Runtime business logic, full-screen TUI rendering |
+| `agent-tui` | full-screen terminal REPL, Ratatui rendering, terminal input and panel state | Runtime business logic, model/tool execution |
 | `agent-desktop` | Desktop shell and views | Runtime business logic |
 
 ## Public API Rules

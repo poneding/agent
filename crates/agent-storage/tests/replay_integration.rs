@@ -1,7 +1,7 @@
 use agent_storage::{EventStore, InMemoryEventStore, ReplayCursor};
 use agent_types::{
-    ActorRef, ConversationId, CorrelationId, EventId, FinalResponseProduced, RuntimeEvent,
-    RuntimeEventPayload, SchemaVersion, Timestamp, UserInputReceived, WorkspaceId,
+    ActorRef, ConversationId, CorrelationId, EventId, FinalResponseProduced, ModelOutputDelta,
+    RuntimeEvent, RuntimeEventPayload, SchemaVersion, Timestamp, UserInputReceived, WorkspaceId,
 };
 
 fn runtime_event(conversation_id: ConversationId, payload: RuntimeEventPayload) -> RuntimeEvent {
@@ -59,4 +59,47 @@ fn replay_reconstructs_final_response() {
         .next_back();
 
     assert_eq!(final_response, Some("hello from fake model"));
+}
+
+#[test]
+fn replay_reconstructs_streamed_response_from_deltas() {
+    let conversation_id = ConversationId::new();
+    let mut store = InMemoryEventStore::default();
+
+    for payload in [
+        RuntimeEventPayload::ModelOutputDelta(ModelOutputDelta {
+            delta: "hel".to_string(),
+        }),
+        RuntimeEventPayload::ModelOutputDelta(ModelOutputDelta {
+            delta: "lo".to_string(),
+        }),
+        RuntimeEventPayload::FinalResponseProduced(FinalResponseProduced {
+            message: "hello".to_string(),
+        }),
+    ] {
+        store
+            .append(runtime_event(conversation_id, payload))
+            .expect("persist stream event");
+    }
+
+    let replayed = ReplayCursor::new(conversation_id)
+        .collect(&store)
+        .expect("replay conversation");
+    let from_deltas = replayed
+        .iter()
+        .filter_map(|event| match &event.event.payload {
+            RuntimeEventPayload::ModelOutputDelta(delta) => Some(delta.delta.as_str()),
+            _ => None,
+        })
+        .collect::<String>();
+    let final_response = replayed
+        .iter()
+        .filter_map(|event| match &event.event.payload {
+            RuntimeEventPayload::FinalResponseProduced(response) => Some(response.message.as_str()),
+            _ => None,
+        })
+        .next_back();
+
+    assert_eq!(from_deltas, "hello");
+    assert_eq!(final_response, Some(from_deltas.as_str()));
 }

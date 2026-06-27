@@ -1,4 +1,7 @@
-use agent_context::{PromptLayer, PromptLayerKind, assemble_prompt_bundle};
+use agent_context::{
+    PromptLayer, PromptLayerKind, PromptLayerPolicy, PromptLayerSensitivity, PromptLayerSource,
+    PromptLayerVisibility, assemble_prompt_bundle,
+};
 use agent_memory::{
     InMemoryMemoryStore, MemoryRecord, MemoryScope, MemorySensitivity, MemorySource, MemoryStore,
 };
@@ -11,13 +14,24 @@ fn layer(
     content: &str,
     tokens: u32,
 ) -> PromptLayer {
-    PromptLayer {
-        id: id.to_string(),
+    PromptLayer::new(
+        id,
         kind,
         priority,
-        content: content.to_string(),
-        token_estimate: tokens,
-    }
+        content,
+        tokens,
+        match kind {
+            PromptLayerKind::Memory => PromptLayerSource::Memory {
+                memory_id: id.to_string(),
+            },
+            _ => PromptLayerSource::BuiltIn,
+        },
+        PromptLayerVisibility::Full,
+        PromptLayerSensitivity::Workspace,
+        PromptLayerPolicy::Optional,
+        1,
+    )
+    .expect("valid prompt layer")
 }
 
 #[test]

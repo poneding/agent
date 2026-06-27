@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 //! Core runtime orchestration for agent.
 
+pub mod approval;
 pub mod audit_export;
 pub mod benchmark;
 pub mod config;
@@ -14,6 +15,10 @@ pub mod tool_loop;
 pub mod trace;
 pub mod turn;
 
+pub use approval::{
+    ApprovalCoordinator, ApprovalRecoveryView, ApprovalResumeError, ApprovalResumeOutcome,
+    ApprovalResumeStatus, SuspendedToolApproval,
+};
 pub use audit_export::{
     AuditEventCategory, AuditExportBundle, AuditExportError, AuditExportOptions, AuditExportRecord,
     TraceExportSummary, export_audit_bundle, export_audit_bundle_at,
@@ -35,16 +40,25 @@ pub use local_coding::{
     run_local_coding_fixture, run_local_coding_fixture_with_shell_denied,
 };
 pub use model_runtime::{
-    ConfiguredModelRuntime, ConfiguredTurnError, ConfiguredTurnInput, ConfiguredTurnOutcome,
-    ConfiguredTurnPersistenceError, ConfiguredTurnRunner, ModelInvocationAttempt,
+    AgentLoopBudget, AgentLoopFailureReason, AgentLoopOutcome, AgentLoopTerminalState,
+    ComprehensiveTurnInput, ComprehensiveTurnResources, ComprehensiveTurnRunner,
+    ConfiguredModelRuntime, ConfiguredTurnError, ConfiguredTurnEventStream, ConfiguredTurnInput,
+    ConfiguredTurnOutcome, ConfiguredTurnPersistenceError, ConfiguredTurnRunner,
+    ConfiguredTurnStream, ConfiguredTurnStreamOptions, ModelInvocationAttempt,
     ModelInvocationError, ModelInvocationOutcome, ModelInvocationRunner, ModelRuntimeError,
     ModelRuntimeResolver,
 };
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
 pub use runtime::RuntimeIds;
-pub use tool_loop::{ToolCallRequest, ToolLoop, ToolLoopError, ToolLoopOutcome, ToolLoopStatus};
+pub use tool_loop::{
+    AccumulatedToolCall, ToolCallAccumulator, ToolCallRequest, ToolLoop, ToolLoopError,
+    ToolLoopOutcome, ToolLoopStatus, ToolObservationMessage,
+};
 pub use trace::{TraceEntry, TraceError, TraceQuery, build_trace};
-pub use turn::{TurnEngine, TurnError, TurnInput, TurnOutcome};
+pub use turn::{
+    CancellationToken, TurnEngine, TurnError, TurnEventStream, TurnInput, TurnOutcome,
+    TurnStreamOptions,
+};
 
 /// Returns a smoke-test banner proving the core crate links model and storage.
 #[must_use]

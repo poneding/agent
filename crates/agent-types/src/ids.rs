@@ -64,6 +64,7 @@ uuid_id!(TeamId);
 uuid_id!(EventId);
 uuid_id!(CorrelationId);
 uuid_id!(CheckpointId);
+uuid_id!(ApprovalRequestId);
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(transparent)]

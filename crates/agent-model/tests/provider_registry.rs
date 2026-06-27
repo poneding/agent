@@ -4,6 +4,7 @@ use agent_model::{
     FakeModelProvider, FakeModelScript, ModelCapabilities, ModelCapability, ModelEndpointConfig,
     ModelProviderConfig, ModelProviderKind, ModelProviderRegistry, ModelRegistryError,
     ModelRequest, ModelRequestRequirements, ModelStreamEvent, RegisteredModelProvider,
+    collect_model_event_stream,
 };
 use agent_types::{ConversationId, CorrelationId, TurnId};
 
@@ -54,11 +55,14 @@ async fn provider_registry_registers_and_resolves_provider() {
         .expect("valid registry");
 
     let registered = registry.get("fake").expect("registered provider");
-    let events = registered
+    let stream = registered
         .provider()
         .stream(model_request())
         .await
         .expect("stream fake provider");
+    let events = collect_model_event_stream(stream)
+        .await
+        .expect("collect stream");
 
     assert_eq!(registered.config.id, "fake");
     assert_eq!(registered.capabilities, fake_capabilities());

@@ -6,11 +6,11 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M15 are implemented. Current focus is next milestone planning.
+M01-M20 are implemented, and M21-M25 continue the productization path from runtime spine to usable Desktop, extension, memory, background, and release workflows.
 
 ## Core Ideas
 
-- One runtime core for CLI and Desktop.
+- One runtime core for CLI, TUI, and Desktop.
 - Every important action becomes a typed event.
 - Tool use goes through policy, sandboxing, and audit.
 - Long-running work is checkpointed and recoverable.
@@ -24,7 +24,7 @@ M01-M15 are implemented. Current focus is next milestone planning.
 - SQLite first for local persistence
 - Structured tracing and audit logs
 - MCP-compatible extension surface
-- CLI first, Desktop later through a shared UI bridge
+- CLI and TUI first, Desktop later through a shared UI bridge
 
 ## Architecture
 
@@ -65,6 +65,7 @@ crates/
   agent-plugin/
   agent-ui-bridge/
   agent-cli/
+  agent-tui/
   agent-desktop/
 docs/
   PRD.md
@@ -74,7 +75,25 @@ docs/
   specs/
   plans/
   templates/
+xtask/
 ```
+
+## Development
+
+Use the Rust-native xtask entrypoint for cross-platform workspace commands:
+
+```bash
+cargo xtask check
+cargo xtask fmt
+cargo xtask fmt-check
+cargo xtask clippy
+cargo xtask test
+cargo xtask desktop-test
+cargo xtask cli-prompt -- "hello agent"
+cargo xtask cli-json -- "hello agent"
+```
+
+Run `cargo xtask help` for the full command list.
 
 ## Documentation
 
@@ -82,9 +101,11 @@ docs/
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M15-05-persisted-turn-events.spec.md)
-- [Latest completed plan](docs/plans/M15-05-persisted-turn-events.plan.md)
-- [M15 technical design](docs/specs/M15-00-config-driven-turn-execution-technical-design.spec.md)
+- [Latest completed spec](docs/specs/M21-03-conversation-task-ui.spec.md)
+- [Latest completed plan](docs/plans/M21-03-conversation-task-ui.plan.md)
+- [Next implementation spec](docs/specs/M21-04-approval-diff-ui.spec.md)
+- [Next implementation plan](docs/plans/M21-04-approval-diff-ui.plan.md)
+- [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)
 

@@ -14,7 +14,11 @@ pub use compact::{
 };
 pub use error::ContextError;
 pub use prompt::{
-    PromptBundle, PromptLayer, PromptLayerKind, PromptMessage, assemble_prompt_bundle,
+    PromptAssemblyOutcome, PromptAssemblyReport, PromptAssemblyRequest, PromptBudget, PromptBundle,
+    PromptDiagnostic, PromptDiagnosticSeverity, PromptLayer, PromptLayerHash, PromptLayerId,
+    PromptLayerKind, PromptLayerPolicy, PromptLayerSensitivity, PromptLayerSource,
+    PromptLayerVisibility, PromptMessage, PromptOverlay, PromptOverlayAction, PromptProfile,
+    PromptProfileId, PromptRuntime, PromptSnapshot, assemble_prompt_bundle,
 };
 
 /// Returns a smoke-test string proving the context crate links shared types.

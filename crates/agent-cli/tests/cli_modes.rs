@@ -30,6 +30,20 @@ fn cli_modes_parse_batch_prompt() {
 }
 
 #[test]
+fn cli_modes_parse_prompt_profiles() {
+    let command = parse_cli_command(["prompt", "profiles"]).expect("parse prompt profiles");
+
+    assert_eq!(command, CliCommand::PromptProfiles);
+}
+
+#[test]
+fn cli_modes_parse_prompt_inspect() {
+    let command = parse_cli_command(["prompt", "inspect"]).expect("parse prompt inspect");
+
+    assert_eq!(command, CliCommand::PromptInspect);
+}
+
+#[test]
 fn cli_modes_parse_provider_and_model_flags() {
     let invocation = parse_cli_invocation([
         "--provider",

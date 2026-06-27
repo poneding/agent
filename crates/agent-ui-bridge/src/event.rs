@@ -1,8 +1,11 @@
+use agent_policy::{CapabilityAction, PendingApproval, ResourceKind};
 use agent_types::{
     CheckpointId, ClientKind, ConversationId, CorrelationId, EventId, EventSeq, RuntimeEvent,
     RuntimeEventPayload, SchemaVersion, TaskId, Timestamp, TurnId, TurnState, WorkspaceTrustLevel,
 };
 use serde::{Deserialize, Serialize};
+
+use crate::frame::{UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UiEventEnvelope {
@@ -55,6 +58,13 @@ pub enum UiEventPayload {
         decision: String,
         reason: String,
     },
+    ApprovalRequested(Box<UiApprovalRequest>),
+    ApprovalResolved {
+        request_id: String,
+        status: String,
+        decision: Option<String>,
+        reason: Option<String>,
+    },
     Checkpoint {
         checkpoint_id: CheckpointId,
         label: String,
@@ -65,6 +75,7 @@ pub enum UiEventPayload {
         message: String,
         recoverable: bool,
     },
+    PromptSummary(UiPromptSummary),
     Progress {
         message: String,
     },
@@ -78,6 +89,60 @@ pub enum UiEventPayload {
         source_id: String,
         summary: String,
     },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiApprovalRequest {
+    pub request_id: String,
+    pub status: String,
+    pub action: String,
+    pub resource_kind: String,
+    pub resource: String,
+    pub reason: String,
+    pub preview: UiApprovalPreviewSummary,
+    pub max_duration_seconds: Option<u64>,
+    pub expires_at: Option<Timestamp>,
+}
+
+impl UiApprovalRequest {
+    #[must_use]
+    pub fn from_pending_approval(approval: &PendingApproval) -> Self {
+        Self {
+            request_id: approval.id.to_string(),
+            status: "pending".to_string(),
+            action: capability_action_name(approval.lease_scope.action).to_string(),
+            resource_kind: resource_kind_name(approval.lease_scope.resource.kind).to_string(),
+            resource: approval.lease_scope.resource.pattern.clone(),
+            reason: approval.permission_request.reason.clone(),
+            preview: UiApprovalPreviewSummary::from_pending_approval(approval),
+            max_duration_seconds: approval.lease_scope.max_duration_seconds,
+            expires_at: approval.expires_at,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiApprovalPreviewSummary {
+    pub kind: String,
+    pub resource: String,
+    pub summary: String,
+    pub content_hash: Option<String>,
+    pub truncated: bool,
+    pub redacted: bool,
+}
+
+impl UiApprovalPreviewSummary {
+    #[must_use]
+    pub fn from_pending_approval(approval: &PendingApproval) -> Self {
+        Self {
+            kind: approval.preview.kind.clone(),
+            resource: approval.preview.resource.clone(),
+            summary: approval.preview.summary.clone(),
+            content_hash: approval.preview.content_hash.clone(),
+            truncated: approval.preview.truncated,
+            redacted: approval.preview.redacted,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -144,6 +209,53 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
             decision: decision.decision.clone(),
             reason: decision.reason.clone(),
         },
+        RuntimeEventPayload::ApprovalRequested(requested) => {
+            UiEventPayload::ApprovalRequested(Box::new(UiApprovalRequest {
+                request_id: requested.request_id.to_string(),
+                status: requested.status.clone(),
+                action: requested.action.clone(),
+                resource_kind: requested.resource_kind.clone(),
+                resource: requested.resource.clone(),
+                reason: requested.reason.clone(),
+                preview: UiApprovalPreviewSummary {
+                    kind: requested.preview.kind.clone(),
+                    resource: requested.preview.resource.clone(),
+                    summary: requested.preview.summary.clone(),
+                    content_hash: requested.preview.content_hash.clone(),
+                    truncated: requested.preview.truncated,
+                    redacted: requested.preview.redacted,
+                },
+                max_duration_seconds: requested.max_duration_seconds,
+                expires_at: requested.expires_at,
+            }))
+        }
+        RuntimeEventPayload::ApprovalResolved(resolved) => UiEventPayload::ApprovalResolved {
+            request_id: resolved.request_id.to_string(),
+            status: resolved.status.clone(),
+            decision: resolved.decision.clone(),
+            reason: resolved.reason.clone(),
+        },
+        RuntimeEventPayload::ApprovalExpired(expired) => UiEventPayload::ApprovalResolved {
+            request_id: expired.request_id.to_string(),
+            status: "expired".to_string(),
+            decision: None,
+            reason: Some(expired.reason.clone()),
+        },
+        RuntimeEventPayload::ApprovalCancelled(cancelled) => UiEventPayload::ApprovalResolved {
+            request_id: cancelled.request_id.to_string(),
+            status: "cancelled".to_string(),
+            decision: None,
+            reason: Some(cancelled.reason.clone()),
+        },
+        RuntimeEventPayload::ApprovalConsumed(consumed) => UiEventPayload::ApprovalResolved {
+            request_id: consumed.request_id.to_string(),
+            status: "consumed".to_string(),
+            decision: Some("allow".to_string()),
+            reason: Some(format!(
+                "approval consumed by {} {}",
+                consumed.tool_name, consumed.call_id
+            )),
+        },
         RuntimeEventPayload::CheckpointRecorded(checkpoint) => UiEventPayload::Checkpoint {
             checkpoint_id: checkpoint.checkpoint_id,
             label: checkpoint.label.clone(),
@@ -169,6 +281,9 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
                 context.message_count, context.estimated_tokens
             ),
         },
+        RuntimeEventPayload::PromptSnapshotRecorded(snapshot) => {
+            UiEventPayload::PromptSummary(prompt_summary_from_snapshot(snapshot))
+        }
         RuntimeEventPayload::ModelStreamStarted(started) => UiEventPayload::Progress {
             message: format!(
                 "model stream started: {}/{}",
@@ -278,6 +393,85 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
     }
 }
 
+fn prompt_summary_from_snapshot(snapshot: &agent_types::PromptSnapshotRecorded) -> UiPromptSummary {
+    let profile_id = non_empty_or(snapshot.profile_id.clone(), "unknown");
+    let bundle_hash = non_empty_or(snapshot.bundle_hash.clone(), "unknown");
+    let layers = snapshot
+        .layer_hashes
+        .iter()
+        .map(|layer| {
+            UiPromptLayerSummary::new(
+                non_empty_or(layer.layer_id.clone(), "unknown"),
+                "unknown",
+                "snapshot",
+                0,
+                0,
+                "summary_only",
+                "redacted",
+                None,
+                Some(layer.source_hash.clone()),
+                Some(layer.content_hash.clone()),
+            )
+            .unwrap_or_else(|_| UiPromptLayerSummary {
+                layer_id: "unknown".to_string(),
+                kind: "unknown".to_string(),
+                source_label: "snapshot".to_string(),
+                priority: 0,
+                token_estimate: 0,
+                visibility: "summary_only".to_string(),
+                sensitivity: "redacted".to_string(),
+                content_preview: None,
+                source_hash: None,
+                content_hash: None,
+            })
+        })
+        .collect();
+    let mut diagnostics = vec![
+        UiPromptDiagnosticSummary::new(
+            "info",
+            "prompt.snapshot.partial_metadata",
+            "prompt snapshot contains layer hashes but not full layer metadata",
+            None,
+        )
+        .expect("static diagnostic is valid"),
+    ];
+    if snapshot.diagnostic_count > 0 {
+        diagnostics.push(
+            UiPromptDiagnosticSummary::new(
+                "warning",
+                "prompt.snapshot.diagnostics_recorded",
+                format!(
+                    "{} prompt diagnostics were recorded in the runtime snapshot",
+                    snapshot.diagnostic_count
+                ),
+                None,
+            )
+            .expect("static diagnostic is valid"),
+        );
+    }
+
+    UiPromptSummary::new(
+        profile_id.clone(),
+        snapshot.profile_version.max(1),
+        profile_id,
+        bundle_hash,
+        snapshot.estimated_tokens,
+        snapshot.message_count,
+        layers,
+        diagnostics,
+    )
+    .expect("snapshot prompt summary uses fallback values")
+}
+
+fn non_empty_or(value: String, fallback: &str) -> String {
+    let value = value.trim();
+    if value.is_empty() {
+        fallback.to_string()
+    } else {
+        value.to_string()
+    }
+}
+
 fn trust_level_name(level: &WorkspaceTrustLevel) -> &'static str {
     match level {
         WorkspaceTrustLevel::Trusted => "trusted",
@@ -288,8 +482,28 @@ fn trust_level_name(level: &WorkspaceTrustLevel) -> &'static str {
 fn client_kind_name(kind: &ClientKind) -> &'static str {
     match kind {
         ClientKind::Cli => "cli",
+        ClientKind::Tui => "tui",
         ClientKind::Desktop => "desktop",
         ClientKind::Api => "api",
         ClientKind::Test => "test",
+    }
+}
+
+fn capability_action_name(action: CapabilityAction) -> &'static str {
+    match action {
+        CapabilityAction::Read => "read",
+        CapabilityAction::Search => "search",
+        CapabilityAction::Execute => "execute",
+        CapabilityAction::Network => "network",
+    }
+}
+
+fn resource_kind_name(kind: ResourceKind) -> &'static str {
+    match kind {
+        ResourceKind::File => "file",
+        ResourceKind::Workspace => "workspace",
+        ResourceKind::Command => "command",
+        ResourceKind::Network => "network",
+        ResourceKind::Tool => "tool",
     }
 }

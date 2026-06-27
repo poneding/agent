@@ -1,0 +1,26 @@
+[package]
+name = "agent-desktop-app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+name = "agent_desktop_app"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[dependencies]
+agent-desktop = { path = "../../../crates/agent-desktop" }
+agent-types = { path = "../../../crates/agent-types" }
+agent-ui-bridge = { path = "../../../crates/agent-ui-bridge" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = [] }
+thiserror = "2"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[lints]
+workspace = true

@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use crate::actor::ActorRef;
 use crate::error::AgentError;
 use crate::ids::{
-    AgentId, CheckpointId, ConversationId, CorrelationId, EventId, EventSeq, TaskId, TeamId,
-    TurnId, WorkspaceId,
+    AgentId, ApprovalRequestId, CheckpointId, ConversationId, CorrelationId, EventId, EventSeq,
+    TaskId, TeamId, TurnId, WorkspaceId,
 };
 use crate::schema::SchemaVersion;
 use crate::state::{TaskState, TurnState};
@@ -21,6 +21,7 @@ pub enum WorkspaceTrustLevel {
 #[serde(rename_all = "snake_case")]
 pub enum ClientKind {
     Cli,
+    Tui,
     Desktop,
     Api,
     Test,
@@ -63,6 +64,7 @@ pub enum RuntimeEventPayload {
     TurnStarted(TurnStarted),
     TurnStateChanged(TurnStateChanged),
     ContextAssembled(ContextAssembled),
+    PromptSnapshotRecorded(PromptSnapshotRecorded),
     ModelStreamStarted(ModelStreamStarted),
     ModelOutputDelta(ModelOutputDelta),
     ModelStreamCompleted(ModelStreamCompleted),
@@ -77,6 +79,11 @@ pub enum RuntimeEventPayload {
     ToolExecutionCompleted(crate::tool::ToolExecutionCompleted),
     ToolExecutionFailed(crate::tool::ToolExecutionFailed),
     ToolObservationRecorded(crate::tool::ToolObservationRecorded),
+    ApprovalRequested(ApprovalRequested),
+    ApprovalResolved(ApprovalResolved),
+    ApprovalExpired(ApprovalExpired),
+    ApprovalCancelled(ApprovalCancelled),
+    ApprovalConsumed(ApprovalConsumed),
     CheckpointRecorded(CheckpointRecorded),
     ReplayStarted(ReplayStarted),
     ReplayCompleted(ReplayCompleted),
@@ -131,6 +138,24 @@ pub struct ContextAssembled {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct PromptLayerHashRecord {
+    pub layer_id: String,
+    pub source_hash: String,
+    pub content_hash: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct PromptSnapshotRecorded {
+    pub profile_id: String,
+    pub profile_version: u32,
+    pub bundle_hash: String,
+    pub layer_hashes: Vec<PromptLayerHashRecord>,
+    pub diagnostic_count: u32,
+    pub message_count: u32,
+    pub estimated_tokens: u32,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ModelStreamStarted {
     pub provider: String,
     pub model: String,
@@ -177,6 +202,58 @@ pub struct TaskStateChanged {
 pub struct CheckpointRecorded {
     pub checkpoint_id: CheckpointId,
     pub label: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ApprovalRequested {
+    pub request_id: ApprovalRequestId,
+    pub status: String,
+    pub action: String,
+    pub resource_kind: String,
+    pub resource: String,
+    pub reason: String,
+    pub preview: ApprovalPreviewRecorded,
+    pub checkpoint_id: Option<CheckpointId>,
+    pub max_duration_seconds: Option<u64>,
+    pub expires_at: Option<Timestamp>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ApprovalPreviewRecorded {
+    pub kind: String,
+    pub resource: String,
+    pub summary: String,
+    pub content_hash: Option<String>,
+    pub truncated: bool,
+    pub redacted: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ApprovalResolved {
+    pub request_id: ApprovalRequestId,
+    pub status: String,
+    pub decision: Option<String>,
+    pub reason: Option<String>,
+    pub lease_duration_seconds: Option<u64>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ApprovalExpired {
+    pub request_id: ApprovalRequestId,
+    pub reason: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ApprovalCancelled {
+    pub request_id: ApprovalRequestId,
+    pub reason: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ApprovalConsumed {
+    pub request_id: ApprovalRequestId,
+    pub call_id: String,
+    pub tool_name: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

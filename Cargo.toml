@@ -19,6 +19,9 @@ members = [
     "crates/agent-ui-bridge",
     "crates/agent-desktop",
     "crates/agent-cli",
+    "crates/agent-tui",
+    "apps/desktop/src-tauri",
+    "xtask",
 ]
 resolver = "2"
 

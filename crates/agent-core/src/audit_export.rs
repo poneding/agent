@@ -154,6 +154,67 @@ fn export_payload(payload: &RuntimeEventPayload) -> PayloadExport {
                 redact_text(&decision.reason)
             ),
         },
+        RuntimeEventPayload::ApprovalRequested(requested) => PayloadExport {
+            category: AuditEventCategory::Permission,
+            action: "approval.requested".to_string(),
+            resource: Some(requested.request_id.to_string()),
+            decision: None,
+            summary: format!(
+                "approval requested {} {} {}: {}",
+                requested.action,
+                requested.resource_kind,
+                requested.resource,
+                redact_text(&requested.reason)
+            ),
+        },
+        RuntimeEventPayload::ApprovalResolved(resolved) => PayloadExport {
+            category: AuditEventCategory::Permission,
+            action: "approval.resolved".to_string(),
+            resource: Some(resolved.request_id.to_string()),
+            decision: resolved.decision.clone(),
+            summary: format!(
+                "approval resolved {} status={} reason={}",
+                resolved.request_id,
+                resolved.status,
+                resolved
+                    .reason
+                    .as_deref()
+                    .map(redact_text)
+                    .unwrap_or_else(|| "none".to_string())
+            ),
+        },
+        RuntimeEventPayload::ApprovalExpired(expired) => PayloadExport {
+            category: AuditEventCategory::Permission,
+            action: "approval.expired".to_string(),
+            resource: Some(expired.request_id.to_string()),
+            decision: Some("expired".to_string()),
+            summary: format!(
+                "approval expired {}: {}",
+                expired.request_id,
+                redact_text(&expired.reason)
+            ),
+        },
+        RuntimeEventPayload::ApprovalCancelled(cancelled) => PayloadExport {
+            category: AuditEventCategory::Permission,
+            action: "approval.cancelled".to_string(),
+            resource: Some(cancelled.request_id.to_string()),
+            decision: Some("cancelled".to_string()),
+            summary: format!(
+                "approval cancelled {}: {}",
+                cancelled.request_id,
+                redact_text(&cancelled.reason)
+            ),
+        },
+        RuntimeEventPayload::ApprovalConsumed(consumed) => PayloadExport {
+            category: AuditEventCategory::Permission,
+            action: "approval.consumed".to_string(),
+            resource: Some(consumed.request_id.to_string()),
+            decision: Some("consumed".to_string()),
+            summary: format!(
+                "approval consumed {} for {} {}",
+                consumed.request_id, consumed.tool_name, consumed.call_id
+            ),
+        },
         RuntimeEventPayload::ToolCallProposed(call) => PayloadExport {
             category: AuditEventCategory::Tool,
             action: "tool.proposed".to_string(),
@@ -268,6 +329,7 @@ fn export_payload(payload: &RuntimeEventPayload) -> PayloadExport {
         | RuntimeEventPayload::TurnStarted(_)
         | RuntimeEventPayload::TurnStateChanged(_)
         | RuntimeEventPayload::ContextAssembled(_)
+        | RuntimeEventPayload::PromptSnapshotRecorded(_)
         | RuntimeEventPayload::FinalResponseProduced(_)
         | RuntimeEventPayload::TurnCompleted(_)
         | RuntimeEventPayload::TurnFailed(_)

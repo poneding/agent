@@ -1,4 +1,8 @@
-use agent_types::{ClientKind, ConversationId, CorrelationId, SchemaVersion, TurnId, WorkspaceId};
+use agent_policy::ApprovalResponse;
+use agent_types::{
+    ApprovalRequestId, ClientKind, ConversationId, CorrelationId, SchemaVersion, Timestamp, TurnId,
+    WorkspaceId,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::UiBridgeError;
@@ -37,6 +41,12 @@ pub enum UiCommand {
         decision: UiPermissionDecision,
         reason: String,
     },
+    ResolveApproval {
+        request_id: ApprovalRequestId,
+        decision: UiApprovalDecision,
+        reason: String,
+        lease_duration_seconds: Option<u64>,
+    },
     TraceRequest {
         conversation_id: ConversationId,
         include_tools: bool,
@@ -52,6 +62,44 @@ pub enum UiCommand {
 pub enum UiPermissionDecision {
     Allow,
     Deny,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum UiApprovalDecision {
+    Allow,
+    Deny,
+}
+
+impl UiCommand {
+    pub fn to_approval_response(
+        &self,
+        resolved_at: Timestamp,
+    ) -> Result<ApprovalResponse, UiBridgeError> {
+        match self {
+            Self::ResolveApproval {
+                request_id,
+                decision,
+                reason,
+                lease_duration_seconds,
+            } => match decision {
+                UiApprovalDecision::Allow => ApprovalResponse::allow(
+                    *request_id,
+                    reason.clone(),
+                    *lease_duration_seconds,
+                    resolved_at,
+                )
+                .map_err(|error| UiBridgeError::Validation(error.to_string())),
+                UiApprovalDecision::Deny => {
+                    ApprovalResponse::deny(*request_id, reason.clone(), resolved_at)
+                        .map_err(|error| UiBridgeError::Validation(error.to_string()))
+                }
+            },
+            _ => Err(UiBridgeError::Validation(
+                "command is not resolve_approval".to_string(),
+            )),
+        }
+    }
 }
 
 pub fn validate_ui_command(envelope: &UiCommandEnvelope) -> Result<(), UiBridgeError> {
@@ -73,6 +121,9 @@ pub fn validate_ui_command(envelope: &UiCommandEnvelope) -> Result<(), UiBridgeE
         ),
         UiCommand::PermissionResponse { reason, .. } if reason.trim().is_empty() => Err(
             UiBridgeError::Validation("permission_response reason cannot be empty".to_string()),
+        ),
+        UiCommand::ResolveApproval { reason, .. } if reason.trim().is_empty() => Err(
+            UiBridgeError::Validation("resolve_approval reason cannot be empty".to_string()),
         ),
         _ => Ok(()),
     }

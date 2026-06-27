@@ -6,6 +6,7 @@ pub mod audit;
 pub mod embedding;
 pub mod error;
 pub mod index;
+pub mod proposal;
 pub mod record;
 pub mod rerank;
 pub mod store;
@@ -24,6 +25,10 @@ pub use embedding::{
 pub use error::MemoryError;
 pub use index::{
     HybridMemoryQuery, InMemoryMemoryIndex, MemoryIndex, MemoryIndexStats, MemoryRetrievalCandidate,
+};
+pub use proposal::{
+    InMemoryMemoryProposalStore, MemoryAutoApprovalEligibility, MemoryProposalDecision,
+    MemoryProposalStatus, MemoryProposalStore, MemoryProposalSummary, MemoryWriteProposal,
 };
 pub use record::{MemoryRecord, MemoryScope, MemorySensitivity, MemorySource};
 pub use rerank::{

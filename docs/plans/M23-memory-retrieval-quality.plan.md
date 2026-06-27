@@ -67,7 +67,7 @@ Combine lexical and semantic retrieval with scope and sensitivity filters.
 
 Return selected memories, scores, reasons, and safe trace summaries.
 
-- [ ] **Step 4: Implement memory write proposals**
+- [x] **Step 4: Implement memory write proposals**
 
 Separate proposed memories from committed records with approval policy.
 

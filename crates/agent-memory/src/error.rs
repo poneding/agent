@@ -10,6 +10,8 @@ pub enum MemoryError {
     InvalidQuery(String),
     #[error("memory rerank request is invalid: {0}")]
     InvalidRerank(String),
+    #[error("memory proposal is invalid: {0}")]
+    InvalidProposal(String),
     #[error("duplicate memory record: {0}")]
     DuplicateRecord(String),
 }

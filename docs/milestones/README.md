@@ -193,6 +193,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M23-01 implementation | Complete |
 | M23-02 implementation | Complete |
 | M23-03 implementation | Complete |
+| M23-04 implementation | Complete |
 | M23 implementation | In Progress |
 | M24-M25 implementation slice specs | Planned |
 | M24-M25 implementation slice plans | Planned |
@@ -489,8 +490,8 @@ Current implementation focus: `M23 Memory Retrieval Quality`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M23-03-memory-rerank-influence-trace.spec.md`
-- `docs/plans/M23-03-memory-rerank-influence-trace.plan.md`
+- `docs/specs/M23-04-memory-write-proposals.spec.md`
+- `docs/plans/M23-04-memory-write-proposals.plan.md`
 
 Most recent completed technical design documents:
 
@@ -499,4 +500,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M23-04 Memory Write Proposals
+- M23-05 Memory Editor and Portability

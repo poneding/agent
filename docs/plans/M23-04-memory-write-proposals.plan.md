@@ -18,7 +18,7 @@
 - Read: `crates/agent-memory/src/store.rs`
 - Read: `crates/agent-memory/src/audit.rs`
 
-- [ ] **Step 1: Review proposal scope**
+- [x] **Step 1: Review proposal scope**
 
 Run:
 
@@ -33,19 +33,19 @@ Expected: proposal contracts, transition rules, and privacy behavior are clear.
 **Files:**
 - Create: `crates/agent-memory/tests/memory_write_proposals.rs`
 
-- [ ] **Step 1: Add validation tests**
+- [x] **Step 1: Add validation tests**
 
 Cover empty ids, empty content, empty summary, invalid confidence, duplicate pending ids, and secret-safe errors.
 
-- [ ] **Step 2: Add transition tests**
+- [x] **Step 2: Add transition tests**
 
 Cover pending to approved/rejected/expired, approved to committed, duplicate commit, and invalid terminal transitions.
 
-- [ ] **Step 3: Add conversion and auto-approval tests**
+- [x] **Step 3: Add conversion and auto-approval tests**
 
 Cover approved proposal conversion to `MemoryRecord` and advisory auto-approval eligibility metadata.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -62,19 +62,19 @@ Expected: tests fail because proposal contracts are missing.
 - Modify: `crates/agent-memory/src/lib.rs`
 - Modify: `crates/agent-memory/src/error.rs`
 
-- [ ] **Step 1: Add proposal contracts**
+- [x] **Step 1: Add proposal contracts**
 
 Implement proposal ids, statuses, decisions, auto-approval metadata, and proposal records.
 
-- [ ] **Step 2: Add in-memory proposal store**
+- [x] **Step 2: Add in-memory proposal store**
 
 Implement add, list, inspect, resolve, expire, and commit behavior with deterministic ordering.
 
-- [ ] **Step 3: Add conversion to memory records**
+- [x] **Step 3: Add conversion to memory records**
 
 Create `MemoryRecord` from approved proposal content, source events, confidence, sensitivity, and scope.
 
-- [ ] **Step 4: Add redaction and audit summaries**
+- [x] **Step 4: Add redaction and audit summaries**
 
 Ensure transition errors and proposal summaries do not expose raw secret-like content.
 
@@ -83,7 +83,7 @@ Ensure transition errors and proposal summaries do not expose raw secret-like co
 **Files:**
 - Read: `crates/agent-memory/tests/memory_write_proposals.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -93,7 +93,7 @@ cargo test -p agent-memory memory_write_proposals
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace checks**
+- [x] **Step 2: Run workspace checks**
 
 Run:
 
@@ -112,11 +112,11 @@ Expected: all checks pass.
 - Modify: `docs/plans/M23-memory-retrieval-quality.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Mark M23-04 complete**
+- [x] **Step 1: Mark M23-04 complete**
 
 Advance active implementation focus to M23-05.
 
-- [ ] **Step 2: Commit M23-04**
+- [x] **Step 2: Commit M23-04**
 
 Run:
 

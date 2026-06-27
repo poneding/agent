@@ -17,7 +17,7 @@
 - Read: `docs/specs/M22-00-extension-ux-mcp-gateway-technical-design.spec.md`
 - Read: `docs/architecture/crate-boundaries.md`
 
-- [ ] **Step 1: Review registry scope**
+- [x] **Step 1: Review registry scope**
 
 Run:
 
@@ -32,19 +32,19 @@ Expected: registry state, failure behavior, privacy, and test expectations are c
 **Files:**
 - Create: `crates/agent-core/tests/extension_registry.rs`
 
-- [ ] **Step 1: Add registry construction tests**
+- [x] **Step 1: Add registry construction tests**
 
 Cover valid plugin/skill/MCP records, duplicate id rejection, deterministic snapshot ordering, and stable serialization.
 
-- [ ] **Step 2: Add state transition tests**
+- [x] **Step 2: Add state transition tests**
 
 Cover upsert, disable, remove, unsupported compatibility, and lease revocation.
 
-- [ ] **Step 3: Add redaction tests**
+- [x] **Step 3: Add redaction tests**
 
 Cover health/source messages containing `token`, `password`, `api_key`, `secret`, and `sk-`.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -60,19 +60,19 @@ Expected: tests fail because registry contracts are missing.
 - Create: `crates/agent-core/src/extension.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add typed records and validation**
+- [x] **Step 1: Add typed records and validation**
 
 Implement `ExtensionId`, `ExtensionKind`, `ExtensionSource`, `ExtensionCompatibility`, `ExtensionHealth`, `ExtensionCapabilitySummary`, `ExtensionCapabilityLease`, and `ExtensionRecord`.
 
-- [ ] **Step 2: Add registry operations**
+- [x] **Step 2: Add registry operations**
 
 Implement `ExtensionRegistry::new`, `upsert`, `disable`, `remove`, `get`, `list`, and `snapshot`.
 
-- [ ] **Step 3: Add safe summaries**
+- [x] **Step 3: Add safe summaries**
 
 Redact health and source display fields before serialization or snapshot construction.
 
-- [ ] **Step 4: Export contracts**
+- [x] **Step 4: Export contracts**
 
 Re-export public types from `agent-core`.
 
@@ -81,7 +81,7 @@ Re-export public types from `agent-core`.
 **Files:**
 - Read: `crates/agent-core/tests/extension_registry.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -91,7 +91,7 @@ cargo test -p agent-core extension_registry
 
 Expected: focused registry tests pass.
 
-- [ ] **Step 2: Run workspace checks**
+- [x] **Step 2: Run workspace checks**
 
 Run:
 
@@ -110,11 +110,11 @@ Expected: all checks pass.
 - Modify: `docs/plans/M22-extension-ux-mcp-gateway.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Mark M22-01 complete**
+- [x] **Step 1: Mark M22-01 complete**
 
 Update M22 progress so the active implementation focus advances to M22-02.
 
-- [ ] **Step 2: Commit M22-01**
+- [x] **Step 2: Commit M22-01**
 
 Run:
 

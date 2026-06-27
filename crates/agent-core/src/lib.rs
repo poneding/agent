@@ -6,6 +6,7 @@ pub mod audit_export;
 pub mod benchmark;
 pub mod config;
 pub mod context;
+pub mod extension;
 pub mod idempotency;
 pub mod local_coding;
 pub mod model_runtime;
@@ -34,6 +35,12 @@ pub use config::{
     load_agent_config_file, load_agent_config_toml,
 };
 pub use context::ContextAssembler;
+pub use extension::{
+    ExtensionCapabilityLease, ExtensionCapabilitySummary, ExtensionCompatibility, ExtensionHealth,
+    ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord,
+    ExtensionRegistry, ExtensionRegistryError, ExtensionRegistrySnapshot, ExtensionSource,
+    ExtensionSourceKind,
+};
 pub use idempotency::{IdempotentToolError, IdempotentToolExecutor, IdempotentToolOutcome};
 pub use local_coding::{
     LocalCodingError, LocalCodingOutcome, LocalCodingRun, replay_local_coding_outcome,

@@ -182,7 +182,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M21 implementation | Complete |
 | M22 slice specs | Complete for M22-01 through M22-05 |
 | M22 slice plans | Complete for M22-01 through M22-05 |
-| M22 implementation | Planned |
+| M22-01 implementation | Complete |
+| M22 implementation | In Progress |
 | M23-M25 implementation slice specs | Planned |
 | M23-M25 implementation slice plans | Planned |
 | M23-M25 implementation | Planned |
@@ -483,4 +484,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M22-01 Extension Registry
+- M22-02 Plugin Install Commands

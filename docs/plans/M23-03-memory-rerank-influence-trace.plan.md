@@ -18,7 +18,7 @@
 - Read: `crates/agent-context/src/prompt.rs`
 - Read: `crates/agent-memory/src/record.rs`
 
-- [ ] **Step 1: Review rerank and trace scope**
+- [x] **Step 1: Review rerank and trace scope**
 
 Run:
 
@@ -34,19 +34,19 @@ Expected: selected/rejected result shape, trace privacy, and context adapter bou
 - Create: `crates/agent-memory/tests/memory_rerank_influence_trace.rs`
 - Create: `crates/agent-context/tests/memory_prompt_layers.rs`
 
-- [ ] **Step 1: Add reranker result tests**
+- [x] **Step 1: Add reranker result tests**
 
 Cover deterministic selection, rejected reasons, duplicate handling, max-selected, and empty candidate behavior.
 
-- [ ] **Step 2: Add trace redaction tests**
+- [x] **Step 2: Add trace redaction tests**
 
 Cover sensitive text omission, query hash stability, score summaries, and serialized trace shape.
 
-- [ ] **Step 3: Add context adapter tests**
+- [x] **Step 3: Add context adapter tests**
 
 Cover selected memory conversion into memory prompt layers with source ids, sensitivity mapping, and token estimates.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -66,19 +66,19 @@ Expected: tests fail because rerank, trace, and adapter contracts are missing.
 - Create: `crates/agent-context/src/memory_layers.rs`
 - Modify: `crates/agent-context/src/lib.rs`
 
-- [ ] **Step 1: Add reranker contracts**
+- [x] **Step 1: Add reranker contracts**
 
 Implement request/result structs, selected/rejected candidates, reason codes, and fixture reranker.
 
-- [ ] **Step 2: Add influence traces**
+- [x] **Step 2: Add influence traces**
 
 Implement trace entries with query hash, record ids, score summaries, reasons, scope, sensitivity, and redacted previews.
 
-- [ ] **Step 3: Add prompt-layer adapter**
+- [x] **Step 3: Add prompt-layer adapter**
 
 Convert selected memories into `PromptLayer` values using `PromptLayerKind::Memory` and safe source metadata.
 
-- [ ] **Step 4: Add validation and redaction**
+- [x] **Step 4: Add validation and redaction**
 
 Reject invalid scores and ensure sensitive text never appears in traces or adapter diagnostics.
 
@@ -88,7 +88,7 @@ Reject invalid scores and ensure sensitive text never appears in traces or adapt
 - Read: `crates/agent-memory/tests/memory_rerank_influence_trace.rs`
 - Read: `crates/agent-context/tests/memory_prompt_layers.rs`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -99,7 +99,7 @@ cargo test -p agent-context memory_prompt_layers
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run workspace checks**
+- [x] **Step 2: Run workspace checks**
 
 Run:
 
@@ -118,11 +118,11 @@ Expected: all checks pass.
 - Modify: `docs/plans/M23-memory-retrieval-quality.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Mark M23-03 complete**
+- [x] **Step 1: Mark M23-03 complete**
 
 Advance active implementation focus to M23-04.
 
-- [ ] **Step 2: Commit M23-03**
+- [x] **Step 2: Commit M23-03**
 
 Run:
 

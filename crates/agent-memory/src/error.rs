@@ -8,6 +8,8 @@ pub enum MemoryError {
     InvalidEmbedding(String),
     #[error("memory query is invalid: {0}")]
     InvalidQuery(String),
+    #[error("memory rerank request is invalid: {0}")]
+    InvalidRerank(String),
     #[error("duplicate memory record: {0}")]
     DuplicateRecord(String),
 }

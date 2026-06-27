@@ -7,7 +7,9 @@ pub mod embedding;
 pub mod error;
 pub mod index;
 pub mod record;
+pub mod rerank;
 pub mod store;
+pub mod trace;
 
 pub use archive::{
     MEMORY_ARCHIVE_SCHEMA_VERSION, MemoryArchive, MemoryArchiveError, MemoryArchiveManifest,
@@ -24,7 +26,13 @@ pub use index::{
     HybridMemoryQuery, InMemoryMemoryIndex, MemoryIndex, MemoryIndexStats, MemoryRetrievalCandidate,
 };
 pub use record::{MemoryRecord, MemoryScope, MemorySensitivity, MemorySource};
+pub use rerank::{
+    DeterministicMemoryReranker, MemoryRejectedCandidate, MemoryRerankRequest, MemoryReranker,
+    MemoryRetrievalReason, MemoryRetrievalResult, MemorySelectedCandidate,
+};
 pub use store::{InMemoryMemoryStore, MemoryStore};
+pub(crate) use trace::stable_trace_hash;
+pub use trace::{MemoryInfluenceEntry, MemoryInfluenceTrace};
 
 /// Returns a smoke-test string proving the memory crate links shared types.
 #[must_use]

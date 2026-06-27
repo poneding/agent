@@ -63,7 +63,7 @@ Add embedding provider traits, vector metadata, and deterministic fixtures.
 
 Combine lexical and semantic retrieval with scope and sensitivity filters.
 
-- [ ] **Step 3: Implement rerank and influence traces**
+- [x] **Step 3: Implement rerank and influence traces**
 
 Return selected memories, scores, reasons, and safe trace summaries.
 

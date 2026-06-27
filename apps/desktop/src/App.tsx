@@ -12,6 +12,7 @@ import { ApprovalDetail } from './components/ApprovalDetail';
 import { ApprovalQueue } from './components/ApprovalQueue';
 import { Composer } from './components/Composer';
 import { ConversationList } from './components/ConversationList';
+import { ExtensionHealthView } from './components/ExtensionHealthView';
 import { SettingsView } from './components/SettingsView';
 import { TaskDetail } from './components/TaskDetail';
 import { TaskList } from './components/TaskList';
@@ -43,6 +44,7 @@ import type {
   SettingsUiState,
   TraceTimeline as TraceTimelineModel,
   TraceUiState,
+  UiExtensionSnapshot,
 } from './types';
 
 export function BootstrapError({ message }: { message: string }) {
@@ -69,6 +71,7 @@ export function AppShell({
   settings = defaultDesktopSettings(),
   settingsDiagnostics = [],
   settingsError = null,
+  extensionSnapshot = null,
 }: {
   bootstrap: DesktopBootstrap | null;
   bootstrapError: string | null;
@@ -84,6 +87,7 @@ export function AppShell({
   settings?: DesktopSettings;
   settingsDiagnostics?: DesktopBootstrapDiagnostic[];
   settingsError?: string | null;
+  extensionSnapshot?: UiExtensionSnapshot | null;
 }) {
   const [route, setRoute] = useState<DesktopShellRoute>(bootstrap?.route ?? 'conversation');
   const diagnostics = bootstrap?.diagnostics ?? [];
@@ -219,6 +223,9 @@ export function AppShell({
               diagnostics={settingsDiagnostics}
               error={settingsError}
             />
+            {extensionSnapshot === null ? null : (
+              <ExtensionHealthView snapshot={extensionSnapshot} />
+            )}
           </section>
         ) : null}
       </main>

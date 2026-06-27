@@ -122,6 +122,15 @@ impl TracePanelState {
                     summary.display_name, summary.profile_version, summary.message_count
                 ),
             )),
+            UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "extensions",
+                format!(
+                    "{} installed, {} reviews",
+                    snapshot.extensions.len(),
+                    snapshot.capability_reviews.len()
+                ),
+            )),
             UiJsonFrame::Done { event_count } => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "done",

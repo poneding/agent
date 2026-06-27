@@ -71,7 +71,7 @@ Add skill discovery diagnostics and source tracking.
 
 Expose MCP tools as local tools routed through policy and audit.
 
-- [ ] **Step 5: Implement extension health UI data**
+- [x] **Step 5: Implement extension health UI data**
 
 Expose health reports to CLI, TUI, and Desktop bridge clients.
 
@@ -82,7 +82,7 @@ Expose health reports to CLI, TUI, and Desktop bridge clients.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M22-extension-ux-mcp-gateway.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -92,11 +92,11 @@ cargo xtask check
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M22 complete**
+- [x] **Step 2: Mark M22 complete**
 
 Update milestone status and advance active focus to M23.
 
-- [ ] **Step 3: Commit M22 completion**
+- [x] **Step 3: Commit M22 completion**
 
 Run:
 

@@ -5,6 +5,7 @@ pub mod app;
 pub mod approval_panel;
 pub mod composer;
 pub mod diff_panel;
+pub mod extension_panel;
 pub mod render;
 pub mod slash;
 pub mod task_panel;
@@ -16,6 +17,7 @@ pub use app::{StatusBarState, TerminalSize, TuiAction, TuiApp, TuiScreen, TuiSid
 pub use approval_panel::{ApprovalPanelAction, ApprovalPanelState};
 pub use composer::{ComposerAction, ComposerState, TuiBridgeContext, TuiEffect};
 pub use diff_panel::DiffPanelState;
+pub use extension_panel::ExtensionPanelState;
 pub use render::{render_app, render_app_to_string};
 pub use slash::{SlashCommand, SlashCommandError};
 pub use task_panel::{TaskPanelNotification, TaskPanelState};

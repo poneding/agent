@@ -137,6 +137,16 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "extensions",
+                format!(
+                    "{} installed, {} reviews",
+                    snapshot.extensions.len(),
+                    snapshot.capability_reviews.len()
+                ),
+                false,
+            )),
             UiJsonFrame::Done { event_count } => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "done",

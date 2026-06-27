@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M20 are implemented, and M21-M25 continue the productization path from runtime spine to usable Desktop, extension, memory, background, and release workflows.
+M01-M22 are implemented, and M23-M25 continue the productization path from runtime spine to memory, background, and release workflows.
 
 ## Core Ideas
 
@@ -101,10 +101,10 @@ Run `cargo xtask help` for the full command list.
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M22-04-mcp-gateway-tools.spec.md)
-- [Latest completed plan](docs/plans/M22-04-mcp-gateway-tools.plan.md)
-- [Next implementation spec](docs/specs/M22-05-extension-health-ui.spec.md)
-- [Next implementation plan](docs/plans/M22-05-extension-health-ui.plan.md)
+- [Latest completed spec](docs/specs/M22-05-extension-health-ui.spec.md)
+- [Latest completed plan](docs/plans/M22-05-extension-health-ui.plan.md)
+- [Next implementation spec](docs/specs/M23-memory-retrieval-quality.spec.md)
+- [Next implementation plan](docs/plans/M23-memory-retrieval-quality.plan.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

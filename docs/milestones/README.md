@@ -186,7 +186,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M22-02 implementation | Complete |
 | M22-03 implementation | Complete |
 | M22-04 implementation | Complete |
-| M22 implementation | In Progress |
+| M22-05 implementation | Complete |
+| M22 implementation | Complete |
 | M23-M25 implementation slice specs | Planned |
 | M23-M25 implementation slice plans | Planned |
 | M23-M25 implementation | Planned |
@@ -473,12 +474,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M22 Extension UX and MCP Gateway`.
+Current implementation focus: `M23 Memory Retrieval Quality`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M21-05-trace-settings-ui.spec.md`
-- `docs/plans/M21-05-trace-settings-ui.plan.md`
+- `docs/specs/M22-05-extension-health-ui.spec.md`
+- `docs/plans/M22-05-extension-health-ui.plan.md`
 
 Most recent completed technical design documents:
 
@@ -487,4 +488,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M22-02 Plugin Install Commands
+- M23 slice decomposition from `docs/plans/M23-memory-retrieval-quality.plan.md`

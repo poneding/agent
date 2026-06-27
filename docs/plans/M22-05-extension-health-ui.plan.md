@@ -19,7 +19,7 @@
 - Read: `crates/agent-desktop/src/settings.rs`
 - Read: `apps/desktop/src/App.tsx`
 
-- [ ] **Step 1: Review UI health scope**
+- [x] **Step 1: Review UI health scope**
 
 Run:
 
@@ -38,19 +38,19 @@ Expected: UI bridge contracts, CLI/TUI/Desktop surfaces, and redaction requireme
 - Create: `crates/agent-desktop/tests/extension_health.rs`
 - Create: `apps/desktop/src/__tests__/extension-health-ui.test.tsx`
 
-- [ ] **Step 1: Add bridge snapshot tests**
+- [x] **Step 1: Add bridge snapshot tests**
 
 Cover serialization, deterministic ordering, diagnostics, capability reviews, and redaction.
 
-- [ ] **Step 2: Add CLI/TUI tests**
+- [x] **Step 2: Add CLI/TUI tests**
 
 Cover `agent extension list|inspect|health` in text/JSON and compact TUI rendering.
 
-- [ ] **Step 3: Add Desktop tests**
+- [x] **Step 3: Add Desktop tests**
 
 Cover extension health component rendering, unhealthy states, review-required states, and secret-safe diagnostics.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -78,19 +78,19 @@ Expected: tests fail because UI contracts and views are missing.
 - Modify: `apps/desktop/src/App.tsx`
 - Modify: `apps/desktop/src/types.ts`
 
-- [ ] **Step 1: Add bridge contracts**
+- [x] **Step 1: Add bridge contracts**
 
 Implement `UiExtensionSnapshot`, `UiExtensionSummary`, `UiExtensionCapabilityReview`, `UiExtensionDiagnostic`, and JSON frame support.
 
-- [ ] **Step 2: Add CLI commands**
+- [x] **Step 2: Add CLI commands**
 
 Render extension list, inspect, and health from registry snapshots in text and JSON modes.
 
-- [ ] **Step 3: Add TUI and Desktop view models**
+- [x] **Step 3: Add TUI and Desktop view models**
 
 Render compact extension summaries, health diagnostics, and capability review status.
 
-- [ ] **Step 4: Add final M22 smoke coverage**
+- [x] **Step 4: Add final M22 smoke coverage**
 
 Exercise plugin fixture, skill fixture, MCP fixture, and extension health snapshot together.
 
@@ -100,7 +100,7 @@ Exercise plugin fixture, skill fixture, MCP fixture, and extension health snapsh
 - Read: `crates/agent-ui-bridge/tests/extension_snapshot.rs`
 - Read: `apps/desktop/src/__tests__/extension-health-ui.test.tsx`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -114,7 +114,7 @@ npm --prefix apps/desktop test -- --run extension-health-ui
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run final M22 checks**
+- [x] **Step 2: Run final M22 checks**
 
 Run:
 
@@ -134,11 +134,11 @@ Expected: frontend tests, frontend build, and workspace checks pass.
 - Modify: `docs/plans/M22-05-extension-health-ui.plan.md`
 - Modify: `docs/plans/M22-extension-ux-mcp-gateway.plan.md`
 
-- [ ] **Step 1: Mark M22-05 and M22 complete**
+- [x] **Step 1: Mark M22-05 and M22 complete**
 
 Update milestone status and set next focus to M23.
 
-- [ ] **Step 2: Commit M22 completion**
+- [x] **Step 2: Commit M22 completion**
 
 Run:
 

@@ -62,6 +62,37 @@ export interface DesktopConfigSnapshot {
   snapshot: UiConfigSnapshot;
 }
 
+export interface UiExtensionSummary {
+  id: string;
+  kind: string;
+  enabled: boolean;
+  health: string;
+  version?: string | null;
+  source_label: string;
+  capability_count: number;
+}
+
+export interface UiExtensionCapabilityReview {
+  extension_id: string;
+  capability_kind: string;
+  resource: string;
+  reason: string;
+}
+
+export interface UiExtensionDiagnostic {
+  severity: string;
+  code: string;
+  message: string;
+  extension_id?: string | null;
+  truncated: boolean;
+}
+
+export interface UiExtensionSnapshot {
+  extensions: UiExtensionSummary[];
+  capability_reviews: UiExtensionCapabilityReview[];
+  diagnostics: UiExtensionDiagnostic[];
+}
+
 export type DesktopTheme = 'system' | 'light' | 'dark';
 
 export interface DesktopSettings {
@@ -282,6 +313,10 @@ export type UiJsonFrame =
       data: {
         event_count: number;
       };
+    }
+  | {
+      type: 'extension_snapshot';
+      data: UiExtensionSnapshot;
     }
   | {
       type: string;

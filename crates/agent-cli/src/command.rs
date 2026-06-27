@@ -16,7 +16,7 @@ use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
     ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigOverride, ConfiguredTurnError,
     ConfiguredTurnInput, ConfiguredTurnRunner, EffectiveRuntimeConfig, ExtensionCapabilitySummary,
-    ExtensionCompatibility, ExtensionHealth, ExtensionId, ExtensionKind,
+    ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind,
     ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
     ExtensionSource, ExtensionSourceKind, RuntimeIds, RuntimeModelConfig,
 };
@@ -37,9 +37,10 @@ use agent_skill::{
 use agent_storage::EventStore;
 use agent_types::{ConversationId, CorrelationId, RuntimeEventPayload, TurnId, WorkspaceId};
 use agent_ui_bridge::{
-    UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiJsonFrame,
-    UiModelProviderSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
-    encode_json_frame, normalize_runtime_event,
+    UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
+    UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
+    UiJsonFrame, UiModelProviderSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary,
+    UiPromptSummary, encode_json_frame, normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -64,6 +65,7 @@ pub enum CliCommand {
     ConfigCheck,
     Plugin(PluginCommand),
     SkillRoot(SkillRootCommand),
+    Extension(ExtensionCommand),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -97,6 +99,13 @@ pub enum SkillRootCommand {
     Enable { id: String },
     Disable { id: String },
     Remove { id: String },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ExtensionCommand {
+    List,
+    Inspect { id: String },
+    Health,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -234,6 +243,7 @@ where
         "repl" => parse_repl_command(&mut args),
         "plugin" => parse_plugin_command(&mut args),
         "skill" => parse_skill_command(&mut args),
+        "extension" => parse_extension_command(&mut args),
         "--prompt" | "-p" => {
             let prompt = args
                 .next()
@@ -316,6 +326,10 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             let mut runtime = SkillRootCommandRuntime::default();
             render_skill_root_command(&mut runtime, command, OutputMode::Text)
         }
+        CliCommand::Extension(command) => {
+            let mut runtime = ExtensionCommandRuntime::default();
+            render_extension_command(&mut runtime, command, OutputMode::Text)
+        }
     }
 }
 
@@ -355,6 +369,10 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             CliCommand::SkillRoot(command) => {
                 let mut runtime = SkillRootCommandRuntime::default();
                 render_skill_root_command(&mut runtime, command, OutputMode::Text)
+            }
+            CliCommand::Extension(command) => {
+                let mut runtime = ExtensionCommandRuntime::default();
+                render_extension_command(&mut runtime, command, OutputMode::Text)
             }
             command => render_cli_command(command),
         },
@@ -398,6 +416,10 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if let CliCommand::SkillRoot(command) = invocation.command {
         let mut runtime = SkillRootCommandRuntime::default();
         return render_skill_root_command(&mut runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::Extension(command) = invocation.command {
+        let mut runtime = ExtensionCommandRuntime::default();
+        return render_extension_command(&mut runtime, command, OutputMode::Json);
     }
 
     let mut stdout = render_model_selection_frame(&invocation.model_selection);
@@ -577,6 +599,36 @@ where
     Ok(CliCommand::SkillRoot(command))
 }
 
+fn parse_extension_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("extension".to_string()));
+    };
+
+    let command = match subcommand.as_str() {
+        "list" => {
+            no_plugin_extra_args(args, "extension list")?;
+            ExtensionCommand::List
+        }
+        "inspect" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("extension inspect".to_string()))?;
+            no_plugin_extra_args(args, "extension inspect")?;
+            ExtensionCommand::Inspect { id }
+        }
+        "health" => {
+            no_plugin_extra_args(args, "extension health")?;
+            ExtensionCommand::Health
+        }
+        _ => return Err(CliError::UnknownArgument(format!("extension {subcommand}"))),
+    };
+
+    Ok(CliCommand::Extension(command))
+}
+
 fn parse_skill_root_add<I>(args: &mut I) -> Result<SkillRootCommand, CliError>
 where
     I: Iterator<Item = String>,
@@ -653,6 +705,287 @@ where
         return Err(CliError::UnknownArgument(format!("{command_name} {extra}")));
     }
     Ok(())
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ExtensionCommandRuntime {
+    registry: ExtensionRegistry,
+}
+
+impl ExtensionCommandRuntime {
+    #[must_use]
+    pub const fn new(registry: ExtensionRegistry) -> Self {
+        Self { registry }
+    }
+
+    #[must_use]
+    pub const fn registry(&self) -> &ExtensionRegistry {
+        &self.registry
+    }
+}
+
+enum ExtensionCommandResponse {
+    List(Vec<ExtensionRecord>),
+    Inspect(Box<ExtensionRecord>),
+    Health(Vec<ExtensionRecord>),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct ExtensionCommandError {
+    message: String,
+}
+
+impl ExtensionCommandError {
+    fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: redact_secret_like_text(&message.into()),
+        }
+    }
+}
+
+#[must_use]
+pub fn render_extension_command(
+    runtime: &mut ExtensionCommandRuntime,
+    command: ExtensionCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match run_extension_command(runtime, command) {
+        Ok(response) => render_extension_response(response, output_mode),
+        Err(error) => render_extension_error(error, output_mode),
+    }
+}
+
+fn run_extension_command(
+    runtime: &mut ExtensionCommandRuntime,
+    command: ExtensionCommand,
+) -> Result<ExtensionCommandResponse, ExtensionCommandError> {
+    match command {
+        ExtensionCommand::List => Ok(ExtensionCommandResponse::List(runtime.registry.list())),
+        ExtensionCommand::Inspect { id } => {
+            let id = ExtensionId::new(id).map_err(extension_registry_error)?;
+            let record =
+                runtime.registry.get(&id).cloned().ok_or_else(|| {
+                    ExtensionCommandError::new(format!("extension {id} is missing"))
+                })?;
+            Ok(ExtensionCommandResponse::Inspect(Box::new(record)))
+        }
+        ExtensionCommand::Health => Ok(ExtensionCommandResponse::Health(runtime.registry.list())),
+    }
+}
+
+fn render_extension_response(
+    response: ExtensionCommandResponse,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => render_extension_text_response(response),
+        OutputMode::Json => render_extension_json_response(response),
+    }
+}
+
+fn render_extension_text_response(response: ExtensionCommandResponse) -> CliOutput {
+    match response {
+        ExtensionCommandResponse::List(records) if records.is_empty() => {
+            CliOutput::exit("No extensions\n")
+        }
+        ExtensionCommandResponse::List(records) => CliOutput::exit(
+            records
+                .iter()
+                .map(|record| {
+                    format!(
+                        "{} kind={} enabled={} health={} capabilities={}",
+                        record.id,
+                        extension_kind_label(record.kind),
+                        record.enabled,
+                        extension_health_label(record.health.status),
+                        record.declared_capabilities.len()
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join("\n")
+                + "\n",
+        ),
+        ExtensionCommandResponse::Inspect(record) => CliOutput::exit(format!(
+            "Extension {}\nkind={}\nenabled={}\nhealth={}\nversion={}\nsource={}\ncapabilities={}\n",
+            record.id,
+            extension_kind_label(record.kind),
+            record.enabled,
+            extension_health_label(record.health.status),
+            record.version.as_deref().unwrap_or("none"),
+            record.source.display_label,
+            record.declared_capabilities.len()
+        )),
+        ExtensionCommandResponse::Health(records) => {
+            let snapshot = match ui_extension_snapshot_from_records(records) {
+                Ok(snapshot) => snapshot,
+                Err(error) => return CliOutput::failure(format!("{error}\n"), 2),
+            };
+            CliOutput::exit(render_extension_health_text(&snapshot))
+        }
+    }
+}
+
+fn render_extension_json_response(response: ExtensionCommandResponse) -> CliOutput {
+    let records = match response {
+        ExtensionCommandResponse::List(records) | ExtensionCommandResponse::Health(records) => {
+            records
+        }
+        ExtensionCommandResponse::Inspect(record) => vec![*record],
+    };
+    match ui_extension_snapshot_from_records(records) {
+        Ok(snapshot) => CliOutput::exit(json_frame_line(UiJsonFrame::ExtensionSnapshot(snapshot))),
+        Err(error) => CliOutput::failure(
+            json_value_frame_line(serde_json::json!({
+                "type": "extension_error",
+                "data": {
+                    "message": error.to_string(),
+                },
+            })),
+            2,
+        ),
+    }
+}
+
+fn render_extension_error(error: ExtensionCommandError, output_mode: OutputMode) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => {
+            CliOutput::failure(format!("extension command failed: {}\n", error.message), 2)
+        }
+        OutputMode::Json => CliOutput::failure(
+            json_value_frame_line(serde_json::json!({
+                "type": "extension_error",
+                "data": {
+                    "message": error.message,
+                },
+            })),
+            2,
+        ),
+    }
+}
+
+fn render_extension_health_text(snapshot: &UiExtensionSnapshot) -> String {
+    let unhealthy_count = snapshot
+        .extensions
+        .iter()
+        .filter(|extension| extension.health != "healthy")
+        .count();
+    let mut output = format!(
+        "Extension health total={} unhealthy={} reviews={}\n",
+        snapshot.extensions.len(),
+        unhealthy_count,
+        snapshot.capability_reviews.len()
+    );
+    for extension in &snapshot.extensions {
+        output.push_str(&format!(
+            "- {} kind={} enabled={} health={} capabilities={}\n",
+            extension.id,
+            extension.kind,
+            extension.enabled,
+            extension.health,
+            extension.capability_count
+        ));
+    }
+    for diagnostic in &snapshot.diagnostics {
+        output.push_str(&format!(
+            "{} {}: {}\n",
+            diagnostic.severity, diagnostic.code, diagnostic.message
+        ));
+    }
+    for review in &snapshot.capability_reviews {
+        output.push_str(&format!(
+            "review {} {} {}: {}\n",
+            review.extension_id, review.capability_kind, review.resource, review.reason
+        ));
+    }
+    output
+}
+
+fn ui_extension_snapshot_from_records(
+    records: Vec<ExtensionRecord>,
+) -> Result<UiExtensionSnapshot, UiBridgeError> {
+    let mut summaries = Vec::new();
+    let mut reviews = Vec::new();
+    let mut diagnostics = Vec::new();
+
+    for record in records {
+        summaries.push(UiExtensionSummary::new(
+            record.id.as_str(),
+            extension_kind_label(record.kind),
+            record.enabled,
+            extension_health_label(record.health.status),
+            record.version.clone(),
+            record.source.display_label.clone(),
+            record.declared_capabilities.len() as u32,
+        )?);
+
+        if record.health.status != ExtensionHealthStatus::Healthy {
+            diagnostics.push(UiExtensionDiagnostic::new(
+                extension_health_severity(record.health.status),
+                format!("extension.{}", extension_health_label(record.health.status)),
+                record.health.message.clone(),
+                Some(record.id.as_str().to_string()),
+                false,
+            )?);
+        }
+
+        for capability in record
+            .declared_capabilities
+            .iter()
+            .filter(|capability| capability_needs_review(&record, &capability.name))
+        {
+            let resource = capability
+                .permissions
+                .first()
+                .map(|permission| permission.resource.clone())
+                .unwrap_or_else(|| capability.name.clone());
+            reviews.push(UiExtensionCapabilityReview::new(
+                record.id.as_str(),
+                capability.kind.clone(),
+                resource,
+                "capability review is required",
+            )?);
+        }
+    }
+
+    UiExtensionSnapshot::new(summaries, reviews, diagnostics)
+}
+
+fn capability_needs_review(record: &ExtensionRecord, capability_name: &str) -> bool {
+    record
+        .granted_leases
+        .iter()
+        .all(|lease| lease.capability_name != capability_name)
+}
+
+fn extension_kind_label(kind: ExtensionKind) -> &'static str {
+    match kind {
+        ExtensionKind::Plugin => "plugin",
+        ExtensionKind::SkillRoot => "skill_root",
+        ExtensionKind::McpServer => "mcp_server",
+    }
+}
+
+fn extension_health_label(status: ExtensionHealthStatus) -> &'static str {
+    match status {
+        ExtensionHealthStatus::Healthy => "healthy",
+        ExtensionHealthStatus::Degraded => "degraded",
+        ExtensionHealthStatus::Unhealthy => "unhealthy",
+        ExtensionHealthStatus::Disabled => "disabled",
+        ExtensionHealthStatus::Unknown => "unknown",
+    }
+}
+
+fn extension_health_severity(status: ExtensionHealthStatus) -> &'static str {
+    match status {
+        ExtensionHealthStatus::Unhealthy => "error",
+        ExtensionHealthStatus::Degraded | ExtensionHealthStatus::Unknown => "warning",
+        ExtensionHealthStatus::Disabled => "info",
+        ExtensionHealthStatus::Healthy => "info",
+    }
+}
+
+fn extension_registry_error(error: ExtensionRegistryError) -> ExtensionCommandError {
+    ExtensionCommandError::new(error.to_string())
 }
 
 #[derive(Clone, Debug, Default)]

@@ -255,11 +255,146 @@ impl UiPromptDiagnosticSummary {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiExtensionSnapshot {
+    pub extensions: Vec<UiExtensionSummary>,
+    pub capability_reviews: Vec<UiExtensionCapabilityReview>,
+    pub diagnostics: Vec<UiExtensionDiagnostic>,
+}
+
+impl UiExtensionSnapshot {
+    pub fn new(
+        mut extensions: Vec<UiExtensionSummary>,
+        capability_reviews: Vec<UiExtensionCapabilityReview>,
+        diagnostics: Vec<UiExtensionDiagnostic>,
+    ) -> Result<Self, UiBridgeError> {
+        extensions.sort_by(|left, right| left.id.cmp(&right.id));
+
+        Ok(Self {
+            extensions,
+            capability_reviews,
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiExtensionSummary {
+    pub id: String,
+    pub kind: String,
+    pub enabled: bool,
+    pub health: String,
+    pub version: Option<String>,
+    pub source_label: String,
+    pub capability_count: u32,
+}
+
+impl UiExtensionSummary {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        id: impl Into<String>,
+        kind: impl Into<String>,
+        enabled: bool,
+        health: impl Into<String>,
+        version: Option<String>,
+        source_label: impl Into<String>,
+        capability_count: u32,
+    ) -> Result<Self, UiBridgeError> {
+        let id = id.into();
+        let kind = kind.into();
+        let health = health.into();
+        let source_label = source_label.into();
+        validate_non_empty("extension id", &id)?;
+        validate_non_empty("extension kind", &kind)?;
+        validate_non_empty("extension health", &health)?;
+        validate_non_empty("extension source label", &source_label)?;
+
+        Ok(Self {
+            id,
+            kind,
+            enabled,
+            health: redact_secret_like_text(&health),
+            version: normalize_optional_string(version)
+                .map(|value| redact_secret_like_text(&value)),
+            source_label: redact_secret_like_text(&source_label),
+            capability_count,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiExtensionCapabilityReview {
+    pub extension_id: String,
+    pub capability_kind: String,
+    pub resource: String,
+    pub reason: String,
+}
+
+impl UiExtensionCapabilityReview {
+    pub fn new(
+        extension_id: impl Into<String>,
+        capability_kind: impl Into<String>,
+        resource: impl Into<String>,
+        reason: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        let extension_id = extension_id.into();
+        let capability_kind = capability_kind.into();
+        let resource = resource.into();
+        let reason = reason.into();
+        validate_non_empty("extension review id", &extension_id)?;
+        validate_non_empty("extension review capability kind", &capability_kind)?;
+        validate_non_empty("extension review resource", &resource)?;
+        validate_non_empty("extension review reason", &reason)?;
+
+        Ok(Self {
+            extension_id,
+            capability_kind: redact_secret_like_text(&capability_kind),
+            resource: redact_secret_like_text(&resource),
+            reason: redact_secret_like_text(&reason),
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiExtensionDiagnostic {
+    pub severity: String,
+    pub code: String,
+    pub message: String,
+    pub extension_id: Option<String>,
+    pub truncated: bool,
+}
+
+impl UiExtensionDiagnostic {
+    pub fn new(
+        severity: impl Into<String>,
+        code: impl Into<String>,
+        message: impl Into<String>,
+        extension_id: Option<String>,
+        truncated: bool,
+    ) -> Result<Self, UiBridgeError> {
+        let severity = severity.into();
+        let code = code.into();
+        let message = message.into();
+        validate_non_empty("extension diagnostic severity", &severity)?;
+        validate_non_empty("extension diagnostic code", &code)?;
+        validate_non_empty("extension diagnostic message", &message)?;
+
+        Ok(Self {
+            severity: redact_secret_like_text(&severity),
+            code,
+            message: redact_secret_like_text(&message),
+            extension_id: normalize_optional_string(extension_id),
+            truncated,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum UiJsonFrame {
     Event(UiEventEnvelope),
     ConfigSnapshot(UiConfigSnapshot),
     PromptSummary(UiPromptSummary),
+    ExtensionSnapshot(UiExtensionSnapshot),
     ModelSelection {
         provider: String,
         model: String,
@@ -308,13 +443,31 @@ fn should_hide_prompt_preview(visibility: &str, sensitivity: &str) -> bool {
 }
 
 fn contains_secret_like_text(value: &str) -> bool {
-    value.split_whitespace().any(|part| {
-        let lower = part.to_ascii_lowercase();
-        part.starts_with("sk-")
-            || lower.contains("api_key")
-            || lower.contains("token")
-            || lower.contains("password")
-    })
+    value.split_whitespace().any(is_secret_like_token)
+}
+
+fn redact_secret_like_text(value: &str) -> String {
+    value
+        .split_whitespace()
+        .map(|part| {
+            if is_secret_like_token(part) {
+                "[redacted]"
+            } else {
+                part
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn is_secret_like_token(value: &str) -> bool {
+    let lower = value.to_ascii_lowercase();
+    value.starts_with("sk-")
+        || lower.contains("api_key")
+        || lower.contains("apikey")
+        || lower.contains("secret")
+        || lower.contains("token")
+        || lower.contains("password")
 }
 
 fn normalize_optional_string(value: Option<String>) -> Option<String> {

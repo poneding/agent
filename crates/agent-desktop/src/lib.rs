@@ -4,6 +4,7 @@
 pub mod conversation;
 pub mod diff;
 pub mod error;
+pub mod extension;
 pub mod permission;
 pub mod session;
 pub mod settings;
@@ -16,6 +17,7 @@ pub use diff::{
     DiffFileSummary, DiffReview, DiffReviewStatus, approve_diff_review, reject_diff_review,
 };
 pub use error::DesktopError;
+pub use extension::{DesktopExtensionHealth, DesktopExtensionStatus};
 pub use permission::{
     DesktopPermissionDecision, PermissionDialog, PermissionDialogStatus, expire_permission_dialog,
     resolve_permission_dialog,

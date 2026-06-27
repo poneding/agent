@@ -67,7 +67,7 @@ Wire typed commands and event streaming between frontend and runtime.
 
 Render conversations, composer, and task list from view models.
 
-- [ ] **Step 4: Build approval and diff views**
+- [x] **Step 4: Build approval and diff views**
 
 Render approval requests and diff reviews using shared contracts.
 

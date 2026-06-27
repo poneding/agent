@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 //! Tauri Desktop shell for agent.
 
+pub mod approval_commands;
 pub mod bootstrap;
 pub mod bridge;
 pub mod commands;
@@ -16,7 +17,7 @@ pub use bridge::{
 };
 pub use commands::{
     DesktopCommandError, desktop_bootstrap, drain_ui_frames, load_workspace_snapshot,
-    send_ui_command, start_session, stop_session,
+    resolve_approval, send_ui_command, start_session, stop_session,
 };
 pub use state::DesktopAppState;
 
@@ -30,7 +31,8 @@ pub fn run() {
             commands::stop_session,
             commands::send_ui_command,
             commands::drain_ui_frames,
-            commands::load_workspace_snapshot
+            commands::load_workspace_snapshot,
+            commands::resolve_approval
         ])
         .run(tauri::generate_context!())
         .expect("failed to run agent desktop app");
@@ -38,6 +40,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
+    mod approval_commands;
     mod bootstrap;
     mod bridge_session;
     mod workspace_snapshot;

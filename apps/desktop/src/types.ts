@@ -84,6 +84,13 @@ export interface DesktopBridgeError {
   recoverable: boolean;
 }
 
+export interface DesktopResolveApprovalRequest {
+  request_id: string;
+  decision: 'allow' | 'deny';
+  reason: string;
+  lease_duration_seconds?: number | null;
+}
+
 export type DesktopBridgeConnectionState =
   | 'connecting'
   | 'connected'
@@ -94,6 +101,8 @@ export interface UiClientInfo {
   kind: 'cli' | 'tui' | 'desktop' | 'api' | 'test';
   version: string;
 }
+
+export type UiApprovalDecision = 'allow' | 'deny';
 
 export type UiCommand =
   | {
@@ -116,7 +125,7 @@ export type UiCommand =
       type: 'permission_response';
       data: {
         request_id: string;
-        decision: 'allow' | 'deny';
+        decision: UiApprovalDecision;
         reason: string;
       };
     }
@@ -124,7 +133,7 @@ export type UiCommand =
       type: 'resolve_approval';
       data: {
         request_id: string;
-        decision: 'allow' | 'deny';
+        decision: UiApprovalDecision;
         reason: string;
         lease_duration_seconds?: number | null;
       };
@@ -148,6 +157,33 @@ export interface UiCommandEnvelope {
   command_id: string;
   client: UiClientInfo;
   command: UiCommand;
+}
+
+export interface UiApprovalPreviewSummary {
+  kind: string;
+  resource: string;
+  summary: string;
+  content_hash?: string | null;
+  truncated: boolean;
+  redacted: boolean;
+}
+
+export interface UiApprovalRequest {
+  request_id: string;
+  status: string;
+  action: string;
+  resource_kind: string;
+  resource: string;
+  reason: string;
+  preview: UiApprovalPreviewSummary;
+  max_duration_seconds?: number | null;
+  expires_at?: string | null;
+}
+
+export interface ApprovalUiState {
+  pending: UiApprovalRequest[];
+  selectedRequestId: string | null;
+  lastDecisionStatus: string | null;
 }
 
 export type UiJsonFrame =

@@ -106,6 +106,7 @@ textarea {
 
 .conversation-list,
 .task-list,
+.approval-queue,
 .transcript {
   list-style: none;
   margin: 0;
@@ -113,13 +114,15 @@ textarea {
 }
 
 .conversation-list,
-.task-list {
+.task-list,
+.approval-queue {
   display: grid;
   gap: 6px;
 }
 
 .conversation-list button,
-.task-list button {
+.task-list button,
+.approval-queue button {
   display: grid;
   width: 100%;
   gap: 2px;
@@ -132,13 +135,15 @@ textarea {
 }
 
 .conversation-list button.selected,
-.task-list button.selected {
+.task-list button.selected,
+.approval-queue button.selected {
   border-color: #8bb6dc;
   background: #e7eef7;
   color: #123f70;
 }
 
 .task-list small,
+.approval-queue small,
 .transcript-entry span {
   color: #697386;
   font-size: 12px;
@@ -236,6 +241,64 @@ textarea {
 .task-detail h3 {
   margin: 0 0 8px;
   font-size: 14px;
+}
+
+.approval-detail {
+  margin-top: 12px;
+}
+
+.approval-detail h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.diff-preview {
+  border: 1px solid #d6dbe1;
+  border-radius: 6px;
+  background: #f9fafb;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-bottom: 1px solid #d6dbe1;
+  padding: 8px;
+}
+
+.preview-meta mark {
+  border-radius: 4px;
+  background: #fff1c7;
+  color: #6b4a00;
+  padding: 0 4px;
+}
+
+.diff-preview pre {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  overflow: auto;
+  padding: 8px;
+  white-space: pre-wrap;
+}
+
+.approval-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.approval-actions form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.inline-error {
+  color: #9b2727;
+  margin: 8px 0 0;
 }
 
 .diagnostic {

@@ -177,6 +177,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M21-01 implementation | Complete |
 | M21-02 implementation | Complete |
 | M21-03 implementation | Complete |
+| M21-04 implementation | Complete |
 | M21 implementation | In Progress |
 | M22-M25 implementation slice specs | Planned |
 | M22-M25 implementation slice plans | Planned |
@@ -459,12 +460,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M21-04 Approval and Diff UI`.
+Current implementation focus: `M21-05 Trace and Settings UI`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M21-03-conversation-task-ui.spec.md`
-- `docs/plans/M21-03-conversation-task-ui.plan.md`
+- `docs/specs/M21-04-approval-diff-ui.spec.md`
+- `docs/plans/M21-04-approval-diff-ui.plan.md`
 
 Most recent completed technical design documents:
 
@@ -473,4 +474,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M21-04 Approval and Diff UI
+- M21-05 Trace and Settings UI

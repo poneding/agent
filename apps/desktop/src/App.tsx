@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { desktopBootstrap, loadWorkspaceSnapshot } from './api';
+import { desktopBootstrap, loadWorkspaceSnapshot, resolveApproval } from './api';
+import { ApprovalDetail } from './components/ApprovalDetail';
+import { ApprovalQueue } from './components/ApprovalQueue';
 import { Composer } from './components/Composer';
 import { ConversationList } from './components/ConversationList';
 import { TaskDetail } from './components/TaskDetail';
@@ -11,8 +13,14 @@ import {
   createConversationTaskState,
   createStartTurnEnvelope,
 } from './state/conversation';
+import { createApprovalState } from './state/approvals';
 import { selectTask } from './state/tasks';
-import type { DesktopBootstrap, DesktopSessionSnapshot, DesktopWorkspaceSnapshot } from './types';
+import type {
+  ApprovalUiState,
+  DesktopBootstrap,
+  DesktopSessionSnapshot,
+  DesktopWorkspaceSnapshot,
+} from './types';
 
 export function BootstrapError({ message }: { message: string }) {
   return (
@@ -29,12 +37,18 @@ export function AppShell({
   workspaceSnapshot,
   sessionSnapshot,
   onSubmitPrompt = () => undefined,
+  approvalState = createApprovalState(),
+  onAllowApproval = () => undefined,
+  onDenyApproval = () => undefined,
 }: {
   bootstrap: DesktopBootstrap | null;
   bootstrapError: string | null;
   workspaceSnapshot?: DesktopWorkspaceSnapshot | null;
   sessionSnapshot?: DesktopSessionSnapshot | null;
   onSubmitPrompt?: (prompt: string) => void;
+  approvalState?: ApprovalUiState;
+  onAllowApproval?: (requestId: string) => void;
+  onDenyApproval?: (requestId: string, reason: string) => void;
 }) {
   const diagnostics = bootstrap?.diagnostics ?? [];
   const conversationTaskState = useMemo(
@@ -53,6 +67,10 @@ export function AppShell({
     conversationTaskState.tasks,
     conversationTaskState.activeTaskId,
   );
+  const selectedApproval =
+    approvalState.pending.find(
+      (approval) => approval.request_id === approvalState.selectedRequestId,
+    ) ?? null;
   const composerDisabled =
     sessionSnapshot?.state !== 'connected' || conversationTaskState.activeConversationId === null;
 
@@ -113,6 +131,19 @@ export function AppShell({
           <TaskDetail task={selectedTask} />
         </section>
         <section className="panel-section">
+          <h2>Approvals</h2>
+          <ApprovalQueue
+            approvals={approvalState.pending}
+            selectedRequestId={approvalState.selectedRequestId}
+            onSelect={() => undefined}
+          />
+          <ApprovalDetail
+            approval={selectedApproval}
+            onAllow={onAllowApproval}
+            onDeny={onDenyApproval}
+          />
+        </section>
+        <section className="panel-section">
           <h2>Diagnostics</h2>
           {diagnostics.length === 0 ? (
             <p>No diagnostics</p>
@@ -143,6 +174,7 @@ export default function App() {
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
   const [sessionSnapshot, setSessionSnapshot] = useState<DesktopSessionSnapshot | null>(null);
   const [workspaceSnapshot, setWorkspaceSnapshot] = useState<DesktopWorkspaceSnapshot | null>(null);
+  const [approvalState] = useState<ApprovalUiState>(() => createApprovalState());
 
   useEffect(() => {
     let mounted = true;
@@ -195,12 +227,52 @@ export default function App() {
     }
   }
 
+  async function handleAllowApproval(requestId: string) {
+    await handleResolveApproval(requestId, 'allow', 'approved in desktop');
+  }
+
+  async function handleDenyApproval(requestId: string, reason: string) {
+    await handleResolveApproval(requestId, 'deny', reason);
+  }
+
+  async function handleResolveApproval(
+    requestId: string,
+    decision: 'allow' | 'deny',
+    reason: string,
+  ) {
+    if (bootstrap === null) {
+      return;
+    }
+
+    try {
+      await resolveApproval(
+        {
+          request_id: requestId,
+          decision,
+          reason,
+          lease_duration_seconds: decision === 'allow' ? 120 : null,
+        },
+        bootstrap.app_version,
+      );
+      setBootstrapError(null);
+    } catch (error) {
+      setBootstrapError(error instanceof Error ? error.message : String(error));
+    }
+  }
+
   return (
     <AppShell
       bootstrap={bootstrap}
       bootstrapError={bootstrapError}
       sessionSnapshot={sessionSnapshot}
       workspaceSnapshot={workspaceSnapshot}
+      approvalState={approvalState}
+      onAllowApproval={(requestId) => {
+        void handleAllowApproval(requestId);
+      }}
+      onDenyApproval={(requestId, reason) => {
+        void handleDenyApproval(requestId, reason);
+      }}
       onSubmitPrompt={(prompt) => {
         void handleSubmitPrompt(prompt);
       }}

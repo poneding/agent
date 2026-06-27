@@ -19,7 +19,7 @@
 - Read: `crates/agent-desktop/src/permission.rs`
 - Read: `crates/agent-desktop/src/diff.rs`
 
-- [ ] **Step 1: Review approval boundaries**
+- [x] **Step 1: Review approval boundaries**
 
 Run:
 
@@ -35,15 +35,15 @@ Expected: Desktop emits approval decisions and never creates approval leases.
 - Create: `apps/desktop/src-tauri/src/tests/approval_commands.rs`
 - Create: `apps/desktop/src/__tests__/approval-diff-ui.test.tsx`
 
-- [ ] **Step 1: Add Rust approval command tests**
+- [x] **Step 1: Add Rust approval command tests**
 
 Cover allow, deny, empty deny reason, invalid request id, bridge command conversion, and redacted diagnostics.
 
-- [ ] **Step 2: Add frontend approval/diff tests**
+- [x] **Step 2: Add frontend approval/diff tests**
 
 Cover queued approvals, selected approval details, resolved removal, expired removal, redacted preview, truncated diff, allow action, and deny validation.
 
-- [ ] **Step 3: Verify RED**
+- [x] **Step 3: Verify RED**
 
 Run:
 
@@ -67,19 +67,19 @@ Expected: tests fail because approval command and UI modules are missing.
 - Modify: `apps/desktop/src/api.ts`
 - Modify: `apps/desktop/src/types.ts`
 
-- [ ] **Step 1: Add resolve command**
+- [x] **Step 1: Add resolve command**
 
 Implement `DesktopResolveApprovalRequest` and `resolve_approval` command conversion to `UiCommand::ResolveApproval`.
 
-- [ ] **Step 2: Add approval reducer**
+- [x] **Step 2: Add approval reducer**
 
 Implement add/update/remove behavior for approval requested, resolved, expired, cancelled, and consumed frames.
 
-- [ ] **Step 3: Add UI components**
+- [x] **Step 3: Add UI components**
 
 Render pending queue, details, allow/deny controls, diff preview summary, truncation, and redaction indicators.
 
-- [ ] **Step 4: Wire bridge submission**
+- [x] **Step 4: Wire bridge submission**
 
 Send allow/deny through M21-02 `sendUiCommand` wrapper and render command diagnostics.
 
@@ -89,7 +89,7 @@ Send allow/deny through M21-02 `sendUiCommand` wrapper and render command diagno
 - Read: `apps/desktop/src-tauri/src/tests/approval_commands.rs`
 - Read: `apps/desktop/src/__tests__/approval-diff-ui.test.tsx`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
@@ -100,7 +100,7 @@ npm --prefix apps/desktop test -- --run approval-diff-ui
 
 Expected: approval and diff tests pass.
 
-- [ ] **Step 2: Run regression checks**
+- [x] **Step 2: Run regression checks**
 
 Run:
 
@@ -120,6 +120,6 @@ Expected: Desktop frontend tests, frontend build, and Rust workspace checks pass
 - Modify: `docs/milestones/README.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Mark M21-04 complete**
+- [x] **Step 1: Mark M21-04 complete**
 
 Update milestone status and set focus to M21-05.

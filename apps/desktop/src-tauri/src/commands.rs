@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::approval_commands::{DesktopResolveApprovalRequest, resolve_approval_in_session};
 use crate::bootstrap::{DesktopBootstrap, DesktopBootstrapError, build_desktop_bootstrap};
 use crate::bridge::{DesktopCommandAck, DesktopSessionSnapshot, DesktopStartSessionRequest};
 use crate::state::DesktopAppState;
@@ -85,6 +86,18 @@ pub async fn load_workspace_snapshot(
         DesktopCommandError::new("desktop.bridge.lock_failed", "runtime session lock failed")
     })?;
     build_empty_workspace_snapshot_for_session(&mut session)
+}
+
+#[tauri::command]
+pub async fn resolve_approval(
+    state: tauri::State<'_, DesktopAppState>,
+    request: DesktopResolveApprovalRequest,
+    client_version: String,
+) -> Result<DesktopCommandAck, DesktopCommandError> {
+    let mut session = state.runtime_session.lock().map_err(|_| {
+        DesktopCommandError::new("desktop.bridge.lock_failed", "runtime session lock failed")
+    })?;
+    resolve_approval_in_session(&mut session, request, client_version)
 }
 
 pub(crate) fn redact_secret_like_text(value: &str) -> String {

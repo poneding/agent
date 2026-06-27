@@ -199,6 +199,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M24 implementation slice specs | Complete for M24-01 through M24-05 |
 | M24 implementation slice plans | Complete for M24-01 through M24-05 |
 | M24-01 implementation | Complete |
+| M24-02 implementation | Complete |
 | M24 implementation | In progress |
 | M25 implementation slice specs | Planned |
 | M25 implementation slice plans | Planned |
@@ -496,12 +497,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M24-02 Background Turn Runner`.
+Current implementation focus: `M24-03 Task Approvals and Notifications`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M24-01-task-command-bridge.spec.md`
-- `docs/plans/M24-01-task-command-bridge.plan.md`
+- `docs/specs/M24-02-background-turn-runner.spec.md`
+- `docs/plans/M24-02-background-turn-runner.plan.md`
 
 Most recent completed technical design documents:
 
@@ -510,4 +511,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M24-02 Background Turn Runner
+- M24-03 Task Approvals and Notifications

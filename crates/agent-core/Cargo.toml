@@ -11,6 +11,7 @@ agent-context = { path = "../agent-context" }
 agent-model = { path = "../agent-model" }
 agent-policy = { path = "../agent-policy" }
 agent-sandbox = { path = "../agent-sandbox" }
+agent-scheduler = { path = "../agent-scheduler" }
 agent-storage = { path = "../agent-storage" }
 agent-tool = { path = "../agent-tool" }
 agent-types = { path = "../agent-types" }

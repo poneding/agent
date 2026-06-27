@@ -18,7 +18,7 @@
 - Read: `crates/agent-core/src/model_runtime.rs`
 - Read: `crates/agent-scheduler/src/queue.rs`
 
-- [ ] **Step 1: Review runner scope**
+- [x] **Step 1: Review runner scope**
 
 Run:
 
@@ -33,19 +33,19 @@ Expected: runner owns lease-to-turn orchestration and not task command mutation.
 **Files:**
 - Create: `crates/agent-core/tests/background_turn_runner.rs`
 
-- [ ] **Step 1: Add no-ready-task test**
+- [x] **Step 1: Add no-ready-task test**
 
 Runner returns `Ok(None)` when the queue has no ready tasks.
 
-- [ ] **Step 2: Add successful turn test**
+- [x] **Step 2: Add successful turn test**
 
 Queued task is leased, executed through fake comprehensive turn, completed, and summarized.
 
-- [ ] **Step 3: Add failure test**
+- [x] **Step 3: Add failure test**
 
 Model/tool failure marks lease failed and preserves safe diagnostics.
 
-- [ ] **Step 4: Verify RED**
+- [x] **Step 4: Verify RED**
 
 Run:
 
@@ -62,31 +62,31 @@ Expected: tests fail because background runner contracts are missing.
 - Modify: `crates/agent-core/src/lib.rs`
 - Modify if needed: `crates/agent-scheduler/src/queue.rs`
 
-- [ ] **Step 1: Add runner contracts**
+- [x] **Step 1: Add runner contracts**
 
 Implement input, outcome, worker validation, and fixture request mapping.
 
-- [ ] **Step 2: Lease and execute one task**
+- [x] **Step 2: Lease and execute one task**
 
 Acquire one ready lease, build turn input, consume model stream, and record event count.
 
-- [ ] **Step 3: Complete or fail lease**
+- [x] **Step 3: Complete or fail lease**
 
 Map successful final response to complete and model/tool errors to fail.
 
-- [ ] **Step 4: Preserve replay-safe summaries**
+- [x] **Step 4: Preserve replay-safe summaries**
 
 Summaries are bounded and redacted.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 ```bash
 cargo test -p agent-core background_turn_runner
 ```
 
-- [ ] **Step 2: Run workspace checks**
+- [x] **Step 2: Run workspace checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -96,11 +96,11 @@ cargo test --workspace
 
 ### Task 5: Update Status and Commit
 
-- [ ] **Step 1: Mark M24-02 complete**
+- [x] **Step 1: Mark M24-02 complete**
 
 Advance focus to M24-03.
 
-- [ ] **Step 2: Commit M24-02**
+- [x] **Step 2: Commit M24-02**
 
 ```bash
 git add crates docs README.md Cargo.toml Cargo.lock

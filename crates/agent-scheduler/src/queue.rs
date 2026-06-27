@@ -8,6 +8,8 @@ use crate::{
 };
 
 pub trait TaskQueue {
+    fn get_task(&self, task_id: TaskId) -> Option<&TaskRun>;
+
     fn enqueue(&mut self, run: TaskRun) -> Result<(), SchedulerError>;
 
     fn acquire_next(
@@ -216,6 +218,13 @@ impl Default for InMemoryTaskQueue {
 }
 
 impl TaskQueue for InMemoryTaskQueue {
+    fn get_task(&self, task_id: TaskId) -> Option<&TaskRun> {
+        self.tasks
+            .iter()
+            .find(|entry| entry.run.task_id == task_id)
+            .map(|entry| &entry.run)
+    }
+
     fn enqueue(&mut self, run: TaskRun) -> Result<(), SchedulerError> {
         if self
             .tasks

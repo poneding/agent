@@ -59,7 +59,7 @@ Each plan includes scheduler integration tests and recovery commands.
 
 Expose create, list, pause, resume, cancel, inspect, and schedule commands.
 
-- [ ] **Step 2: Add background turn runner**
+- [x] **Step 2: Add background turn runner**
 
 Connect scheduler leases to comprehensive turn execution.
 

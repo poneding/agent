@@ -3,6 +3,7 @@
 
 pub mod approval;
 pub mod audit_export;
+pub mod background;
 pub mod benchmark;
 pub mod config;
 pub mod context;
@@ -23,6 +24,11 @@ pub use approval::{
 pub use audit_export::{
     AuditEventCategory, AuditExportBundle, AuditExportError, AuditExportOptions, AuditExportRecord,
     TraceExportSummary, export_audit_bundle, export_audit_bundle_at,
+};
+pub use background::{
+    BackgroundRunnerError, BackgroundTaskRunOutcome, BackgroundTaskRunner,
+    BackgroundTaskRunnerInput, BackgroundTaskTurnError, BackgroundTaskTurnExecutor,
+    BackgroundTaskTurnResult, ComprehensiveBackgroundTurnExecutor,
 };
 pub use benchmark::{
     BenchmarkEnvironment, BenchmarkError, BenchmarkResult, BenchmarkRunner, BenchmarkScenario,

@@ -54,6 +54,7 @@ dependencies = [
  "agent-plugin",
  "agent-policy",
  "agent-sandbox",
+ "agent-scheduler",
  "agent-storage",
  "agent-tool",
  "agent-types",

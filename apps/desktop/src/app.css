@@ -84,7 +84,13 @@ textarea {
   overflow: auto;
 }
 
+.workspace-band {
+  padding: 18px 22px;
+  overflow: auto;
+}
+
 .transcript-band h1,
+.workspace-band h1,
 .panel-section h2 {
   margin: 0 0 12px;
   font-size: 16px;
@@ -102,6 +108,12 @@ textarea {
   grid-template-columns: minmax(160px, 22%) minmax(0, 1fr);
   gap: 14px;
   min-height: 0;
+}
+
+.split-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 28%) minmax(0, 1fr);
+  gap: 14px;
 }
 
 .conversation-list,
@@ -294,6 +306,110 @@ textarea {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
+}
+
+.trace-timeline {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trace-item {
+  border: 1px solid #d6dbe1;
+  border-left-width: 4px;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 10px;
+}
+
+.trace-info {
+  border-left-color: #3f7f5f;
+}
+
+.trace-warning {
+  border-left-color: #b27a18;
+}
+
+.trace-error {
+  border-left-color: #b63d3d;
+}
+
+.trace-item-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.trace-item-header mark {
+  border-radius: 4px;
+  background: #eef1f5;
+  color: #354052;
+  font-size: 12px;
+  padding: 0 4px;
+}
+
+.trace-item p {
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+
+.trace-item small {
+  color: #697386;
+}
+
+.settings-view {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-section {
+  border-bottom: 1px solid #e2e6ea;
+  padding-bottom: 12px;
+}
+
+.settings-section h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.settings-section dl {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 6px 10px;
+  margin: 0;
+}
+
+.settings-section dt {
+  color: #697386;
+}
+
+.settings-section dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.provider-list {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.provider-list li {
+  display: grid;
+  gap: 2px;
+  border: 1px solid #d6dbe1;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 8px 10px;
+}
+
+.provider-list small {
+  color: #697386;
 }
 
 .inline-error {

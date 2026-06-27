@@ -6,11 +6,93 @@ export type DesktopRuntimeState =
   | 'blocked';
 
 export type DesktopRoute = 'conversation' | 'tasks' | 'trace' | 'settings';
+export type DesktopShellRoute = DesktopRoute | 'approvals';
 
 export interface DesktopBootstrapDiagnostic {
   severity: string;
   code: string;
   message: string;
+}
+
+export type TraceTimelineSeverity = 'info' | 'warning' | 'error';
+
+export interface TraceTimelineItem {
+  seq: number;
+  kind: string;
+  title: string;
+  summary: string;
+  severity: TraceTimelineSeverity;
+}
+
+export interface TraceTimeline {
+  conversation_id: string;
+  items: TraceTimelineItem[];
+}
+
+export interface TraceUiState {
+  conversationId: string | null;
+  timeline: TraceTimeline | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface UiModelProviderSummary {
+  id: string;
+  kind: string;
+  default_model: string;
+  enabled: boolean;
+}
+
+export interface UiConfigDiagnostic {
+  severity: 'info' | 'warning' | 'error';
+  code: string;
+  message: string;
+  field_path?: string | null;
+  source?: string | null;
+}
+
+export interface UiConfigSnapshot {
+  selected_provider: string;
+  selected_model: string;
+  providers: UiModelProviderSummary[];
+  diagnostics: UiConfigDiagnostic[];
+}
+
+export interface DesktopConfigSnapshot {
+  snapshot: UiConfigSnapshot;
+}
+
+export type DesktopTheme = 'system' | 'light' | 'dark';
+
+export interface DesktopSettings {
+  model: {
+    provider: string;
+    model: string;
+  };
+  policy: {
+    default_decision: string;
+    require_approval_for_shell: boolean;
+  };
+  memory: {
+    project_memory_enabled: boolean;
+    long_term_memory_enabled: boolean;
+  };
+  mcp: {
+    enabled: boolean;
+    server_count: number;
+  };
+  ui: {
+    theme: DesktopTheme;
+    show_trace_timeline: boolean;
+  };
+}
+
+export interface SettingsUiState {
+  snapshot: DesktopConfigSnapshot | null;
+  settings: DesktopSettings;
+  validationDiagnostics: DesktopBootstrapDiagnostic[];
+  loading: boolean;
+  error: string | null;
 }
 
 export interface DesktopBootstrap {

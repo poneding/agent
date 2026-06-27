@@ -178,7 +178,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M21-02 implementation | Complete |
 | M21-03 implementation | Complete |
 | M21-04 implementation | Complete |
-| M21 implementation | In Progress |
+| M21-05 implementation | Complete |
+| M21 implementation | Complete |
 | M22-M25 implementation slice specs | Planned |
 | M22-M25 implementation slice plans | Planned |
 | M22-M25 implementation | Planned |
@@ -460,12 +461,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M21-05 Trace and Settings UI`.
+Current implementation focus: `M22 Extension UX and MCP Gateway`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M21-04-approval-diff-ui.spec.md`
-- `docs/plans/M21-04-approval-diff-ui.plan.md`
+- `docs/specs/M21-05-trace-settings-ui.spec.md`
+- `docs/plans/M21-05-trace-settings-ui.plan.md`
 
 Most recent completed technical design documents:
 
@@ -474,4 +475,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M21-05 Trace and Settings UI
+- M22-01 Extension Registry

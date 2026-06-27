@@ -71,7 +71,7 @@ Render conversations, composer, and task list from view models.
 
 Render approval requests and diff reviews using shared contracts.
 
-- [ ] **Step 5: Build trace and settings views**
+- [x] **Step 5: Build trace and settings views**
 
 Render trace timeline and validate settings without secrets.
 
@@ -82,7 +82,7 @@ Render trace timeline and validate settings without secrets.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M21-desktop-gui-mvp.plan.md`
 
-- [ ] **Step 1: Run final verification**
+- [x] **Step 1: Run final verification**
 
 Run:
 
@@ -92,11 +92,11 @@ cargo xtask check
 
 Expected: Rust workspace checks pass. Frontend smoke command from the M21 slice plan also passes.
 
-- [ ] **Step 2: Mark M21 complete**
+- [x] **Step 2: Mark M21 complete**
 
 Update milestone status and advance active focus to M22.
 
-- [ ] **Step 3: Commit M21 completion**
+- [x] **Step 3: Commit M21 completion**
 
 Run:
 

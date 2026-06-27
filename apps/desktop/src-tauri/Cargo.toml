@@ -11,6 +11,7 @@ name = "agent_desktop_app"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [dependencies]
+agent-core = { path = "../../../crates/agent-core" }
 agent-desktop = { path = "../../../crates/agent-desktop" }
 agent-types = { path = "../../../crates/agent-types" }
 agent-ui-bridge = { path = "../../../crates/agent-ui-bridge" }

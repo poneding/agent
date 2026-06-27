@@ -117,7 +117,8 @@ fn sanitize_summary(summary: String) -> String {
 
 fn contains_secret_key(value: &str) -> bool {
     let value = value.to_ascii_lowercase();
-    value.contains("secret")
+    value.starts_with("sk-")
+        || value.contains("secret")
         || value.contains("token")
         || value.contains("password")
         || value.contains("api_key")

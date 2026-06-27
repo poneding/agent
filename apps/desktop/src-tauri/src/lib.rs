@@ -5,7 +5,9 @@ pub mod approval_commands;
 pub mod bootstrap;
 pub mod bridge;
 pub mod commands;
+pub mod settings_commands;
 pub mod state;
+pub mod trace_commands;
 pub mod workspace_snapshot;
 
 pub use bootstrap::{
@@ -19,7 +21,9 @@ pub use commands::{
     DesktopCommandError, desktop_bootstrap, drain_ui_frames, load_workspace_snapshot,
     resolve_approval, send_ui_command, start_session, stop_session,
 };
+pub use settings_commands::{load_config_snapshot, validate_settings};
 pub use state::DesktopAppState;
+pub use trace_commands::load_trace;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -32,7 +36,10 @@ pub fn run() {
             commands::send_ui_command,
             commands::drain_ui_frames,
             commands::load_workspace_snapshot,
-            commands::resolve_approval
+            commands::resolve_approval,
+            trace_commands::load_trace,
+            settings_commands::load_config_snapshot,
+            settings_commands::validate_settings
         ])
         .run(tauri::generate_context!())
         .expect("failed to run agent desktop app");
@@ -43,5 +50,6 @@ mod tests {
     mod approval_commands;
     mod bootstrap;
     mod bridge_session;
+    mod trace_settings_commands;
     mod workspace_snapshot;
 }

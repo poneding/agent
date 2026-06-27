@@ -196,9 +196,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M23-04 implementation | Complete |
 | M23-05 implementation | Complete |
 | M23 implementation | Complete |
-| M24-M25 implementation slice specs | Planned |
-| M24-M25 implementation slice plans | Planned |
-| M24-M25 implementation | Planned |
+| M24 implementation slice specs | Complete for M24-01 through M24-05 |
+| M24 implementation slice plans | Complete for M24-01 through M24-05 |
+| M24 implementation | Planned |
+| M25 implementation slice specs | Planned |
+| M25 implementation slice plans | Planned |
+| M25 implementation | Planned |
 
 ## Milestone Spec and Plan Index
 
@@ -478,6 +481,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M24-00 Background Agents Technical Design | `docs/specs/M24-00-background-agents-technical-design.spec.md` | `docs/plans/M24-00-background-agents-technical-design.plan.md` | Architecture baseline for background task commands, runners, approvals, notifications, quotas, retries, recovery, artifacts, and reviews. |
+| M24-01 Task Command Bridge | `docs/specs/M24-01-task-command-bridge.spec.md` | `docs/plans/M24-01-task-command-bridge.plan.md` | Task command contracts, UI-safe summaries, and CLI/TUI/Desktop command surfaces. |
+| M24-02 Background Turn Runner | `docs/specs/M24-02-background-turn-runner.spec.md` | `docs/plans/M24-02-background-turn-runner.plan.md` | Scheduler leases connected to comprehensive turn execution through shared core runtime. |
+| M24-03 Task Approvals and Notifications | `docs/specs/M24-03-task-approvals-notifications.spec.md` | `docs/plans/M24-03-task-approvals-notifications.plan.md` | Approval wait state, task notifications, and UI bridge notification frames. |
+| M24-04 Task Quotas, Retries, and Recovery | `docs/specs/M24-04-task-quotas-retries-recovery.spec.md` | `docs/plans/M24-04-task-quotas-retries-recovery.plan.md` | Usage quotas, retry visibility, stale lease recovery, and cancellation behavior. |
+| M24-05 Task Artifacts and Review | `docs/specs/M24-05-task-artifacts-review.spec.md` | `docs/plans/M24-05-task-artifacts-review.plan.md` | Task artifact metadata, review summaries, and final M24 smoke coverage. |
 
 ## M25 Slice Index
 
@@ -499,6 +507,6 @@ Most recent completed technical design documents:
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M25-00-packaging-release-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M25-00-packaging-release-technical-design.plan.md`
 
-Next implementation milestone:
+Next implementation slice:
 
-- M24 Background Agents UX
+- M24-01 Task Command Bridge

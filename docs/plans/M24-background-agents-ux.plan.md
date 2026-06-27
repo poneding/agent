@@ -38,11 +38,11 @@ Document slice order and recovery test strategy.
 - Create: `docs/specs/M24-05-task-artifacts-review.spec.md`
 - Create: `docs/plans/M24-05-task-artifacts-review.plan.md`
 
-- [ ] **Step 1: Create slice specs**
+- [x] **Step 1: Create slice specs**
 
 Each slice defines task state, commands, events, failure behavior, and tests.
 
-- [ ] **Step 2: Create slice plans**
+- [x] **Step 2: Create slice plans**
 
 Each plan includes scheduler integration tests and recovery commands.
 

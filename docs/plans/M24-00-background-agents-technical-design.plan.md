@@ -18,7 +18,7 @@
 - Read: `docs/specs/M18-00-agent-tool-loop-technical-design.spec.md`
 - Read: `docs/specs/M19-00-interactive-approval-technical-design.spec.md`
 
-- [ ] **Step 1: Review milestone scope**
+- [x] **Step 1: Review milestone scope**
 
 Run:
 
@@ -33,11 +33,11 @@ Expected: milestone scope defines task commands, background turns, approvals, qu
 **Files:**
 - Create: `docs/specs/M24-00-background-agents-technical-design.spec.md`
 
-- [ ] **Step 1: Define ownership and contracts**
+- [x] **Step 1: Define ownership and contracts**
 
 Document task model, command surface, runner behavior, approvals, quotas, recovery, security, and testing strategy.
 
-- [ ] **Step 2: Self-review design**
+- [x] **Step 2: Self-review design**
 
 Check that recurring schedules cannot broaden permissions and stale leases recover deterministically.
 
@@ -46,7 +46,7 @@ Check that recurring schedules cannot broaden permissions and stale leases recov
 **Files:**
 - Read: `docs/specs/M24-00-background-agents-technical-design.spec.md`
 
-- [ ] **Step 1: Run workspace gates**
+- [x] **Step 1: Run workspace gates**
 
 Run:
 
@@ -63,7 +63,7 @@ Expected: all checks pass.
 - Add: `docs/plans/M24-00-background-agents-technical-design.plan.md`
 - Modify: `docs/plans/M24-background-agents-ux.plan.md`
 
-- [ ] **Step 1: Commit design docs**
+- [x] **Step 1: Commit design docs**
 
 Run:
 

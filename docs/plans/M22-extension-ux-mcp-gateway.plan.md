@@ -38,11 +38,11 @@ Document slice order and fixture requirements.
 - Create: `docs/specs/M22-05-extension-health-ui.spec.md`
 - Create: `docs/plans/M22-05-extension-health-ui.plan.md`
 
-- [ ] **Step 1: Create slice specs**
+- [x] **Step 1: Create slice specs**
 
 Each slice defines extension state, capability rules, traceability, and tests.
 
-- [ ] **Step 2: Create slice plans**
+- [x] **Step 2: Create slice plans**
 
 Each plan includes fixture plugins or MCP servers and denial tests.
 

@@ -180,9 +180,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M21-04 implementation | Complete |
 | M21-05 implementation | Complete |
 | M21 implementation | Complete |
-| M22-M25 implementation slice specs | Planned |
-| M22-M25 implementation slice plans | Planned |
-| M22-M25 implementation | Planned |
+| M22 slice specs | Complete for M22-01 through M22-05 |
+| M22 slice plans | Complete for M22-01 through M22-05 |
+| M22 implementation | Planned |
+| M23-M25 implementation slice specs | Planned |
+| M23-M25 implementation slice plans | Planned |
+| M23-M25 implementation | Planned |
 
 ## Milestone Spec and Plan Index
 
@@ -440,6 +443,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M22-00 Extension UX and MCP Gateway Technical Design | `docs/specs/M22-00-extension-ux-mcp-gateway-technical-design.spec.md` | `docs/plans/M22-00-extension-ux-mcp-gateway-technical-design.plan.md` | Architecture baseline for extension registry, plugin install UX, skill roots, MCP gateway, capability review, health, and isolation. |
+| M22-01 Extension Registry | `docs/specs/M22-01-extension-registry.spec.md` | `docs/plans/M22-01-extension-registry.plan.md` | Typed extension registry state for plugin, skill root, and MCP server records. |
+| M22-02 Plugin Install Commands | `docs/specs/M22-02-plugin-install-commands.spec.md` | `docs/plans/M22-02-plugin-install-commands.plan.md` | CLI plugin install, list, inspect, enable, disable, remove, and capability review flows. |
+| M22-03 Skill Root Management | `docs/specs/M22-03-skill-root-management.spec.md` | `docs/plans/M22-03-skill-root-management.plan.md` | Registry-backed skill root commands, diagnostics, and prompt source traceability. |
+| M22-04 MCP Gateway Tools | `docs/specs/M22-04-mcp-gateway-tools.spec.md` | `docs/plans/M22-04-mcp-gateway-tools.plan.md` | MCP tool discovery, local tool registration, policy routing, execution, and audit metadata. |
+| M22-05 Extension Health UI | `docs/specs/M22-05-extension-health-ui.spec.md` | `docs/plans/M22-05-extension-health-ui.plan.md` | UI-safe extension snapshots, health diagnostics, capability reviews, and CLI/TUI/Desktop views. |
 
 ## M23 Slice Index
 

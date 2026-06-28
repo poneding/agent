@@ -12,19 +12,21 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M30-02 spec and tool registry contracts**
+- [x] **Step 1: Read M30-02 spec and tool registry contracts**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add tool export registry tests**
+- [x] **Step 1: Add tool export registry tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add `server_tool.rs`**
-- [ ] **Step 2: Convert local tool definitions into MCP tool descriptors**
-- [ ] **Step 3: Add policy-aware fixture calls**
+- [x] **Step 1: Add `server_tool.rs`**
+- [x] **Step 2: Convert local tool definitions into MCP tool descriptors**
+- [x] **Step 3: Add policy-aware fixture calls**
 
 ### Task 4: Verify and Commit
+
+- [x] **Step 1: Run focused tool export checks**
 
 ```bash
 cargo fmt --all -- --check

@@ -55,7 +55,7 @@ Each plan names files, focused tests, verification commands, and commit points.
 
 Add initialization, capability, JSON-RPC request/response, and error contracts.
 
-- [ ] **Step 2: Add local tool export registry**
+- [x] **Step 2: Add local tool export registry**
 
 Expose selected local tools through `tools/list` and `tools/call` with policy enforcement.
 

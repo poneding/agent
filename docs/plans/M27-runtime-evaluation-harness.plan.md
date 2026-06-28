@@ -51,7 +51,7 @@ Each plan names files, focused tests, verification commands, and commit points.
 - Execute: `docs/plans/M27-04-cli-eval-commands.plan.md`
 - Execute: `docs/plans/M27-05-ci-reporting-integration.plan.md`
 
-- [ ] **Step 1: Implement scenario manifest contracts**
+- [x] **Step 1: Implement scenario manifest contracts**
 
 Add `agent-eval` crate, versioned scenario manifests, validation, path normalization, and serde tests.
 

@@ -16,7 +16,7 @@
 - Read: `docs/specs/M27-01-scenario-manifest-contracts.spec.md`
 - Read: `docs/architecture/README.md`
 
-- [ ] **Step 1: Review the spec**
+- [x] **Step 1: Review the spec**
 
 Run:
 
@@ -31,11 +31,11 @@ Expected: the spec defines manifest contracts, validation, privacy, and tests.
 **Files:**
 - Create: `crates/agent-eval/tests/manifest.rs`
 
-- [ ] **Step 1: Add manifest serde and validation tests**
+- [x] **Step 1: Add manifest serde and validation tests**
 
 Cover a valid manifest, invalid schema version, invalid scenario ID, path traversal, missing fixture requirements, and secret-safe diagnostics.
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -53,15 +53,15 @@ Expected: tests fail before the crate/contracts exist.
 - Create: `crates/agent-eval/src/lib.rs`
 - Create: `crates/agent-eval/src/manifest.rs`
 
-- [ ] **Step 1: Add `agent-eval` crate to the workspace**
+- [x] **Step 1: Add `agent-eval` crate to the workspace**
 
 Expected: crate compiles and uses workspace lint/rust-version conventions.
 
-- [ ] **Step 2: Add public manifest structs and validation**
+- [x] **Step 2: Add public manifest structs and validation**
 
 Expected: manifests are serializable, reject unsafe input, and normalize fixture paths.
 
-- [ ] **Step 3: Run focused tests and verify success**
+- [x] **Step 3: Run focused tests and verify success**
 
 Run:
 
@@ -77,7 +77,7 @@ Expected: focused tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M27-runtime-evaluation-harness.plan.md`
 
-- [ ] **Step 1: Mark M27-01 complete**
+- [x] **Step 1: Mark M27-01 complete**
 
 Expected: planning status and active work point to M27-02.
 
@@ -87,7 +87,7 @@ Expected: planning status and active work point to M27-02.
 - Read: `Cargo.toml`
 - Read: `Cargo.lock`
 
-- [ ] **Step 1: Run focused and standard-enough checks**
+- [x] **Step 1: Run focused and standard-enough checks**
 
 Run:
 
@@ -99,7 +99,7 @@ cargo test -p agent-eval
 
 Expected: all focused checks pass.
 
-- [ ] **Step 2: Commit M27-01**
+- [x] **Step 2: Commit M27-01**
 
 Run:
 

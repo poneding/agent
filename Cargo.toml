@@ -4,6 +4,7 @@ members = [
     "crates/agent-model",
     "crates/agent-storage",
     "crates/agent-telemetry",
+    "crates/agent-eval",
     "crates/agent-core",
     "crates/agent-tool",
     "crates/agent-policy",

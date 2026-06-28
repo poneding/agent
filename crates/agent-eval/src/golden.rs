@@ -1,11 +1,15 @@
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
+use camino::{Utf8Path, Utf8PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
-use crate::report::{EvalScenarioReport, EvalScenarioStatus};
+use crate::manifest::{EvalDiagnostic, EvalDiagnosticSeverity};
+use crate::report::{EvalRunReport, EvalScenarioReport, EvalScenarioStatus};
+use crate::suite::ValidatedEvalSuite;
 
 const DEFAULT_MAX_VALUE_CHARS: usize = 256;
 const REDACTED: &str = "[redacted]";
@@ -65,9 +69,122 @@ pub enum GoldenComparisonError {
 pub fn normalized_report_golden(
     report: &EvalScenarioReport,
 ) -> Result<Value, GoldenComparisonError> {
-    serde_json::to_value(report).map_err(|error| GoldenComparisonError::Serialize {
+    let value = serde_json::to_value(report).map_err(|error| GoldenComparisonError::Serialize {
         message: error.to_string(),
-    })
+    })?;
+    Ok(redact_json("", &value))
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct GoldenUpdateOptions {
+    pub dry_run: bool,
+}
+
+impl Default for GoldenUpdateOptions {
+    fn default() -> Self {
+        Self { dry_run: true }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GoldenUpdateReport {
+    pub updated: usize,
+    pub unchanged: usize,
+    pub diagnostics: Vec<EvalDiagnostic>,
+}
+
+#[derive(Debug, Error, Eq, PartialEq)]
+pub enum GoldenUpdateError {
+    #[error("missing eval run report for scenario {scenario_id}")]
+    MissingScenarioReport { scenario_id: String },
+    #[error("scenario {scenario_id} has no configured golden path")]
+    MissingGoldenPath { scenario_id: String },
+    #[error("unsafe golden path {path}: {message}")]
+    UnsafeGoldenPath { path: Utf8PathBuf, message: String },
+    #[error("existing golden JSON is malformed at {path}: {message}")]
+    MalformedExistingGolden { path: Utf8PathBuf, message: String },
+    #[error("failed to serialize updated golden: {message}")]
+    Serialize { message: String },
+    #[error("failed to read golden {path}: {message}")]
+    Read { path: Utf8PathBuf, message: String },
+    #[error("failed to write golden {path}: {message}")]
+    Write { path: Utf8PathBuf, message: String },
+    #[error("failed to normalize report for golden update: {source}")]
+    Normalize { source: GoldenComparisonError },
+}
+
+pub fn update_suite_goldens(
+    suite: &ValidatedEvalSuite,
+    run_report: &EvalRunReport,
+    options: GoldenUpdateOptions,
+) -> Result<GoldenUpdateReport, GoldenUpdateError> {
+    let reports = run_report
+        .scenarios
+        .iter()
+        .map(|report| (report.scenario_id.as_str(), report))
+        .collect::<BTreeMap<_, _>>();
+
+    let mut update_report = GoldenUpdateReport {
+        updated: 0,
+        unchanged: 0,
+        diagnostics: Vec::new(),
+    };
+
+    for scenario in &suite.scenarios {
+        let scenario_id = scenario.manifest.id.as_str();
+        let scenario_report =
+            reports
+                .get(scenario_id)
+                .ok_or_else(|| GoldenUpdateError::MissingScenarioReport {
+                    scenario_id: scenario_id.to_string(),
+                })?;
+        let golden_path = scenario
+            .normalized_fixtures
+            .golden
+            .as_ref()
+            .ok_or_else(|| GoldenUpdateError::MissingGoldenPath {
+                scenario_id: scenario_id.to_string(),
+            })?;
+        validate_golden_path(&suite.normalized_suite_root, golden_path)?;
+
+        let normalized = normalized_report_golden(scenario_report)
+            .map_err(|source| GoldenUpdateError::Normalize { source })?;
+        let existing = read_existing_golden(golden_path)?;
+        if existing.as_ref() == Some(&normalized) {
+            update_report.unchanged += 1;
+            continue;
+        }
+
+        update_report.updated += 1;
+        let code = if options.dry_run {
+            "golden_update_dry_run"
+        } else {
+            "golden_updated"
+        };
+        let message = if options.dry_run {
+            format!("would update golden for scenario {scenario_id}")
+        } else {
+            format!("updated golden for scenario {scenario_id}")
+        };
+        update_report.diagnostics.push(update_diagnostic(
+            EvalDiagnosticSeverity::Info,
+            code,
+            message,
+            golden_path,
+        ));
+
+        if !options.dry_run {
+            let json = serde_json::to_string_pretty(&normalized).map_err(|error| {
+                GoldenUpdateError::Serialize {
+                    message: error.to_string(),
+                }
+            })?;
+            write_atomic(golden_path, &(json + "\n"))?;
+        }
+    }
+
+    Ok(update_report)
 }
 
 pub fn compare_report_to_golden_json(
@@ -138,6 +255,104 @@ fn update_result(actual: Value) -> GoldenComparisonResult {
         status: EvalScenarioStatus::Passed,
         mismatches: Vec::new(),
         normalized_expected: Some(actual),
+    }
+}
+
+fn validate_golden_path(root: &Utf8Path, path: &Utf8Path) -> Result<(), GoldenUpdateError> {
+    if path.as_str().trim().is_empty() {
+        return Err(GoldenUpdateError::UnsafeGoldenPath {
+            path: path.to_path_buf(),
+            message: "path must not be empty".to_string(),
+        });
+    }
+    if path
+        .as_std_path()
+        .components()
+        .any(|component| matches!(component, std::path::Component::ParentDir))
+    {
+        return Err(GoldenUpdateError::UnsafeGoldenPath {
+            path: path.to_path_buf(),
+            message: "path traversal with '..' is not allowed".to_string(),
+        });
+    }
+    if !path.starts_with(root) {
+        return Err(GoldenUpdateError::UnsafeGoldenPath {
+            path: path.to_path_buf(),
+            message: "path is outside the suite root".to_string(),
+        });
+    }
+    Ok(())
+}
+
+fn read_existing_golden(path: &Utf8Path) -> Result<Option<Value>, GoldenUpdateError> {
+    let input = match fs::read_to_string(path.as_std_path()) {
+        Ok(input) => input,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => {
+            return Err(GoldenUpdateError::Read {
+                path: path.to_path_buf(),
+                message: error.to_string(),
+            });
+        }
+    };
+
+    let value = serde_json::from_str(&input).map_err(|error| {
+        GoldenUpdateError::MalformedExistingGolden {
+            path: path.to_path_buf(),
+            message: error.to_string(),
+        }
+    })?;
+    Ok(Some(value))
+}
+
+fn write_atomic(path: &Utf8Path, content: &str) -> Result<(), GoldenUpdateError> {
+    let parent = path.parent().unwrap_or_else(|| Utf8Path::new("."));
+    fs::create_dir_all(parent.as_std_path()).map_err(|error| GoldenUpdateError::Write {
+        path: parent.to_path_buf(),
+        message: error.to_string(),
+    })?;
+
+    let file_name = path.file_name().unwrap_or("golden.json");
+    let temp_path = path.with_file_name(format!(".{file_name}.tmp"));
+    fs::write(temp_path.as_std_path(), content).map_err(|error| GoldenUpdateError::Write {
+        path: temp_path.clone(),
+        message: error.to_string(),
+    })?;
+
+    match fs::rename(temp_path.as_std_path(), path.as_std_path()) {
+        Ok(()) => Ok(()),
+        Err(_error) if path.as_std_path().exists() => {
+            fs::remove_file(path.as_std_path()).map_err(|remove_error| {
+                GoldenUpdateError::Write {
+                    path: path.to_path_buf(),
+                    message: remove_error.to_string(),
+                }
+            })?;
+            fs::rename(temp_path.as_std_path(), path.as_std_path()).map_err(|rename_error| {
+                GoldenUpdateError::Write {
+                    path: path.to_path_buf(),
+                    message: rename_error.to_string(),
+                }
+            })
+        }
+        Err(error) => Err(GoldenUpdateError::Write {
+            path: path.to_path_buf(),
+            message: error.to_string(),
+        }),
+    }
+}
+
+fn update_diagnostic(
+    severity: EvalDiagnosticSeverity,
+    code: &str,
+    message: String,
+    path: &Utf8Path,
+) -> EvalDiagnostic {
+    EvalDiagnostic {
+        severity,
+        code: code.to_string(),
+        message,
+        field: Some(path.to_string()),
     }
 }
 

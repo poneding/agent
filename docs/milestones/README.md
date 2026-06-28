@@ -235,6 +235,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M28 slice plans | Complete for M28-01 through M28-05 |
 | M28-01 implementation | Complete |
 | M28-02 implementation | Complete |
+| M28-03 implementation | Complete |
 | M28 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -570,12 +571,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M28-03 golden update workflow`.
+Current implementation focus: `M28-04 CLI eval suite commands`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M28-02-builtin-eval-corpus.spec.md`
-- `docs/plans/M28-02-builtin-eval-corpus.plan.md`
+- `docs/specs/M28-03-golden-update-workflow.spec.md`
+- `docs/plans/M28-03-golden-update-workflow.plan.md`
 
 Most recent completed technical design documents:
 
@@ -584,5 +585,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M28-03-golden-update-workflow.spec.md`
-- `docs/plans/M28-03-golden-update-workflow.plan.md`
+- `docs/specs/M28-04-cli-eval-suite-commands.spec.md`
+- `docs/plans/M28-04-cli-eval-suite-commands.plan.md`

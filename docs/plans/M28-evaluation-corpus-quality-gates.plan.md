@@ -59,7 +59,7 @@ Add versioned suite contracts, safe scenario path resolution, labels, strictness
 
 Check in a small suite and fixtures that exercise replay/evidence behavior.
 
-- [ ] **Step 3: Add golden update workflow**
+- [x] **Step 3: Add golden update workflow**
 
 Make update mode explicit, typed, redacted, and separate from normal comparison.
 

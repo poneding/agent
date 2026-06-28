@@ -9,7 +9,8 @@ pub mod suite;
 
 pub use golden::{
     GoldenComparisonError, GoldenComparisonOptions, GoldenComparisonResult, GoldenMismatch,
-    compare_report_to_golden_file, compare_report_to_golden_json, normalized_report_golden,
+    GoldenUpdateError, GoldenUpdateOptions, GoldenUpdateReport, compare_report_to_golden_file,
+    compare_report_to_golden_json, normalized_report_golden, update_suite_goldens,
 };
 pub use manifest::{
     EVAL_SCENARIO_SCHEMA_VERSION, EvalDiagnostic, EvalDiagnosticSeverity, EvalExpectations,

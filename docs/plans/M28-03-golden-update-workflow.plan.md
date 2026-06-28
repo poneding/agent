@@ -12,16 +12,16 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M28-03 spec and current `agent-eval::golden`**
+- [x] **Step 1: Read M28-03 spec and current `agent-eval::golden`**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add dry-run, write, malformed, and redaction tests**
+- [x] **Step 1: Add dry-run, write, malformed, and redaction tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add update contracts**
-- [ ] **Step 2: Add suite-aware update writer**
+- [x] **Step 1: Add update contracts**
+- [x] **Step 2: Add suite-aware update writer**
 
 ### Task 4: Verify and Commit
 

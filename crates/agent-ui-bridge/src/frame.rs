@@ -1,4 +1,6 @@
-use agent_core::{StartupMigrationOutcome, TaskArtifact, TaskReviewSummary};
+use agent_core::{
+    ObservabilityEvidenceBundle, StartupMigrationOutcome, TaskArtifact, TaskReviewSummary,
+};
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{CheckpointId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
 use serde::{Deserialize, Serialize};
@@ -141,6 +143,35 @@ impl UiStartupMigrationSnapshot {
                 UiBridgeError::Validation("too many migration diagnostics".to_string())
             })?,
             domains,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiObservabilitySnapshot {
+    pub schema_version: u32,
+    pub event_count: usize,
+    pub trace_count: usize,
+    pub audit_count: usize,
+    pub telemetry_count: usize,
+    pub replayable: bool,
+    pub diagnostics: Vec<String>,
+}
+
+impl UiObservabilitySnapshot {
+    pub fn from_evidence(evidence: &ObservabilityEvidenceBundle) -> Result<Self, UiBridgeError> {
+        Ok(Self {
+            schema_version: evidence.schema_version,
+            event_count: evidence.summary.total_events,
+            trace_count: evidence.summary.trace_entries,
+            audit_count: evidence.summary.audit_records,
+            telemetry_count: evidence.summary.telemetry_records,
+            replayable: evidence.summary.replayable,
+            diagnostics: evidence
+                .diagnostics
+                .iter()
+                .map(|diagnostic| bounded_task_text(diagnostic))
+                .collect(),
         })
     }
 }
@@ -760,6 +791,7 @@ pub enum UiJsonFrame {
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
     StartupMigrationSnapshot(UiStartupMigrationSnapshot),
+    ObservabilitySnapshot(UiObservabilitySnapshot),
     ModelSelection {
         provider: String,
         model: String,

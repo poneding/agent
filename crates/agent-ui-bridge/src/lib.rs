@@ -18,8 +18,9 @@ pub use event::{
 pub use frame::{
     UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiExtensionCapabilityReview,
     UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary, UiJsonFrame,
-    UiModelProviderSummary, UiPlatformPathsSummary, UiPromptDiagnosticSummary,
-    UiPromptLayerSummary, UiPromptSummary, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
-    UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary, UiTaskReviewSummaryArtifact,
-    UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
+    UiModelProviderSummary, UiObservabilitySnapshot, UiPlatformPathsSummary,
+    UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary, UiSettingsProfileSummary,
+    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary,
+    UiTaskReviewSummaryArtifact, UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary,
+    encode_json_frame,
 };

@@ -63,7 +63,7 @@ Compose trace entries, audit bundles, telemetry bundles, and replay summaries.
 
 Expose text and JSON evidence outputs without raw secret leakage.
 
-- [ ] **Step 4: Implement UI observability snapshots**
+- [x] **Step 4: Implement UI observability snapshots**
 
 Normalize evidence summaries for TUI/Desktop bridge consumers.
 

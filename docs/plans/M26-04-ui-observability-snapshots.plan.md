@@ -18,14 +18,14 @@
 - Read: `crates/agent-desktop/src/trace.rs`
 - Read: `crates/agent-tui/src/app.rs`
 
-- [ ] **Step 1: Review UI bridge snapshot patterns**
+- [x] **Step 1: Review UI bridge snapshot patterns**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-ui-bridge/tests/observability_snapshot.rs`
 
-- [ ] **Step 1: Add UI snapshot tests**
+- [x] **Step 1: Add UI snapshot tests**
 
 ### Task 3: Implement Snapshots
 
@@ -33,11 +33,11 @@
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Modify if needed: `crates/agent-ui-bridge/src/lib.rs`
 
-- [ ] **Step 1: Add snapshot contracts and reducers**
+- [x] **Step 1: Add snapshot contracts and reducers**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 ```bash
 cargo test -p agent-ui-bridge observability
@@ -46,7 +46,7 @@ cargo clippy -p agent-ui-bridge --all-targets -- -D warnings
 
 ### Task 5: Update Status and Commit
 
-- [ ] **Step 1: Mark M26-04 complete and commit**
+- [x] **Step 1: Mark M26-04 complete and commit**
 
 ```bash
 git add crates/agent-ui-bridge crates/agent-desktop crates/agent-tui docs

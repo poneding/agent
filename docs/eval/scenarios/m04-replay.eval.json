@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "default-m04-replay",
+  "name": "Default M04 replay trace",
+  "kind": "replay_trace",
+  "fixtures": {
+    "replay_trace": "fixtures/m04_trace_v1.json"
+  },
+  "permissions": {},
+  "expectations": {
+    "expected_status": "passed",
+    "required_events": ["final_response_produced", "turn_completed"],
+    "golden": "goldens/default-m04-replay.golden.json"
+  },
+  "metadata": {
+    "corpus": "default",
+    "milestone": "m04"
+  }
+}

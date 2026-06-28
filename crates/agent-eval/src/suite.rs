@@ -111,7 +111,7 @@ where
 
     let normalized_suite_root = normalize_root(suite_root)?;
     let scenario_refs = normalize_scenario_refs(&manifest, &normalized_suite_root)?;
-    let scenarios = load_scenarios(&scenario_refs)?;
+    let scenarios = load_scenarios(&scenario_refs, &normalized_suite_root)?;
 
     Ok(ValidatedEvalSuite {
         manifest,
@@ -170,6 +170,7 @@ fn normalize_scenario_refs(
 
 fn load_scenarios(
     refs: &[ValidatedEvalSuiteScenarioRef],
+    suite_root: &Utf8Path,
 ) -> Result<Vec<ValidatedEvalScenario>, EvalSuiteError> {
     refs.iter()
         .map(|scenario_ref| {
@@ -186,11 +187,7 @@ fn load_scenarios(
                 },
             )?;
 
-            let fixture_root = scenario_ref
-                .normalized_path
-                .parent()
-                .unwrap_or_else(|| Utf8Path::new(""));
-            parse_eval_scenario_json(&input, fixture_root).map_err(|source| {
+            parse_eval_scenario_json(&input, suite_root).map_err(|source| {
                 EvalSuiteError::ScenarioManifest {
                     path: scenario_ref.normalized_path.clone(),
                     source,

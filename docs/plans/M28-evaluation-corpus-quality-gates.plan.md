@@ -55,7 +55,7 @@ Each plan names files, focused tests, verification commands, and commit points.
 
 Add versioned suite contracts, safe scenario path resolution, labels, strictness defaults, and serde tests.
 
-- [ ] **Step 2: Add built-in eval corpus**
+- [x] **Step 2: Add built-in eval corpus**
 
 Check in a small suite and fixtures that exercise replay/evidence behavior.
 

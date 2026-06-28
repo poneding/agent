@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "default-regression",
+  "name": "Default regression",
+  "default_strictness": "strict",
+  "scenarios": [
+    {
+      "path": "scenarios/m04-replay.eval.json",
+      "alias": "m04-replay",
+      "labels": ["default", "replay", "smoke"]
+    },
+    {
+      "path": "scenarios/m04-evidence.eval.json",
+      "alias": "m04-evidence",
+      "labels": ["default", "evidence", "smoke"]
+    }
+  ]
+}

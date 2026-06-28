@@ -12,20 +12,20 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M28-02 spec and M28-01 suite contracts**
+- [x] **Step 1: Read M28-02 spec and M28-01 suite contracts**
 
 ### Task 2: Add Corpus Files
 
-- [ ] **Step 1: Create default suite and scenarios**
-- [ ] **Step 2: Add deterministic fixtures and goldens**
+- [x] **Step 1: Create default suite and scenarios**
+- [x] **Step 2: Add deterministic fixtures and goldens**
 
 ### Task 3: Add Tests
 
-- [ ] **Step 1: Add corpus load/run/golden smoke tests**
+- [x] **Step 1: Add corpus load/run/golden smoke tests**
 
 ### Task 4: Verify and Commit
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -33,7 +33,7 @@ cargo clippy -p agent-eval --all-targets -- -D warnings
 cargo test -p agent-eval corpus
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add crates/agent-eval docs

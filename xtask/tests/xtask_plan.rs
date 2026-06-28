@@ -24,6 +24,7 @@ fn no_args_and_help_print_the_command_list() {
         "fmt-check",
         "clippy",
         "test",
+        "eval",
         "cli-prompt",
         "cli-json",
         "package-cli",
@@ -59,6 +60,25 @@ fn standard_tasks_map_to_single_cargo_commands() {
     assert_eq!(
         command_plan_for(&Task::DesktopTest),
         vec![cargo(&["test", "-p", "agent-desktop"])]
+    );
+    assert_eq!(parse_args(["eval"]), Ok(Task::Eval));
+    assert_eq!(
+        command_plan_for(&Task::Eval),
+        vec![cargo(&[
+            "run",
+            "-p",
+            "agent-cli",
+            "--bin",
+            "agent-cli",
+            "--",
+            "eval",
+            "suite",
+            "run",
+            "--suite",
+            "docs/eval/default.suite.json",
+            "--out-dir",
+            "target/agent-eval",
+        ])]
     );
 }
 
@@ -142,6 +162,10 @@ fn unknown_tasks_are_rejected() {
     assert_eq!(
         parse_args(["ship-it"]),
         Err(XtaskError::UnknownCommand("ship-it".to_string()))
+    );
+    assert_eq!(
+        parse_args(["eval", "--suite", "custom.json"]),
+        Err(XtaskError::UnknownOption("--suite".to_string()))
     );
 }
 

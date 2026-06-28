@@ -12,27 +12,27 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M28-05 spec and `xtask/src/lib.rs`**
+- [x] **Step 1: Read M28-05 spec and `xtask/src/lib.rs`**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add xtask eval parser and command plan tests**
+- [x] **Step 1: Add xtask eval parser and command plan tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add `Task::Eval`**
-- [ ] **Step 2: Add command plan and help text**
+- [x] **Step 1: Add `Task::Eval`**
+- [x] **Step 2: Add command plan and help text**
 
 ### Task 4: Complete M28
 
-- [ ] **Step 1: Update README and milestone status**
-- [ ] **Step 2: Run final checks**
+- [x] **Step 1: Update README and milestone status**
+- [x] **Step 2: Run final checks**
 
 ```bash
 cargo xtask check
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates docs README.md xtask

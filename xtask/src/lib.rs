@@ -23,6 +23,7 @@ pub enum Task {
     PackageCli(PackageCliOptions),
     PackageDesktop(PackageDesktopOptions),
     DesktopTest,
+    Eval,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -275,6 +276,10 @@ where
         "clippy" => Ok(Task::Clippy),
         "test" => Ok(Task::Test),
         "desktop-test" => Ok(Task::DesktopTest),
+        "eval" => {
+            parse_no_options(args)?;
+            Ok(Task::Eval)
+        }
         "cli-prompt" => Ok(Task::CliPrompt {
             prompt: parse_prompt(&command, args.collect())?,
         }),
@@ -317,6 +322,21 @@ pub fn command_plan_for(task: &Task) -> Vec<CargoCommand> {
             ])]
         }
         Task::DesktopTest => vec![CargoCommand::new(["test", "-p", "agent-desktop"])],
+        Task::Eval => vec![CargoCommand::new([
+            "run",
+            "-p",
+            "agent-cli",
+            "--bin",
+            "agent-cli",
+            "--",
+            "eval",
+            "suite",
+            "run",
+            "--suite",
+            "docs/eval/default.suite.json",
+            "--out-dir",
+            "target/agent-eval",
+        ])],
     }
 }
 
@@ -330,6 +350,7 @@ Commands:
   fmt-check             Run cargo fmt --all -- --check
   clippy                Run cargo clippy --workspace --all-targets -- -D warnings
   test                  Run cargo test --workspace
+  eval                  Run the default evaluation corpus
   cli-prompt -- <text>  Run agent-cli with --prompt <text>
   cli-json -- <text>    Run agent-cli with --json --prompt <text>
   package-cli           Build and smoke-test a local CLI release artifact
@@ -350,6 +371,16 @@ fn parse_prompt(command: &str, words: Vec<String>) -> Result<String, XtaskError>
     }
 
     Ok(words.join(" "))
+}
+
+fn parse_no_options<I>(mut args: I) -> Result<(), XtaskError>
+where
+    I: Iterator<Item = String>,
+{
+    if let Some(arg) = args.next() {
+        return Err(XtaskError::UnknownOption(arg));
+    }
+    Ok(())
 }
 
 fn parse_package_cli_options<I>(args: I) -> Result<PackageCliOptions, XtaskError>

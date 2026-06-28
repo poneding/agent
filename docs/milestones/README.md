@@ -237,7 +237,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M28-02 implementation | Complete |
 | M28-03 implementation | Complete |
 | M28-04 implementation | Complete |
-| M28 implementation | In progress |
+| M28-05 implementation | Complete |
+| M28 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -572,19 +573,16 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M28-05 xtask eval gate`.
+Current implementation focus: M28 complete; next milestone is not yet planned.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M28-04-cli-eval-suite-commands.spec.md`
-- `docs/plans/M28-04-cli-eval-suite-commands.plan.md`
+- `docs/specs/M28-05-xtask-eval-gate.spec.md`
+- `docs/plans/M28-05-xtask-eval-gate.plan.md`
 
 Most recent completed technical design documents:
 
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M28-00-evaluation-corpus-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M28-00-evaluation-corpus-technical-design.plan.md`
 
-Next implementation slice:
-
-- `docs/specs/M28-05-xtask-eval-gate.spec.md`
-- `docs/plans/M28-05-xtask-eval-gate.plan.md`
+Next implementation slice: to be defined with the next milestone.

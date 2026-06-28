@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M27 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, and deterministic evaluation reports.
+M01-M28 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, and quality gates.
 
 ## Core Ideas
 
@@ -88,6 +88,7 @@ cargo xtask fmt
 cargo xtask fmt-check
 cargo xtask clippy
 cargo xtask test
+cargo xtask eval
 cargo xtask desktop-test
 cargo xtask cli-prompt -- "hello agent"
 cargo xtask cli-json -- "hello agent"
@@ -97,6 +98,7 @@ agent-cli --observability-summary
 agent-cli --observability-json
 agent-cli eval validate --manifest path/to/scenario.eval.json
 agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
+agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
 ```
 
 Run `cargo xtask help` for the full command list.
@@ -140,6 +142,11 @@ agent-cli eval list --manifest path/to/scenario.eval.json
 agent-cli eval validate --manifest path/to/scenario.eval.json
 agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
 agent-cli --json eval run --manifest path/to/scenario.eval.json
+agent-cli eval suite list --suite docs/eval/default.suite.json
+agent-cli eval suite validate --suite docs/eval/default.suite.json
+agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
+agent-cli eval suite update-goldens --suite docs/eval/default.suite.json --dry-run
+cargo xtask eval
 ```
 
 When `--out-dir` is provided, reports are written as:
@@ -153,8 +160,8 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M27-05-ci-reporting-integration.spec.md)
-- [Latest completed plan](docs/plans/M27-05-ci-reporting-integration.plan.md)
+- [Latest completed spec](docs/specs/M28-05-xtask-eval-gate.spec.md)
+- [Latest completed plan](docs/plans/M28-05-xtask-eval-gate.plan.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

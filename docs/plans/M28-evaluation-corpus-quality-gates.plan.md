@@ -67,7 +67,7 @@ Make update mode explicit, typed, redacted, and separate from normal comparison.
 
 Expose suite list, validate, run, and update-golden commands in text/JSON modes.
 
-- [ ] **Step 5: Add `xtask` eval gate**
+- [x] **Step 5: Add `xtask` eval gate**
 
 Provide a CI-friendly command plan that validates and runs the default corpus.
 
@@ -78,7 +78,7 @@ Provide a CI-friendly command plan that validates and runs the default corpus.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M28-evaluation-corpus-quality-gates.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -88,7 +88,7 @@ cargo xtask check
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M28 complete and commit**
+- [x] **Step 2: Mark M28 complete and commit**
 
 Run:
 

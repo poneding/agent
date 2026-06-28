@@ -59,7 +59,7 @@ Add `agent-eval` crate, versioned scenario manifests, validation, path normaliza
 
 Run deterministic replay, fake-model, local-coding, and evidence-only scenarios into typed reports.
 
-- [ ] **Step 3: Implement golden evidence comparison**
+- [x] **Step 3: Implement golden evidence comparison**
 
 Compare selected evidence/report fields against golden files with redacted, stable mismatch diagnostics.
 

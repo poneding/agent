@@ -16,7 +16,7 @@
 - Read: `docs/specs/M27-03-golden-evidence-comparison.spec.md`
 - Read: `crates/agent-eval/src/report.rs`
 
-- [ ] **Step 1: Review report contracts**
+- [x] **Step 1: Review report contracts**
 
 Expected: comparison inputs are typed and serializable.
 
@@ -25,7 +25,7 @@ Expected: comparison inputs are typed and serializable.
 **Files:**
 - Create: `crates/agent-eval/tests/golden.rs`
 
-- [ ] **Step 1: Add comparison tests**
+- [x] **Step 1: Add comparison tests**
 
 Cover exact match, mismatch path, missing golden, malformed golden, and redaction.
 
@@ -35,13 +35,13 @@ Cover exact match, mismatch path, missing golden, malformed golden, and redactio
 - Create: `crates/agent-eval/src/golden.rs`
 - Modify: `crates/agent-eval/src/lib.rs`
 
-- [ ] **Step 1: Add golden contracts**
-- [ ] **Step 2: Add selected-field comparison**
-- [ ] **Step 3: Add redacted mismatch diagnostics**
+- [x] **Step 1: Add golden contracts**
+- [x] **Step 2: Add selected-field comparison**
+- [x] **Step 3: Add redacted mismatch diagnostics**
 
 ### Task 4: Verify and Commit
 
-- [ ] **Step 1: Run checks**
+- [x] **Step 1: Run checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -49,7 +49,7 @@ cargo clippy -p agent-eval --all-targets -- -D warnings
 cargo test -p agent-eval golden
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates/agent-eval docs

@@ -17,25 +17,25 @@
 - Read: `crates/agent-storage/tests/fixtures/m04_trace_v1.json`
 - Read: `crates/agent-storage/src/compatibility.rs`
 
-- [ ] **Step 1: Review replay fixture contracts**
+- [x] **Step 1: Review replay fixture contracts**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-core/tests/evidence_replay_verification.rs`
 
-- [ ] **Step 1: Add replay evidence verification tests**
+- [x] **Step 1: Add replay evidence verification tests**
 
 ### Task 3: Implement Verification
 
 **Files:**
 - Modify: `crates/agent-core/src/observability.rs`
 
-- [ ] **Step 1: Add verification report and checker**
+- [x] **Step 1: Add verification report and checker**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run final M26 checks**
+- [x] **Step 1: Run final M26 checks**
 
 ```bash
 cargo xtask check
@@ -43,7 +43,7 @@ cargo xtask check
 
 ### Task 5: Update Status and Commit
 
-- [ ] **Step 1: Mark M26 complete and commit**
+- [x] **Step 1: Mark M26 complete and commit**
 
 ```bash
 git add crates docs README.md

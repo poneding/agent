@@ -1,4 +1,4 @@
-use agent_storage::{EventStore, InMemoryEventStore};
+use agent_storage::{EventStore, InMemoryEventStore, ReplayCompatibilityFixture};
 use agent_telemetry::{
     TelemetryExportBundle, TelemetryExportError, TelemetryExportOptions, TelemetryRecord,
     export_telemetry_bundle_at,
@@ -84,6 +84,23 @@ pub struct ReplayEvidenceSummary {
     pub checkpoint_count: usize,
     pub replay_started_count: usize,
     pub replay_completed_count: usize,
+    pub diagnostics: Vec<String>,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct EvidenceReplayVerificationExpectation {
+    pub event_count: Option<usize>,
+    pub checkpoint_count: Option<usize>,
+    pub audit_record_count: Option<usize>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct EvidenceReplayVerificationReport {
+    pub replayable: bool,
+    pub source_event_count: usize,
+    pub source_checkpoint_count: usize,
+    pub regenerated_trace_count: usize,
+    pub regenerated_audit_count: usize,
     pub diagnostics: Vec<String>,
 }
 
@@ -173,6 +190,74 @@ pub fn build_observability_evidence_at(
     })
 }
 
+pub fn verify_observability_replay_fixture(
+    fixture: &ReplayCompatibilityFixture,
+) -> Result<EvidenceReplayVerificationReport, ObservabilityEvidenceError> {
+    verify_observability_evidence_replay(
+        &fixture.events,
+        EvidenceReplayVerificationExpectation {
+            event_count: Some(fixture.expected.event_count),
+            checkpoint_count: Some(fixture.expected.checkpoint_count),
+            audit_record_count: Some(fixture.expected.event_count),
+        },
+    )
+}
+
+pub fn verify_observability_evidence_replay(
+    events: &[RuntimeEvent],
+    expectation: EvidenceReplayVerificationExpectation,
+) -> Result<EvidenceReplayVerificationReport, ObservabilityEvidenceError> {
+    let evidence = build_observability_evidence(
+        events,
+        &[],
+        ObservabilityEvidenceOptions {
+            include_telemetry: false,
+            ..ObservabilityEvidenceOptions::default()
+        },
+    )?;
+    let source_checkpoint_count = count_checkpoint_events(events);
+    let mut diagnostics = evidence.diagnostics.clone();
+    let mut mismatch = false;
+
+    if let Some(expected) = expectation.event_count {
+        if expected != events.len() {
+            mismatch = true;
+            diagnostics.push(format!(
+                "event count mismatch: expected {expected}, regenerated {}",
+                events.len()
+            ));
+        }
+    }
+
+    if let Some(expected) = expectation.checkpoint_count {
+        if expected != source_checkpoint_count {
+            mismatch = true;
+            diagnostics.push(format!(
+                "checkpoint count mismatch: expected {expected}, regenerated {source_checkpoint_count}"
+            ));
+        }
+    }
+
+    if let Some(expected) = expectation.audit_record_count {
+        if expected != evidence.summary.audit_records {
+            mismatch = true;
+            diagnostics.push(format!(
+                "audit record count mismatch: expected {expected}, regenerated {}",
+                evidence.summary.audit_records
+            ));
+        }
+    }
+
+    Ok(EvidenceReplayVerificationReport {
+        replayable: evidence.replay.replayable && !mismatch,
+        source_event_count: events.len(),
+        source_checkpoint_count,
+        regenerated_trace_count: evidence.summary.trace_entries,
+        regenerated_audit_count: evidence.summary.audit_records,
+        diagnostics,
+    })
+}
+
 struct EventSelection {
     conversation_id: Option<ConversationId>,
     events: Vec<RuntimeEvent>,
@@ -223,6 +308,13 @@ fn unique_conversation_count(events: &[RuntimeEvent]) -> usize {
         }
     }
     conversations.len()
+}
+
+fn count_checkpoint_events(events: &[RuntimeEvent]) -> usize {
+    events
+        .iter()
+        .filter(|event| matches!(event.payload, RuntimeEventPayload::CheckpointRecorded(_)))
+        .count()
 }
 
 fn build_trace_evidence(

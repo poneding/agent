@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M25 are implemented. M26 is in progress, adding redacted observability evidence bundles and CLI/Desktop debug surfaces.
+M01-M26 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, and replay verification.
 
 ## Core Ideas
 
@@ -135,8 +135,8 @@ Outputs are written to `target/agent-release/`:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M26-04-ui-observability-snapshots.spec.md)
-- [Latest completed plan](docs/plans/M26-04-ui-observability-snapshots.plan.md)
+- [Latest completed spec](docs/specs/M26-05-replay-evidence-verification.spec.md)
+- [Latest completed plan](docs/plans/M26-05-replay-evidence-verification.plan.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

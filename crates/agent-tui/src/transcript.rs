@@ -179,6 +179,20 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::ObservabilitySnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "observability",
+                format!(
+                    "events={} trace={} audit={} telemetry={} replayable={} diagnostics={}",
+                    snapshot.event_count,
+                    snapshot.trace_count,
+                    snapshot.audit_count,
+                    snapshot.telemetry_count,
+                    snapshot.replayable,
+                    snapshot.diagnostics.len()
+                ),
+                false,
+            )),
             UiJsonFrame::Done { event_count } => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "done",

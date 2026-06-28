@@ -219,7 +219,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M26-02 implementation | Complete |
 | M26-03 implementation | Complete |
 | M26-04 implementation | Complete |
-| M26 implementation | In progress |
+| M26-05 implementation | Complete |
+| M26 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -530,12 +531,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M26-05 Replay Evidence Verification`.
+Current implementation focus: `M26 complete; next milestone selection`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M26-04-ui-observability-snapshots.spec.md`
-- `docs/plans/M26-04-ui-observability-snapshots.plan.md`
+- `docs/specs/M26-05-replay-evidence-verification.spec.md`
+- `docs/plans/M26-05-replay-evidence-verification.plan.md`
 
 Most recent completed technical design documents:
 
@@ -544,5 +545,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M26-05-replay-evidence-verification.spec.md`
-- `docs/plans/M26-05-replay-evidence-verification.plan.md`
+- To be selected after M26 observability evidence review.

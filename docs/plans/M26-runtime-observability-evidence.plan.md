@@ -67,7 +67,7 @@ Expose text and JSON evidence outputs without raw secret leakage.
 
 Normalize evidence summaries for TUI/Desktop bridge consumers.
 
-- [ ] **Step 5: Implement replay evidence verification**
+- [x] **Step 5: Implement replay evidence verification**
 
 Prove evidence can be regenerated from event logs and replay fixtures.
 
@@ -78,7 +78,7 @@ Prove evidence can be regenerated from event logs and replay fixtures.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M26-runtime-observability-evidence.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -88,11 +88,11 @@ cargo xtask check
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M26 complete**
+- [x] **Step 2: Mark M26 complete**
 
 Update milestone status and record the next implementation focus.
 
-- [ ] **Step 3: Commit M26 completion**
+- [x] **Step 3: Commit M26 completion**
 
 Run:
 

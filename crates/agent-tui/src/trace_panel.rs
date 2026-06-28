@@ -160,6 +160,19 @@ impl TracePanelState {
                     snapshot.diagnostic_count
                 ),
             )),
+            UiJsonFrame::ObservabilitySnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "observability",
+                format!(
+                    "events={} trace={} audit={} telemetry={} replayable={} diagnostics={}",
+                    snapshot.event_count,
+                    snapshot.trace_count,
+                    snapshot.audit_count,
+                    snapshot.telemetry_count,
+                    snapshot.replayable,
+                    snapshot.diagnostics.len()
+                ),
+            )),
             UiJsonFrame::Done { event_count } => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "done",

@@ -2,7 +2,7 @@ use agent_tui::{TranscriptItemKind, TranscriptState};
 use agent_types::{ConversationId, CorrelationId, EventId, SchemaVersion, Timestamp};
 use agent_ui_bridge::{
     UiApprovalPreviewSummary, UiApprovalRequest, UiDiagnosticLevel, UiEventEnvelope,
-    UiEventPayload, UiJsonFrame,
+    UiEventPayload, UiJsonFrame, UiObservabilitySnapshot,
 };
 
 fn event(payload: UiEventPayload) -> UiJsonFrame {
@@ -120,6 +120,28 @@ fn transcript_converts_error_frames_to_diagnostics() {
     assert_eq!(transcript.items[0].kind, TranscriptItemKind::Diagnostic);
     assert_eq!(transcript.items[0].title, "bridge.error");
     assert!(transcript.items[0].body.contains("connection dropped"));
+}
+
+#[test]
+fn transcript_records_observability_snapshot_as_progress() {
+    let mut transcript = TranscriptState::default();
+
+    transcript.reduce_frame(UiJsonFrame::ObservabilitySnapshot(
+        UiObservabilitySnapshot {
+            schema_version: 1,
+            event_count: 31,
+            trace_count: 12,
+            audit_count: 31,
+            telemetry_count: 2,
+            replayable: true,
+            diagnostics: Vec::new(),
+        },
+    ));
+
+    assert_eq!(transcript.items.len(), 1);
+    assert_eq!(transcript.items[0].kind, TranscriptItemKind::Progress);
+    assert_eq!(transcript.items[0].title, "observability");
+    assert!(transcript.items[0].body.contains("trace=12"));
 }
 
 #[test]

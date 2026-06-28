@@ -67,9 +67,11 @@ pub use model_runtime::{
     ModelRuntimeResolver,
 };
 pub use observability::{
+    EvidenceReplayVerificationExpectation, EvidenceReplayVerificationReport,
     OBSERVABILITY_EVIDENCE_SCHEMA_VERSION, ObservabilityEvidenceBundle, ObservabilityEvidenceError,
     ObservabilityEvidenceOptions, ObservabilityEvidenceSummary, ReplayEvidenceSummary,
     build_observability_evidence, build_observability_evidence_at,
+    verify_observability_evidence_replay, verify_observability_replay_fixture,
 };
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
 pub use runtime::RuntimeIds;

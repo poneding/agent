@@ -6,7 +6,8 @@ use agent_types::{
     TurnState,
 };
 use agent_ui_bridge::{
-    UiDiagnosticLevel, UiEventEnvelope, UiEventPayload, UiJsonFrame, UiTaskNotification,
+    UiDiagnosticLevel, UiEventEnvelope, UiEventPayload, UiJsonFrame, UiObservabilitySnapshot,
+    UiTaskNotification,
 };
 
 fn event(payload: UiEventPayload) -> UiJsonFrame {
@@ -135,4 +136,26 @@ fn trace_panel_includes_task_notifications_as_trace_entries() {
             .summary
             .contains("background agent started")
     );
+}
+
+#[test]
+fn trace_panel_includes_observability_snapshot() {
+    let mut panel = TracePanelState::default();
+
+    panel.reduce_frame(&UiJsonFrame::ObservabilitySnapshot(
+        UiObservabilitySnapshot {
+            schema_version: 1,
+            event_count: 31,
+            trace_count: 12,
+            audit_count: 31,
+            telemetry_count: 2,
+            replayable: true,
+            diagnostics: vec!["no checkpoints".to_string()],
+        },
+    ));
+
+    assert_eq!(panel.entries.len(), 1);
+    assert_eq!(panel.entries[0].title, "observability");
+    assert!(panel.entries[0].summary.contains("events=31"));
+    assert!(panel.entries[0].summary.contains("replayable=true"));
 }

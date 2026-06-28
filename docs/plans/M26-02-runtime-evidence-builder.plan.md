@@ -18,7 +18,7 @@
 - Read: `crates/agent-core/src/audit_export.rs`
 - Read: `crates/agent-core/tests/local_coding_e2e.rs`
 
-- [ ] **Step 1: Review evidence composition boundaries**
+- [x] **Step 1: Review evidence composition boundaries**
 
 Expected: core composes but does not render UI.
 
@@ -27,7 +27,7 @@ Expected: core composes but does not render UI.
 **Files:**
 - Create: `crates/agent-core/tests/observability_evidence.rs`
 
-- [ ] **Step 1: Add evidence builder tests**
+- [x] **Step 1: Add evidence builder tests**
 
 Cover serde shape, local coding summary, invalid options, and secret leakage prevention.
 
@@ -37,13 +37,13 @@ Cover serde shape, local coding summary, invalid options, and secret leakage pre
 - Create: `crates/agent-core/src/observability.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add bundle contracts**
+- [x] **Step 1: Add bundle contracts**
 
 Implement options, summaries, replay evidence metadata, errors, and export function.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 ```bash
 cargo test -p agent-core observability_evidence
@@ -52,7 +52,7 @@ cargo clippy -p agent-core --all-targets -- -D warnings
 
 ### Task 5: Update Status and Commit
 
-- [ ] **Step 1: Mark M26-02 complete and commit**
+- [x] **Step 1: Mark M26-02 complete and commit**
 
 ```bash
 git add crates/agent-core docs

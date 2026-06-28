@@ -13,6 +13,7 @@ agent-policy = { path = "../agent-policy" }
 agent-sandbox = { path = "../agent-sandbox" }
 agent-scheduler = { path = "../agent-scheduler" }
 agent-storage = { path = "../agent-storage" }
+agent-telemetry = { path = "../agent-telemetry" }
 agent-tool = { path = "../agent-tool" }
 agent-types = { path = "../agent-types" }
 async-trait = "0.1"

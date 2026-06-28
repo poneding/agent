@@ -1,5 +1,6 @@
 use agent_storage::{EventStore, StorageError};
 use agent_types::{ConversationId, RuntimeEventPayload};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
 
@@ -12,7 +13,7 @@ pub struct TraceQuery {
     pub include_final: bool,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TraceEntry {
     pub seq: u64,
     pub kind: String,

@@ -55,7 +55,7 @@ Each plan names files, focused tests, verification commands, and commit points.
 
 Add redacted, bounded, filterable telemetry export bundles.
 
-- [ ] **Step 2: Implement runtime evidence builder**
+- [x] **Step 2: Implement runtime evidence builder**
 
 Compose trace entries, audit bundles, telemetry bundles, and replay summaries.
 

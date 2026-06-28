@@ -11,6 +11,7 @@ pub mod extension;
 pub mod idempotency;
 pub mod local_coding;
 pub mod model_runtime;
+pub mod observability;
 pub mod recovery;
 pub mod runtime;
 pub mod settings;
@@ -64,6 +65,11 @@ pub use model_runtime::{
     ConfiguredTurnStream, ConfiguredTurnStreamOptions, ModelInvocationAttempt,
     ModelInvocationError, ModelInvocationOutcome, ModelInvocationRunner, ModelRuntimeError,
     ModelRuntimeResolver,
+};
+pub use observability::{
+    OBSERVABILITY_EVIDENCE_SCHEMA_VERSION, ObservabilityEvidenceBundle, ObservabilityEvidenceError,
+    ObservabilityEvidenceOptions, ObservabilityEvidenceSummary, ReplayEvidenceSummary,
+    build_observability_evidence, build_observability_evidence_at,
 };
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
 pub use runtime::RuntimeIds;

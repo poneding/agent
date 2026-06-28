@@ -239,6 +239,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M28-04 implementation | Complete |
 | M28-05 implementation | Complete |
 | M28 implementation | Complete |
+| M29 technical design | Complete |
+| M29 slice specs | Complete for M29-01 through M29-05 |
+| M29 slice plans | Complete for M29-01 through M29-05 |
+| M29 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -272,6 +276,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M26 Runtime Observability Evidence | `docs/specs/M26-runtime-observability-evidence.spec.md` | `docs/plans/M26-runtime-observability-evidence.plan.md` | Turn traces, telemetry, audit exports, and replay records into redacted evidence bundles for CLI/Desktop debugging and support. |
 | M27 Runtime Evaluation Harness | `docs/specs/M27-runtime-evaluation-harness.spec.md` | `docs/plans/M27-runtime-evaluation-harness.plan.md` | Turn replay fixtures, fake model scenarios, local coding workflows, and observability evidence into deterministic regression evaluations. |
 | M28 Evaluation Corpus and Quality Gates | `docs/specs/M28-evaluation-corpus-quality-gates.spec.md` | `docs/plans/M28-evaluation-corpus-quality-gates.plan.md` | Promote single-scenario evaluations into managed suites, built-in corpora, golden updates, CLI suite commands, and CI gates. |
+| M29 CI Quality Evidence and Release Gates | `docs/specs/M29-ci-quality-evidence-release-gates.spec.md` | `docs/plans/M29-ci-quality-evidence-release-gates.plan.md` | Turn local checks, evaluation suites, and release smoke commands into one auditable CI quality gate with durable evidence artifacts. |
 
 ## M01 Slice Index
 
@@ -571,9 +576,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M28-04 CLI Eval Suite Commands | `docs/specs/M28-04-cli-eval-suite-commands.spec.md` | `docs/plans/M28-04-cli-eval-suite-commands.plan.md` | CLI suite list, validate, run, update-goldens, text/JSON output, and exit codes. |
 | M28-05 Xtask Eval Gate | `docs/specs/M28-05-xtask-eval-gate.spec.md` | `docs/plans/M28-05-xtask-eval-gate.plan.md` | `cargo xtask eval` gate for the default corpus and final M28 checks. |
 
+## M29 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M29-00 CI Quality Technical Design | `docs/specs/M29-00-ci-quality-technical-design.spec.md` | `docs/plans/M29-00-ci-quality-technical-design.plan.md` | Architecture baseline for quality gate reports, command ordering, CI workflow boundaries, privacy, and verification. |
+| M29-01 Quality Gate Report Contracts | `docs/specs/M29-01-quality-gate-report-contracts.spec.md` | `docs/plans/M29-01-quality-gate-report-contracts.plan.md` | Typed quality gate report contracts, status aggregation, JSON shape, and text summaries. |
+| M29-02 Xtask CI Runner | `docs/specs/M29-02-xtask-ci-runner.spec.md` | `docs/plans/M29-02-xtask-ci-runner.plan.md` | `cargo xtask ci` runner that writes evidence reports and propagates failures. |
+| M29-03 GitHub Actions Workflow | `docs/specs/M29-03-github-actions-workflow.spec.md` | `docs/plans/M29-03-github-actions-workflow.plan.md` | Hosted workflow invoking the shared `xtask ci` gate and uploading evidence artifacts. |
+| M29-04 Quality Artifact Retention | `docs/specs/M29-04-quality-artifact-retention.spec.md` | `docs/plans/M29-04-quality-artifact-retention.plan.md` | Stable quality evidence artifact paths, summaries, and partial failure reports. |
+| M29-05 Release Readiness Docs | `docs/specs/M29-05-release-readiness-docs.spec.md` | `docs/plans/M29-05-release-readiness-docs.plan.md` | README, milestone status, and final verification docs for release quality gates. |
+
 ## Active Work
 
-Current implementation focus: M28 complete; next milestone is not yet planned.
+Current implementation focus: `M29-01 quality gate report contracts`.
 
 Most recent completed implementation documents:
 
@@ -582,7 +598,10 @@ Most recent completed implementation documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M28-00-evaluation-corpus-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M28-00-evaluation-corpus-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M29-00-ci-quality-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M29-00-ci-quality-technical-design.plan.md`
 
-Next implementation slice: to be defined with the next milestone.
+Next implementation slice:
+
+- `docs/specs/M29-01-quality-gate-report-contracts.spec.md`
+- `docs/plans/M29-01-quality-gate-report-contracts.plan.md`

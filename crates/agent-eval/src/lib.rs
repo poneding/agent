@@ -2,6 +2,8 @@
 //! Evaluation harness contracts for runtime regression scenarios.
 
 pub mod manifest;
+pub mod report;
+pub mod runner;
 
 pub use manifest::{
     EVAL_SCENARIO_SCHEMA_VERSION, EvalDiagnostic, EvalDiagnosticSeverity, EvalExpectations,
@@ -9,6 +11,11 @@ pub use manifest::{
     EvalScenarioManifest, ValidatedEvalFixtures, ValidatedEvalScenario, parse_eval_scenario_json,
     validate_eval_scenario,
 };
+pub use report::{
+    EVAL_RUN_REPORT_SCHEMA_VERSION, EvalEvidenceSource, EvalEvidenceSummary, EvalRunReport,
+    EvalRunSummary, EvalScenarioReport, EvalScenarioStatus,
+};
+pub use runner::{EvalRunnerOptions, EvalStrictness, run_eval_scenario, run_eval_scenarios};
 
 /// Returns this crate's stable package name.
 #[must_use]

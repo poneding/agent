@@ -225,6 +225,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M27 slice specs | Complete for M27-01 through M27-05 |
 | M27 slice plans | Complete for M27-01 through M27-05 |
 | M27-01 implementation | Complete |
+| M27-02 implementation | Complete |
 | M27 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -548,12 +549,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M27-02 scenario runner core`.
+Current implementation focus: `M27-03 golden evidence comparison`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M27-01-scenario-manifest-contracts.spec.md`
-- `docs/plans/M27-01-scenario-manifest-contracts.plan.md`
+- `docs/specs/M27-02-scenario-runner-core.spec.md`
+- `docs/plans/M27-02-scenario-runner-core.plan.md`
 
 Most recent completed technical design documents:
 
@@ -562,5 +563,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M27-02-scenario-runner-core.spec.md`
-- `docs/plans/M27-02-scenario-runner-core.plan.md`
+- `docs/specs/M27-03-golden-evidence-comparison.spec.md`
+- `docs/plans/M27-03-golden-evidence-comparison.plan.md`

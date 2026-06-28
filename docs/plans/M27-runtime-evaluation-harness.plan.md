@@ -55,7 +55,7 @@ Each plan names files, focused tests, verification commands, and commit points.
 
 Add `agent-eval` crate, versioned scenario manifests, validation, path normalization, and serde tests.
 
-- [ ] **Step 2: Implement scenario runner core**
+- [x] **Step 2: Implement scenario runner core**
 
 Run deterministic replay, fake-model, local-coding, and evidence-only scenarios into typed reports.
 

@@ -12,24 +12,28 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M29-01 spec and existing xtask command plan code**
+- [x] **Step 1: Read M29-01 spec and existing xtask command plan code**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add report serde, aggregation, summary, and redaction tests**
+- [x] **Step 1: Add report serde, aggregation, summary, and redaction tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add quality gate structs and status aggregation**
-- [ ] **Step 2: Add summary renderer and redaction helper**
+- [x] **Step 1: Add quality gate structs and status aggregation**
+- [x] **Step 2: Add summary renderer and redaction helper**
 
 ### Task 4: Verify and Commit
+
+- [x] **Step 1: Run focused checks**
 
 ```bash
 cargo fmt --all -- --check
 cargo clippy -p xtask --all-targets -- -D warnings
 cargo test -p xtask quality_gate
 ```
+
+- [x] **Step 2: Commit**
 
 ```bash
 git add xtask docs

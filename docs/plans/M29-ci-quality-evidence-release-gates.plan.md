@@ -51,7 +51,7 @@ Each plan names files, focused tests, verification commands, and commit points.
 - Execute: `docs/plans/M29-04-quality-artifact-retention.plan.md`
 - Execute: `docs/plans/M29-05-release-readiness-docs.plan.md`
 
-- [ ] **Step 1: Add quality gate report contracts**
+- [x] **Step 1: Add quality gate report contracts**
 
 Add typed report structs, status aggregation, and JSON/text rendering tests.
 

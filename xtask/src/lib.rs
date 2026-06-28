@@ -32,6 +32,171 @@ pub struct CargoCommand {
     pub args: Vec<String>,
 }
 
+pub const QUALITY_GATE_REPORT_SCHEMA_VERSION: u32 = 1;
+const QUALITY_GATE_MAX_MESSAGE_CHARS: usize = 256;
+const QUALITY_GATE_REDACTED: &str = "[redacted]";
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum QualityGateStatus {
+    Passed,
+    Failed,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum QualityGateStepStatus {
+    Passed,
+    Failed,
+    Skipped,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct QualityGateStepReport {
+    pub name: String,
+    pub command: Vec<String>,
+    pub status: QualityGateStepStatus,
+    pub exit_code: Option<i32>,
+    pub duration_ms: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+}
+
+impl QualityGateStepReport {
+    #[must_use]
+    pub fn new(
+        name: impl Into<String>,
+        command: Vec<String>,
+        status: QualityGateStepStatus,
+        exit_code: Option<i32>,
+        duration_ms: u64,
+        message: Option<String>,
+    ) -> Self {
+        Self {
+            name: redact_quality_gate_text(&name.into()),
+            command: command
+                .into_iter()
+                .map(|arg| redact_quality_gate_text(&arg))
+                .collect(),
+            status,
+            exit_code,
+            duration_ms,
+            message: message.map(|message| redact_quality_gate_text(&message)),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct QualityGateReport {
+    pub schema_version: u32,
+    pub run_id: String,
+    pub status: QualityGateStatus,
+    pub steps: Vec<QualityGateStepReport>,
+}
+
+impl QualityGateReport {
+    #[must_use]
+    pub fn from_steps(run_id: impl Into<String>, steps: Vec<QualityGateStepReport>) -> Self {
+        let status = if steps
+            .iter()
+            .any(|step| step.status == QualityGateStepStatus::Failed)
+        {
+            QualityGateStatus::Failed
+        } else {
+            QualityGateStatus::Passed
+        };
+
+        Self {
+            schema_version: QUALITY_GATE_REPORT_SCHEMA_VERSION,
+            run_id: redact_quality_gate_text(&run_id.into()),
+            status,
+            steps,
+        }
+    }
+}
+
+#[must_use]
+pub fn render_quality_gate_summary(report: &QualityGateReport) -> String {
+    let mut passed = 0;
+    let mut failed = 0;
+    let mut skipped = 0;
+    for step in &report.steps {
+        match step.status {
+            QualityGateStepStatus::Passed => passed += 1,
+            QualityGateStepStatus::Failed => failed += 1,
+            QualityGateStepStatus::Skipped => skipped += 1,
+        }
+    }
+
+    let mut output = format!(
+        "Quality gate {} status={}\ntotal={} passed={} failed={} skipped={}\n",
+        report.run_id,
+        quality_gate_status_label(&report.status),
+        report.steps.len(),
+        passed,
+        failed,
+        skipped
+    );
+    for step in &report.steps {
+        output.push_str(&format!(
+            "{} status={} exit={} duration_ms={}\n",
+            step.name,
+            quality_gate_step_status_label(&step.status),
+            step.exit_code
+                .map_or_else(|| "-".to_string(), |code| code.to_string()),
+            step.duration_ms
+        ));
+        if let Some(message) = &step.message {
+            output.push_str(&format!("  message={message}\n"));
+        }
+    }
+    output
+}
+
+fn quality_gate_status_label(status: &QualityGateStatus) -> &'static str {
+    match status {
+        QualityGateStatus::Passed => "passed",
+        QualityGateStatus::Failed => "failed",
+    }
+}
+
+fn quality_gate_step_status_label(status: &QualityGateStepStatus) -> &'static str {
+    match status {
+        QualityGateStepStatus::Passed => "passed",
+        QualityGateStepStatus::Failed => "failed",
+        QualityGateStepStatus::Skipped => "skipped",
+    }
+}
+
+fn redact_quality_gate_text(value: &str) -> String {
+    if is_secret_like(value) {
+        return QUALITY_GATE_REDACTED.to_string();
+    }
+    bound_chars(value, QUALITY_GATE_MAX_MESSAGE_CHARS)
+}
+
+fn bound_chars(value: &str, max_chars: usize) -> String {
+    let mut chars = value.chars();
+    let bounded = chars.by_ref().take(max_chars).collect::<String>();
+    if chars.next().is_some() {
+        format!("{bounded}...")
+    } else {
+        bounded
+    }
+}
+
+fn is_secret_like(value: &str) -> bool {
+    let normalized = value.to_ascii_lowercase().replace(['-', '.'], "_");
+    normalized.contains("secret")
+        || normalized.contains("token")
+        || normalized.contains("password")
+        || normalized.contains("credential")
+        || normalized.contains("private_key")
+        || normalized.contains("api_key")
+        || normalized.contains("apikey")
+        || normalized.contains("sk_")
+}
+
 impl CargoCommand {
     fn new(args: impl IntoIterator<Item = &'static str>) -> Self {
         Self {

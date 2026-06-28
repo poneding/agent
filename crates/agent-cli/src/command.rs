@@ -23,8 +23,9 @@ use agent_core::{
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
-    EvalScenarioStatus, EvalStrictness, ValidatedEvalScenario, parse_eval_scenario_json,
-    run_eval_scenarios, write_eval_artifacts,
+    EvalScenarioStatus, EvalStrictness, EvalSuiteRunnerOptions, GoldenUpdateOptions,
+    ValidatedEvalScenario, ValidatedEvalSuite, parse_eval_scenario_json, parse_eval_suite_json,
+    run_eval_scenarios, run_eval_suite, update_suite_goldens, write_eval_artifacts,
 };
 use agent_memory::{
     InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
@@ -187,6 +188,25 @@ pub enum EvalCliCommand {
         manifest: PathBuf,
         strictness: EvalStrictness,
         output_dir: Option<PathBuf>,
+    },
+    Suite(EvalSuiteCliCommand),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EvalSuiteCliCommand {
+    List {
+        suite: PathBuf,
+    },
+    Validate {
+        suite: PathBuf,
+    },
+    Run {
+        suite: PathBuf,
+        output_dir: Option<PathBuf>,
+    },
+    UpdateGoldens {
+        suite: PathBuf,
+        dry_run: bool,
     },
 }
 
@@ -856,10 +876,34 @@ where
             manifest: parse_eval_manifest_arg(args, "eval validate")?,
         },
         "run" => parse_eval_run(args)?,
+        "suite" => EvalCliCommand::Suite(parse_eval_suite_command(args)?),
         _ => return Err(CliError::UnknownArgument(format!("eval {subcommand}"))),
     };
 
     Ok(CliCommand::Eval(command))
+}
+
+fn parse_eval_suite_command<I>(args: &mut I) -> Result<EvalSuiteCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("eval suite".to_string()));
+    };
+
+    match subcommand.as_str() {
+        "list" => Ok(EvalSuiteCliCommand::List {
+            suite: parse_eval_suite_arg(args, "eval suite list")?,
+        }),
+        "validate" => Ok(EvalSuiteCliCommand::Validate {
+            suite: parse_eval_suite_arg(args, "eval suite validate")?,
+        }),
+        "run" => parse_eval_suite_run(args),
+        "update-goldens" => parse_eval_suite_update_goldens(args),
+        _ => Err(CliError::UnknownArgument(format!(
+            "eval suite {subcommand}"
+        ))),
+    }
 }
 
 fn parse_eval_manifest_arg<I>(args: &mut I, command_name: &str) -> Result<PathBuf, CliError>
@@ -874,6 +918,20 @@ where
         }
     }
     manifest.ok_or_else(|| CliError::MissingValue(format!("{command_name} --manifest")))
+}
+
+fn parse_eval_suite_arg<I>(args: &mut I, command_name: &str) -> Result<PathBuf, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut suite = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--suite" => suite = Some(PathBuf::from(take_flag_value(args, &arg)?)),
+            _ => return Err(CliError::UnknownArgument(format!("{command_name} {arg}"))),
+        }
+    }
+    suite.ok_or_else(|| CliError::MissingValue(format!("{command_name} --suite")))
 }
 
 fn parse_eval_run<I>(args: &mut I) -> Result<EvalCliCommand, CliError>
@@ -899,6 +957,54 @@ where
             .ok_or_else(|| CliError::MissingValue("eval run --manifest".to_string()))?,
         strictness,
         output_dir,
+    })
+}
+
+fn parse_eval_suite_run<I>(args: &mut I) -> Result<EvalSuiteCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut suite = None;
+    let mut output_dir = None;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--suite" => suite = Some(PathBuf::from(take_flag_value(args, &arg)?)),
+            "--out-dir" => output_dir = Some(PathBuf::from(take_flag_value(args, &arg)?)),
+            _ => return Err(CliError::UnknownArgument(format!("eval suite run {arg}"))),
+        }
+    }
+
+    Ok(EvalSuiteCliCommand::Run {
+        suite: suite.ok_or_else(|| CliError::MissingValue("eval suite run --suite".to_string()))?,
+        output_dir,
+    })
+}
+
+fn parse_eval_suite_update_goldens<I>(args: &mut I) -> Result<EvalSuiteCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut suite = None;
+    let mut dry_run = false;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--suite" => suite = Some(PathBuf::from(take_flag_value(args, &arg)?)),
+            "--dry-run" => dry_run = true,
+            _ => {
+                return Err(CliError::UnknownArgument(format!(
+                    "eval suite update-goldens {arg}"
+                )));
+            }
+        }
+    }
+
+    Ok(EvalSuiteCliCommand::UpdateGoldens {
+        suite: suite.ok_or_else(|| {
+            CliError::MissingValue("eval suite update-goldens --suite".to_string())
+        })?,
+        dry_run,
     })
 }
 
@@ -1356,6 +1462,7 @@ pub fn render_eval_command(command: EvalCliCommand, output_mode: OutputMode) -> 
             strictness,
             output_dir,
         } => render_eval_run_command(&manifest, strictness, output_dir.as_deref(), output_mode),
+        EvalCliCommand::Suite(command) => render_eval_suite_command(command, output_mode),
     }
 }
 
@@ -1488,6 +1595,225 @@ fn render_eval_run_command(
     }
 }
 
+fn render_eval_suite_command(command: EvalSuiteCliCommand, output_mode: OutputMode) -> CliOutput {
+    match command {
+        EvalSuiteCliCommand::List { suite } => render_eval_suite_list_command(&suite, output_mode),
+        EvalSuiteCliCommand::Validate { suite } => {
+            render_eval_suite_validate_command(&suite, output_mode)
+        }
+        EvalSuiteCliCommand::Run { suite, output_dir } => {
+            render_eval_suite_run_command(&suite, output_dir.as_deref(), output_mode)
+        }
+        EvalSuiteCliCommand::UpdateGoldens { suite, dry_run } => {
+            render_eval_suite_update_goldens_command(&suite, dry_run, output_mode)
+        }
+    }
+}
+
+fn render_eval_suite_list_command(suite_path: &Path, output_mode: OutputMode) -> CliOutput {
+    match load_eval_suite(suite_path) {
+        Ok(suite) => match output_mode {
+            OutputMode::Text => CliOutput::exit(render_eval_suite_list_text(&suite)),
+            OutputMode::Json => CliOutput::exit(json_value_frame_line(serde_json::json!({
+                "type": "eval_suite_list",
+                "data": render_eval_suite_json(&suite),
+            }))),
+        },
+        Err(error) => render_eval_error(
+            "eval_suite_list_failed",
+            "eval suite list failed",
+            error,
+            output_mode,
+        ),
+    }
+}
+
+fn render_eval_suite_validate_command(suite_path: &Path, output_mode: OutputMode) -> CliOutput {
+    match load_eval_suite(suite_path) {
+        Ok(suite) => match output_mode {
+            OutputMode::Text => CliOutput::exit(format!(
+                "Eval suite {} valid\nscenarios={}\n",
+                suite.manifest.id,
+                suite.scenarios.len()
+            )),
+            OutputMode::Json => CliOutput::exit(json_value_frame_line(serde_json::json!({
+                "type": "eval_suite_validation",
+                "data": {
+                    "valid": true,
+                    "suite": render_eval_suite_json(&suite),
+                    "diagnostics": [],
+                },
+            }))),
+        },
+        Err(error) => match output_mode {
+            OutputMode::Text => CliOutput::failure(
+                format!("eval suite validation failed: {}\n", error.message),
+                2,
+            ),
+            OutputMode::Json => CliOutput::failure(
+                json_value_frame_line(serde_json::json!({
+                    "type": "eval_suite_validation",
+                    "data": {
+                        "valid": false,
+                        "diagnostics": [{
+                            "severity": "error",
+                            "code": "eval_suite_validation_failed",
+                            "message": error.message,
+                        }],
+                    },
+                })),
+                2,
+            ),
+        },
+    }
+}
+
+fn render_eval_suite_run_command(
+    suite_path: &Path,
+    output_dir: Option<&Path>,
+    output_mode: OutputMode,
+) -> CliOutput {
+    let suite = match load_eval_suite(suite_path) {
+        Ok(suite) => suite,
+        Err(error) => {
+            return render_eval_error(
+                "eval_suite_run_failed",
+                "eval suite run failed",
+                error,
+                output_mode,
+            );
+        }
+    };
+    let report = run_eval_suite(
+        &suite,
+        EvalSuiteRunnerOptions {
+            run_id: format!("eval-suite-{}", suite.manifest.id),
+        },
+    );
+    let artifacts = match output_dir {
+        Some(output_dir) => match write_eval_run_artifacts(&report, output_dir) {
+            Ok(artifacts) => Some(artifacts),
+            Err(error) => {
+                return render_eval_error(
+                    "eval_suite_artifact_failed",
+                    "eval suite artifact failed",
+                    error,
+                    output_mode,
+                );
+            }
+        },
+        None => None,
+    };
+    let status_code = eval_run_status_code(&report);
+
+    match output_mode {
+        OutputMode::Text => {
+            let mut output = format!("Eval suite {}\n", suite.manifest.id);
+            output.push_str(&render_eval_run_text(&report));
+            if let Some(artifacts) = &artifacts {
+                output.push_str(&render_eval_artifacts_text(artifacts));
+            }
+            if status_code == 0 {
+                CliOutput::exit(output)
+            } else {
+                CliOutput::failure(output, status_code)
+            }
+        }
+        OutputMode::Json => {
+            let output = json_value_frame_line(serde_json::json!({
+                "type": "eval_suite_run",
+                "data": {
+                    "suite_id": suite.manifest.id,
+                    "report": report,
+                    "artifacts": artifacts,
+                },
+            }));
+            if status_code == 0 {
+                CliOutput::exit(output)
+            } else {
+                CliOutput::failure(output, status_code)
+            }
+        }
+    }
+}
+
+fn render_eval_suite_update_goldens_command(
+    suite_path: &Path,
+    dry_run: bool,
+    output_mode: OutputMode,
+) -> CliOutput {
+    let suite = match load_eval_suite(suite_path) {
+        Ok(suite) => suite,
+        Err(error) => {
+            return render_eval_error(
+                "eval_suite_update_goldens_failed",
+                "eval suite update-goldens failed",
+                error,
+                output_mode,
+            );
+        }
+    };
+    let report = run_eval_suite(
+        &suite,
+        EvalSuiteRunnerOptions {
+            run_id: format!("eval-suite-{}", suite.manifest.id),
+        },
+    );
+    let update = match update_suite_goldens(&suite, &report, GoldenUpdateOptions { dry_run }) {
+        Ok(update) => update,
+        Err(error) => {
+            return render_eval_error(
+                "eval_suite_update_goldens_failed",
+                "eval suite update-goldens failed",
+                EvalCliError::new(error.to_string()),
+                output_mode,
+            );
+        }
+    };
+    let status_code = eval_run_status_code(&report);
+
+    match output_mode {
+        OutputMode::Text => {
+            let mut output = format!(
+                "Eval suite golden update {}\ndry_run={} updated={} unchanged={}\n",
+                suite.manifest.id,
+                yes_no_label(dry_run),
+                update.updated,
+                update.unchanged
+            );
+            for diagnostic in &update.diagnostics {
+                output.push_str(&format!(
+                    "{} {}: {}\n",
+                    eval_diagnostic_severity_label(diagnostic.severity),
+                    diagnostic.code,
+                    diagnostic.message
+                ));
+            }
+            if status_code == 0 {
+                CliOutput::exit(output)
+            } else {
+                CliOutput::failure(output, status_code)
+            }
+        }
+        OutputMode::Json => {
+            let output = json_value_frame_line(serde_json::json!({
+                "type": "eval_suite_golden_update",
+                "data": {
+                    "suite_id": suite.manifest.id,
+                    "dry_run": dry_run,
+                    "update": update,
+                    "report_summary": report.summary,
+                },
+            }));
+            if status_code == 0 {
+                CliOutput::exit(output)
+            } else {
+                CliOutput::failure(output, status_code)
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct EvalCliError {
     message: String,
@@ -1514,6 +1840,69 @@ fn load_eval_scenario(manifest: &Path) -> Result<ValidatedEvalScenario, EvalCliE
         .unwrap_or_else(|| Path::new("."));
     parse_eval_scenario_json(&input, fixture_root)
         .map_err(|error| EvalCliError::new(error.to_string()))
+}
+
+fn load_eval_suite(suite: &Path) -> Result<ValidatedEvalSuite, EvalCliError> {
+    let input = fs::read_to_string(suite).map_err(|error| {
+        EvalCliError::new(format!(
+            "could not read eval suite {}: {error}",
+            suite.display()
+        ))
+    })?;
+    let suite_root = suite
+        .parent()
+        .filter(|path| !path.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    let suite_root = fs::canonicalize(suite_root).map_err(|error| {
+        EvalCliError::new(format!(
+            "could not resolve eval suite root {}: {error}",
+            suite_root.display()
+        ))
+    })?;
+    parse_eval_suite_json(&input, suite_root).map_err(|error| EvalCliError::new(error.to_string()))
+}
+
+fn render_eval_suite_list_text(suite: &ValidatedEvalSuite) -> String {
+    let mut output = format!(
+        "Eval suite {}\nname={}\nscenarios={}\n",
+        suite.manifest.id,
+        suite.manifest.name,
+        suite.scenarios.len()
+    );
+    for (scenario_ref, scenario) in suite.scenario_refs.iter().zip(suite.scenarios.iter()) {
+        output.push_str(&format!(
+            "- {} alias={} kind={} strictness={} name={}\n",
+            scenario.manifest.id,
+            scenario_ref.alias.as_deref().unwrap_or("-"),
+            eval_kind_label(scenario.manifest.kind),
+            eval_strictness_label(scenario_ref.strictness),
+            scenario.manifest.name
+        ));
+    }
+    output
+}
+
+fn render_eval_suite_json(suite: &ValidatedEvalSuite) -> serde_json::Value {
+    let scenarios = suite
+        .scenario_refs
+        .iter()
+        .zip(suite.scenarios.iter())
+        .map(|(scenario_ref, scenario)| {
+            serde_json::json!({
+                "id": scenario.manifest.id,
+                "name": scenario.manifest.name,
+                "kind": eval_kind_label(scenario.manifest.kind),
+                "alias": scenario_ref.alias.as_deref(),
+                "labels": &scenario_ref.labels,
+                "strictness": eval_strictness_label(scenario_ref.strictness),
+            })
+        })
+        .collect::<Vec<_>>();
+    serde_json::json!({
+        "id": suite.manifest.id,
+        "name": suite.manifest.name,
+        "scenarios": scenarios,
+    })
 }
 
 fn write_eval_run_artifacts(
@@ -1641,6 +2030,13 @@ fn eval_diagnostic_severity_label(severity: agent_eval::EvalDiagnosticSeverity) 
         agent_eval::EvalDiagnosticSeverity::Info => "info",
         agent_eval::EvalDiagnosticSeverity::Warning => "warning",
         agent_eval::EvalDiagnosticSeverity::Error => "error",
+    }
+}
+
+fn eval_strictness_label(strictness: EvalStrictness) -> &'static str {
+    match strictness {
+        EvalStrictness::Strict => "strict",
+        EvalStrictness::Warn => "warn",
     }
 }
 

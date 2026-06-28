@@ -8,7 +8,8 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::manifest::{EvalManifestError, ValidatedEvalScenario, parse_eval_scenario_json};
-use crate::runner::EvalStrictness;
+use crate::report::{EVAL_RUN_REPORT_SCHEMA_VERSION, EvalRunReport, EvalRunSummary};
+use crate::runner::{EvalRunnerOptions, EvalStrictness, run_eval_scenario};
 
 pub const EVAL_SUITE_SCHEMA_VERSION: u32 = 1;
 
@@ -47,6 +48,19 @@ pub struct ValidatedEvalSuiteScenarioRef {
     pub labels: Vec<String>,
     pub strictness: EvalStrictness,
     pub normalized_path: Utf8PathBuf,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EvalSuiteRunnerOptions {
+    pub run_id: String,
+}
+
+impl Default for EvalSuiteRunnerOptions {
+    fn default() -> Self {
+        Self {
+            run_id: "eval-suite-run".to_string(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -119,6 +133,35 @@ where
         scenario_refs,
         scenarios,
     })
+}
+
+#[must_use]
+pub fn run_eval_suite(
+    suite: &ValidatedEvalSuite,
+    options: EvalSuiteRunnerOptions,
+) -> EvalRunReport {
+    let reports = suite
+        .scenarios
+        .iter()
+        .zip(suite.scenario_refs.iter())
+        .map(|(scenario, scenario_ref)| {
+            run_eval_scenario(
+                scenario,
+                EvalRunnerOptions {
+                    strictness: scenario_ref.strictness,
+                    run_id: options.run_id.clone(),
+                    max_scenarios: None,
+                },
+            )
+        })
+        .collect::<Vec<_>>();
+    let summary = EvalRunSummary::from_reports(&reports);
+    EvalRunReport {
+        schema_version: EVAL_RUN_REPORT_SCHEMA_VERSION,
+        run_id: options.run_id,
+        scenarios: reports,
+        summary,
+    }
 }
 
 fn validate_scenario_refs(refs: &[EvalSuiteScenarioRef]) -> Result<(), EvalSuiteError> {

@@ -25,8 +25,9 @@ pub use report::{
 };
 pub use runner::{EvalRunnerOptions, EvalStrictness, run_eval_scenario, run_eval_scenarios};
 pub use suite::{
-    EVAL_SUITE_SCHEMA_VERSION, EvalSuiteError, EvalSuiteManifest, EvalSuiteScenarioRef,
-    ValidatedEvalSuite, ValidatedEvalSuiteScenarioRef, parse_eval_suite_json, validate_eval_suite,
+    EVAL_SUITE_SCHEMA_VERSION, EvalSuiteError, EvalSuiteManifest, EvalSuiteRunnerOptions,
+    EvalSuiteScenarioRef, ValidatedEvalSuite, ValidatedEvalSuiteScenarioRef, parse_eval_suite_json,
+    run_eval_suite, validate_eval_suite,
 };
 
 /// Returns this crate's stable package name.

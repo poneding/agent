@@ -12,17 +12,17 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M28-04 spec and current eval CLI commands**
+- [x] **Step 1: Read M28-04 spec and current eval CLI commands**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add real binary tests for suite list/validate/run/update**
+- [x] **Step 1: Add real binary tests for suite list/validate/run/update**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add parser variants**
-- [ ] **Step 2: Delegate to `agent-eval` suite APIs**
-- [ ] **Step 3: Render text and JSON**
+- [x] **Step 1: Add parser variants**
+- [x] **Step 2: Delegate to `agent-eval` suite APIs**
+- [x] **Step 3: Render text and JSON**
 
 ### Task 4: Verify and Commit
 

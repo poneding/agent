@@ -63,7 +63,7 @@ Check in a small suite and fixtures that exercise replay/evidence behavior.
 
 Make update mode explicit, typed, redacted, and separate from normal comparison.
 
-- [ ] **Step 4: Add CLI eval suite commands**
+- [x] **Step 4: Add CLI eval suite commands**
 
 Expose suite list, validate, run, and update-golden commands in text/JSON modes.
 

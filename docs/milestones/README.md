@@ -212,6 +212,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M25-04 implementation | Complete |
 | M25-05 implementation | Complete |
 | M25 implementation | Complete |
+| M26 technical design | Complete |
+| M26 slice specs | Complete for M26-01 through M26-05 |
+| M26 slice plans | Complete for M26-01 through M26-05 |
+| M26-01 implementation | Complete |
+| M26 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -242,6 +247,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M23 Memory Retrieval Quality | `docs/specs/M23-memory-retrieval-quality.spec.md` | `docs/plans/M23-memory-retrieval-quality.plan.md` | Add embeddings, hybrid retrieval, reranking hooks, retention controls, and auditable memory influence traces. |
 | M24 Background Agents UX | `docs/specs/M24-background-agents-ux.spec.md` | `docs/plans/M24-background-agents-ux.plan.md` | Make long-running and scheduled agent tasks manageable across CLI, TUI, and Desktop-facing bridge surfaces. |
 | M25 Packaging, Settings, and Updates | `docs/specs/M25-packaging-release-settings-updates.spec.md` | `docs/plans/M25-packaging-release-settings-updates.plan.md` | Prepare repeatable local distribution with packaging, settings, secrets, migrations, release channels, and update flows. |
+| M26 Runtime Observability Evidence | `docs/specs/M26-runtime-observability-evidence.spec.md` | `docs/plans/M26-runtime-observability-evidence.plan.md` | Turn traces, telemetry, audit exports, and replay records into redacted evidence bundles for CLI/Desktop debugging and support. |
 
 ## M01 Slice Index
 
@@ -508,20 +514,32 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M25-04 CLI Release Packaging | `docs/specs/M25-04-cli-release-packaging.spec.md` | `docs/plans/M25-04-cli-release-packaging.plan.md` | Repeatable CLI release artifacts, checksums, manifests, and local smoke tests. |
 | M25-05 Desktop Bundle and Updater | `docs/specs/M25-05-desktop-bundle-updater.spec.md` | `docs/plans/M25-05-desktop-bundle-updater.plan.md` | Tauri Desktop bundle flow, update manifest validation, and Desktop release smoke checks. |
 
+## M26 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M26-00 Runtime Observability Technical Design | `docs/specs/M26-00-runtime-observability-technical-design.spec.md` | `docs/plans/M26-00-runtime-observability-technical-design.plan.md` | Architecture baseline for evidence bundles, privacy, correlation, replay semantics, CLI/Desktop surfaces, and verification gates. |
+| M26-01 Telemetry Export Bundles | `docs/specs/M26-01-telemetry-export-bundles.spec.md` | `docs/plans/M26-01-telemetry-export-bundles.plan.md` | Redacted, bounded, filterable telemetry export bundles. |
+| M26-02 Runtime Evidence Builder | `docs/specs/M26-02-runtime-evidence-builder.spec.md` | `docs/plans/M26-02-runtime-evidence-builder.plan.md` | Core evidence bundle from traces, audit exports, telemetry records, and replay summaries. |
+| M26-03 CLI Observability Commands | `docs/specs/M26-03-cli-observability-commands.spec.md` | `docs/plans/M26-03-cli-observability-commands.plan.md` | Text and JSON observability commands for local debugging and support bundles. |
+| M26-04 UI Observability Snapshots | `docs/specs/M26-04-ui-observability-snapshots.spec.md` | `docs/plans/M26-04-ui-observability-snapshots.plan.md` | Bounded UI-safe observability snapshots for TUI and Desktop. |
+| M26-05 Replay Evidence Verification | `docs/specs/M26-05-replay-evidence-verification.spec.md` | `docs/plans/M26-05-replay-evidence-verification.plan.md` | Replay fixture verification proving evidence can be regenerated without side effects. |
+
 ## Active Work
 
-Current implementation focus: `M25 complete; next milestone selection`.
+Current implementation focus: `M26-02 Runtime Evidence Builder`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M25-05-desktop-bundle-updater.spec.md`
-- `docs/plans/M25-05-desktop-bundle-updater.plan.md`
+- `docs/specs/M26-01-telemetry-export-bundles.spec.md`
+- `docs/plans/M26-01-telemetry-export-bundles.plan.md`
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M25-00-packaging-release-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M25-00-packaging-release-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M26-00-runtime-observability-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M26-00-runtime-observability-technical-design.plan.md`
 
 Next implementation slice:
 
-- To be selected after M25 release-readiness review.
+- `docs/specs/M26-02-runtime-evidence-builder.spec.md`
+- `docs/plans/M26-02-runtime-evidence-builder.plan.md`

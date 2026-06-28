@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M28 |
-| Milestone-level plans | Complete for M01-M28 |
+| Milestone-level specs | Complete for M01-M30 |
+| Milestone-level plans | Complete for M01-M30 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -248,6 +248,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M29-04 implementation | Complete |
 | M29-05 implementation | Complete |
 | M29 implementation | Complete |
+| M30 technical design | Complete |
+| M30 slice specs | Complete for M30-01 through M30-05 |
+| M30 slice plans | Complete for M30-01 through M30-05 |
+| M30 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -282,6 +286,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M27 Runtime Evaluation Harness | `docs/specs/M27-runtime-evaluation-harness.spec.md` | `docs/plans/M27-runtime-evaluation-harness.plan.md` | Turn replay fixtures, fake model scenarios, local coding workflows, and observability evidence into deterministic regression evaluations. |
 | M28 Evaluation Corpus and Quality Gates | `docs/specs/M28-evaluation-corpus-quality-gates.spec.md` | `docs/plans/M28-evaluation-corpus-quality-gates.plan.md` | Promote single-scenario evaluations into managed suites, built-in corpora, golden updates, CLI suite commands, and CI gates. |
 | M29 CI Quality Evidence and Release Gates | `docs/specs/M29-ci-quality-evidence-release-gates.spec.md` | `docs/plans/M29-ci-quality-evidence-release-gates.plan.md` | Turn local checks, evaluation suites, and release smoke commands into one auditable CI quality gate with durable evidence artifacts. |
+| M30 MCP Server Export | `docs/specs/M30-mcp-server-export.spec.md` | `docs/plans/M30-mcp-server-export.plan.md` | Expose selected local tools and resources through a policy-aware MCP server mode. |
 
 ## M01 Slice Index
 
@@ -592,9 +597,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M29-04 Quality Artifact Retention | `docs/specs/M29-04-quality-artifact-retention.spec.md` | `docs/plans/M29-04-quality-artifact-retention.plan.md` | Stable quality evidence artifact paths, summaries, and partial failure reports. |
 | M29-05 Release Readiness Docs | `docs/specs/M29-05-release-readiness-docs.spec.md` | `docs/plans/M29-05-release-readiness-docs.plan.md` | README, milestone status, and final verification docs for release quality gates. |
 
+## M30 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M30-00 MCP Server Technical Design | `docs/specs/M30-00-mcp-server-technical-design.spec.md` | `docs/plans/M30-00-mcp-server-technical-design.plan.md` | Architecture baseline for MCP server contracts, tool/resource exports, JSON-RPC fixtures, policy routing, privacy, and verification. |
+| M30-01 Server Contracts | `docs/specs/M30-01-server-contracts.spec.md` | `docs/plans/M30-01-server-contracts.plan.md` | Typed MCP server info, capabilities, methods, JSON-RPC request/response, and error contracts. |
+| M30-02 Tool Export Registry | `docs/specs/M30-02-tool-export-registry.spec.md` | `docs/plans/M30-02-tool-export-registry.plan.md` | Selected local tools exported through MCP tools/list and policy-aware tools/call fixtures. |
+| M30-03 Resource Export Registry | `docs/specs/M30-03-resource-export-registry.spec.md` | `docs/plans/M30-03-resource-export-registry.plan.md` | Selected read-only resources exported through deterministic descriptors and bounded reads. |
+| M30-04 Stdio JSON-RPC Fixture | `docs/specs/M30-04-stdio-jsonrpc-fixture.spec.md` | `docs/plans/M30-04-stdio-jsonrpc-fixture.plan.md` | Line-framed JSON-RPC fixture handling for initialize, list, call, read, and malformed frames. |
+| M30-05 CLI Trace Docs | `docs/specs/M30-05-cli-trace-docs.spec.md` | `docs/plans/M30-05-cli-trace-docs.plan.md` | CLI status, trace-safe export summaries, README docs, and final M30 verification. |
+
 ## Active Work
 
-Current implementation focus: `M29 complete; next milestone not selected`.
+Current implementation focus: `M30-01 server contracts`.
 
 Most recent completed implementation documents:
 
@@ -609,7 +625,10 @@ Most recent completed implementation documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M29-00-ci-quality-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M29-00-ci-quality-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M30-00-mcp-server-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M30-00-mcp-server-technical-design.plan.md`
 
-Next implementation slice: to be selected by the next milestone.
+Next implementation slice:
+
+- `docs/specs/M30-01-server-contracts.spec.md`
+- `docs/plans/M30-01-server-contracts.plan.md`

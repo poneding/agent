@@ -2,12 +2,27 @@
 
 use std::process::{Command, ExitStatus};
 
-use xtask::{Task, command_plan_for, help_text, parse_args};
+use xtask::{Task, command_plan_for, help_text, parse_args, run_package_cli};
 
 fn main() {
     let task = match parse_args(std::env::args().skip(1)) {
         Ok(Task::Help) => {
             print!("{}", help_text());
+            return;
+        }
+        Ok(Task::PackageCli(options)) => {
+            match run_package_cli(&options) {
+                Ok(manifest) => {
+                    println!(
+                        "packaged {} ({})",
+                        manifest.artifact.name, manifest.artifact.checksum_sha256
+                    );
+                }
+                Err(error) => {
+                    eprintln!("package-cli failed: {error}");
+                    std::process::exit(1);
+                }
+            }
             return;
         }
         Ok(task) => task,

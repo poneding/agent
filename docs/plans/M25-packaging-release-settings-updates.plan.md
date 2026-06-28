@@ -67,7 +67,7 @@ Add keychain backends with env fallback and redacted diagnostics.
 
 Run idempotent config, storage, memory, and plugin migrations before runtime startup.
 
-- [ ] **Step 4: Implement CLI release packaging**
+- [x] **Step 4: Implement CLI release packaging**
 
 Add release profiles, binary artifact generation, and smoke tests.
 

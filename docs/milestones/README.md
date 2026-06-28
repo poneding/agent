@@ -508,12 +508,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M25-04 CLI Release Packaging`.
+Current implementation focus: `M25-05 Desktop Bundle and Updater`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M25-03-startup-migrations.spec.md`
-- `docs/plans/M25-03-startup-migrations.plan.md`
+- `docs/specs/M25-04-cli-release-packaging.spec.md`
+- `docs/plans/M25-04-cli-release-packaging.plan.md`
 
 Most recent completed technical design documents:
 
@@ -522,4 +522,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M25-04 CLI Release Packaging
+- M25-05 Desktop Bundle and Updater

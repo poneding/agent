@@ -91,9 +91,26 @@ cargo xtask test
 cargo xtask desktop-test
 cargo xtask cli-prompt -- "hello agent"
 cargo xtask cli-json -- "hello agent"
+cargo xtask package-cli --channel dev
 ```
 
 Run `cargo xtask help` for the full command list.
+
+## CLI Release Packaging
+
+Build and smoke-test a local CLI artifact:
+
+```bash
+cargo xtask package-cli --channel dev
+```
+
+Outputs are written to `target/agent-release/`:
+
+- `agent-<version>-<target>-<channel>`: packaged CLI binary
+- `agent-<version>-<target>-<channel>.sha256`: SHA-256 checksum
+- `agent-<version>-<target>-<channel>.json`: release manifest
+
+The packaging flow runs `--version`, `--config-check`, `startup-check`, and a fake-provider JSON prompt smoke before writing the manifest.
 
 ## Documentation
 
@@ -101,10 +118,10 @@ Run `cargo xtask help` for the full command list.
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M25-03-startup-migrations.spec.md)
-- [Latest completed plan](docs/plans/M25-03-startup-migrations.plan.md)
-- [Next implementation spec](docs/specs/M25-04-cli-release-packaging.spec.md)
-- [Next implementation plan](docs/plans/M25-04-cli-release-packaging.plan.md)
+- [Latest completed spec](docs/specs/M25-04-cli-release-packaging.spec.md)
+- [Latest completed plan](docs/plans/M25-04-cli-release-packaging.plan.md)
+- [Next implementation spec](docs/specs/M25-05-desktop-bundle-updater.spec.md)
+- [Next implementation plan](docs/plans/M25-05-desktop-bundle-updater.plan.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

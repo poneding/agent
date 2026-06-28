@@ -1,4 +1,9 @@
-use xtask::{CargoCommand, Task, XtaskError, command_plan_for, help_text, parse_args};
+use std::path::PathBuf;
+
+use xtask::{
+    CargoCommand, PackageCliOptions, ReleaseChannel, Task, XtaskError, command_plan_for, help_text,
+    parse_args,
+};
 
 fn cargo(args: &[&str]) -> CargoCommand {
     CargoCommand {
@@ -21,6 +26,7 @@ fn no_args_and_help_print_the_command_list() {
         "test",
         "cli-prompt",
         "cli-json",
+        "package-cli",
         "desktop-test",
     ] {
         assert!(help.contains(command), "help text should mention {command}");
@@ -135,5 +141,46 @@ fn unknown_tasks_are_rejected() {
     assert_eq!(
         parse_args(["ship-it"]),
         Err(XtaskError::UnknownCommand("ship-it".to_string()))
+    );
+}
+
+#[test]
+fn package_cli_parses_release_arguments() {
+    assert_eq!(
+        parse_args([
+            "package-cli",
+            "--channel",
+            "beta",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "--out-dir",
+            "target/dist"
+        ]),
+        Ok(Task::PackageCli(PackageCliOptions {
+            channel: ReleaseChannel::Beta,
+            target_triple: Some("x86_64-unknown-linux-gnu".to_string()),
+            output_dir: PathBuf::from("target/dist"),
+        }))
+    );
+
+    assert_eq!(
+        parse_args(["package-cli"]),
+        Ok(Task::PackageCli(PackageCliOptions::default()))
+    );
+}
+
+#[test]
+fn package_cli_rejects_invalid_arguments() {
+    assert_eq!(
+        parse_args(["package-cli", "--channel", "nightly"]),
+        Err(XtaskError::InvalidReleaseChannel("nightly".to_string()))
+    );
+    assert_eq!(
+        parse_args(["package-cli", "--target"]),
+        Err(XtaskError::MissingValue("--target".to_string()))
+    );
+    assert_eq!(
+        parse_args(["package-cli", "--wat"]),
+        Err(XtaskError::UnknownOption("--wat".to_string()))
     );
 }

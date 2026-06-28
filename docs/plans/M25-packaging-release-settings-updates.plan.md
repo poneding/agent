@@ -59,7 +59,7 @@ Each plan includes smoke-test commands and migration rollback checks.
 
 Resolve config, data, cache, log, memory, and plugin directories consistently.
 
-- [ ] **Step 2: Implement OS keychain secret store**
+- [x] **Step 2: Implement OS keychain secret store**
 
 Add keychain backends with env fallback and redacted diagnostics.
 

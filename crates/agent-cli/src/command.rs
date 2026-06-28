@@ -29,7 +29,8 @@ use agent_memory::{
 use agent_model::{
     EnvSecretResolver, ModelConfigError, ModelEndpointConfig, ModelFallbackChain,
     ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig, ModelProviderKind,
-    ModelProviderRegistry, ModelRequestRequirements, ModelRetryPolicy,
+    ModelProviderRegistry, ModelRequestRequirements, ModelRetryPolicy, OsKeychainSecretStore,
+    SecretStoreBackend,
 };
 use agent_plugin::{
     PLUGIN_RUNTIME_API_VERSION, PluginManifest, PluginManifestError, PluginPermission,
@@ -3086,6 +3087,7 @@ fn evaluate_config_check(
         effective,
         platform_paths,
         settings,
+        secret_store_summary: secret_store_summary(),
     })
 }
 
@@ -3118,6 +3120,7 @@ struct ConfigCheckReport {
     effective: EffectiveRuntimeConfig,
     platform_paths: PlatformPaths,
     settings: SettingsProfile,
+    secret_store_summary: String,
 }
 
 fn built_in_runtime_config() -> Result<AgentRuntimeConfig, CliError> {
@@ -3154,7 +3157,7 @@ fn render_config_summary_text(report: &ConfigCheckReport) -> String {
     let effective = &report.effective;
     let provider_ids = config_provider_ids(effective).join(", ");
     format!(
-        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nLayers: {}\nDiagnostics: {}\nSettings profile: {}\nRelease channel: {}\nConfig dir: {}\nData dir: {}\nCache dir: {}\nLog dir: {}\n",
+        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nLayers: {}\nDiagnostics: {}\nSettings profile: {}\nRelease channel: {}\nSecret store: {}\nConfig dir: {}\nData dir: {}\nCache dir: {}\nLog dir: {}\n",
         effective.selected_provider,
         effective.selected_model,
         provider_ids,
@@ -3162,10 +3165,24 @@ fn render_config_summary_text(report: &ConfigCheckReport) -> String {
         effective.diagnostics.len(),
         report.settings.profile_id,
         report.settings.release_channel.as_str(),
+        report.secret_store_summary,
         report.platform_paths.config_dir.display(),
         report.platform_paths.data_dir.display(),
         report.platform_paths.cache_dir.display(),
         report.platform_paths.log_dir.display()
+    )
+}
+
+fn secret_store_summary() -> String {
+    let health = OsKeychainSecretStore::unavailable_with_env_fallback().health();
+    let fallback = if health.available {
+        "native"
+    } else {
+        "env_fallback"
+    };
+    format!(
+        "os_keychain available={} writable={} fallback={}",
+        health.available, health.writable, fallback
     )
 }
 

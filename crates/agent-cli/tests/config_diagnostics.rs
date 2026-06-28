@@ -106,6 +106,9 @@ fn cli_config_diagnostics_text_reports_valid_config() {
     assert!(output.stdout.contains("Providers: fake, openai"));
     assert!(output.stdout.contains("Settings profile: default"));
     assert!(output.stdout.contains("Release channel: dev"));
+    assert!(output.stdout.contains(
+        "Secret store: os_keychain available=false writable=false fallback=env_fallback"
+    ));
     assert!(output.stdout.contains("Config dir: "));
 }
 

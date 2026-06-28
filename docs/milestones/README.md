@@ -207,6 +207,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M25 implementation slice specs | Complete for M25-01 through M25-05 |
 | M25 implementation slice plans | Complete for M25-01 through M25-05 |
 | M25-01 implementation | Complete |
+| M25-02 implementation | Complete |
 | M25 implementation | Planned |
 
 ## Milestone Spec and Plan Index
@@ -506,12 +507,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M25-02 OS Keychain Secret Store`.
+Current implementation focus: `M25-03 Startup Migrations`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M25-01-platform-paths-settings.spec.md`
-- `docs/plans/M25-01-platform-paths-settings.plan.md`
+- `docs/specs/M25-02-os-keychain-secret-store.spec.md`
+- `docs/plans/M25-02-os-keychain-secret-store.plan.md`
 
 Most recent completed technical design documents:
 
@@ -520,4 +521,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M25-02 OS Keychain Secret Store
+- M25-03 Startup Migrations

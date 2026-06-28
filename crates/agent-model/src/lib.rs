@@ -33,7 +33,9 @@ pub use registry::{
 };
 pub use request::ModelRequest;
 pub use secrets::{
-    EnvSecretResolver, InMemorySecretResolver, SecretResolutionError, SecretResolver, SecretValue,
+    EnvSecretResolver, EnvSecretStore, InMemorySecretResolver, InMemorySecretStore,
+    OsKeychainSecretStore, SecretResolutionError, SecretResolver, SecretStoreBackend,
+    SecretStoreDiagnostic, SecretStoreError, SecretStoreHealth, SecretStoreKind, SecretValue,
 };
 pub use stream::{
     ModelEventStream, ModelStreamEvent, ModelStreamResult, collect_model_event_stream,

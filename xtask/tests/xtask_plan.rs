@@ -24,6 +24,7 @@ fn no_args_and_help_print_the_command_list() {
         "fmt-check",
         "clippy",
         "test",
+        "ci",
         "eval",
         "cli-prompt",
         "cli-json",
@@ -56,6 +57,23 @@ fn standard_tasks_map_to_single_cargo_commands() {
     assert_eq!(
         command_plan_for(&Task::Test),
         vec![cargo(&["test", "--workspace"])]
+    );
+    assert_eq!(parse_args(["ci"]), Ok(Task::Ci));
+    assert_eq!(
+        command_plan_for(&Task::Ci),
+        vec![
+            cargo(&["fmt", "--all", "--", "--check"]),
+            cargo(&[
+                "clippy",
+                "--workspace",
+                "--all-targets",
+                "--",
+                "-D",
+                "warnings",
+            ]),
+            cargo(&["test", "--workspace"]),
+            cargo(&["xtask", "eval"]),
+        ]
     );
     assert_eq!(
         command_plan_for(&Task::DesktopTest),

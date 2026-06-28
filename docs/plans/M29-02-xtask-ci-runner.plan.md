@@ -12,24 +12,29 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M29-02 spec and M29-01 contracts**
+- [x] **Step 1: Read M29-02 spec and M29-01 contracts**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add parser, plan, artifact, and failure tests**
+- [x] **Step 1: Add parser, plan, artifact, and failure tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add `Task::Ci` and help text**
-- [ ] **Step 2: Add quality gate runner**
-- [ ] **Step 3: Write JSON and text artifacts**
+- [x] **Step 1: Add `Task::Ci` and help text**
+- [x] **Step 2: Add quality gate runner**
+- [x] **Step 3: Write JSON and text artifacts**
 
 ### Task 4: Verify and Commit
+
+- [x] **Step 1: Run focused xtask checks**
+- [x] **Step 2: Run full local quality gate**
 
 ```bash
 cargo fmt --all -- --check
 cargo clippy -p xtask --all-targets -- -D warnings
 cargo test -p xtask quality_gate
+cargo test -p xtask --test xtask_plan
+cargo xtask ci
 ```
 
 ```bash

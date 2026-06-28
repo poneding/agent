@@ -55,7 +55,7 @@ Each plan names files, focused tests, verification commands, and commit points.
 
 Add typed report structs, status aggregation, and JSON/text rendering tests.
 
-- [ ] **Step 2: Add `xtask ci` runner**
+- [x] **Step 2: Add `xtask ci` runner**
 
 Run fmt, clippy, tests, and eval through a single evidence-producing command.
 

@@ -18,6 +18,7 @@ pub enum Task {
     FmtCheck,
     Clippy,
     Test,
+    Ci,
     CliPrompt { prompt: String },
     CliJson { prompt: String },
     PackageCli(PackageCliOptions),
@@ -115,6 +116,69 @@ impl QualityGateReport {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct QualityGateOptions {
+    pub run_id: String,
+    pub output_dir: PathBuf,
+}
+
+impl Default for QualityGateOptions {
+    fn default() -> Self {
+        Self {
+            run_id: "ci-local".to_string(),
+            output_dir: PathBuf::from("target/agent-ci"),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum QualityGateError {
+    Io {
+        path: PathBuf,
+        message: String,
+    },
+    CommandSpawn {
+        report: Box<QualityGateReport>,
+        program: String,
+        args: Vec<String>,
+        message: String,
+    },
+    CommandFailed {
+        report: Box<QualityGateReport>,
+        code: i32,
+    },
+}
+
+impl fmt::Display for QualityGateError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io { path, message } => {
+                write!(
+                    formatter,
+                    "failed to write quality gate artifact {}: {message}",
+                    path.display()
+                )
+            }
+            Self::CommandSpawn {
+                program,
+                args,
+                message,
+                ..
+            } => write!(
+                formatter,
+                "failed to run quality gate command {} {}: {message}",
+                program,
+                args.join(" ")
+            ),
+            Self::CommandFailed { code, .. } => {
+                write!(formatter, "quality gate command failed with code {code}")
+            }
+        }
+    }
+}
+
+impl std::error::Error for QualityGateError {}
+
 #[must_use]
 pub fn render_quality_gate_summary(report: &QualityGateReport) -> String {
     let mut passed = 0;
@@ -153,11 +217,171 @@ pub fn render_quality_gate_summary(report: &QualityGateReport) -> String {
     output
 }
 
+#[must_use]
+pub fn quality_gate_command_plan() -> Vec<CargoCommand> {
+    vec![
+        fmt_check_command(),
+        clippy_command(),
+        test_command(),
+        CargoCommand::new(["xtask", "eval"]),
+    ]
+}
+
+pub fn run_quality_gate(
+    options: QualityGateOptions,
+) -> Result<QualityGateReport, QualityGateError> {
+    run_quality_gate_commands(options, quality_gate_command_plan())
+}
+
+pub fn run_quality_gate_commands(
+    options: QualityGateOptions,
+    commands: Vec<CargoCommand>,
+) -> Result<QualityGateReport, QualityGateError> {
+    let mut steps = Vec::with_capacity(commands.len());
+
+    for (index, command) in commands.iter().enumerate() {
+        let started = std::time::Instant::now();
+        let status = match Command::new(&command.program).args(&command.args).status() {
+            Ok(status) => status,
+            Err(error) => {
+                steps.push(QualityGateStepReport::new(
+                    quality_gate_step_name(index, command),
+                    command_line(command),
+                    QualityGateStepStatus::Failed,
+                    None,
+                    duration_millis(started.elapsed()),
+                    Some(format!("failed to spawn command: {error}")),
+                ));
+                for (skipped_index, skipped) in commands.iter().enumerate().skip(index + 1) {
+                    steps.push(QualityGateStepReport::new(
+                        quality_gate_step_name(skipped_index, skipped),
+                        command_line(skipped),
+                        QualityGateStepStatus::Skipped,
+                        None,
+                        0,
+                        Some("skipped after previous failure".to_string()),
+                    ));
+                }
+                let report = QualityGateReport::from_steps(options.run_id, steps);
+                write_quality_gate_artifacts(&report, &options.output_dir)?;
+                return Err(QualityGateError::CommandSpawn {
+                    report: Box::new(report),
+                    program: command.program.clone(),
+                    args: command.args.clone(),
+                    message: error.to_string(),
+                });
+            }
+        };
+        let duration_ms = duration_millis(started.elapsed());
+        if status.success() {
+            steps.push(QualityGateStepReport::new(
+                quality_gate_step_name(index, command),
+                command_line(command),
+                QualityGateStepStatus::Passed,
+                status.code(),
+                duration_ms,
+                None,
+            ));
+            continue;
+        }
+
+        let code = status.code().unwrap_or(1);
+        steps.push(QualityGateStepReport::new(
+            quality_gate_step_name(index, command),
+            command_line(command),
+            QualityGateStepStatus::Failed,
+            Some(code),
+            duration_ms,
+            Some(format!(
+                "command exited with code {code}: {}",
+                command_line(command).join(" ")
+            )),
+        ));
+        for (skipped_index, skipped) in commands.iter().enumerate().skip(index + 1) {
+            steps.push(QualityGateStepReport::new(
+                quality_gate_step_name(skipped_index, skipped),
+                command_line(skipped),
+                QualityGateStepStatus::Skipped,
+                None,
+                0,
+                Some("skipped after previous failure".to_string()),
+            ));
+        }
+        let report = QualityGateReport::from_steps(options.run_id, steps);
+        write_quality_gate_artifacts(&report, &options.output_dir)?;
+        return Err(QualityGateError::CommandFailed {
+            report: Box::new(report),
+            code,
+        });
+    }
+
+    let report = QualityGateReport::from_steps(options.run_id, steps);
+    write_quality_gate_artifacts(&report, &options.output_dir)?;
+    Ok(report)
+}
+
+pub fn write_quality_gate_artifacts(
+    report: &QualityGateReport,
+    output_dir: &Path,
+) -> Result<(), QualityGateError> {
+    fs::create_dir_all(output_dir).map_err(|error| QualityGateError::Io {
+        path: output_dir.to_path_buf(),
+        message: error.to_string(),
+    })?;
+    let json_path = output_dir.join("quality-gate-report.json");
+    let summary_path = output_dir.join("quality-gate-summary.txt");
+    let json = serde_json::to_string_pretty(report).map_err(|error| QualityGateError::Io {
+        path: json_path.clone(),
+        message: error.to_string(),
+    })?;
+    fs::write(&json_path, format!("{json}\n")).map_err(|error| QualityGateError::Io {
+        path: json_path.clone(),
+        message: error.to_string(),
+    })?;
+    fs::write(&summary_path, render_quality_gate_summary(report)).map_err(|error| {
+        QualityGateError::Io {
+            path: summary_path,
+            message: error.to_string(),
+        }
+    })?;
+    Ok(())
+}
+
 fn quality_gate_status_label(status: &QualityGateStatus) -> &'static str {
     match status {
         QualityGateStatus::Passed => "passed",
         QualityGateStatus::Failed => "failed",
     }
+}
+
+fn quality_gate_step_name(index: usize, command: &CargoCommand) -> String {
+    if command.program == "cargo" {
+        match command.args.first().map(String::as_str) {
+            Some("fmt") => return "fmt-check".to_string(),
+            Some("clippy") => return "clippy".to_string(),
+            Some("test") => return "test".to_string(),
+            Some("xtask") if command.args.get(1).map(String::as_str) == Some("eval") => {
+                return "eval".to_string();
+            }
+            _ => {}
+        }
+    }
+    if command.program.trim().is_empty() {
+        format!("step-{}", index + 1)
+    } else {
+        command.program.clone()
+    }
+}
+
+fn command_line(command: &CargoCommand) -> Vec<String> {
+    let mut line = Vec::with_capacity(command.args.len() + 1);
+    line.push(command.program.clone());
+    line.extend(command.args.clone());
+    line
+}
+
+fn duration_millis(duration: std::time::Duration) -> u64 {
+    u64::try_from(duration.as_millis()).unwrap_or(u64::MAX)
 }
 
 fn quality_gate_step_status_label(status: &QualityGateStepStatus) -> &'static str {
@@ -440,6 +664,7 @@ where
         "fmt-check" => Ok(Task::FmtCheck),
         "clippy" => Ok(Task::Clippy),
         "test" => Ok(Task::Test),
+        "ci" => Ok(Task::Ci),
         "desktop-test" => Ok(Task::DesktopTest),
         "eval" => {
             parse_no_options(args)?;
@@ -466,6 +691,7 @@ pub fn command_plan_for(task: &Task) -> Vec<CargoCommand> {
         Task::FmtCheck => vec![fmt_check_command()],
         Task::Clippy => vec![clippy_command()],
         Task::Test => vec![test_command()],
+        Task::Ci => quality_gate_command_plan(),
         Task::CliPrompt { prompt } => vec![CargoCommand::with_prompt(
             &["run", "-p", "agent-cli", "--", "--prompt"],
             prompt,
@@ -515,6 +741,7 @@ Commands:
   fmt-check             Run cargo fmt --all -- --check
   clippy                Run cargo clippy --workspace --all-targets -- -D warnings
   test                  Run cargo test --workspace
+  ci                    Run fmt-check, clippy, tests, and eval with evidence artifacts
   eval                  Run the default evaluation corpus
   cli-prompt -- <text>  Run agent-cli with --prompt <text>
   cli-json -- <text>    Run agent-cli with --json --prompt <text>

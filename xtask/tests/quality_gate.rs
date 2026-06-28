@@ -1,7 +1,23 @@
 use xtask::{
-    QualityGateReport, QualityGateStatus, QualityGateStepReport, QualityGateStepStatus,
-    render_quality_gate_summary,
+    CargoCommand, QualityGateError, QualityGateOptions, QualityGateReport, QualityGateStatus,
+    QualityGateStepReport, QualityGateStepStatus, render_quality_gate_summary,
+    run_quality_gate_commands,
 };
+
+fn temp_output_dir(name: &str) -> std::path::PathBuf {
+    let path = std::env::temp_dir().join(format!(
+        "agent-xtask-{name}-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("system time")
+            .as_nanos()
+    ));
+    if path.exists() {
+        std::fs::remove_dir_all(&path).expect("remove stale tempdir");
+    }
+    path
+}
 
 fn step(
     name: &str,
@@ -89,4 +105,69 @@ fn quality_gate_messages_are_redacted_and_bounded() {
     assert!(serialized.contains("[redacted]"));
     assert!(!serialized.contains("sk-live-secret-value"));
     assert!(serialized.len() < 600);
+}
+
+#[test]
+fn quality_gate_runner_writes_json_and_summary_artifacts() {
+    let output_dir = temp_output_dir("quality-pass");
+
+    let report = run_quality_gate_commands(
+        QualityGateOptions {
+            run_id: "fixture-ci".to_string(),
+            output_dir: output_dir.clone(),
+        },
+        vec![CargoCommand {
+            program: "rustc".to_string(),
+            args: vec!["--version".to_string()],
+        }],
+    )
+    .expect("quality gate should pass");
+
+    assert_eq!(report.status, QualityGateStatus::Passed);
+    let json_path = output_dir.join("quality-gate-report.json");
+    let summary_path = output_dir.join("quality-gate-summary.txt");
+    assert!(json_path.exists());
+    assert!(summary_path.exists());
+    let value: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(json_path).expect("read json"))
+            .expect("json report");
+    assert_eq!(value["run_id"], "fixture-ci");
+    assert!(
+        std::fs::read_to_string(summary_path)
+            .expect("read summary")
+            .contains("Quality gate fixture-ci status=passed")
+    );
+}
+
+#[test]
+fn quality_gate_runner_stops_after_failure_and_records_skipped_steps() {
+    let output_dir = temp_output_dir("quality-fail");
+
+    let error = run_quality_gate_commands(
+        QualityGateOptions {
+            run_id: "fixture-ci".to_string(),
+            output_dir: output_dir.clone(),
+        },
+        vec![
+            CargoCommand {
+                program: "rustc".to_string(),
+                args: vec!["--definitely-not-a-real-rustc-flag".to_string()],
+            },
+            CargoCommand {
+                program: "rustc".to_string(),
+                args: vec!["--version".to_string()],
+            },
+        ],
+    )
+    .expect_err("quality gate should fail");
+
+    let QualityGateError::CommandFailed { report, code } = error else {
+        panic!("expected command failure");
+    };
+    assert_ne!(code, 0);
+    assert_eq!(report.status, QualityGateStatus::Failed);
+    assert_eq!(report.steps[0].status, QualityGateStepStatus::Failed);
+    assert_eq!(report.steps[1].status, QualityGateStepStatus::Skipped);
+    assert!(output_dir.join("quality-gate-report.json").exists());
+    assert!(output_dir.join("quality-gate-summary.txt").exists());
 }

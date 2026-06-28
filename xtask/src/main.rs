@@ -2,7 +2,10 @@
 
 use std::process::{Command, ExitStatus};
 
-use xtask::{Task, command_plan_for, help_text, parse_args, run_package_cli, run_package_desktop};
+use xtask::{
+    QualityGateError, QualityGateOptions, Task, command_plan_for, help_text, parse_args,
+    render_quality_gate_summary, run_package_cli, run_package_desktop, run_quality_gate,
+};
 
 fn main() {
     let task = match parse_args(std::env::args().skip(1)) {
@@ -36,6 +39,26 @@ fn main() {
                 }
                 Err(error) => {
                     eprintln!("package-desktop failed: {error}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+        Ok(Task::Ci) => {
+            match run_quality_gate(QualityGateOptions::default()) {
+                Ok(report) => {
+                    print!("{}", render_quality_gate_summary(&report));
+                }
+                Err(QualityGateError::CommandFailed { report, code }) => {
+                    print!("{}", render_quality_gate_summary(&report));
+                    std::process::exit(code);
+                }
+                Err(QualityGateError::CommandSpawn { report, .. }) => {
+                    print!("{}", render_quality_gate_summary(&report));
+                    std::process::exit(1);
+                }
+                Err(error) => {
+                    eprintln!("ci failed: {error}");
                     std::process::exit(1);
                 }
             }

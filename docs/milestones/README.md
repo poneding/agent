@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M27 |
-| Milestone-level plans | Complete for M01-M27 |
+| Milestone-level specs | Complete for M01-M28 |
+| Milestone-level plans | Complete for M01-M28 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -230,6 +230,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M27-04 implementation | Complete |
 | M27-05 implementation | Complete |
 | M27 implementation | Complete |
+| M28 technical design | Complete |
+| M28 slice specs | Complete for M28-01 through M28-05 |
+| M28 slice plans | Complete for M28-01 through M28-05 |
+| M28 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -262,6 +266,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M25 Packaging, Settings, and Updates | `docs/specs/M25-packaging-release-settings-updates.spec.md` | `docs/plans/M25-packaging-release-settings-updates.plan.md` | Prepare repeatable local distribution with packaging, settings, secrets, migrations, release channels, and update flows. |
 | M26 Runtime Observability Evidence | `docs/specs/M26-runtime-observability-evidence.spec.md` | `docs/plans/M26-runtime-observability-evidence.plan.md` | Turn traces, telemetry, audit exports, and replay records into redacted evidence bundles for CLI/Desktop debugging and support. |
 | M27 Runtime Evaluation Harness | `docs/specs/M27-runtime-evaluation-harness.spec.md` | `docs/plans/M27-runtime-evaluation-harness.plan.md` | Turn replay fixtures, fake model scenarios, local coding workflows, and observability evidence into deterministic regression evaluations. |
+| M28 Evaluation Corpus and Quality Gates | `docs/specs/M28-evaluation-corpus-quality-gates.spec.md` | `docs/plans/M28-evaluation-corpus-quality-gates.plan.md` | Promote single-scenario evaluations into managed suites, built-in corpora, golden updates, CLI suite commands, and CI gates. |
 
 ## M01 Slice Index
 
@@ -550,9 +555,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M27-04 CLI Eval Commands | `docs/specs/M27-04-cli-eval-commands.spec.md` | `docs/plans/M27-04-cli-eval-commands.plan.md` | CLI list, validate, run, text/JSON output, and exit-code semantics. |
 | M27-05 CI Reporting Integration | `docs/specs/M27-05-ci-reporting-integration.spec.md` | `docs/plans/M27-05-ci-reporting-integration.plan.md` | CI-friendly eval artifacts, summaries, documentation, and final M27 checks. |
 
+## M28 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M28-00 Evaluation Corpus Technical Design | `docs/specs/M28-00-evaluation-corpus-technical-design.spec.md` | `docs/plans/M28-00-evaluation-corpus-technical-design.plan.md` | Architecture baseline for suites, corpus layout, golden updates, CLI/xtask gates, privacy, and verification. |
+| M28-01 Scenario Suite Manifest | `docs/specs/M28-01-scenario-suite-manifest.spec.md` | `docs/plans/M28-01-scenario-suite-manifest.plan.md` | Versioned suite manifests, safe scenario refs, labels, strictness defaults, and scenario expansion. |
+| M28-02 Built-in Eval Corpus | `docs/specs/M28-02-builtin-eval-corpus.spec.md` | `docs/plans/M28-02-builtin-eval-corpus.plan.md` | Checked-in default offline evaluation corpus using existing replay/evidence fixtures. |
+| M28-03 Golden Update Workflow | `docs/specs/M28-03-golden-update-workflow.spec.md` | `docs/plans/M28-03-golden-update-workflow.plan.md` | Explicit redacted golden update reports and safe writes. |
+| M28-04 CLI Eval Suite Commands | `docs/specs/M28-04-cli-eval-suite-commands.spec.md` | `docs/plans/M28-04-cli-eval-suite-commands.plan.md` | CLI suite list, validate, run, update-goldens, text/JSON output, and exit codes. |
+| M28-05 Xtask Eval Gate | `docs/specs/M28-05-xtask-eval-gate.spec.md` | `docs/plans/M28-05-xtask-eval-gate.plan.md` | `cargo xtask eval` gate for the default corpus and final M28 checks. |
+
 ## Active Work
 
-Current implementation focus: `M27 complete; next milestone selection`.
+Current implementation focus: `M28-01 scenario suite manifest`.
 
 Most recent completed implementation documents:
 
@@ -561,9 +577,10 @@ Most recent completed implementation documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M27-00-runtime-evaluation-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M27-00-runtime-evaluation-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M28-00-evaluation-corpus-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M28-00-evaluation-corpus-technical-design.plan.md`
 
 Next implementation slice:
 
-- To be selected after M27 evaluation harness review.
+- `docs/specs/M28-01-scenario-suite-manifest.spec.md`
+- `docs/plans/M28-01-scenario-suite-manifest.plan.md`

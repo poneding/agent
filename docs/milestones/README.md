@@ -251,6 +251,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M30 technical design | Complete |
 | M30 slice specs | Complete for M30-01 through M30-05 |
 | M30 slice plans | Complete for M30-01 through M30-05 |
+| M30-01 implementation | Complete |
 | M30 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -610,7 +611,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M30-01 server contracts`.
+Current implementation focus: `M30-02 tool export registry`.
 
 Most recent completed implementation documents:
 
@@ -622,6 +623,8 @@ Most recent completed implementation documents:
 - `docs/plans/M29-04-quality-artifact-retention.plan.md`
 - `docs/specs/M29-05-release-readiness-docs.spec.md`
 - `docs/plans/M29-05-release-readiness-docs.plan.md`
+- `docs/specs/M30-01-server-contracts.spec.md`
+- `docs/plans/M30-01-server-contracts.plan.md`
 
 Most recent completed technical design documents:
 
@@ -630,5 +633,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M30-01-server-contracts.spec.md`
-- `docs/plans/M30-01-server-contracts.plan.md`
+- `docs/specs/M30-02-tool-export-registry.spec.md`
+- `docs/plans/M30-02-tool-export-registry.plan.md`

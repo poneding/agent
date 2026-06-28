@@ -6,6 +6,7 @@ pub mod config;
 pub mod error;
 pub mod gateway;
 pub mod policy;
+pub mod server;
 pub mod tool;
 pub mod tool_mapping;
 
@@ -19,6 +20,10 @@ pub use gateway::{McpGateway, McpGatewayDiagnostic, McpGatewayReport, McpGateway
 pub use policy::{
     McpPermissionProfile, McpPolicyMapping, default_policy_mapping_for_mcp_tool,
     permission_request_for_mcp_mapping,
+};
+pub use server::{
+    MCP_SERVER_PROTOCOL_VERSION, McpJsonRpcError, McpJsonRpcFailure, McpJsonRpcId,
+    McpJsonRpcRequest, McpJsonRpcSuccess, McpServerInfo, McpServerMethod, McpServerState,
 };
 pub use tool::{McpToolCallRequest, McpToolCallResult, McpToolDescriptor, McpToolListResult};
 pub use tool_mapping::{

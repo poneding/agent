@@ -8,6 +8,8 @@ pub enum McpError {
     InvalidToolDescriptor(String),
     #[error("MCP server not found: {0}")]
     ServerNotFound(String),
+    #[error("invalid MCP server request: {0}")]
+    InvalidServerRequest(String),
     #[error("MCP client error: {0}")]
     Client(String),
 }

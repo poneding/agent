@@ -12,19 +12,21 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M30-01 spec and current `agent-mcp` error/config patterns**
+- [x] **Step 1: Read M30-01 spec and current `agent-mcp` error/config patterns**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add stable protocol contract tests**
+- [x] **Step 1: Add stable protocol contract tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add `server.rs` contracts**
-- [ ] **Step 2: Export server contracts from `agent_mcp`**
-- [ ] **Step 3: Add validation and redaction**
+- [x] **Step 1: Add `server.rs` contracts**
+- [x] **Step 2: Export server contracts from `agent_mcp`**
+- [x] **Step 3: Add validation and redaction**
 
 ### Task 4: Verify and Commit
+
+- [x] **Step 1: Run focused server contract checks**
 
 ```bash
 cargo fmt --all -- --check

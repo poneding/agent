@@ -51,7 +51,7 @@ Each plan names files, focused tests, verification commands, and commit points.
 - Execute: `docs/plans/M30-04-stdio-jsonrpc-fixture.plan.md`
 - Execute: `docs/plans/M30-05-cli-trace-docs.plan.md`
 
-- [ ] **Step 1: Add MCP server protocol contracts**
+- [x] **Step 1: Add MCP server protocol contracts**
 
 Add initialization, capability, JSON-RPC request/response, and error contracts.
 

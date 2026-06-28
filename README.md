@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M24 are implemented, and M25 continues the productization path from runtime spine to packaged release workflows.
+M01-M25 are implemented, including productized local packaging, settings, secrets, migrations, CLI release artifacts, and Desktop release metadata.
 
 ## Core Ideas
 
@@ -92,6 +92,7 @@ cargo xtask desktop-test
 cargo xtask cli-prompt -- "hello agent"
 cargo xtask cli-json -- "hello agent"
 cargo xtask package-cli --channel dev
+cargo xtask package-desktop --channel dev
 ```
 
 Run `cargo xtask help` for the full command list.
@@ -112,16 +113,28 @@ Outputs are written to `target/agent-release/`:
 
 The packaging flow runs `--version`, `--config-check`, `startup-check`, and a fake-provider JSON prompt smoke before writing the manifest.
 
+## Desktop Release Packaging
+
+Build local Desktop release metadata and validate updater-safe manifests:
+
+```bash
+cargo xtask package-desktop --channel dev
+```
+
+Outputs are written to `target/agent-release/`:
+
+- `agent-desktop-<version>-<target>-<channel>.plan.txt`: local bundle plan and smoke summary
+- `agent-desktop-<version>-<target>-<channel>.update.json`: local update manifest
+- `desktop-smoke-root/`: isolated Desktop smoke config/data/cache/log root
+
 ## Documentation
 
 - [PRD](docs/PRD.md)
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M25-04-cli-release-packaging.spec.md)
-- [Latest completed plan](docs/plans/M25-04-cli-release-packaging.plan.md)
-- [Next implementation spec](docs/specs/M25-05-desktop-bundle-updater.spec.md)
-- [Next implementation plan](docs/plans/M25-05-desktop-bundle-updater.plan.md)
+- [Latest completed spec](docs/specs/M25-05-desktop-bundle-updater.spec.md)
+- [Latest completed plan](docs/plans/M25-05-desktop-bundle-updater.plan.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

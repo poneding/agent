@@ -209,7 +209,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M25-01 implementation | Complete |
 | M25-02 implementation | Complete |
 | M25-03 implementation | Complete |
-| M25 implementation | Planned |
+| M25-04 implementation | Complete |
+| M25-05 implementation | Complete |
+| M25 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -508,12 +510,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M25-05 Desktop Bundle and Updater`.
+Current implementation focus: `M25 complete; next milestone selection`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M25-04-cli-release-packaging.spec.md`
-- `docs/plans/M25-04-cli-release-packaging.plan.md`
+- `docs/specs/M25-05-desktop-bundle-updater.spec.md`
+- `docs/plans/M25-05-desktop-bundle-updater.plan.md`
 
 Most recent completed technical design documents:
 
@@ -522,4 +524,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M25-05 Desktop Bundle and Updater
+- To be selected after M25 release-readiness review.

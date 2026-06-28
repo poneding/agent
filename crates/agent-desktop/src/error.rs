@@ -14,4 +14,6 @@ pub enum DesktopError {
     InvalidTrace(String),
     #[error("invalid desktop settings: {0}")]
     InvalidSettings(String),
+    #[error("invalid desktop update manifest: {0}")]
+    InvalidUpdateManifest(String),
 }

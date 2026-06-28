@@ -2,7 +2,7 @@
 
 use std::process::{Command, ExitStatus};
 
-use xtask::{Task, command_plan_for, help_text, parse_args, run_package_cli};
+use xtask::{Task, command_plan_for, help_text, parse_args, run_package_cli, run_package_desktop};
 
 fn main() {
     let task = match parse_args(std::env::args().skip(1)) {
@@ -20,6 +20,22 @@ fn main() {
                 }
                 Err(error) => {
                     eprintln!("package-cli failed: {error}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+        Ok(Task::PackageDesktop(options)) => {
+            match run_package_desktop(&options) {
+                Ok(manifest) => {
+                    println!(
+                        "packaged desktop metadata {} ({})",
+                        manifest.version,
+                        manifest.channel.as_str()
+                    );
+                }
+                Err(error) => {
+                    eprintln!("package-desktop failed: {error}");
                     std::process::exit(1);
                 }
             }

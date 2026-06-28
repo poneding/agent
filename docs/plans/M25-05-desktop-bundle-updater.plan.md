@@ -18,7 +18,7 @@
 - Read: `apps/desktop/package.json`
 - Read: `crates/agent-desktop/src/lib.rs`
 
-- [ ] **Step 1: Review Desktop packaging scope**
+- [x] **Step 1: Review Desktop packaging scope**
 
 Expected: bundle metadata, update manifest contracts, smoke checks, and local failure behavior are clear.
 
@@ -29,15 +29,15 @@ Expected: bundle metadata, update manifest contracts, smoke checks, and local fa
 - Modify: `xtask/tests/xtask_plan.rs`
 - Create if needed: `xtask/tests/package_desktop.rs`
 
-- [ ] **Step 1: Add update manifest tests**
+- [x] **Step 1: Add update manifest tests**
 
 Cover valid manifest, invalid checksum, unsupported channel, and missing artifact fields.
 
-- [ ] **Step 2: Add xtask Desktop packaging tests**
+- [x] **Step 2: Add xtask Desktop packaging tests**
 
 Cover command planning for local Desktop bundle and smoke checks.
 
-- [ ] **Step 3: Verify RED**
+- [x] **Step 3: Verify RED**
 
 ```bash
 cargo test -p agent-desktop update_manifest
@@ -53,34 +53,34 @@ cargo test -p xtask package_desktop
 - Modify: `xtask/src/main.rs`
 - Modify if needed: `apps/desktop/src-tauri/tauri.conf.json`
 
-- [ ] **Step 1: Add update manifest contracts**
+- [x] **Step 1: Add update manifest contracts**
 
 Validate channel, version, platform, checksum, URL, and optional signature.
 
-- [ ] **Step 2: Add Desktop package command**
+- [x] **Step 2: Add Desktop package command**
 
 Plan Tauri bundle generation and smoke checks without embedding local state.
 
-- [ ] **Step 3: Add local update failure tests**
+- [x] **Step 3: Add local update failure tests**
 
 Ensure invalid manifests and missing artifacts preserve current app state.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 ```bash
 cargo test -p agent-desktop update_manifest
 cargo test -p xtask package_desktop
 ```
 
-- [ ] **Step 2: Run M25 release smoke checks**
+- [x] **Step 2: Run M25 release smoke checks**
 
 ```bash
 cargo xtask package-desktop --channel dev
 ```
 
-- [ ] **Step 3: Run workspace gates**
+- [x] **Step 3: Run workspace gates**
 
 ```bash
 cargo fmt --all -- --check
@@ -96,11 +96,11 @@ cargo test --workspace
 - Modify: `docs/plans/M25-05-desktop-bundle-updater.plan.md`
 - Modify: `docs/plans/M25-packaging-release-settings-updates.plan.md`
 
-- [ ] **Step 1: Mark M25-05 and M25 complete**
+- [x] **Step 1: Mark M25-05 and M25 complete**
 
 Record final release-readiness status.
 
-- [ ] **Step 2: Commit M25 completion**
+- [x] **Step 2: Commit M25 completion**
 
 ```bash
 git add crates xtask apps docs README.md Cargo.toml Cargo.lock

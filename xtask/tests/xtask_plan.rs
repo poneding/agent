@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use xtask::{
-    CargoCommand, PackageCliOptions, ReleaseChannel, Task, XtaskError, command_plan_for, help_text,
-    parse_args,
+    CargoCommand, PackageCliOptions, PackageDesktopOptions, ReleaseChannel, Task, XtaskError,
+    command_plan_for, help_text, parse_args,
 };
 
 fn cargo(args: &[&str]) -> CargoCommand {
@@ -27,6 +27,7 @@ fn no_args_and_help_print_the_command_list() {
         "cli-prompt",
         "cli-json",
         "package-cli",
+        "package-desktop",
         "desktop-test",
     ] {
         assert!(help.contains(command), "help text should mention {command}");
@@ -181,6 +182,49 @@ fn package_cli_rejects_invalid_arguments() {
     );
     assert_eq!(
         parse_args(["package-cli", "--wat"]),
+        Err(XtaskError::UnknownOption("--wat".to_string()))
+    );
+}
+
+#[test]
+fn package_desktop_parses_release_arguments() {
+    assert_eq!(
+        parse_args([
+            "package-desktop",
+            "--channel",
+            "stable",
+            "--target",
+            "aarch64-apple-darwin",
+            "--out-dir",
+            "target/desktop-release",
+            "--bundle"
+        ]),
+        Ok(Task::PackageDesktop(PackageDesktopOptions {
+            channel: ReleaseChannel::Stable,
+            target_triple: Some("aarch64-apple-darwin".to_string()),
+            output_dir: PathBuf::from("target/desktop-release"),
+            bundle: true,
+        }))
+    );
+
+    assert_eq!(
+        parse_args(["package-desktop"]),
+        Ok(Task::PackageDesktop(PackageDesktopOptions::default()))
+    );
+}
+
+#[test]
+fn package_desktop_rejects_invalid_arguments() {
+    assert_eq!(
+        parse_args(["package-desktop", "--channel", "nightly"]),
+        Err(XtaskError::InvalidReleaseChannel("nightly".to_string()))
+    );
+    assert_eq!(
+        parse_args(["package-desktop", "--out-dir"]),
+        Err(XtaskError::MissingValue("--out-dir".to_string()))
+    );
+    assert_eq!(
+        parse_args(["package-desktop", "--wat"]),
         Err(XtaskError::UnknownOption("--wat".to_string()))
     );
 }

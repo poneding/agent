@@ -1,3 +1,6 @@
+use std::path::PathBuf;
+
+use agent_core::{PlatformPathOverrides, PlatformPaths, ReleaseChannel, SettingsProfile};
 use serde::{Deserialize, Serialize};
 
 use crate::DesktopError;
@@ -122,4 +125,48 @@ fn validate_config_selection(label: &str, value: &str) -> Result<(), DesktopErro
         )));
     }
     Ok(())
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DesktopReleaseSmokeSnapshot {
+    pub app_version: String,
+    pub release_channel: ReleaseChannel,
+    pub config_dir: PathBuf,
+    pub data_dir: PathBuf,
+    pub cache_dir: PathBuf,
+    pub log_dir: PathBuf,
+    pub settings_profile_id: String,
+}
+
+pub fn build_desktop_release_smoke_snapshot(
+    app_version: impl Into<String>,
+    release_channel: ReleaseChannel,
+    portable_root: PathBuf,
+) -> Result<DesktopReleaseSmokeSnapshot, DesktopError> {
+    let app_version = app_version.into();
+    if app_version.trim().is_empty() {
+        return Err(DesktopError::InvalidSettings(
+            "app version cannot be empty".to_string(),
+        ));
+    }
+
+    let paths = PlatformPaths::current(PlatformPathOverrides {
+        portable_root: Some(portable_root),
+        ..PlatformPathOverrides::default()
+    })
+    .map_err(|error| DesktopError::InvalidSettings(error.to_string()))?;
+    let settings = SettingsProfile {
+        release_channel,
+        ..SettingsProfile::default()
+    };
+
+    Ok(DesktopReleaseSmokeSnapshot {
+        app_version,
+        release_channel,
+        config_dir: paths.config_dir,
+        data_dir: paths.data_dir,
+        cache_dir: paths.cache_dir,
+        log_dir: paths.log_dir,
+        settings_profile_id: settings.profile_id,
+    })
 }

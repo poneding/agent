@@ -71,7 +71,7 @@ Run idempotent config, storage, memory, and plugin migrations before runtime sta
 
 Add release profiles, binary artifact generation, and smoke tests.
 
-- [ ] **Step 5: Implement Desktop bundle and updater hooks**
+- [x] **Step 5: Implement Desktop bundle and updater hooks**
 
 Add Tauri bundle settings, update manifest handling, and local update failure tests.
 
@@ -82,7 +82,7 @@ Add Tauri bundle settings, update manifest handling, and local update failure te
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M25-packaging-release-settings-updates.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -92,17 +92,17 @@ cargo xtask check
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Run release smoke checks**
+- [x] **Step 2: Run release smoke checks**
 
 Run the CLI and Desktop smoke commands defined by the M25 slice plans.
 
 Expected: generated artifacts start, report version, and read settings without raw secrets.
 
-- [ ] **Step 3: Mark M25 complete**
+- [x] **Step 3: Mark M25 complete**
 
 Update milestone status and record the next release-readiness focus.
 
-- [ ] **Step 4: Commit M25 completion**
+- [x] **Step 4: Commit M25 completion**
 
 Run:
 

@@ -12,10 +12,8 @@ agent-policy = { path = "../agent-policy" }
 agent-types = { path = "../agent-types" }
 agent-ui-bridge = { path = "../agent-ui-bridge" }
 serde = { version = "1", features = ["derive"] }
-thiserror = "2"
-
-[dev-dependencies]
 serde_json = "1"
+thiserror = "2"
 
 [lints]
 workspace = true

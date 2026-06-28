@@ -11,6 +11,7 @@ pub mod settings;
 pub mod snapshot;
 pub mod task;
 pub mod trace;
+pub mod update;
 
 pub use conversation::DesktopConversationItem;
 pub use diff::{
@@ -27,9 +28,14 @@ pub use session::{
     start_desktop_session, switch_desktop_route,
 };
 pub use settings::{
-    DesktopConfigSnapshot, DesktopSettings, DesktopTheme, McpSettings, MemorySettings,
-    ModelSettings, PolicySettings, UiSettings, validate_desktop_settings,
+    DesktopConfigSnapshot, DesktopReleaseSmokeSnapshot, DesktopSettings, DesktopTheme, McpSettings,
+    MemorySettings, ModelSettings, PolicySettings, UiSettings,
+    build_desktop_release_smoke_snapshot, validate_desktop_settings,
 };
 pub use snapshot::{DesktopWorkspaceSnapshot, build_workspace_snapshot};
 pub use task::{DesktopTaskArtifactItem, DesktopTaskItem, DesktopTaskReviewItem};
 pub use trace::{TraceTimeline, TraceTimelineItem, TraceTimelineSeverity, build_trace_timeline};
+pub use update::{
+    DesktopUpdateArtifact, DesktopUpdateDecision, UpdateManifest, parse_update_manifest_json,
+    validate_update_manifest, validate_update_manifest_for_current,
+};

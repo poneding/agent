@@ -1,4 +1,10 @@
-use agent_desktop::{DesktopError, DesktopSettings, DesktopTheme, validate_desktop_settings};
+use std::path::PathBuf;
+
+use agent_core::ReleaseChannel;
+use agent_desktop::{
+    DesktopError, DesktopSettings, DesktopTheme, build_desktop_release_smoke_snapshot,
+    validate_desktop_settings,
+};
 
 #[test]
 fn settings_serializes_stable_shape() {
@@ -64,4 +70,35 @@ fn settings_serialized_shape_excludes_secret_like_keys() {
     assert!(!serialized.contains("password"));
     assert!(!serialized.contains("secret"));
     assert!(!serialized.contains("env"));
+}
+
+#[test]
+fn settings_release_smoke_snapshot_uses_portable_root() {
+    let root = std::env::temp_dir().join(format!(
+        "agent-desktop-release-smoke-{}",
+        std::process::id()
+    ));
+
+    let snapshot = build_desktop_release_smoke_snapshot("0.1.0", ReleaseChannel::Dev, root.clone())
+        .expect("release smoke snapshot");
+
+    assert_eq!(snapshot.app_version, "0.1.0");
+    assert_eq!(snapshot.release_channel, ReleaseChannel::Dev);
+    assert_eq!(snapshot.config_dir, root.join("config"));
+    assert_eq!(snapshot.data_dir, root.join("data"));
+    assert_eq!(snapshot.cache_dir, root.join("cache"));
+    assert_eq!(snapshot.log_dir, root.join("logs"));
+    assert_eq!(snapshot.settings_profile_id, "default");
+}
+
+#[test]
+fn settings_release_smoke_snapshot_rejects_relative_root_without_side_effects() {
+    let error = build_desktop_release_smoke_snapshot(
+        "0.1.0",
+        ReleaseChannel::Dev,
+        PathBuf::from("relative-smoke-root"),
+    )
+    .expect_err("relative root rejected");
+
+    assert!(matches!(error, DesktopError::InvalidSettings(_)));
 }

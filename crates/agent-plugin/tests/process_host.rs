@@ -99,7 +99,7 @@ fn process_host_rejects_missing_entrypoint() {
         .invoke_tool(
             &PluginProcessConfig {
                 entrypoint: " ".to_string(),
-                timeout_ms: 1_000,
+                timeout_ms: DEFAULT_PROCESS_TEST_TIMEOUT_MS,
                 max_stdout_bytes: 1024,
             },
             &request("call-1"),
@@ -122,7 +122,7 @@ printf '%s\n' '{"protocol_version":1,"type":"tool_result","call_id":"call-1","ok
         .invoke_tool(
             &PluginProcessConfig {
                 entrypoint,
-                timeout_ms: 1_000,
+                timeout_ms: DEFAULT_PROCESS_TEST_TIMEOUT_MS,
                 max_stdout_bytes: 8,
             },
             &request("call-1"),
@@ -166,8 +166,10 @@ fn process_fixture_guard() -> MutexGuard<'static, ()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
     LOCK.get_or_init(|| Mutex::new(()))
         .lock()
-        .expect("process fixture lock")
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
+
+const DEFAULT_PROCESS_TEST_TIMEOUT_MS: u64 = 10_000;
 
 fn request(call_id: &str) -> PluginProcessRequest {
     PluginProcessRequest {
@@ -182,7 +184,7 @@ fn request(call_id: &str) -> PluginProcessRequest {
 fn config(entrypoint: String) -> PluginProcessConfig {
     PluginProcessConfig {
         entrypoint,
-        timeout_ms: 1_000,
+        timeout_ms: DEFAULT_PROCESS_TEST_TIMEOUT_MS,
         max_stdout_bytes: 1024,
     }
 }

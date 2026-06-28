@@ -51,7 +51,7 @@ Each plan names files, focused tests, verification commands, and commit points.
 - Execute: `docs/plans/M28-04-cli-eval-suite-commands.plan.md`
 - Execute: `docs/plans/M28-05-xtask-eval-gate.plan.md`
 
-- [ ] **Step 1: Implement scenario suite manifests**
+- [x] **Step 1: Implement scenario suite manifests**
 
 Add versioned suite contracts, safe scenario path resolution, labels, strictness defaults, and serde tests.
 

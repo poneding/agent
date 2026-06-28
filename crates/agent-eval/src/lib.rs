@@ -5,6 +5,7 @@ pub mod golden;
 pub mod manifest;
 pub mod report;
 pub mod runner;
+pub mod suite;
 
 pub use golden::{
     GoldenComparisonError, GoldenComparisonOptions, GoldenComparisonResult, GoldenMismatch,
@@ -22,6 +23,10 @@ pub use report::{
     EvalScenarioReport, EvalScenarioStatus, render_eval_summary_text, write_eval_artifacts,
 };
 pub use runner::{EvalRunnerOptions, EvalStrictness, run_eval_scenario, run_eval_scenarios};
+pub use suite::{
+    EVAL_SUITE_SCHEMA_VERSION, EvalSuiteError, EvalSuiteManifest, EvalSuiteScenarioRef,
+    ValidatedEvalSuite, ValidatedEvalSuiteScenarioRef, parse_eval_suite_json, validate_eval_suite,
+};
 
 /// Returns this crate's stable package name.
 #[must_use]

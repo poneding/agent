@@ -233,6 +233,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M28 technical design | Complete |
 | M28 slice specs | Complete for M28-01 through M28-05 |
 | M28 slice plans | Complete for M28-01 through M28-05 |
+| M28-01 implementation | Complete |
 | M28 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -568,12 +569,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M28-01 scenario suite manifest`.
+Current implementation focus: `M28-02 built-in eval corpus`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M27-05-ci-reporting-integration.spec.md`
-- `docs/plans/M27-05-ci-reporting-integration.plan.md`
+- `docs/specs/M28-01-scenario-suite-manifest.spec.md`
+- `docs/plans/M28-01-scenario-suite-manifest.plan.md`
 
 Most recent completed technical design documents:
 
@@ -582,5 +583,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M28-01-scenario-suite-manifest.spec.md`
-- `docs/plans/M28-01-scenario-suite-manifest.plan.md`
+- `docs/specs/M28-02-builtin-eval-corpus.spec.md`
+- `docs/plans/M28-02-builtin-eval-corpus.plan.md`

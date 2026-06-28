@@ -16,7 +16,7 @@
 - Read: `docs/specs/M28-01-scenario-suite-manifest.spec.md`
 - Read: `crates/agent-eval/src/manifest.rs`
 
-- [ ] **Step 1: Review contracts**
+- [x] **Step 1: Review contracts**
 
 Expected: suite code can reuse existing scenario validation.
 
@@ -25,7 +25,7 @@ Expected: suite code can reuse existing scenario validation.
 **Files:**
 - Create: `crates/agent-eval/tests/suite.rs`
 
-- [ ] **Step 1: Add suite serde and validation tests**
+- [x] **Step 1: Add suite serde and validation tests**
 
 Cover valid expansion, unsupported schema, invalid ID, duplicate aliases, missing files, path traversal, labels, and default strictness.
 
@@ -35,13 +35,13 @@ Cover valid expansion, unsupported schema, invalid ID, duplicate aliases, missin
 - Create: `crates/agent-eval/src/suite.rs`
 - Modify: `crates/agent-eval/src/lib.rs`
 
-- [ ] **Step 1: Add public suite structs and errors**
-- [ ] **Step 2: Add suite validation and safe path normalization**
-- [ ] **Step 3: Add scenario expansion using existing manifest validation**
+- [x] **Step 1: Add public suite structs and errors**
+- [x] **Step 2: Add suite validation and safe path normalization**
+- [x] **Step 3: Add scenario expansion using existing manifest validation**
 
 ### Task 4: Verify and Commit
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -49,7 +49,7 @@ cargo clippy -p agent-eval --all-targets -- -D warnings
 cargo test -p agent-eval --test suite
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add crates/agent-eval docs

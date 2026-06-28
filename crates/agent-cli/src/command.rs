@@ -21,6 +21,10 @@ use agent_core::{
     ExtensionSource, ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, RuntimeIds,
     RuntimeModelConfig, SettingsError, SettingsProfile, StartupMigrationRunner,
 };
+use agent_eval::{
+    EvalRunReport, EvalRunnerOptions, EvalScenarioKind, EvalScenarioStatus, EvalStrictness,
+    ValidatedEvalScenario, parse_eval_scenario_json, run_eval_scenarios,
+};
 use agent_memory::{
     InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
     MemoryError, MemoryImportPolicy, MemoryRecord, MemoryRetentionPolicy, MemoryScope,
@@ -87,6 +91,7 @@ pub enum CliCommand {
     Extension(ExtensionCommand),
     Memory(MemoryCommand),
     Task(TaskCliCommand),
+    Eval(EvalCliCommand),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -166,6 +171,20 @@ pub enum TaskCliCommand {
         id: String,
         schedule: TaskSchedule,
         reason: String,
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EvalCliCommand {
+    List {
+        manifest: PathBuf,
+    },
+    Validate {
+        manifest: PathBuf,
+    },
+    Run {
+        manifest: PathBuf,
+        strictness: EvalStrictness,
     },
 }
 
@@ -310,6 +329,7 @@ where
         "extension" => parse_extension_command(&mut args),
         "memory" => parse_memory_command(&mut args),
         "task" => parse_task_command(&mut args),
+        "eval" => parse_eval_command(&mut args),
         "--prompt" | "-p" => {
             let prompt = args
                 .next()
@@ -410,6 +430,7 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             let mut runtime = TaskCommandRuntime::fixture();
             render_task_command(&mut runtime, command, OutputMode::Text)
         }
+        CliCommand::Eval(command) => render_eval_command(command, OutputMode::Text),
     }
 }
 
@@ -463,6 +484,7 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 let mut runtime = TaskCommandRuntime::fixture();
                 render_task_command(&mut runtime, command, OutputMode::Text)
             }
+            CliCommand::Eval(command) => render_eval_command(command, OutputMode::Text),
             command => render_cli_command(command),
         },
         OutputMode::Json => render_json_invocation(invocation),
@@ -526,6 +548,9 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if let CliCommand::Task(command) = invocation.command {
         let mut runtime = TaskCommandRuntime::fixture();
         return render_task_command(&mut runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::Eval(command) = invocation.command {
+        return render_eval_command(command, OutputMode::Json);
     }
 
     let mut stdout = render_model_selection_frame(&invocation.model_selection);
@@ -811,6 +836,65 @@ where
     };
 
     Ok(CliCommand::Task(command))
+}
+
+fn parse_eval_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("eval".to_string()));
+    };
+
+    let command = match subcommand.as_str() {
+        "list" => EvalCliCommand::List {
+            manifest: parse_eval_manifest_arg(args, "eval list")?,
+        },
+        "validate" => EvalCliCommand::Validate {
+            manifest: parse_eval_manifest_arg(args, "eval validate")?,
+        },
+        "run" => parse_eval_run(args)?,
+        _ => return Err(CliError::UnknownArgument(format!("eval {subcommand}"))),
+    };
+
+    Ok(CliCommand::Eval(command))
+}
+
+fn parse_eval_manifest_arg<I>(args: &mut I, command_name: &str) -> Result<PathBuf, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut manifest = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--manifest" => manifest = Some(PathBuf::from(take_flag_value(args, &arg)?)),
+            _ => return Err(CliError::UnknownArgument(format!("{command_name} {arg}"))),
+        }
+    }
+    manifest.ok_or_else(|| CliError::MissingValue(format!("{command_name} --manifest")))
+}
+
+fn parse_eval_run<I>(args: &mut I) -> Result<EvalCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut manifest = None;
+    let mut strictness = EvalStrictness::Strict;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--manifest" => manifest = Some(PathBuf::from(take_flag_value(args, &arg)?)),
+            "--strict" => strictness = EvalStrictness::Strict,
+            "--warn" => strictness = EvalStrictness::Warn,
+            _ => return Err(CliError::UnknownArgument(format!("eval run {arg}"))),
+        }
+    }
+
+    Ok(EvalCliCommand::Run {
+        manifest: manifest
+            .ok_or_else(|| CliError::MissingValue("eval run --manifest".to_string()))?,
+        strictness,
+    })
 }
 
 fn parse_task_create<I>(args: &mut I) -> Result<TaskCliCommand, CliError>
@@ -1252,6 +1336,253 @@ fn task_priority_label(priority: TaskPriority) -> &'static str {
         TaskPriority::Low => "low",
         TaskPriority::Normal => "normal",
         TaskPriority::High => "high",
+    }
+}
+
+#[must_use]
+pub fn render_eval_command(command: EvalCliCommand, output_mode: OutputMode) -> CliOutput {
+    match command {
+        EvalCliCommand::List { manifest } => render_eval_list_command(&manifest, output_mode),
+        EvalCliCommand::Validate { manifest } => {
+            render_eval_validate_command(&manifest, output_mode)
+        }
+        EvalCliCommand::Run {
+            manifest,
+            strictness,
+        } => render_eval_run_command(&manifest, strictness, output_mode),
+    }
+}
+
+fn render_eval_list_command(manifest: &Path, output_mode: OutputMode) -> CliOutput {
+    match load_eval_scenario(manifest) {
+        Ok(scenario) => match output_mode {
+            OutputMode::Text => CliOutput::exit(format!(
+                "Eval scenarios\n- {} kind={} name={}\n",
+                scenario.manifest.id,
+                eval_kind_label(scenario.manifest.kind),
+                scenario.manifest.name
+            )),
+            OutputMode::Json => CliOutput::exit(json_value_frame_line(serde_json::json!({
+                "type": "eval_list",
+                "data": {
+                    "scenarios": [{
+                        "id": scenario.manifest.id,
+                        "name": scenario.manifest.name,
+                        "kind": eval_kind_label(scenario.manifest.kind),
+                    }],
+                },
+            }))),
+        },
+        Err(error) => render_eval_error("eval_list_failed", "eval list failed", error, output_mode),
+    }
+}
+
+fn render_eval_validate_command(manifest: &Path, output_mode: OutputMode) -> CliOutput {
+    match load_eval_scenario(manifest) {
+        Ok(scenario) => match output_mode {
+            OutputMode::Text => CliOutput::exit(format!(
+                "Eval scenario {} valid\nkind={}\nname={}\n",
+                scenario.manifest.id,
+                eval_kind_label(scenario.manifest.kind),
+                scenario.manifest.name
+            )),
+            OutputMode::Json => CliOutput::exit(json_value_frame_line(serde_json::json!({
+                "type": "eval_validation",
+                "data": {
+                    "valid": true,
+                    "scenario_id": scenario.manifest.id,
+                    "kind": eval_kind_label(scenario.manifest.kind),
+                    "diagnostics": scenario.diagnostics,
+                },
+            }))),
+        },
+        Err(error) => match output_mode {
+            OutputMode::Text => {
+                CliOutput::failure(format!("eval validation failed: {}\n", error.message), 2)
+            }
+            OutputMode::Json => CliOutput::failure(
+                json_value_frame_line(serde_json::json!({
+                    "type": "eval_validation",
+                    "data": {
+                        "valid": false,
+                        "diagnostics": [{
+                            "severity": "error",
+                            "code": "eval_validation_failed",
+                            "message": error.message,
+                        }],
+                    },
+                })),
+                2,
+            ),
+        },
+    }
+}
+
+fn render_eval_run_command(
+    manifest: &Path,
+    strictness: EvalStrictness,
+    output_mode: OutputMode,
+) -> CliOutput {
+    let scenario = match load_eval_scenario(manifest) {
+        Ok(scenario) => scenario,
+        Err(error) => {
+            return render_eval_error("eval_run_failed", "eval run failed", error, output_mode);
+        }
+    };
+    let report = run_eval_scenarios(
+        &[scenario],
+        EvalRunnerOptions {
+            strictness,
+            ..EvalRunnerOptions::default()
+        },
+    );
+    let status_code = eval_run_status_code(&report);
+
+    match output_mode {
+        OutputMode::Text => {
+            let output = render_eval_run_text(&report);
+            if status_code == 0 {
+                CliOutput::exit(output)
+            } else {
+                CliOutput::failure(output, status_code)
+            }
+        }
+        OutputMode::Json => {
+            let output = json_value_frame_line(serde_json::json!({
+                "type": "eval_run",
+                "data": {
+                    "report": report,
+                },
+            }));
+            if status_code == 0 {
+                CliOutput::exit(output)
+            } else {
+                CliOutput::failure(output, status_code)
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct EvalCliError {
+    message: String,
+}
+
+impl EvalCliError {
+    fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: redact_secret_like_text(&message.into()),
+        }
+    }
+}
+
+fn load_eval_scenario(manifest: &Path) -> Result<ValidatedEvalScenario, EvalCliError> {
+    let input = fs::read_to_string(manifest).map_err(|error| {
+        EvalCliError::new(format!(
+            "could not read eval manifest {}: {error}",
+            manifest.display()
+        ))
+    })?;
+    let fixture_root = manifest
+        .parent()
+        .filter(|path| !path.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    parse_eval_scenario_json(&input, fixture_root)
+        .map_err(|error| EvalCliError::new(error.to_string()))
+}
+
+fn render_eval_error(
+    code: &str,
+    label: &str,
+    error: EvalCliError,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => CliOutput::failure(format!("{label}: {}\n", error.message), 2),
+        OutputMode::Json => CliOutput::failure(
+            json_value_frame_line(serde_json::json!({
+                "type": "eval_error",
+                "data": {
+                    "code": code,
+                    "message": error.message,
+                },
+            })),
+            2,
+        ),
+    }
+}
+
+fn render_eval_run_text(report: &EvalRunReport) -> String {
+    let mut output = format!(
+        "Eval run {}\ntotal={} passed={} failed={} skipped={} invalid={} not_run={}\n",
+        report.run_id,
+        report.summary.total,
+        report.summary.passed,
+        report.summary.failed,
+        report.summary.skipped,
+        report.summary.invalid,
+        report.summary.not_run
+    );
+    for scenario in &report.scenarios {
+        output.push_str(&format!(
+            "{} status={}",
+            scenario.scenario_id,
+            eval_status_label(scenario.status)
+        ));
+        if let Some(summary) = &scenario.evidence_summary {
+            output.push_str(&format!(
+                " events={} trace={} audit={} replayable={}",
+                summary.event_count,
+                summary.trace_entries,
+                summary.audit_records,
+                yes_no_label(summary.replayable)
+            ));
+        }
+        output.push('\n');
+        for diagnostic in &scenario.diagnostics {
+            output.push_str(&format!(
+                "{} {}: {}\n",
+                eval_diagnostic_severity_label(diagnostic.severity),
+                diagnostic.code,
+                diagnostic.message
+            ));
+        }
+    }
+    output
+}
+
+fn eval_run_status_code(report: &EvalRunReport) -> i32 {
+    if report.summary.failed > 0 || report.summary.invalid > 0 {
+        1
+    } else {
+        0
+    }
+}
+
+fn eval_kind_label(kind: EvalScenarioKind) -> &'static str {
+    match kind {
+        EvalScenarioKind::ReplayTrace => "replay_trace",
+        EvalScenarioKind::FakeModelTurn => "fake_model_turn",
+        EvalScenarioKind::LocalCoding => "local_coding",
+        EvalScenarioKind::EvidenceOnly => "evidence_only",
+    }
+}
+
+fn eval_status_label(status: EvalScenarioStatus) -> &'static str {
+    match status {
+        EvalScenarioStatus::Passed => "passed",
+        EvalScenarioStatus::Failed => "failed",
+        EvalScenarioStatus::Skipped => "skipped",
+        EvalScenarioStatus::Invalid => "invalid",
+        EvalScenarioStatus::NotRun => "not_run",
+    }
+}
+
+fn eval_diagnostic_severity_label(severity: agent_eval::EvalDiagnosticSeverity) -> &'static str {
+    match severity {
+        agent_eval::EvalDiagnosticSeverity::Info => "info",
+        agent_eval::EvalDiagnosticSeverity::Warning => "warning",
+        agent_eval::EvalDiagnosticSeverity::Error => "error",
     }
 }
 

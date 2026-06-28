@@ -17,7 +17,7 @@
 - Read: `crates/agent-cli/src/command.rs`
 - Read: `crates/agent-eval/src/lib.rs`
 
-- [ ] **Step 1: Review CLI patterns**
+- [x] **Step 1: Review CLI patterns**
 
 Expected: eval commands follow existing text/JSON command style.
 
@@ -26,7 +26,7 @@ Expected: eval commands follow existing text/JSON command style.
 **Files:**
 - Create: `crates/agent-cli/tests/eval_commands.rs`
 
-- [ ] **Step 1: Add CLI eval command tests**
+- [x] **Step 1: Add CLI eval command tests**
 
 Cover list, validate, run, JSON output, invalid manifest, and exit codes.
 
@@ -37,13 +37,13 @@ Cover list, validate, run, JSON output, invalid manifest, and exit codes.
 - Modify: `crates/agent-cli/src/command.rs`
 - Modify: `crates/agent-cli/src/output.rs`
 
-- [ ] **Step 1: Add eval subcommands**
-- [ ] **Step 2: Delegate to `agent-eval`**
-- [ ] **Step 3: Render text and JSON reports**
+- [x] **Step 1: Add eval subcommands**
+- [x] **Step 2: Delegate to `agent-eval`**
+- [x] **Step 3: Render text and JSON reports**
 
 ### Task 4: Verify and Commit
 
-- [ ] **Step 1: Run checks**
+- [x] **Step 1: Run checks**
 
 ```bash
 cargo fmt --all -- --check
@@ -51,7 +51,7 @@ cargo clippy -p agent-cli --all-targets -- -D warnings
 cargo test -p agent-cli eval_commands
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates/agent-cli crates/agent-eval docs

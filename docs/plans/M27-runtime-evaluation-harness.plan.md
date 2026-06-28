@@ -63,7 +63,7 @@ Run deterministic replay, fake-model, local-coding, and evidence-only scenarios 
 
 Compare selected evidence/report fields against golden files with redacted, stable mismatch diagnostics.
 
-- [ ] **Step 4: Implement CLI eval commands**
+- [x] **Step 4: Implement CLI eval commands**
 
 Expose list, validate, run, and report commands with text/JSON output and CI-safe exit codes.
 

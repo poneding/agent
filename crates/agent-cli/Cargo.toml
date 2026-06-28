@@ -17,6 +17,7 @@ path = "src/bin/agent-cli.rs"
 [dependencies]
 agent-context = { path = "../agent-context" }
 agent-core = { path = "../agent-core" }
+agent-eval = { path = "../agent-eval" }
 agent-memory = { path = "../agent-memory" }
 agent-model = { path = "../agent-model" }
 agent-plugin = { path = "../agent-plugin" }

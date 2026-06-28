@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M25 are implemented, including productized local packaging, settings, secrets, migrations, CLI release artifacts, and Desktop release metadata.
+M01-M25 are implemented. M26 is in progress, adding redacted observability evidence bundles and CLI/Desktop debug surfaces.
 
 ## Core Ideas
 
@@ -93,6 +93,8 @@ cargo xtask cli-prompt -- "hello agent"
 cargo xtask cli-json -- "hello agent"
 cargo xtask package-cli --channel dev
 cargo xtask package-desktop --channel dev
+agent-cli --observability-summary
+agent-cli --observability-json
 ```
 
 Run `cargo xtask help` for the full command list.
@@ -133,8 +135,8 @@ Outputs are written to `target/agent-release/`:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M25-05-desktop-bundle-updater.spec.md)
-- [Latest completed plan](docs/plans/M25-05-desktop-bundle-updater.plan.md)
+- [Latest completed spec](docs/specs/M26-03-cli-observability-commands.spec.md)
+- [Latest completed plan](docs/plans/M26-03-cli-observability-commands.plan.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

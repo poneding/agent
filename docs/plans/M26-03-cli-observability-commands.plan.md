@@ -17,25 +17,25 @@
 - Read: `crates/agent-cli/src/command.rs`
 - Read: `crates/agent-cli/tests/trace_commands.rs`
 
-- [ ] **Step 1: Review existing CLI trace command patterns**
+- [x] **Step 1: Review existing CLI trace command patterns**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-cli/tests/observability_commands.rs`
 
-- [ ] **Step 1: Add CLI observability tests**
+- [x] **Step 1: Add CLI observability tests**
 
 ### Task 3: Implement Commands
 
 **Files:**
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Add summary and JSON output commands**
+- [x] **Step 1: Add summary and JSON output commands**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 ```bash
 cargo test -p agent-cli observability
@@ -44,7 +44,7 @@ cargo clippy -p agent-cli --all-targets -- -D warnings
 
 ### Task 5: Update Status and Commit
 
-- [ ] **Step 1: Mark M26-03 complete and commit**
+- [x] **Step 1: Mark M26-03 complete and commit**
 
 ```bash
 git add crates/agent-cli docs

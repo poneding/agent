@@ -59,7 +59,7 @@ Add redacted, bounded, filterable telemetry export bundles.
 
 Compose trace entries, audit bundles, telemetry bundles, and replay summaries.
 
-- [ ] **Step 3: Implement CLI observability commands**
+- [x] **Step 3: Implement CLI observability commands**
 
 Expose text and JSON evidence outputs without raw secret leakage.
 

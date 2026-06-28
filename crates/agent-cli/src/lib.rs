@@ -19,9 +19,9 @@ pub use command::{
     SkillRootCommand, SkillRootCommandRuntime, SlashCommand, StdioProfile, TaskCliCommand,
     TaskCommandRuntime, handle_slash_command, parse_cli_command, parse_cli_invocation,
     render_cli_command, render_cli_invocation, render_cli_invocation_with_stdio,
-    render_extension_command, render_memory_command, render_plugin_command,
-    render_skill_root_command, render_task_command, render_task_review_summary,
-    run_plain_repl_stdio,
+    render_extension_command, render_memory_command, render_observability_json_bundle,
+    render_observability_summary, render_plugin_command, render_skill_root_command,
+    render_task_command, render_task_review_summary, run_plain_repl_stdio,
 };
 pub use output::CliOutput;
 pub use repl::{

@@ -217,6 +217,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M26 slice plans | Complete for M26-01 through M26-05 |
 | M26-01 implementation | Complete |
 | M26-02 implementation | Complete |
+| M26-03 implementation | Complete |
 | M26 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -528,12 +529,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M26-03 CLI Observability Commands`.
+Current implementation focus: `M26-04 UI Observability Snapshots`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M26-02-runtime-evidence-builder.spec.md`
-- `docs/plans/M26-02-runtime-evidence-builder.plan.md`
+- `docs/specs/M26-03-cli-observability-commands.spec.md`
+- `docs/plans/M26-03-cli-observability-commands.plan.md`
 
 Most recent completed technical design documents:
 
@@ -542,5 +543,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M26-03-cli-observability-commands.spec.md`
-- `docs/plans/M26-03-cli-observability-commands.plan.md`
+- `docs/specs/M26-04-ui-observability-snapshots.spec.md`
+- `docs/plans/M26-04-ui-observability-snapshots.plan.md`

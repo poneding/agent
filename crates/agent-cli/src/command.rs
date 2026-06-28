@@ -78,6 +78,8 @@ pub enum CliCommand {
     PlainRepl,
     LocalSummary,
     TraceSummary,
+    ObservabilitySummary,
+    ObservabilityJson,
     ConfigCheck,
     StartupCheck,
     Plugin(PluginCommand),
@@ -297,6 +299,8 @@ where
         "--tty" => Ok(CliCommand::TtyShell),
         "--local-summary" => Ok(CliCommand::LocalSummary),
         "--trace-summary" => Ok(CliCommand::TraceSummary),
+        "--observability-summary" => Ok(CliCommand::ObservabilitySummary),
+        "--observability-json" => Ok(CliCommand::ObservabilityJson),
         "--config-check" => Ok(CliCommand::ConfigCheck),
         "startup-check" | "--startup-check" => Ok(CliCommand::StartupCheck),
         "prompt" => parse_prompt_command(&mut args),
@@ -379,6 +383,11 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             Ok(output) => CliOutput::exit(output),
             Err(error) => CliOutput::exit(format!("trace summary failed: {error}\n")),
         },
+        CliCommand::ObservabilitySummary => match build_local_observability_evidence() {
+            Ok(bundle) => CliOutput::exit(render_observability_summary(&bundle)),
+            Err(error) => CliOutput::exit(format!("observability summary failed: {error}\n")),
+        },
+        CliCommand::ObservabilityJson => render_observability_json_command(),
         CliCommand::ConfigCheck => render_text_config_check(None, ConfigOverride::default()),
         CliCommand::StartupCheck => render_text_startup_check(),
         CliCommand::Plugin(command) => {
@@ -485,6 +494,12 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     }
     if invocation.command == CliCommand::StartupCheck {
         return render_json_startup_check();
+    }
+    if matches!(
+        invocation.command,
+        CliCommand::ObservabilitySummary | CliCommand::ObservabilityJson
+    ) {
+        return render_observability_json_command();
     }
     if invocation.command == CliCommand::PromptProfiles {
         return render_prompt_profiles_json();
@@ -3487,12 +3502,90 @@ fn render_local_trace_summary() -> Result<String, String> {
     Ok(render_trace_summary(&entries))
 }
 
+fn build_local_observability_evidence() -> Result<agent_core::ObservabilityEvidenceBundle, String> {
+    let run = agent_core::run_local_coding_fixture().map_err(|error| error.to_string())?;
+    agent_core::build_observability_evidence(
+        &run.events,
+        &[],
+        agent_core::ObservabilityEvidenceOptions {
+            include_telemetry: false,
+            ..agent_core::ObservabilityEvidenceOptions::default()
+        },
+    )
+    .map_err(|error| error.to_string())
+}
+
+fn render_observability_json_command() -> CliOutput {
+    match build_local_observability_evidence() {
+        Ok(bundle) => match render_observability_json_bundle(&bundle) {
+            Ok(output) => CliOutput::exit(output),
+            Err(error) => CliOutput::exit(json_value_frame_line(serde_json::json!({
+                "error": {
+                    "code": "observability_json_failed",
+                    "message": error.to_string(),
+                    "recoverable": false
+                }
+            }))),
+        },
+        Err(error) => CliOutput::exit(json_value_frame_line(serde_json::json!({
+            "error": {
+                "code": "observability_failed",
+                "message": error,
+                "recoverable": false
+            }
+        }))),
+    }
+}
+
 #[must_use]
 pub fn render_trace_summary(entries: &[agent_core::TraceEntry]) -> String {
     entries
         .iter()
         .map(|entry| format!("{} {} {}\n", entry.seq, entry.kind, entry.summary))
         .collect()
+}
+
+#[must_use]
+pub fn render_observability_summary(bundle: &agent_core::ObservabilityEvidenceBundle) -> String {
+    let replayable = if bundle.summary.replayable {
+        "yes"
+    } else {
+        "no"
+    };
+    let mut output = String::new();
+    output.push_str("Observability evidence\n");
+    output.push_str(&format!("Events: {}\n", bundle.summary.total_events));
+    output.push_str(&format!(
+        "Trace entries: {}\n",
+        bundle.summary.trace_entries
+    ));
+    output.push_str(&format!(
+        "Audit records: {}\n",
+        bundle.summary.audit_records
+    ));
+    output.push_str(&format!(
+        "Telemetry records: {}\n",
+        bundle.summary.telemetry_records
+    ));
+    output.push_str(&format!("Replayable: {replayable}\n"));
+    output.push_str(&format!("Diagnostics: {}\n", bundle.summary.diagnostics));
+
+    if !bundle.diagnostics.is_empty() {
+        output.push_str("Diagnostic details:\n");
+        for diagnostic in &bundle.diagnostics {
+            output.push_str(&format!("- {diagnostic}\n"));
+        }
+    }
+
+    output
+}
+
+pub fn render_observability_json_bundle(
+    bundle: &agent_core::ObservabilityEvidenceBundle,
+) -> Result<String, serde_json::Error> {
+    let mut output = serde_json::to_string(bundle)?;
+    output.push('\n');
+    Ok(output)
 }
 
 #[must_use]

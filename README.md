@@ -88,6 +88,7 @@ cargo xtask fmt
 cargo xtask fmt-check
 cargo xtask clippy
 cargo xtask test
+cargo xtask ci
 cargo xtask eval
 cargo xtask desktop-test
 cargo xtask cli-prompt -- "hello agent"
@@ -102,6 +103,21 @@ agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/a
 ```
 
 Run `cargo xtask help` for the full command list.
+
+## Quality Gate
+
+Run the local and CI quality gate with:
+
+```bash
+cargo xtask ci
+```
+
+The gate writes redacted evidence artifacts to `target/agent-ci/`:
+
+- `quality-gate-report.json`
+- `quality-gate-summary.txt`
+
+GitHub Actions uploads the same `target/agent-ci` directory for review.
 
 ## CLI Release Packaging
 

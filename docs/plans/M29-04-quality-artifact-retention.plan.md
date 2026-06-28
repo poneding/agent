@@ -12,18 +12,20 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M29-04 spec and M29-02 writer code**
+- [x] **Step 1: Read M29-04 spec and M29-02 writer code**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add artifact path and summary tests**
+- [x] **Step 1: Add artifact path and summary tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add stable artifact set contract**
-- [ ] **Step 2: Ensure partial reports are written on failure**
+- [x] **Step 1: Add stable artifact set contract**
+- [x] **Step 2: Ensure partial reports are written on failure**
 
 ### Task 4: Verify and Commit
+
+- [x] **Step 1: Run focused artifact checks**
 
 ```bash
 cargo fmt --all -- --check

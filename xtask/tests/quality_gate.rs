@@ -1,8 +1,12 @@
 use xtask::{
-    CargoCommand, QualityGateError, QualityGateOptions, QualityGateReport, QualityGateStatus,
-    QualityGateStepReport, QualityGateStepStatus, render_quality_gate_summary,
-    run_quality_gate_commands,
+    CargoCommand, QUALITY_GATE_ARTIFACT_DIR, QUALITY_GATE_ARTIFACT_FILES, QUALITY_GATE_REPORT_FILE,
+    QUALITY_GATE_SUMMARY_FILE, QualityGateError, QualityGateOptions, QualityGateReport,
+    QualityGateStatus, QualityGateStepReport, QualityGateStepStatus, render_quality_gate_summary,
+    run_quality_gate_commands, write_quality_gate_artifacts,
 };
+
+const README: &str = include_str!("../../README.md");
+const CI_WORKFLOW: &str = include_str!("../../.github/workflows/ci.yml");
 
 fn temp_output_dir(name: &str) -> std::path::PathBuf {
     let path = std::env::temp_dir().join(format!(
@@ -32,6 +36,29 @@ fn step(
         42,
         None,
     )
+}
+
+#[test]
+fn quality_gate_artifact_contract_exposes_stable_paths() {
+    assert_eq!(
+        QualityGateOptions::default().output_dir,
+        std::path::PathBuf::from(QUALITY_GATE_ARTIFACT_DIR)
+    );
+    assert_eq!(QUALITY_GATE_ARTIFACT_DIR, "target/agent-ci");
+    assert_eq!(QUALITY_GATE_REPORT_FILE, "quality-gate-report.json");
+    assert_eq!(QUALITY_GATE_SUMMARY_FILE, "quality-gate-summary.txt");
+    assert_eq!(
+        QUALITY_GATE_ARTIFACT_FILES,
+        [QUALITY_GATE_REPORT_FILE, QUALITY_GATE_SUMMARY_FILE]
+    );
+}
+
+#[test]
+fn quality_gate_artifact_paths_are_documented_for_ci_upload() {
+    assert!(README.contains(QUALITY_GATE_ARTIFACT_DIR));
+    assert!(README.contains(QUALITY_GATE_REPORT_FILE));
+    assert!(README.contains(QUALITY_GATE_SUMMARY_FILE));
+    assert!(CI_WORKFLOW.contains(&format!("path: {QUALITY_GATE_ARTIFACT_DIR}")));
 }
 
 #[test]
@@ -124,8 +151,8 @@ fn quality_gate_runner_writes_json_and_summary_artifacts() {
     .expect("quality gate should pass");
 
     assert_eq!(report.status, QualityGateStatus::Passed);
-    let json_path = output_dir.join("quality-gate-report.json");
-    let summary_path = output_dir.join("quality-gate-summary.txt");
+    let json_path = output_dir.join(QUALITY_GATE_REPORT_FILE);
+    let summary_path = output_dir.join(QUALITY_GATE_SUMMARY_FILE);
     assert!(json_path.exists());
     assert!(summary_path.exists());
     let value: serde_json::Value =
@@ -168,6 +195,73 @@ fn quality_gate_runner_stops_after_failure_and_records_skipped_steps() {
     assert_eq!(report.status, QualityGateStatus::Failed);
     assert_eq!(report.steps[0].status, QualityGateStepStatus::Failed);
     assert_eq!(report.steps[1].status, QualityGateStepStatus::Skipped);
-    assert!(output_dir.join("quality-gate-report.json").exists());
-    assert!(output_dir.join("quality-gate-summary.txt").exists());
+    assert!(output_dir.join(QUALITY_GATE_REPORT_FILE).exists());
+    assert!(output_dir.join(QUALITY_GATE_SUMMARY_FILE).exists());
+}
+
+#[test]
+fn quality_gate_runner_records_spawn_failure_partial_report() {
+    let output_dir = temp_output_dir("quality-spawn-fail");
+
+    let error = run_quality_gate_commands(
+        QualityGateOptions {
+            run_id: "fixture-ci".to_string(),
+            output_dir: output_dir.clone(),
+        },
+        vec![
+            CargoCommand {
+                program: format!("agent-missing-command-{}", std::process::id()),
+                args: Vec::new(),
+            },
+            CargoCommand {
+                program: "rustc".to_string(),
+                args: vec!["--version".to_string()],
+            },
+        ],
+    )
+    .expect_err("quality gate should fail before spawning missing command");
+
+    let QualityGateError::CommandSpawn { report, .. } = error else {
+        panic!("expected command spawn failure");
+    };
+    assert_eq!(report.status, QualityGateStatus::Failed);
+    assert_eq!(report.steps[0].status, QualityGateStepStatus::Failed);
+    assert_eq!(report.steps[1].status, QualityGateStepStatus::Skipped);
+
+    let value: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(output_dir.join(QUALITY_GATE_REPORT_FILE)).expect("read json"),
+    )
+    .expect("json report");
+    assert_eq!(value["status"], "failed");
+    assert_eq!(value["steps"][1]["status"], "skipped");
+    assert!(
+        std::fs::read_to_string(output_dir.join(QUALITY_GATE_SUMMARY_FILE))
+            .expect("read summary")
+            .contains("status=failed")
+    );
+}
+
+#[test]
+fn quality_gate_artifact_writer_overwrites_stale_files() {
+    let output_dir = temp_output_dir("quality-overwrite");
+    std::fs::create_dir_all(&output_dir).expect("create output dir");
+    std::fs::write(output_dir.join(QUALITY_GATE_REPORT_FILE), "stale json")
+        .expect("write stale json");
+    std::fs::write(output_dir.join(QUALITY_GATE_SUMMARY_FILE), "stale summary")
+        .expect("write stale summary");
+    let report = QualityGateReport::from_steps(
+        "fixture-ci",
+        vec![step("fmt", QualityGateStepStatus::Passed, Some(0))],
+    );
+
+    write_quality_gate_artifacts(&report, &output_dir).expect("write artifacts");
+
+    let json = std::fs::read_to_string(output_dir.join(QUALITY_GATE_REPORT_FILE))
+        .expect("read json artifact");
+    let summary = std::fs::read_to_string(output_dir.join(QUALITY_GATE_SUMMARY_FILE))
+        .expect("read summary artifact");
+    assert!(!json.contains("stale json"));
+    assert!(!summary.contains("stale summary"));
+    assert!(json.ends_with('\n'));
+    assert!(summary.contains("Quality gate fixture-ci status=passed"));
 }

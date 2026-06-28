@@ -63,7 +63,7 @@ Run fmt, clippy, tests, and eval through a single evidence-producing command.
 
 Add workflow configuration that invokes the shared `xtask ci` gate.
 
-- [ ] **Step 4: Add artifact retention behavior**
+- [x] **Step 4: Add artifact retention behavior**
 
 Persist JSON and text summaries under `target/agent-ci` and document upload paths.
 

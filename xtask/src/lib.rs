@@ -34,6 +34,11 @@ pub struct CargoCommand {
 }
 
 pub const QUALITY_GATE_REPORT_SCHEMA_VERSION: u32 = 1;
+pub const QUALITY_GATE_ARTIFACT_DIR: &str = "target/agent-ci";
+pub const QUALITY_GATE_REPORT_FILE: &str = "quality-gate-report.json";
+pub const QUALITY_GATE_SUMMARY_FILE: &str = "quality-gate-summary.txt";
+pub const QUALITY_GATE_ARTIFACT_FILES: [&str; 2] =
+    [QUALITY_GATE_REPORT_FILE, QUALITY_GATE_SUMMARY_FILE];
 const QUALITY_GATE_MAX_MESSAGE_CHARS: usize = 256;
 const QUALITY_GATE_REDACTED: &str = "[redacted]";
 
@@ -126,7 +131,7 @@ impl Default for QualityGateOptions {
     fn default() -> Self {
         Self {
             run_id: "ci-local".to_string(),
-            output_dir: PathBuf::from("target/agent-ci"),
+            output_dir: PathBuf::from(QUALITY_GATE_ARTIFACT_DIR),
         }
     }
 }
@@ -328,23 +333,56 @@ pub fn write_quality_gate_artifacts(
         path: output_dir.to_path_buf(),
         message: error.to_string(),
     })?;
-    let json_path = output_dir.join("quality-gate-report.json");
-    let summary_path = output_dir.join("quality-gate-summary.txt");
+    let json_path = output_dir.join(QUALITY_GATE_REPORT_FILE);
+    let summary_path = output_dir.join(QUALITY_GATE_SUMMARY_FILE);
     let json = serde_json::to_string_pretty(report).map_err(|error| QualityGateError::Io {
         path: json_path.clone(),
         message: error.to_string(),
     })?;
-    fs::write(&json_path, format!("{json}\n")).map_err(|error| QualityGateError::Io {
-        path: json_path.clone(),
+    write_quality_gate_artifact(&json_path, &format!("{json}\n"))?;
+    write_quality_gate_artifact(&summary_path, &render_quality_gate_summary(report))?;
+    Ok(())
+}
+
+fn write_quality_gate_artifact(path: &Path, contents: &str) -> Result<(), QualityGateError> {
+    let temp_path = quality_gate_temp_path(path);
+    fs::write(&temp_path, contents).map_err(|error| QualityGateError::Io {
+        path: temp_path.clone(),
         message: error.to_string(),
     })?;
-    fs::write(&summary_path, render_quality_gate_summary(report)).map_err(|error| {
-        QualityGateError::Io {
-            path: summary_path,
-            message: error.to_string(),
+    match fs::rename(&temp_path, path) {
+        Ok(()) => Ok(()),
+        Err(rename_error) if path.exists() => {
+            fs::remove_file(path).map_err(|remove_error| {
+                let _ = fs::remove_file(&temp_path);
+                QualityGateError::Io {
+                    path: path.to_path_buf(),
+                    message: format!(
+                        "failed to replace existing artifact after rename error {rename_error}: {remove_error}"
+                    ),
+                }
+            })?;
+            fs::rename(&temp_path, path).map_err(|error| QualityGateError::Io {
+                path: path.to_path_buf(),
+                message: error.to_string(),
+            })
         }
-    })?;
-    Ok(())
+        Err(error) => {
+            let _ = fs::remove_file(&temp_path);
+            Err(QualityGateError::Io {
+                path: path.to_path_buf(),
+                message: error.to_string(),
+            })
+        }
+    }
+}
+
+fn quality_gate_temp_path(path: &Path) -> PathBuf {
+    let file_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("artifact");
+    path.with_file_name(format!(".{file_name}.tmp-{}", std::process::id()))
 }
 
 fn quality_gate_status_label(status: &QualityGateStatus) -> &'static str {

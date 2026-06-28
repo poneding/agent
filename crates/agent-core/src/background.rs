@@ -4,8 +4,8 @@ use agent_scheduler::{
     TaskQueue, TaskRun, redact_task_text,
 };
 use agent_types::{
-    ApprovalRequestId, CorrelationId, RuntimeEvent, RuntimeEventPayload, TaskId, TaskState,
-    Timestamp, TurnId,
+    ApprovalRequestId, CheckpointId, CorrelationId, RuntimeEvent, RuntimeEventPayload, TaskId,
+    TaskState, Timestamp, TurnId,
 };
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,7 @@ use thiserror::Error;
 
 use crate::{
     AgentLoopBudget, AgentLoopTerminalState, ComprehensiveTurnInput, ComprehensiveTurnRunner,
-    EffectiveRuntimeConfig, RuntimeIds,
+    EffectiveRuntimeConfig, RuntimeIds, TaskArtifact, TaskReviewSummary,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -56,7 +56,12 @@ pub struct BackgroundTaskRunOutcome {
     pub final_state: TaskState,
     pub event_count: usize,
     pub trace_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checkpoint_id: Option<CheckpointId>,
     pub summary: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub artifacts: Vec<TaskArtifact>,
+    pub review: TaskReviewSummary,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub approval_id: Option<ApprovalRequestId>,
 }
@@ -65,7 +70,9 @@ pub struct BackgroundTaskRunOutcome {
 pub struct BackgroundTaskTurnResult {
     pub event_count: usize,
     pub trace_id: Option<String>,
+    pub checkpoint_id: Option<CheckpointId>,
     pub summary: String,
+    pub artifacts: Vec<TaskArtifact>,
     pub approval_id: Option<ApprovalRequestId>,
 }
 
@@ -79,7 +86,9 @@ impl BackgroundTaskTurnResult {
         Self {
             event_count,
             trace_id,
+            checkpoint_id: None,
             summary: summary.into(),
+            artifacts: Vec::new(),
             approval_id: None,
         }
     }
@@ -93,9 +102,23 @@ impl BackgroundTaskTurnResult {
         Self {
             event_count,
             trace_id: None,
+            checkpoint_id: None,
             summary: summary.into(),
+            artifacts: Vec::new(),
             approval_id: Some(approval_id),
         }
+    }
+
+    #[must_use]
+    pub fn with_checkpoint_id(mut self, checkpoint_id: CheckpointId) -> Self {
+        self.checkpoint_id = Some(checkpoint_id);
+        self
+    }
+
+    #[must_use]
+    pub fn with_artifacts(mut self, artifacts: Vec<TaskArtifact>) -> Self {
+        self.artifacts = artifacts;
+        self
     }
 }
 
@@ -218,6 +241,15 @@ impl BackgroundTaskRunner {
         if input.cancellation_requested {
             let summary = "background task cancellation requested";
             let cancelled = queue.cancel(task.task_id, summary.to_string(), input.now)?;
+            let artifacts = Vec::new();
+            let review = build_task_review(
+                cancelled.task_id,
+                cancelled.state,
+                None,
+                None,
+                &artifacts,
+                summary,
+            )?;
             notify_task(
                 &mut notifications,
                 cancelled.task_id,
@@ -231,7 +263,10 @@ impl BackgroundTaskRunner {
                 final_state: cancelled.state,
                 event_count: 0,
                 trace_id: None,
+                checkpoint_id: None,
                 summary: summary.to_string(),
+                artifacts,
+                review,
                 approval_id: None,
             }));
         }
@@ -240,6 +275,8 @@ impl BackgroundTaskRunner {
             Ok(result) => {
                 let summary = bounded_summary(&result.summary);
                 let trace_id = normalize_trace_id(result.trace_id);
+                let checkpoint_id = result.checkpoint_id;
+                let artifacts = result.artifacts;
                 if let Some(approval_id) = result.approval_id {
                     let waiting = queue.wait_for_approval(
                         &lease.id,
@@ -255,12 +292,23 @@ impl BackgroundTaskRunner {
                         input.now,
                         Some(approval_id),
                     )?;
+                    let review = build_task_review(
+                        waiting.task_id,
+                        waiting.state,
+                        trace_id.as_deref(),
+                        checkpoint_id,
+                        &artifacts,
+                        &summary,
+                    )?;
                     return Ok(Some(BackgroundTaskRunOutcome {
                         task_id: waiting.task_id,
                         final_state: waiting.state,
                         event_count: result.event_count,
                         trace_id,
+                        checkpoint_id,
                         summary,
+                        artifacts,
+                        review,
                         approval_id: Some(approval_id),
                     }));
                 }
@@ -274,12 +322,23 @@ impl BackgroundTaskRunner {
                     input.now,
                     None,
                 )?;
+                let review = build_task_review(
+                    completed.task_id,
+                    completed.state,
+                    trace_id.as_deref(),
+                    checkpoint_id,
+                    &artifacts,
+                    &summary,
+                )?;
                 Ok(Some(BackgroundTaskRunOutcome {
                     task_id: completed.task_id,
                     final_state: completed.state,
                     event_count: result.event_count,
                     trace_id,
+                    checkpoint_id,
                     summary,
+                    artifacts,
+                    review,
                     approval_id: None,
                 }))
             }
@@ -351,13 +410,18 @@ impl BackgroundTaskRunner {
             decision.decided_at,
             Some(decision.approval_id),
         )?;
+        let artifacts = Vec::new();
+        let review = build_task_review(task.task_id, task.state, None, None, &artifacts, &summary)?;
 
         Ok(BackgroundTaskRunOutcome {
             task_id: task.task_id,
             final_state: task.state,
             event_count: 0,
             trace_id: None,
+            checkpoint_id: None,
             summary,
+            artifacts,
+            review,
             approval_id: Some(decision.approval_id),
         })
     }
@@ -454,16 +518,49 @@ fn outcome_from_retry_decision(
 ) -> BackgroundTaskRunOutcome {
     match decision {
         RetryDecision::RetryAt { task, .. } | RetryDecision::Exhausted { task, .. } => {
+            let artifacts = Vec::new();
+            let summary = bounded_summary(&summary);
+            let review = build_task_review(
+                task.task_id,
+                task.state,
+                trace_id.as_deref(),
+                None,
+                &artifacts,
+                &summary,
+            )
+            .expect("bounded failure summaries are valid task reviews");
             BackgroundTaskRunOutcome {
                 task_id: task.task_id,
                 final_state: task.state,
                 event_count: 0,
                 trace_id,
-                summary: bounded_summary(&summary),
+                checkpoint_id: None,
+                summary,
+                artifacts,
+                review,
                 approval_id: None,
             }
         }
     }
+}
+
+fn build_task_review(
+    task_id: TaskId,
+    final_state: TaskState,
+    trace_id: Option<&str>,
+    checkpoint_id: Option<CheckpointId>,
+    artifacts: &[TaskArtifact],
+    summary: &str,
+) -> Result<TaskReviewSummary, BackgroundRunnerError> {
+    TaskReviewSummary::from_artifacts(
+        task_id,
+        final_state,
+        trace_id,
+        checkpoint_id,
+        artifacts,
+        summary,
+    )
+    .map_err(|error| BackgroundRunnerError::InvalidInput(error.to_string()))
 }
 
 fn notify_task(

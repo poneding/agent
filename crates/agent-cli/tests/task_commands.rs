@@ -1,8 +1,10 @@
 use agent_cli::{
     CliCommand, OutputMode, TaskCliCommand, TaskCommandRuntime, parse_cli_command,
-    parse_cli_invocation, render_cli_invocation, render_task_command,
+    parse_cli_invocation, render_cli_invocation, render_task_command, render_task_review_summary,
 };
 use agent_scheduler::{TaskPriority, TaskSchedule};
+use agent_types::{CheckpointId, TaskId, TaskState};
+use agent_ui_bridge::{UiTaskReviewSummary, UiTaskReviewSummaryArtifact};
 
 #[test]
 fn task_commands_parse_task_subcommands() {
@@ -143,4 +145,42 @@ fn task_commands_report_missing_task_as_json_error() {
     assert!(output.stdout.contains("\"type\":\"task_snapshot\""));
     assert!(output.stdout.contains("\"code\":\"task_command_failed\""));
     assert!(output.stdout.contains("task not found"));
+}
+
+#[test]
+fn task_commands_render_task_review_summary() {
+    let task_id: TaskId = "00000000-0000-0000-0000-000000002405"
+        .parse()
+        .expect("task id");
+    let checkpoint_id: CheckpointId = "00000000-0000-0000-0000-000000002415"
+        .parse()
+        .expect("checkpoint id");
+    let review = UiTaskReviewSummary {
+        task_id,
+        final_state: TaskState::Succeeded,
+        trace_id: Some("trace-123".to_string()),
+        checkpoint_id: Some(checkpoint_id),
+        artifact_ids: vec!["artifact-report".to_string()],
+        artifact_count: 1,
+        summary: "completed background task".to_string(),
+        artifacts: vec![UiTaskReviewSummaryArtifact {
+            artifact_id: "artifact-report".to_string(),
+            kind: "report".to_string(),
+            path: Some("artifacts/report.md".to_string()),
+            content_hash: Some("sha256:abc123".to_string()),
+            summary: "review report".to_string(),
+            missing: false,
+            diagnostics: Vec::new(),
+        }],
+        diagnostics: Vec::new(),
+    };
+
+    let output = render_task_review_summary(&review);
+
+    assert!(output.contains("Task review 00000000-0000-0000-0000-000000002405"));
+    assert!(output.contains("state=succeeded"));
+    assert!(output.contains("trace=trace-123"));
+    assert!(output.contains("checkpoint=00000000-0000-0000-0000-000000002415"));
+    assert!(output.contains("artifact artifact-report kind=report missing=false"));
+    assert!(output.contains("artifact_path artifacts/report.md"));
 }

@@ -71,7 +71,7 @@ Pause tasks for approvals and notify UI clients.
 
 Enforce budgets and recover from stale leases.
 
-- [ ] **Step 5: Add artifacts and review summaries**
+- [x] **Step 5: Add artifacts and review summaries**
 
 Persist task outputs, traces, and completion summaries.
 
@@ -82,7 +82,7 @@ Persist task outputs, traces, and completion summaries.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M24-background-agents-ux.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -92,11 +92,11 @@ cargo xtask check
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M24 complete**
+- [x] **Step 2: Mark M24 complete**
 
 Update milestone status and advance active focus to M25.
 
-- [ ] **Step 3: Commit M24 completion**
+- [x] **Step 3: Commit M24 completion**
 
 Run:
 

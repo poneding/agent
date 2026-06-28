@@ -52,8 +52,8 @@ use agent_ui_bridge::{
     UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
     UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
     UiJsonFrame, UiModelProviderSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary,
-    UiPromptSummary, UiTaskCommandError, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
-    normalize_runtime_event,
+    UiPromptSummary, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary,
+    encode_json_frame, normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -1164,6 +1164,36 @@ fn task_snapshot(
 
 fn format_task_action(label: &str, task: &agent_scheduler::BackgroundAgentTask) -> String {
     format!("{label} {}\n{}\n", task.task_id, format_task_line(task))
+}
+
+#[must_use]
+pub fn render_task_review_summary(review: &UiTaskReviewSummary) -> String {
+    let mut output = format!(
+        "Task review {}\nstate={}\nsummary={}\nartifacts={}\n",
+        review.task_id,
+        task_state_label(review.final_state),
+        review.summary,
+        review.artifact_count
+    );
+    if let Some(trace_id) = &review.trace_id {
+        output.push_str(&format!("trace={trace_id}\n"));
+    }
+    if let Some(checkpoint_id) = review.checkpoint_id {
+        output.push_str(&format!("checkpoint={checkpoint_id}\n"));
+    }
+    for artifact in &review.artifacts {
+        output.push_str(&format!(
+            "artifact {} kind={} missing={} summary={}\n",
+            artifact.artifact_id, artifact.kind, artifact.missing, artifact.summary
+        ));
+        if let Some(path) = &artifact.path {
+            output.push_str(&format!("artifact_path {path}\n"));
+        }
+    }
+    for diagnostic in &review.diagnostics {
+        output.push_str(&format!("diagnostic {diagnostic}\n"));
+    }
+    output
 }
 
 fn format_task_line(task: &agent_scheduler::BackgroundAgentTask) -> String {

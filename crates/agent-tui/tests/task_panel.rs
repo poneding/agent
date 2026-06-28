@@ -1,6 +1,11 @@
 use agent_tui::{ComposerAction, TaskPanelState, TuiAction, TuiApp, render_app_to_string};
-use agent_types::{ConversationId, CorrelationId, EventId, SchemaVersion, TaskId, Timestamp};
-use agent_ui_bridge::{UiEventEnvelope, UiEventPayload, UiJsonFrame, UiTaskNotification};
+use agent_types::{
+    ConversationId, CorrelationId, EventId, SchemaVersion, TaskId, TaskState, Timestamp,
+};
+use agent_ui_bridge::{
+    UiEventEnvelope, UiEventPayload, UiJsonFrame, UiTaskNotification, UiTaskReviewSnapshot,
+    UiTaskReviewSummary,
+};
 
 fn event(payload: UiEventPayload) -> UiJsonFrame {
     UiJsonFrame::Event(UiEventEnvelope {
@@ -84,4 +89,31 @@ fn task_panel_renders_task_notifications_from_bridge_frames() {
     assert!(rendered.contains("Tasks"));
     assert!(rendered.contains("waiting_approval"));
     assert!(rendered.contains("needs command approval"));
+}
+
+#[test]
+fn task_panel_renders_review_snapshots_from_bridge_frames() {
+    let mut panel = TaskPanelState::default();
+    let task_id = TaskId::new();
+    let review = UiTaskReviewSummary {
+        task_id,
+        final_state: TaskState::Succeeded,
+        trace_id: Some("trace-123".to_string()),
+        checkpoint_id: None,
+        artifact_ids: vec!["artifact-report".to_string()],
+        artifact_count: 1,
+        summary: "completed background review".to_string(),
+        artifacts: Vec::new(),
+        diagnostics: Vec::new(),
+    };
+    let snapshot = UiTaskReviewSnapshot::new(vec![review], Vec::new()).expect("review snapshot");
+
+    panel.reduce_frame(&UiJsonFrame::TaskReviewSnapshot(snapshot));
+
+    let rendered = panel.render_text();
+    assert!(rendered.contains("review"));
+    assert!(rendered.contains("Succeeded"));
+    assert!(rendered.contains("completed background review"));
+    assert!(rendered.contains("artifacts=1"));
+    assert!(rendered.contains("trace=trace-123"));
 }

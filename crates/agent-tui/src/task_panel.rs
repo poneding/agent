@@ -1,5 +1,5 @@
 use agent_types::{ApprovalRequestId, TaskId};
-use agent_ui_bridge::{UiEventPayload, UiJsonFrame, UiTaskSummary};
+use agent_ui_bridge::{UiEventPayload, UiJsonFrame, UiTaskReviewSummary, UiTaskSummary};
 
 const DEFAULT_TASK_NOTIFICATION_LIMIT: usize = 100;
 
@@ -43,6 +43,7 @@ impl TaskPanelNotification {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TaskPanelState {
     pub tasks: Vec<UiTaskSummary>,
+    pub reviews: Vec<UiTaskReviewSummary>,
     pub notifications: Vec<TaskPanelNotification>,
     limit: usize,
 }
@@ -52,6 +53,7 @@ impl TaskPanelState {
     pub fn with_limit(limit: usize) -> Self {
         Self {
             tasks: Vec::new(),
+            reviews: Vec::new(),
             notifications: Vec::new(),
             limit: limit.max(1),
         }
@@ -61,6 +63,9 @@ impl TaskPanelState {
         match frame {
             UiJsonFrame::TaskSnapshot(snapshot) => {
                 self.tasks = snapshot.tasks.clone();
+            }
+            UiJsonFrame::TaskReviewSnapshot(snapshot) => {
+                self.reviews = snapshot.reviews.clone();
             }
             UiJsonFrame::Event(event) => {
                 let UiEventPayload::TaskNotification(notification) = &event.payload else {
@@ -80,7 +85,7 @@ impl TaskPanelState {
 
     #[must_use]
     pub fn render_text(&self) -> String {
-        if self.tasks.is_empty() && self.notifications.is_empty() {
+        if self.tasks.is_empty() && self.reviews.is_empty() && self.notifications.is_empty() {
             return "No task notifications".to_string();
         }
 
@@ -89,6 +94,16 @@ impl TaskPanelState {
             .iter()
             .map(|task| format!("{} {:?}: {}", task.task_id, task.state, task.prompt_summary))
             .collect::<Vec<_>>();
+        lines.extend(self.reviews.iter().map(|review| {
+            let mut line = format!(
+                "review {} {:?}: {} artifacts={}",
+                review.task_id, review.final_state, review.summary, review.artifact_count
+            );
+            if let Some(trace_id) = &review.trace_id {
+                line.push_str(&format!(" trace={trace_id}"));
+            }
+            line
+        }));
         lines.extend(
             self.notifications
                 .iter()

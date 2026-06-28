@@ -31,5 +31,5 @@ pub use settings::{
     ModelSettings, PolicySettings, UiSettings, validate_desktop_settings,
 };
 pub use snapshot::{DesktopWorkspaceSnapshot, build_workspace_snapshot};
-pub use task::DesktopTaskItem;
+pub use task::{DesktopTaskArtifactItem, DesktopTaskItem, DesktopTaskReviewItem};
 pub use trace::{TraceTimeline, TraceTimelineItem, TraceTimelineSeverity, build_trace_timeline};

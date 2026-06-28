@@ -202,7 +202,9 @@ impl RecordingExecutor {
             result: Ok(BackgroundTaskTurnResult {
                 event_count: 1,
                 trace_id: Some("trace".to_string()),
+                checkpoint_id: None,
                 summary: summary.to_string(),
+                artifacts: Vec::new(),
                 approval_id: None,
             }),
             executed_task_count: 0,

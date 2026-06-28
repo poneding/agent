@@ -13,6 +13,7 @@ pub mod local_coding;
 pub mod model_runtime;
 pub mod recovery;
 pub mod runtime;
+pub mod task_review;
 pub mod tool_loop;
 pub mod trace;
 pub mod turn;
@@ -64,6 +65,7 @@ pub use model_runtime::{
 };
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
 pub use runtime::RuntimeIds;
+pub use task_review::{TaskArtifact, TaskArtifactKind, TaskReviewError, TaskReviewSummary};
 pub use tool_loop::{
     AccumulatedToolCall, ToolCallAccumulator, ToolCallRequest, ToolLoop, ToolLoopError,
     ToolLoopOutcome, ToolLoopStatus, ToolObservationMessage,

@@ -202,7 +202,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M24-02 implementation | Complete |
 | M24-03 implementation | Complete |
 | M24-04 implementation | Complete |
-| M24 implementation | In progress |
+| M24-05 implementation | Complete |
+| M24 implementation | Complete |
 | M25 implementation slice specs | Planned |
 | M25 implementation slice plans | Planned |
 | M25 implementation | Planned |

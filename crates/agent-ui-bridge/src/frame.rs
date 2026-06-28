@@ -1,5 +1,6 @@
+use agent_core::{TaskArtifact, TaskReviewSummary};
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
-use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
+use agent_types::{CheckpointId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
 use serde::{Deserialize, Serialize};
 
 use crate::{UiBridgeError, UiEventEnvelope};
@@ -505,6 +506,119 @@ impl UiTaskCommandError {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTaskReviewSnapshot {
+    pub reviews: Vec<UiTaskReviewSummary>,
+    pub errors: Vec<UiTaskCommandError>,
+}
+
+impl UiTaskReviewSnapshot {
+    pub fn new(
+        mut reviews: Vec<UiTaskReviewSummary>,
+        errors: Vec<UiTaskCommandError>,
+    ) -> Result<Self, UiBridgeError> {
+        reviews.sort_by_key(|review| review.task_id);
+        Ok(Self { reviews, errors })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTaskReviewSummary {
+    pub task_id: TaskId,
+    pub final_state: TaskState,
+    pub trace_id: Option<String>,
+    pub checkpoint_id: Option<CheckpointId>,
+    pub artifact_ids: Vec<String>,
+    pub artifact_count: u32,
+    pub summary: String,
+    pub artifacts: Vec<UiTaskReviewSummaryArtifact>,
+    pub diagnostics: Vec<String>,
+}
+
+impl UiTaskReviewSummary {
+    pub fn from_review(
+        review: &TaskReviewSummary,
+        artifacts: &[TaskArtifact],
+    ) -> Result<Self, UiBridgeError> {
+        let summary = bounded_task_text(&review.summary);
+        validate_non_empty("task review summary", &summary)?;
+
+        let mut ui_artifacts = Vec::new();
+        let mut diagnostics = review
+            .diagnostics
+            .iter()
+            .map(|diagnostic| bounded_task_text(diagnostic))
+            .collect::<Vec<_>>();
+
+        for artifact_id in &review.artifact_ids {
+            if let Some(artifact) = artifacts
+                .iter()
+                .find(|artifact| artifact.artifact_id == *artifact_id)
+            {
+                ui_artifacts.push(UiTaskReviewSummaryArtifact::from_artifact(artifact)?);
+            } else {
+                diagnostics.push(bounded_task_text(&format!(
+                    "missing artifact metadata: {artifact_id}"
+                )));
+            }
+        }
+
+        Ok(Self {
+            task_id: review.task_id,
+            final_state: review.final_state,
+            trace_id: normalize_optional_string(review.trace_id.clone())
+                .map(|value| bounded_task_text(&value)),
+            checkpoint_id: review.checkpoint_id,
+            artifact_ids: review.artifact_ids.clone(),
+            artifact_count: ui_artifacts
+                .len()
+                .try_into()
+                .map_err(|_| UiBridgeError::Validation("too many task artifacts".to_string()))?,
+            summary,
+            artifacts: ui_artifacts,
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTaskReviewSummaryArtifact {
+    pub artifact_id: String,
+    pub kind: String,
+    pub path: Option<String>,
+    pub content_hash: Option<String>,
+    pub summary: String,
+    pub missing: bool,
+    pub diagnostics: Vec<String>,
+}
+
+impl UiTaskReviewSummaryArtifact {
+    pub fn from_artifact(artifact: &TaskArtifact) -> Result<Self, UiBridgeError> {
+        let artifact_id = artifact.artifact_id.trim().to_string();
+        let kind = artifact.kind.as_str().to_string();
+        let summary = bounded_task_text(&artifact.summary);
+        validate_non_empty("task artifact id", &artifact_id)?;
+        validate_non_empty("task artifact kind", &kind)?;
+        validate_non_empty("task artifact summary", &summary)?;
+
+        Ok(Self {
+            artifact_id,
+            kind,
+            path: normalize_optional_string(artifact.path.clone())
+                .map(|value| bounded_task_text(&value)),
+            content_hash: normalize_optional_string(artifact.content_hash.clone())
+                .map(|value| bounded_task_text(&value)),
+            summary,
+            missing: artifact.missing,
+            diagnostics: artifact
+                .diagnostics
+                .iter()
+                .map(|diagnostic| bounded_task_text(diagnostic))
+                .collect(),
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum UiJsonFrame {
     Event(UiEventEnvelope),
@@ -512,6 +626,7 @@ pub enum UiJsonFrame {
     PromptSummary(UiPromptSummary),
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),
+    TaskReviewSnapshot(UiTaskReviewSnapshot),
     ModelSelection {
         provider: String,
         model: String,

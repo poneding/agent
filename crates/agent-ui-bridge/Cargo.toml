@@ -7,6 +7,7 @@ license.workspace = true
 authors.workspace = true
 
 [dependencies]
+agent-core = { path = "../agent-core" }
 agent-policy = { path = "../agent-policy" }
 agent-scheduler = { path = "../agent-scheduler" }
 agent-types = { path = "../agent-types" }

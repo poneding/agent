@@ -1,7 +1,9 @@
 use agent_desktop::{
-    DesktopConversationItem, DesktopError, DesktopTaskItem, build_workspace_snapshot,
+    DesktopConversationItem, DesktopError, DesktopTaskItem, DesktopTaskReviewItem,
+    build_workspace_snapshot,
 };
 use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
+use agent_ui_bridge::{UiTaskReviewSummary, UiTaskReviewSummaryArtifact};
 
 fn ts(second: u8) -> Timestamp {
     serde_json::from_str(&format!("\"2026-06-25T00:00:{second:02}Z\""))
@@ -149,4 +151,40 @@ fn conversation_tasks_snapshot_excludes_raw_prompt_and_tool_input() {
     assert!(!serialized.contains("prompt"));
     assert!(!serialized.contains("tool_input"));
     assert!(!serialized.contains("input_json"));
+}
+
+#[test]
+fn conversation_tasks_convert_task_review_items() {
+    let ui_review = UiTaskReviewSummary {
+        task_id: task_id(24),
+        final_state: TaskState::Succeeded,
+        trace_id: Some("trace-123".to_string()),
+        checkpoint_id: None,
+        artifact_ids: vec!["artifact-report".to_string()],
+        artifact_count: 1,
+        summary: "completed background review".to_string(),
+        artifacts: vec![UiTaskReviewSummaryArtifact {
+            artifact_id: "artifact-report".to_string(),
+            kind: "report".to_string(),
+            path: Some("artifacts/report.md".to_string()),
+            content_hash: Some("sha256:abc123".to_string()),
+            summary: "review report".to_string(),
+            missing: false,
+            diagnostics: Vec::new(),
+        }],
+        diagnostics: Vec::new(),
+    };
+
+    let item = DesktopTaskReviewItem::try_from(&ui_review).expect("desktop review item");
+
+    assert_eq!(item.task_id, task_id(24));
+    assert_eq!(item.final_state, TaskState::Succeeded);
+    assert_eq!(item.summary, "completed background review");
+    assert_eq!(item.artifact_count, 1);
+    assert_eq!(item.trace_id.as_deref(), Some("trace-123"));
+    assert_eq!(item.artifacts[0].artifact_id, "artifact-report");
+    assert_eq!(
+        item.artifacts[0].path.as_deref(),
+        Some("artifacts/report.md")
+    );
 }

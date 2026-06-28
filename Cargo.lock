@@ -266,6 +266,7 @@ dependencies = [
 name = "agent-ui-bridge"
 version = "0.1.0"
 dependencies = [
+ "agent-core",
  "agent-policy",
  "agent-scheduler",
  "agent-types",

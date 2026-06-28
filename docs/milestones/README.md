@@ -244,6 +244,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M29 slice plans | Complete for M29-01 through M29-05 |
 | M29-01 implementation | Complete |
 | M29-02 implementation | Complete |
+| M29-03 implementation | Complete |
 | M29 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -591,12 +592,14 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M29-03 github actions workflow`.
+Current implementation focus: `M29-04 quality artifact retention`.
 
 Most recent completed implementation documents:
 
 - `docs/specs/M29-02-xtask-ci-runner.spec.md`
 - `docs/plans/M29-02-xtask-ci-runner.plan.md`
+- `docs/specs/M29-03-github-actions-workflow.spec.md`
+- `docs/plans/M29-03-github-actions-workflow.plan.md`
 
 Most recent completed technical design documents:
 
@@ -605,5 +608,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M29-03-github-actions-workflow.spec.md`
-- `docs/plans/M29-03-github-actions-workflow.plan.md`
+- `docs/specs/M29-04-quality-artifact-retention.spec.md`
+- `docs/plans/M29-04-quality-artifact-retention.plan.md`

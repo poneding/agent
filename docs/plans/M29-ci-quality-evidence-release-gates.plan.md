@@ -59,7 +59,7 @@ Add typed report structs, status aggregation, and JSON/text rendering tests.
 
 Run fmt, clippy, tests, and eval through a single evidence-producing command.
 
-- [ ] **Step 3: Add hosted CI workflow**
+- [x] **Step 3: Add hosted CI workflow**
 
 Add workflow configuration that invokes the shared `xtask ci` gate.
 

@@ -12,17 +12,19 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M29-03 spec and current xtask CI command**
+- [x] **Step 1: Read M29-03 spec and current xtask CI command**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add static workflow validation test**
+- [x] **Step 1: Add static workflow validation test**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add `.github/workflows/ci.yml`**
+- [x] **Step 1: Add `.github/workflows/ci.yml`**
 
 ### Task 4: Verify and Commit
+
+- [x] **Step 1: Run focused workflow checks**
 
 ```bash
 cargo fmt --all -- --check

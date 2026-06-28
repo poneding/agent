@@ -228,7 +228,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M27-02 implementation | Complete |
 | M27-03 implementation | Complete |
 | M27-04 implementation | Complete |
-| M27 implementation | In progress |
+| M27-05 implementation | Complete |
+| M27 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -551,12 +552,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M27-05 CI reporting integration`.
+Current implementation focus: `M27 complete; next milestone selection`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M27-04-cli-eval-commands.spec.md`
-- `docs/plans/M27-04-cli-eval-commands.plan.md`
+- `docs/specs/M27-05-ci-reporting-integration.spec.md`
+- `docs/plans/M27-05-ci-reporting-integration.plan.md`
 
 Most recent completed technical design documents:
 
@@ -565,5 +566,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M27-05-ci-reporting-integration.spec.md`
-- `docs/plans/M27-05-ci-reporting-integration.plan.md`
+- To be selected after M27 evaluation harness review.

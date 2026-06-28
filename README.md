@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M26 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, and replay verification.
+M01-M27 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, and deterministic evaluation reports.
 
 ## Core Ideas
 
@@ -95,6 +95,8 @@ cargo xtask package-cli --channel dev
 cargo xtask package-desktop --channel dev
 agent-cli --observability-summary
 agent-cli --observability-json
+agent-cli eval validate --manifest path/to/scenario.eval.json
+agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
 ```
 
 Run `cargo xtask help` for the full command list.
@@ -129,14 +131,30 @@ Outputs are written to `target/agent-release/`:
 - `agent-desktop-<version>-<target>-<channel>.update.json`: local update manifest
 - `desktop-smoke-root/`: isolated Desktop smoke config/data/cache/log root
 
+## Evaluation Harness
+
+Validate and run deterministic regression scenarios:
+
+```bash
+agent-cli eval list --manifest path/to/scenario.eval.json
+agent-cli eval validate --manifest path/to/scenario.eval.json
+agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
+agent-cli --json eval run --manifest path/to/scenario.eval.json
+```
+
+When `--out-dir` is provided, reports are written as:
+
+- `eval-run-report.json`
+- `eval-summary.txt`
+
 ## Documentation
 
 - [PRD](docs/PRD.md)
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M26-05-replay-evidence-verification.spec.md)
-- [Latest completed plan](docs/plans/M26-05-replay-evidence-verification.plan.md)
+- [Latest completed spec](docs/specs/M27-05-ci-reporting-integration.spec.md)
+- [Latest completed plan](docs/plans/M27-05-ci-reporting-integration.plan.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

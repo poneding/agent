@@ -17,8 +17,9 @@ pub use manifest::{
     validate_eval_scenario,
 };
 pub use report::{
-    EVAL_RUN_REPORT_SCHEMA_VERSION, EvalEvidenceSource, EvalEvidenceSummary, EvalRunReport,
-    EvalRunSummary, EvalScenarioReport, EvalScenarioStatus,
+    EVAL_RUN_REPORT_SCHEMA_VERSION, EvalArtifactOptions, EvalArtifactSet, EvalEvidenceSource,
+    EvalEvidenceSummary, EvalReportArtifactError, EvalRunReport, EvalRunSummary,
+    EvalScenarioReport, EvalScenarioStatus, render_eval_summary_text, write_eval_artifacts,
 };
 pub use runner::{EvalRunnerOptions, EvalStrictness, run_eval_scenario, run_eval_scenarios};
 

@@ -75,6 +75,7 @@ fn eval_commands_parse_subcommands() {
         CliCommand::Eval(EvalCliCommand::Run {
             manifest: PathBuf::from("scenario.json"),
             strictness: agent_eval::EvalStrictness::Warn,
+            output_dir: None,
         })
     );
 
@@ -154,6 +155,39 @@ fn eval_run_json_reports_summary() {
     let value: Value = serde_json::from_str(stdout.trim()).expect("json output");
     assert_eq!(value["type"], "eval_run");
     assert_eq!(value["data"]["report"]["summary"]["passed"], 1);
+}
+
+#[test]
+fn eval_run_writes_ci_artifacts() {
+    let tempdir = tempfile::tempdir().expect("tempdir");
+    let manifest = replay_manifest(tempdir.path());
+    let output_dir = tempdir.path().join("eval-artifacts");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_agent-cli"))
+        .args(["eval", "run", "--manifest"])
+        .arg(&manifest)
+        .args(["--out-dir"])
+        .arg(&output_dir)
+        .output()
+        .expect("agent-cli should run");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("artifact_json="));
+    assert!(stdout.contains("artifact_summary="));
+
+    let report_path = output_dir.join("eval-run-report.json");
+    let summary_path = output_dir.join("eval-summary.txt");
+    assert!(report_path.exists());
+    assert!(summary_path.exists());
+    let value: Value = serde_json::from_str(&fs::read_to_string(report_path).expect("read report"))
+        .expect("json report");
+    assert_eq!(value["summary"]["passed"], 1);
+    assert!(
+        fs::read_to_string(summary_path)
+            .expect("read summary")
+            .contains("m04-replay-smoke status=passed")
+    );
 }
 
 #[test]

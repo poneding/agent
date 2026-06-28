@@ -25,6 +25,7 @@ dependencies = [
  "agent-tui",
  "agent-types",
  "agent-ui-bridge",
+ "camino",
  "futures-util",
  "serde",
  "serde_json",

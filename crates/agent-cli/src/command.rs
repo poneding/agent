@@ -22,8 +22,9 @@ use agent_core::{
     RuntimeModelConfig, SettingsError, SettingsProfile, StartupMigrationRunner,
 };
 use agent_eval::{
-    EvalRunReport, EvalRunnerOptions, EvalScenarioKind, EvalScenarioStatus, EvalStrictness,
-    ValidatedEvalScenario, parse_eval_scenario_json, run_eval_scenarios,
+    EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
+    EvalScenarioStatus, EvalStrictness, ValidatedEvalScenario, parse_eval_scenario_json,
+    run_eval_scenarios, write_eval_artifacts,
 };
 use agent_memory::{
     InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
@@ -185,6 +186,7 @@ pub enum EvalCliCommand {
     Run {
         manifest: PathBuf,
         strictness: EvalStrictness,
+        output_dir: Option<PathBuf>,
     },
 }
 
@@ -880,12 +882,14 @@ where
 {
     let mut manifest = None;
     let mut strictness = EvalStrictness::Strict;
+    let mut output_dir = None;
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--manifest" => manifest = Some(PathBuf::from(take_flag_value(args, &arg)?)),
             "--strict" => strictness = EvalStrictness::Strict,
             "--warn" => strictness = EvalStrictness::Warn,
+            "--out-dir" => output_dir = Some(PathBuf::from(take_flag_value(args, &arg)?)),
             _ => return Err(CliError::UnknownArgument(format!("eval run {arg}"))),
         }
     }
@@ -894,6 +898,7 @@ where
         manifest: manifest
             .ok_or_else(|| CliError::MissingValue("eval run --manifest".to_string()))?,
         strictness,
+        output_dir,
     })
 }
 
@@ -1349,7 +1354,8 @@ pub fn render_eval_command(command: EvalCliCommand, output_mode: OutputMode) -> 
         EvalCliCommand::Run {
             manifest,
             strictness,
-        } => render_eval_run_command(&manifest, strictness, output_mode),
+            output_dir,
+        } => render_eval_run_command(&manifest, strictness, output_dir.as_deref(), output_mode),
     }
 }
 
@@ -1421,6 +1427,7 @@ fn render_eval_validate_command(manifest: &Path, output_mode: OutputMode) -> Cli
 fn render_eval_run_command(
     manifest: &Path,
     strictness: EvalStrictness,
+    output_dir: Option<&Path>,
     output_mode: OutputMode,
 ) -> CliOutput {
     let scenario = match load_eval_scenario(manifest) {
@@ -1436,11 +1443,28 @@ fn render_eval_run_command(
             ..EvalRunnerOptions::default()
         },
     );
+    let artifacts = match output_dir {
+        Some(output_dir) => match write_eval_run_artifacts(&report, output_dir) {
+            Ok(artifacts) => Some(artifacts),
+            Err(error) => {
+                return render_eval_error(
+                    "eval_artifact_failed",
+                    "eval artifact failed",
+                    error,
+                    output_mode,
+                );
+            }
+        },
+        None => None,
+    };
     let status_code = eval_run_status_code(&report);
 
     match output_mode {
         OutputMode::Text => {
-            let output = render_eval_run_text(&report);
+            let mut output = render_eval_run_text(&report);
+            if let Some(artifacts) = &artifacts {
+                output.push_str(&render_eval_artifacts_text(artifacts));
+            }
             if status_code == 0 {
                 CliOutput::exit(output)
             } else {
@@ -1452,6 +1476,7 @@ fn render_eval_run_command(
                 "type": "eval_run",
                 "data": {
                     "report": report,
+                    "artifacts": artifacts,
                 },
             }));
             if status_code == 0 {
@@ -1489,6 +1514,28 @@ fn load_eval_scenario(manifest: &Path) -> Result<ValidatedEvalScenario, EvalCliE
         .unwrap_or_else(|| Path::new("."));
     parse_eval_scenario_json(&input, fixture_root)
         .map_err(|error| EvalCliError::new(error.to_string()))
+}
+
+fn write_eval_run_artifacts(
+    report: &EvalRunReport,
+    output_dir: &Path,
+) -> Result<EvalArtifactSet, EvalCliError> {
+    let output_dir =
+        camino::Utf8PathBuf::from_path_buf(output_dir.to_path_buf()).map_err(|path| {
+            EvalCliError::new(format!(
+                "eval artifact output dir is not UTF-8: {}",
+                path.display()
+            ))
+        })?;
+    write_eval_artifacts(
+        report,
+        EvalArtifactOptions {
+            output_dir,
+            write_json: true,
+            write_summary: true,
+        },
+    )
+    .map_err(|error| EvalCliError::new(error.to_string()))
 }
 
 fn render_eval_error(
@@ -1547,6 +1594,17 @@ fn render_eval_run_text(report: &EvalRunReport) -> String {
                 diagnostic.message
             ));
         }
+    }
+    output
+}
+
+fn render_eval_artifacts_text(artifacts: &EvalArtifactSet) -> String {
+    let mut output = String::new();
+    if let Some(path) = &artifacts.json_report {
+        output.push_str(&format!("artifact_json={path}\n"));
+    }
+    if let Some(path) = &artifacts.summary_report {
+        output.push_str(&format!("artifact_summary={path}\n"));
     }
     output
 }

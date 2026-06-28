@@ -67,7 +67,7 @@ Compare selected evidence/report fields against golden files with redacted, stab
 
 Expose list, validate, run, and report commands with text/JSON output and CI-safe exit codes.
 
-- [ ] **Step 5: Implement CI/reporting integration**
+- [x] **Step 5: Implement CI/reporting integration**
 
 Write machine-readable reports, summary tables, and check-friendly artifacts.
 
@@ -78,7 +78,7 @@ Write machine-readable reports, summary tables, and check-friendly artifacts.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M27-runtime-evaluation-harness.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -88,11 +88,11 @@ cargo xtask check
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M27 complete**
+- [x] **Step 2: Mark M27 complete**
 
 Update milestone status and record the next implementation focus.
 
-- [ ] **Step 3: Commit M27 completion**
+- [x] **Step 3: Commit M27 completion**
 
 Run:
 

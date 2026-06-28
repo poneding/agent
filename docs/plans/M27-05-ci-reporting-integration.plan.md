@@ -17,7 +17,7 @@
 - Read: `crates/agent-eval/src/report.rs`
 - Read: `xtask/src/main.rs`
 
-- [ ] **Step 1: Review report and xtask patterns**
+- [x] **Step 1: Review report and xtask patterns**
 
 Expected: artifact generation can reuse existing command infrastructure.
 
@@ -26,7 +26,7 @@ Expected: artifact generation can reuse existing command infrastructure.
 **Files:**
 - Create: `crates/agent-eval/tests/report.rs`
 
-- [ ] **Step 1: Add artifact writer tests**
+- [x] **Step 1: Add artifact writer tests**
 
 Cover JSON artifact, summary artifact, empty run, failure counts, and unsafe output path.
 
@@ -37,9 +37,9 @@ Cover JSON artifact, summary artifact, empty run, failure counts, and unsafe out
 - Modify: `crates/agent-eval/src/lib.rs`
 - Modify as needed: `xtask/src/main.rs`
 
-- [ ] **Step 1: Add artifact writer contracts**
-- [ ] **Step 2: Add JSON and summary writers**
-- [ ] **Step 3: Wire a CI-friendly command if aligned with existing xtask style**
+- [x] **Step 1: Add artifact writer contracts**
+- [x] **Step 2: Add JSON and summary writers**
+- [x] **Step 3: Wire a CI-friendly command if aligned with existing xtask style**
 
 ### Task 4: Document and Complete M27
 
@@ -48,12 +48,12 @@ Cover JSON artifact, summary artifact, empty run, failure counts, and unsafe out
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M27-runtime-evaluation-harness.plan.md`
 
-- [ ] **Step 1: Document eval workflow**
-- [ ] **Step 2: Mark M27 complete after final checks**
+- [x] **Step 1: Document eval workflow**
+- [x] **Step 2: Mark M27 complete after final checks**
 
 ### Task 5: Verify and Commit
 
-- [ ] **Step 1: Run final workspace checks**
+- [x] **Step 1: Run final workspace checks**
 
 ```bash
 cargo xtask check
@@ -61,7 +61,7 @@ cargo xtask check
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Commit M27 completion**
+- [x] **Step 2: Commit M27 completion**
 
 ```bash
 git add Cargo.toml Cargo.lock crates xtask docs README.md

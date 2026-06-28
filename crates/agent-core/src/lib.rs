@@ -13,6 +13,7 @@ pub mod local_coding;
 pub mod model_runtime;
 pub mod recovery;
 pub mod runtime;
+pub mod settings;
 pub mod task_review;
 pub mod tool_loop;
 pub mod trace;
@@ -65,6 +66,11 @@ pub use model_runtime::{
 };
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
 pub use runtime::RuntimeIds;
+pub use settings::{
+    PlatformKind, PlatformPathKey, PlatformPathOverrides, PlatformPaths, ReleaseChannel,
+    SETTINGS_SCHEMA_VERSION, SettingsError, SettingsLoadResult, SettingsMutation, SettingsProfile,
+    load_settings_file, write_settings_file_atomic,
+};
 pub use task_review::{TaskArtifact, TaskArtifactKind, TaskReviewError, TaskReviewSummary};
 pub use tool_loop::{
     AccumulatedToolCall, ToolCallAccumulator, ToolCallRequest, ToolLoop, ToolLoopError,

@@ -104,6 +104,9 @@ fn cli_config_diagnostics_text_reports_valid_config() {
     assert!(output.stdout.contains("Selected provider: openai"));
     assert!(output.stdout.contains("Selected model: gpt-4.1-mini"));
     assert!(output.stdout.contains("Providers: fake, openai"));
+    assert!(output.stdout.contains("Settings profile: default"));
+    assert!(output.stdout.contains("Release channel: dev"));
+    assert!(output.stdout.contains("Config dir: "));
 }
 
 #[test]
@@ -140,6 +143,22 @@ fn cli_config_diagnostics_json_renders_config_summary() {
     let snapshot = snapshot.expect("config snapshot frame");
     assert_eq!(snapshot.selected_provider, "fake");
     assert_eq!(snapshot.selected_model, "fake-custom");
+    assert_eq!(
+        snapshot
+            .settings
+            .as_ref()
+            .expect("settings summary")
+            .release_channel,
+        "dev"
+    );
+    assert!(
+        !snapshot
+            .platform_paths
+            .as_ref()
+            .expect("platform paths")
+            .config_dir
+            .is_empty()
+    );
     let summary = frames.iter().find_map(|frame| {
         if let UiJsonFrame::ConfigSummary {
             selected_provider,

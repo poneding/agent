@@ -18,7 +18,7 @@
 - Read: `docs/architecture/configuration.md`
 - Read: `crates/agent-core/src/runtime_config.rs`
 
-- [ ] **Step 1: Review path and settings scope**
+- [x] **Step 1: Review path and settings scope**
 
 Expected: path ownership, settings mutation, diagnostics, and persistence boundaries are clear.
 
@@ -29,15 +29,15 @@ Expected: path ownership, settings mutation, diagnostics, and persistence bounda
 - Create if needed: `crates/agent-cli/tests/settings_paths.rs`
 - Create if needed: `crates/agent-ui-bridge/tests/settings_paths_snapshot.rs`
 
-- [ ] **Step 1: Add path fixture tests**
+- [x] **Step 1: Add path fixture tests**
 
 Cover macOS, Linux, Windows, overrides, and portable install mode.
 
-- [ ] **Step 2: Add settings mutation tests**
+- [x] **Step 2: Add settings mutation tests**
 
 Cover validation, atomic persistence, corrupted file diagnostics, and redaction.
 
-- [ ] **Step 3: Verify RED**
+- [x] **Step 3: Verify RED**
 
 ```bash
 cargo test -p agent-core platform_paths_settings
@@ -53,21 +53,21 @@ cargo test -p agent-core platform_paths_settings
 - Modify if needed: `crates/agent-cli/src/command.rs`
 - Modify if needed: `crates/agent-ui-bridge/src/frame.rs`
 
-- [ ] **Step 1: Add `PlatformPaths`**
+- [x] **Step 1: Add `PlatformPaths`**
 
 Implement deterministic platform resolution with explicit overrides.
 
-- [ ] **Step 2: Add `SettingsProfile` and mutations**
+- [x] **Step 2: Add `SettingsProfile` and mutations**
 
 Validate settings changes before persistence and keep secret values out of config.
 
-- [ ] **Step 3: Add diagnostics and snapshots**
+- [x] **Step 3: Add diagnostics and snapshots**
 
 Expose safe text/JSON outputs for CLI and UI clients.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 ```bash
 cargo test -p agent-core platform_paths_settings
@@ -75,7 +75,7 @@ cargo test -p agent-cli settings_paths
 cargo test -p agent-ui-bridge settings_paths_snapshot
 ```
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 ```bash
 cargo fmt --all -- --check
@@ -91,11 +91,11 @@ cargo test --workspace
 - Modify: `docs/plans/M25-01-platform-paths-settings.plan.md`
 - Modify: `docs/plans/M25-packaging-release-settings-updates.plan.md`
 
-- [ ] **Step 1: Mark M25-01 complete**
+- [x] **Step 1: Mark M25-01 complete**
 
 Advance active focus to M25-02.
 
-- [ ] **Step 2: Commit M25-01**
+- [x] **Step 2: Commit M25-01**
 
 ```bash
 git add crates docs README.md Cargo.toml Cargo.lock

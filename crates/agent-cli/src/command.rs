@@ -18,7 +18,8 @@ use agent_core::{
     ConfiguredTurnInput, ConfiguredTurnRunner, EffectiveRuntimeConfig, ExtensionCapabilitySummary,
     ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind,
     ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
-    ExtensionSource, ExtensionSourceKind, RuntimeIds, RuntimeModelConfig,
+    ExtensionSource, ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, RuntimeIds,
+    RuntimeModelConfig, SettingsError, SettingsProfile,
 };
 use agent_memory::{
     InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
@@ -51,9 +52,9 @@ use agent_types::{
 use agent_ui_bridge::{
     UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
     UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
-    UiJsonFrame, UiModelProviderSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary,
-    UiPromptSummary, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary,
-    encode_json_frame, normalize_runtime_event,
+    UiJsonFrame, UiModelProviderSummary, UiPlatformPathsSummary, UiPromptDiagnosticSummary,
+    UiPromptLayerSummary, UiPromptSummary, UiSettingsProfileSummary, UiTaskCommandError,
+    UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame, normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -2608,7 +2609,7 @@ fn build_prompt_runtime_input(
     config_override: ConfigOverride,
 ) -> Result<(ConfiguredTurnInput, ModelProviderRegistry), CliError> {
     let safe_prompt = redact_secret_like_text(&prompt);
-    let effective = evaluate_config_check(config_path, config_override)?;
+    let effective = evaluate_runtime_config(config_path, config_override)?;
     let registry =
         build_model_provider_registry(&effective, &safe_prompt, Arc::new(EnvSecretResolver))?;
     let input = ConfiguredTurnInput {
@@ -3024,7 +3025,7 @@ fn render_text_config_check(
     config_override: ConfigOverride,
 ) -> CliOutput {
     match evaluate_config_check(config_path, config_override) {
-        Ok(effective) => CliOutput::exit(render_config_summary_text(&effective)),
+        Ok(report) => CliOutput::exit(render_config_summary_text(&report)),
         Err(error) => CliOutput::failure(format!("{error}\n"), 2),
     }
 }
@@ -3034,17 +3035,17 @@ fn render_json_config_check(
     config_override: ConfigOverride,
 ) -> CliOutput {
     match evaluate_config_check(config_path, config_override) {
-        Ok(effective) => {
-            let snapshot = match ui_config_snapshot(&effective) {
+        Ok(report) => {
+            let snapshot = match ui_config_snapshot(&report) {
                 Ok(snapshot) => snapshot,
                 Err(error) => return render_json_config_check_error(error),
             };
             let mut stdout = String::new();
-            for diagnostic in &effective.diagnostics {
+            for diagnostic in &report.effective.diagnostics {
                 stdout.push_str(&json_frame_line(config_diagnostic_frame(diagnostic)));
             }
             stdout.push_str(&json_frame_line(UiJsonFrame::ConfigSnapshot(snapshot)));
-            stdout.push_str(&json_frame_line(config_summary_frame(&effective)));
+            stdout.push_str(&json_frame_line(config_summary_frame(&report.effective)));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
         }
@@ -3075,6 +3076,22 @@ fn render_json_config_check_error(error: CliError) -> CliOutput {
 fn evaluate_config_check(
     config_path: Option<PathBuf>,
     config_override: ConfigOverride,
+) -> Result<ConfigCheckReport, CliError> {
+    let effective = evaluate_runtime_config(config_path, config_override)?;
+    let settings = SettingsProfile::default();
+    let platform_paths =
+        PlatformPaths::current(PlatformPathOverrides::default()).map_err(map_settings_error)?;
+
+    Ok(ConfigCheckReport {
+        effective,
+        platform_paths,
+        settings,
+    })
+}
+
+fn evaluate_runtime_config(
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
 ) -> Result<EffectiveRuntimeConfig, CliError> {
     let mut layers = vec![ConfigLayer {
         kind: ConfigLayerKind::BuiltIn,
@@ -3094,6 +3111,13 @@ fn evaluate_config_check(
 
     agent_core::build_effective_runtime_config(layers, config_override)
         .map_err(map_agent_config_error)
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct ConfigCheckReport {
+    effective: EffectiveRuntimeConfig,
+    platform_paths: PlatformPaths,
+    settings: SettingsProfile,
 }
 
 fn built_in_runtime_config() -> Result<AgentRuntimeConfig, CliError> {
@@ -3126,15 +3150,22 @@ fn built_in_runtime_config() -> Result<AgentRuntimeConfig, CliError> {
     })
 }
 
-fn render_config_summary_text(effective: &EffectiveRuntimeConfig) -> String {
+fn render_config_summary_text(report: &ConfigCheckReport) -> String {
+    let effective = &report.effective;
     let provider_ids = config_provider_ids(effective).join(", ");
     format!(
-        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nLayers: {}\nDiagnostics: {}\n",
+        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nLayers: {}\nDiagnostics: {}\nSettings profile: {}\nRelease channel: {}\nConfig dir: {}\nData dir: {}\nCache dir: {}\nLog dir: {}\n",
         effective.selected_provider,
         effective.selected_model,
         provider_ids,
         effective.layers.len(),
-        effective.diagnostics.len()
+        effective.diagnostics.len(),
+        report.settings.profile_id,
+        report.settings.release_channel.as_str(),
+        report.platform_paths.config_dir.display(),
+        report.platform_paths.data_dir.display(),
+        report.platform_paths.cache_dir.display(),
+        report.platform_paths.log_dir.display()
     )
 }
 
@@ -3161,8 +3192,9 @@ fn config_provider_ids(effective: &EffectiveRuntimeConfig) -> Vec<String> {
     provider_ids
 }
 
-fn ui_config_snapshot(effective: &EffectiveRuntimeConfig) -> Result<UiConfigSnapshot, CliError> {
-    let providers = effective
+fn ui_config_snapshot(report: &ConfigCheckReport) -> Result<UiConfigSnapshot, CliError> {
+    let providers = report
+        .effective
         .config
         .model
         .catalog
@@ -3178,17 +3210,44 @@ fn ui_config_snapshot(effective: &EffectiveRuntimeConfig) -> Result<UiConfigSnap
             .map_err(map_ui_bridge_error)
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let diagnostics = effective
+    let diagnostics = report
+        .effective
         .diagnostics
         .iter()
         .map(ui_config_diagnostic)
         .collect::<Result<Vec<_>, _>>()?;
 
-    UiConfigSnapshot::new(
-        effective.selected_provider.clone(),
-        effective.selected_model.clone(),
+    let snapshot = UiConfigSnapshot::new(
+        report.effective.selected_provider.clone(),
+        report.effective.selected_model.clone(),
         providers,
         diagnostics,
+    )
+    .map_err(map_ui_bridge_error)?;
+    let platform_paths = ui_platform_paths_summary(&report.platform_paths)?;
+    let settings = UiSettingsProfileSummary::new(
+        report.settings.profile_id.clone(),
+        report.settings.selected_provider.clone(),
+        report.settings.selected_model.clone(),
+        report.settings.policy_profile.clone(),
+        report.settings.release_channel.as_str(),
+    )
+    .map_err(map_ui_bridge_error)?;
+    Ok(snapshot
+        .with_platform_paths(platform_paths)
+        .with_settings(settings))
+}
+
+fn ui_platform_paths_summary(paths: &PlatformPaths) -> Result<UiPlatformPathsSummary, CliError> {
+    UiPlatformPathsSummary::new(
+        paths.config_dir.display().to_string(),
+        paths.data_dir.display().to_string(),
+        paths.cache_dir.display().to_string(),
+        paths.log_dir.display().to_string(),
+        paths.plugin_dir.display().to_string(),
+        paths.skill_dir.display().to_string(),
+        paths.memory_dir.display().to_string(),
+        paths.temp_dir.display().to_string(),
     )
     .map_err(map_ui_bridge_error)
 }
@@ -3241,6 +3300,13 @@ fn map_agent_config_error(error: AgentConfigError) -> CliError {
 }
 
 fn map_ui_bridge_error(error: UiBridgeError) -> CliError {
+    CliError::ConfigCheckFailed {
+        message: error.to_string(),
+        diagnostics: Vec::new(),
+    }
+}
+
+fn map_settings_error(error: SettingsError) -> CliError {
     CliError::ConfigCheckFailed {
         message: error.to_string(),
         diagnostics: Vec::new(),

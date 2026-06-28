@@ -55,7 +55,7 @@ Each plan includes smoke-test commands and migration rollback checks.
 - Execute: `docs/plans/M25-04-cli-release-packaging.plan.md`
 - Execute: `docs/plans/M25-05-desktop-bundle-updater.plan.md`
 
-- [ ] **Step 1: Implement platform paths and settings**
+- [x] **Step 1: Implement platform paths and settings**
 
 Resolve config, data, cache, log, memory, and plugin directories consistently.
 

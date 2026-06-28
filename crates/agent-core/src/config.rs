@@ -34,7 +34,7 @@ pub struct ConfigDiagnostic {
 }
 
 impl ConfigDiagnostic {
-    fn error(
+    pub fn error(
         code: impl Into<String>,
         message: impl Into<String>,
         field_path: Option<String>,
@@ -48,7 +48,7 @@ impl ConfigDiagnostic {
         }
     }
 
-    fn warning(
+    pub fn warning(
         code: impl Into<String>,
         message: impl Into<String>,
         field_path: Option<String>,

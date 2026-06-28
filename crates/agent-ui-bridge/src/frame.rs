@@ -11,6 +11,10 @@ pub struct UiConfigSnapshot {
     pub selected_model: String,
     pub providers: Vec<UiModelProviderSummary>,
     pub diagnostics: Vec<UiConfigDiagnostic>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub platform_paths: Option<UiPlatformPathsSummary>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub settings: Option<UiSettingsProfileSummary>,
 }
 
 impl UiConfigSnapshot {
@@ -31,7 +35,98 @@ impl UiConfigSnapshot {
             selected_model,
             providers,
             diagnostics,
+            platform_paths: None,
+            settings: None,
         })
+    }
+
+    #[must_use]
+    pub fn with_platform_paths(mut self, platform_paths: UiPlatformPathsSummary) -> Self {
+        self.platform_paths = Some(platform_paths);
+        self
+    }
+
+    #[must_use]
+    pub fn with_settings(mut self, settings: UiSettingsProfileSummary) -> Self {
+        self.settings = Some(settings);
+        self
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiPlatformPathsSummary {
+    pub config_dir: String,
+    pub data_dir: String,
+    pub cache_dir: String,
+    pub log_dir: String,
+    pub plugin_dir: String,
+    pub skill_dir: String,
+    pub memory_dir: String,
+    pub temp_dir: String,
+}
+
+impl UiPlatformPathsSummary {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        config_dir: impl Into<String>,
+        data_dir: impl Into<String>,
+        cache_dir: impl Into<String>,
+        log_dir: impl Into<String>,
+        plugin_dir: impl Into<String>,
+        skill_dir: impl Into<String>,
+        memory_dir: impl Into<String>,
+        temp_dir: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        let summary = Self {
+            config_dir: config_dir.into(),
+            data_dir: data_dir.into(),
+            cache_dir: cache_dir.into(),
+            log_dir: log_dir.into(),
+            plugin_dir: plugin_dir.into(),
+            skill_dir: skill_dir.into(),
+            memory_dir: memory_dir.into(),
+            temp_dir: temp_dir.into(),
+        };
+        validate_non_empty("config dir", &summary.config_dir)?;
+        validate_non_empty("data dir", &summary.data_dir)?;
+        validate_non_empty("cache dir", &summary.cache_dir)?;
+        validate_non_empty("log dir", &summary.log_dir)?;
+        validate_non_empty("plugin dir", &summary.plugin_dir)?;
+        validate_non_empty("skill dir", &summary.skill_dir)?;
+        validate_non_empty("memory dir", &summary.memory_dir)?;
+        validate_non_empty("temp dir", &summary.temp_dir)?;
+        Ok(summary)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiSettingsProfileSummary {
+    pub profile_id: String,
+    pub selected_provider: Option<String>,
+    pub selected_model: Option<String>,
+    pub policy_profile: String,
+    pub release_channel: String,
+}
+
+impl UiSettingsProfileSummary {
+    pub fn new(
+        profile_id: impl Into<String>,
+        selected_provider: Option<String>,
+        selected_model: Option<String>,
+        policy_profile: impl Into<String>,
+        release_channel: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        let summary = Self {
+            profile_id: profile_id.into(),
+            selected_provider: normalize_optional_string(selected_provider),
+            selected_model: normalize_optional_string(selected_model),
+            policy_profile: policy_profile.into(),
+            release_channel: release_channel.into(),
+        };
+        validate_non_empty("settings profile id", &summary.profile_id)?;
+        validate_non_empty("settings policy profile", &summary.policy_profile)?;
+        validate_non_empty("settings release channel", &summary.release_channel)?;
+        Ok(summary)
     }
 }
 

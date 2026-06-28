@@ -13,12 +13,16 @@ fn desktop_config_snapshot_rejects_empty_selection() {
         selected_model: "fake-scripted".to_string(),
         providers: vec![provider()],
         diagnostics: Vec::new(),
+        platform_paths: None,
+        settings: None,
     };
     let empty_model = UiConfigSnapshot {
         selected_provider: "fake".to_string(),
         selected_model: " ".to_string(),
         providers: vec![provider()],
         diagnostics: Vec::new(),
+        platform_paths: None,
+        settings: None,
     };
 
     let provider_err = DesktopConfigSnapshot::new(empty_provider).expect_err("empty provider");

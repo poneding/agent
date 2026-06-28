@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M25 |
-| Milestone-level plans | Complete for M01-M25 |
+| Milestone-level specs | Complete for M01-M27 |
+| Milestone-level plans | Complete for M01-M27 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -221,6 +221,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M26-04 implementation | Complete |
 | M26-05 implementation | Complete |
 | M26 implementation | Complete |
+| M27 technical design | Complete |
+| M27 slice specs | Complete for M27-01 through M27-05 |
+| M27 slice plans | Complete for M27-01 through M27-05 |
+| M27 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -252,6 +256,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M24 Background Agents UX | `docs/specs/M24-background-agents-ux.spec.md` | `docs/plans/M24-background-agents-ux.plan.md` | Make long-running and scheduled agent tasks manageable across CLI, TUI, and Desktop-facing bridge surfaces. |
 | M25 Packaging, Settings, and Updates | `docs/specs/M25-packaging-release-settings-updates.spec.md` | `docs/plans/M25-packaging-release-settings-updates.plan.md` | Prepare repeatable local distribution with packaging, settings, secrets, migrations, release channels, and update flows. |
 | M26 Runtime Observability Evidence | `docs/specs/M26-runtime-observability-evidence.spec.md` | `docs/plans/M26-runtime-observability-evidence.plan.md` | Turn traces, telemetry, audit exports, and replay records into redacted evidence bundles for CLI/Desktop debugging and support. |
+| M27 Runtime Evaluation Harness | `docs/specs/M27-runtime-evaluation-harness.spec.md` | `docs/plans/M27-runtime-evaluation-harness.plan.md` | Turn replay fixtures, fake model scenarios, local coding workflows, and observability evidence into deterministic regression evaluations. |
 
 ## M01 Slice Index
 
@@ -529,9 +534,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M26-04 UI Observability Snapshots | `docs/specs/M26-04-ui-observability-snapshots.spec.md` | `docs/plans/M26-04-ui-observability-snapshots.plan.md` | Bounded UI-safe observability snapshots for TUI and Desktop. |
 | M26-05 Replay Evidence Verification | `docs/specs/M26-05-replay-evidence-verification.spec.md` | `docs/plans/M26-05-replay-evidence-verification.plan.md` | Replay fixture verification proving evidence can be regenerated without side effects. |
 
+## M27 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M27-00 Runtime Evaluation Technical Design | `docs/specs/M27-00-runtime-evaluation-technical-design.spec.md` | `docs/plans/M27-00-runtime-evaluation-technical-design.plan.md` | Architecture baseline for scenario kinds, fixture boundaries, deterministic execution, golden comparison, reports, CLI/CI surfaces, and privacy. |
+| M27-01 Scenario Manifest Contracts | `docs/specs/M27-01-scenario-manifest-contracts.spec.md` | `docs/plans/M27-01-scenario-manifest-contracts.plan.md` | Versioned eval scenario manifests, validation, path normalization, and serde tests. |
+| M27-02 Scenario Runner Core | `docs/specs/M27-02-scenario-runner-core.spec.md` | `docs/plans/M27-02-scenario-runner-core.plan.md` | Deterministic replay/evidence scenario execution into typed reports. |
+| M27-03 Golden Evidence Comparison | `docs/specs/M27-03-golden-evidence-comparison.spec.md` | `docs/plans/M27-03-golden-evidence-comparison.plan.md` | Stable golden comparison with redacted mismatch diagnostics. |
+| M27-04 CLI Eval Commands | `docs/specs/M27-04-cli-eval-commands.spec.md` | `docs/plans/M27-04-cli-eval-commands.plan.md` | CLI list, validate, run, text/JSON output, and exit-code semantics. |
+| M27-05 CI Reporting Integration | `docs/specs/M27-05-ci-reporting-integration.spec.md` | `docs/plans/M27-05-ci-reporting-integration.plan.md` | CI-friendly eval artifacts, summaries, documentation, and final M27 checks. |
+
 ## Active Work
 
-Current implementation focus: `M26 complete; next milestone selection`.
+Current implementation focus: `M27-01 scenario manifest contracts`.
 
 Most recent completed implementation documents:
 
@@ -540,9 +556,10 @@ Most recent completed implementation documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M26-00-runtime-observability-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M26-00-runtime-observability-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M27-00-runtime-evaluation-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M27-00-runtime-evaluation-technical-design.plan.md`
 
 Next implementation slice:
 
-- To be selected after M26 observability evidence review.
+- `docs/specs/M27-01-scenario-manifest-contracts.spec.md`
+- `docs/plans/M27-01-scenario-manifest-contracts.plan.md`

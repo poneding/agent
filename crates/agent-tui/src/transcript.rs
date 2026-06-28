@@ -167,6 +167,18 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::StartupMigrationSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "startup",
+                format!(
+                    "runtime_allowed={} steps={} applied={} diagnostics={}",
+                    snapshot.runtime_allowed,
+                    snapshot.step_count,
+                    snapshot.applied_count,
+                    snapshot.diagnostic_count
+                ),
+                false,
+            )),
             UiJsonFrame::Done { event_count } => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "done",

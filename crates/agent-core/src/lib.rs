@@ -14,6 +14,7 @@ pub mod model_runtime;
 pub mod recovery;
 pub mod runtime;
 pub mod settings;
+pub mod startup_migration;
 pub mod task_review;
 pub mod tool_loop;
 pub mod trace;
@@ -70,6 +71,14 @@ pub use settings::{
     PlatformKind, PlatformPathKey, PlatformPathOverrides, PlatformPaths, ReleaseChannel,
     SETTINGS_SCHEMA_VERSION, SettingsError, SettingsLoadResult, SettingsMutation, SettingsProfile,
     load_settings_file, write_settings_file_atomic,
+};
+pub use startup_migration::{
+    NoopStartupMigrationParticipant, SchemaVersionRecord, StartupMigrationAuditRecord,
+    StartupMigrationAuditStatus, StartupMigrationDiagnostic, StartupMigrationDiagnosticSeverity,
+    StartupMigrationError, StartupMigrationOutcome, StartupMigrationParticipant,
+    StartupMigrationPlan, StartupMigrationRunner, StartupMigrationStep,
+    StorageJsonStartupMigrationParticipant, default_startup_migration_participants,
+    startup_migration_status_json,
 };
 pub use task_review::{TaskArtifact, TaskArtifactKind, TaskReviewError, TaskReviewSummary};
 pub use tool_loop::{

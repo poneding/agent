@@ -18,7 +18,7 @@
 - Read: `crates/agent-storage/src/migration.rs`
 - Read: `crates/agent-storage/tests/schema_migration.rs`
 
-- [ ] **Step 1: Review migration boundaries**
+- [x] **Step 1: Review migration boundaries**
 
 Expected: existing schema migration code can be reused behind startup orchestration.
 
@@ -28,15 +28,15 @@ Expected: existing schema migration code can be reused behind startup orchestrat
 - Create: `crates/agent-core/tests/startup_migrations.rs`
 - Modify if needed: `crates/agent-storage/tests/schema_migration.rs`
 
-- [ ] **Step 1: Add runner plan/apply tests**
+- [x] **Step 1: Add runner plan/apply tests**
 
 Cover ordered steps, no-op repeat, and audit records.
 
-- [ ] **Step 2: Add failure isolation tests**
+- [x] **Step 2: Add failure isolation tests**
 
 Prove runtime startup does not proceed after migration failure.
 
-- [ ] **Step 3: Verify RED**
+- [x] **Step 3: Verify RED**
 
 ```bash
 cargo test -p agent-core startup_migrations
@@ -51,28 +51,28 @@ cargo test -p agent-core startup_migrations
 - Modify if needed: `crates/agent-memory/src/lib.rs`
 - Modify if needed: `crates/agent-plugin/src/lib.rs`
 
-- [ ] **Step 1: Add migration contracts**
+- [x] **Step 1: Add migration contracts**
 
 Define plan, step, participant, result, and diagnostics.
 
-- [ ] **Step 2: Wire domain participants**
+- [x] **Step 2: Wire domain participants**
 
 Use existing storage migration behavior and add no-op participants where domain migrations are not yet required.
 
-- [ ] **Step 3: Block runtime on failure**
+- [x] **Step 3: Block runtime on failure**
 
 Return recoverable startup diagnostics before any agent turn or background task starts.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 ```bash
 cargo test -p agent-core startup_migrations
 cargo test -p agent-storage schema_migration
 ```
 
-- [ ] **Step 2: Run workspace gates**
+- [x] **Step 2: Run workspace gates**
 
 ```bash
 cargo fmt --all -- --check
@@ -88,11 +88,11 @@ cargo test --workspace
 - Modify: `docs/plans/M25-03-startup-migrations.plan.md`
 - Modify: `docs/plans/M25-packaging-release-settings-updates.plan.md`
 
-- [ ] **Step 1: Mark M25-03 complete**
+- [x] **Step 1: Mark M25-03 complete**
 
 Advance active focus to M25-04.
 
-- [ ] **Step 2: Commit M25-03**
+- [x] **Step 2: Commit M25-03**
 
 ```bash
 git add crates docs README.md Cargo.toml Cargo.lock

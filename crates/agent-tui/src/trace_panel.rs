@@ -149,6 +149,17 @@ impl TracePanelState {
                     snapshot.errors.len()
                 ),
             )),
+            UiJsonFrame::StartupMigrationSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "startup",
+                format!(
+                    "runtime_allowed={} steps={} applied={} diagnostics={}",
+                    snapshot.runtime_allowed,
+                    snapshot.step_count,
+                    snapshot.applied_count,
+                    snapshot.diagnostic_count
+                ),
+            )),
             UiJsonFrame::Done { event_count } => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "done",

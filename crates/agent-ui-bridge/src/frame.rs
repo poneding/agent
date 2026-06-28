@@ -1,4 +1,4 @@
-use agent_core::{TaskArtifact, TaskReviewSummary};
+use agent_core::{StartupMigrationOutcome, TaskArtifact, TaskReviewSummary};
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{CheckpointId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
 use serde::{Deserialize, Serialize};
@@ -106,6 +106,43 @@ pub struct UiSettingsProfileSummary {
     pub selected_model: Option<String>,
     pub policy_profile: String,
     pub release_channel: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiStartupMigrationSnapshot {
+    pub runtime_allowed: bool,
+    pub step_count: u32,
+    pub applied_count: u32,
+    pub diagnostic_count: u32,
+    pub domains: Vec<String>,
+}
+
+impl UiStartupMigrationSnapshot {
+    pub fn from_outcome(outcome: &StartupMigrationOutcome) -> Result<Self, UiBridgeError> {
+        let mut domains = outcome
+            .plan
+            .from_versions
+            .iter()
+            .map(|record| bounded_task_text(&record.domain))
+            .collect::<Vec<_>>();
+        domains.sort();
+        Ok(Self {
+            runtime_allowed: outcome.runtime_allowed,
+            step_count: outcome
+                .plan
+                .steps
+                .len()
+                .try_into()
+                .map_err(|_| UiBridgeError::Validation("too many migration steps".to_string()))?,
+            applied_count: outcome.applied_steps.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many applied migration steps".to_string())
+            })?,
+            diagnostic_count: outcome.diagnostics.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many migration diagnostics".to_string())
+            })?,
+            domains,
+        })
+    }
 }
 
 impl UiSettingsProfileSummary {
@@ -722,6 +759,7 @@ pub enum UiJsonFrame {
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
+    StartupMigrationSnapshot(UiStartupMigrationSnapshot),
     ModelSelection {
         provider: String,
         model: String,

@@ -63,7 +63,7 @@ Resolve config, data, cache, log, memory, and plugin directories consistently.
 
 Add keychain backends with env fallback and redacted diagnostics.
 
-- [ ] **Step 3: Implement startup migrations**
+- [x] **Step 3: Implement startup migrations**
 
 Run idempotent config, storage, memory, and plugin migrations before runtime startup.
 

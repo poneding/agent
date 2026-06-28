@@ -19,7 +19,7 @@ use agent_core::{
     ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind,
     ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
     ExtensionSource, ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, RuntimeIds,
-    RuntimeModelConfig, SettingsError, SettingsProfile,
+    RuntimeModelConfig, SettingsError, SettingsProfile, StartupMigrationRunner,
 };
 use agent_memory::{
     InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
@@ -54,8 +54,9 @@ use agent_ui_bridge::{
     UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
     UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
     UiJsonFrame, UiModelProviderSummary, UiPlatformPathsSummary, UiPromptDiagnosticSummary,
-    UiPromptLayerSummary, UiPromptSummary, UiSettingsProfileSummary, UiTaskCommandError,
-    UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame, normalize_runtime_event,
+    UiPromptLayerSummary, UiPromptSummary, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
+    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
+    normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -78,6 +79,7 @@ pub enum CliCommand {
     LocalSummary,
     TraceSummary,
     ConfigCheck,
+    StartupCheck,
     Plugin(PluginCommand),
     SkillRoot(SkillRootCommand),
     Extension(ExtensionCommand),
@@ -296,6 +298,7 @@ where
         "--local-summary" => Ok(CliCommand::LocalSummary),
         "--trace-summary" => Ok(CliCommand::TraceSummary),
         "--config-check" => Ok(CliCommand::ConfigCheck),
+        "startup-check" | "--startup-check" => Ok(CliCommand::StartupCheck),
         "prompt" => parse_prompt_command(&mut args),
         "repl" => parse_repl_command(&mut args),
         "plugin" => parse_plugin_command(&mut args),
@@ -377,6 +380,7 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             Err(error) => CliOutput::exit(format!("trace summary failed: {error}\n")),
         },
         CliCommand::ConfigCheck => render_text_config_check(None, ConfigOverride::default()),
+        CliCommand::StartupCheck => render_text_startup_check(),
         CliCommand::Plugin(command) => {
             let mut runtime = PluginCommandRuntime::default();
             render_plugin_command(&mut runtime, command, OutputMode::Text)
@@ -424,6 +428,7 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             CliCommand::ConfigCheck => {
                 render_text_config_check(invocation.config_path, invocation.config_override)
             }
+            CliCommand::StartupCheck => render_text_startup_check(),
             CliCommand::BatchPrompt { prompt } => {
                 render_prompt_runtime(prompt, invocation.config_path, invocation.config_override)
             }
@@ -477,6 +482,9 @@ pub fn run_plain_repl_stdio(config_path: Option<PathBuf>, config_override: Confi
 fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if invocation.command == CliCommand::ConfigCheck {
         return render_json_config_check(invocation.config_path, invocation.config_override);
+    }
+    if invocation.command == CliCommand::StartupCheck {
+        return render_json_startup_check();
     }
     if invocation.command == CliCommand::PromptProfiles {
         return render_prompt_profiles_json();
@@ -3072,6 +3080,52 @@ fn render_json_config_check_error(error: CliError) -> CliOutput {
     }
     stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
     CliOutput::failure(stdout, 2)
+}
+
+fn render_text_startup_check() -> CliOutput {
+    let mut runner = StartupMigrationRunner::with_default_participants();
+    match runner.apply() {
+        Ok(outcome) => CliOutput::exit(format!(
+            "Startup migrations: valid\nRuntime allowed: {}\nDomains: {}\nSteps: {}\nApplied: {}\nDiagnostics: {}\n",
+            yes_no_label(outcome.runtime_allowed),
+            outcome.plan.from_versions.len(),
+            outcome.plan.steps.len(),
+            outcome.applied_steps.len(),
+            outcome.diagnostics.len()
+        )),
+        Err(error) => CliOutput::failure(format!("startup migration check failed: {error}\n"), 2),
+    }
+}
+
+fn yes_no_label(value: bool) -> &'static str {
+    if value { "yes" } else { "no" }
+}
+
+fn render_json_startup_check() -> CliOutput {
+    let mut runner = StartupMigrationRunner::with_default_participants();
+    match runner.apply() {
+        Ok(outcome) => match UiStartupMigrationSnapshot::from_outcome(&outcome) {
+            Ok(snapshot) => {
+                let mut stdout = String::new();
+                stdout.push_str(&json_frame_line(UiJsonFrame::StartupMigrationSnapshot(
+                    snapshot,
+                )));
+                stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                CliOutput::exit(stdout)
+            }
+            Err(error) => CliOutput::failure(format!("{error}\n"), 2),
+        },
+        Err(error) => {
+            let mut stdout = String::new();
+            stdout.push_str(&json_frame_line(UiJsonFrame::Error {
+                code: "startup_migration_check_failed".to_string(),
+                message: error.to_string(),
+                recoverable: false,
+            }));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::failure(stdout, 2)
+        }
+    }
 }
 
 fn evaluate_config_check(

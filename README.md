@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M28 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, and quality gates.
+M01-M29 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, and CI quality evidence gates.
 
 ## Core Ideas
 
@@ -119,6 +119,8 @@ The gate writes redacted evidence artifacts to `target/agent-ci/`:
 
 GitHub Actions uploads the same `target/agent-ci` directory for review.
 
+Use `cargo xtask ci` as the release-readiness gate before merge or packaging. Inspect `quality-gate-summary.txt` for the human summary and `quality-gate-report.json` for machine-readable evidence; artifacts are redacted summaries, not raw command logs.
+
 ## CLI Release Packaging
 
 Build and smoke-test a local CLI artifact:
@@ -176,8 +178,8 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M28-05-xtask-eval-gate.spec.md)
-- [Latest completed plan](docs/plans/M28-05-xtask-eval-gate.plan.md)
+- [Latest completed spec](docs/specs/M29-05-release-readiness-docs.spec.md)
+- [Latest completed plan](docs/plans/M29-05-release-readiness-docs.plan.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

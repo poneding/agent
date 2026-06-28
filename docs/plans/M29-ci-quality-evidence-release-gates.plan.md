@@ -67,7 +67,7 @@ Add workflow configuration that invokes the shared `xtask ci` gate.
 
 Persist JSON and text summaries under `target/agent-ci` and document upload paths.
 
-- [ ] **Step 5: Complete release-readiness docs**
+- [x] **Step 5: Complete release-readiness docs**
 
 Update README, milestones, and final gate docs.
 
@@ -78,7 +78,7 @@ Update README, milestones, and final gate docs.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M29-ci-quality-evidence-release-gates.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -89,7 +89,7 @@ cargo xtask eval
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M29 complete and commit**
+- [x] **Step 2: Mark M29 complete and commit**
 
 Run:
 

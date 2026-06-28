@@ -246,7 +246,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M29-02 implementation | Complete |
 | M29-03 implementation | Complete |
 | M29-04 implementation | Complete |
-| M29 implementation | In progress |
+| M29-05 implementation | Complete |
+| M29 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -593,7 +594,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M29-05 release readiness docs`.
+Current implementation focus: `M29 complete; next milestone not selected`.
 
 Most recent completed implementation documents:
 
@@ -603,13 +604,12 @@ Most recent completed implementation documents:
 - `docs/plans/M29-03-github-actions-workflow.plan.md`
 - `docs/specs/M29-04-quality-artifact-retention.spec.md`
 - `docs/plans/M29-04-quality-artifact-retention.plan.md`
+- `docs/specs/M29-05-release-readiness-docs.spec.md`
+- `docs/plans/M29-05-release-readiness-docs.plan.md`
 
 Most recent completed technical design documents:
 
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M29-00-ci-quality-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M29-00-ci-quality-technical-design.plan.md`
 
-Next implementation slice:
-
-- `docs/specs/M29-05-release-readiness-docs.spec.md`
-- `docs/plans/M29-05-release-readiness-docs.plan.md`
+Next implementation slice: to be selected by the next milestone.

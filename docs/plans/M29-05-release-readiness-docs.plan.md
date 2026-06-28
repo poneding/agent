@@ -12,14 +12,16 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read README, milestones, and M29 plan status**
+- [x] **Step 1: Read README, milestones, and M29 plan status**
 
 ### Task 2: Update Docs
 
-- [ ] **Step 1: Add quality gate usage docs**
-- [ ] **Step 2: Mark M29 complete after verification**
+- [x] **Step 1: Add quality gate usage docs**
+- [x] **Step 2: Mark M29 complete after verification**
 
 ### Task 3: Verify and Commit
+
+- [x] **Step 1: Run final gates**
 
 ```bash
 cargo xtask ci

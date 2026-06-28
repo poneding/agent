@@ -204,8 +204,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M24-04 implementation | Complete |
 | M24-05 implementation | Complete |
 | M24 implementation | Complete |
-| M25 implementation slice specs | Planned |
-| M25 implementation slice plans | Planned |
+| M25 implementation slice specs | Complete for M25-01 through M25-05 |
+| M25 implementation slice plans | Complete for M25-01 through M25-05 |
 | M25 implementation | Planned |
 
 ## Milestone Spec and Plan Index
@@ -497,15 +497,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M25-00 Packaging and Release Technical Design | `docs/specs/M25-00-packaging-release-technical-design.spec.md` | `docs/plans/M25-00-packaging-release-technical-design.plan.md` | Architecture baseline for platform paths, settings, keychain secrets, migrations, release artifacts, Desktop bundles, channels, and updates. |
+| M25-01 Platform Paths and Settings | `docs/specs/M25-01-platform-paths-settings.spec.md` | `docs/plans/M25-01-platform-paths-settings.plan.md` | Shared platform directories, typed settings, safe mutations, atomic persistence, and UI-safe diagnostics. |
+| M25-02 OS Keychain Secret Store | `docs/specs/M25-02-os-keychain-secret-store.spec.md` | `docs/plans/M25-02-os-keychain-secret-store.plan.md` | Secret store backend contracts, OS keychain boundary, environment fallback, and redacted diagnostics. |
+| M25-03 Startup Migrations | `docs/specs/M25-03-startup-migrations.spec.md` | `docs/plans/M25-03-startup-migrations.plan.md` | Idempotent startup migrations across config, storage, memory, plugins, and prompts before runtime side effects. |
+| M25-04 CLI Release Packaging | `docs/specs/M25-04-cli-release-packaging.spec.md` | `docs/plans/M25-04-cli-release-packaging.plan.md` | Repeatable CLI release artifacts, checksums, manifests, and local smoke tests. |
+| M25-05 Desktop Bundle and Updater | `docs/specs/M25-05-desktop-bundle-updater.spec.md` | `docs/plans/M25-05-desktop-bundle-updater.plan.md` | Tauri Desktop bundle flow, update manifest validation, and Desktop release smoke checks. |
 
 ## Active Work
 
-Current implementation focus: `M24-05 Task Artifacts and Review`.
+Current implementation focus: `M25-01 Platform Paths and Settings`.
 
 Most recent completed implementation documents:
 
-- `docs/specs/M24-04-task-quotas-retries-recovery.spec.md`
-- `docs/plans/M24-04-task-quotas-retries-recovery.plan.md`
+- `docs/specs/M24-05-task-artifacts-review.spec.md`
+- `docs/plans/M24-05-task-artifacts-review.plan.md`
 
 Most recent completed technical design documents:
 
@@ -514,4 +519,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- M24-05 Task Artifacts and Review
+- M25-01 Platform Paths and Settings

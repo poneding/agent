@@ -38,11 +38,11 @@ Document CLI and Desktop release slices with artifact smoke tests.
 - Create: `docs/specs/M25-05-desktop-bundle-updater.spec.md`
 - Create: `docs/plans/M25-05-desktop-bundle-updater.plan.md`
 
-- [ ] **Step 1: Create slice specs**
+- [x] **Step 1: Create slice specs**
 
 Each slice defines platform behavior, failure handling, security, and release verification.
 
-- [ ] **Step 2: Create slice plans**
+- [x] **Step 2: Create slice plans**
 
 Each plan includes smoke-test commands and migration rollback checks.
 

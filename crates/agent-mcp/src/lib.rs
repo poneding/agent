@@ -26,8 +26,10 @@ pub use client::{
     McpServerHealth, McpServerStatus, check_mcp_server_health,
 };
 pub use client_roots::{
-    MCP_ROOTS_LIST_CHANGED_NOTIFICATION_METHOD, McpClientCapabilities, McpClientRootsCapability,
-    McpRoot, McpRootListChangedNotification, McpRootListResult,
+    MCP_ROOTS_LIST_CHANGED_NOTIFICATION_METHOD, McpClientCapabilities, McpClientRootCandidate,
+    McpClientRootInspection, McpClientRootInspectionDiagnostic, McpClientRootInspectionEntry,
+    McpClientRootInspectionSeverity, McpClientRootRegistry, McpClientRootsCapability, McpRoot,
+    McpRootListChangedNotification, McpRootListResult,
 };
 pub use config::{McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig};
 pub use error::McpError;

@@ -333,6 +333,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M39 slice specs | Complete for M39-01 through M39-05 |
 | M39 slice plans | Complete for M39-01 through M39-05 |
 | M39-01 implementation | Complete |
+| M39-02 implementation | Complete |
 | M39 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -800,7 +801,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M39-02 client root registry`.
+Current implementation focus: `M39-03 client session roots`.
 
 Most recent completed implementation documents:
 
@@ -904,6 +905,8 @@ Most recent completed implementation documents:
 - `docs/plans/M38-05-hardening-docs.plan.md`
 - `docs/specs/M39-01-client-root-contracts.spec.md`
 - `docs/plans/M39-01-client-root-contracts.plan.md`
+- `docs/specs/M39-02-client-root-registry.spec.md`
+- `docs/plans/M39-02-client-root-registry.plan.md`
 
 Most recent completed planning documents:
 

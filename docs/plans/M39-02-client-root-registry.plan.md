@@ -12,19 +12,19 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M39-02 spec and M39-01 contracts**
+- [x] **Step 1: Review M39-02 spec and M39-01 contracts**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add valid root registration tests**
-- [ ] **Step 2: Add duplicate, disabled, and ordering tests**
-- [ ] **Step 3: Add invalid path, URI, traversal, and secret diagnostics tests**
+- [x] **Step 1: Add valid root registration tests**
+- [x] **Step 2: Add duplicate, disabled, and ordering tests**
+- [x] **Step 3: Add invalid path, URI, traversal, and secret diagnostics tests**
 
 ### Task 3: Implement Registry
 
-- [ ] **Step 1: Add root candidate and registry types**
-- [ ] **Step 2: Add validation and deterministic list result generation**
-- [ ] **Step 3: Add inspection diagnostics**
+- [x] **Step 1: Add root candidate and registry types**
+- [x] **Step 2: Add validation and deterministic list result generation**
+- [x] **Step 3: Add inspection diagnostics**
 
 ### Task 4: Verify
 
@@ -34,7 +34,15 @@ CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_registry
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_registry
+```
 
 ### Task 5: Commit
 
@@ -43,4 +51,4 @@ git add crates docs
 git commit -m "feat: add mcp client root registry"
 ```
 
-- [ ] **Step 1: Commit M39-02**
+- [x] **Step 1: Commit M39-02**

@@ -253,6 +253,7 @@ When `--out-dir` is provided, reports are written as:
 - [Latest completed spec](docs/specs/M33-05-hardening-docs.spec.md)
 - [Latest completed plan](docs/plans/M33-05-hardening-docs.plan.md)
 - [Latest completed milestone](docs/specs/M33-mcp-builtin-tool-export-runtime.spec.md)
+- [Active milestone](docs/specs/M34-mcp-export-profile-inspection.spec.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

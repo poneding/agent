@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M33 |
-| Milestone-level plans | Complete for M01-M33 |
+| Milestone-level specs | Complete for M01-M34 |
+| Milestone-level plans | Complete for M01-M34 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -284,6 +284,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M33-04 implementation | Complete |
 | M33-05 implementation | Complete |
 | M33 implementation | Complete |
+| M34 technical design | Complete |
+| M34 slice specs | Complete for M34-01 through M34-05 |
+| M34 slice plans | Complete for M34-01 through M34-05 |
+| M34 implementation | Planned |
 
 ## Milestone Spec and Plan Index
 
@@ -322,6 +326,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M31 MCP Stdio Server Runtime | `docs/specs/M31-mcp-stdio-server-runtime.spec.md` | `docs/plans/M31-mcp-stdio-server-runtime.plan.md` | Run a local MCP stdio server session over explicit exports, policy, and trace-safe diagnostics. |
 | M32 MCP Export Profile Runtime | `docs/specs/M32-mcp-export-profile-runtime.spec.md` | `docs/plans/M32-mcp-export-profile-runtime.plan.md` | Start the MCP stdio server from explicit, validated export profiles. |
 | M33 MCP Built-in Tool Export Runtime | `docs/specs/M33-mcp-builtin-tool-export-runtime.spec.md` | `docs/plans/M33-mcp-builtin-tool-export-runtime.plan.md` | Expose curated built-in workspace inspection tools through explicit MCP stdio export profiles. |
+| M34 MCP Export Profile Inspection | `docs/specs/M34-mcp-export-profile-inspection.spec.md` | `docs/plans/M34-mcp-export-profile-inspection.plan.md` | Inspect and preflight MCP export profiles before starting stdio server sessions. |
 
 ## M01 Slice Index
 
@@ -676,9 +681,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M33-04 Stdio Tool Call E2E | `docs/specs/M33-04-stdio-tool-call-e2e.spec.md` | `docs/plans/M33-04-stdio-tool-call-e2e.plan.md` | End-to-end JSON-RPC listing and calling of manifest-exported built-in tools. |
 | M33-05 Hardening Docs | `docs/specs/M33-05-hardening-docs.spec.md` | `docs/plans/M33-05-hardening-docs.plan.md` | README usage docs, milestone status, and final M33 quality gate evidence. |
 
+## M34 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M34-00 MCP Export Profile Inspection Technical Design | `docs/specs/M34-00-mcp-export-profile-inspection-technical-design.spec.md` | `docs/plans/M34-00-mcp-export-profile-inspection-technical-design.plan.md` | Architecture baseline for typed profile inspection, CLI preflight, diagnostics, redaction, and verification. |
+| M34-01 Profile Inspection Contracts | `docs/specs/M34-01-profile-inspection-contracts.spec.md` | `docs/plans/M34-01-profile-inspection-contracts.plan.md` | Serializable `agent-mcp` inspection contracts for profile tools, resources, and diagnostics. |
+| M34-02 CLI Profile Inspect Command | `docs/specs/M34-02-cli-profile-inspect-command.spec.md` | `docs/plans/M34-02-cli-profile-inspect-command.plan.md` | `agent-cli mcp server profile inspect` text and JSON command surface. |
+| M34-03 Preflight Diagnostics | `docs/specs/M34-03-preflight-diagnostics.spec.md` | `docs/plans/M34-03-preflight-diagnostics.plan.md` | Startup-aligned diagnostics for workspace, resources, unknown tools, and disabled exports. |
+| M34-04 JSON Redaction Regressions | `docs/specs/M34-04-json-redaction-regressions.spec.md` | `docs/plans/M34-04-json-redaction-regressions.plan.md` | Stable, parseable, redacted inspection output regression coverage. |
+| M34-05 Hardening Docs | `docs/specs/M34-05-hardening-docs.spec.md` | `docs/plans/M34-05-hardening-docs.plan.md` | README usage docs, milestone status, and final M34 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M33 complete; next milestone planning can start.
+Current implementation focus: `M34-01 profile inspection contracts`.
 
 Most recent completed implementation documents:
 
@@ -733,7 +749,10 @@ Most recent completed implementation documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M33-00-mcp-builtin-tool-export-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M33-00-mcp-builtin-tool-export-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M34-00-mcp-export-profile-inspection-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M34-00-mcp-export-profile-inspection-technical-design.plan.md`
 
-Next implementation slice: not assigned after M33 completion.
+Next implementation slice:
+
+- `docs/specs/M34-01-profile-inspection-contracts.spec.md`
+- `docs/plans/M34-01-profile-inspection-contracts.plan.md`

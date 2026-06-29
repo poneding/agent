@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M39 |
-| Milestone-level plans | Complete for M01-M39 |
+| Milestone-level specs | Complete for M01-M40 |
+| Milestone-level plans | Complete for M01-M40 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -338,6 +338,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M39-04 implementation | Complete |
 | M39-05 implementation | Complete |
 | M39 implementation | Complete |
+| M40 technical design | Complete |
+| M40 slice specs | Complete for M40-01 through M40-05 |
+| M40 slice plans | Complete for M40-01 through M40-05 |
+| M40-01 implementation | In progress |
+| M40 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -382,6 +387,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M37 MCP Resource Templates Runtime | `docs/specs/M37-mcp-resource-templates-runtime.spec.md` | `docs/plans/M37-mcp-resource-templates-runtime.plan.md` | Expose explicit parameterized MCP resource templates with safe concrete URI reads. |
 | M38 MCP Completion Runtime | `docs/specs/M38-mcp-completion-runtime.spec.md` | `docs/plans/M38-mcp-completion-runtime.plan.md` | Serve safe MCP completions for prompt arguments and resource template variables. |
 | M39 MCP Client Roots Runtime | `docs/specs/M39-mcp-client-roots-runtime.spec.md` | `docs/plans/M39-mcp-client-roots-runtime.plan.md` | Provide explicit, bounded MCP client roots to external servers through gateway flows. |
+| M40 MCP Sampling Runtime | `docs/specs/M40-mcp-sampling-runtime.spec.md` | `docs/plans/M40-mcp-sampling-runtime.plan.md` | Provide a safe MCP `sampling/createMessage` foundation for external servers while preserving local model, approval, and tool policy boundaries. |
 
 ## M01 Slice Index
 
@@ -802,9 +808,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M39-04 Gateway Roots Integration | `docs/specs/M39-04-gateway-roots-integration.spec.md` | `docs/plans/M39-04-gateway-roots-integration.plan.md` | Root-aware gateway discovery reports and diagnostics without changing tool policy. |
 | M39-05 Hardening Docs | `docs/specs/M39-05-hardening-docs.spec.md` | `docs/plans/M39-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M39 quality gate evidence. |
 
+## M40 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M40-00 MCP Sampling Technical Design | `docs/specs/M40-00-mcp-sampling-technical-design.spec.md` | `docs/plans/M40-00-mcp-sampling-technical-design.plan.md` | Architecture baseline for sampling directionality, contracts, safe-subset validation, fixture behavior, gateway diagnostics, and privacy. |
+| M40-01 Sampling Contracts | `docs/specs/M40-01-sampling-contracts.spec.md` | `docs/plans/M40-01-sampling-contracts.plan.md` | Serializable MCP sampling capability, message, content, request, model preference, and result contracts. |
+| M40-02 Sampling Validation | `docs/specs/M40-02-sampling-validation.spec.md` | `docs/plans/M40-02-sampling-validation.plan.md` | Safe-subset request validation for tokens, context, tools, content, and redacted diagnostics. |
+| M40-03 Client Session Sampling | `docs/specs/M40-03-client-session-sampling.spec.md` | `docs/plans/M40-03-client-session-sampling.plan.md` | Fixture MCP client/session behavior for server-requested `sampling/createMessage`. |
+| M40-04 Gateway Sampling Diagnostics | `docs/specs/M40-04-gateway-sampling-diagnostics.spec.md` | `docs/plans/M40-04-gateway-sampling-diagnostics.plan.md` | Sampling-aware gateway reports and diagnostics without executing sampling during discovery. |
+| M40-05 Hardening Docs | `docs/specs/M40-05-hardening-docs.spec.md` | `docs/plans/M40-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M40 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: next milestone planning.
+Current implementation focus: `M40-01 sampling contracts`.
 
 Most recent completed implementation documents:
 
@@ -919,6 +936,20 @@ Most recent completed implementation documents:
 
 Most recent completed planning documents:
 
+- `docs/specs/M40-mcp-sampling-runtime.spec.md`
+- `docs/plans/M40-mcp-sampling-runtime.plan.md`
+- `docs/specs/M40-00-mcp-sampling-technical-design.spec.md`
+- `docs/plans/M40-00-mcp-sampling-technical-design.plan.md`
+- `docs/specs/M40-01-sampling-contracts.spec.md`
+- `docs/plans/M40-01-sampling-contracts.plan.md`
+- `docs/specs/M40-02-sampling-validation.spec.md`
+- `docs/plans/M40-02-sampling-validation.plan.md`
+- `docs/specs/M40-03-client-session-sampling.spec.md`
+- `docs/plans/M40-03-client-session-sampling.plan.md`
+- `docs/specs/M40-04-gateway-sampling-diagnostics.spec.md`
+- `docs/plans/M40-04-gateway-sampling-diagnostics.plan.md`
+- `docs/specs/M40-05-hardening-docs.spec.md`
+- `docs/plans/M40-05-hardening-docs.plan.md`
 - `docs/specs/M39-mcp-client-roots-runtime.spec.md`
 - `docs/plans/M39-mcp-client-roots-runtime.plan.md`
 - `docs/specs/M39-00-mcp-client-roots-technical-design.spec.md`
@@ -978,9 +1009,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M39-00-mcp-client-roots-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M39-00-mcp-client-roots-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M40-00-mcp-sampling-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M40-00-mcp-sampling-technical-design.plan.md`
 
 Next implementation slice:
 
-- Pending next milestone spec and plan.
+- `docs/specs/M40-01-sampling-contracts.spec.md`
+- `docs/plans/M40-01-sampling-contracts.plan.md`

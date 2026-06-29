@@ -7,6 +7,7 @@ pub mod error;
 pub mod gateway;
 pub mod policy;
 pub mod server;
+pub mod server_resource;
 pub mod server_tool;
 pub mod tool;
 pub mod tool_mapping;
@@ -26,6 +27,7 @@ pub use server::{
     MCP_SERVER_PROTOCOL_VERSION, McpJsonRpcError, McpJsonRpcFailure, McpJsonRpcId,
     McpJsonRpcRequest, McpJsonRpcSuccess, McpServerInfo, McpServerMethod, McpServerState,
 };
+pub use server_resource::{McpResourceExport, McpResourceExportRegistry, McpResourceReadResult};
 pub use server_tool::{McpToolExport, McpToolExportRegistry, exported_tool_from_definition};
 pub use tool::{McpToolCallRequest, McpToolCallResult, McpToolDescriptor, McpToolListResult};
 pub use tool_mapping::{

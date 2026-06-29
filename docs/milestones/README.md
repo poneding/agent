@@ -253,6 +253,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M30 slice plans | Complete for M30-01 through M30-05 |
 | M30-01 implementation | Complete |
 | M30-02 implementation | Complete |
+| M30-03 implementation | Complete |
 | M30 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -612,7 +613,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M30-03 resource export registry`.
+Current implementation focus: `M30-04 stdio JSON-RPC fixture`.
 
 Most recent completed implementation documents:
 
@@ -628,6 +629,8 @@ Most recent completed implementation documents:
 - `docs/plans/M30-01-server-contracts.plan.md`
 - `docs/specs/M30-02-tool-export-registry.spec.md`
 - `docs/plans/M30-02-tool-export-registry.plan.md`
+- `docs/specs/M30-03-resource-export-registry.spec.md`
+- `docs/plans/M30-03-resource-export-registry.plan.md`
 
 Most recent completed technical design documents:
 
@@ -636,5 +639,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M30-03-resource-export-registry.spec.md`
-- `docs/plans/M30-03-resource-export-registry.plan.md`
+- `docs/specs/M30-04-stdio-jsonrpc-fixture.spec.md`
+- `docs/plans/M30-04-stdio-jsonrpc-fixture.plan.md`

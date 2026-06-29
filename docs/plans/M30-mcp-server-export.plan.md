@@ -59,7 +59,7 @@ Add initialization, capability, JSON-RPC request/response, and error contracts.
 
 Expose selected local tools through `tools/list` and `tools/call` with policy enforcement.
 
-- [ ] **Step 3: Add resource export registry**
+- [x] **Step 3: Add resource export registry**
 
 Expose selected read-only resource descriptors and bounded reads.
 

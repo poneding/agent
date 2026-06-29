@@ -12,17 +12,17 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M31-02 spec and M30 export registries**
+- [x] **Step 1: Read M31-02 spec and M30 export registries**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add export profile tests**
+- [x] **Step 1: Add export profile tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add profile contracts**
-- [ ] **Step 2: Add default-deny bootstrap**
-- [ ] **Step 3: Add fixture profile construction**
+- [x] **Step 1: Add profile contracts**
+- [x] **Step 2: Add default-deny bootstrap**
+- [x] **Step 3: Add fixture profile construction**
 
 ### Task 4: Verify and Commit
 
@@ -30,6 +30,15 @@
 cargo fmt --all -- --check
 cargo clippy -p agent-mcp --all-targets -- -D warnings
 cargo test -p agent-mcp mcp_server_profile
+```
+
+Verified with:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m31 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m31 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp mcp_server_profile
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp
 ```
 
 ```bash

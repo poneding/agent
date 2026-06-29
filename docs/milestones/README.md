@@ -261,6 +261,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M31 slice specs | Complete for M31-01 through M31-05 |
 | M31 slice plans | Complete for M31-01 through M31-05 |
 | M31-01 implementation | Complete |
+| M31-02 implementation | Complete |
 | M31 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -632,7 +633,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M31-02 export profile bootstrap`.
+Current implementation focus: `M31-03 CLI stdio command`.
 
 Most recent completed implementation documents:
 
@@ -656,6 +657,8 @@ Most recent completed implementation documents:
 - `docs/plans/M30-05-cli-trace-docs.plan.md`
 - `docs/specs/M31-01-stdio-session-runtime.spec.md`
 - `docs/plans/M31-01-stdio-session-runtime.plan.md`
+- `docs/specs/M31-02-export-profile-bootstrap.spec.md`
+- `docs/plans/M31-02-export-profile-bootstrap.plan.md`
 
 Most recent completed technical design documents:
 
@@ -664,5 +667,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M31-02-export-profile-bootstrap.spec.md`
-- `docs/plans/M31-02-export-profile-bootstrap.plan.md`
+- `docs/specs/M31-03-cli-stdio-command.spec.md`
+- `docs/plans/M31-03-cli-stdio-command.plan.md`

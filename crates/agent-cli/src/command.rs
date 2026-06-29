@@ -30,12 +30,13 @@ use agent_eval::{
 use agent_mcp::{
     MCP_SERVER_PROTOCOL_VERSION, McpResourceExportRegistry,
     McpServerBuiltinToolExportCatalogConfig, McpServerCapabilities, McpServerFixture,
-    McpServerInfo, McpServerProfileRuntime, McpServerSession, McpServerSessionConfig,
-    McpServerSessionSummary, McpServerState, McpServerStatusSummary, McpServerToolExportCatalog,
-    McpToolExportRegistry, build_mcp_server_builtin_tool_export_catalog,
-    build_mcp_server_profile_from_manifest, empty_mcp_server_export_profile,
-    mcp_server_status_summary, parse_mcp_server_export_manifest_json,
-    select_mcp_server_export_profile,
+    McpServerInfo, McpServerProfileInspection, McpServerProfileInspectionOptions,
+    McpServerProfileInspectionSeverity, McpServerProfileRuntime, McpServerSession,
+    McpServerSessionConfig, McpServerSessionSummary, McpServerState, McpServerStatusSummary,
+    McpServerToolExportCatalog, McpToolExportRegistry,
+    build_mcp_server_builtin_tool_export_catalog, build_mcp_server_profile_from_manifest,
+    empty_mcp_server_export_profile, inspect_mcp_server_export_profile, mcp_server_status_summary,
+    parse_mcp_server_export_manifest_json, select_mcp_server_export_profile,
 };
 use agent_memory::{
     InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
@@ -150,6 +151,11 @@ pub enum ExtensionCommand {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum McpServerCommand {
     Status,
+    ProfileInspect {
+        profile_path: PathBuf,
+        profile_name: Option<String>,
+        workspace_root: Option<PathBuf>,
+    },
     Stdio {
         max_frames: Option<u64>,
         profile_path: Option<PathBuf>,
@@ -882,6 +888,7 @@ where
                 workspace_root: config.workspace_root,
             }
         }
+        "profile" => parse_mcp_server_profile_command(args)?,
         _ => {
             return Err(CliError::UnknownArgument(format!(
                 "mcp server {subcommand}"
@@ -890,6 +897,70 @@ where
     };
 
     Ok(CliCommand::McpServer(command))
+}
+
+fn parse_mcp_server_profile_command<I>(args: &mut I) -> Result<McpServerCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("mcp server profile".to_string()));
+    };
+    match subcommand.as_str() {
+        "inspect" => parse_mcp_profile_inspect_args(args),
+        _ => Err(CliError::UnknownArgument(format!(
+            "mcp server profile {subcommand}"
+        ))),
+    }
+}
+
+fn parse_mcp_profile_inspect_args<I>(args: &mut I) -> Result<McpServerCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut profile_path = None;
+    let mut profile_name = None;
+    let mut workspace_root = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--profile" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                profile_path = Some(PathBuf::from(value));
+            }
+            "--profile-name" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                profile_name = Some(value);
+            }
+            "--workspace" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                workspace_root = Some(PathBuf::from(value));
+            }
+            _ => {
+                return Err(CliError::UnknownArgument(format!(
+                    "mcp server profile inspect {arg}"
+                )));
+            }
+        }
+    }
+    let Some(profile_path) = profile_path else {
+        return Err(CliError::MissingValue(
+            "mcp server profile inspect --profile".to_string(),
+        ));
+    };
+    Ok(McpServerCommand::ProfileInspect {
+        profile_path,
+        profile_name,
+        workspace_root,
+    })
 }
 
 fn parse_mcp_stdio_args<I>(args: &mut I) -> Result<McpServerStdioConfig, CliError>
@@ -2542,10 +2613,134 @@ pub fn render_mcp_server_command(
 ) -> CliOutput {
     match command {
         McpServerCommand::Status => render_mcp_server_status(&runtime.summary, output_mode),
+        McpServerCommand::ProfileInspect {
+            profile_path,
+            profile_name,
+            workspace_root,
+        } => render_mcp_server_profile_inspection_command(
+            &profile_path,
+            profile_name.as_deref(),
+            workspace_root.as_deref(),
+            output_mode,
+        ),
         McpServerCommand::Stdio { .. } => CliOutput::failure(
             "mcp server stdio requires live stdin/stdout process IO\n",
             2,
         ),
+    }
+}
+
+fn render_mcp_server_profile_inspection_command(
+    profile_path: &Path,
+    profile_name: Option<&str>,
+    workspace_root: Option<&Path>,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match load_mcp_server_profile_inspection(profile_path, profile_name, workspace_root) {
+        Ok(inspection) => match output_mode {
+            OutputMode::Text => {
+                CliOutput::exit(render_mcp_server_profile_inspection_text(&inspection))
+            }
+            OutputMode::Json => CliOutput::exit(json_value_frame_line(serde_json::json!({
+                "type": "mcp_server_profile_inspection",
+                "data": inspection,
+            }))),
+        },
+        Err(message) => match output_mode {
+            OutputMode::Text => {
+                CliOutput::failure(format!("mcp server profile inspect failed: {message}\n"), 2)
+            }
+            OutputMode::Json => CliOutput::failure(
+                json_value_frame_line(serde_json::json!({
+                    "type": "mcp_server_profile_inspection_error",
+                    "data": {
+                        "code": "mcp_server_profile_inspection_failed",
+                        "message": message,
+                    }
+                })),
+                2,
+            ),
+        },
+    }
+}
+
+fn load_mcp_server_profile_inspection(
+    profile_path: &Path,
+    profile_name: Option<&str>,
+    workspace_root: Option<&Path>,
+) -> Result<McpServerProfileInspection, String> {
+    let manifest_json = fs::read_to_string(profile_path).map_err(|error| {
+        format!(
+            "failed to read MCP server profile {}: {}",
+            redact_secret_like_text(&profile_path.display().to_string()),
+            redact_secret_like_text(&error.to_string())
+        )
+    })?;
+    let manifest = parse_mcp_server_export_manifest_json(&manifest_json)
+        .map_err(|error| redact_secret_like_text(&error.to_string()))?;
+    let manifest_dir = profile_path.parent().unwrap_or_else(|| Path::new("."));
+    inspect_mcp_server_export_profile(
+        &manifest,
+        McpServerProfileInspectionOptions {
+            profile_name: profile_name.map(ToOwned::to_owned),
+            manifest_dir: manifest_dir.to_path_buf(),
+            workspace_root: workspace_root.map(Path::to_path_buf),
+        },
+    )
+    .map_err(|error| redact_secret_like_text(&error.to_string()))
+}
+
+fn render_mcp_server_profile_inspection_text(inspection: &McpServerProfileInspection) -> String {
+    let enabled_tool_count = inspection.tools.iter().filter(|tool| tool.enabled).count();
+    let enabled_resource_count = inspection
+        .resources
+        .iter()
+        .filter(|resource| resource.enabled)
+        .count();
+    let mut output = format!(
+        "MCP server profile: {}\ntools: {} enabled={}\n",
+        inspection.profile_name,
+        inspection.tools.len(),
+        enabled_tool_count
+    );
+    for tool in &inspection.tools {
+        output.push_str(&format!("- tool {} enabled={}\n", tool.name, tool.enabled));
+    }
+    output.push_str(&format!(
+        "resources: {} enabled={}\n",
+        inspection.resources.len(),
+        enabled_resource_count
+    ));
+    for resource in &inspection.resources {
+        output.push_str(&format!(
+            "- resource {} name={} path={} mime_type={} enabled={} sensitive={}\n",
+            resource.uri,
+            resource.name,
+            resource.path,
+            resource.mime_type.as_deref().unwrap_or("none"),
+            resource.enabled,
+            resource.sensitive
+        ));
+    }
+    output.push_str(&format!("diagnostics: {}\n", inspection.diagnostics.len()));
+    for diagnostic in &inspection.diagnostics {
+        output.push_str(&format!(
+            "- diagnostic {} {}: {}\n",
+            mcp_server_profile_inspection_severity_label(&diagnostic.severity),
+            diagnostic.code,
+            diagnostic.message
+        ));
+    }
+    output
+}
+
+fn mcp_server_profile_inspection_severity_label(
+    severity: &McpServerProfileInspectionSeverity,
+) -> &'static str {
+    match severity {
+        McpServerProfileInspectionSeverity::Info => "info",
+        McpServerProfileInspectionSeverity::Warning => "warning",
+        McpServerProfileInspectionSeverity::Error => "error",
     }
 }
 

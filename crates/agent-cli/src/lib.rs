@@ -15,14 +15,15 @@ pub use approval::{
 pub use command::{
     CliCommand, CliError, CliInvocation, EvalCliCommand, EvalSuiteCliCommand, ExtensionCommand,
     ExtensionCommandRuntime, InteractiveMode, McpServerCommand, McpServerCommandRuntime,
-    MemoryCommand, MemoryCommandRuntime, ModelSelection, OutputMode, PluginCommand,
-    PluginCommandRuntime, PluginInstallDiagnostic, PluginInstallReport, SkillRootCommand,
-    SkillRootCommandRuntime, SlashCommand, StdioProfile, TaskCliCommand, TaskCommandRuntime,
-    handle_slash_command, parse_cli_command, parse_cli_invocation, render_cli_command,
-    render_cli_invocation, render_cli_invocation_with_stdio, render_eval_command,
-    render_extension_command, render_mcp_server_command, render_memory_command,
-    render_observability_json_bundle, render_observability_summary, render_plugin_command,
-    render_skill_root_command, render_task_command, render_task_review_summary,
+    McpServerStdioConfig, McpServerStdioError, MemoryCommand, MemoryCommandRuntime, ModelSelection,
+    OutputMode, PluginCommand, PluginCommandRuntime, PluginInstallDiagnostic, PluginInstallReport,
+    SkillRootCommand, SkillRootCommandRuntime, SlashCommand, StdioProfile, TaskCliCommand,
+    TaskCommandRuntime, handle_slash_command, parse_cli_command, parse_cli_invocation,
+    render_cli_command, render_cli_invocation, render_cli_invocation_with_stdio,
+    render_eval_command, render_extension_command, render_mcp_server_command,
+    render_memory_command, render_observability_json_bundle, render_observability_summary,
+    render_plugin_command, render_skill_root_command, render_task_command,
+    render_task_review_summary, run_mcp_server_stdio, run_mcp_server_stdio_io,
     run_plain_repl_stdio,
 };
 pub use output::CliOutput;

@@ -1,5 +1,5 @@
 use std::fs;
-use std::io;
+use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -28,8 +28,10 @@ use agent_eval::{
     run_eval_scenarios, run_eval_suite, update_suite_goldens, write_eval_artifacts,
 };
 use agent_mcp::{
-    MCP_SERVER_PROTOCOL_VERSION, McpResourceExportRegistry, McpServerCapabilities, McpServerInfo,
-    McpServerState, McpServerStatusSummary, McpToolExportRegistry, mcp_server_status_summary,
+    MCP_SERVER_PROTOCOL_VERSION, McpResourceExportRegistry, McpServerCapabilities,
+    McpServerFixture, McpServerInfo, McpServerSession, McpServerSessionConfig,
+    McpServerSessionSummary, McpServerState, McpServerStatusSummary, McpToolExportRegistry,
+    empty_mcp_server_export_profile, mcp_server_status_summary,
 };
 use agent_memory::{
     InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
@@ -144,6 +146,19 @@ pub enum ExtensionCommand {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum McpServerCommand {
     Status,
+    Stdio { max_frames: Option<u64> },
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct McpServerStdioConfig {
+    pub max_frames: Option<u64>,
+}
+
+impl McpServerStdioConfig {
+    #[must_use]
+    pub const fn new(max_frames: Option<u64>) -> Self {
+        Self { max_frames }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -824,6 +839,9 @@ where
             no_plugin_extra_args(args, "mcp server status")?;
             McpServerCommand::Status
         }
+        "stdio" => McpServerCommand::Stdio {
+            max_frames: parse_mcp_stdio_args(args)?,
+        },
         _ => {
             return Err(CliError::UnknownArgument(format!(
                 "mcp server {subcommand}"
@@ -832,6 +850,31 @@ where
     };
 
     Ok(CliCommand::McpServer(command))
+}
+
+fn parse_mcp_stdio_args<I>(args: &mut I) -> Result<Option<u64>, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut max_frames = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--max-frames" => {
+                let value = take_flag_value(args, &arg)?;
+                let parsed = value.parse::<u64>().map_err(|_| {
+                    CliError::UnknownArgument(format!("mcp server stdio --max-frames {value}"))
+                })?;
+                if parsed == 0 {
+                    return Err(CliError::UnknownArgument(
+                        "mcp server stdio --max-frames 0".to_string(),
+                    ));
+                }
+                max_frames = Some(parsed);
+            }
+            _ => return Err(CliError::UnknownArgument(format!("mcp server stdio {arg}"))),
+        }
+    }
+    Ok(max_frames)
 }
 
 fn parse_memory_command<I>(args: &mut I) -> Result<CliCommand, CliError>
@@ -2423,6 +2466,10 @@ pub fn render_mcp_server_command(
 ) -> CliOutput {
     match command {
         McpServerCommand::Status => render_mcp_server_status(&runtime.summary, output_mode),
+        McpServerCommand::Stdio { .. } => CliOutput::failure(
+            "mcp server stdio requires live stdin/stdout process IO\n",
+            2,
+        ),
     }
 }
 
@@ -2472,6 +2519,104 @@ fn status_list(items: &[String]) -> String {
     } else {
         items.join(", ")
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Error)]
+pub enum McpServerStdioError {
+    #[error("stdio IO failed: {0}")]
+    Io(String),
+    #[error("server bootstrap failed: {0}")]
+    Bootstrap(String),
+}
+
+impl McpServerStdioError {
+    fn io(error: io::Error) -> Self {
+        Self::Io(redact_secret_like_text(&error.to_string()))
+    }
+
+    fn bootstrap(error: impl ToString) -> Self {
+        Self::Bootstrap(redact_secret_like_text(&error.to_string()))
+    }
+}
+
+pub fn run_mcp_server_stdio(config: McpServerStdioConfig) -> i32 {
+    let stdin = io::stdin();
+    let stdout = io::stdout();
+    match run_mcp_server_stdio_io(stdin.lock(), stdout.lock(), config) {
+        Ok(_) => 0,
+        Err(error) => {
+            eprintln!("mcp server stdio failed: {error}");
+            1
+        }
+    }
+}
+
+pub fn run_mcp_server_stdio_io<R, W>(
+    mut input: R,
+    mut output: W,
+    config: McpServerStdioConfig,
+) -> Result<McpServerSessionSummary, McpServerStdioError>
+where
+    R: BufRead,
+    W: Write,
+{
+    let mut session = default_mcp_server_session(config)?;
+    let mut line = String::new();
+
+    loop {
+        line.clear();
+        let read = input
+            .read_line(&mut line)
+            .map_err(McpServerStdioError::io)?;
+        if read == 0 {
+            return Ok(session.close("eof"));
+        }
+
+        let response = session.handle_frame(&line);
+        if !response.is_empty() {
+            output
+                .write_all(response.as_bytes())
+                .map_err(McpServerStdioError::io)?;
+            output.flush().map_err(McpServerStdioError::io)?;
+        }
+
+        if session.status() == agent_mcp::McpServerSessionStatus::Closed {
+            return Ok(session.summary());
+        }
+    }
+}
+
+fn default_mcp_server_session(
+    config: McpServerStdioConfig,
+) -> Result<McpServerSession, McpServerStdioError> {
+    let (_profile, tools, tool_exports, resource_exports) =
+        empty_mcp_server_export_profile("default")
+            .map_err(McpServerStdioError::bootstrap)?
+            .into_parts();
+    let state = McpServerState::new(
+        McpServerInfo::new(
+            "agent",
+            env!("CARGO_PKG_VERSION"),
+            MCP_SERVER_PROTOCOL_VERSION,
+        )
+        .map_err(McpServerStdioError::bootstrap)?,
+        McpServerCapabilities {
+            tools: true,
+            prompts: false,
+            resources: true,
+        },
+    );
+    let fixture = McpServerFixture::new(
+        state,
+        tools,
+        tool_exports,
+        resource_exports,
+        agent_policy::StaticPolicyEngine::default(),
+    );
+    Ok(McpServerSession::new(
+        fixture,
+        McpServerSessionConfig::new(64 * 1024, config.max_frames),
+    ))
 }
 
 #[derive(Clone, Debug, Default)]

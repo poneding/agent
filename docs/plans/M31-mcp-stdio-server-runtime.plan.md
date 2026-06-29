@@ -48,7 +48,7 @@ Define session ownership, stdio loop boundaries, profile bootstrap, trace/audit 
 
 - [x] **Step 1: Add stdio session runtime**
 - [x] **Step 2: Add export profile bootstrap**
-- [ ] **Step 3: Add CLI stdio server command**
+- [x] **Step 3: Add CLI stdio server command**
 - [ ] **Step 4: Add server trace and audit summaries**
 - [ ] **Step 5: Add hardening docs and final verification**
 

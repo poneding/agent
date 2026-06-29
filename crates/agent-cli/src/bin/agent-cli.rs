@@ -17,6 +17,22 @@ fn main() {
                 }
                 return;
             }
+            if let agent_cli::CliCommand::McpServer(agent_cli::McpServerCommand::Stdio {
+                max_frames,
+            }) = &invocation.command
+            {
+                if invocation.output_mode != agent_cli::OutputMode::Text {
+                    eprintln!("mcp server stdio does not support --json");
+                    std::process::exit(2);
+                }
+                let status_code = agent_cli::run_mcp_server_stdio(
+                    agent_cli::McpServerStdioConfig::new(*max_frames),
+                );
+                if status_code != 0 {
+                    std::process::exit(status_code);
+                }
+                return;
+            }
 
             let output = agent_cli::render_cli_invocation_with_stdio(
                 invocation,

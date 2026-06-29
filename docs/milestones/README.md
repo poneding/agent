@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M44 |
-| Milestone-level plans | Complete for M01-M44 |
+| Milestone-level specs | Complete for M01-M45 |
+| Milestone-level plans | Complete for M01-M45 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -383,6 +383,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M44-04 implementation | Complete |
 | M44-05 implementation | Complete |
 | M44 implementation | Complete |
+| M45 technical design | Complete |
+| M45 slice specs | Complete for M45-01 through M45-05 |
+| M45 slice plans | Complete for M45-01 through M45-05 |
+| M45-01 implementation | In progress |
+| M45 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -432,6 +437,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M42 MCP Sampling Stdio Dispatch Runtime | `docs/specs/M42-mcp-sampling-stdio-dispatch.spec.md` | `docs/plans/M42-mcp-sampling-stdio-dispatch.plan.md` | Dispatch server-initiated MCP `sampling/createMessage` JSON-RPC frames through local sampling providers with safe validation and redacted diagnostics. |
 | M43 MCP Client Stdio Transport Runtime | `docs/specs/M43-mcp-client-stdio-transport.spec.md` | `docs/plans/M43-mcp-client-stdio-transport.plan.md` | Start external MCP stdio servers and drive initialize/tools/list through typed client contracts with safe process diagnostics. |
 | M44 MCP Client Stdio Tool Call Runtime | `docs/specs/M44-mcp-client-stdio-tool-call.spec.md` | `docs/plans/M44-mcp-client-stdio-tool-call.plan.md` | Execute live MCP stdio tools through typed gateway contracts with local policy boundaries and safe diagnostics. |
+| M45 MCP Client Streamable HTTP Runtime | `docs/specs/M45-mcp-client-streamable-http.spec.md` | `docs/plans/M45-mcp-client-streamable-http.plan.md` | Drive external MCP streamable HTTP servers through typed client and gateway contracts for initialize, tools/list, and tools/call. |
 
 ## M01 Slice Index
 
@@ -907,12 +913,37 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M44-04 Process E2E | `docs/specs/M44-04-process-e2e.spec.md` | `docs/plans/M44-04-process-e2e.plan.md` | Spawned process E2E proves initialize, tools/list, and tools/call through gateway registration. |
 | M44-05 Hardening Docs | `docs/specs/M44-05-hardening-docs.spec.md` | `docs/plans/M44-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M44 quality gate evidence. |
 
+## M45 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M45-00 MCP Client Streamable HTTP Technical Design | `docs/specs/M45-00-mcp-client-streamable-http-technical-design.spec.md` | `docs/plans/M45-00-mcp-client-streamable-http-technical-design.plan.md` | Architecture baseline for HTTP MCP client ownership, request/response contracts, session state, redaction, and verification. |
+| M45-01 HTTP Client Contracts | `docs/specs/M45-01-http-client-contracts.spec.md` | `docs/plans/M45-01-http-client-contracts.plan.md` | Pure JSON-RPC HTTP request/response contracts with safe parsing and redacted diagnostics. |
+| M45-02 HTTP Transport Runtime | `docs/specs/M45-02-http-transport-runtime.spec.md` | `docs/plans/M45-02-http-transport-runtime.plan.md` | Testable transport abstraction and live HTTP request boundary for streamable HTTP server configs. |
+| M45-03 HTTP McpClient Discovery | `docs/specs/M45-03-http-mcp-client-discovery.spec.md` | `docs/plans/M45-03-http-mcp-client-discovery.plan.md` | `McpHttpClient` implements initialize and tools/list through the existing `McpClient` boundary. |
+| M45-04 HTTP Gateway Tool Call | `docs/specs/M45-04-http-gateway-tool-call.spec.md` | `docs/plans/M45-04-http-gateway-tool-call.plan.md` | HTTP-backed MCP tools execute through gateway registration, local policy, redaction, and output bounding. |
+| M45-05 Hardening Docs | `docs/specs/M45-05-hardening-docs.spec.md` | `docs/plans/M45-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M45 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M44 complete; next implementation slice will be selected in the next milestone planning pass.
+Current implementation focus: M45-01 HTTP client contracts.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M45-mcp-client-streamable-http.spec.md`
+- `docs/plans/M45-mcp-client-streamable-http.plan.md`
+- `docs/specs/M45-00-mcp-client-streamable-http-technical-design.spec.md`
+- `docs/plans/M45-00-mcp-client-streamable-http-technical-design.plan.md`
+- `docs/specs/M45-01-http-client-contracts.spec.md`
+- `docs/plans/M45-01-http-client-contracts.plan.md`
+- `docs/specs/M45-02-http-transport-runtime.spec.md`
+- `docs/plans/M45-02-http-transport-runtime.plan.md`
+- `docs/specs/M45-03-http-mcp-client-discovery.spec.md`
+- `docs/plans/M45-03-http-mcp-client-discovery.plan.md`
+- `docs/specs/M45-04-http-gateway-tool-call.spec.md`
+- `docs/plans/M45-04-http-gateway-tool-call.plan.md`
+- `docs/specs/M45-05-hardening-docs.spec.md`
+- `docs/plans/M45-05-hardening-docs.plan.md`
 - `docs/specs/M44-mcp-client-stdio-tool-call.spec.md`
 - `docs/plans/M44-mcp-client-stdio-tool-call.plan.md`
 - `docs/specs/M44-00-mcp-client-stdio-tool-call-technical-design.spec.md`
@@ -1183,9 +1214,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M44-00-mcp-client-stdio-tool-call-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M44-00-mcp-client-stdio-tool-call-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M45-00-mcp-client-streamable-http-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M45-00-mcp-client-streamable-http-technical-design.plan.md`
 
 Next implementation slice:
 
-- To be selected after M44 completion.
+- `docs/specs/M45-01-http-client-contracts.spec.md`
+- `docs/plans/M45-01-http-client-contracts.plan.md`

@@ -51,6 +51,10 @@ Expected result:
 
 ```rust
 pub struct McpCompletionResult {
+    pub completion: McpCompletionValues,
+}
+
+pub struct McpCompletionValues {
     pub values: Vec<String>,
     pub total: usize,
     pub has_more: bool,

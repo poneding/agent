@@ -323,6 +323,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M38 technical design | Complete |
 | M38 slice specs | Complete for M38-01 through M38-05 |
 | M38 slice plans | Complete for M38-01 through M38-05 |
+| M38-01 implementation | Complete |
 | M38 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -778,7 +779,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M38-01 completion contracts`.
+Current implementation focus: `M38-02 prompt argument completions`.
 
 Most recent completed implementation documents:
 
@@ -870,6 +871,8 @@ Most recent completed implementation documents:
 - `docs/plans/M37-04-cli-stdio-resource-templates.plan.md`
 - `docs/specs/M37-05-hardening-docs.spec.md`
 - `docs/plans/M37-05-hardening-docs.plan.md`
+- `docs/specs/M38-01-completion-contracts.spec.md`
+- `docs/plans/M38-01-completion-contracts.plan.md`
 
 Most recent completed planning documents:
 
@@ -923,5 +926,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M38-01-completion-contracts.spec.md`
-- `docs/plans/M38-01-completion-contracts.plan.md`
+- `docs/specs/M38-02-prompt-argument-completions.spec.md`
+- `docs/plans/M38-02-prompt-argument-completions.plan.md`

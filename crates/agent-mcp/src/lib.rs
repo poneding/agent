@@ -7,6 +7,7 @@ pub mod error;
 pub mod gateway;
 pub mod policy;
 pub mod server;
+pub mod server_completion;
 pub mod server_manifest;
 pub mod server_profile;
 pub mod server_prompt;
@@ -33,6 +34,10 @@ pub use policy::{
 pub use server::{
     MCP_SERVER_PROTOCOL_VERSION, McpJsonRpcError, McpJsonRpcFailure, McpJsonRpcId,
     McpJsonRpcRequest, McpJsonRpcSuccess, McpServerInfo, McpServerMethod, McpServerState,
+};
+pub use server_completion::{
+    McpCompletionArgument, McpCompletionRef, McpCompletionRequest, McpCompletionResult,
+    McpCompletionValues,
 };
 pub use server_manifest::{
     MCP_SERVER_EXPORT_MANIFEST_SCHEMA_VERSION, McpServerBuiltinToolExportCatalogConfig,

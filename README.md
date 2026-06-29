@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M38 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, and safe MCP completions.
+M01-M39 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, and explicit MCP client roots for gateway flows.
 
 ## Core Ideas
 
@@ -126,6 +126,22 @@ The gate writes redacted evidence artifacts to `target/agent-ci/`:
 GitHub Actions uploads the same `target/agent-ci` directory for review.
 
 Use `cargo xtask ci` as the release-readiness gate before merge or packaging. Inspect `quality-gate-summary.txt` for the human summary and `quality-gate-report.json` for machine-readable evidence; artifacts are redacted summaries, not raw command logs.
+
+## MCP Client Roots
+
+`agent-mcp` can model client-side MCP roots for external MCP servers used through gateway flows. Roots are explicit `file://` workspace roots, not filesystem permissions. They are validated before exposure, sorted deterministically, and surfaced in gateway reports as safe metadata.
+
+```rust
+use agent_mcp::{
+    McpClientRootCandidate, McpClientRootRegistry,
+};
+
+let mut registry = McpClientRootRegistry::with_workspace_root(".")?;
+registry.register(McpClientRootCandidate::new(".", Some("project")))?;
+let roots = registry.list_result();
+```
+
+Disabled roots remain inspectable but are excluded from active root lists. Disabled, unhealthy, or unknown MCP servers receive no roots through gateway discovery. Root discovery failures become redacted gateway diagnostics and do not block tool discovery or tool registration. Roots never grant read, write, command, Git, browser, Desktop, or secret access; actual actions still go through local policy, sandbox, and tool execution paths.
 
 ## MCP Server Export
 
@@ -402,9 +418,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M38-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M38-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M38-mcp-completion-runtime.spec.md)
+- [Latest completed spec](docs/specs/M39-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M39-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M39-mcp-client-roots-runtime.spec.md)
 - [Milestone index](docs/milestones/README.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)

@@ -50,7 +50,7 @@ Define MCP roots directionality, root contracts, registry validation, client cap
 - [x] **Step 2: Add root registry validation**
 - [x] **Step 3: Add client session roots behavior**
 - [x] **Step 4: Wire gateway roots diagnostics**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M39
 
@@ -59,7 +59,7 @@ Define MCP roots directionality, root contracts, registry validation, client cap
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M39-mcp-client-roots-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,13 @@ CARGO_TARGET_DIR=target/codex-m39 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M39 complete and commit**
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m39 cargo xtask ci
+```
+
+- [x] **Step 2: Mark M39 complete and commit**
 
 Run:
 

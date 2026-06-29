@@ -238,8 +238,9 @@ fn apply_manifest_tools_to_builder(
     for tool in &profile.tools {
         let catalog_tool = catalog.get(&tool.name).ok_or_else(|| {
             McpError::InvalidServerRequest(format!(
-                "MCP server export catalog tool not found: {}",
-                redact_text(&tool.name)
+                "MCP server export catalog tool not found: {}; known tools: {}",
+                redact_text(&tool.name),
+                known_catalog_tool_names(catalog)
             ))
         })?;
         let exportable = SharedCatalogTool::new(catalog_tool);
@@ -251,6 +252,19 @@ fn apply_manifest_tools_to_builder(
     }
 
     Ok(())
+}
+
+fn known_catalog_tool_names(catalog: &McpServerToolExportCatalog) -> String {
+    let names = catalog.tool_names();
+    if names.is_empty() {
+        return "none".to_string();
+    }
+    let joined = names
+        .iter()
+        .map(|name| redact_text(name))
+        .collect::<Vec<_>>()
+        .join(", ");
+    bound_text(&joined, MAX_MANIFEST_TEXT_CHARS)
 }
 
 fn apply_manifest_resources_to_builder(

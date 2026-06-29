@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/server.rs`
 - Read: `crates/agent-mcp/src/client_sampling_stdio.rs`
 
-- [ ] **Step 1: Review JSON-RPC contracts**
+- [x] **Step 1: Review JSON-RPC contracts**
 
 Expected: codec can reuse existing envelope types.
 
@@ -26,7 +26,7 @@ Expected: codec can reuse existing envelope types.
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_stdio_codec.rs`
 
-- [ ] **Step 1: Add codec tests**
+- [x] **Step 1: Add codec tests**
 
 Add tests named:
 
@@ -37,7 +37,7 @@ mcp_client_stdio_codec_parses_failure_response_frame
 mcp_client_stdio_codec_rejects_notifications_as_responses
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -53,13 +53,13 @@ Expected: tests fail until the codec exists.
 - Create: `crates/agent-mcp/src/client_stdio.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add request frame renderer**
-- [ ] **Step 2: Add response frame parser**
-- [ ] **Step 3: Export public contracts**
+- [x] **Step 1: Add request frame renderer**
+- [x] **Step 2: Add response frame parser**
+- [x] **Step 3: Export public contracts**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -73,7 +73,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M43-01**
+- [x] **Step 1: Commit M43-01**
 
 Run:
 

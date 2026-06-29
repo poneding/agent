@@ -5,6 +5,7 @@ pub mod client;
 pub mod client_roots;
 pub mod client_sampling;
 pub mod client_sampling_stdio;
+pub mod client_stdio;
 pub mod config;
 pub mod error;
 pub mod gateway;
@@ -44,6 +45,10 @@ pub use client_sampling::{
 pub use client_sampling_stdio::{
     MCP_SAMPLING_CREATE_MESSAGE_METHOD, handle_mcp_sampling_stdio_frame,
     parse_mcp_sampling_stdio_request_frame,
+};
+pub use client_stdio::{
+    McpClientStdioResponseFrame, parse_mcp_client_stdio_response_frame,
+    render_mcp_client_stdio_request_frame,
 };
 pub use config::{McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig};
 pub use error::McpError;

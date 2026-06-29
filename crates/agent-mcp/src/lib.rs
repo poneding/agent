@@ -55,7 +55,9 @@ pub use server_prompt::{
     McpPromptArgument, McpPromptDescriptor, McpPromptExport, McpPromptExportRegistry,
     McpPromptGetParams, McpPromptGetResult, McpPromptListResult, McpPromptMessage,
 };
-pub use server_resource::{McpResourceExport, McpResourceExportRegistry, McpResourceReadResult};
+pub use server_resource::{
+    McpResourceExport, McpResourceExportRegistry, McpResourceReadResult, McpResourceTemplateExport,
+};
 pub use server_session::{
     McpServerSession, McpServerSessionConfig, McpServerSessionStatus, McpServerSessionSummary,
 };

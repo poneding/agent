@@ -12,19 +12,19 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M37-01 spec and existing resource export code**
+- [x] **Step 1: Review M37-01 spec and existing resource export code**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add descriptor serialization test**
-- [ ] **Step 2: Add duplicate and disabled listing tests**
-- [ ] **Step 3: Add metadata validation tests**
+- [x] **Step 1: Add descriptor serialization test**
+- [x] **Step 2: Add duplicate and disabled listing tests**
+- [x] **Step 3: Add metadata validation tests**
 
 ### Task 3: Implement Contracts
 
-- [ ] **Step 1: Add `McpResourceTemplateExport`**
-- [ ] **Step 2: Add registry insertion and listing methods**
-- [ ] **Step 3: Reuse existing redaction and bounds helpers**
+- [x] **Step 1: Add `McpResourceTemplateExport`**
+- [x] **Step 2: Add registry insertion and listing methods**
+- [x] **Step 3: Reuse existing redaction and bounds helpers**
 
 ### Task 4: Verify
 
@@ -34,7 +34,15 @@ CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_resource_template_contracts
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m37 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_resource_template_contracts
+```
 
 ### Task 5: Commit
 
@@ -43,4 +51,4 @@ git add crates docs
 git commit -m "feat: add mcp resource template contracts"
 ```
 
-- [ ] **Step 1: Commit M37-01**
+- [x] **Step 1: Commit M37-01**

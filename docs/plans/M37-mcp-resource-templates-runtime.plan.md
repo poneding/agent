@@ -46,7 +46,7 @@ Define resource template ownership, URI template syntax, path resolution, manife
 - Execute: `docs/plans/M37-04-cli-stdio-resource-templates.plan.md`
 - Execute: `docs/plans/M37-05-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add resource template contracts**
+- [x] **Step 1: Add resource template contracts**
 - [ ] **Step 2: Add concrete URI matching and path resolution**
 - [ ] **Step 3: Add manifest resource template declarations**
 - [ ] **Step 4: Wire CLI stdio resource templates**

@@ -314,6 +314,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M37 technical design | Complete |
 | M37 slice specs | Complete for M37-01 through M37-05 |
 | M37 slice plans | Complete for M37-01 through M37-05 |
+| M37-01 implementation | Complete |
 | M37 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -757,7 +758,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M37-01 resource template contracts`.
+Current implementation focus: `M37-02 resource template matching`.
 
 Most recent completed implementation documents:
 
@@ -839,6 +840,8 @@ Most recent completed implementation documents:
 - `docs/plans/M36-04-cli-stdio-prompt-arguments.plan.md`
 - `docs/specs/M36-05-hardening-docs.spec.md`
 - `docs/plans/M36-05-hardening-docs.plan.md`
+- `docs/specs/M37-01-resource-template-contracts.spec.md`
+- `docs/plans/M37-01-resource-template-contracts.plan.md`
 
 Most recent completed planning documents:
 
@@ -846,8 +849,8 @@ Most recent completed planning documents:
 - `docs/plans/M37-mcp-resource-templates-runtime.plan.md`
 - `docs/specs/M37-00-mcp-resource-templates-technical-design.spec.md`
 - `docs/plans/M37-00-mcp-resource-templates-technical-design.plan.md`
-- `docs/specs/M37-01-resource-template-contracts.spec.md`
-- `docs/plans/M37-01-resource-template-contracts.plan.md`
+- `docs/specs/M37-02-resource-template-matching.spec.md`
+- `docs/plans/M37-02-resource-template-matching.plan.md`
 - `docs/specs/M37-02-resource-template-matching.spec.md`
 - `docs/plans/M37-02-resource-template-matching.plan.md`
 - `docs/specs/M37-03-manifest-resource-templates.spec.md`

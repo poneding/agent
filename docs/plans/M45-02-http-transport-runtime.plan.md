@@ -17,15 +17,15 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/src/config.rs`
 
-- [ ] **Step 1: Review M45-01 contracts and config validation**
+- [x] **Step 1: Review M45-01 contracts and config validation**
 
 ### Task 2: Write Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_transport.rs`
 
-- [ ] **Step 1: Add fixture transport tests**
-- [ ] **Step 2: Add config and redaction tests**
+- [x] **Step 1: Add fixture transport tests**
+- [x] **Step 2: Add config and redaction tests**
 
 ### Task 3: Implement Transport
 
@@ -33,12 +33,12 @@
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/Cargo.toml`
 
-- [ ] **Step 1: Add transport trait and fixture transport**
-- [ ] **Step 2: Add live transport constructor and safe diagnostics**
+- [x] **Step 1: Add transport trait and fixture transport**
+- [x] **Step 2: Add live transport constructor and safe diagnostics**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -50,7 +50,7 @@ CARGO_TARGET_DIR=target/codex-m45 cargo clippy -p agent-mcp --all-targets -- -D 
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M45-02**
+- [x] **Step 1: Commit M45-02**
 
 Run:
 

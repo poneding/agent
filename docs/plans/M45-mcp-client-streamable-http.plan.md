@@ -47,7 +47,7 @@ Define crate ownership, HTTP request/response contracts, transport trait boundar
 - Execute: `docs/plans/M45-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add HTTP JSON-RPC client contracts**
-- [ ] **Step 2: Add HTTP transport runtime**
+- [x] **Step 2: Add HTTP transport runtime**
 - [ ] **Step 3: Implement `McpClient` over HTTP for initialize and tools/list**
 - [ ] **Step 4: Add gateway HTTP tools/call execution**
 - [ ] **Step 5: Add hardening docs and final verification**

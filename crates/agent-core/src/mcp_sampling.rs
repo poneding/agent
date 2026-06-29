@@ -6,10 +6,16 @@ use agent_mcp::{
     McpSamplingProvider, McpSamplingRole, McpSamplingValidationPolicy, McpServerId,
     validate_mcp_sampling_request,
 };
-use agent_model::{ModelProvider, ModelRequest, ModelStreamEvent, collect_model_event_stream};
+use agent_model::{
+    ModelError, ModelProvider, ModelRequest, ModelStreamEvent, collect_model_event_stream,
+};
 use agent_types::{ConversationId, CorrelationId, TurnId};
 use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+const MAX_BRIDGE_DIAGNOSTIC_MESSAGE_CHARS: usize = 256;
+const BRIDGE_REDACTED: &str = "[redacted]";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct McpSamplingModelBridgeConfig {
@@ -32,6 +38,12 @@ pub enum McpSamplingModelBridgeError {
     UnsupportedContent(String),
     #[error("model:{0}")]
     Model(String),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpSamplingBridgeDiagnostic {
+    pub code: String,
+    pub message: String,
 }
 
 #[derive(Clone)]
@@ -154,20 +166,67 @@ pub fn build_mcp_sampling_model_request(
     })
 }
 
-fn mcp_error_from_bridge_error(error: McpSamplingModelBridgeError) -> McpError {
+#[must_use]
+pub fn mcp_sampling_bridge_error_diagnostic(
+    error: &McpSamplingModelBridgeError,
+) -> McpSamplingBridgeDiagnostic {
     match error {
-        McpSamplingModelBridgeError::InvalidRequest(code)
-        | McpSamplingModelBridgeError::UnsupportedContent(code) => {
-            McpError::InvalidServerRequest(format!("sampling request rejected: {code}"))
-        }
-        McpSamplingModelBridgeError::Model(code) => {
-            McpError::Client(format!("sampling model bridge failed: {code}"))
-        }
+        McpSamplingModelBridgeError::InvalidRequest(detail) => bridge_diagnostic(
+            "invalid_request",
+            format!(
+                "sampling request rejected: {}",
+                sanitize_public_fragment(detail)
+            ),
+        ),
+        McpSamplingModelBridgeError::UnsupportedContent(kind) => bridge_diagnostic(
+            "unsupported_content",
+            format!(
+                "sampling content is unsupported: {}",
+                sanitize_public_fragment(kind)
+            ),
+        ),
+        McpSamplingModelBridgeError::Model(detail) => bridge_diagnostic(
+            "model_bridge_failed",
+            format!(
+                "sampling model bridge failed: {}",
+                sanitize_public_fragment(detail)
+            ),
+        ),
     }
 }
 
-fn redacted_model_error(_error: agent_model::ModelError) -> McpError {
-    McpError::Client("sampling model provider failed".to_string())
+#[must_use]
+pub fn mcp_sampling_model_error_diagnostic(error: &ModelError) -> McpSamplingBridgeDiagnostic {
+    match error {
+        ModelError::Script(_) => bridge_diagnostic(
+            "model_script_failed",
+            "sampling model provider failed: script_error",
+        ),
+        ModelError::Provider { code, .. } => bridge_diagnostic(
+            "model_provider_failed",
+            format!(
+                "sampling model provider failed: {}",
+                sanitize_public_fragment(code)
+            ),
+        ),
+    }
+}
+
+fn mcp_error_from_bridge_error(error: McpSamplingModelBridgeError) -> McpError {
+    let diagnostic = mcp_sampling_bridge_error_diagnostic(&error);
+    let public_message = format!("{}: {}", diagnostic.code, diagnostic.message);
+    match error {
+        McpSamplingModelBridgeError::InvalidRequest(_)
+        | McpSamplingModelBridgeError::UnsupportedContent(_) => {
+            McpError::InvalidServerRequest(public_message)
+        }
+        McpSamplingModelBridgeError::Model(_) => McpError::Client(public_message),
+    }
+}
+
+fn redacted_model_error(error: ModelError) -> McpError {
+    let diagnostic = mcp_sampling_model_error_diagnostic(&error);
+    McpError::Client(format!("{}: {}", diagnostic.code, diagnostic.message))
 }
 
 fn validate_local_model_field(
@@ -210,4 +269,43 @@ fn unsupported_content<T>(kind: &str) -> Result<T, McpSamplingModelBridgeError> 
     Err(McpSamplingModelBridgeError::UnsupportedContent(
         kind.to_string(),
     ))
+}
+
+fn bridge_diagnostic(
+    code: impl Into<String>,
+    message: impl Into<String>,
+) -> McpSamplingBridgeDiagnostic {
+    McpSamplingBridgeDiagnostic {
+        code: code.into(),
+        message: bound_public_message(&message.into()),
+    }
+}
+
+fn sanitize_public_fragment(value: &str) -> String {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        return "unknown".to_string();
+    }
+    if is_secret_like(trimmed) {
+        return BRIDGE_REDACTED.to_string();
+    }
+    bound_public_message(trimmed)
+}
+
+fn bound_public_message(value: &str) -> String {
+    value
+        .chars()
+        .take(MAX_BRIDGE_DIAGNOSTIC_MESSAGE_CHARS)
+        .collect()
+}
+
+fn is_secret_like(value: &str) -> bool {
+    let lower = value.to_ascii_lowercase();
+    lower.contains("sk-")
+        || lower.contains("api_key")
+        || lower.contains("apikey")
+        || lower.contains("secret")
+        || lower.contains("token")
+        || lower.contains("password")
+        || lower.contains("bearer ")
 }

@@ -59,8 +59,9 @@ pub use local_coding::{
     run_local_coding_fixture, run_local_coding_fixture_with_shell_denied,
 };
 pub use mcp_sampling::{
-    McpModelSamplingProvider, McpSamplingModelBridgeConfig, McpSamplingModelBridgeError,
-    McpSamplingModelBridgeIds, build_mcp_sampling_model_request,
+    McpModelSamplingProvider, McpSamplingBridgeDiagnostic, McpSamplingModelBridgeConfig,
+    McpSamplingModelBridgeError, McpSamplingModelBridgeIds, build_mcp_sampling_model_request,
+    mcp_sampling_bridge_error_diagnostic, mcp_sampling_model_error_diagnostic,
 };
 pub use model_runtime::{
     AgentLoopBudget, AgentLoopFailureReason, AgentLoopOutcome, AgentLoopTerminalState,

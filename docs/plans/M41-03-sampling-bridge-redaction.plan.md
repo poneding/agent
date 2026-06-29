@@ -16,7 +16,7 @@
 - Read: `docs/specs/M41-03-sampling-bridge-redaction.spec.md`
 - Read: `crates/agent-core/src/mcp_sampling.rs`
 
-- [ ] **Step 1: Review current bridge errors**
+- [x] **Step 1: Review current bridge errors**
 
 Run:
 
@@ -31,7 +31,7 @@ Expected: bridge errors exist and need stable public diagnostics.
 **Files:**
 - Create: `crates/agent-core/tests/mcp_sampling_model_redaction.rs`
 
-- [ ] **Step 1: Add redaction tests**
+- [x] **Step 1: Add redaction tests**
 
 Add tests named:
 
@@ -42,7 +42,7 @@ mcp_sampling_model_redaction_bounds_public_messages
 mcp_sampling_model_redaction_serializes_stable_diagnostic_shape
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -58,21 +58,21 @@ Expected: tests fail because diagnostics are not yet explicit.
 - Modify: `crates/agent-core/src/mcp_sampling.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add `McpSamplingBridgeDiagnostic`**
+- [x] **Step 1: Add `McpSamplingBridgeDiagnostic`**
 
 Add serializable diagnostic struct with `code` and `message`.
 
-- [ ] **Step 2: Add diagnostic conversion helpers**
+- [x] **Step 2: Add diagnostic conversion helpers**
 
 Convert bridge errors and model errors into stable codes and bounded redacted messages.
 
-- [ ] **Step 3: Export diagnostic contract**
+- [x] **Step 3: Export diagnostic contract**
 
 Export from `agent-core`.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -86,7 +86,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M41-03**
+- [x] **Step 1: Commit M41-03**
 
 Run:
 

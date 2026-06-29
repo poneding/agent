@@ -352,7 +352,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M41 slice plans | Complete for M41-01 through M41-05 |
 | M41-01 implementation | Complete |
 | M41-02 implementation | Complete |
-| M41-03 implementation | In progress |
+| M41-03 implementation | Complete |
+| M41-04 implementation | In progress |
 | M41 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -844,7 +845,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M41-03 sampling bridge redaction.
+Current implementation focus: M41-04 sampling bridge guardrails.
 
 Most recent completed implementation documents:
 
@@ -852,6 +853,8 @@ Most recent completed implementation documents:
 - `docs/plans/M41-01-sampling-model-request-mapping.plan.md`
 - `docs/specs/M41-02-sampling-model-provider.spec.md`
 - `docs/plans/M41-02-sampling-model-provider.plan.md`
+- `docs/specs/M41-03-sampling-bridge-redaction.spec.md`
+- `docs/plans/M41-03-sampling-bridge-redaction.plan.md`
 - `docs/specs/M29-02-xtask-ci-runner.spec.md`
 - `docs/plans/M29-02-xtask-ci-runner.plan.md`
 - `docs/specs/M29-03-github-actions-workflow.spec.md`
@@ -979,8 +982,8 @@ Most recent completed planning documents:
 - `docs/plans/M41-00-mcp-sampling-model-bridge-technical-design.plan.md`
 - `docs/specs/M41-01-sampling-model-request-mapping.spec.md`
 - `docs/plans/M41-01-sampling-model-request-mapping.plan.md`
-- `docs/specs/M41-03-sampling-bridge-redaction.spec.md`
-- `docs/plans/M41-03-sampling-bridge-redaction.plan.md`
+- `docs/specs/M41-04-sampling-bridge-guardrails.spec.md`
+- `docs/plans/M41-04-sampling-bridge-guardrails.plan.md`
 - `docs/specs/M41-03-sampling-bridge-redaction.spec.md`
 - `docs/plans/M41-03-sampling-bridge-redaction.plan.md`
 - `docs/specs/M41-04-sampling-bridge-guardrails.spec.md`

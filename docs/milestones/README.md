@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M40 |
-| Milestone-level plans | Complete for M01-M40 |
+| Milestone-level specs | Complete for M01-M41 |
+| Milestone-level plans | Complete for M01-M41 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -347,6 +347,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M40-04 implementation | Complete |
 | M40-05 implementation | Complete |
 | M40 implementation | Complete |
+| M41 technical design | Complete |
+| M41 slice specs | Complete for M41-01 through M41-05 |
+| M41 slice plans | Complete for M41-01 through M41-05 |
+| M41-01 implementation | In progress |
+| M41 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -392,6 +397,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M38 MCP Completion Runtime | `docs/specs/M38-mcp-completion-runtime.spec.md` | `docs/plans/M38-mcp-completion-runtime.plan.md` | Serve safe MCP completions for prompt arguments and resource template variables. |
 | M39 MCP Client Roots Runtime | `docs/specs/M39-mcp-client-roots-runtime.spec.md` | `docs/plans/M39-mcp-client-roots-runtime.plan.md` | Provide explicit, bounded MCP client roots to external servers through gateway flows. |
 | M40 MCP Sampling Runtime | `docs/specs/M40-mcp-sampling-runtime.spec.md` | `docs/plans/M40-mcp-sampling-runtime.plan.md` | Provide a safe MCP `sampling/createMessage` foundation for external servers while preserving local model, approval, and tool policy boundaries. |
+| M41 MCP Sampling Model Bridge Runtime | `docs/specs/M41-mcp-sampling-model-bridge.spec.md` | `docs/plans/M41-mcp-sampling-model-bridge.plan.md` | Bridge safe text-only MCP sampling requests into local `agent-model` providers without exposing credentials, tools, or raw diagnostics. |
 
 ## M01 Slice Index
 
@@ -823,9 +829,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M40-04 Gateway Sampling Diagnostics | `docs/specs/M40-04-gateway-sampling-diagnostics.spec.md` | `docs/plans/M40-04-gateway-sampling-diagnostics.plan.md` | Sampling-aware gateway reports and diagnostics without executing sampling during discovery. |
 | M40-05 Hardening Docs | `docs/specs/M40-05-hardening-docs.spec.md` | `docs/plans/M40-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M40 quality gate evidence. |
 
+## M41 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M41-00 MCP Sampling Model Bridge Technical Design | `docs/specs/M41-00-mcp-sampling-model-bridge-technical-design.spec.md` | `docs/plans/M41-00-mcp-sampling-model-bridge-technical-design.plan.md` | Architecture baseline for crate ownership, text-only mapping, provider execution, bridge redaction, and guardrails. |
+| M41-01 Sampling Model Request Mapping | `docs/specs/M41-01-sampling-model-request-mapping.spec.md` | `docs/plans/M41-01-sampling-model-request-mapping.plan.md` | Pure mapping from validated MCP sampling requests to local `agent-model::ModelRequest` values. |
+| M41-02 Sampling Model Provider | `docs/specs/M41-02-sampling-model-provider.spec.md` | `docs/plans/M41-02-sampling-model-provider.plan.md` | Provider-backed `McpSamplingProvider` execution through deterministic model stream collection. |
+| M41-03 Sampling Bridge Redaction | `docs/specs/M41-03-sampling-bridge-redaction.spec.md` | `docs/plans/M41-03-sampling-bridge-redaction.plan.md` | Public bridge errors and diagnostics remain stable, bounded, and free of prompt, response, or provider-secret content. |
+| M41-04 Sampling Bridge Guardrails | `docs/specs/M41-04-sampling-bridge-guardrails.spec.md` | `docs/plans/M41-04-sampling-bridge-guardrails.plan.md` | Explicit rejection of unsupported tool, context, media, and model tool-call paths. |
+| M41-05 Hardening Docs | `docs/specs/M41-05-hardening-docs.spec.md` | `docs/plans/M41-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M41 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: pending next milestone planning.
+Current implementation focus: M41-01 sampling model request mapping.
 
 Most recent completed implementation documents:
 
@@ -950,6 +967,20 @@ Most recent completed implementation documents:
 
 Most recent completed planning documents:
 
+- `docs/specs/M41-mcp-sampling-model-bridge.spec.md`
+- `docs/plans/M41-mcp-sampling-model-bridge.plan.md`
+- `docs/specs/M41-00-mcp-sampling-model-bridge-technical-design.spec.md`
+- `docs/plans/M41-00-mcp-sampling-model-bridge-technical-design.plan.md`
+- `docs/specs/M41-01-sampling-model-request-mapping.spec.md`
+- `docs/plans/M41-01-sampling-model-request-mapping.plan.md`
+- `docs/specs/M41-02-sampling-model-provider.spec.md`
+- `docs/plans/M41-02-sampling-model-provider.plan.md`
+- `docs/specs/M41-03-sampling-bridge-redaction.spec.md`
+- `docs/plans/M41-03-sampling-bridge-redaction.plan.md`
+- `docs/specs/M41-04-sampling-bridge-guardrails.spec.md`
+- `docs/plans/M41-04-sampling-bridge-guardrails.plan.md`
+- `docs/specs/M41-05-hardening-docs.spec.md`
+- `docs/plans/M41-05-hardening-docs.plan.md`
 - `docs/specs/M40-mcp-sampling-runtime.spec.md`
 - `docs/plans/M40-mcp-sampling-runtime.plan.md`
 - `docs/specs/M40-00-mcp-sampling-technical-design.spec.md`
@@ -1023,10 +1054,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M40-00-mcp-sampling-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M40-00-mcp-sampling-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M41-00-mcp-sampling-model-bridge-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M41-00-mcp-sampling-model-bridge-technical-design.plan.md`
 
 Next implementation slice:
 
-- `docs/specs/M40-02-sampling-validation.spec.md`
-- `docs/plans/M40-02-sampling-validation.plan.md`
+- `docs/specs/M41-01-sampling-model-request-mapping.spec.md`
+- `docs/plans/M41-01-sampling-model-request-mapping.plan.md`

@@ -12,20 +12,20 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M37-03 spec and manifest resource code**
+- [x] **Step 1: Review M37-03 spec and manifest resource code**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add manifest parse and serialization tests**
-- [ ] **Step 2: Add runtime builder tests**
-- [ ] **Step 3: Add duplicate, disabled, and inspection tests**
+- [x] **Step 1: Add manifest parse and serialization tests**
+- [x] **Step 2: Add runtime builder tests**
+- [x] **Step 3: Add duplicate, disabled, and inspection tests**
 
 ### Task 3: Implement Manifest Templates
 
-- [ ] **Step 1: Add manifest config structs**
-- [ ] **Step 2: Build resource templates into profile runtime**
-- [ ] **Step 3: Include template summaries in inspection**
-- [ ] **Step 4: Add preflight diagnostics for unsafe path templates**
+- [x] **Step 1: Add manifest config structs**
+- [x] **Step 2: Build resource templates into profile runtime**
+- [x] **Step 3: Include template summaries in inspection**
+- [x] **Step 4: Add preflight diagnostics for unsafe path templates**
 
 ### Task 4: Verify
 
@@ -35,7 +35,16 @@ CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_manifest_resource_templates
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m37 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_manifest_resource_templates
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_manifest
+```
 
 ### Task 5: Commit
 
@@ -44,4 +53,4 @@ git add crates docs
 git commit -m "feat: add mcp manifest resource templates"
 ```
 
-- [ ] **Step 1: Commit M37-03**
+- [x] **Step 1: Commit M37-03**

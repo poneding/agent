@@ -22,6 +22,7 @@ fn mcp_server_manifest_serializes_stable_shape() {
                 enabled: true,
                 sensitive: false,
             }],
+            resource_templates: Vec::new(),
             prompts: Vec::new(),
         }],
     };

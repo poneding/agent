@@ -1,4 +1,5 @@
 use std::collections::BTreeSet;
+use std::path::Path;
 
 use agent_tool::{Tool, ToolRegistry};
 use serde::{Deserialize, Serialize};
@@ -16,6 +17,8 @@ pub struct McpServerExportProfile {
     pub tool_names: Vec<String>,
     pub prompt_names: Vec<String>,
     pub resource_uris: Vec<String>,
+    #[serde(default)]
+    pub resource_template_uri_templates: Vec<String>,
 }
 
 impl McpServerExportProfile {
@@ -25,6 +28,7 @@ impl McpServerExportProfile {
             tool_names: Vec::new(),
             prompt_names: Vec::new(),
             resource_uris: Vec::new(),
+            resource_template_uri_templates: Vec::new(),
         })
     }
 }
@@ -92,6 +96,7 @@ pub struct McpServerExportProfileBuilder {
     tool_names: BTreeSet<String>,
     prompt_names: BTreeSet<String>,
     resource_uris: BTreeSet<String>,
+    resource_template_uri_templates: BTreeSet<String>,
 }
 
 impl McpServerExportProfileBuilder {
@@ -105,6 +110,7 @@ impl McpServerExportProfileBuilder {
             tool_names: BTreeSet::new(),
             prompt_names: BTreeSet::new(),
             resource_uris: BTreeSet::new(),
+            resource_template_uri_templates: BTreeSet::new(),
         })
     }
 
@@ -182,11 +188,113 @@ impl McpServerExportProfileBuilder {
         self.insert_resource(uri, name, mime_type, contents, false, true)
     }
 
+    pub fn export_file_resource_template<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_file_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            root,
+            path_template,
+            true,
+            false,
+        )
+    }
+
+    pub fn export_sensitive_file_resource_template<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_file_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            root,
+            path_template,
+            true,
+            true,
+        )
+    }
+
+    pub fn export_disabled_file_resource_template<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_file_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            root,
+            path_template,
+            false,
+            false,
+        )
+    }
+
+    pub fn export_disabled_sensitive_file_resource_template<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_file_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            root,
+            path_template,
+            false,
+            true,
+        )
+    }
+
     #[must_use]
     pub fn build(mut self) -> McpServerProfileRuntime {
         self.profile.tool_names = self.tool_names.into_iter().collect();
         self.profile.prompt_names = self.prompt_names.into_iter().collect();
         self.profile.resource_uris = self.resource_uris.into_iter().collect();
+        self.profile.resource_template_uri_templates =
+            self.resource_template_uri_templates.into_iter().collect();
         McpServerProfileRuntime {
             profile: self.profile,
             tools: self.tools,
@@ -280,6 +388,69 @@ impl McpServerExportProfileBuilder {
         } else {
             self.resource_exports
                 .export_disabled_resource(&uri, name, mime_type, contents)?;
+        }
+        Ok(())
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn insert_file_resource_template<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+        enabled: bool,
+        sensitive: bool,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        let uri_template = validate_resource_uri(&uri_template.into())?;
+        match (enabled, sensitive) {
+            (true, true) => self
+                .resource_exports
+                .export_sensitive_file_resource_template(
+                    &uri_template,
+                    name,
+                    description,
+                    mime_type,
+                    root,
+                    path_template,
+                )?,
+            (true, false) => self.resource_exports.export_file_resource_template(
+                &uri_template,
+                name,
+                description,
+                mime_type,
+                root,
+                path_template,
+            )?,
+            (false, true) => self
+                .resource_exports
+                .export_disabled_sensitive_file_resource_template(
+                    &uri_template,
+                    name,
+                    description,
+                    mime_type,
+                    root,
+                    path_template,
+                )?,
+            (false, false) => self
+                .resource_exports
+                .export_disabled_file_resource_template(
+                    &uri_template,
+                    name,
+                    description,
+                    mime_type,
+                    root,
+                    path_template,
+                )?,
+        }
+        if enabled {
+            self.resource_template_uri_templates.insert(uri_template);
         }
         Ok(())
     }

@@ -188,6 +188,56 @@ impl McpResourceExportRegistry {
         )
     }
 
+    pub fn export_disabled_file_resource_template<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_file_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            root,
+            path_template,
+            false,
+            false,
+        )
+    }
+
+    pub fn export_disabled_sensitive_file_resource_template<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_file_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            root,
+            path_template,
+            false,
+            true,
+        )
+    }
+
     pub fn export_disabled_resource_template<D, M>(
         &mut self,
         uri_template: impl Into<String>,

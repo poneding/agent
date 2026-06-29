@@ -8,8 +8,8 @@ use agent_tool::builtins::{GitDiffTool, GitStatusTool, ReadFileTool, SearchTextT
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    McpError, McpPromptArgument, McpPromptExport, McpPromptMessage, McpServerExportProfileBuilder,
-    McpServerProfileRuntime,
+    McpError, McpPromptArgument, McpPromptExport, McpPromptMessage, McpResourceExportRegistry,
+    McpServerExportProfileBuilder, McpServerProfileRuntime,
 };
 use agent_tool::{Tool, ToolDefinition, ToolInput, ToolOutput};
 
@@ -69,6 +69,8 @@ pub struct McpServerExportProfileConfig {
     #[serde(default)]
     pub resources: Vec<McpServerResourceExportConfig>,
     #[serde(default)]
+    pub resource_templates: Vec<McpServerResourceTemplateExportConfig>,
+    #[serde(default)]
     pub prompts: Vec<McpServerPromptExportConfig>,
 }
 
@@ -84,6 +86,21 @@ pub struct McpServerResourceExportConfig {
     pub uri: String,
     pub name: String,
     pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mime_type: Option<String>,
+    #[serde(default = "default_enabled")]
+    pub enabled: bool,
+    #[serde(default)]
+    pub sensitive: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerResourceTemplateExportConfig {
+    pub uri_template: String,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub path_template: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mime_type: Option<String>,
     #[serde(default = "default_enabled")]
@@ -141,6 +158,7 @@ pub struct McpServerProfileInspection {
     pub tools: Vec<McpServerProfileToolInspection>,
     pub prompts: Vec<McpServerProfilePromptInspection>,
     pub resources: Vec<McpServerProfileResourceInspection>,
+    pub resource_templates: Vec<McpServerProfileResourceTemplateInspection>,
     pub diagnostics: Vec<McpServerProfileInspectionDiagnostic>,
 }
 
@@ -155,6 +173,19 @@ pub struct McpServerProfileResourceInspection {
     pub uri: String,
     pub name: String,
     pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mime_type: Option<String>,
+    pub enabled: bool,
+    pub sensitive: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerProfileResourceTemplateInspection {
+    pub uri_template: String,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub path_template: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mime_type: Option<String>,
     pub enabled: bool,
@@ -306,6 +337,7 @@ pub fn build_mcp_server_resource_profile_from_manifest(
     let profile = select_mcp_server_export_profile(manifest, profile_name)?;
     let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
     apply_manifest_resources_to_builder(profile, manifest_dir.as_ref(), &mut builder)?;
+    apply_manifest_resource_templates_to_builder(profile, manifest_dir.as_ref(), &mut builder)?;
     apply_manifest_prompts_to_builder(profile, &mut builder)?;
 
     Ok(builder.build())
@@ -333,6 +365,7 @@ pub fn build_mcp_server_profile_from_manifest(
     let profile = select_mcp_server_export_profile(manifest, profile_name)?;
     let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
     apply_manifest_resources_to_builder(profile, manifest_dir.as_ref(), &mut builder)?;
+    apply_manifest_resource_templates_to_builder(profile, manifest_dir.as_ref(), &mut builder)?;
     apply_manifest_tools_to_builder(profile, catalog, &mut builder)?;
     apply_manifest_prompts_to_builder(profile, &mut builder)?;
 
@@ -361,6 +394,11 @@ pub fn inspect_mcp_server_export_profile(
             inspect_manifest_resource(resource, &options.manifest_dir, &mut diagnostics)
         })
         .collect::<Vec<_>>();
+    let resource_templates = profile
+        .resource_templates
+        .iter()
+        .map(|template| inspect_manifest_resource_template(template, &mut diagnostics))
+        .collect::<Vec<_>>();
     let prompts = profile
         .prompts
         .iter()
@@ -376,6 +414,7 @@ pub fn inspect_mcp_server_export_profile(
         tools,
         prompts,
         resources,
+        resource_templates,
         diagnostics,
     })
 }
@@ -458,6 +497,38 @@ fn inspect_manifest_resource(
         mime_type: resource.mime_type.as_deref().map(redact_text),
         enabled: resource.enabled,
         sensitive: resource.sensitive,
+    }
+}
+
+fn inspect_manifest_resource_template(
+    template: &McpServerResourceTemplateExportConfig,
+    diagnostics: &mut Vec<McpServerProfileInspectionDiagnostic>,
+) -> McpServerProfileResourceTemplateInspection {
+    if let Err(error) = validate_resource_template_contract(template) {
+        diagnostics.push(McpServerProfileInspectionDiagnostic::error(
+            "resource_template_invalid",
+            error.to_string(),
+        ));
+    }
+
+    if !template.enabled {
+        diagnostics.push(McpServerProfileInspectionDiagnostic::warning(
+            "resource_template_disabled",
+            format!(
+                "MCP server export resource template is disabled and hidden from active exports: {}",
+                redact_text(&template.uri_template)
+            ),
+        ));
+    }
+
+    McpServerProfileResourceTemplateInspection {
+        uri_template: redact_text(&template.uri_template),
+        name: redact_text(&template.name),
+        description: template.description.as_deref().map(redact_text),
+        path_template: redact_text(&template.path_template),
+        mime_type: template.mime_type.as_deref().map(redact_text),
+        enabled: template.enabled,
+        sensitive: template.sensitive,
     }
 }
 
@@ -651,6 +722,51 @@ fn apply_manifest_resources_to_builder(
     Ok(())
 }
 
+fn apply_manifest_resource_templates_to_builder(
+    profile: &McpServerExportProfileConfig,
+    manifest_dir: &Path,
+    builder: &mut McpServerExportProfileBuilder,
+) -> Result<(), McpError> {
+    for template in &profile.resource_templates {
+        match (template.enabled, template.sensitive) {
+            (true, true) => builder.export_sensitive_file_resource_template(
+                &template.uri_template,
+                &template.name,
+                template.description.clone(),
+                template.mime_type.clone(),
+                manifest_dir,
+                &template.path_template,
+            )?,
+            (true, false) => builder.export_file_resource_template(
+                &template.uri_template,
+                &template.name,
+                template.description.clone(),
+                template.mime_type.clone(),
+                manifest_dir,
+                &template.path_template,
+            )?,
+            (false, true) => builder.export_disabled_sensitive_file_resource_template(
+                &template.uri_template,
+                &template.name,
+                template.description.clone(),
+                template.mime_type.clone(),
+                manifest_dir,
+                &template.path_template,
+            )?,
+            (false, false) => builder.export_disabled_file_resource_template(
+                &template.uri_template,
+                &template.name,
+                template.description.clone(),
+                template.mime_type.clone(),
+                manifest_dir,
+                &template.path_template,
+            )?,
+        }
+    }
+
+    Ok(())
+}
+
 struct SharedCatalogTool {
     tool: Arc<dyn Tool>,
 }
@@ -701,6 +817,19 @@ fn validate_profile(profile: &McpServerExportProfileConfig) -> Result<(), McpErr
         }
     }
 
+    let mut resource_template_uri_templates = BTreeSet::new();
+    for template in &profile.resource_templates {
+        let uri_template = validate_resource_uri(&template.uri_template)?;
+        if !resource_template_uri_templates.insert(uri_template.clone()) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "duplicate MCP server export resource template in profile {}: {}",
+                redact_text(&profile.name),
+                redact_text(&uri_template)
+            )));
+        }
+        validate_resource_template_contract(template)?;
+    }
+
     let mut prompt_names = BTreeSet::new();
     for prompt in &profile.prompts {
         let name = validate_identifier_text("prompt name", &prompt.name)?;
@@ -744,6 +873,20 @@ fn validate_profile(profile: &McpServerExportProfileConfig) -> Result<(), McpErr
     Ok(())
 }
 
+fn validate_resource_template_contract(
+    template: &McpServerResourceTemplateExportConfig,
+) -> Result<(), McpError> {
+    let mut validator = McpResourceExportRegistry::default();
+    validator.export_resource_template(
+        &template.uri_template,
+        &template.name,
+        template.description.clone(),
+        template.mime_type.clone(),
+    )?;
+    validate_template_path_text("resource template path_template", &template.path_template)?;
+    Ok(())
+}
+
 fn validate_identifier_text(field: &str, value: &str) -> Result<String, McpError> {
     let trimmed = value.trim();
     if trimmed.is_empty() || trimmed.chars().any(char::is_whitespace) || is_secret_like(trimmed) {
@@ -775,6 +918,25 @@ fn validate_path_text(field: &str, value: &str) -> Result<String, McpError> {
         )));
     }
     Ok(bound_text(trimmed, MAX_MANIFEST_TEXT_CHARS))
+}
+
+fn validate_template_path_text(field: &str, value: &str) -> Result<String, McpError> {
+    let trimmed = validate_path_text(field, value)?;
+    let path = Path::new(&trimmed);
+    if path.is_absolute()
+        || path.components().any(|component| {
+            matches!(
+                component,
+                Component::ParentDir | Component::RootDir | Component::Prefix(_)
+            )
+        })
+    {
+        return Err(McpError::InvalidServerRequest(format!(
+            "MCP server export {field} must stay under manifest directory: {}",
+            redact_text(&trimmed)
+        )));
+    }
+    Ok(trimmed)
 }
 
 fn validate_resource_uri(value: &str) -> Result<String, McpError> {

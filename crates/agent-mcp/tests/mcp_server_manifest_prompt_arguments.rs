@@ -15,6 +15,7 @@ fn mcp_server_manifest_prompt_arguments_serialize_and_parse_stable_shape() {
             name: "default".to_string(),
             tools: Vec::new(),
             resources: Vec::new(),
+            resource_templates: Vec::new(),
             prompts: vec![McpServerPromptExportConfig {
                 name: "review".to_string(),
                 description: Some("Review current changes".to_string()),

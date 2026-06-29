@@ -372,8 +372,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M43-02 implementation | Complete |
 | M43-03 implementation | Complete |
 | M43-04 implementation | Complete |
-| M43-05 implementation | In progress |
-| M43 implementation | In progress |
+| M43-05 implementation | Complete |
+| M43 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -888,7 +888,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M43-05 hardening docs.
+Current implementation focus: M43 complete.
 
 Most recent completed implementation documents:
 

@@ -50,7 +50,7 @@ Define crate ownership, transport trait boundaries, request/response id handling
 - [x] **Step 2: Add deterministic client stdio session runtime**
 - [x] **Step 3: Add spawned process transport**
 - [x] **Step 4: Implement `McpClient` over stdio for initialize and tools/list**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M43
 
@@ -59,7 +59,7 @@ Define crate ownership, transport trait boundaries, request/response id handling
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M43-mcp-client-stdio-transport.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,17 @@ CARGO_TARGET_DIR=target/codex-m43 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M43 complete and commit**
+Verification evidence on 2026-06-29:
+
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_codec`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_session`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_process`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_mcp_client`
+- `git diff --check`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo fmt --all -- --check`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo xtask ci`
+
+- [x] **Step 2: Mark M43 complete and commit**
 
 Run:
 

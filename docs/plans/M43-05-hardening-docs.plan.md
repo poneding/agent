@@ -18,7 +18,7 @@
 - Read: `README.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Read M43 specs and completed implementation slices**
+- [x] **Step 1: Read M43 specs and completed implementation slices**
 
 Expected: scope, live transport boundary, and focused tests are clear.
 
@@ -29,17 +29,17 @@ Expected: scope, live transport boundary, and focused tests are clear.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M43-mcp-client-stdio-transport.plan.md`
 
-- [ ] **Step 1: Update README client stdio transport usage**
+- [x] **Step 1: Update README client stdio transport usage**
 
 Add a concise note that M43 can initialize and list tools from external MCP stdio servers through local typed client contracts.
 
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 Mark M43-01 through M43-05 complete only after implementation and verification are done.
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M43 focused tests**
+- [x] **Step 1: Run final M43 focused tests**
 
 Run:
 
@@ -52,7 +52,7 @@ CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_mcp_c
 
 Expected: focused M43 tests pass.
 
-- [ ] **Step 2: Run final workspace gate**
+- [x] **Step 2: Run final workspace gate**
 
 Run:
 
@@ -66,7 +66,7 @@ Expected: final gates pass.
 
 ### Task 4: Commit
 
-- [ ] **Step 1: Commit M43-05**
+- [x] **Step 1: Commit M43-05**
 
 Run:
 

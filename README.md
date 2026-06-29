@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M42 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, and fixture-grade MCP sampling stdio frame dispatch.
+M01-M43 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, fixture-grade MCP sampling stdio frame dispatch, and live MCP client stdio transport for initialize/tools/list.
 
 ## Core Ideas
 
@@ -142,6 +142,20 @@ let roots = registry.list_result();
 ```
 
 Disabled roots remain inspectable but are excluded from active root lists. Disabled, unhealthy, or unknown MCP servers receive no roots through gateway discovery. Root discovery failures become redacted gateway diagnostics and do not block tool discovery or tool registration. Roots never grant read, write, command, Git, browser, Desktop, or secret access; actual actions still go through local policy, sandbox, and tool execution paths.
+
+## MCP Client Stdio
+
+`agent-mcp` can start external MCP stdio server processes and drive `initialize` plus `tools/list` through the typed `McpClient` boundary. `McpStdioClient` owns newline-delimited JSON-RPC framing, request id matching, process timeouts, child cleanup, and typed mapping into `McpInitializeResult` and `McpToolListResult`.
+
+```rust
+use agent_mcp::{McpClient as _, McpStdioClient};
+
+let client = McpStdioClient::spawn(&server_config).await?;
+let init = client.initialize(&server_config).await?;
+let tools = client.list_tools(&server_config.id).await?;
+```
+
+Tool listing is discovery metadata only; it does not grant permission to execute remote tools. Live `tools/call`, reentrant server-to-client callbacks, streamable HTTP transport, sampling approval UI, and Desktop MCP management remain later work. Public diagnostics are bounded and redacted: process stderr, command env, unresolved secret refs, prompt text, and tool arguments are not surfaced. `McpEnvValue::SecretRef` values must be resolved outside `agent-mcp` before spawning a stdio client process.
 
 ## MCP Sampling
 
@@ -507,9 +521,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M42-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M42-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M42-mcp-sampling-stdio-dispatch.spec.md)
+- [Latest completed spec](docs/specs/M43-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M43-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M43-mcp-client-stdio-transport.spec.md)
 - [Milestone index](docs/milestones/README.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)

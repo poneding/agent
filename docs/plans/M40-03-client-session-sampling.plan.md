@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/client.rs`
 - Read: `crates/agent-mcp/src/client_sampling.rs`
 
-- [ ] **Step 1: Review fixture client patterns**
+- [x] **Step 1: Review fixture client patterns**
 
 Run:
 
@@ -33,20 +33,27 @@ Expected: fixture client already has roots and tool result patterns to mirror.
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_session_sampling.rs`
 
-- [ ] **Step 1: Add fixture sampling behavior tests**
+- [x] **Step 1: Add fixture sampling behavior tests**
 
 Add tests named:
 
 ```rust
 mcp_client_session_sampling_fixture_returns_configured_result
 mcp_client_session_sampling_fixture_rejects_unknown_server
+mcp_client_session_sampling_fixture_returns_configured_error
 mcp_client_session_sampling_disabled_config_rejects_before_provider
 mcp_client_session_sampling_validates_request_before_provider
 mcp_client_session_sampling_tracks_calls_without_prompt_text
 mcp_client_session_sampling_capabilities_combine_roots_and_sampling
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
+
+Verified failing before implementation:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling
+```
 
 Run:
 
@@ -63,11 +70,11 @@ Expected: tests fail because the provider trait and fixture methods do not exist
 - Modify: `crates/agent-mcp/src/client_sampling.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add `McpSamplingProvider` and helper function**
+- [x] **Step 1: Add `McpSamplingProvider` and helper function**
 
 Add the async trait and `create_mcp_sampling_message` helper. The helper rejects disabled configs before invoking the provider and validates the request with `McpSamplingValidationPolicy::default()`.
 
-- [ ] **Step 2: Extend `FixtureMcpClient`**
+- [x] **Step 2: Extend `FixtureMcpClient`**
 
 Add sampling result/error maps keyed by server ID, sampling call counts keyed by server ID, and builder methods:
 
@@ -85,13 +92,21 @@ pub fn with_sampling_error(
 ) -> Self
 ```
 
-- [ ] **Step 3: Implement sampling provider for the fixture**
+- [x] **Step 3: Implement sampling provider for the fixture**
 
 Return configured results, configured errors, or `McpError::ServerNotFound` for missing servers. Increment call counts without storing prompt content.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
+```
 
 Run:
 
@@ -105,7 +120,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M40-03**
+- [x] **Step 1: Commit M40-03**
 
 Run:
 

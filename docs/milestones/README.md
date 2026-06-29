@@ -343,7 +343,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M40 slice plans | Complete for M40-01 through M40-05 |
 | M40-01 implementation | Complete |
 | M40-02 implementation | Complete |
-| M40-03 implementation | In progress |
+| M40-03 implementation | Complete |
+| M40-04 implementation | In progress |
 | M40 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -823,7 +824,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M40-03 client session sampling`.
+Current implementation focus: `M40-04 gateway sampling diagnostics`.
 
 Most recent completed implementation documents:
 
@@ -939,6 +940,8 @@ Most recent completed implementation documents:
 - `docs/plans/M40-01-sampling-contracts.plan.md`
 - `docs/specs/M40-02-sampling-validation.spec.md`
 - `docs/plans/M40-02-sampling-validation.plan.md`
+- `docs/specs/M40-03-client-session-sampling.spec.md`
+- `docs/plans/M40-03-client-session-sampling.plan.md`
 
 Most recent completed planning documents:
 

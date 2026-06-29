@@ -46,7 +46,7 @@ Define MCP roots directionality, root contracts, registry validation, client cap
 - Execute: `docs/plans/M39-04-gateway-roots-integration.plan.md`
 - Execute: `docs/plans/M39-05-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add client root contracts**
+- [x] **Step 1: Add client root contracts**
 - [ ] **Step 2: Add root registry validation**
 - [ ] **Step 3: Add client session roots behavior**
 - [ ] **Step 4: Wire gateway roots diagnostics**

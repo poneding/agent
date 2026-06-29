@@ -2,6 +2,7 @@
 //! MCP protocol contracts and deterministic client fixtures for agent.
 
 pub mod client;
+pub mod client_roots;
 pub mod config;
 pub mod error;
 pub mod gateway;
@@ -23,6 +24,10 @@ pub mod tool_mapping;
 pub use client::{
     FixtureMcpClient, McpClient, McpGatewayClient, McpInitializeResult, McpServerCapabilities,
     McpServerHealth, McpServerStatus, check_mcp_server_health,
+};
+pub use client_roots::{
+    MCP_ROOTS_LIST_CHANGED_NOTIFICATION_METHOD, McpClientCapabilities, McpClientRootsCapability,
+    McpRoot, McpRootListChangedNotification, McpRootListResult,
 };
 pub use config::{McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig};
 pub use error::McpError;

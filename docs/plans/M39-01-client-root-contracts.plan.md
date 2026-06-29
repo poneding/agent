@@ -12,20 +12,20 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M39-01 spec and existing MCP client contracts**
+- [x] **Step 1: Review M39-01 spec and existing MCP client contracts**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add root and root list serialization tests**
-- [ ] **Step 2: Add client capability serialization tests**
-- [ ] **Step 3: Add root-list notification serialization tests**
-- [ ] **Step 4: Add invalid and secret-like metadata tests**
+- [x] **Step 1: Add root and root list serialization tests**
+- [x] **Step 2: Add client capability serialization tests**
+- [x] **Step 3: Add root-list notification serialization tests**
+- [x] **Step 4: Add invalid and secret-like metadata tests**
 
 ### Task 3: Implement Contracts
 
-- [ ] **Step 1: Add root contracts module**
-- [ ] **Step 2: Add deterministic constructors and validators**
-- [ ] **Step 3: Export contracts from `agent-mcp`**
+- [x] **Step 1: Add root contracts module**
+- [x] **Step 2: Add deterministic constructors and validators**
+- [x] **Step 3: Export contracts from `agent-mcp`**
 
 ### Task 4: Verify
 
@@ -35,7 +35,15 @@ CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_contracts
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_contracts
+```
 
 ### Task 5: Commit
 
@@ -44,4 +52,4 @@ git add crates docs
 git commit -m "feat: add mcp client root contracts"
 ```
 
-- [ ] **Step 1: Commit M39-01**
+- [x] **Step 1: Commit M39-01**

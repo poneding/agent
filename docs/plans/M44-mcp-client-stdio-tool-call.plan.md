@@ -50,7 +50,7 @@ Define trait ownership, `tools/call` request/result mapping, gateway policy boun
 - [x] **Step 2: Add gateway live stdio execution coverage**
 - [x] **Step 3: Harden tool-call redaction and limits**
 - [x] **Step 4: Add subprocess E2E coverage**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M44
 
@@ -59,7 +59,7 @@ Define trait ownership, `tools/call` request/result mapping, gateway policy boun
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M44-mcp-client-stdio-tool-call.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,7 @@ CARGO_TARGET_DIR=target/codex-m44 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M44 complete and commit**
+- [x] **Step 2: Mark M44 complete and commit**
 
 Run:
 
@@ -77,3 +77,12 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m44 mcp client stdio tool call"
 ```
+
+**Verification evidence (2026-06-30):**
+
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call` passed.
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool_call` passed.
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call_process` passed.
+- `git diff --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m44 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m44 cargo xtask ci` passed with exit code 0.

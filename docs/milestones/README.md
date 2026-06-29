@@ -381,8 +381,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M44-02 implementation | Complete |
 | M44-03 implementation | Complete |
 | M44-04 implementation | Complete |
-| M44-05 implementation | In progress |
-| M44 implementation | In progress |
+| M44-05 implementation | Complete |
+| M44 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -909,7 +909,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M44-05 hardening docs.
+Current implementation focus: M44 complete; next implementation slice will be selected in the next milestone planning pass.
 
 Most recent completed implementation documents:
 
@@ -1183,10 +1183,9 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M42-00-mcp-sampling-stdio-dispatch-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M42-00-mcp-sampling-stdio-dispatch-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M44-00-mcp-client-stdio-tool-call-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M44-00-mcp-client-stdio-tool-call-technical-design.plan.md`
 
 Next implementation slice:
 
-- `docs/specs/M44-05-hardening-docs.spec.md`
-- `docs/plans/M44-05-hardening-docs.plan.md`
+- To be selected after M44 completion.

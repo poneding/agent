@@ -18,7 +18,7 @@
 - Read: `README.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Read M44 specs and completed implementation slices**
+- [x] **Step 1: Read M44 specs and completed implementation slices**
 
 ### Task 2: Update Docs
 
@@ -27,12 +27,12 @@
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M44-mcp-client-stdio-tool-call.plan.md`
 
-- [ ] **Step 1: Update README live stdio tool-call usage**
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 1: Update README live stdio tool-call usage**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M44 focused tests**
+- [x] **Step 1: Run final M44 focused tests**
 
 Run:
 
@@ -42,7 +42,7 @@ CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool
 CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call_process
 ```
 
-- [ ] **Step 2: Run final workspace gate**
+- [x] **Step 2: Run final workspace gate**
 
 Run:
 
@@ -54,7 +54,7 @@ CARGO_TARGET_DIR=target/codex-m44 cargo xtask ci
 
 ### Task 4: Commit
 
-- [ ] **Step 1: Commit M44-05**
+- [x] **Step 1: Commit M44-05**
 
 Run:
 

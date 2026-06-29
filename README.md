@@ -8,6 +8,8 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 M01-M31 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, and a runnable MCP stdio server runtime.
 
+M32 is in progress: start the MCP stdio server from explicit, validated export profiles.
+
 ## Core Ideas
 
 - One runtime core for CLI, TUI, and Desktop.
@@ -206,6 +208,7 @@ When `--out-dir` is provided, reports are written as:
 - [Latest completed spec](docs/specs/M31-05-runtime-hardening-docs.spec.md)
 - [Latest completed plan](docs/plans/M31-05-runtime-hardening-docs.plan.md)
 - [Latest completed milestone](docs/specs/M31-mcp-stdio-server-runtime.spec.md)
+- [Active milestone](docs/specs/M32-mcp-export-profile-runtime.spec.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

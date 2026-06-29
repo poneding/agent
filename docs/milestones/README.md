@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M31 |
-| Milestone-level plans | Complete for M01-M31 |
+| Milestone-level specs | Complete for M01-M32 |
+| Milestone-level plans | Complete for M01-M32 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -266,6 +266,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M31-04 implementation | Complete |
 | M31-05 implementation | Complete |
 | M31 implementation | Complete |
+| M32 technical design | Complete |
+| M32 slice specs | Complete for M32-01 through M32-05 |
+| M32 slice plans | Complete for M32-01 through M32-05 |
+| M32 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -302,6 +306,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M29 CI Quality Evidence and Release Gates | `docs/specs/M29-ci-quality-evidence-release-gates.spec.md` | `docs/plans/M29-ci-quality-evidence-release-gates.plan.md` | Turn local checks, evaluation suites, and release smoke commands into one auditable CI quality gate with durable evidence artifacts. |
 | M30 MCP Server Export | `docs/specs/M30-mcp-server-export.spec.md` | `docs/plans/M30-mcp-server-export.plan.md` | Expose selected local tools and resources through a policy-aware MCP server mode. |
 | M31 MCP Stdio Server Runtime | `docs/specs/M31-mcp-stdio-server-runtime.spec.md` | `docs/plans/M31-mcp-stdio-server-runtime.plan.md` | Run a local MCP stdio server session over explicit exports, policy, and trace-safe diagnostics. |
+| M32 MCP Export Profile Runtime | `docs/specs/M32-mcp-export-profile-runtime.spec.md` | `docs/plans/M32-mcp-export-profile-runtime.plan.md` | Start the MCP stdio server from explicit, validated export profiles. |
 
 ## M01 Slice Index
 
@@ -634,9 +639,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M31-04 Server Trace Audit | `docs/specs/M31-04-server-trace-audit.spec.md` | `docs/plans/M31-04-server-trace-audit.plan.md` | Redacted frame/session trace summaries for initialize, list, call, read, errors, and policy outcomes. |
 | M31-05 Runtime Hardening Docs | `docs/specs/M31-05-runtime-hardening-docs.spec.md` | `docs/plans/M31-05-runtime-hardening-docs.plan.md` | README usage docs, milestone status, and final M31 quality gate evidence. |
 
+## M32 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M32-00 MCP Export Profile Technical Design | `docs/specs/M32-00-mcp-export-profile-technical-design.spec.md` | `docs/plans/M32-00-mcp-export-profile-technical-design.plan.md` | Architecture baseline for manifest ownership, profile construction, file resources, tool catalog, CLI flags, privacy, and verification. |
+| M32-01 Export Manifest Contracts | `docs/specs/M32-01-export-manifest-contracts.spec.md` | `docs/plans/M32-01-export-manifest-contracts.plan.md` | Versioned manifest contracts for profiles, tools, resources, validation, parsing, and profile selection. |
+| M32-02 Resource Export Loader | `docs/specs/M32-02-resource-export-loader.spec.md` | `docs/plans/M32-02-resource-export-loader.plan.md` | File-backed resource declarations loaded into MCP server profiles with safe diagnostics. |
+| M32-03 Tool Export Catalog | `docs/specs/M32-03-tool-export-catalog.spec.md` | `docs/plans/M32-03-tool-export-catalog.plan.md` | Explicit catalog binding for manifest-declared local tool exports. |
+| M32-04 CLI Profile Stdio | `docs/specs/M32-04-cli-profile-stdio.spec.md` | `docs/plans/M32-04-cli-profile-stdio.plan.md` | CLI profile flags for manifest-backed MCP stdio startup while preserving protocol-only stdout. |
+| M32-05 Runtime Hardening Docs | `docs/specs/M32-05-runtime-hardening-docs.spec.md` | `docs/plans/M32-05-runtime-hardening-docs.plan.md` | README usage docs, milestone status, and final M32 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M31 complete; next milestone planning can start from the same docs/specs/plans structure.
+Current implementation focus: `M32-01 export manifest contracts`.
 
 Most recent completed implementation documents:
 
@@ -671,7 +687,10 @@ Most recent completed implementation documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M31-00-mcp-stdio-server-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M31-00-mcp-stdio-server-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M32-00-mcp-export-profile-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M32-00-mcp-export-profile-technical-design.plan.md`
 
-Next implementation slice: not assigned after M31 completion.
+Next implementation slice:
+
+- `docs/specs/M32-01-export-manifest-contracts.spec.md`
+- `docs/plans/M32-01-export-manifest-contracts.plan.md`

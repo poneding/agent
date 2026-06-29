@@ -47,7 +47,7 @@ Define crate ownership, bridge contracts, text-only mapping, unsupported content
 - Execute: `docs/plans/M41-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add sampling model request mapping**
-- [ ] **Step 2: Add provider-backed sampling execution**
+- [x] **Step 2: Add provider-backed sampling execution**
 - [ ] **Step 3: Add redacted bridge diagnostics**
 - [ ] **Step 4: Add unsupported-path guardrails**
 - [ ] **Step 5: Add hardening docs and final verification**

@@ -18,7 +18,7 @@
 - Read: `crates/agent-model/src/fake.rs`
 - Read: `crates/agent-core/src/mcp_sampling.rs`
 
-- [ ] **Step 1: Review stream and mapping contracts**
+- [x] **Step 1: Review stream and mapping contracts**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: model stream events can be collected and mapping is already available.
 **Files:**
 - Create: `crates/agent-core/tests/mcp_sampling_model_provider.rs`
 
-- [ ] **Step 1: Add provider tests**
+- [x] **Step 1: Add provider tests**
 
 Add tests named:
 
@@ -45,7 +45,7 @@ mcp_sampling_model_provider_rejects_invalid_request_before_streaming
 mcp_sampling_model_provider_debug_does_not_retain_prompt_text
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -61,21 +61,21 @@ Expected: tests fail because `McpModelSamplingProvider` does not exist.
 - Modify: `crates/agent-core/src/mcp_sampling.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add provider struct and constructor**
+- [x] **Step 1: Add provider struct and constructor**
 
 Store `Arc<dyn ModelProvider>`, bridge config, and deterministic IDs.
 
-- [ ] **Step 2: Implement `McpSamplingProvider`**
+- [x] **Step 2: Implement `McpSamplingProvider`**
 
 Build a `ModelRequest`, stream the provider, concatenate delta text, and return `McpCreateMessageResult`.
 
-- [ ] **Step 3: Convert failures safely**
+- [x] **Step 3: Convert failures safely**
 
 Map bridge errors to `McpError::InvalidServerRequest` or `McpError::Client` without prompt text.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -89,7 +89,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M41-02**
+- [x] **Step 1: Commit M41-02**
 
 Run:
 

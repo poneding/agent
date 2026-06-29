@@ -1,9 +1,14 @@
+use std::fmt;
+use std::sync::Arc;
+
 use agent_mcp::{
-    McpCreateMessageRequestParams, McpSamplingContent, McpSamplingRole,
-    McpSamplingValidationPolicy, validate_mcp_sampling_request,
+    McpCreateMessageRequestParams, McpCreateMessageResult, McpError, McpSamplingContent,
+    McpSamplingProvider, McpSamplingRole, McpSamplingValidationPolicy, McpServerId,
+    validate_mcp_sampling_request,
 };
-use agent_model::ModelRequest;
+use agent_model::{ModelProvider, ModelRequest, ModelStreamEvent, collect_model_event_stream};
 use agent_types::{ConversationId, CorrelationId, TurnId};
+use async_trait::async_trait;
 use thiserror::Error;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -27,6 +32,83 @@ pub enum McpSamplingModelBridgeError {
     UnsupportedContent(String),
     #[error("model:{0}")]
     Model(String),
+}
+
+#[derive(Clone)]
+pub struct McpModelSamplingProvider {
+    pub config: McpSamplingModelBridgeConfig,
+    ids: McpSamplingModelBridgeIds,
+    model_provider: Arc<dyn ModelProvider>,
+}
+
+impl McpModelSamplingProvider {
+    #[must_use]
+    pub fn new(
+        model_provider: Arc<dyn ModelProvider>,
+        config: McpSamplingModelBridgeConfig,
+        ids: McpSamplingModelBridgeIds,
+    ) -> Self {
+        Self {
+            config,
+            ids,
+            model_provider,
+        }
+    }
+}
+
+impl fmt::Debug for McpModelSamplingProvider {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("McpModelSamplingProvider")
+            .field("config", &self.config)
+            .field("ids", &self.ids)
+            .field("model_provider", &"<dyn ModelProvider>")
+            .finish()
+    }
+}
+
+#[async_trait]
+impl McpSamplingProvider for McpModelSamplingProvider {
+    async fn create_message(
+        &self,
+        _server_id: &McpServerId,
+        request: McpCreateMessageRequestParams,
+    ) -> Result<McpCreateMessageResult, McpError> {
+        let model_request = build_mcp_sampling_model_request(&request, &self.config, self.ids)
+            .map_err(mcp_error_from_bridge_error)?;
+        let stream = self
+            .model_provider
+            .stream(model_request)
+            .await
+            .map_err(redacted_model_error)?;
+        let events = collect_model_event_stream(stream)
+            .await
+            .map_err(redacted_model_error)?;
+
+        let mut text = String::new();
+        let mut stop_reason = None;
+        for event in events {
+            match event {
+                ModelStreamEvent::Started { .. } => {}
+                ModelStreamEvent::Delta { text: delta } => text.push_str(&delta),
+                ModelStreamEvent::Completed { finish_reason, .. } => {
+                    stop_reason = Some(finish_reason);
+                }
+                ModelStreamEvent::ToolCall { .. } => {
+                    return Err(McpError::InvalidServerRequest(
+                        "sampling model stream rejected: tool_call".to_string(),
+                    ));
+                }
+            }
+        }
+
+        McpCreateMessageResult::new(
+            McpSamplingRole::Assistant,
+            McpSamplingContent::text(text),
+            self.config.model.as_str(),
+            stop_reason,
+        )
+    }
 }
 
 pub fn build_mcp_sampling_model_request(
@@ -70,6 +152,22 @@ pub fn build_mcp_sampling_model_request(
         correlation_id: ids.correlation_id,
         messages,
     })
+}
+
+fn mcp_error_from_bridge_error(error: McpSamplingModelBridgeError) -> McpError {
+    match error {
+        McpSamplingModelBridgeError::InvalidRequest(code)
+        | McpSamplingModelBridgeError::UnsupportedContent(code) => {
+            McpError::InvalidServerRequest(format!("sampling request rejected: {code}"))
+        }
+        McpSamplingModelBridgeError::Model(code) => {
+            McpError::Client(format!("sampling model bridge failed: {code}"))
+        }
+    }
+}
+
+fn redacted_model_error(_error: agent_model::ModelError) -> McpError {
+    McpError::Client("sampling model provider failed".to_string())
 }
 
 fn validate_local_model_field(

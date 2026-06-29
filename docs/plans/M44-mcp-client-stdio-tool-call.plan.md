@@ -47,7 +47,7 @@ Define trait ownership, `tools/call` request/result mapping, gateway policy boun
 - Execute: `docs/plans/M44-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add stdio `tools/call` mapping**
-- [ ] **Step 2: Add gateway live stdio execution coverage**
+- [x] **Step 2: Add gateway live stdio execution coverage**
 - [ ] **Step 3: Harden tool-call redaction and limits**
 - [ ] **Step 4: Add subprocess E2E coverage**
 - [ ] **Step 5: Add hardening docs and final verification**

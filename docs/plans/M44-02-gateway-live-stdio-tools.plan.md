@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/gateway.rs`
 - Read: `crates/agent-mcp/src/client_stdio.rs`
 
-- [ ] **Step 1: Review gateway registration and execution path**
+- [x] **Step 1: Review gateway registration and execution path**
 
 ### Task 2: Write Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_gateway_stdio_tool_call.rs`
 
-- [ ] **Step 1: Add gateway stdio execution tests**
+- [x] **Step 1: Add gateway stdio execution tests**
 
 ### Task 3: Implement Fixes If Needed
 
@@ -32,11 +32,11 @@
 - Modify: `crates/agent-mcp/src/gateway.rs`
 - Modify: `crates/agent-mcp/src/client_stdio.rs`
 
-- [ ] **Step 1: Keep gateway compatible with stdio client**
+- [x] **Step 1: Keep gateway compatible with stdio client**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -48,7 +48,7 @@ CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M44-02**
+- [x] **Step 1: Commit M44-02**
 
 Run:
 

@@ -216,6 +216,23 @@ impl McpPromptExportRegistry {
                 ))
             })
     }
+
+    pub fn get_prompt_with_arguments(
+        &self,
+        name: &str,
+        arguments: &BTreeMap<String, String>,
+    ) -> Result<McpPromptGetResult, McpError> {
+        self.prompts
+            .get(name)
+            .filter(|export| export.enabled)
+            .ok_or_else(|| {
+                McpError::InvalidServerRequest(format!(
+                    "MCP prompt export not found: {}",
+                    redact_text(name, MAX_PROMPT_METADATA_CHARS)
+                ))
+            })?
+            .get_result_with_arguments(arguments)
+    }
 }
 
 impl McpPromptExport {
@@ -240,8 +257,10 @@ impl McpPromptExport {
                 "MCP prompt export requires at least one messages entry".to_string(),
             ));
         }
+        let descriptor = McpPromptDescriptor::new_with_arguments(name, description, arguments)?;
+        validate_prompt_message_templates(&descriptor.arguments, &messages)?;
         Ok(Self {
-            descriptor: McpPromptDescriptor::new_with_arguments(name, description, arguments)?,
+            descriptor,
             messages,
             enabled,
         })
@@ -260,6 +279,20 @@ impl McpPromptExport {
             messages: self.messages.clone(),
         }
     }
+
+    pub fn get_result_with_arguments(
+        &self,
+        arguments: &BTreeMap<String, String>,
+    ) -> Result<McpPromptGetResult, McpError> {
+        validate_prompt_argument_values(&self.descriptor.arguments, arguments)?;
+        let messages = self
+            .messages
+            .iter()
+            .map(|message| render_prompt_message(message, arguments))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        McpPromptGetResult::new(self.descriptor.clone(), messages)
+    }
 }
 
 fn validate_prompt_arguments(arguments: &[McpPromptArgument]) -> Result<(), McpError> {
@@ -273,6 +306,131 @@ fn validate_prompt_arguments(arguments: &[McpPromptArgument]) -> Result<(), McpE
         }
     }
     Ok(())
+}
+
+fn validate_prompt_argument_values(
+    declared_arguments: &[McpPromptArgument],
+    arguments: &BTreeMap<String, String>,
+) -> Result<(), McpError> {
+    let declared_names = declared_arguments
+        .iter()
+        .map(|argument| argument.name.as_str())
+        .collect::<BTreeSet<_>>();
+
+    for name in arguments.keys() {
+        let name = validate_identifier_text("MCP prompt argument name", name)?;
+        if !declared_names.contains(name.as_str()) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "unknown MCP prompt argument: {}",
+                redact_text(&name, MAX_PROMPT_METADATA_CHARS)
+            )));
+        }
+    }
+
+    for argument in declared_arguments {
+        if argument.required {
+            match arguments.get(&argument.name) {
+                Some(value) if !value.trim().is_empty() => {}
+                _ => {
+                    return Err(McpError::InvalidServerRequest(format!(
+                        "missing required MCP prompt argument: {}",
+                        redact_text(&argument.name, MAX_PROMPT_METADATA_CHARS)
+                    )));
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_prompt_message_templates(
+    declared_arguments: &[McpPromptArgument],
+    messages: &[McpPromptMessage],
+) -> Result<(), McpError> {
+    let declared_names = declared_arguments
+        .iter()
+        .map(|argument| argument.name.as_str())
+        .collect::<BTreeSet<_>>();
+
+    for message in messages {
+        for reference in template_references(&message.content.text)? {
+            if !declared_names.contains(reference.as_str()) {
+                return Err(McpError::InvalidServerRequest(format!(
+                    "undeclared MCP prompt argument in template: {}",
+                    redact_text(&reference, MAX_PROMPT_METADATA_CHARS)
+                )));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn render_prompt_message(
+    message: &McpPromptMessage,
+    arguments: &BTreeMap<String, String>,
+) -> Result<McpPromptMessage, McpError> {
+    Ok(McpPromptMessage {
+        role: message.role.clone(),
+        content: McpPromptContent::text(render_prompt_text(&message.content.text, arguments)?),
+    })
+}
+
+fn render_prompt_text(
+    template: &str,
+    arguments: &BTreeMap<String, String>,
+) -> Result<String, McpError> {
+    let mut rendered = String::new();
+    let mut cursor = 0;
+
+    while let Some(start_relative) = template[cursor..].find("{{") {
+        let start = cursor + start_relative;
+        rendered.push_str(&template[cursor..start]);
+        let reference_start = start + 2;
+        let Some(end_relative) = template[reference_start..].find("}}") else {
+            return Err(McpError::InvalidServerRequest(
+                "unclosed MCP prompt template reference".to_string(),
+            ));
+        };
+        let end = reference_start + end_relative;
+        let reference = validate_identifier_text(
+            "MCP prompt template reference",
+            template[reference_start..end].trim(),
+        )?;
+        let value = arguments
+            .get(&reference)
+            .map(|value| redact_text(value, MAX_PROMPT_TEXT_CHARS))
+            .unwrap_or_default();
+        rendered.push_str(&value);
+        cursor = end + 2;
+    }
+
+    rendered.push_str(&template[cursor..]);
+    Ok(rendered)
+}
+
+fn template_references(template: &str) -> Result<Vec<String>, McpError> {
+    let mut references = Vec::new();
+    let mut cursor = 0;
+
+    while let Some(start_relative) = template[cursor..].find("{{") {
+        let start = cursor + start_relative;
+        let reference_start = start + 2;
+        let Some(end_relative) = template[reference_start..].find("}}") else {
+            return Err(McpError::InvalidServerRequest(
+                "unclosed MCP prompt template reference".to_string(),
+            ));
+        };
+        let end = reference_start + end_relative;
+        references.push(validate_identifier_text(
+            "MCP prompt template reference",
+            template[reference_start..end].trim(),
+        )?);
+        cursor = end + 2;
+    }
+
+    Ok(references)
 }
 
 fn validate_identifier_text(field: &str, value: &str) -> Result<String, McpError> {

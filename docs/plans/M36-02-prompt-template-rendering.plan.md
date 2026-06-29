@@ -12,21 +12,21 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M36-02 spec and M36-01 contracts**
+- [x] **Step 1: Review M36-02 spec and M36-01 contracts**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add successful substitution tests**
-- [ ] **Step 2: Add missing and unknown argument tests**
-- [ ] **Step 3: Add undeclared template reference tests**
-- [ ] **Step 4: Add redaction and bounds tests**
+- [x] **Step 1: Add successful substitution tests**
+- [x] **Step 2: Add missing and unknown argument tests**
+- [x] **Step 3: Add undeclared template reference tests**
+- [x] **Step 4: Add redaction and bounds tests**
 
 ### Task 3: Implement Rendering
 
-- [ ] **Step 1: Add argument validation path**
-- [ ] **Step 2: Add template reference scanner**
-- [ ] **Step 3: Render `McpPromptGetResult` with arguments**
-- [ ] **Step 4: Route registry get through render path**
+- [x] **Step 1: Add argument validation path**
+- [x] **Step 2: Add template reference scanner**
+- [x] **Step 3: Render `McpPromptGetResult` with arguments**
+- [x] **Step 4: Route registry get through render path**
 
 ### Task 4: Verify
 
@@ -36,7 +36,15 @@ CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_prompt_rendering
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m36 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_prompt_rendering
+```
 
 ### Task 5: Commit
 
@@ -45,4 +53,4 @@ git add crates docs
 git commit -m "feat: render mcp prompt arguments"
 ```
 
-- [ ] **Step 1: Commit M36-02**
+- [x] **Step 1: Commit M36-02**

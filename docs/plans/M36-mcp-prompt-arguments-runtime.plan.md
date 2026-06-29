@@ -47,7 +47,7 @@ Define prompt argument ownership, string-only scope, template rendering, manifes
 - Execute: `docs/plans/M36-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add prompt argument contracts**
-- [ ] **Step 2: Add template rendering and argument validation**
+- [x] **Step 2: Add template rendering and argument validation**
 - [ ] **Step 3: Add manifest prompt argument declarations**
 - [ ] **Step 4: Wire CLI stdio prompt arguments**
 - [ ] **Step 5: Add hardening docs and final verification**

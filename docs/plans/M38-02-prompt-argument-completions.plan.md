@@ -12,19 +12,19 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M38-02 spec and prompt export registry code**
+- [x] **Step 1: Review M38-02 spec and prompt export registry code**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add prompt argument completion lookup tests**
-- [ ] **Step 2: Add undeclared argument and disabled prompt tests**
-- [ ] **Step 3: Add empty completion and redaction tests**
+- [x] **Step 1: Add prompt argument completion lookup tests**
+- [x] **Step 2: Add undeclared argument and disabled prompt tests**
+- [x] **Step 3: Add empty completion and redaction tests**
 
 ### Task 3: Implement Prompt Completion Sources
 
-- [ ] **Step 1: Add prompt argument completion source contract**
-- [ ] **Step 2: Validate completion sources against declared arguments**
-- [ ] **Step 3: Add prompt registry completion lookup API**
+- [x] **Step 1: Add prompt argument completion source contract**
+- [x] **Step 2: Validate completion sources against declared arguments**
+- [x] **Step 3: Add prompt registry completion lookup API**
 
 ### Task 4: Verify
 
@@ -34,7 +34,15 @@ CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_prompt_completions
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m38 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_prompt_completions
+```
 
 ### Task 5: Commit
 
@@ -43,4 +51,4 @@ git add crates docs
 git commit -m "feat: add mcp prompt argument completions"
 ```
 
-- [ ] **Step 1: Commit M38-02**
+- [x] **Step 1: Commit M38-02**

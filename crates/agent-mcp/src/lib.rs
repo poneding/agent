@@ -59,8 +59,9 @@ pub use server_profile::{
     empty_mcp_server_export_profile,
 };
 pub use server_prompt::{
-    McpPromptArgument, McpPromptDescriptor, McpPromptExport, McpPromptExportRegistry,
-    McpPromptGetParams, McpPromptGetResult, McpPromptListResult, McpPromptMessage,
+    McpPromptArgument, McpPromptArgumentCompletionSource, McpPromptDescriptor, McpPromptExport,
+    McpPromptExportRegistry, McpPromptGetParams, McpPromptGetResult, McpPromptListResult,
+    McpPromptMessage,
 };
 pub use server_resource::{
     McpResourceExport, McpResourceExportRegistry, McpResourceReadResult, McpResourceTemplateExport,

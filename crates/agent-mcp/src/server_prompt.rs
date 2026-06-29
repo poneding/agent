@@ -2,10 +2,11 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::McpError;
+use crate::{McpError, server_completion::McpCompletionResult};
 
 const MAX_PROMPT_TEXT_CHARS: usize = 1024;
 const MAX_PROMPT_METADATA_CHARS: usize = 256;
+const MAX_PROMPT_COMPLETION_VALUES: usize = 50;
 const REDACTED: &str = "[redacted]";
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -69,6 +70,27 @@ impl McpPromptArgument {
             description,
             required,
         })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpPromptArgumentCompletionSource {
+    pub argument: String,
+    pub values: Vec<String>,
+}
+
+impl McpPromptArgumentCompletionSource {
+    pub fn new<I, V>(argument: impl Into<String>, values: I) -> Result<Self, McpError>
+    where
+        I: IntoIterator<Item = V>,
+        V: AsRef<str>,
+    {
+        let argument =
+            validate_identifier_text("MCP prompt completion argument", &argument.into())?;
+        let values = McpCompletionResult::from_values("", values, usize::MAX)?
+            .completion
+            .values;
+        Ok(Self { argument, values })
     }
 }
 
@@ -166,6 +188,8 @@ impl McpPromptGetResult {
 pub struct McpPromptExport {
     descriptor: McpPromptDescriptor,
     messages: Vec<McpPromptMessage>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    argument_completions: BTreeMap<String, Vec<String>>,
     pub enabled: bool,
 }
 
@@ -233,6 +257,24 @@ impl McpPromptExportRegistry {
             })?
             .get_result_with_arguments(arguments)
     }
+
+    pub fn complete_prompt_argument(
+        &self,
+        name: &str,
+        argument_name: &str,
+        prefix: &str,
+    ) -> Result<McpCompletionResult, McpError> {
+        self.prompts
+            .get(name)
+            .filter(|export| export.enabled)
+            .ok_or_else(|| {
+                McpError::InvalidServerRequest(format!(
+                    "MCP prompt export not found: {}",
+                    redact_text(name, MAX_PROMPT_METADATA_CHARS)
+                ))
+            })?
+            .complete_argument(argument_name, prefix)
+    }
 }
 
 impl McpPromptExport {
@@ -252,16 +294,39 @@ impl McpPromptExport {
         messages: Vec<McpPromptMessage>,
         enabled: bool,
     ) -> Result<Self, McpError> {
+        Self::new_with_argument_completions(
+            name,
+            description,
+            arguments,
+            Vec::new(),
+            messages,
+            enabled,
+        )
+    }
+
+    pub fn new_with_argument_completions(
+        name: impl Into<String>,
+        description: Option<impl Into<String>>,
+        arguments: Vec<McpPromptArgument>,
+        argument_completions: Vec<McpPromptArgumentCompletionSource>,
+        messages: Vec<McpPromptMessage>,
+        enabled: bool,
+    ) -> Result<Self, McpError> {
         if messages.is_empty() {
             return Err(McpError::InvalidServerRequest(
                 "MCP prompt export requires at least one messages entry".to_string(),
             ));
         }
         let descriptor = McpPromptDescriptor::new_with_arguments(name, description, arguments)?;
+        let argument_completions = validate_prompt_argument_completion_sources(
+            &descriptor.arguments,
+            argument_completions,
+        )?;
         validate_prompt_message_templates(&descriptor.arguments, &messages)?;
         Ok(Self {
             descriptor,
             messages,
+            argument_completions,
             enabled,
         })
     }
@@ -293,6 +358,33 @@ impl McpPromptExport {
 
         McpPromptGetResult::new(self.descriptor.clone(), messages)
     }
+
+    pub fn complete_argument(
+        &self,
+        argument_name: &str,
+        prefix: &str,
+    ) -> Result<McpCompletionResult, McpError> {
+        let argument_name = validate_identifier_text("MCP prompt argument name", argument_name)?;
+        let declared_names = self
+            .descriptor
+            .arguments
+            .iter()
+            .map(|argument| argument.name.as_str())
+            .collect::<BTreeSet<_>>();
+        if !declared_names.contains(argument_name.as_str()) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "unknown MCP prompt argument: {}",
+                redact_text(&argument_name, MAX_PROMPT_METADATA_CHARS)
+            )));
+        }
+
+        let values = self
+            .argument_completions
+            .get(&argument_name)
+            .cloned()
+            .unwrap_or_default();
+        McpCompletionResult::from_values(prefix, values, MAX_PROMPT_COMPLETION_VALUES)
+    }
 }
 
 fn validate_prompt_arguments(arguments: &[McpPromptArgument]) -> Result<(), McpError> {
@@ -306,6 +398,37 @@ fn validate_prompt_arguments(arguments: &[McpPromptArgument]) -> Result<(), McpE
         }
     }
     Ok(())
+}
+
+fn validate_prompt_argument_completion_sources(
+    declared_arguments: &[McpPromptArgument],
+    sources: Vec<McpPromptArgumentCompletionSource>,
+) -> Result<BTreeMap<String, Vec<String>>, McpError> {
+    let declared_names = declared_arguments
+        .iter()
+        .map(|argument| argument.name.as_str())
+        .collect::<BTreeSet<_>>();
+    let mut completions = BTreeMap::new();
+
+    for source in sources {
+        if !declared_names.contains(source.argument.as_str()) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "undeclared MCP prompt completion argument: {}",
+                redact_text(&source.argument, MAX_PROMPT_METADATA_CHARS)
+            )));
+        }
+        if completions
+            .insert(source.argument.clone(), source.values.clone())
+            .is_some()
+        {
+            return Err(McpError::InvalidServerRequest(format!(
+                "duplicate MCP prompt completion argument: {}",
+                redact_text(&source.argument, MAX_PROMPT_METADATA_CHARS)
+            )));
+        }
+    }
+
+    Ok(completions)
 }
 
 fn validate_prompt_argument_values(

@@ -47,7 +47,7 @@ Define completion request shape, ref handling, source ownership, manifest shape,
 - Execute: `docs/plans/M38-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add completion contracts**
-- [ ] **Step 2: Add prompt argument completion lookup**
+- [x] **Step 2: Add prompt argument completion lookup**
 - [ ] **Step 3: Add resource template variable completion lookup**
 - [ ] **Step 4: Wire CLI stdio completions**
 - [ ] **Step 5: Add hardening docs and final verification**

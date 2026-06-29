@@ -50,7 +50,7 @@ Define sampling directionality, capability negotiation, request/result contracts
 - [x] **Step 2: Add safe sampling request validation**
 - [x] **Step 3: Add client session sampling fixture behavior**
 - [x] **Step 4: Wire gateway sampling diagnostics**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M40
 
@@ -59,7 +59,15 @@ Define sampling directionality, capability negotiation, request/result contracts
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M40-mcp-sampling-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
+
+Verified:
+
+```bash
+git diff --check
+CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m40 cargo xtask ci
+```
 
 Run:
 
@@ -69,7 +77,7 @@ CARGO_TARGET_DIR=target/codex-m40 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M40 complete and commit**
+- [x] **Step 2: Mark M40 complete and commit**
 
 Run:
 

@@ -18,7 +18,7 @@
 - Read: `README.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Read M40 specs and completed implementation slices**
+- [x] **Step 1: Read M40 specs and completed implementation slices**
 
 Run:
 
@@ -36,17 +36,26 @@ Expected: scope, safe subset, and focused tests are clear.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M40-mcp-sampling-runtime.plan.md`
 
-- [ ] **Step 1: Update README sampling usage**
+- [x] **Step 1: Update README sampling usage**
 
 Add a concise MCP Sampling section that states the safe subset, shows fixture-style usage, and notes that prompts/responses are not included in gateway reports.
 
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 Mark M40-01 through M40-05 complete only after implementation and verification are done. Set the next implementation slice to pending next milestone planning.
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M40 focused tests**
+- [x] **Step 1: Run final M40 focused tests**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_validation
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling
+```
 
 Run:
 
@@ -59,7 +68,15 @@ CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling
 
 Expected: focused M40 tests pass.
 
-- [ ] **Step 2: Run final workspace gate**
+- [x] **Step 2: Run final workspace gate**
+
+Verified:
+
+```bash
+git diff --check
+CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m40 cargo xtask ci
+```
 
 Run:
 
@@ -73,7 +90,7 @@ Expected: final gates pass.
 
 ### Task 4: Commit
 
-- [ ] **Step 1: Commit M40-05**
+- [x] **Step 1: Commit M40-05**
 
 Run:
 

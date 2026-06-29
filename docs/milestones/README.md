@@ -345,8 +345,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M40-02 implementation | Complete |
 | M40-03 implementation | Complete |
 | M40-04 implementation | Complete |
-| M40-05 implementation | In progress |
-| M40 implementation | In progress |
+| M40-05 implementation | Complete |
+| M40 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -825,7 +825,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M40-05 hardening docs`.
+Current implementation focus: pending next milestone planning.
 
 Most recent completed implementation documents:
 
@@ -945,6 +945,8 @@ Most recent completed implementation documents:
 - `docs/plans/M40-03-client-session-sampling.plan.md`
 - `docs/specs/M40-04-gateway-sampling-diagnostics.spec.md`
 - `docs/plans/M40-04-gateway-sampling-diagnostics.plan.md`
+- `docs/specs/M40-05-hardening-docs.spec.md`
+- `docs/plans/M40-05-hardening-docs.plan.md`
 
 Most recent completed planning documents:
 

@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M39 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, and explicit MCP client roots for gateway flows.
+M01-M40 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, and a safe MCP sampling foundation.
 
 ## Core Ideas
 
@@ -142,6 +142,40 @@ let roots = registry.list_result();
 ```
 
 Disabled roots remain inspectable but are excluded from active root lists. Disabled, unhealthy, or unknown MCP servers receive no roots through gateway discovery. Root discovery failures become redacted gateway diagnostics and do not block tool discovery or tool registration. Roots never grant read, write, command, Git, browser, Desktop, or secret access; actual actions still go through local policy, sandbox, and tool execution paths.
+
+## MCP Sampling
+
+`agent-mcp` can model MCP `sampling/createMessage` requests from external servers without handing model credentials or local tool access to those servers. M40 implements typed sampling contracts, a conservative request validator, deterministic fixture execution, and gateway availability diagnostics.
+
+Given a configured `server_id`, `server_config`, and fixture `initialize_result`:
+
+```rust
+use agent_mcp::{
+    FixtureMcpClient, McpCreateMessageRequestParams, McpCreateMessageResult,
+    McpSamplingContent, McpSamplingMessage, McpSamplingRole, create_mcp_sampling_message,
+};
+
+let request = McpCreateMessageRequestParams::new(
+    vec![McpSamplingMessage::user(McpSamplingContent::text("Summarize this fixture input."))],
+    256,
+);
+
+let result = McpCreateMessageResult::new(
+    McpSamplingRole::Assistant,
+    McpSamplingContent::text("Fixture summary."),
+    "fixture-model",
+    Some("endTurn"),
+)?;
+
+let client = FixtureMcpClient::new()
+    .with_server(server_id.clone(), initialize_result)
+    .with_sampling_result(server_id.clone(), result);
+let response = create_mcp_sampling_message(&client, &server_config, request).await?;
+```
+
+The M40 safe subset rejects empty message lists, invalid token limits, unsupported `tools` / `toolChoice`, and `includeContext` values other than `none` unless a later policy explicitly enables them. Gateway reports expose sampling availability and safe policy diagnostics only; they do not include request messages, system prompts, response content, media payloads, provider metadata, model credentials, or local secret names.
+
+Sampling does not grant filesystem, command, Git, browser, Desktop, local secret, or local tool permissions. Live model invocation, bidirectional stdio dispatch, approval UI, task-augmented sampling, and tool-enabled sampling loops are reserved for later milestones.
 
 ## MCP Server Export
 

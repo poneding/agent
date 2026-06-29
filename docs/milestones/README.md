@@ -318,7 +318,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M37-02 implementation | Complete |
 | M37-03 implementation | Complete |
 | M37-04 implementation | Complete |
-| M37 implementation | In progress |
+| M37-05 implementation | Complete |
+| M37 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -761,7 +762,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M37-05 hardening docs`.
+Current implementation focus: next milestone planning.
 
 Most recent completed implementation documents:
 
@@ -851,6 +852,8 @@ Most recent completed implementation documents:
 - `docs/plans/M37-03-manifest-resource-templates.plan.md`
 - `docs/specs/M37-04-cli-stdio-resource-templates.spec.md`
 - `docs/plans/M37-04-cli-stdio-resource-templates.plan.md`
+- `docs/specs/M37-05-hardening-docs.spec.md`
+- `docs/plans/M37-05-hardening-docs.plan.md`
 
 Most recent completed planning documents:
 
@@ -890,5 +893,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M37-01-resource-template-contracts.spec.md`
-- `docs/plans/M37-01-resource-template-contracts.plan.md`
+- Pending next milestone spec and plan.

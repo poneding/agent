@@ -97,7 +97,7 @@ fn mcp_server_manifest_resource_templates_builds_visible_file_template_profile()
     let read = runtime
         .resource_exports()
         .read_resource(
-            &allow_policy("agent://workspace/file/README.md"),
+            &allow_policy("agent://workspace/file/{path}"),
             ActorRef::system(),
             CorrelationId::new(),
             "agent://workspace/file/README.md",

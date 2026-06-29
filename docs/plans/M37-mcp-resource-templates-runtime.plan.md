@@ -50,7 +50,7 @@ Define resource template ownership, URI template syntax, path resolution, manife
 - [x] **Step 2: Add concrete URI matching and path resolution**
 - [x] **Step 3: Add manifest resource template declarations**
 - [x] **Step 4: Wire CLI stdio resource templates**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M37
 
@@ -59,7 +59,7 @@ Define resource template ownership, URI template syntax, path resolution, manife
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M37-mcp-resource-templates-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,13 @@ CARGO_TARGET_DIR=target/codex-m37 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M37 complete and commit**
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m37 cargo xtask ci
+```
+
+- [x] **Step 2: Mark M37 complete and commit**
 
 Run:
 

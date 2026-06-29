@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M36 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, and safe MCP prompt arguments.
+M01-M37 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, and manifest-backed MCP resource templates.
 
 ## Core Ideas
 
@@ -184,6 +184,38 @@ Use a manifest-backed profile to expose explicit resources:
 
 Profile resource paths are resolved relative to the manifest file directory and must stay under that directory. Tool declarations use the explicit `agent-mcp` export catalog contract, so callers opt in to exactly which local tools can be selected by a manifest.
 
+Use resource templates when an MCP client should discover a parameterized resource surface and read concrete URIs through `resources/read`:
+
+```json
+{
+  "schema_version": 1,
+  "profiles": [
+    {
+      "name": "default",
+      "resource_templates": [
+        {
+          "uri_template": "agent://workspace/file/{path}",
+          "name": "Workspace file",
+          "description": "Read a workspace file",
+          "path_template": "{path}",
+          "mime_type": "text/plain"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Resource templates are available through MCP `resources/templates/list` after initialization. Template-backed `resources/read` accepts concrete URIs that match a declared `uriTemplate`; matched variable values render into `path_template`, and resolved paths must stay under the manifest directory.
+
+```json
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}
+{"jsonrpc":"2.0","id":2,"method":"resources/templates/list","params":{}}
+{"jsonrpc":"2.0","id":3,"method":"resources/read","params":{"uri":"agent://workspace/file/README.md"}}
+```
+
+Disabled resource templates remain inspectable but hidden from active listings. Template reads are policy-gated at the declared `uriTemplate` scope, reject path traversal and ambiguous matches, bound returned contents, and keep diagnostics redacted without exposing file contents.
+
 Use `--workspace` with a manifest-backed profile to expose curated built-in workspace inspection tools:
 
 ```json
@@ -311,10 +343,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M36-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M36-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M36-mcp-prompt-arguments-runtime.spec.md)
-- [Active milestone](docs/specs/M37-mcp-resource-templates-runtime.spec.md)
+- [Latest completed spec](docs/specs/M37-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M37-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M37-mcp-resource-templates-runtime.spec.md)
 - [Milestone index](docs/milestones/README.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)

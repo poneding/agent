@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M36 |
-| Milestone-level plans | Complete for M01-M36 |
+| Milestone-level specs | Complete for M01-M37 |
+| Milestone-level plans | Complete for M01-M37 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -311,6 +311,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M36-04 implementation | Complete |
 | M36-05 implementation | Complete |
 | M36 implementation | Complete |
+| M37 technical design | Complete |
+| M37 slice specs | Complete for M37-01 through M37-05 |
+| M37 slice plans | Complete for M37-01 through M37-05 |
+| M37 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -352,6 +356,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M34 MCP Export Profile Inspection | `docs/specs/M34-mcp-export-profile-inspection.spec.md` | `docs/plans/M34-mcp-export-profile-inspection.plan.md` | Inspect and preflight MCP export profiles before starting stdio server sessions. |
 | M35 MCP Prompt Export Runtime | `docs/specs/M35-mcp-prompt-export-runtime.spec.md` | `docs/plans/M35-mcp-prompt-export-runtime.plan.md` | Expose explicit prompt exports through MCP stdio prompt methods. |
 | M36 MCP Prompt Arguments Runtime | `docs/specs/M36-mcp-prompt-arguments-runtime.spec.md` | `docs/plans/M36-mcp-prompt-arguments-runtime.plan.md` | Render explicit MCP prompt exports from safe, declared string arguments. |
+| M37 MCP Resource Templates Runtime | `docs/specs/M37-mcp-resource-templates-runtime.spec.md` | `docs/plans/M37-mcp-resource-templates-runtime.plan.md` | Expose explicit parameterized MCP resource templates with safe concrete URI reads. |
 
 ## M01 Slice Index
 
@@ -739,9 +744,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M36-04 CLI Stdio Prompt Arguments | `docs/specs/M36-04-cli-stdio-prompt-arguments.spec.md` | `docs/plans/M36-04-cli-stdio-prompt-arguments.plan.md` | `agent-cli mcp server stdio` serves prompt arguments through MCP prompt methods. |
 | M36-05 Hardening Docs | `docs/specs/M36-05-hardening-docs.spec.md` | `docs/plans/M36-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M36 quality gate evidence. |
 
+## M37 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M37-00 MCP Resource Templates Technical Design | `docs/specs/M37-00-mcp-resource-templates-technical-design.spec.md` | `docs/plans/M37-00-mcp-resource-templates-technical-design.plan.md` | Architecture baseline for resource template descriptors, URI matching, manifest declarations, CLI stdio, and privacy. |
+| M37-01 Resource Template Contracts | `docs/specs/M37-01-resource-template-contracts.spec.md` | `docs/plans/M37-01-resource-template-contracts.plan.md` | Serializable resource template descriptors and active listing contracts. |
+| M37-02 Resource Template Matching | `docs/specs/M37-02-resource-template-matching.spec.md` | `docs/plans/M37-02-resource-template-matching.plan.md` | Deterministic concrete URI matching and safe template-backed resource reads. |
+| M37-03 Manifest Resource Templates | `docs/specs/M37-03-manifest-resource-templates.spec.md` | `docs/plans/M37-03-manifest-resource-templates.plan.md` | Manifest-backed resource template declarations loaded into profile runtime state. |
+| M37-04 CLI Stdio Resource Templates | `docs/specs/M37-04-cli-stdio-resource-templates.spec.md` | `docs/plans/M37-04-cli-stdio-resource-templates.plan.md` | `agent-cli mcp server stdio` serves resource templates through MCP resource methods. |
+| M37-05 Hardening Docs | `docs/specs/M37-05-hardening-docs.spec.md` | `docs/plans/M37-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M37 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: next milestone planning.
+Current implementation focus: `M37-01 resource template contracts`.
 
 Most recent completed implementation documents:
 
@@ -826,6 +842,20 @@ Most recent completed implementation documents:
 
 Most recent completed planning documents:
 
+- `docs/specs/M37-mcp-resource-templates-runtime.spec.md`
+- `docs/plans/M37-mcp-resource-templates-runtime.plan.md`
+- `docs/specs/M37-00-mcp-resource-templates-technical-design.spec.md`
+- `docs/plans/M37-00-mcp-resource-templates-technical-design.plan.md`
+- `docs/specs/M37-01-resource-template-contracts.spec.md`
+- `docs/plans/M37-01-resource-template-contracts.plan.md`
+- `docs/specs/M37-02-resource-template-matching.spec.md`
+- `docs/plans/M37-02-resource-template-matching.plan.md`
+- `docs/specs/M37-03-manifest-resource-templates.spec.md`
+- `docs/plans/M37-03-manifest-resource-templates.plan.md`
+- `docs/specs/M37-04-cli-stdio-resource-templates.spec.md`
+- `docs/plans/M37-04-cli-stdio-resource-templates.plan.md`
+- `docs/specs/M37-05-hardening-docs.spec.md`
+- `docs/plans/M37-05-hardening-docs.plan.md`
 - `docs/specs/M36-mcp-prompt-arguments-runtime.spec.md`
 - `docs/plans/M36-mcp-prompt-arguments-runtime.plan.md`
 - `docs/specs/M36-00-mcp-prompt-arguments-technical-design.spec.md`
@@ -843,9 +873,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M36-00-mcp-prompt-arguments-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M36-00-mcp-prompt-arguments-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M37-00-mcp-resource-templates-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M37-00-mcp-resource-templates-technical-design.plan.md`
 
 Next implementation slice:
 
-- Pending next milestone spec and plan.
+- `docs/specs/M37-01-resource-template-contracts.spec.md`
+- `docs/plans/M37-01-resource-template-contracts.plan.md`

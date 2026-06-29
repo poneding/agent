@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M42 |
-| Milestone-level plans | Complete for M01-M42 |
+| Milestone-level specs | Complete for M01-M43 |
+| Milestone-level plans | Complete for M01-M43 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -365,6 +365,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M42-04 implementation | Complete |
 | M42-05 implementation | Complete |
 | M42 implementation | Complete |
+| M43 technical design | Complete |
+| M43 slice specs | Complete for M43-01 through M43-05 |
+| M43 slice plans | Complete for M43-01 through M43-05 |
+| M43-01 implementation | In progress |
+| M43 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -412,6 +417,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M40 MCP Sampling Runtime | `docs/specs/M40-mcp-sampling-runtime.spec.md` | `docs/plans/M40-mcp-sampling-runtime.plan.md` | Provide a safe MCP `sampling/createMessage` foundation for external servers while preserving local model, approval, and tool policy boundaries. |
 | M41 MCP Sampling Model Bridge Runtime | `docs/specs/M41-mcp-sampling-model-bridge.spec.md` | `docs/plans/M41-mcp-sampling-model-bridge.plan.md` | Bridge safe text-only MCP sampling requests into local `agent-model` providers without exposing credentials, tools, or raw diagnostics. |
 | M42 MCP Sampling Stdio Dispatch Runtime | `docs/specs/M42-mcp-sampling-stdio-dispatch.spec.md` | `docs/plans/M42-mcp-sampling-stdio-dispatch.plan.md` | Dispatch server-initiated MCP `sampling/createMessage` JSON-RPC frames through local sampling providers with safe validation and redacted diagnostics. |
+| M43 MCP Client Stdio Transport Runtime | `docs/specs/M43-mcp-client-stdio-transport.spec.md` | `docs/plans/M43-mcp-client-stdio-transport.plan.md` | Start external MCP stdio servers and drive initialize/tools/list through typed client contracts with safe process diagnostics. |
 
 ## M01 Slice Index
 
@@ -865,12 +871,37 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M42-04 Sampling Stdio Redaction | `docs/specs/M42-04-sampling-stdio-redaction.spec.md` | `docs/plans/M42-04-sampling-stdio-redaction.plan.md` | Bounded, redacted JSON-RPC errors for invalid frames, rejected requests, and provider failures. |
 | M42-05 Hardening Docs | `docs/specs/M42-05-hardening-docs.spec.md` | `docs/plans/M42-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M42 quality gate evidence. |
 
+## M43 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M43-00 MCP Client Stdio Transport Technical Design | `docs/specs/M43-00-mcp-client-stdio-transport-technical-design.spec.md` | `docs/plans/M43-00-mcp-client-stdio-transport-technical-design.plan.md` | Architecture baseline for client-side stdio transport ownership, process lifecycle, request matching, and diagnostics. |
+| M43-01 Client Stdio Codec | `docs/specs/M43-01-client-stdio-codec.spec.md` | `docs/plans/M43-01-client-stdio-codec.plan.md` | Typed JSON-RPC request rendering and response parsing contracts for MCP client stdio frames. |
+| M43-02 Client Stdio Session | `docs/specs/M43-02-client-stdio-session.spec.md` | `docs/plans/M43-02-client-stdio-session.plan.md` | Deterministic session state over an abstract frame transport with id matching and summaries. |
+| M43-03 Client Stdio Process | `docs/specs/M43-03-client-stdio-process.spec.md` | `docs/plans/M43-03-client-stdio-process.plan.md` | Spawned process transport for external MCP stdio servers with timeout, EOF, cleanup, and redacted diagnostics. |
+| M43-04 Client Stdio McpClient | `docs/specs/M43-04-client-stdio-mcp-client.spec.md` | `docs/plans/M43-04-client-stdio-mcp-client.plan.md` | `McpClient` implementation for initialize and tools/list over stdio sessions. |
+| M43-05 Hardening Docs | `docs/specs/M43-05-hardening-docs.spec.md` | `docs/plans/M43-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M43 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M42 complete; next implementation focus pending.
+Current implementation focus: M43-01 client stdio codec.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M43-mcp-client-stdio-transport.spec.md`
+- `docs/plans/M43-mcp-client-stdio-transport.plan.md`
+- `docs/specs/M43-00-mcp-client-stdio-transport-technical-design.spec.md`
+- `docs/plans/M43-00-mcp-client-stdio-transport-technical-design.plan.md`
+- `docs/specs/M43-01-client-stdio-codec.spec.md`
+- `docs/plans/M43-01-client-stdio-codec.plan.md`
+- `docs/specs/M43-02-client-stdio-session.spec.md`
+- `docs/plans/M43-02-client-stdio-session.plan.md`
+- `docs/specs/M43-03-client-stdio-process.spec.md`
+- `docs/plans/M43-03-client-stdio-process.plan.md`
+- `docs/specs/M43-04-client-stdio-mcp-client.spec.md`
+- `docs/plans/M43-04-client-stdio-mcp-client.plan.md`
+- `docs/specs/M43-05-hardening-docs.spec.md`
+- `docs/plans/M43-05-hardening-docs.plan.md`
 - `docs/specs/M42-01-sampling-stdio-frame-contracts.spec.md`
 - `docs/plans/M42-01-sampling-stdio-frame-contracts.plan.md`
 - `docs/specs/M42-02-sampling-stdio-dispatcher.spec.md`

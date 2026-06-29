@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M38 |
-| Milestone-level plans | Complete for M01-M38 |
+| Milestone-level specs | Complete for M01-M39 |
+| Milestone-level plans | Complete for M01-M39 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -329,6 +329,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M38-04 implementation | Complete |
 | M38-05 implementation | Complete |
 | M38 implementation | Complete |
+| M39 technical design | Complete |
+| M39 slice specs | Complete for M39-01 through M39-05 |
+| M39 slice plans | Complete for M39-01 through M39-05 |
+| M39 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -372,6 +376,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M36 MCP Prompt Arguments Runtime | `docs/specs/M36-mcp-prompt-arguments-runtime.spec.md` | `docs/plans/M36-mcp-prompt-arguments-runtime.plan.md` | Render explicit MCP prompt exports from safe, declared string arguments. |
 | M37 MCP Resource Templates Runtime | `docs/specs/M37-mcp-resource-templates-runtime.spec.md` | `docs/plans/M37-mcp-resource-templates-runtime.plan.md` | Expose explicit parameterized MCP resource templates with safe concrete URI reads. |
 | M38 MCP Completion Runtime | `docs/specs/M38-mcp-completion-runtime.spec.md` | `docs/plans/M38-mcp-completion-runtime.plan.md` | Serve safe MCP completions for prompt arguments and resource template variables. |
+| M39 MCP Client Roots Runtime | `docs/specs/M39-mcp-client-roots-runtime.spec.md` | `docs/plans/M39-mcp-client-roots-runtime.plan.md` | Provide explicit, bounded MCP client roots to external servers through gateway flows. |
 
 ## M01 Slice Index
 
@@ -781,9 +786,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M38-04 CLI Stdio Completions | `docs/specs/M38-04-cli-stdio-completions.spec.md` | `docs/plans/M38-04-cli-stdio-completions.plan.md` | `agent-cli mcp server stdio` serves completions through MCP `completion/complete`. |
 | M38-05 Hardening Docs | `docs/specs/M38-05-hardening-docs.spec.md` | `docs/plans/M38-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M38 quality gate evidence. |
 
+## M39 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M39-00 MCP Client Roots Technical Design | `docs/specs/M39-00-mcp-client-roots-technical-design.spec.md` | `docs/plans/M39-00-mcp-client-roots-technical-design.plan.md` | Architecture baseline for roots directionality, contracts, registry validation, fixture behavior, gateway diagnostics, and privacy. |
+| M39-01 Client Root Contracts | `docs/specs/M39-01-client-root-contracts.spec.md` | `docs/plans/M39-01-client-root-contracts.plan.md` | Serializable MCP root, root list, client capability, and root-list change notification contracts. |
+| M39-02 Client Root Registry | `docs/specs/M39-02-client-root-registry.spec.md` | `docs/plans/M39-02-client-root-registry.plan.md` | Validated, deterministic root registry for explicit local file roots. |
+| M39-03 Client Session Roots | `docs/specs/M39-03-client-session-roots.spec.md` | `docs/plans/M39-03-client-session-roots.plan.md` | Fixture MCP client/session behavior for server-requested roots/list. |
+| M39-04 Gateway Roots Integration | `docs/specs/M39-04-gateway-roots-integration.spec.md` | `docs/plans/M39-04-gateway-roots-integration.plan.md` | Root-aware gateway discovery reports and diagnostics without changing tool policy. |
+| M39-05 Hardening Docs | `docs/specs/M39-05-hardening-docs.spec.md` | `docs/plans/M39-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M39 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: next milestone planning.
+Current implementation focus: `M39-01 client root contracts`.
 
 Most recent completed implementation documents:
 
@@ -888,6 +904,20 @@ Most recent completed implementation documents:
 
 Most recent completed planning documents:
 
+- `docs/specs/M39-mcp-client-roots-runtime.spec.md`
+- `docs/plans/M39-mcp-client-roots-runtime.plan.md`
+- `docs/specs/M39-00-mcp-client-roots-technical-design.spec.md`
+- `docs/plans/M39-00-mcp-client-roots-technical-design.plan.md`
+- `docs/specs/M39-01-client-root-contracts.spec.md`
+- `docs/plans/M39-01-client-root-contracts.plan.md`
+- `docs/specs/M39-02-client-root-registry.spec.md`
+- `docs/plans/M39-02-client-root-registry.plan.md`
+- `docs/specs/M39-03-client-session-roots.spec.md`
+- `docs/plans/M39-03-client-session-roots.plan.md`
+- `docs/specs/M39-04-gateway-roots-integration.spec.md`
+- `docs/plans/M39-04-gateway-roots-integration.plan.md`
+- `docs/specs/M39-05-hardening-docs.spec.md`
+- `docs/plans/M39-05-hardening-docs.plan.md`
 - `docs/specs/M38-mcp-completion-runtime.spec.md`
 - `docs/plans/M38-mcp-completion-runtime.plan.md`
 - `docs/specs/M38-00-mcp-completion-technical-design.spec.md`
@@ -933,9 +963,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M38-00-mcp-completion-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M38-00-mcp-completion-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M39-00-mcp-client-roots-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M39-00-mcp-client-roots-technical-design.plan.md`
 
 Next implementation slice:
 
-- Pending next milestone spec and plan.
+- `docs/specs/M39-01-client-root-contracts.spec.md`
+- `docs/plans/M39-01-client-root-contracts.plan.md`

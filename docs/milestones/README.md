@@ -273,7 +273,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M32-02 implementation | Complete |
 | M32-03 implementation | Complete |
 | M32-04 implementation | Complete |
-| M32 implementation | In progress |
+| M32-05 implementation | Complete |
+| M32 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -656,7 +657,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M32-05 runtime hardening docs`.
+Current implementation focus: M32 complete; next milestone planning can start.
 
 Most recent completed implementation documents:
 
@@ -696,13 +697,12 @@ Most recent completed implementation documents:
 - `docs/plans/M32-03-tool-export-catalog.plan.md`
 - `docs/specs/M32-04-cli-profile-stdio.spec.md`
 - `docs/plans/M32-04-cli-profile-stdio.plan.md`
+- `docs/specs/M32-05-runtime-hardening-docs.spec.md`
+- `docs/plans/M32-05-runtime-hardening-docs.plan.md`
 
 Most recent completed technical design documents:
 
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M32-00-mcp-export-profile-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M32-00-mcp-export-profile-technical-design.plan.md`
 
-Next implementation slice:
-
-- `docs/specs/M32-05-runtime-hardening-docs.spec.md`
-- `docs/plans/M32-05-runtime-hardening-docs.plan.md`
+Next implementation slice: not assigned after M32 completion.

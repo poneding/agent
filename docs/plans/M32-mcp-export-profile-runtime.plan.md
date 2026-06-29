@@ -50,7 +50,7 @@ Define manifest ownership, profile construction, file resource boundaries, built
 - [x] **Step 2: Add resource export loader**
 - [x] **Step 3: Add tool export catalog**
 - [x] **Step 4: Add CLI profile stdio flags**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M32
 
@@ -59,7 +59,7 @@ Define manifest ownership, profile construction, file resource boundaries, built
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M32-mcp-export-profile-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,24 @@ cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M32 complete and commit**
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m32 cargo xtask ci
+```
+
+Quality gate summary:
+
+```text
+Quality gate ci-local status=passed
+total=4 passed=4 failed=0 skipped=0
+fmt-check status=passed
+clippy status=passed
+test status=passed
+eval status=passed
+```
+
+- [x] **Step 2: Mark M32 complete and commit**
 
 Run:
 

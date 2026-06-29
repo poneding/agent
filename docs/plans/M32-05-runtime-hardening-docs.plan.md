@@ -12,17 +12,38 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M32 specs and completed implementation slices**
+- [x] **Step 1: Read M32 specs and completed implementation slices**
 
 ### Task 2: Update Docs
 
-- [ ] **Step 1: Update README profile manifest usage**
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 1: Update README profile manifest usage**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M32 focused tests**
-- [ ] **Step 2: Run `cargo xtask ci`**
+- [x] **Step 1: Run final M32 focused tests**
+- [x] **Step 2: Run `cargo xtask ci`**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp mcp_server_manifest
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp mcp_server_resource_loader
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp mcp_server_tool_catalog
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-cli mcp_server_profile_command
+CARGO_TARGET_DIR=target/codex-m32 cargo xtask ci
+```
+
+Quality gate summary:
+
+```text
+Quality gate ci-local status=passed
+total=4 passed=4 failed=0 skipped=0
+fmt-check status=passed
+clippy status=passed
+test status=passed
+eval status=passed
+```
 
 ### Task 4: Commit
 

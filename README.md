@@ -6,9 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M31 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, and a runnable MCP stdio server runtime.
-
-M32 is in progress: start the MCP stdio server from explicit, validated export profiles.
+M01-M32 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, and manifest-backed MCP export profiles.
 
 ## Core Ideas
 
@@ -102,6 +100,7 @@ agent-cli --observability-json
 agent-cli mcp server status
 agent-cli --json mcp server status
 agent-cli mcp server stdio
+agent-cli mcp server stdio --profile path/to/mcp-server-exports.json
 agent-cli eval validate --manifest path/to/scenario.eval.json
 agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
 agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
@@ -142,11 +141,35 @@ Run a local MCP stdio server process:
 ```bash
 agent-cli mcp server stdio
 agent-cli mcp server stdio --max-frames 1000
+agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --profile-name default
 ```
 
 The stdio command reads newline-delimited JSON-RPC frames from stdin and writes only MCP protocol responses to stdout. Diagnostics go to stderr, EOF closes the session cleanly, and `--json` is rejected for this command so script and MCP-client stdout stays protocol-only.
 
 The default stdio profile is intentionally empty: no tools or resources are exported until an explicit server export profile registers them. Tool calls and resource reads stay policy-gated in `agent-mcp`; session summaries include bounded, redacted trace entries for methods, outcomes, and initialized state without raw tool arguments, resource contents, or secret-like values.
+
+Use a manifest-backed profile to expose explicit resources:
+
+```json
+{
+  "schema_version": 1,
+  "profiles": [
+    {
+      "name": "default",
+      "resources": [
+        {
+          "uri": "agent://readme",
+          "name": "README",
+          "path": "README.md",
+          "mime_type": "text/markdown"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Profile resource paths are resolved relative to the manifest file directory and must stay under that directory. Tool declarations use the explicit `agent-mcp` export catalog contract, so callers opt in to exactly which local tools can be selected by a manifest.
 
 ## CLI Release Packaging
 
@@ -205,10 +228,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M31-05-runtime-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M31-05-runtime-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M31-mcp-stdio-server-runtime.spec.md)
-- [Active milestone](docs/specs/M32-mcp-export-profile-runtime.spec.md)
+- [Latest completed spec](docs/specs/M32-05-runtime-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M32-05-runtime-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M32-mcp-export-profile-runtime.spec.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

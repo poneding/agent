@@ -298,6 +298,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M35 slice plans | Complete for M35-01 through M35-05 |
 | M35-01 implementation | Complete |
 | M35-02 implementation | Complete |
+| M35-03 implementation | Complete |
 | M35 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -717,7 +718,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M35-03 manifest prompt profile`.
+Current implementation focus: `M35-04 CLI stdio prompt profile`.
 
 Most recent completed implementation documents:
 
@@ -783,6 +784,8 @@ Most recent completed implementation documents:
 - `docs/plans/M35-01-prompt-export-contracts.plan.md`
 - `docs/specs/M35-02-prompt-registry-and-protocol.spec.md`
 - `docs/plans/M35-02-prompt-registry-and-protocol.plan.md`
+- `docs/specs/M35-03-manifest-prompt-profile.spec.md`
+- `docs/plans/M35-03-manifest-prompt-profile.plan.md`
 
 Most recent completed technical design documents:
 
@@ -791,5 +794,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M35-03-manifest-prompt-profile.spec.md`
-- `docs/plans/M35-03-manifest-prompt-profile.plan.md`
+- `docs/specs/M35-04-cli-stdio-prompt-profile.spec.md`
+- `docs/plans/M35-04-cli-stdio-prompt-profile.plan.md`

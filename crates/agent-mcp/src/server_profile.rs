@@ -3,7 +3,10 @@ use std::collections::BTreeSet;
 use agent_tool::{Tool, ToolRegistry};
 use serde::{Deserialize, Serialize};
 
-use crate::{McpError, McpResourceExportRegistry, McpToolExportRegistry};
+use crate::{
+    McpError, McpPromptExport, McpPromptExportRegistry, McpResourceExportRegistry,
+    McpToolExportRegistry,
+};
 
 const MAX_PROFILE_TEXT_CHARS: usize = 256;
 
@@ -11,6 +14,7 @@ const MAX_PROFILE_TEXT_CHARS: usize = 256;
 pub struct McpServerExportProfile {
     pub name: String,
     pub tool_names: Vec<String>,
+    pub prompt_names: Vec<String>,
     pub resource_uris: Vec<String>,
 }
 
@@ -19,6 +23,7 @@ impl McpServerExportProfile {
         Ok(Self {
             name: validate_profile_text("profile name", &name.into())?,
             tool_names: Vec::new(),
+            prompt_names: Vec::new(),
             resource_uris: Vec::new(),
         })
     }
@@ -28,6 +33,7 @@ pub struct McpServerProfileRuntime {
     profile: McpServerExportProfile,
     tools: ToolRegistry,
     tool_exports: McpToolExportRegistry,
+    prompt_exports: McpPromptExportRegistry,
     resource_exports: McpResourceExportRegistry,
 }
 
@@ -48,6 +54,11 @@ impl McpServerProfileRuntime {
     }
 
     #[must_use]
+    pub const fn prompt_exports(&self) -> &McpPromptExportRegistry {
+        &self.prompt_exports
+    }
+
+    #[must_use]
     pub const fn resource_exports(&self) -> &McpResourceExportRegistry {
         &self.resource_exports
     }
@@ -59,12 +70,14 @@ impl McpServerProfileRuntime {
         McpServerExportProfile,
         ToolRegistry,
         McpToolExportRegistry,
+        McpPromptExportRegistry,
         McpResourceExportRegistry,
     ) {
         (
             self.profile,
             self.tools,
             self.tool_exports,
+            self.prompt_exports,
             self.resource_exports,
         )
     }
@@ -74,8 +87,10 @@ pub struct McpServerExportProfileBuilder {
     profile: McpServerExportProfile,
     tools: ToolRegistry,
     tool_exports: McpToolExportRegistry,
+    prompt_exports: McpPromptExportRegistry,
     resource_exports: McpResourceExportRegistry,
     tool_names: BTreeSet<String>,
+    prompt_names: BTreeSet<String>,
     resource_uris: BTreeSet<String>,
 }
 
@@ -85,8 +100,10 @@ impl McpServerExportProfileBuilder {
             profile: McpServerExportProfile::empty(name)?,
             tools: ToolRegistry::default(),
             tool_exports: McpToolExportRegistry::default(),
+            prompt_exports: McpPromptExportRegistry::default(),
             resource_exports: McpResourceExportRegistry::default(),
             tool_names: BTreeSet::new(),
+            prompt_names: BTreeSet::new(),
             resource_uris: BTreeSet::new(),
         })
     }
@@ -103,6 +120,14 @@ impl McpServerExportProfileBuilder {
         T: Tool + 'static,
     {
         self.insert_tool(tool, false)
+    }
+
+    pub fn export_prompt(&mut self, export: McpPromptExport) -> Result<(), McpError> {
+        self.insert_prompt(export, true)
+    }
+
+    pub fn export_disabled_prompt(&mut self, export: McpPromptExport) -> Result<(), McpError> {
+        self.insert_prompt(export, false)
     }
 
     pub fn export_resource<M>(
@@ -160,11 +185,13 @@ impl McpServerExportProfileBuilder {
     #[must_use]
     pub fn build(mut self) -> McpServerProfileRuntime {
         self.profile.tool_names = self.tool_names.into_iter().collect();
+        self.profile.prompt_names = self.prompt_names.into_iter().collect();
         self.profile.resource_uris = self.resource_uris.into_iter().collect();
         McpServerProfileRuntime {
             profile: self.profile,
             tools: self.tools,
             tool_exports: self.tool_exports,
+            prompt_exports: self.prompt_exports,
             resource_exports: self.resource_exports,
         }
     }
@@ -196,6 +223,22 @@ impl McpServerExportProfileBuilder {
             self.tool_names.insert(name);
         } else {
             self.tool_exports.export_disabled_tool(definition)?;
+        }
+        Ok(())
+    }
+
+    fn insert_prompt(
+        &mut self,
+        mut export: McpPromptExport,
+        enabled: bool,
+    ) -> Result<(), McpError> {
+        export.enabled = enabled;
+        let name = validate_profile_text("prompt name", &export.descriptor().name)?;
+        if enabled {
+            self.prompt_exports.export_prompt(export)?;
+            self.prompt_names.insert(name);
+        } else {
+            self.prompt_exports.export_disabled_prompt(export)?;
         }
         Ok(())
     }

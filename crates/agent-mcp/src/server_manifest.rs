@@ -7,7 +7,10 @@ use agent_sandbox::WorkspaceSandbox;
 use agent_tool::builtins::{GitDiffTool, GitStatusTool, ReadFileTool, SearchTextTool};
 use serde::{Deserialize, Serialize};
 
-use crate::{McpError, McpServerExportProfileBuilder, McpServerProfileRuntime};
+use crate::{
+    McpError, McpPromptExport, McpPromptMessage, McpServerExportProfileBuilder,
+    McpServerProfileRuntime,
+};
 use agent_tool::{Tool, ToolDefinition, ToolInput, ToolOutput};
 
 pub const MCP_SERVER_EXPORT_MANIFEST_SCHEMA_VERSION: u32 = 1;
@@ -65,6 +68,8 @@ pub struct McpServerExportProfileConfig {
     pub tools: Vec<McpServerToolExportConfig>,
     #[serde(default)]
     pub resources: Vec<McpServerResourceExportConfig>,
+    #[serde(default)]
+    pub prompts: Vec<McpServerPromptExportConfig>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -88,6 +93,23 @@ pub struct McpServerResourceExportConfig {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerPromptExportConfig {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub messages: Vec<McpServerPromptMessageConfig>,
+    #[serde(default = "default_enabled")]
+    pub enabled: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerPromptMessageConfig {
+    pub role: String,
+    pub text: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum McpServerProfileInspectionSeverity {
     Info,
@@ -106,6 +128,7 @@ pub struct McpServerProfileInspectionOptions {
 pub struct McpServerProfileInspection {
     pub profile_name: String,
     pub tools: Vec<McpServerProfileToolInspection>,
+    pub prompts: Vec<McpServerProfilePromptInspection>,
     pub resources: Vec<McpServerProfileResourceInspection>,
     pub diagnostics: Vec<McpServerProfileInspectionDiagnostic>,
 }
@@ -125,6 +148,15 @@ pub struct McpServerProfileResourceInspection {
     pub mime_type: Option<String>,
     pub enabled: bool,
     pub sensitive: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerProfilePromptInspection {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub enabled: bool,
+    pub message_count: usize,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -253,6 +285,7 @@ pub fn build_mcp_server_resource_profile_from_manifest(
     let profile = select_mcp_server_export_profile(manifest, profile_name)?;
     let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
     apply_manifest_resources_to_builder(profile, manifest_dir.as_ref(), &mut builder)?;
+    apply_manifest_prompts_to_builder(profile, &mut builder)?;
 
     Ok(builder.build())
 }
@@ -265,6 +298,7 @@ pub fn build_mcp_server_tool_profile_from_manifest(
     let profile = select_mcp_server_export_profile(manifest, profile_name)?;
     let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
     apply_manifest_tools_to_builder(profile, catalog, &mut builder)?;
+    apply_manifest_prompts_to_builder(profile, &mut builder)?;
 
     Ok(builder.build())
 }
@@ -279,6 +313,7 @@ pub fn build_mcp_server_profile_from_manifest(
     let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
     apply_manifest_resources_to_builder(profile, manifest_dir.as_ref(), &mut builder)?;
     apply_manifest_tools_to_builder(profile, catalog, &mut builder)?;
+    apply_manifest_prompts_to_builder(profile, &mut builder)?;
 
     Ok(builder.build())
 }
@@ -305,6 +340,11 @@ pub fn inspect_mcp_server_export_profile(
             inspect_manifest_resource(resource, &options.manifest_dir, &mut diagnostics)
         })
         .collect::<Vec<_>>();
+    let prompts = profile
+        .prompts
+        .iter()
+        .map(|prompt| inspect_manifest_prompt(prompt, &mut diagnostics))
+        .collect::<Vec<_>>();
 
     if !tools.is_empty() {
         inspect_workspace_root(options.workspace_root.as_deref(), &mut diagnostics);
@@ -313,6 +353,7 @@ pub fn inspect_mcp_server_export_profile(
     Ok(McpServerProfileInspection {
         profile_name: redact_text(&profile.name),
         tools,
+        prompts,
         resources,
         diagnostics,
     })
@@ -399,6 +440,28 @@ fn inspect_manifest_resource(
     }
 }
 
+fn inspect_manifest_prompt(
+    prompt: &McpServerPromptExportConfig,
+    diagnostics: &mut Vec<McpServerProfileInspectionDiagnostic>,
+) -> McpServerProfilePromptInspection {
+    if !prompt.enabled {
+        diagnostics.push(McpServerProfileInspectionDiagnostic::warning(
+            "prompt_disabled",
+            format!(
+                "MCP server export prompt is disabled and hidden from active exports: {}",
+                redact_text(&prompt.name)
+            ),
+        ));
+    }
+
+    McpServerProfilePromptInspection {
+        name: redact_text(&prompt.name),
+        description: prompt.description.as_deref().map(redact_text),
+        enabled: prompt.enabled,
+        message_count: prompt.messages.len(),
+    }
+}
+
 fn inspect_workspace_root(
     workspace_root: Option<&Path>,
     diagnostics: &mut Vec<McpServerProfileInspectionDiagnostic>,
@@ -435,6 +498,32 @@ impl McpServerProfileInspectionDiagnostic {
             message: redact_text(message.as_ref()),
         }
     }
+}
+
+fn apply_manifest_prompts_to_builder(
+    profile: &McpServerExportProfileConfig,
+    builder: &mut McpServerExportProfileBuilder,
+) -> Result<(), McpError> {
+    for prompt in &profile.prompts {
+        let messages = prompt
+            .messages
+            .iter()
+            .map(|message| McpPromptMessage::text(&message.role, &message.text))
+            .collect::<Result<Vec<_>, _>>()?;
+        let export = McpPromptExport::new(
+            &prompt.name,
+            prompt.description.as_deref(),
+            messages,
+            prompt.enabled,
+        )?;
+        if prompt.enabled {
+            builder.export_prompt(export)?;
+        } else {
+            builder.export_disabled_prompt(export)?;
+        }
+    }
+
+    Ok(())
 }
 
 fn apply_manifest_tools_to_builder(
@@ -566,6 +655,31 @@ fn validate_profile(profile: &McpServerExportProfileConfig) -> Result<(), McpErr
         validate_path_text("resource path", &resource.path)?;
         if let Some(mime_type) = &resource.mime_type {
             validate_public_text("resource mime_type", mime_type)?;
+        }
+    }
+
+    let mut prompt_names = BTreeSet::new();
+    for prompt in &profile.prompts {
+        let name = validate_identifier_text("prompt name", &prompt.name)?;
+        if !prompt_names.insert(name.clone()) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "duplicate MCP server export prompt in profile {}: {}",
+                redact_text(&profile.name),
+                redact_text(&name)
+            )));
+        }
+        if let Some(description) = &prompt.description {
+            validate_public_text("prompt description", description)?;
+        }
+        if prompt.messages.is_empty() {
+            return Err(McpError::InvalidServerRequest(format!(
+                "MCP server export prompt requires at least one message: {}",
+                redact_text(&name)
+            )));
+        }
+        for message in &prompt.messages {
+            validate_identifier_text("prompt message role", &message.role)?;
+            validate_public_text("prompt message text", &message.text)?;
         }
     }
 

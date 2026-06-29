@@ -60,7 +60,7 @@ fn mcp_server_builtin_tool_call_lists_and_executes_read_file() {
     .expect("manifest");
     let runtime =
         build_mcp_server_tool_profile_from_manifest(&manifest, None, &catalog).expect("profile");
-    let (_profile, tools, tool_exports, resource_exports) = runtime.into_parts();
+    let (_profile, tools, tool_exports, _prompt_exports, resource_exports) = runtime.into_parts();
     let policy = StaticPolicyEngine::default().with_decision(
         CapabilityAction::Execute,
         ResourceScope::new(ResourceKind::Tool, "workspace.read_file").expect("scope"),

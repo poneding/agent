@@ -47,9 +47,11 @@ fn mcp_server_profile_default_exports_nothing() {
 
     assert_eq!(runtime.profile().name, "default");
     assert!(runtime.profile().tool_names.is_empty());
+    assert!(runtime.profile().prompt_names.is_empty());
     assert!(runtime.profile().resource_uris.is_empty());
     assert!(runtime.tools().definitions().is_empty());
     assert!(runtime.tool_exports().list_tools().is_empty());
+    assert!(runtime.prompt_exports().list_prompts().prompts.is_empty());
     assert!(runtime.resource_exports().list_resources().is_empty());
 }
 
@@ -67,6 +69,7 @@ fn mcp_server_profile_builds_deterministic_fixture_exports() {
     let runtime = builder.build();
 
     assert_eq!(runtime.profile().tool_names, ["test.echo"]);
+    assert!(runtime.profile().prompt_names.is_empty());
     assert_eq!(runtime.profile().resource_uris, ["agent://readme"]);
     assert_eq!(runtime.tools().definitions()[0].name.as_str(), "test.echo");
     assert_eq!(runtime.tool_exports().list_tools()[0].name, "test.echo");
@@ -90,6 +93,7 @@ fn mcp_server_profile_omits_disabled_entries_from_visible_profile() {
     let runtime = builder.build();
 
     assert!(runtime.profile().tool_names.is_empty());
+    assert!(runtime.profile().prompt_names.is_empty());
     assert!(runtime.profile().resource_uris.is_empty());
     assert!(runtime.tool_exports().list_tools().is_empty());
     assert!(runtime.resource_exports().list_resources().is_empty());
@@ -128,7 +132,8 @@ fn mcp_server_profile_parts_can_back_mcp_server_fixture() {
     builder
         .export_tool(CountingTool::new("test.echo", count.clone()))
         .expect("tool");
-    let (_profile, tools, tool_exports, resource_exports) = builder.build().into_parts();
+    let (_profile, tools, tool_exports, _prompt_exports, resource_exports) =
+        builder.build().into_parts();
     let policy = StaticPolicyEngine::default().with_decision(
         CapabilityAction::Execute,
         ResourceScope::new(ResourceKind::Tool, "test.echo").expect("scope"),

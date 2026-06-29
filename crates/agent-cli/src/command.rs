@@ -2860,7 +2860,7 @@ where
 fn default_mcp_server_session(
     config: McpServerStdioConfig,
 ) -> Result<McpServerSession, McpServerStdioError> {
-    let (profile, tools, tool_exports, resource_exports) =
+    let (profile, tools, tool_exports, prompt_exports, resource_exports) =
         mcp_server_profile_runtime(&config)?.into_parts();
     let policy = mcp_server_stdio_policy(&profile)?;
     let state = McpServerState::new(
@@ -2872,11 +2872,12 @@ fn default_mcp_server_session(
         .map_err(McpServerStdioError::bootstrap)?,
         McpServerCapabilities {
             tools: true,
-            prompts: false,
+            prompts: !profile.prompt_names.is_empty(),
             resources: true,
         },
     );
-    let fixture = McpServerFixture::new(state, tools, tool_exports, resource_exports, policy);
+    let fixture = McpServerFixture::new(state, tools, tool_exports, resource_exports, policy)
+        .with_prompt_exports(prompt_exports);
     Ok(McpServerSession::new(
         fixture,
         McpServerSessionConfig::new(64 * 1024, config.max_frames),

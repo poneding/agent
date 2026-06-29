@@ -12,19 +12,19 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M35-03 spec and current export manifest code**
+- [x] **Step 1: Review M35-03 spec and current export manifest code**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add manifest prompt parse and serialization tests**
-- [ ] **Step 2: Add disabled prompt hiding tests**
-- [ ] **Step 3: Add inspection prompt summary tests**
+- [x] **Step 1: Add manifest prompt parse and serialization tests**
+- [x] **Step 2: Add disabled prompt hiding tests**
+- [x] **Step 3: Add inspection prompt summary tests**
 
 ### Task 3: Implement Manifest Prompts
 
-- [ ] **Step 1: Add prompt config structs**
-- [ ] **Step 2: Add prompt profile builder path**
-- [ ] **Step 3: Include prompt inspections**
+- [x] **Step 1: Add prompt config structs**
+- [x] **Step 2: Add prompt profile builder path**
+- [x] **Step 3: Include prompt inspections**
 
 ### Task 4: Verify
 
@@ -34,7 +34,18 @@ CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_manifest_prompts
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m35 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_manifest_prompts
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp
+CARGO_TARGET_DIR=target/codex-m35 cargo check -p agent-cli
+CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-cli --all-targets -- -D warnings
+```
 
 ### Task 5: Commit
 
@@ -43,4 +54,4 @@ git add crates docs
 git commit -m "feat: add mcp manifest prompt exports"
 ```
 
-- [ ] **Step 1: Commit M35-03**
+- [x] **Step 1: Commit M35-03**

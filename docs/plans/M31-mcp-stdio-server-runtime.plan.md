@@ -46,7 +46,7 @@ Define session ownership, stdio loop boundaries, profile bootstrap, trace/audit 
 - Execute: `docs/plans/M31-04-server-trace-audit.plan.md`
 - Execute: `docs/plans/M31-05-runtime-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add stdio session runtime**
+- [x] **Step 1: Add stdio session runtime**
 - [ ] **Step 2: Add export profile bootstrap**
 - [ ] **Step 3: Add CLI stdio server command**
 - [ ] **Step 4: Add server trace and audit summaries**

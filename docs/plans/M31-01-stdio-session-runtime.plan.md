@@ -12,17 +12,17 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M31-01 spec and M30 dispatcher contracts**
+- [x] **Step 1: Read M31-01 spec and M30 dispatcher contracts**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add session lifecycle tests**
+- [x] **Step 1: Add session lifecycle tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add `server_session.rs`**
-- [ ] **Step 2: Enforce frame and session limits**
-- [ ] **Step 3: Export contracts from `agent-mcp`**
+- [x] **Step 1: Add `server_session.rs`**
+- [x] **Step 2: Enforce frame and session limits**
+- [x] **Step 3: Export contracts from `agent-mcp`**
 
 ### Task 4: Verify and Commit
 
@@ -30,6 +30,15 @@
 cargo fmt --all -- --check
 cargo clippy -p agent-mcp --all-targets -- -D warnings
 cargo test -p agent-mcp mcp_server_session
+```
+
+Verified with:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m31 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m31 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp mcp_server_session
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp
 ```
 
 ```bash

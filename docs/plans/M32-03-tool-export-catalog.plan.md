@@ -12,19 +12,28 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M32-03 spec and tool registry behavior**
+- [x] **Step 1: Read M32-03 spec and tool registry behavior**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add tool catalog tests**
+- [x] **Step 1: Add tool catalog tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add catalog contract**
-- [ ] **Step 2: Bind manifest declarations to catalog tools**
-- [ ] **Step 3: Preserve policy-gated execution**
+- [x] **Step 1: Add catalog contract**
+- [x] **Step 2: Bind manifest declarations to catalog tools**
+- [x] **Step 3: Preserve policy-gated execution**
 
 ### Task 4: Verify and Commit
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m32 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp mcp_server_tool_catalog
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp
+```
 
 ```bash
 cargo fmt --all -- --check

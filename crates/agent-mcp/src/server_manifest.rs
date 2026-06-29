@@ -1,10 +1,12 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
 use crate::{McpError, McpServerExportProfileBuilder, McpServerProfileRuntime};
+use agent_tool::{Tool, ToolDefinition, ToolInput, ToolOutput};
 
 pub const MCP_SERVER_EXPORT_MANIFEST_SCHEMA_VERSION: u32 = 1;
 
@@ -75,6 +77,39 @@ pub struct McpServerResourceExportConfig {
     pub enabled: bool,
     #[serde(default)]
     pub sensitive: bool,
+}
+
+#[derive(Default)]
+pub struct McpServerToolExportCatalog {
+    tools: BTreeMap<String, Arc<dyn Tool>>,
+}
+
+impl McpServerToolExportCatalog {
+    pub fn register<T>(&mut self, tool: T) -> Result<(), McpError>
+    where
+        T: Tool + 'static,
+    {
+        let definition = tool.definition();
+        let name = validate_identifier_text("catalog tool name", definition.name.as_str())?;
+        if self.tools.contains_key(&name) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "duplicate MCP server export catalog tool: {}",
+                redact_text(&name)
+            )));
+        }
+        self.tools.insert(name, Arc::new(tool));
+        Ok(())
+    }
+
+    #[must_use]
+    pub fn get(&self, name: &str) -> Option<Arc<dyn Tool>> {
+        self.tools.get(name).cloned()
+    }
+
+    #[must_use]
+    pub fn tool_names(&self) -> Vec<String> {
+        self.tools.keys().cloned().collect()
+    }
 }
 
 pub fn parse_mcp_server_export_manifest_json(
@@ -170,6 +205,52 @@ pub fn build_mcp_server_resource_profile_from_manifest(
     }
 
     Ok(builder.build())
+}
+
+pub fn build_mcp_server_tool_profile_from_manifest(
+    manifest: &McpServerExportManifest,
+    profile_name: Option<&str>,
+    catalog: &McpServerToolExportCatalog,
+) -> Result<McpServerProfileRuntime, McpError> {
+    let profile = select_mcp_server_export_profile(manifest, profile_name)?;
+    let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
+
+    for tool in &profile.tools {
+        let catalog_tool = catalog.get(&tool.name).ok_or_else(|| {
+            McpError::InvalidServerRequest(format!(
+                "MCP server export catalog tool not found: {}",
+                redact_text(&tool.name)
+            ))
+        })?;
+        let exportable = SharedCatalogTool::new(catalog_tool);
+        if tool.enabled {
+            builder.export_tool(exportable)?;
+        } else {
+            builder.export_disabled_tool(exportable)?;
+        }
+    }
+
+    Ok(builder.build())
+}
+
+struct SharedCatalogTool {
+    tool: Arc<dyn Tool>,
+}
+
+impl SharedCatalogTool {
+    fn new(tool: Arc<dyn Tool>) -> Self {
+        Self { tool }
+    }
+}
+
+impl Tool for SharedCatalogTool {
+    fn definition(&self) -> ToolDefinition {
+        self.tool.definition()
+    }
+
+    fn execute(&self, input: ToolInput) -> Result<ToolOutput, agent_tool::ToolError> {
+        self.tool.execute(input)
+    }
 }
 
 fn validate_profile(profile: &McpServerExportProfileConfig) -> Result<(), McpError> {

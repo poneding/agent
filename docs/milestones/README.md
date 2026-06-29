@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M30 |
-| Milestone-level plans | Complete for M01-M30 |
+| Milestone-level specs | Complete for M01-M31 |
+| Milestone-level plans | Complete for M01-M31 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -257,6 +257,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M30-04 implementation | Complete |
 | M30-05 implementation | Complete |
 | M30 implementation | Complete |
+| M31 technical design | Complete |
+| M31 slice specs | Complete for M31-01 through M31-05 |
+| M31 slice plans | Complete for M31-01 through M31-05 |
+| M31 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -292,6 +296,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M28 Evaluation Corpus and Quality Gates | `docs/specs/M28-evaluation-corpus-quality-gates.spec.md` | `docs/plans/M28-evaluation-corpus-quality-gates.plan.md` | Promote single-scenario evaluations into managed suites, built-in corpora, golden updates, CLI suite commands, and CI gates. |
 | M29 CI Quality Evidence and Release Gates | `docs/specs/M29-ci-quality-evidence-release-gates.spec.md` | `docs/plans/M29-ci-quality-evidence-release-gates.plan.md` | Turn local checks, evaluation suites, and release smoke commands into one auditable CI quality gate with durable evidence artifacts. |
 | M30 MCP Server Export | `docs/specs/M30-mcp-server-export.spec.md` | `docs/plans/M30-mcp-server-export.plan.md` | Expose selected local tools and resources through a policy-aware MCP server mode. |
+| M31 MCP Stdio Server Runtime | `docs/specs/M31-mcp-stdio-server-runtime.spec.md` | `docs/plans/M31-mcp-stdio-server-runtime.plan.md` | Run a local MCP stdio server session over explicit exports, policy, and trace-safe diagnostics. |
 
 ## M01 Slice Index
 
@@ -613,9 +618,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M30-04 Stdio JSON-RPC Fixture | `docs/specs/M30-04-stdio-jsonrpc-fixture.spec.md` | `docs/plans/M30-04-stdio-jsonrpc-fixture.plan.md` | Line-framed JSON-RPC fixture handling for initialize, list, call, read, and malformed frames. |
 | M30-05 CLI Trace Docs | `docs/specs/M30-05-cli-trace-docs.spec.md` | `docs/plans/M30-05-cli-trace-docs.plan.md` | CLI status, trace-safe export summaries, README docs, and final M30 verification. |
 
+## M31 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M31-00 MCP Stdio Server Technical Design | `docs/specs/M31-00-mcp-stdio-server-technical-design.spec.md` | `docs/plans/M31-00-mcp-stdio-server-technical-design.plan.md` | Architecture baseline for session lifecycle, stdio IO boundaries, export profiles, trace/audit, privacy, and verification. |
+| M31-01 Stdio Session Runtime | `docs/specs/M31-01-stdio-session-runtime.spec.md` | `docs/plans/M31-01-stdio-session-runtime.plan.md` | Reusable `agent-mcp` session runtime over repeated JSON-RPC frames with limits and deterministic close summaries. |
+| M31-02 Export Profile Bootstrap | `docs/specs/M31-02-export-profile-bootstrap.spec.md` | `docs/plans/M31-02-export-profile-bootstrap.plan.md` | Explicit default-deny export profiles that construct tool/resource registries for server sessions. |
+| M31-03 CLI Stdio Command | `docs/specs/M31-03-cli-stdio-command.spec.md` | `docs/plans/M31-03-cli-stdio-command.plan.md` | `agent-cli mcp server stdio` process command with protocol-only stdout and safe subprocess tests. |
+| M31-04 Server Trace Audit | `docs/specs/M31-04-server-trace-audit.spec.md` | `docs/plans/M31-04-server-trace-audit.plan.md` | Redacted frame/session trace summaries for initialize, list, call, read, errors, and policy outcomes. |
+| M31-05 Runtime Hardening Docs | `docs/specs/M31-05-runtime-hardening-docs.spec.md` | `docs/plans/M31-05-runtime-hardening-docs.plan.md` | README usage docs, milestone status, and final M31 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: `M30 complete; next milestone selection`.
+Current implementation focus: `M31-01 stdio session runtime`.
 
 Most recent completed implementation documents:
 
@@ -640,7 +656,10 @@ Most recent completed implementation documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M30-00-mcp-server-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M30-00-mcp-server-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M31-00-mcp-stdio-server-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M31-00-mcp-stdio-server-technical-design.plan.md`
 
-Next implementation slice: select the next milestone and create milestone-prefixed spec/plan documents before implementation.
+Next implementation slice:
+
+- `docs/specs/M31-01-stdio-session-runtime.spec.md`
+- `docs/plans/M31-01-stdio-session-runtime.plan.md`

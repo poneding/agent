@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M43 |
-| Milestone-level plans | Complete for M01-M43 |
+| Milestone-level specs | Complete for M01-M44 |
+| Milestone-level plans | Complete for M01-M44 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -374,6 +374,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M43-04 implementation | Complete |
 | M43-05 implementation | Complete |
 | M43 implementation | Complete |
+| M44 technical design | Complete |
+| M44 slice specs | Complete for M44-01 through M44-05 |
+| M44 slice plans | Complete for M44-01 through M44-05 |
+| M44-01 implementation | In progress |
+| M44 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -422,6 +427,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M41 MCP Sampling Model Bridge Runtime | `docs/specs/M41-mcp-sampling-model-bridge.spec.md` | `docs/plans/M41-mcp-sampling-model-bridge.plan.md` | Bridge safe text-only MCP sampling requests into local `agent-model` providers without exposing credentials, tools, or raw diagnostics. |
 | M42 MCP Sampling Stdio Dispatch Runtime | `docs/specs/M42-mcp-sampling-stdio-dispatch.spec.md` | `docs/plans/M42-mcp-sampling-stdio-dispatch.plan.md` | Dispatch server-initiated MCP `sampling/createMessage` JSON-RPC frames through local sampling providers with safe validation and redacted diagnostics. |
 | M43 MCP Client Stdio Transport Runtime | `docs/specs/M43-mcp-client-stdio-transport.spec.md` | `docs/plans/M43-mcp-client-stdio-transport.plan.md` | Start external MCP stdio servers and drive initialize/tools/list through typed client contracts with safe process diagnostics. |
+| M44 MCP Client Stdio Tool Call Runtime | `docs/specs/M44-mcp-client-stdio-tool-call.spec.md` | `docs/plans/M44-mcp-client-stdio-tool-call.plan.md` | Execute live MCP stdio tools through typed gateway contracts with local policy boundaries and safe diagnostics. |
 
 ## M01 Slice Index
 
@@ -886,12 +892,37 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M43-04 Client Stdio McpClient | `docs/specs/M43-04-client-stdio-mcp-client.spec.md` | `docs/plans/M43-04-client-stdio-mcp-client.plan.md` | `McpClient` implementation for initialize and tools/list over stdio sessions. |
 | M43-05 Hardening Docs | `docs/specs/M43-05-hardening-docs.spec.md` | `docs/plans/M43-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M43 quality gate evidence. |
 
+## M44 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M44-00 MCP Client Stdio Tool Call Technical Design | `docs/specs/M44-00-mcp-client-stdio-tool-call-technical-design.spec.md` | `docs/plans/M44-00-mcp-client-stdio-tool-call-technical-design.plan.md` | Architecture baseline for live stdio `tools/call`, gateway boundaries, redaction, and E2E verification. |
+| M44-01 Stdio Tool Call Mapping | `docs/specs/M44-01-stdio-tool-call-mapping.spec.md` | `docs/plans/M44-01-stdio-tool-call-mapping.plan.md` | `McpStdioClient` maps `McpToolCallRequest` to MCP `tools/call` and returns `McpToolCallResult`. |
+| M44-02 Gateway Live Stdio Tools | `docs/specs/M44-02-gateway-live-stdio-tools.spec.md` | `docs/plans/M44-02-gateway-live-stdio-tools.plan.md` | Existing gateway discovery, registration, and execution paths work with stdio-backed clients. |
+| M44-03 Tool Call Redaction and Limits | `docs/specs/M44-03-tool-call-redaction-limits.spec.md` | `docs/plans/M44-03-tool-call-redaction-limits.plan.md` | Tool-call failures and local argument handling stay bounded and redacted. |
+| M44-04 Process E2E | `docs/specs/M44-04-process-e2e.spec.md` | `docs/plans/M44-04-process-e2e.plan.md` | Spawned process E2E proves initialize, tools/list, and tools/call through gateway registration. |
+| M44-05 Hardening Docs | `docs/specs/M44-05-hardening-docs.spec.md` | `docs/plans/M44-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M44 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M43 complete.
+Current implementation focus: M44-01 stdio tool call mapping.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M44-mcp-client-stdio-tool-call.spec.md`
+- `docs/plans/M44-mcp-client-stdio-tool-call.plan.md`
+- `docs/specs/M44-00-mcp-client-stdio-tool-call-technical-design.spec.md`
+- `docs/plans/M44-00-mcp-client-stdio-tool-call-technical-design.plan.md`
+- `docs/specs/M44-01-stdio-tool-call-mapping.spec.md`
+- `docs/plans/M44-01-stdio-tool-call-mapping.plan.md`
+- `docs/specs/M44-02-gateway-live-stdio-tools.spec.md`
+- `docs/plans/M44-02-gateway-live-stdio-tools.plan.md`
+- `docs/specs/M44-03-tool-call-redaction-limits.spec.md`
+- `docs/plans/M44-03-tool-call-redaction-limits.plan.md`
+- `docs/specs/M44-04-process-e2e.spec.md`
+- `docs/plans/M44-04-process-e2e.plan.md`
+- `docs/specs/M44-05-hardening-docs.spec.md`
+- `docs/plans/M44-05-hardening-docs.plan.md`
 - `docs/specs/M43-mcp-client-stdio-transport.spec.md`
 - `docs/plans/M43-mcp-client-stdio-transport.plan.md`
 - `docs/specs/M43-00-mcp-client-stdio-transport-technical-design.spec.md`

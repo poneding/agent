@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M37 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, and manifest-backed MCP resource templates.
+M01-M38 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, and safe MCP completions.
 
 ## Core Ideas
 
@@ -286,6 +286,65 @@ Prompt exports are available through MCP `prompts/list` and `prompts/get` after 
 
 Missing required arguments, unknown argument names, non-object `arguments`, and non-string argument values are rejected as invalid params. Disabled prompts remain in the profile for inspection but are hidden from active MCP listings and cannot be fetched by name. Prompt diagnostics and traces stay bounded and redacted; they do not expose raw prompt message text or argument values.
 
+Add static completion values when an MCP client should suggest known prompt argument or resource template variable values through `completion/complete`:
+
+```json
+{
+  "schema_version": 1,
+  "profiles": [
+    {
+      "name": "default",
+      "prompts": [
+        {
+          "name": "review",
+          "arguments": [
+            {
+              "name": "topic",
+              "required": true
+            }
+          ],
+          "argument_completions": [
+            {
+              "argument": "topic",
+              "values": ["workspace diff", "worktree status"]
+            }
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "text": "Review {{topic}}."
+            }
+          ]
+        }
+      ],
+      "resource_templates": [
+        {
+          "uri_template": "agent://workspace/file/{path}",
+          "name": "Workspace file",
+          "path_template": "{path}",
+          "variable_completions": [
+            {
+              "variable": "path",
+              "values": ["README.md", "src/lib.rs"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Completion requests are available after initialization and return bounded MCP completion results:
+
+```json
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}
+{"jsonrpc":"2.0","id":2,"method":"completion/complete","params":{"ref":{"type":"ref/prompt","name":"review"},"argument":{"name":"topic","value":"work"}}}
+{"jsonrpc":"2.0","id":3,"method":"completion/complete","params":{"ref":{"type":"ref/resource","uri":"agent://workspace/file/{path}"},"argument":{"name":"path","value":"READ"}}}
+```
+
+Completion values are explicit static manifest metadata. Completion does not read files, render prompt messages, execute tools, call models, or issue permission leases. Secret-like completion values are rejected, disabled exports are hidden from completion, and diagnostics stay bounded and redacted.
+
 ## CLI Release Packaging
 
 Build and smoke-test a local CLI artifact:
@@ -343,9 +402,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M37-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M37-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M37-mcp-resource-templates-runtime.spec.md)
+- [Latest completed spec](docs/specs/M38-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M38-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M38-mcp-completion-runtime.spec.md)
 - [Milestone index](docs/milestones/README.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)

@@ -12,17 +12,28 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M38 specs and completed implementation slices**
+- [x] **Step 1: Read M38 specs and completed implementation slices**
 
 ### Task 2: Update Docs
 
-- [ ] **Step 1: Update README completion usage**
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 1: Update README completion usage**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M38 focused tests**
-- [ ] **Step 2: Run `cargo xtask ci`**
+- [x] **Step 1: Run final M38 focused tests**
+- [x] **Step 2: Run `cargo xtask ci`**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_completion_contracts
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_prompt_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_resource_template_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_manifest_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-cli mcp_server_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo xtask ci
+```
 
 ### Task 4: Commit
 
@@ -31,4 +42,4 @@ git add README.md docs crates
 git commit -m "feat: complete m38 mcp completion runtime"
 ```
 
-- [ ] **Step 1: Commit M38-05**
+- [x] **Step 1: Commit M38-05**

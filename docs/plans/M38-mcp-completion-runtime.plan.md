@@ -50,7 +50,7 @@ Define completion request shape, ref handling, source ownership, manifest shape,
 - [x] **Step 2: Add prompt argument completion lookup**
 - [x] **Step 3: Add resource template variable completion lookup**
 - [x] **Step 4: Wire CLI stdio completions**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M38
 
@@ -59,7 +59,7 @@ Define completion request shape, ref handling, source ownership, manifest shape,
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M38-mcp-completion-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,13 @@ CARGO_TARGET_DIR=target/codex-m38 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M38 complete and commit**
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m38 cargo xtask ci
+```
+
+- [x] **Step 2: Mark M38 complete and commit**
 
 Run:
 

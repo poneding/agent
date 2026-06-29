@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M34 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, and profile inspection preflight diagnostics.
+M01-M35 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, and manifest-backed MCP prompt exports.
 
 ## Core Ideas
 
@@ -102,6 +102,7 @@ agent-cli --json mcp server status
 agent-cli mcp server stdio
 agent-cli mcp server stdio --profile path/to/mcp-server-exports.json
 agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
+agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
 agent-cli eval validate --manifest path/to/scenario.eval.json
 agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
 agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
@@ -145,7 +146,7 @@ agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json -
 agent-cli --json mcp server profile inspect --profile path/to/mcp-server-exports.json --workspace .
 ```
 
-Profile inspection reports selected tools, resources, enabled/disabled state, and preflight diagnostics for missing workspaces, invalid workspace roots, unknown tools, missing resource files, and disabled exports hidden from active MCP listings. Inspection never reads resource contents and keeps diagnostics bounded and redacted.
+Profile inspection reports selected tools, resources, prompts, enabled/disabled state, and preflight diagnostics for missing workspaces, invalid workspace roots, unknown tools, missing resource files, and disabled exports hidden from active MCP listings. Inspection never reads resource contents or prompt message text, and keeps diagnostics bounded and redacted.
 
 Run a local MCP stdio server process:
 
@@ -158,7 +159,7 @@ agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace
 
 The stdio command reads newline-delimited JSON-RPC frames from stdin and writes only MCP protocol responses to stdout. Diagnostics go to stderr, EOF closes the session cleanly, and `--json` is rejected for this command so script and MCP-client stdout stays protocol-only.
 
-The default stdio profile is intentionally empty: no tools or resources are exported until an explicit server export profile registers them. Tool calls and resource reads stay policy-gated in `agent-mcp`; session summaries include bounded, redacted trace entries for methods, outcomes, and initialized state without raw tool arguments, resource contents, or secret-like values.
+The default stdio profile is intentionally empty: no tools, resources, or prompts are exported until an explicit server export profile registers them. Tool calls and resource reads stay policy-gated in `agent-mcp`; prompt exports are read-only and explicit. Session summaries include bounded, redacted trace entries for methods, outcomes, and initialized state without raw tool arguments, resource contents, prompt message text, or secret-like values.
 
 Use a manifest-backed profile to expose explicit resources:
 
@@ -202,6 +203,37 @@ Use `--workspace` with a manifest-backed profile to expose curated built-in work
 ```
 
 The built-in MCP stdio catalog is allow-listed to workspace inspection tools: `workspace.read_file`, `workspace.search_text`, `workspace.git_status`, and `workspace.git_diff`. Shell commands and file edits are not part of the built-in export catalog. Tool calls are scoped by the selected profile, resolved through the workspace sandbox, and still pass through policy before execution.
+
+Add explicit prompt exports to the same manifest when an MCP client should discover reusable prompt templates:
+
+```json
+{
+  "schema_version": 1,
+  "profiles": [
+    {
+      "name": "default",
+      "prompts": [
+        {
+          "name": "review",
+          "description": "Review current changes",
+          "messages": [
+            {
+              "role": "system",
+              "text": "You review changes carefully."
+            },
+            {
+              "role": "user",
+              "text": "Review the workspace diff."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Prompt exports are available through MCP `prompts/list` and `prompts/get` after initialization. Disabled prompts remain in the profile for inspection but are hidden from active MCP listings and cannot be fetched by name.
 
 ## CLI Release Packaging
 
@@ -260,10 +292,10 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M34-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M34-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M34-mcp-export-profile-inspection.spec.md)
-- [Active milestone](docs/specs/M35-mcp-prompt-export-runtime.spec.md)
+- [Latest completed spec](docs/specs/M35-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M35-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M35-mcp-prompt-export-runtime.spec.md)
+- [Milestone index](docs/milestones/README.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

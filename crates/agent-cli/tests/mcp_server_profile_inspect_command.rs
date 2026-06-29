@@ -25,6 +25,15 @@ fn profile_fixture() -> (TempDir, std::path::PathBuf) {
                   "path": "README.md",
                   "mime_type": "text/markdown"
                 }
+              ],
+              "prompts": [
+                {
+                  "name": "review",
+                  "description": "Review current changes",
+                  "messages": [
+                    {"role": "user", "text": "private prompt content must not leak"}
+                  ]
+                }
               ]
             }
           ]
@@ -92,6 +101,9 @@ fn mcp_server_profile_inspect_command_renders_text_summary() {
     assert!(output.stdout.contains("workspace.read_file"));
     assert!(output.stdout.contains("resources: 1"));
     assert!(output.stdout.contains("agent://readme"));
+    assert!(output.stdout.contains("prompts: 1"));
+    assert!(output.stdout.contains("review"));
+    assert!(output.stdout.contains("messages=1"));
     assert!(
         output
             .stdout
@@ -99,6 +111,7 @@ fn mcp_server_profile_inspect_command_renders_text_summary() {
     );
     assert!(output.stdout.contains("--workspace"));
     assert!(!output.stdout.contains("private fixture contents"));
+    assert!(!output.stdout.contains("private prompt content"));
 }
 
 #[test]
@@ -127,6 +140,8 @@ fn mcp_server_profile_inspect_command_renders_json_summary() {
     assert_eq!(value["data"]["resources"][0]["uri"], "agent://readme");
     assert_eq!(value["data"]["resources"][0]["path"], "README.md");
     assert_eq!(value["data"]["resources"][0]["mime_type"], "text/markdown");
+    assert_eq!(value["data"]["prompts"][0]["name"], "review");
+    assert_eq!(value["data"]["prompts"][0]["message_count"], 1);
     assert_eq!(
         value["data"]["diagnostics"]
             .as_array()
@@ -135,6 +150,7 @@ fn mcp_server_profile_inspect_command_renders_json_summary() {
         0
     );
     assert!(!output.stdout.contains("private fixture contents"));
+    assert!(!output.stdout.contains("private prompt content"));
 }
 
 #[test]
@@ -214,10 +230,14 @@ fn mcp_server_profile_inspect_command_keeps_text_and_json_consistent() {
     let resource_uri = value["data"]["resources"][0]["uri"]
         .as_str()
         .expect("resource");
+    let prompt_name = value["data"]["prompts"][0]["name"]
+        .as_str()
+        .expect("prompt");
 
     assert_eq!(text.status_code, 0);
     assert_eq!(json.status_code, 0);
     assert!(text.stdout.contains(profile_name));
     assert!(text.stdout.contains(tool_name));
     assert!(text.stdout.contains(resource_uri));
+    assert!(text.stdout.contains(prompt_name));
 }

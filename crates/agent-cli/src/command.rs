@@ -2697,6 +2697,11 @@ fn render_mcp_server_profile_inspection_text(inspection: &McpServerProfileInspec
         .iter()
         .filter(|resource| resource.enabled)
         .count();
+    let enabled_prompt_count = inspection
+        .prompts
+        .iter()
+        .filter(|prompt| prompt.enabled)
+        .count();
     let mut output = format!(
         "MCP server profile: {}\ntools: {} enabled={}\n",
         inspection.profile_name,
@@ -2720,6 +2725,20 @@ fn render_mcp_server_profile_inspection_text(inspection: &McpServerProfileInspec
             resource.mime_type.as_deref().unwrap_or("none"),
             resource.enabled,
             resource.sensitive
+        ));
+    }
+    output.push_str(&format!(
+        "prompts: {} enabled={}\n",
+        inspection.prompts.len(),
+        enabled_prompt_count
+    ));
+    for prompt in &inspection.prompts {
+        output.push_str(&format!(
+            "- prompt {} description={} messages={} enabled={}\n",
+            prompt.name,
+            prompt.description.as_deref().unwrap_or("none"),
+            prompt.message_count,
+            prompt.enabled
         ));
     }
     output.push_str(&format!("diagnostics: {}\n", inspection.diagnostics.len()));

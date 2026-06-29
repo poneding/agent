@@ -371,7 +371,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M43-01 implementation | Complete |
 | M43-02 implementation | Complete |
 | M43-03 implementation | Complete |
-| M43-04 implementation | In progress |
+| M43-04 implementation | Complete |
+| M43-05 implementation | In progress |
 | M43 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -887,7 +888,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M43-04 client stdio McpClient.
+Current implementation focus: M43-05 hardening docs.
 
 Most recent completed implementation documents:
 

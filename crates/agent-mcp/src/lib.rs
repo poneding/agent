@@ -49,7 +49,7 @@ pub use client_sampling_stdio::{
 pub use client_stdio::{
     FixtureMcpClientStdioTransport, McpClientStdioProcessTransport, McpClientStdioResponseFrame,
     McpClientStdioSession, McpClientStdioSessionStatus, McpClientStdioSessionSummary,
-    McpClientStdioTransport, parse_mcp_client_stdio_response_frame,
+    McpClientStdioTransport, McpStdioClient, parse_mcp_client_stdio_response_frame,
     render_mcp_client_stdio_request_frame,
 };
 pub use config::{McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig};

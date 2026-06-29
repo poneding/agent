@@ -7,11 +7,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
+use tokio::sync::Mutex;
 use tokio::time::timeout;
 
 use crate::{
-    McpEnvValue, McpError, McpJsonRpcFailure, McpJsonRpcId, McpJsonRpcSuccess, McpServerConfig,
-    McpTransportConfig,
+    MCP_SERVER_PROTOCOL_VERSION, McpClient, McpEnvValue, McpError, McpInitializeResult,
+    McpJsonRpcFailure, McpJsonRpcId, McpJsonRpcSuccess, McpServerCapabilities, McpServerConfig,
+    McpServerId, McpServerMethod, McpToolDescriptor, McpToolListResult, McpTransportConfig,
 };
 
 const MAX_CLIENT_STDIO_FRAME_BYTES: usize = 64 * 1024;
@@ -227,6 +229,95 @@ impl McpClientStdioTransport for McpClientStdioProcessTransport {
 impl Drop for McpClientStdioProcessTransport {
     fn drop(&mut self) {
         self.terminate_child();
+    }
+}
+
+pub struct McpStdioClient<T> {
+    state: Mutex<McpStdioClientState<T>>,
+}
+
+struct McpStdioClientState<T> {
+    session: McpClientStdioSession<T>,
+    server_id: Option<McpServerId>,
+}
+
+impl<T> McpStdioClient<T> {
+    #[must_use]
+    pub fn new(transport: T) -> Self {
+        Self::from_session(McpClientStdioSession::new(transport))
+    }
+
+    #[must_use]
+    pub fn from_session(session: McpClientStdioSession<T>) -> Self {
+        Self {
+            state: Mutex::new(McpStdioClientState {
+                session,
+                server_id: None,
+            }),
+        }
+    }
+}
+
+impl McpStdioClient<McpClientStdioProcessTransport> {
+    pub async fn spawn(config: &McpServerConfig) -> Result<Self, McpError> {
+        Ok(Self::new(
+            McpClientStdioProcessTransport::spawn(config).await?,
+        ))
+    }
+
+    pub async fn close(&self) -> Result<(), McpError> {
+        self.state
+            .lock()
+            .await
+            .session
+            .transport_mut()
+            .close()
+            .await
+    }
+}
+
+#[async_trait]
+impl<T> McpClient for McpStdioClient<T>
+where
+    T: McpClientStdioTransport,
+{
+    async fn initialize(&self, config: &McpServerConfig) -> Result<McpInitializeResult, McpError> {
+        let mut state = self.state.lock().await;
+        let response = state
+            .session
+            .send_request(
+                McpServerMethod::Initialize.as_str(),
+                json!({
+                    "protocolVersion": MCP_SERVER_PROTOCOL_VERSION,
+                    "clientInfo": {
+                        "name": "agent",
+                        "version": env!("CARGO_PKG_VERSION"),
+                    },
+                    "capabilities": {},
+                }),
+            )
+            .await?;
+        let result = mcp_client_stdio_success_result(response, "initialize")?;
+        let initialize = map_mcp_client_stdio_initialize_result(config.id.clone(), &result)?;
+        state.session.mark_initialized();
+        state.server_id = Some(config.id.clone());
+        Ok(initialize)
+    }
+
+    async fn list_tools(&self, server_id: &McpServerId) -> Result<McpToolListResult, McpError> {
+        let mut state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(server_id) {
+            return Err(McpError::Client(
+                "MCP client stdio session is not initialized".to_string(),
+            ));
+        }
+
+        let response = state
+            .session
+            .send_request(McpServerMethod::ToolsList.as_str(), json!({}))
+            .await?;
+        let result = mcp_client_stdio_success_result(response, "tools/list")?;
+        map_mcp_client_stdio_tool_list_result(server_id.clone(), &result)
     }
 }
 
@@ -483,4 +574,151 @@ fn mcp_client_stdio_process_exit_error(status: ExitStatus) -> McpError {
         |code| format!("MCP client stdio process exited before response with status {code}"),
     );
     McpError::Client(message)
+}
+
+fn mcp_client_stdio_success_result(
+    response: McpClientStdioResponseFrame,
+    operation: &str,
+) -> Result<Value, McpError> {
+    match response {
+        McpClientStdioResponseFrame::Success(success) => Ok(success.result),
+        McpClientStdioResponseFrame::Failure(failure) => Err(McpError::Client(format!(
+            "MCP client stdio {operation} failed with code {}",
+            failure.error.code
+        ))),
+    }
+}
+
+fn map_mcp_client_stdio_initialize_result(
+    server_id: McpServerId,
+    result: &Value,
+) -> Result<McpInitializeResult, McpError> {
+    let protocol_version = string_field_any(
+        result,
+        &["protocol_version", "protocolVersion"],
+        "initialize",
+    )?;
+    let server_info = object_field_any(result, &["server_info", "serverInfo"], "initialize")?;
+    let server_name = string_field(server_info, "name", "initialize")?;
+    let server_version = optional_string_field(server_info, "version", "initialize")?;
+    let capabilities = object_field(result, "capabilities", "initialize")?;
+
+    Ok(McpInitializeResult::new(
+        server_id,
+        protocol_version,
+        server_name,
+        server_version,
+        McpServerCapabilities {
+            tools: capability_enabled(capabilities.get("tools")),
+            prompts: capability_enabled(capabilities.get("prompts")),
+            resources: capability_enabled(capabilities.get("resources")),
+        },
+    ))
+}
+
+fn map_mcp_client_stdio_tool_list_result(
+    server_id: McpServerId,
+    result: &Value,
+) -> Result<McpToolListResult, McpError> {
+    let tools = result
+        .get("tools")
+        .and_then(Value::as_array)
+        .ok_or_else(|| invalid_mcp_client_stdio_result("tools/list"))?;
+    let mut descriptors = Vec::with_capacity(tools.len());
+    for tool in tools {
+        let tool = tool
+            .as_object()
+            .ok_or_else(|| invalid_mcp_client_stdio_result("tools/list"))?;
+        let name = string_field(tool, "name", "tools/list")?;
+        let title = optional_string_field(tool, "title", "tools/list")?;
+        let description = string_field(tool, "description", "tools/list")?;
+        let input_schema = value_field_any(tool, &["input_schema", "inputSchema"], "tools/list")?;
+        descriptors.push(McpToolDescriptor::new(
+            server_id.clone(),
+            name,
+            title,
+            description,
+            input_schema.clone(),
+        )?);
+    }
+    Ok(McpToolListResult::new(server_id, descriptors))
+}
+
+fn object_field<'a>(
+    value: &'a Value,
+    field: &str,
+    operation: &str,
+) -> Result<&'a serde_json::Map<String, Value>, McpError> {
+    value
+        .get(field)
+        .and_then(Value::as_object)
+        .ok_or_else(|| invalid_mcp_client_stdio_result(operation))
+}
+
+fn object_field_any<'a>(
+    value: &'a Value,
+    fields: &[&str],
+    operation: &str,
+) -> Result<&'a serde_json::Map<String, Value>, McpError> {
+    fields
+        .iter()
+        .find_map(|field| value.get(*field).and_then(Value::as_object))
+        .ok_or_else(|| invalid_mcp_client_stdio_result(operation))
+}
+
+fn value_field_any<'a>(
+    value: &'a serde_json::Map<String, Value>,
+    fields: &[&str],
+    operation: &str,
+) -> Result<&'a Value, McpError> {
+    fields
+        .iter()
+        .find_map(|field| value.get(*field))
+        .ok_or_else(|| invalid_mcp_client_stdio_result(operation))
+}
+
+fn string_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    operation: &str,
+) -> Result<String, McpError> {
+    value
+        .get(field)
+        .and_then(Value::as_str)
+        .filter(|text| !text.trim().is_empty())
+        .map(ToString::to_string)
+        .ok_or_else(|| invalid_mcp_client_stdio_result(operation))
+}
+
+fn string_field_any(value: &Value, fields: &[&str], operation: &str) -> Result<String, McpError> {
+    fields
+        .iter()
+        .find_map(|field| value.get(*field).and_then(Value::as_str))
+        .filter(|text| !text.trim().is_empty())
+        .map(ToString::to_string)
+        .ok_or_else(|| invalid_mcp_client_stdio_result(operation))
+}
+
+fn optional_string_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    operation: &str,
+) -> Result<Option<String>, McpError> {
+    match value.get(field) {
+        Some(Value::String(text)) if !text.trim().is_empty() => Ok(Some(text.clone())),
+        Some(Value::String(_)) | Some(Value::Null) | None => Ok(None),
+        Some(_) => Err(invalid_mcp_client_stdio_result(operation)),
+    }
+}
+
+fn capability_enabled(value: Option<&Value>) -> bool {
+    match value {
+        Some(Value::Bool(enabled)) => *enabled,
+        Some(Value::Object(_)) => true,
+        _ => false,
+    }
+}
+
+fn invalid_mcp_client_stdio_result(operation: &str) -> McpError {
+    McpError::Client(format!("invalid MCP client stdio {operation} result"))
 }

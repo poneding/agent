@@ -18,18 +18,18 @@
 - Read: `crates/agent-mcp/src/tool.rs`
 - Read: `crates/agent-mcp/src/client_stdio.rs`
 
-- [ ] **Step 1: Review typed client contracts**
+- [x] **Step 1: Review typed client contracts**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_stdio_mcp_client.rs`
 
-- [ ] **Step 1: Add `McpClient` integration tests**
+- [x] **Step 1: Add `McpClient` integration tests**
 
 Add tests for initialize, tools/list, health, and invalid response shapes.
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -43,13 +43,13 @@ CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_mcp_c
 - Modify: `crates/agent-mcp/src/client_stdio.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add stdio client wrapper**
-- [ ] **Step 2: Add initialize mapping**
-- [ ] **Step 3: Add tools/list mapping**
+- [x] **Step 1: Add stdio client wrapper**
+- [x] **Step 2: Add initialize mapping**
+- [x] **Step 3: Add tools/list mapping**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -61,7 +61,7 @@ CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_mcp_c
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M43-04**
+- [x] **Step 1: Commit M43-04**
 
 Run:
 

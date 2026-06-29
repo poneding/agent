@@ -49,7 +49,7 @@ Define crate ownership, transport trait boundaries, request/response id handling
 - [x] **Step 1: Add client stdio codec contracts**
 - [x] **Step 2: Add deterministic client stdio session runtime**
 - [x] **Step 3: Add spawned process transport**
-- [ ] **Step 4: Implement `McpClient` over stdio for initialize and tools/list**
+- [x] **Step 4: Implement `McpClient` over stdio for initialize and tools/list**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M43

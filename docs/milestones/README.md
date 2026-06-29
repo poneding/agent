@@ -264,7 +264,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M31-02 implementation | Complete |
 | M31-03 implementation | Complete |
 | M31-04 implementation | Complete |
-| M31 implementation | In progress |
+| M31-05 implementation | Complete |
+| M31 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -635,7 +636,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M31-05 runtime hardening docs`.
+Current implementation focus: M31 complete; next milestone planning can start from the same docs/specs/plans structure.
 
 Most recent completed implementation documents:
 
@@ -665,13 +666,12 @@ Most recent completed implementation documents:
 - `docs/plans/M31-03-cli-stdio-command.plan.md`
 - `docs/specs/M31-04-server-trace-audit.spec.md`
 - `docs/plans/M31-04-server-trace-audit.plan.md`
+- `docs/specs/M31-05-runtime-hardening-docs.spec.md`
+- `docs/plans/M31-05-runtime-hardening-docs.plan.md`
 
 Most recent completed technical design documents:
 
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M31-00-mcp-stdio-server-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M31-00-mcp-stdio-server-technical-design.plan.md`
 
-Next implementation slice:
-
-- `docs/specs/M31-05-runtime-hardening-docs.spec.md`
-- `docs/plans/M31-05-runtime-hardening-docs.plan.md`
+Next implementation slice: not assigned after M31 completion.

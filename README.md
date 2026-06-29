@@ -6,9 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M30 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, and policy-aware MCP server export fixtures.
-
-M31 is planned next: promote the MCP server fixtures into a runnable local stdio server runtime.
+M01-M31 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, and a runnable MCP stdio server runtime.
 
 ## Core Ideas
 
@@ -101,6 +99,7 @@ agent-cli --observability-summary
 agent-cli --observability-json
 agent-cli mcp server status
 agent-cli --json mcp server status
+agent-cli mcp server stdio
 agent-cli eval validate --manifest path/to/scenario.eval.json
 agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
 agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
@@ -135,6 +134,17 @@ agent-cli --json mcp server status
 ```
 
 The status surface reports protocol version, capability flags, stdio fixture availability, and explicit export counts/names only. Exported tool calls and resource reads remain policy-gated in `agent-mcp`; status rendering does not execute tools or expose resource contents.
+
+Run a local MCP stdio server process:
+
+```bash
+agent-cli mcp server stdio
+agent-cli mcp server stdio --max-frames 1000
+```
+
+The stdio command reads newline-delimited JSON-RPC frames from stdin and writes only MCP protocol responses to stdout. Diagnostics go to stderr, EOF closes the session cleanly, and `--json` is rejected for this command so script and MCP-client stdout stays protocol-only.
+
+The default stdio profile is intentionally empty: no tools or resources are exported until an explicit server export profile registers them. Tool calls and resource reads stay policy-gated in `agent-mcp`; session summaries include bounded, redacted trace entries for methods, outcomes, and initialized state without raw tool arguments, resource contents, or secret-like values.
 
 ## CLI Release Packaging
 
@@ -193,9 +203,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M30-05-cli-trace-docs.spec.md)
-- [Latest completed plan](docs/plans/M30-05-cli-trace-docs.plan.md)
-- [Next planned milestone](docs/specs/M31-mcp-stdio-server-runtime.spec.md)
+- [Latest completed spec](docs/specs/M31-05-runtime-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M31-05-runtime-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M31-mcp-stdio-server-runtime.spec.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

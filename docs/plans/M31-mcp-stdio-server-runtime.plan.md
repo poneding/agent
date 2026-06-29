@@ -50,7 +50,7 @@ Define session ownership, stdio loop boundaries, profile bootstrap, trace/audit 
 - [x] **Step 2: Add export profile bootstrap**
 - [x] **Step 3: Add CLI stdio server command**
 - [x] **Step 4: Add server trace and audit summaries**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M31
 
@@ -59,7 +59,7 @@ Define session ownership, stdio loop boundaries, profile bootstrap, trace/audit 
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M31-mcp-stdio-server-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,24 @@ cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M31 complete and commit**
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m31 cargo xtask ci
+```
+
+Quality gate summary:
+
+```text
+Quality gate ci-local status=passed
+total=4 passed=4 failed=0 skipped=0
+fmt-check status=passed
+clippy status=passed
+test status=passed
+eval status=passed
+```
+
+- [x] **Step 2: Mark M31 complete and commit**
 
 Run:
 

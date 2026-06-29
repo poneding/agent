@@ -50,7 +50,7 @@ Define crate ownership, bridge contracts, text-only mapping, unsupported content
 - [x] **Step 2: Add provider-backed sampling execution**
 - [x] **Step 3: Add redacted bridge diagnostics**
 - [x] **Step 4: Add unsupported-path guardrails**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M41
 
@@ -59,7 +59,7 @@ Define crate ownership, bridge contracts, text-only mapping, unsupported content
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M41-mcp-sampling-model-bridge.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,7 @@ CARGO_TARGET_DIR=target/codex-m41 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M41 complete and commit**
+- [x] **Step 2: Mark M41 complete and commit**
 
 Run:
 
@@ -77,3 +77,19 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m41 mcp sampling model bridge"
 ```
+
+### Verification Evidence
+
+Passed on 2026-06-29:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_mapping
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_provider
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_redaction
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_guardrails
+git diff --check
+CARGO_TARGET_DIR=target/codex-m41 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m41 cargo xtask ci
+```
+
+`cargo xtask ci` exited 0. The expected internal xtask quality-gate test printed `Unrecognized option: 'definitely-not-a-real-rustc-flag'`.

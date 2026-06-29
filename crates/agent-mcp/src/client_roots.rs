@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::McpError;
+use crate::{McpClientSamplingCapability, McpError};
 
 pub const MCP_ROOTS_LIST_CHANGED_NOTIFICATION_METHOD: &str = "notifications/roots/list_changed";
 
@@ -74,12 +74,36 @@ impl McpClientRootsCapability {
 pub struct McpClientCapabilities {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub roots: Option<McpClientRootsCapability>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sampling: Option<McpClientSamplingCapability>,
 }
 
 impl McpClientCapabilities {
     #[must_use]
     pub const fn with_roots(roots: McpClientRootsCapability) -> Self {
-        Self { roots: Some(roots) }
+        Self {
+            roots: Some(roots),
+            sampling: None,
+        }
+    }
+
+    #[must_use]
+    pub const fn with_sampling(sampling: McpClientSamplingCapability) -> Self {
+        Self {
+            roots: None,
+            sampling: Some(sampling),
+        }
+    }
+
+    #[must_use]
+    pub const fn with_roots_and_sampling(
+        roots: McpClientRootsCapability,
+        sampling: McpClientSamplingCapability,
+    ) -> Self {
+        Self {
+            roots: Some(roots),
+            sampling: Some(sampling),
+        }
     }
 }
 

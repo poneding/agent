@@ -341,7 +341,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M40 technical design | Complete |
 | M40 slice specs | Complete for M40-01 through M40-05 |
 | M40 slice plans | Complete for M40-01 through M40-05 |
-| M40-01 implementation | In progress |
+| M40-01 implementation | Complete |
+| M40-02 implementation | In progress |
 | M40 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -821,7 +822,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M40-01 sampling contracts`.
+Current implementation focus: `M40-02 sampling validation`.
 
 Most recent completed implementation documents:
 
@@ -933,6 +934,8 @@ Most recent completed implementation documents:
 - `docs/plans/M39-04-gateway-roots-integration.plan.md`
 - `docs/specs/M39-05-hardening-docs.spec.md`
 - `docs/plans/M39-05-hardening-docs.plan.md`
+- `docs/specs/M40-01-sampling-contracts.spec.md`
+- `docs/plans/M40-01-sampling-contracts.plan.md`
 
 Most recent completed planning documents:
 
@@ -1014,5 +1017,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M40-01-sampling-contracts.spec.md`
-- `docs/plans/M40-01-sampling-contracts.plan.md`
+- `docs/specs/M40-02-sampling-validation.spec.md`
+- `docs/plans/M40-02-sampling-validation.plan.md`

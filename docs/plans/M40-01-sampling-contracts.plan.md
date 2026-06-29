@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/client_roots.rs`
 - Read: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Review the spec and existing client capability patterns**
+- [x] **Step 1: Review the spec and existing client capability patterns**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: roots contracts show the local serde and export style to mirror.
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_sampling_contracts.rs`
 
-- [ ] **Step 1: Add capability, request, result, and content serde tests**
+- [x] **Step 1: Add capability, request, result, and content serde tests**
 
 Add tests that assert:
 
@@ -50,7 +50,7 @@ assert_eq!(
 
 Add a basic request assertion with `modelPreferences`, `systemPrompt`, and `maxTokens`, and a result assertion with `role`, `content`, `model`, and `stopReason`.
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -67,11 +67,11 @@ Expected: tests fail because sampling contracts do not exist yet.
 - Modify: `crates/agent-mcp/src/client_roots.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add sampling structs and serde attributes**
+- [x] **Step 1: Add sampling structs and serde attributes**
 
 Implement the public contracts from the spec with `Serialize`, `Deserialize`, `Clone`, `Debug`, and `PartialEq` where appropriate. Use `#[serde(rename = "mimeType")]`, `#[serde(rename = "modelPreferences")]`, `#[serde(rename = "systemPrompt")]`, `#[serde(rename = "includeContext")]`, `#[serde(rename = "maxTokens")]`, and `#[serde(rename = "stopSequences")]`.
 
-- [ ] **Step 2: Extend `McpClientCapabilities`**
+- [x] **Step 2: Extend `McpClientCapabilities`**
 
 Add:
 
@@ -86,13 +86,21 @@ pub struct McpClientCapabilities {
 
 Add `with_sampling` and `with_roots_and_sampling` constructors without breaking existing root tests.
 
-- [ ] **Step 3: Export contracts**
+- [x] **Step 3: Export contracts**
 
 Export the new module and public types from `crates/agent-mcp/src/lib.rs`.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts
+```
 
 Run:
 
@@ -106,7 +114,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M40-01**
+- [x] **Step 1: Commit M40-01**
 
 Run:
 

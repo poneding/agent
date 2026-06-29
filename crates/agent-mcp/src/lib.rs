@@ -3,6 +3,7 @@
 
 pub mod client;
 pub mod client_roots;
+pub mod client_sampling;
 pub mod config;
 pub mod error;
 pub mod gateway;
@@ -31,6 +32,11 @@ pub use client_roots::{
     McpClientRootInspection, McpClientRootInspectionDiagnostic, McpClientRootInspectionEntry,
     McpClientRootInspectionSeverity, McpClientRootRegistry, McpClientRootsCapability, McpRoot,
     McpRootListChangedNotification, McpRootListResult,
+};
+pub use client_sampling::{
+    McpClientSamplingCapability, McpCreateMessageRequestParams, McpCreateMessageResult,
+    McpModelHint, McpModelPreferences, McpSamplingContent, McpSamplingContentList,
+    McpSamplingIncludeContext, McpSamplingMessage, McpSamplingRole,
 };
 pub use config::{McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig};
 pub use error::McpError;

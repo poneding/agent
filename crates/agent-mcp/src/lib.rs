@@ -50,7 +50,8 @@ pub use server_profile::{
     empty_mcp_server_export_profile,
 };
 pub use server_prompt::{
-    McpPromptDescriptor, McpPromptExport, McpPromptGetResult, McpPromptListResult, McpPromptMessage,
+    McpPromptDescriptor, McpPromptExport, McpPromptExportRegistry, McpPromptGetResult,
+    McpPromptListResult, McpPromptMessage,
 };
 pub use server_resource::{McpResourceExport, McpResourceExportRegistry, McpResourceReadResult};
 pub use server_session::{

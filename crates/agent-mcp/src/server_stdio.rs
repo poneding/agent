@@ -5,7 +5,8 @@ use serde_json::{Map, Value, json};
 
 use crate::{
     McpJsonRpcError, McpJsonRpcFailure, McpJsonRpcId, McpJsonRpcRequest, McpJsonRpcSuccess,
-    McpResourceExportRegistry, McpServerMethod, McpServerState, McpToolExportRegistry,
+    McpPromptExportRegistry, McpResourceExportRegistry, McpServerMethod, McpServerState,
+    McpToolExportRegistry,
 };
 
 const MAX_FRAME_BYTES: usize = 64 * 1024;
@@ -14,6 +15,7 @@ pub struct McpServerFixture {
     state: McpServerState,
     tools: ToolRegistry,
     tool_exports: McpToolExportRegistry,
+    prompt_exports: McpPromptExportRegistry,
     resource_exports: McpResourceExportRegistry,
     policy: Box<dyn PolicyEngine>,
     actor: ActorRef,
@@ -35,6 +37,7 @@ impl McpServerFixture {
             state,
             tools,
             tool_exports,
+            prompt_exports: McpPromptExportRegistry::default(),
             resource_exports,
             policy: Box::new(policy),
             actor: ActorRef::system(),
@@ -44,6 +47,12 @@ impl McpServerFixture {
     #[must_use]
     pub fn with_actor(mut self, actor: ActorRef) -> Self {
         self.actor = actor;
+        self
+    }
+
+    #[must_use]
+    pub fn with_prompt_exports(mut self, prompt_exports: McpPromptExportRegistry) -> Self {
+        self.prompt_exports = prompt_exports;
         self
     }
 
@@ -94,6 +103,12 @@ fn dispatch_request(
 
     let result = match method {
         McpServerMethod::Initialize => initialize(server, &request.params),
+        McpServerMethod::PromptsList => {
+            require_initialized(server).and_then(|()| list_prompts(server, &request.params))
+        }
+        McpServerMethod::PromptsGet => {
+            require_initialized(server).and_then(|()| get_prompt(server, &request.params))
+        }
         McpServerMethod::ToolsList => {
             require_initialized(server).and_then(|()| list_tools(server, &request.params))
         }
@@ -123,6 +138,24 @@ fn initialize(server: &mut McpServerFixture, params: &Value) -> Result<Value, Mc
         "capabilities": server.state.capabilities,
         "initialized": server.state.initialized,
     }))
+}
+
+fn list_prompts(server: &McpServerFixture, params: &Value) -> Result<Value, McpJsonRpcError> {
+    require_object_params(params)?;
+    serde_json::to_value(server.prompt_exports.list_prompts())
+        .map_err(|_| McpJsonRpcError::internal_error("failed to serialize prompt list"))
+}
+
+fn get_prompt(server: &McpServerFixture, params: &Value) -> Result<Value, McpJsonRpcError> {
+    let params = require_object_params(params)?;
+    let name = required_string_param(params, "name")?;
+    let result = server
+        .prompt_exports
+        .get_prompt(name)
+        .map_err(|error| McpJsonRpcError::invalid_params(error.to_string()))?;
+
+    serde_json::to_value(result)
+        .map_err(|_| McpJsonRpcError::internal_error("failed to serialize prompt result"))
 }
 
 fn list_tools(server: &McpServerFixture, params: &Value) -> Result<Value, McpJsonRpcError> {

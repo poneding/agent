@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
 use crate::McpError;
@@ -97,6 +99,55 @@ pub struct McpPromptExport {
     descriptor: McpPromptDescriptor,
     messages: Vec<McpPromptMessage>,
     pub enabled: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Default)]
+pub struct McpPromptExportRegistry {
+    prompts: BTreeMap<String, McpPromptExport>,
+}
+
+impl McpPromptExportRegistry {
+    pub fn export_prompt(&mut self, export: McpPromptExport) -> Result<(), McpError> {
+        let name = export.descriptor.name.clone();
+        if self.prompts.contains_key(&name) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "duplicate MCP prompt export: {}",
+                redact_text(&name, MAX_PROMPT_METADATA_CHARS)
+            )));
+        }
+        self.prompts.insert(name, export);
+        Ok(())
+    }
+
+    pub fn export_disabled_prompt(&mut self, mut export: McpPromptExport) -> Result<(), McpError> {
+        export.enabled = false;
+        self.export_prompt(export)
+    }
+
+    #[must_use]
+    pub fn list_prompts(&self) -> McpPromptListResult {
+        McpPromptListResult {
+            prompts: self
+                .prompts
+                .values()
+                .filter(|export| export.enabled)
+                .map(|export| export.descriptor.clone())
+                .collect(),
+        }
+    }
+
+    pub fn get_prompt(&self, name: &str) -> Result<McpPromptGetResult, McpError> {
+        self.prompts
+            .get(name)
+            .filter(|export| export.enabled)
+            .map(McpPromptExport::get_result)
+            .ok_or_else(|| {
+                McpError::InvalidServerRequest(format!(
+                    "MCP prompt export not found: {}",
+                    redact_text(name, MAX_PROMPT_METADATA_CHARS)
+                ))
+            })
+    }
 }
 
 impl McpPromptExport {

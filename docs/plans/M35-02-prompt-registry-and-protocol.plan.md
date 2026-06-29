@@ -12,19 +12,19 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M35-02 spec and current server fixture/session code**
+- [x] **Step 1: Review M35-02 spec and current server fixture/session code**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add registry visibility tests**
-- [ ] **Step 2: Add prompts/list stdio test**
-- [ ] **Step 3: Add prompts/get stdio test**
+- [x] **Step 1: Add registry visibility tests**
+- [x] **Step 2: Add prompts/list stdio test**
+- [x] **Step 3: Add prompts/get stdio test**
 
 ### Task 3: Implement Registry and Protocol
 
-- [ ] **Step 1: Add prompt export registry**
-- [ ] **Step 2: Extend server fixture and method parser**
-- [ ] **Step 3: Route prompt JSON-RPC frames**
+- [x] **Step 1: Add prompt export registry**
+- [x] **Step 2: Extend server fixture and method parser**
+- [x] **Step 3: Route prompt JSON-RPC frames**
 
 ### Task 4: Verify
 
@@ -34,7 +34,15 @@ CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_protocol
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m35 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_protocol
+```
 
 ### Task 5: Commit
 
@@ -43,4 +51,4 @@ git add crates docs
 git commit -m "feat: add mcp prompt protocol runtime"
 ```
 
-- [ ] **Step 1: Commit M35-02**
+- [x] **Step 1: Commit M35-02**

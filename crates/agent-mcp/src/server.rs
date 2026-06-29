@@ -58,6 +58,8 @@ impl McpServerState {
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum McpServerMethod {
     Initialize,
+    PromptsList,
+    PromptsGet,
     ToolsList,
     ToolsCall,
     ResourcesList,
@@ -68,6 +70,8 @@ impl McpServerMethod {
     pub fn parse(value: &str) -> Result<Self, McpError> {
         match value {
             "initialize" => Ok(Self::Initialize),
+            "prompts/list" => Ok(Self::PromptsList),
+            "prompts/get" => Ok(Self::PromptsGet),
             "tools/list" => Ok(Self::ToolsList),
             "tools/call" => Ok(Self::ToolsCall),
             "resources/list" => Ok(Self::ResourcesList),
@@ -83,6 +87,8 @@ impl McpServerMethod {
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Initialize => "initialize",
+            Self::PromptsList => "prompts/list",
+            Self::PromptsGet => "prompts/get",
             Self::ToolsList => "tools/list",
             Self::ToolsCall => "tools/call",
             Self::ResourcesList => "resources/list",

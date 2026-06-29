@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M32 |
-| Milestone-level plans | Complete for M01-M32 |
+| Milestone-level specs | Complete for M01-M33 |
+| Milestone-level plans | Complete for M01-M33 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -275,6 +275,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M32-04 implementation | Complete |
 | M32-05 implementation | Complete |
 | M32 implementation | Complete |
+| M33 technical design | Complete |
+| M33 slice specs | Complete for M33-01 through M33-05 |
+| M33 slice plans | Complete for M33-01 through M33-05 |
+| M33 implementation | Planned |
 
 ## Milestone Spec and Plan Index
 
@@ -312,6 +316,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M30 MCP Server Export | `docs/specs/M30-mcp-server-export.spec.md` | `docs/plans/M30-mcp-server-export.plan.md` | Expose selected local tools and resources through a policy-aware MCP server mode. |
 | M31 MCP Stdio Server Runtime | `docs/specs/M31-mcp-stdio-server-runtime.spec.md` | `docs/plans/M31-mcp-stdio-server-runtime.plan.md` | Run a local MCP stdio server session over explicit exports, policy, and trace-safe diagnostics. |
 | M32 MCP Export Profile Runtime | `docs/specs/M32-mcp-export-profile-runtime.spec.md` | `docs/plans/M32-mcp-export-profile-runtime.plan.md` | Start the MCP stdio server from explicit, validated export profiles. |
+| M33 MCP Built-in Tool Export Runtime | `docs/specs/M33-mcp-builtin-tool-export-runtime.spec.md` | `docs/plans/M33-mcp-builtin-tool-export-runtime.plan.md` | Expose curated built-in workspace inspection tools through explicit MCP stdio export profiles. |
 
 ## M01 Slice Index
 
@@ -655,9 +660,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M32-04 CLI Profile Stdio | `docs/specs/M32-04-cli-profile-stdio.spec.md` | `docs/plans/M32-04-cli-profile-stdio.plan.md` | CLI profile flags for manifest-backed MCP stdio startup while preserving protocol-only stdout. |
 | M32-05 Runtime Hardening Docs | `docs/specs/M32-05-runtime-hardening-docs.spec.md` | `docs/plans/M32-05-runtime-hardening-docs.plan.md` | README usage docs, milestone status, and final M32 quality gate evidence. |
 
+## M33 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M33-00 MCP Built-in Tool Export Technical Design | `docs/specs/M33-00-mcp-builtin-tool-export-technical-design.spec.md` | `docs/plans/M33-00-mcp-builtin-tool-export-technical-design.plan.md` | Architecture baseline for curated built-in tool exports, workspace roots, manifest binding, CLI flags, policy, privacy, and verification. |
+| M33-01 Built-in Tool Export Catalog | `docs/specs/M33-01-builtin-tool-export-catalog.spec.md` | `docs/plans/M33-01-builtin-tool-export-catalog.plan.md` | Explicit catalog helper for read/search/git workspace inspection tools. |
+| M33-02 Manifest Tool Binding Diagnostics | `docs/specs/M33-02-manifest-tool-binding-diagnostics.spec.md` | `docs/plans/M33-02-manifest-tool-binding-diagnostics.plan.md` | Safe diagnostics for unknown, duplicate, disabled, and redacted manifest tool declarations. |
+| M33-03 CLI Workspace Tool Profile | `docs/specs/M33-03-cli-workspace-tool-profile.spec.md` | `docs/plans/M33-03-cli-workspace-tool-profile.plan.md` | `--workspace` backed stdio profile startup for built-in tool exports. |
+| M33-04 Stdio Tool Call E2E | `docs/specs/M33-04-stdio-tool-call-e2e.spec.md` | `docs/plans/M33-04-stdio-tool-call-e2e.plan.md` | End-to-end JSON-RPC listing and calling of manifest-exported built-in tools. |
+| M33-05 Hardening Docs | `docs/specs/M33-05-hardening-docs.spec.md` | `docs/plans/M33-05-hardening-docs.plan.md` | README usage docs, milestone status, and final M33 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M32 complete; next milestone planning can start.
+Current implementation focus: `M33-01 built-in tool export catalog`.
 
 Most recent completed implementation documents:
 
@@ -702,7 +718,10 @@ Most recent completed implementation documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M32-00-mcp-export-profile-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M32-00-mcp-export-profile-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M33-00-mcp-builtin-tool-export-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M33-00-mcp-builtin-tool-export-technical-design.plan.md`
 
-Next implementation slice: not assigned after M32 completion.
+Next implementation slice:
+
+- `docs/specs/M33-01-builtin-tool-export-catalog.spec.md`
+- `docs/plans/M33-01-builtin-tool-export-catalog.plan.md`

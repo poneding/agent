@@ -231,6 +231,7 @@ When `--out-dir` is provided, reports are written as:
 - [Latest completed spec](docs/specs/M32-05-runtime-hardening-docs.spec.md)
 - [Latest completed plan](docs/plans/M32-05-runtime-hardening-docs.plan.md)
 - [Latest completed milestone](docs/specs/M32-mcp-export-profile-runtime.spec.md)
+- [Active milestone](docs/specs/M33-mcp-builtin-tool-export-runtime.spec.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

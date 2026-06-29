@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use agent_policy::PolicyEngine;
 use agent_tool::ToolRegistry;
 use agent_types::{ActorRef, CorrelationId};
@@ -149,9 +151,10 @@ fn list_prompts(server: &McpServerFixture, params: &Value) -> Result<Value, McpJ
 fn get_prompt(server: &McpServerFixture, params: &Value) -> Result<Value, McpJsonRpcError> {
     let params = require_object_params(params)?;
     let name = required_string_param(params, "name")?;
+    let arguments = optional_string_arguments_param(params)?;
     let result = server
         .prompt_exports
-        .get_prompt(name)
+        .get_prompt_with_arguments(name, &arguments)
         .map_err(|error| McpJsonRpcError::invalid_params(error.to_string()))?;
 
     serde_json::to_value(result)
@@ -236,6 +239,28 @@ fn required_string_param<'a>(
         .and_then(Value::as_str)
         .filter(|value| !value.trim().is_empty())
         .ok_or_else(|| McpJsonRpcError::invalid_params(format!("missing string param: {name}")))
+}
+
+fn optional_string_arguments_param(
+    params: &Map<String, Value>,
+) -> Result<BTreeMap<String, String>, McpJsonRpcError> {
+    let Some(arguments) = params.get("arguments") else {
+        return Ok(BTreeMap::new());
+    };
+    let arguments = arguments
+        .as_object()
+        .ok_or_else(|| McpJsonRpcError::invalid_params("arguments must be an object"))?;
+    arguments
+        .iter()
+        .map(|(name, value)| {
+            value
+                .as_str()
+                .map(|value| (name.clone(), value.to_string()))
+                .ok_or_else(|| {
+                    McpJsonRpcError::invalid_params(format!("argument must be a string: {name}"))
+                })
+        })
+        .collect()
 }
 
 #[derive(serde::Serialize)]

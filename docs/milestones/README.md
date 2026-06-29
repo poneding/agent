@@ -308,6 +308,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M36-01 implementation | Complete |
 | M36-02 implementation | Complete |
 | M36-03 implementation | Complete |
+| M36-04 implementation | Complete |
 | M36 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -739,7 +740,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M36-04 CLI stdio prompt arguments`.
+Current implementation focus: `M36-05 hardening docs`.
 
 Most recent completed implementation documents:
 
@@ -817,6 +818,8 @@ Most recent completed implementation documents:
 - `docs/plans/M36-02-prompt-template-rendering.plan.md`
 - `docs/specs/M36-03-manifest-prompt-arguments.spec.md`
 - `docs/plans/M36-03-manifest-prompt-arguments.plan.md`
+- `docs/specs/M36-04-cli-stdio-prompt-arguments.spec.md`
+- `docs/plans/M36-04-cli-stdio-prompt-arguments.plan.md`
 
 Most recent completed planning documents:
 
@@ -842,5 +845,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M36-01-prompt-argument-contracts.spec.md`
-- `docs/plans/M36-01-prompt-argument-contracts.plan.md`
+- `docs/specs/M36-05-hardening-docs.spec.md`
+- `docs/plans/M36-05-hardening-docs.plan.md`

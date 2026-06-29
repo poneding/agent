@@ -143,6 +143,7 @@ async fn mcp_gateway_stdio_tool_call_discovers_registers_and_executes_remote_too
             value: json!({
                 "path": "README.md",
                 "token": "sk-secret",
+                "note": "prefix sk-secret suffix",
             }),
         })
         .expect("execute");
@@ -162,4 +163,8 @@ async fn mcp_gateway_stdio_tool_call_discovers_registers_and_executes_remote_too
     assert_eq!(call["params"]["name"], "read_file");
     assert_eq!(call["params"]["arguments"]["path"], "README.md");
     assert_eq!(call["params"]["arguments"]["token"], "[redacted]");
+    assert_eq!(
+        call["params"]["arguments"]["note"],
+        "prefix [redacted] suffix"
+    );
 }

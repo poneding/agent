@@ -228,3 +228,34 @@ async fn mcp_client_stdio_tool_call_failure_error_is_redacted() {
     assert!(!message.contains(remote_secret));
     assert!(!message.contains("sk-secret-token"));
 }
+
+#[tokio::test]
+async fn mcp_client_stdio_tool_call_invalid_result_shape_is_redacted() {
+    let config = config();
+    let raw_result = "sk-secret-token should not leak from malformed result";
+    let (transport, _sent_frames) = RecordingTransport::from_inbound_frames([
+        initialize_frame(),
+        json!({
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": raw_result
+        })
+        .to_string(),
+    ]);
+    let client = McpStdioClient::new(transport);
+    client.initialize(&config).await.expect("initialize");
+
+    let error = client
+        .call_tool(McpToolCallRequest {
+            server_id: config.id.clone(),
+            remote_tool_name: "read_file".to_string(),
+            input_json: json!({}),
+        })
+        .await
+        .expect_err("invalid result");
+    let message = error.to_string();
+
+    assert!(message.contains("invalid MCP client stdio tools/call result"));
+    assert!(!message.contains(raw_result));
+    assert!(!message.contains("sk-secret-token"));
+}

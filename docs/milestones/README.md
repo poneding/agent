@@ -379,7 +379,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M44 slice plans | Complete for M44-01 through M44-05 |
 | M44-01 implementation | Complete |
 | M44-02 implementation | Complete |
-| M44-03 implementation | In progress |
+| M44-03 implementation | Complete |
+| M44-04 implementation | In progress |
 | M44 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -907,7 +908,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M44-03 tool call redaction and limits.
+Current implementation focus: M44-04 process E2E.
 
 Most recent completed implementation documents:
 

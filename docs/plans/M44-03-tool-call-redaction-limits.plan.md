@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/client_stdio.rs`
 - Read: `crates/agent-mcp/src/gateway.rs`
 
-- [ ] **Step 1: Review existing redaction helpers**
+- [x] **Step 1: Review existing redaction helpers**
 
 ### Task 2: Add Negative Tests
 
@@ -25,7 +25,7 @@
 - Modify: `crates/agent-mcp/tests/mcp_client_stdio_tool_call.rs`
 - Modify: `crates/agent-mcp/tests/mcp_gateway_stdio_tool_call.rs`
 
-- [ ] **Step 1: Add failure and redaction regressions**
+- [x] **Step 1: Add failure and redaction regressions**
 
 ### Task 3: Implement Hardening
 
@@ -33,11 +33,11 @@
 - Modify: `crates/agent-mcp/src/client_stdio.rs`
 - Modify: `crates/agent-mcp/src/gateway.rs`
 
-- [ ] **Step 1: Fix any leaking diagnostics**
+- [x] **Step 1: Fix any leaking diagnostics**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -50,7 +50,7 @@ CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M44-03**
+- [x] **Step 1: Commit M44-03**
 
 Run:
 

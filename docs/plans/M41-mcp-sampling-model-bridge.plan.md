@@ -49,7 +49,7 @@ Define crate ownership, bridge contracts, text-only mapping, unsupported content
 - [x] **Step 1: Add sampling model request mapping**
 - [x] **Step 2: Add provider-backed sampling execution**
 - [x] **Step 3: Add redacted bridge diagnostics**
-- [ ] **Step 4: Add unsupported-path guardrails**
+- [x] **Step 4: Add unsupported-path guardrails**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M41

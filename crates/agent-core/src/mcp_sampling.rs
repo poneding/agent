@@ -107,8 +107,10 @@ impl McpSamplingProvider for McpModelSamplingProvider {
                     stop_reason = Some(finish_reason);
                 }
                 ModelStreamEvent::ToolCall { .. } => {
-                    return Err(McpError::InvalidServerRequest(
-                        "sampling model stream rejected: tool_call".to_string(),
+                    return Err(mcp_error_from_bridge_error(
+                        McpSamplingModelBridgeError::UnsupportedContent(
+                            "model_tool_call".to_string(),
+                        ),
                     ));
                 }
             }

@@ -17,7 +17,7 @@
 - Read: `crates/agent-core/src/mcp_sampling.rs`
 - Read: `crates/agent-model/src/fake.rs`
 
-- [ ] **Step 1: Review unsupported paths**
+- [x] **Step 1: Review unsupported paths**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: fake provider can emit model ToolCall events for rejection tests.
 **Files:**
 - Create: `crates/agent-core/tests/mcp_sampling_model_guardrails.rs`
 
-- [ ] **Step 1: Add guardrail tests**
+- [x] **Step 1: Add guardrail tests**
 
 Add tests named:
 
@@ -44,7 +44,7 @@ mcp_sampling_model_guardrails_reject_model_tool_call_without_input_leak
 mcp_sampling_model_guardrails_reject_media_before_streaming
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -59,21 +59,21 @@ Expected: tests fail until guardrails are explicit and covered.
 **Files:**
 - Modify: `crates/agent-core/src/mcp_sampling.rs`
 
-- [ ] **Step 1: Reject invalid requests before provider execution**
+- [x] **Step 1: Reject invalid requests before provider execution**
 
 Ensure validation happens before calling `ModelProvider::stream`.
 
-- [ ] **Step 2: Reject model tool-call stream events**
+- [x] **Step 2: Reject model tool-call stream events**
 
 Return a redacted bridge error when `ModelStreamEvent::ToolCall` appears.
 
-- [ ] **Step 3: Keep media rejection before streaming**
+- [x] **Step 3: Keep media rejection before streaming**
 
 Ensure image/audio content produces unsupported content errors before provider execution.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -87,7 +87,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M41-04**
+- [x] **Step 1: Commit M41-04**
 
 Run:
 

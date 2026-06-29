@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/client_sampling.rs`
 - Read: `crates/agent-mcp/src/client_sampling_stdio.rs`
 
-- [ ] **Step 1: Review validation behavior**
+- [x] **Step 1: Review validation behavior**
 
 Expected: M40 default validation is still the source of truth.
 
@@ -26,7 +26,7 @@ Expected: M40 default validation is still the source of truth.
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_sampling_stdio_validation.rs`
 
-- [ ] **Step 1: Add validation tests**
+- [x] **Step 1: Add validation tests**
 
 Add tests named:
 
@@ -37,7 +37,7 @@ mcp_sampling_stdio_validation_rejects_invalid_tokens_before_provider
 mcp_sampling_stdio_validation_rejects_malformed_params_before_provider
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -52,13 +52,13 @@ Expected: tests fail until dispatcher validation behavior is explicit and covere
 **Files:**
 - Modify: `crates/agent-mcp/src/client_sampling_stdio.rs`
 
-- [ ] **Step 1: Ensure invalid params fail before provider**
-- [ ] **Step 2: Ensure sampling validation failures fail before provider**
-- [ ] **Step 3: Keep JSON-RPC error shape stable**
+- [x] **Step 1: Ensure invalid params fail before provider**
+- [x] **Step 2: Ensure sampling validation failures fail before provider**
+- [x] **Step 3: Keep JSON-RPC error shape stable**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -72,7 +72,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M42-03**
+- [x] **Step 1: Commit M42-03**
 
 Run:
 

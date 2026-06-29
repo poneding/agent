@@ -5,6 +5,8 @@ use crate::{
 };
 
 const MAX_SAMPLING_STDIO_FRAME_BYTES: usize = 64 * 1024;
+const MAX_SAMPLING_STDIO_ERROR_MESSAGE_CHARS: usize = 256;
+const SAMPLING_REJECTION_PREFIX: &str = "sampling request rejected: ";
 
 pub const MCP_SAMPLING_CREATE_MESSAGE_METHOD: &str = "sampling/createMessage";
 
@@ -83,10 +85,40 @@ fn render_frame<T: serde::Serialize>(frame: &T) -> String {
 
 fn mcp_error_to_json_rpc_error(error: McpError) -> McpJsonRpcError {
     match error {
+        McpError::InvalidServerRequest(message) if is_safe_sampling_rejection(&message) => {
+            McpJsonRpcError {
+                code: -32600,
+                message: bound_public_error_message(&message),
+            }
+        }
         McpError::InvalidServerRequest(message) => McpJsonRpcError::invalid_request(message),
         McpError::InvalidConfig(message)
         | McpError::InvalidToolDescriptor(message)
         | McpError::ServerNotFound(message)
         | McpError::Client(message) => McpJsonRpcError::internal_error(message),
+    }
+}
+
+fn is_safe_sampling_rejection(message: &str) -> bool {
+    let Some(codes) = message.strip_prefix(SAMPLING_REJECTION_PREFIX) else {
+        return false;
+    };
+
+    !codes.is_empty()
+        && codes.split(", ").all(|code| {
+            !code.is_empty() && code.chars().all(|ch| ch.is_ascii_lowercase() || ch == '_')
+        })
+}
+
+fn bound_public_error_message(message: &str) -> String {
+    let mut chars = message.chars();
+    let bounded = chars
+        .by_ref()
+        .take(MAX_SAMPLING_STDIO_ERROR_MESSAGE_CHARS)
+        .collect::<String>();
+    if chars.next().is_some() {
+        format!("{bounded}...")
+    } else {
+        bounded
     }
 }

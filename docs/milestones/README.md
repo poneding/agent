@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M41 |
-| Milestone-level plans | Complete for M01-M41 |
+| Milestone-level specs | Complete for M01-M42 |
+| Milestone-level plans | Complete for M01-M42 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -356,6 +356,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M41-04 implementation | Complete |
 | M41-05 implementation | Complete |
 | M41 implementation | Complete |
+| M42 technical design | Complete |
+| M42 slice specs | Complete for M42-01 through M42-05 |
+| M42 slice plans | Complete for M42-01 through M42-05 |
+| M42-01 implementation | In progress |
+| M42 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -402,6 +407,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M39 MCP Client Roots Runtime | `docs/specs/M39-mcp-client-roots-runtime.spec.md` | `docs/plans/M39-mcp-client-roots-runtime.plan.md` | Provide explicit, bounded MCP client roots to external servers through gateway flows. |
 | M40 MCP Sampling Runtime | `docs/specs/M40-mcp-sampling-runtime.spec.md` | `docs/plans/M40-mcp-sampling-runtime.plan.md` | Provide a safe MCP `sampling/createMessage` foundation for external servers while preserving local model, approval, and tool policy boundaries. |
 | M41 MCP Sampling Model Bridge Runtime | `docs/specs/M41-mcp-sampling-model-bridge.spec.md` | `docs/plans/M41-mcp-sampling-model-bridge.plan.md` | Bridge safe text-only MCP sampling requests into local `agent-model` providers without exposing credentials, tools, or raw diagnostics. |
+| M42 MCP Sampling Stdio Dispatch Runtime | `docs/specs/M42-mcp-sampling-stdio-dispatch.spec.md` | `docs/plans/M42-mcp-sampling-stdio-dispatch.plan.md` | Dispatch server-initiated MCP `sampling/createMessage` JSON-RPC frames through local sampling providers with safe validation and redacted diagnostics. |
 
 ## M01 Slice Index
 
@@ -844,9 +850,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M41-04 Sampling Bridge Guardrails | `docs/specs/M41-04-sampling-bridge-guardrails.spec.md` | `docs/plans/M41-04-sampling-bridge-guardrails.plan.md` | Explicit rejection of unsupported tool, context, media, and model tool-call paths. |
 | M41-05 Hardening Docs | `docs/specs/M41-05-hardening-docs.spec.md` | `docs/plans/M41-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M41 quality gate evidence. |
 
+## M42 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M42-00 MCP Sampling Stdio Dispatch Technical Design | `docs/specs/M42-00-mcp-sampling-stdio-dispatch-technical-design.spec.md` | `docs/plans/M42-00-mcp-sampling-stdio-dispatch-technical-design.plan.md` | Architecture baseline for sampling JSON-RPC frame dispatch, provider invocation, validation, and redaction. |
+| M42-01 Sampling Stdio Frame Contracts | `docs/specs/M42-01-sampling-stdio-frame-contracts.spec.md` | `docs/plans/M42-01-sampling-stdio-frame-contracts.plan.md` | Public sampling stdio method constants, frame parsing helpers, and JSON-RPC contract tests. |
+| M42-02 Sampling Stdio Dispatcher | `docs/specs/M42-02-sampling-stdio-dispatcher.spec.md` | `docs/plans/M42-02-sampling-stdio-dispatcher.plan.md` | Provider-backed dispatch from valid `sampling/createMessage` frames to JSON-RPC success frames. |
+| M42-03 Sampling Stdio Validation | `docs/specs/M42-03-sampling-stdio-validation.spec.md` | `docs/plans/M42-03-sampling-stdio-validation.plan.md` | Validation-before-provider guardrails for tools, context, invalid tokens, and malformed params. |
+| M42-04 Sampling Stdio Redaction | `docs/specs/M42-04-sampling-stdio-redaction.spec.md` | `docs/plans/M42-04-sampling-stdio-redaction.plan.md` | Bounded, redacted JSON-RPC errors for invalid frames, rejected requests, and provider failures. |
+| M42-05 Hardening Docs | `docs/specs/M42-05-hardening-docs.spec.md` | `docs/plans/M42-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M42 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: pending next milestone planning.
+Current implementation focus: M42-01 sampling stdio frame contracts.
 
 Most recent completed implementation documents:
 
@@ -981,6 +998,20 @@ Most recent completed implementation documents:
 
 Most recent completed planning documents:
 
+- `docs/specs/M42-mcp-sampling-stdio-dispatch.spec.md`
+- `docs/plans/M42-mcp-sampling-stdio-dispatch.plan.md`
+- `docs/specs/M42-00-mcp-sampling-stdio-dispatch-technical-design.spec.md`
+- `docs/plans/M42-00-mcp-sampling-stdio-dispatch-technical-design.plan.md`
+- `docs/specs/M42-01-sampling-stdio-frame-contracts.spec.md`
+- `docs/plans/M42-01-sampling-stdio-frame-contracts.plan.md`
+- `docs/specs/M42-02-sampling-stdio-dispatcher.spec.md`
+- `docs/plans/M42-02-sampling-stdio-dispatcher.plan.md`
+- `docs/specs/M42-03-sampling-stdio-validation.spec.md`
+- `docs/plans/M42-03-sampling-stdio-validation.plan.md`
+- `docs/specs/M42-04-sampling-stdio-redaction.spec.md`
+- `docs/plans/M42-04-sampling-stdio-redaction.plan.md`
+- `docs/specs/M42-05-hardening-docs.spec.md`
+- `docs/plans/M42-05-hardening-docs.plan.md`
 - `docs/specs/M41-mcp-sampling-model-bridge.spec.md`
 - `docs/plans/M41-mcp-sampling-model-bridge.plan.md`
 - `docs/specs/M41-00-mcp-sampling-model-bridge-technical-design.spec.md`
@@ -1068,9 +1099,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M41-00-mcp-sampling-model-bridge-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M41-00-mcp-sampling-model-bridge-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M42-00-mcp-sampling-stdio-dispatch-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M42-00-mcp-sampling-stdio-dispatch-technical-design.plan.md`
 
 Next implementation slice:
 
-- Pending next milestone planning.
+- `docs/specs/M42-01-sampling-stdio-frame-contracts.spec.md`
+- `docs/plans/M42-01-sampling-stdio-frame-contracts.plan.md`

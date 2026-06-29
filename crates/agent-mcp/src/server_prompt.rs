@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
@@ -13,6 +13,8 @@ pub struct McpPromptDescriptor {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub arguments: Vec<McpPromptArgument>,
 }
 
 impl McpPromptDescriptor {
@@ -20,13 +22,52 @@ impl McpPromptDescriptor {
         name: impl Into<String>,
         description: Option<impl Into<String>>,
     ) -> Result<Self, McpError> {
+        Self::new_with_arguments(name, description, Vec::new())
+    }
+
+    pub fn new_with_arguments(
+        name: impl Into<String>,
+        description: Option<impl Into<String>>,
+        arguments: Vec<McpPromptArgument>,
+    ) -> Result<Self, McpError> {
         let description = description
             .map(Into::into)
             .map(|description| validate_public_text("MCP prompt description", &description))
             .transpose()?;
+        validate_prompt_arguments(&arguments)?;
         Ok(Self {
             name: validate_identifier_text("MCP prompt name", &name.into())?,
             description,
+            arguments,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpPromptArgument {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub required: bool,
+}
+
+impl McpPromptArgument {
+    pub fn new(
+        name: impl Into<String>,
+        description: Option<impl Into<String>>,
+        required: bool,
+    ) -> Result<Self, McpError> {
+        let description = description
+            .map(Into::into)
+            .map(|description| {
+                validate_public_text("MCP prompt argument description", &description)
+            })
+            .transpose()?;
+        Ok(Self {
+            name: validate_identifier_text("MCP prompt argument name", &name.into())?,
+            description,
+            required,
         })
     }
 }
@@ -66,6 +107,33 @@ impl McpPromptContent {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpPromptListResult {
     pub prompts: Vec<McpPromptDescriptor>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpPromptGetParams {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub arguments: BTreeMap<String, String>,
+}
+
+impl McpPromptGetParams {
+    pub fn new(name: impl Into<String>) -> Result<Self, McpError> {
+        Ok(Self {
+            name: validate_identifier_text("MCP prompt get name", &name.into())?,
+            arguments: BTreeMap::new(),
+        })
+    }
+
+    pub fn with_argument(
+        mut self,
+        name: impl Into<String>,
+        value: impl Into<String>,
+    ) -> Result<Self, McpError> {
+        let name = validate_identifier_text("MCP prompt argument name", &name.into())?;
+        let value = redact_text(&value.into(), MAX_PROMPT_TEXT_CHARS);
+        self.arguments.insert(name, value);
+        Ok(self)
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -157,13 +225,23 @@ impl McpPromptExport {
         messages: Vec<McpPromptMessage>,
         enabled: bool,
     ) -> Result<Self, McpError> {
+        Self::new_with_arguments(name, description, Vec::new(), messages, enabled)
+    }
+
+    pub fn new_with_arguments(
+        name: impl Into<String>,
+        description: Option<impl Into<String>>,
+        arguments: Vec<McpPromptArgument>,
+        messages: Vec<McpPromptMessage>,
+        enabled: bool,
+    ) -> Result<Self, McpError> {
         if messages.is_empty() {
             return Err(McpError::InvalidServerRequest(
                 "MCP prompt export requires at least one messages entry".to_string(),
             ));
         }
         Ok(Self {
-            descriptor: McpPromptDescriptor::new(name, description)?,
+            descriptor: McpPromptDescriptor::new_with_arguments(name, description, arguments)?,
             messages,
             enabled,
         })
@@ -182,6 +260,19 @@ impl McpPromptExport {
             messages: self.messages.clone(),
         }
     }
+}
+
+fn validate_prompt_arguments(arguments: &[McpPromptArgument]) -> Result<(), McpError> {
+    let mut names = BTreeSet::new();
+    for argument in arguments {
+        if !names.insert(argument.name.clone()) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "duplicate MCP prompt argument: {}",
+                redact_text(&argument.name, MAX_PROMPT_METADATA_CHARS)
+            )));
+        }
+    }
+    Ok(())
 }
 
 fn validate_identifier_text(field: &str, value: &str) -> Result<String, McpError> {

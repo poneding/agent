@@ -46,7 +46,7 @@ Define prompt argument ownership, string-only scope, template rendering, manifes
 - Execute: `docs/plans/M36-04-cli-stdio-prompt-arguments.plan.md`
 - Execute: `docs/plans/M36-05-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add prompt argument contracts**
+- [x] **Step 1: Add prompt argument contracts**
 - [ ] **Step 2: Add template rendering and argument validation**
 - [ ] **Step 3: Add manifest prompt argument declarations**
 - [ ] **Step 4: Wire CLI stdio prompt arguments**

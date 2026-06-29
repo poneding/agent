@@ -22,8 +22,9 @@ pub mod tool;
 pub mod tool_mapping;
 
 pub use client::{
-    FixtureMcpClient, McpClient, McpGatewayClient, McpInitializeResult, McpServerCapabilities,
-    McpServerHealth, McpServerStatus, check_mcp_server_health,
+    FixtureMcpClient, McpClient, McpClientRootProvider, McpGatewayClient, McpInitializeResult,
+    McpServerCapabilities, McpServerHealth, McpServerStatus, check_mcp_server_health,
+    list_mcp_client_roots,
 };
 pub use client_roots::{
     MCP_ROOTS_LIST_CHANGED_NOTIFICATION_METHOD, McpClientCapabilities, McpClientRootCandidate,

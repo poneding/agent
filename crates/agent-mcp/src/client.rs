@@ -5,8 +5,8 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    McpError, McpServerConfig, McpServerId, McpToolCallRequest, McpToolCallResult,
-    McpToolDescriptor, McpToolListResult,
+    McpClientCapabilities, McpClientRootsCapability, McpError, McpRootListResult, McpServerConfig,
+    McpServerId, McpToolCallRequest, McpToolCallResult, McpToolDescriptor, McpToolListResult,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -60,6 +60,11 @@ pub struct McpServerHealth {
 }
 
 #[async_trait]
+pub trait McpClientRootProvider: Send + Sync {
+    async fn list_roots(&self, server_id: &McpServerId) -> Result<McpRootListResult, McpError>;
+}
+
+#[async_trait]
 pub trait McpClient: Send + Sync {
     async fn initialize(&self, config: &McpServerConfig) -> Result<McpInitializeResult, McpError>;
 
@@ -67,7 +72,7 @@ pub trait McpClient: Send + Sync {
 }
 
 #[async_trait]
-pub trait McpGatewayClient: McpClient {
+pub trait McpGatewayClient: McpClient + McpClientRootProvider {
     async fn call_tool(&self, request: McpToolCallRequest) -> Result<McpToolCallResult, McpError>;
 }
 
@@ -75,8 +80,10 @@ pub trait McpGatewayClient: McpClient {
 pub struct FixtureMcpClient {
     servers: BTreeMap<McpServerId, McpInitializeResult>,
     tools: BTreeMap<McpServerId, McpToolListResult>,
+    roots: BTreeMap<McpServerId, McpRootListResult>,
     tool_results: BTreeMap<(McpServerId, String), Result<McpToolCallResult, McpError>>,
     calls: Arc<Mutex<BTreeMap<(McpServerId, String), u32>>>,
+    client_capabilities: McpClientCapabilities,
 }
 
 impl FixtureMcpClient {
@@ -96,6 +103,28 @@ impl FixtureMcpClient {
         self.tools
             .insert(server_id.clone(), McpToolListResult::new(server_id, tools));
         self
+    }
+
+    #[must_use]
+    pub fn with_roots(mut self, server_id: McpServerId, roots: McpRootListResult) -> Self {
+        self.roots.insert(server_id, roots);
+        if self.client_capabilities.roots.is_none() {
+            self.client_capabilities =
+                McpClientCapabilities::with_roots(McpClientRootsCapability::new(false));
+        }
+        self
+    }
+
+    #[must_use]
+    pub fn with_roots_list_changed(mut self, list_changed: bool) -> Self {
+        self.client_capabilities =
+            McpClientCapabilities::with_roots(McpClientRootsCapability::new(list_changed));
+        self
+    }
+
+    #[must_use]
+    pub fn client_capabilities(&self) -> McpClientCapabilities {
+        self.client_capabilities.clone()
     }
 
     #[must_use]
@@ -154,6 +183,20 @@ impl McpClient for FixtureMcpClient {
 }
 
 #[async_trait]
+impl McpClientRootProvider for FixtureMcpClient {
+    async fn list_roots(&self, server_id: &McpServerId) -> Result<McpRootListResult, McpError> {
+        if !self.servers.contains_key(server_id) {
+            return Err(McpError::ServerNotFound(server_id.to_string()));
+        }
+        Ok(self
+            .roots
+            .get(server_id)
+            .cloned()
+            .unwrap_or_else(McpRootListResult::empty))
+    }
+}
+
+#[async_trait]
 impl McpGatewayClient for FixtureMcpClient {
     async fn call_tool(&self, request: McpToolCallRequest) -> Result<McpToolCallResult, McpError> {
         let key = (request.server_id, request.remote_tool_name);
@@ -168,6 +211,16 @@ impl McpGatewayClient for FixtureMcpClient {
             .cloned()
             .unwrap_or_else(|| Err(McpError::ServerNotFound(key.0.to_string())))
     }
+}
+
+pub async fn list_mcp_client_roots(
+    client: &dyn McpClientRootProvider,
+    config: &McpServerConfig,
+) -> Result<McpRootListResult, McpError> {
+    if !config.enabled {
+        return Ok(McpRootListResult::empty());
+    }
+    client.list_roots(&config.id).await
 }
 
 pub async fn check_mcp_server_health(

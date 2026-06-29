@@ -359,7 +359,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M42 technical design | Complete |
 | M42 slice specs | Complete for M42-01 through M42-05 |
 | M42 slice plans | Complete for M42-01 through M42-05 |
-| M42-01 implementation | In progress |
+| M42-01 implementation | Complete |
+| M42-02 implementation | In progress |
 | M42 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -863,10 +864,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M42-01 sampling stdio frame contracts.
+Current implementation focus: M42-02 sampling stdio dispatcher.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M42-01-sampling-stdio-frame-contracts.spec.md`
+- `docs/plans/M42-01-sampling-stdio-frame-contracts.plan.md`
 - `docs/specs/M41-01-sampling-model-request-mapping.spec.md`
 - `docs/plans/M41-01-sampling-model-request-mapping.plan.md`
 - `docs/specs/M41-02-sampling-model-provider.spec.md`

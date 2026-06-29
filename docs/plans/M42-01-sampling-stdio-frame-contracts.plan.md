@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/server.rs`
 - Read: `crates/agent-mcp/src/client_sampling.rs`
 
-- [ ] **Step 1: Review frame and sampling contracts**
+- [x] **Step 1: Review frame and sampling contracts**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: existing JSON-RPC envelopes and sampling params can be reused.
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_sampling_stdio_contracts.rs`
 
-- [ ] **Step 1: Add contract tests**
+- [x] **Step 1: Add contract tests**
 
 Add tests named:
 
@@ -44,7 +44,7 @@ mcp_sampling_stdio_contracts_reject_unsupported_method_safely
 mcp_sampling_stdio_contracts_reject_invalid_params
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -60,13 +60,13 @@ Expected: tests fail because sampling stdio contracts do not exist.
 - Modify: `crates/agent-mcp/src/lib.rs`
 - Create: `crates/agent-mcp/src/client_sampling_stdio.rs`
 
-- [ ] **Step 1: Add method constant**
-- [ ] **Step 2: Add request parser helper**
-- [ ] **Step 3: Export public contracts**
+- [x] **Step 1: Add method constant**
+- [x] **Step 2: Add request parser helper**
+- [x] **Step 3: Export public contracts**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -80,7 +80,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M42-01**
+- [x] **Step 1: Commit M42-01**
 
 Run:
 

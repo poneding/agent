@@ -46,7 +46,7 @@ Define crate ownership, JSON-RPC frame shape, dispatcher flow, validation-before
 - Execute: `docs/plans/M42-04-sampling-stdio-redaction.plan.md`
 - Execute: `docs/plans/M42-05-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add sampling stdio frame contracts**
+- [x] **Step 1: Add sampling stdio frame contracts**
 - [ ] **Step 2: Add provider-backed sampling stdio dispatcher**
 - [ ] **Step 3: Add validation-before-provider guardrails**
 - [ ] **Step 4: Add redacted public diagnostics**

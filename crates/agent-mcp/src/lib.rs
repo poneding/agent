@@ -4,6 +4,7 @@
 pub mod client;
 pub mod client_roots;
 pub mod client_sampling;
+pub mod client_sampling_stdio;
 pub mod config;
 pub mod error;
 pub mod gateway;
@@ -39,6 +40,9 @@ pub use client_sampling::{
     McpSamplingDiagnostic, McpSamplingDiagnosticSeverity, McpSamplingIncludeContext,
     McpSamplingMessage, McpSamplingRole, McpSamplingValidationPolicy, McpSamplingValidationReport,
     validate_mcp_sampling_request,
+};
+pub use client_sampling_stdio::{
+    MCP_SAMPLING_CREATE_MESSAGE_METHOD, parse_mcp_sampling_stdio_request_frame,
 };
 pub use config::{McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig};
 pub use error::McpError;

@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/client_sampling.rs`
 - Read: `crates/agent-mcp/src/error.rs`
 
-- [ ] **Step 1: Review validation scope and existing error style**
+- [x] **Step 1: Review validation scope and existing error style**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: validation stays in `agent-mcp` and produces redacted MCP diagnostics/
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_sampling_validation.rs`
 
-- [ ] **Step 1: Add accepted and rejected request tests**
+- [x] **Step 1: Add accepted and rejected request tests**
 
 Add tests named:
 
@@ -47,7 +47,7 @@ mcp_sampling_validation_rejects_unbalanced_tool_use_results
 mcp_sampling_validation_redacts_prompt_content_from_diagnostics
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -63,7 +63,7 @@ Expected: tests fail because validation does not exist yet.
 - Modify: `crates/agent-mcp/src/client_sampling.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add validation policy and diagnostics**
+- [x] **Step 1: Add validation policy and diagnostics**
 
 Implement `McpSamplingValidationPolicy::default()` with conservative values:
 
@@ -75,17 +75,26 @@ allow_tools: false
 allow_context: false
 ```
 
-- [ ] **Step 2: Add `validate_mcp_sampling_request`**
+- [x] **Step 2: Add `validate_mcp_sampling_request`**
 
 Validate message list, token bounds, context, tools, content sizes, MIME labels, and tool-result balance. Return `McpSamplingValidationReport`; callers reject provider execution when `accepted` is false. Do not include raw prompt text in diagnostic messages.
 
-- [ ] **Step 3: Export validation contracts**
+- [x] **Step 3: Export validation contracts**
 
 Export policy, report, diagnostics, and validation function from `lib.rs`.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_validation
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts
+```
 
 Run:
 
@@ -99,7 +108,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M40-02**
+- [x] **Step 1: Commit M40-02**
 
 Run:
 

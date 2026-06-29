@@ -47,7 +47,7 @@ Define sampling directionality, capability negotiation, request/result contracts
 - Execute: `docs/plans/M40-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add sampling contracts**
-- [ ] **Step 2: Add safe sampling request validation**
+- [x] **Step 2: Add safe sampling request validation**
 - [ ] **Step 3: Add client session sampling fixture behavior**
 - [ ] **Step 4: Wire gateway sampling diagnostics**
 - [ ] **Step 5: Add hardening docs and final verification**

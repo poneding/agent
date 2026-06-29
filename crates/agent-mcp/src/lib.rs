@@ -36,7 +36,9 @@ pub use client_roots::{
 pub use client_sampling::{
     McpClientSamplingCapability, McpCreateMessageRequestParams, McpCreateMessageResult,
     McpModelHint, McpModelPreferences, McpSamplingContent, McpSamplingContentList,
-    McpSamplingIncludeContext, McpSamplingMessage, McpSamplingRole,
+    McpSamplingDiagnostic, McpSamplingDiagnosticSeverity, McpSamplingIncludeContext,
+    McpSamplingMessage, McpSamplingRole, McpSamplingValidationPolicy, McpSamplingValidationReport,
+    validate_mcp_sampling_request,
 };
 pub use config::{McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig};
 pub use error::McpError;

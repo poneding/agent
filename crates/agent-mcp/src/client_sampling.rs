@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use serde::de::Error as _;
 use serde::ser::SerializeMap;
@@ -481,6 +481,356 @@ impl McpCreateMessageResult {
                 .map(|value| validate_public_sampling_text("sampling stop reason", &value.into()))
                 .transpose()?,
         })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpSamplingValidationPolicy {
+    pub allow_tools: bool,
+    pub allow_context: bool,
+    pub max_tokens_limit: u32,
+    pub max_text_chars: usize,
+    pub max_media_bytes_base64_chars: usize,
+}
+
+impl Default for McpSamplingValidationPolicy {
+    fn default() -> Self {
+        Self {
+            allow_tools: false,
+            allow_context: false,
+            max_tokens_limit: 4096,
+            max_text_chars: 16_384,
+            max_media_bytes_base64_chars: 1_048_576,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpSamplingValidationReport {
+    pub accepted: bool,
+    pub diagnostics: Vec<McpSamplingDiagnostic>,
+}
+
+impl McpSamplingValidationReport {
+    fn from_diagnostics(diagnostics: Vec<McpSamplingDiagnostic>) -> Self {
+        let accepted = diagnostics
+            .iter()
+            .all(|diagnostic| diagnostic.severity != McpSamplingDiagnosticSeverity::Error);
+        Self {
+            accepted,
+            diagnostics,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpSamplingDiagnosticSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpSamplingDiagnostic {
+    pub code: String,
+    pub severity: McpSamplingDiagnosticSeverity,
+    pub message: String,
+}
+
+impl McpSamplingDiagnostic {
+    fn error(code: impl Into<String>, message: impl Into<String>) -> Self {
+        Self {
+            code: code.into(),
+            severity: McpSamplingDiagnosticSeverity::Error,
+            message: redact_sampling_text(&message.into()),
+        }
+    }
+}
+
+#[must_use]
+pub fn validate_mcp_sampling_request(
+    request: &McpCreateMessageRequestParams,
+    policy: &McpSamplingValidationPolicy,
+) -> McpSamplingValidationReport {
+    let mut diagnostics = Vec::new();
+
+    if request.messages.is_empty() {
+        diagnostics.push(McpSamplingDiagnostic::error(
+            "empty_messages",
+            "sampling request must contain at least one message",
+        ));
+    }
+
+    if request.max_tokens == 0 {
+        diagnostics.push(McpSamplingDiagnostic::error(
+            "invalid_max_tokens",
+            "sampling maxTokens must be greater than zero",
+        ));
+    } else if request.max_tokens > policy.max_tokens_limit {
+        diagnostics.push(McpSamplingDiagnostic::error(
+            "max_tokens_exceeded",
+            format!(
+                "sampling maxTokens exceeds configured limit {}",
+                policy.max_tokens_limit
+            ),
+        ));
+    }
+
+    if !policy.allow_context && !request.include_context.is_none() {
+        diagnostics.push(McpSamplingDiagnostic::error(
+            "unsupported_context",
+            "sampling context inclusion is not enabled",
+        ));
+    }
+
+    if !policy.allow_tools && (!request.tools.is_empty() || request.tool_choice.is_some()) {
+        diagnostics.push(McpSamplingDiagnostic::error(
+            "unsupported_sampling_tools",
+            "sampling tools are not enabled",
+        ));
+    }
+
+    if let Some(system_prompt) = &request.system_prompt {
+        validate_text_bound(
+            &mut diagnostics,
+            "system_prompt_too_large",
+            "sampling system prompt",
+            system_prompt,
+            policy.max_text_chars,
+        );
+    }
+
+    for stop_sequence in &request.stop_sequences {
+        validate_text_bound(
+            &mut diagnostics,
+            "stop_sequence_too_large",
+            "sampling stop sequence",
+            stop_sequence,
+            policy.max_text_chars,
+        );
+    }
+
+    validate_messages(request, policy, &mut diagnostics);
+
+    McpSamplingValidationReport::from_diagnostics(diagnostics)
+}
+
+fn validate_messages(
+    request: &McpCreateMessageRequestParams,
+    policy: &McpSamplingValidationPolicy,
+    diagnostics: &mut Vec<McpSamplingDiagnostic>,
+) {
+    for (message_index, message) in request.messages.iter().enumerate() {
+        if message.content.is_empty() {
+            diagnostics.push(McpSamplingDiagnostic::error(
+                "empty_content",
+                format!("sampling message {message_index} has no content blocks"),
+            ));
+        }
+
+        let has_tool_result = message
+            .content
+            .content
+            .iter()
+            .any(|content| matches!(content, McpSamplingContent::ToolResult { .. }));
+        let all_tool_results = message
+            .content
+            .content
+            .iter()
+            .all(|content| matches!(content, McpSamplingContent::ToolResult { .. }));
+        if has_tool_result && !all_tool_results {
+            diagnostics.push(McpSamplingDiagnostic::error(
+                "mixed_tool_result_content",
+                format!("sampling message {message_index} mixes tool results with other content"),
+            ));
+        }
+
+        for content in &message.content.content {
+            validate_content(content, policy, diagnostics);
+        }
+    }
+
+    validate_tool_balance(&request.messages, diagnostics);
+}
+
+fn validate_content(
+    content: &McpSamplingContent,
+    policy: &McpSamplingValidationPolicy,
+    diagnostics: &mut Vec<McpSamplingDiagnostic>,
+) {
+    match content {
+        McpSamplingContent::Text { text } => {
+            if text.trim().is_empty() {
+                diagnostics.push(McpSamplingDiagnostic::error(
+                    "empty_text_content",
+                    "sampling text content cannot be empty",
+                ));
+            }
+            validate_text_bound(
+                diagnostics,
+                "text_too_large",
+                "sampling text content",
+                text,
+                policy.max_text_chars,
+            );
+        }
+        McpSamplingContent::Image { data, mime_type } => {
+            validate_media_content(
+                diagnostics,
+                "image",
+                data,
+                mime_type,
+                policy.max_media_bytes_base64_chars,
+            );
+        }
+        McpSamplingContent::Audio { data, mime_type } => {
+            validate_media_content(
+                diagnostics,
+                "audio",
+                data,
+                mime_type,
+                policy.max_media_bytes_base64_chars,
+            );
+        }
+        McpSamplingContent::ToolUse { id, name, .. } => {
+            validate_public_label(
+                diagnostics,
+                "invalid_tool_use_id",
+                "sampling tool use id",
+                id,
+            );
+            validate_public_label(diagnostics, "invalid_tool_name", "sampling tool name", name);
+        }
+        McpSamplingContent::ToolResult {
+            tool_use_id,
+            content,
+        } => {
+            validate_public_label(
+                diagnostics,
+                "invalid_tool_result_id",
+                "sampling tool result id",
+                tool_use_id,
+            );
+            if content.is_empty() {
+                diagnostics.push(McpSamplingDiagnostic::error(
+                    "empty_tool_result_content",
+                    "sampling tool result content cannot be empty",
+                ));
+            }
+            for nested in content {
+                validate_content(nested, policy, diagnostics);
+            }
+        }
+    }
+}
+
+fn validate_media_content(
+    diagnostics: &mut Vec<McpSamplingDiagnostic>,
+    kind: &str,
+    data: &str,
+    mime_type: &str,
+    max_media_bytes_base64_chars: usize,
+) {
+    if data.trim().is_empty() {
+        diagnostics.push(McpSamplingDiagnostic::error(
+            format!("empty_{kind}_data"),
+            format!("sampling {kind} data cannot be empty"),
+        ));
+    } else if data.chars().count() > max_media_bytes_base64_chars {
+        diagnostics.push(McpSamplingDiagnostic::error(
+            "media_too_large",
+            format!("sampling {kind} payload exceeds configured size limit"),
+        ));
+    }
+    validate_public_label(
+        diagnostics,
+        format!("invalid_{kind}_mime_type"),
+        format!("sampling {kind} MIME type"),
+        mime_type,
+    );
+}
+
+fn validate_tool_balance(
+    messages: &[McpSamplingMessage],
+    diagnostics: &mut Vec<McpSamplingDiagnostic>,
+) {
+    for (index, message) in messages.iter().enumerate() {
+        if message.role != McpSamplingRole::Assistant {
+            continue;
+        }
+        let tool_use_ids = message
+            .content
+            .content
+            .iter()
+            .filter_map(|content| match content {
+                McpSamplingContent::ToolUse { id, .. } => Some(id.as_str()),
+                _ => None,
+            })
+            .collect::<BTreeSet<_>>();
+        if tool_use_ids.is_empty() {
+            continue;
+        }
+
+        let Some(next_message) = messages.get(index + 1) else {
+            diagnostics.push(McpSamplingDiagnostic::error(
+                "unbalanced_tool_results",
+                "sampling assistant tool use is missing a following user tool result message",
+            ));
+            continue;
+        };
+        if next_message.role != McpSamplingRole::User {
+            diagnostics.push(McpSamplingDiagnostic::error(
+                "unbalanced_tool_results",
+                "sampling assistant tool use must be followed by a user tool result message",
+            ));
+            continue;
+        }
+
+        let tool_result_ids = next_message
+            .content
+            .content
+            .iter()
+            .filter_map(|content| match content {
+                McpSamplingContent::ToolResult { tool_use_id, .. } => Some(tool_use_id.as_str()),
+                _ => None,
+            })
+            .collect::<BTreeSet<_>>();
+        if tool_use_ids != tool_result_ids {
+            diagnostics.push(McpSamplingDiagnostic::error(
+                "unbalanced_tool_results",
+                "sampling tool result ids do not match the preceding assistant tool use ids",
+            ));
+        }
+    }
+}
+
+fn validate_text_bound(
+    diagnostics: &mut Vec<McpSamplingDiagnostic>,
+    code: &str,
+    field: &str,
+    value: &str,
+    max_text_chars: usize,
+) {
+    if value.chars().count() > max_text_chars {
+        diagnostics.push(McpSamplingDiagnostic::error(
+            code,
+            format!("{field} exceeds configured character limit {max_text_chars}"),
+        ));
+    }
+}
+
+fn validate_public_label(
+    diagnostics: &mut Vec<McpSamplingDiagnostic>,
+    code: impl Into<String>,
+    field: impl Into<String>,
+    value: &str,
+) {
+    if value.trim().is_empty() || is_secret_like(value) {
+        diagnostics.push(McpSamplingDiagnostic::error(
+            code,
+            format!("invalid {}", field.into()),
+        ));
     }
 }
 

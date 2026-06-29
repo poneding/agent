@@ -49,7 +49,7 @@ Define manifest ownership, profile construction, file resource boundaries, built
 - [x] **Step 1: Add export manifest contracts**
 - [x] **Step 2: Add resource export loader**
 - [x] **Step 3: Add tool export catalog**
-- [ ] **Step 4: Add CLI profile stdio flags**
+- [x] **Step 4: Add CLI profile stdio flags**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M32

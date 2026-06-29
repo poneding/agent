@@ -165,8 +165,65 @@ pub fn build_mcp_server_resource_profile_from_manifest(
 ) -> Result<McpServerProfileRuntime, McpError> {
     let profile = select_mcp_server_export_profile(manifest, profile_name)?;
     let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
-    let manifest_dir = manifest_dir.as_ref();
+    apply_manifest_resources_to_builder(profile, manifest_dir.as_ref(), &mut builder)?;
 
+    Ok(builder.build())
+}
+
+pub fn build_mcp_server_tool_profile_from_manifest(
+    manifest: &McpServerExportManifest,
+    profile_name: Option<&str>,
+    catalog: &McpServerToolExportCatalog,
+) -> Result<McpServerProfileRuntime, McpError> {
+    let profile = select_mcp_server_export_profile(manifest, profile_name)?;
+    let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
+    apply_manifest_tools_to_builder(profile, catalog, &mut builder)?;
+
+    Ok(builder.build())
+}
+
+pub fn build_mcp_server_profile_from_manifest(
+    manifest: &McpServerExportManifest,
+    profile_name: Option<&str>,
+    manifest_dir: impl AsRef<Path>,
+    catalog: &McpServerToolExportCatalog,
+) -> Result<McpServerProfileRuntime, McpError> {
+    let profile = select_mcp_server_export_profile(manifest, profile_name)?;
+    let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
+    apply_manifest_resources_to_builder(profile, manifest_dir.as_ref(), &mut builder)?;
+    apply_manifest_tools_to_builder(profile, catalog, &mut builder)?;
+
+    Ok(builder.build())
+}
+
+fn apply_manifest_tools_to_builder(
+    profile: &McpServerExportProfileConfig,
+    catalog: &McpServerToolExportCatalog,
+    builder: &mut McpServerExportProfileBuilder,
+) -> Result<(), McpError> {
+    for tool in &profile.tools {
+        let catalog_tool = catalog.get(&tool.name).ok_or_else(|| {
+            McpError::InvalidServerRequest(format!(
+                "MCP server export catalog tool not found: {}",
+                redact_text(&tool.name)
+            ))
+        })?;
+        let exportable = SharedCatalogTool::new(catalog_tool);
+        if tool.enabled {
+            builder.export_tool(exportable)?;
+        } else {
+            builder.export_disabled_tool(exportable)?;
+        }
+    }
+
+    Ok(())
+}
+
+fn apply_manifest_resources_to_builder(
+    profile: &McpServerExportProfileConfig,
+    manifest_dir: &Path,
+    builder: &mut McpServerExportProfileBuilder,
+) -> Result<(), McpError> {
     for resource in &profile.resources {
         let path = resolve_manifest_resource_path(manifest_dir, &resource.path)?;
         let contents = fs::read_to_string(&path).map_err(|_| {
@@ -204,33 +261,7 @@ pub fn build_mcp_server_resource_profile_from_manifest(
         }
     }
 
-    Ok(builder.build())
-}
-
-pub fn build_mcp_server_tool_profile_from_manifest(
-    manifest: &McpServerExportManifest,
-    profile_name: Option<&str>,
-    catalog: &McpServerToolExportCatalog,
-) -> Result<McpServerProfileRuntime, McpError> {
-    let profile = select_mcp_server_export_profile(manifest, profile_name)?;
-    let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
-
-    for tool in &profile.tools {
-        let catalog_tool = catalog.get(&tool.name).ok_or_else(|| {
-            McpError::InvalidServerRequest(format!(
-                "MCP server export catalog tool not found: {}",
-                redact_text(&tool.name)
-            ))
-        })?;
-        let exportable = SharedCatalogTool::new(catalog_tool);
-        if tool.enabled {
-            builder.export_tool(exportable)?;
-        } else {
-            builder.export_disabled_tool(exportable)?;
-        }
-    }
-
-    Ok(builder.build())
+    Ok(())
 }
 
 struct SharedCatalogTool {

@@ -21,7 +21,11 @@ fn mcp_server_stdio_command_parses_default_and_frame_limit() {
     let default = parse_cli_invocation(["mcp", "server", "stdio"]).expect("parse stdio");
     assert_eq!(
         default.command,
-        CliCommand::McpServer(McpServerCommand::Stdio { max_frames: None })
+        CliCommand::McpServer(McpServerCommand::Stdio {
+            max_frames: None,
+            profile_path: None,
+            profile_name: None
+        })
     );
 
     let limited =
@@ -29,7 +33,9 @@ fn mcp_server_stdio_command_parses_default_and_frame_limit() {
     assert_eq!(
         limited.command,
         CliCommand::McpServer(McpServerCommand::Stdio {
-            max_frames: Some(2)
+            max_frames: Some(2),
+            profile_path: None,
+            profile_name: None
         })
     );
 

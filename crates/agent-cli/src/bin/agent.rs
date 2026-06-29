@@ -19,15 +19,19 @@ fn main() {
             }
             if let agent_cli::CliCommand::McpServer(agent_cli::McpServerCommand::Stdio {
                 max_frames,
+                profile_path,
+                profile_name,
             }) = &invocation.command
             {
                 if invocation.output_mode != agent_cli::OutputMode::Text {
                     eprintln!("mcp server stdio does not support --json");
                     std::process::exit(2);
                 }
-                let status_code = agent_cli::run_mcp_server_stdio(
-                    agent_cli::McpServerStdioConfig::new(*max_frames),
-                );
+                let mut config = agent_cli::McpServerStdioConfig::new(*max_frames);
+                if let Some(profile_path) = profile_path {
+                    config = config.with_profile(profile_path.clone(), profile_name.clone());
+                }
+                let status_code = agent_cli::run_mcp_server_stdio(config);
                 if status_code != 0 {
                     std::process::exit(status_code);
                 }

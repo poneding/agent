@@ -29,9 +29,11 @@ use agent_eval::{
 };
 use agent_mcp::{
     MCP_SERVER_PROTOCOL_VERSION, McpResourceExportRegistry, McpServerCapabilities,
-    McpServerFixture, McpServerInfo, McpServerSession, McpServerSessionConfig,
-    McpServerSessionSummary, McpServerState, McpServerStatusSummary, McpToolExportRegistry,
+    McpServerFixture, McpServerInfo, McpServerProfileRuntime, McpServerSession,
+    McpServerSessionConfig, McpServerSessionSummary, McpServerState, McpServerStatusSummary,
+    McpServerToolExportCatalog, McpToolExportRegistry, build_mcp_server_profile_from_manifest,
     empty_mcp_server_export_profile, mcp_server_status_summary,
+    parse_mcp_server_export_manifest_json,
 };
 use agent_memory::{
     InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
@@ -146,18 +148,39 @@ pub enum ExtensionCommand {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum McpServerCommand {
     Status,
-    Stdio { max_frames: Option<u64> },
+    Stdio {
+        max_frames: Option<u64>,
+        profile_path: Option<PathBuf>,
+        profile_name: Option<String>,
+    },
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct McpServerStdioConfig {
     pub max_frames: Option<u64>,
+    pub profile_path: Option<PathBuf>,
+    pub profile_name: Option<String>,
 }
 
 impl McpServerStdioConfig {
     #[must_use]
-    pub const fn new(max_frames: Option<u64>) -> Self {
-        Self { max_frames }
+    pub fn new(max_frames: Option<u64>) -> Self {
+        Self {
+            max_frames,
+            profile_path: None,
+            profile_name: None,
+        }
+    }
+
+    #[must_use]
+    pub fn with_profile(
+        mut self,
+        profile_path: impl Into<PathBuf>,
+        profile_name: Option<String>,
+    ) -> Self {
+        self.profile_path = Some(profile_path.into());
+        self.profile_name = profile_name;
+        self
     }
 }
 
@@ -839,9 +862,14 @@ where
             no_plugin_extra_args(args, "mcp server status")?;
             McpServerCommand::Status
         }
-        "stdio" => McpServerCommand::Stdio {
-            max_frames: parse_mcp_stdio_args(args)?,
-        },
+        "stdio" => {
+            let config = parse_mcp_stdio_args(args)?;
+            McpServerCommand::Stdio {
+                max_frames: config.max_frames,
+                profile_path: config.profile_path,
+                profile_name: config.profile_name,
+            }
+        }
         _ => {
             return Err(CliError::UnknownArgument(format!(
                 "mcp server {subcommand}"
@@ -852,11 +880,13 @@ where
     Ok(CliCommand::McpServer(command))
 }
 
-fn parse_mcp_stdio_args<I>(args: &mut I) -> Result<Option<u64>, CliError>
+fn parse_mcp_stdio_args<I>(args: &mut I) -> Result<McpServerStdioConfig, CliError>
 where
     I: Iterator<Item = String>,
 {
     let mut max_frames = None;
+    let mut profile_path = None;
+    let mut profile_name = None;
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--max-frames" => {
@@ -871,10 +901,30 @@ where
                 }
                 max_frames = Some(parsed);
             }
+            "--profile" => {
+                let value = take_flag_value(args, &arg)?;
+                profile_path = Some(PathBuf::from(value));
+            }
+            "--profile-name" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                profile_name = Some(value);
+            }
             _ => return Err(CliError::UnknownArgument(format!("mcp server stdio {arg}"))),
         }
     }
-    Ok(max_frames)
+    if profile_name.is_some() && profile_path.is_none() {
+        return Err(CliError::UnknownArgument(
+            "mcp server stdio --profile-name requires --profile".to_string(),
+        ));
+    }
+    Ok(McpServerStdioConfig {
+        max_frames,
+        profile_path,
+        profile_name,
+    })
 }
 
 fn parse_memory_command<I>(args: &mut I) -> Result<CliCommand, CliError>
@@ -2590,9 +2640,7 @@ fn default_mcp_server_session(
     config: McpServerStdioConfig,
 ) -> Result<McpServerSession, McpServerStdioError> {
     let (_profile, tools, tool_exports, resource_exports) =
-        empty_mcp_server_export_profile("default")
-            .map_err(McpServerStdioError::bootstrap)?
-            .into_parts();
+        mcp_server_profile_runtime(&config)?.into_parts();
     let state = McpServerState::new(
         McpServerInfo::new(
             "agent",
@@ -2617,6 +2665,33 @@ fn default_mcp_server_session(
         fixture,
         McpServerSessionConfig::new(64 * 1024, config.max_frames),
     ))
+}
+
+fn mcp_server_profile_runtime(
+    config: &McpServerStdioConfig,
+) -> Result<McpServerProfileRuntime, McpServerStdioError> {
+    let Some(profile_path) = config.profile_path.as_ref() else {
+        return empty_mcp_server_export_profile("default").map_err(McpServerStdioError::bootstrap);
+    };
+
+    let manifest_json = fs::read_to_string(profile_path).map_err(|error| {
+        McpServerStdioError::bootstrap(format!(
+            "failed to read MCP server profile {}: {}",
+            redact_secret_like_text(&profile_path.display().to_string()),
+            error
+        ))
+    })?;
+    let manifest = parse_mcp_server_export_manifest_json(&manifest_json)
+        .map_err(McpServerStdioError::bootstrap)?;
+    let manifest_dir = profile_path.parent().unwrap_or_else(|| Path::new("."));
+    let catalog = McpServerToolExportCatalog::default();
+    build_mcp_server_profile_from_manifest(
+        &manifest,
+        config.profile_name.as_deref(),
+        manifest_dir,
+        &catalog,
+    )
+    .map_err(McpServerStdioError::bootstrap)
 }
 
 #[derive(Clone, Debug, Default)]

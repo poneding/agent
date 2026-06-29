@@ -12,19 +12,30 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M32-04 spec and current stdio command runner**
+- [x] **Step 1: Read M32-04 spec and current stdio command runner**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add parse and subprocess tests**
+- [x] **Step 1: Add parse and subprocess tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add stdio profile flags**
-- [ ] **Step 2: Load manifest before stdio loop**
-- [ ] **Step 3: Preserve protocol-only stdout**
+- [x] **Step 1: Add stdio profile flags**
+- [x] **Step 2: Load manifest before stdio loop**
+- [x] **Step 3: Preserve protocol-only stdout**
 
 ### Task 4: Verify and Commit
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m32 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-cli mcp_server_profile_command
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-cli
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp
+```
 
 ```bash
 cargo fmt --all -- --check

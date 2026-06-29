@@ -12,20 +12,20 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M37-02 spec and static resource read path**
+- [x] **Step 1: Review M37-02 spec and static resource read path**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add URI template parser and matcher tests**
-- [ ] **Step 2: Add template-backed read tests**
-- [ ] **Step 3: Add traversal, ambiguity, and policy denial tests**
+- [x] **Step 1: Add URI template parser and matcher tests**
+- [x] **Step 2: Add template-backed read tests**
+- [x] **Step 3: Add traversal, ambiguity, and policy denial tests**
 
 ### Task 3: Implement Matching
 
-- [ ] **Step 1: Parse `{variable}` URI templates**
-- [ ] **Step 2: Match concrete URIs deterministically**
-- [ ] **Step 3: Render path templates and confine resolved paths**
-- [ ] **Step 4: Reuse static resource policy and content bounding**
+- [x] **Step 1: Parse `{variable}` URI templates**
+- [x] **Step 2: Match concrete URIs deterministically**
+- [x] **Step 3: Render path templates and confine resolved paths**
+- [x] **Step 4: Reuse static resource policy and content bounding**
 
 ### Task 4: Verify
 
@@ -35,7 +35,15 @@ CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_resource_template_matching
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m37 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_resource_template_matching
+```
 
 ### Task 5: Commit
 
@@ -44,4 +52,4 @@ git add crates docs
 git commit -m "feat: resolve mcp resource templates"
 ```
 
-- [ ] **Step 1: Commit M37-02**
+- [x] **Step 1: Commit M37-02**

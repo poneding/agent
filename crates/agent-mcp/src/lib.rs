@@ -42,7 +42,8 @@ pub use client_sampling::{
     validate_mcp_sampling_request,
 };
 pub use client_sampling_stdio::{
-    MCP_SAMPLING_CREATE_MESSAGE_METHOD, parse_mcp_sampling_stdio_request_frame,
+    MCP_SAMPLING_CREATE_MESSAGE_METHOD, handle_mcp_sampling_stdio_frame,
+    parse_mcp_sampling_stdio_request_frame,
 };
 pub use config::{McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig};
 pub use error::McpError;

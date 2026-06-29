@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/client.rs`
 - Read: `crates/agent-mcp/src/client_sampling_stdio.rs`
 
-- [ ] **Step 1: Review provider helper and M42-01 contracts**
+- [x] **Step 1: Review provider helper and M42-01 contracts**
 
 Expected: dispatcher can reuse `create_mcp_sampling_message`.
 
@@ -26,7 +26,7 @@ Expected: dispatcher can reuse `create_mcp_sampling_message`.
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_sampling_stdio_dispatch.rs`
 
-- [ ] **Step 1: Add dispatcher tests**
+- [x] **Step 1: Add dispatcher tests**
 
 Add tests named:
 
@@ -37,7 +37,7 @@ mcp_sampling_stdio_dispatch_returns_empty_for_notification
 mcp_sampling_stdio_dispatch_rejects_disabled_config_before_provider
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -53,13 +53,13 @@ Expected: tests fail until the dispatcher exists.
 - Modify: `crates/agent-mcp/src/client_sampling_stdio.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add async frame dispatcher**
-- [ ] **Step 2: Render success and failure frames**
-- [ ] **Step 3: Export dispatcher**
+- [x] **Step 1: Add async frame dispatcher**
+- [x] **Step 2: Render success and failure frames**
+- [x] **Step 3: Export dispatcher**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -73,7 +73,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M42-02**
+- [x] **Step 1: Commit M42-02**
 
 Run:
 

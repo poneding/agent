@@ -34,7 +34,10 @@ pub use client_roots::{
 };
 pub use config::{McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig};
 pub use error::McpError;
-pub use gateway::{McpGateway, McpGatewayDiagnostic, McpGatewayReport, McpGatewayToolDescriptor};
+pub use gateway::{
+    McpGateway, McpGatewayDiagnostic, McpGatewayReport, McpGatewayRootDescriptor,
+    McpGatewayToolDescriptor,
+};
 pub use policy::{
     McpPermissionProfile, McpPolicyMapping, default_policy_mapping_for_mcp_tool,
     permission_request_for_mcp_mapping,

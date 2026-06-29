@@ -80,7 +80,7 @@ pub trait McpGatewayClient: McpClient + McpClientRootProvider {
 pub struct FixtureMcpClient {
     servers: BTreeMap<McpServerId, McpInitializeResult>,
     tools: BTreeMap<McpServerId, McpToolListResult>,
-    roots: BTreeMap<McpServerId, McpRootListResult>,
+    roots: BTreeMap<McpServerId, Result<McpRootListResult, McpError>>,
     tool_results: BTreeMap<(McpServerId, String), Result<McpToolCallResult, McpError>>,
     calls: Arc<Mutex<BTreeMap<(McpServerId, String), u32>>>,
     client_capabilities: McpClientCapabilities,
@@ -107,7 +107,17 @@ impl FixtureMcpClient {
 
     #[must_use]
     pub fn with_roots(mut self, server_id: McpServerId, roots: McpRootListResult) -> Self {
-        self.roots.insert(server_id, roots);
+        self.roots.insert(server_id, Ok(roots));
+        if self.client_capabilities.roots.is_none() {
+            self.client_capabilities =
+                McpClientCapabilities::with_roots(McpClientRootsCapability::new(false));
+        }
+        self
+    }
+
+    #[must_use]
+    pub fn with_root_error(mut self, server_id: McpServerId, error: McpError) -> Self {
+        self.roots.insert(server_id, Err(error));
         if self.client_capabilities.roots.is_none() {
             self.client_capabilities =
                 McpClientCapabilities::with_roots(McpClientRootsCapability::new(false));
@@ -192,7 +202,7 @@ impl McpClientRootProvider for FixtureMcpClient {
             .roots
             .get(server_id)
             .cloned()
-            .unwrap_or_else(McpRootListResult::empty))
+            .unwrap_or_else(|| Ok(McpRootListResult::empty()))?)
     }
 }
 

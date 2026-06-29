@@ -49,7 +49,7 @@ Define MCP roots directionality, root contracts, registry validation, client cap
 - [x] **Step 1: Add client root contracts**
 - [x] **Step 2: Add root registry validation**
 - [x] **Step 3: Add client session roots behavior**
-- [ ] **Step 4: Wire gateway roots diagnostics**
+- [x] **Step 4: Wire gateway roots diagnostics**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M39

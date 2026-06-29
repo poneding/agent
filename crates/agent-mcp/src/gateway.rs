@@ -5,9 +5,9 @@ use agent_tool::{Tool, ToolDefinition, ToolError, ToolInput, ToolOutput, ToolReg
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    McpError, McpGatewayClient, McpServerConfig, McpServerHealth, McpServerId, McpServerStatus,
-    McpToolCallRequest, McpToolDefinition, McpToolDescriptor, check_mcp_server_health,
-    mcp_descriptor_to_tool_definition,
+    McpError, McpGatewayClient, McpRoot, McpServerConfig, McpServerHealth, McpServerId,
+    McpServerStatus, McpToolCallRequest, McpToolDefinition, McpToolDescriptor,
+    check_mcp_server_health, mcp_descriptor_to_tool_definition,
 };
 
 const DEFAULT_MAX_RESPONSE_BYTES: usize = 16 * 1024;
@@ -38,12 +38,26 @@ impl McpGateway {
     pub async fn discover_tools(&self, configs: &[McpServerConfig]) -> McpGatewayReport {
         let mut servers = Vec::new();
         let mut tools = Vec::new();
+        let mut roots = Vec::new();
         let mut diagnostics = Vec::new();
         let mut local_names = BTreeSet::new();
 
         for config in configs {
             let health = check_mcp_server_health(self.client.as_ref(), config).await;
             if config.enabled && health.status == McpServerStatus::Healthy {
+                match self.client.list_roots(&config.id).await {
+                    Ok(list) => {
+                        for root in list.roots {
+                            roots.push(gateway_root_from_root(config.id.clone(), root));
+                        }
+                    }
+                    Err(error) => diagnostics.push(McpGatewayDiagnostic::error(
+                        "root_discovery_failed",
+                        error.to_string(),
+                        Some(config.id.clone()),
+                    )),
+                }
+
                 match self.client.list_tools(&config.id).await {
                     Ok(list) => {
                         for descriptor in list.tools {
@@ -76,11 +90,18 @@ impl McpGateway {
 
         servers.sort_by_key(|server| server.server_id.to_string());
         tools.sort_by_key(|tool| tool.local_name.clone());
+        roots.sort_by(|left, right| {
+            left.server_id
+                .cmp(&right.server_id)
+                .then_with(|| left.uri.cmp(&right.uri))
+                .then_with(|| left.name.cmp(&right.name))
+        });
         diagnostics.sort_by_key(|diagnostic| diagnostic.code.clone());
 
         McpGatewayReport {
             servers,
             tools,
+            roots,
             diagnostics,
         }
     }
@@ -109,6 +130,7 @@ impl McpGateway {
 pub struct McpGatewayReport {
     pub servers: Vec<McpServerHealth>,
     pub tools: Vec<McpGatewayToolDescriptor>,
+    pub roots: Vec<McpGatewayRootDescriptor>,
     pub diagnostics: Vec<McpGatewayDiagnostic>,
 }
 
@@ -119,6 +141,14 @@ pub struct McpGatewayToolDescriptor {
     pub local_name: String,
     pub definition: ToolDefinition,
     pub descriptor: McpToolDescriptor,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpGatewayRootDescriptor {
+    pub server_id: McpServerId,
+    pub uri: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -182,6 +212,14 @@ fn gateway_tool_from_descriptor(
         definition: mapped.definition,
         descriptor,
     })
+}
+
+fn gateway_root_from_root(server_id: McpServerId, root: McpRoot) -> McpGatewayRootDescriptor {
+    McpGatewayRootDescriptor {
+        server_id,
+        uri: redact_secret_like_text(&root.uri),
+        name: root.name.map(|name| redact_secret_like_text(&name)),
+    }
 }
 
 fn bounded_tool_output(output: serde_json::Value, max_bytes: usize) -> serde_json::Value {

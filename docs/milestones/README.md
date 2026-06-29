@@ -281,6 +281,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M33-01 implementation | Complete |
 | M33-02 implementation | Complete |
 | M33-03 implementation | Complete |
+| M33-04 implementation | Complete |
 | M33 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -676,7 +677,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M33-04 stdio tool call e2e`.
+Current implementation focus: `M33-05 hardening docs`.
 
 Most recent completed implementation documents:
 
@@ -726,5 +727,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M33-04-stdio-tool-call-e2e.spec.md`
-- `docs/plans/M33-04-stdio-tool-call-e2e.plan.md`
+- `docs/specs/M33-05-hardening-docs.spec.md`
+- `docs/plans/M33-05-hardening-docs.plan.md`

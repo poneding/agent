@@ -12,7 +12,7 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review existing stdio command tests and server session tests**
+- [x] **Step 1: Review existing stdio command tests and server session tests**
 
 ### Task 2: Write E2E Tests
 
@@ -20,9 +20,9 @@
 - Modify: `crates/agent-cli/tests/mcp_server_workspace_tool_profile.rs`
 - Create: `crates/agent-mcp/tests/mcp_server_builtin_tool_call.rs`
 
-- [ ] **Step 1: Add initialize/list/call fixture**
-- [ ] **Step 2: Add non-exported tool call failure fixture**
-- [ ] **Step 3: Assert stdout is protocol-only**
+- [x] **Step 1: Add initialize/list/call fixture**
+- [x] **Step 2: Add non-exported tool call failure fixture**
+- [x] **Step 3: Assert stdout is protocol-only**
 
 Run:
 
@@ -38,8 +38,8 @@ Expected: tests fail until prior slices are wired.
 **Files:**
 - Modify only runtime files needed by failing tests.
 
-- [ ] **Step 1: Keep response shape compatible with existing MCP server contracts**
-- [ ] **Step 2: Keep policy and trace summaries in the call path**
+- [x] **Step 1: Keep response shape compatible with existing MCP server contracts**
+- [x] **Step 2: Keep policy and trace summaries in the call path**
 
 ### Task 4: Verify
 
@@ -51,7 +51,19 @@ CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-mcp mcp_server_builtin_too
 CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-cli mcp_server_workspace_tool_profile
 ```
 
-- [ ] **Step 1: Run focused protocol checks**
+- [x] **Step 1: Run focused protocol checks**
+
+Verified:
+
+```text
+fmt-check passed
+clippy -p agent-cli passed
+clippy -p agent-mcp passed
+agent-cli mcp_server_workspace_tool_profile: 5 passed
+agent-mcp mcp_server_builtin_tool_call: 1 passed
+agent-cli full crate tests passed
+agent-mcp full crate tests passed
+```
 
 ### Task 5: Commit
 
@@ -60,4 +72,4 @@ git add crates docs
 git commit -m "feat: prove mcp stdio builtin tool calls"
 ```
 
-- [ ] **Step 1: Commit M33-04**
+- [x] **Step 1: Commit M33-04**

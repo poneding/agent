@@ -53,7 +53,7 @@ use agent_plugin::{
     check_plugin_compatibility, parse_plugin_manifest_json, validate_plugin_capabilities,
     validate_plugin_manifest,
 };
-use agent_policy::{CapabilityAction, ResourceKind};
+use agent_policy::{CapabilityAction, PolicyDecision, ResourceKind, ResourceScope};
 use agent_scheduler::{
     InMemoryTaskCommandService, SchedulerError, TaskCommand as SchedulerTaskCommand,
     TaskCommandResponse, TaskCreateRequest, TaskPriority, TaskSchedule, TaskScheduleUpdate,
@@ -2665,8 +2665,9 @@ where
 fn default_mcp_server_session(
     config: McpServerStdioConfig,
 ) -> Result<McpServerSession, McpServerStdioError> {
-    let (_profile, tools, tool_exports, resource_exports) =
+    let (profile, tools, tool_exports, resource_exports) =
         mcp_server_profile_runtime(&config)?.into_parts();
+    let policy = mcp_server_stdio_policy(&profile)?;
     let state = McpServerState::new(
         McpServerInfo::new(
             "agent",
@@ -2680,17 +2681,38 @@ fn default_mcp_server_session(
             resources: true,
         },
     );
-    let fixture = McpServerFixture::new(
-        state,
-        tools,
-        tool_exports,
-        resource_exports,
-        agent_policy::StaticPolicyEngine::default(),
-    );
+    let fixture = McpServerFixture::new(state, tools, tool_exports, resource_exports, policy);
     Ok(McpServerSession::new(
         fixture,
         McpServerSessionConfig::new(64 * 1024, config.max_frames),
     ))
+}
+
+fn mcp_server_stdio_policy(
+    profile: &agent_mcp::McpServerExportProfile,
+) -> Result<agent_policy::StaticPolicyEngine, McpServerStdioError> {
+    let mut policy = agent_policy::StaticPolicyEngine::default();
+    for tool_name in &profile.tool_names {
+        policy = policy.with_decision(
+            CapabilityAction::Execute,
+            ResourceScope::new(ResourceKind::Tool, tool_name)
+                .map_err(McpServerStdioError::bootstrap)?,
+            PolicyDecision::Allow {
+                reason: "MCP stdio profile exported tool".to_string(),
+            },
+        );
+    }
+    for resource_uri in &profile.resource_uris {
+        policy = policy.with_decision(
+            CapabilityAction::Read,
+            ResourceScope::new(ResourceKind::File, resource_uri)
+                .map_err(McpServerStdioError::bootstrap)?,
+            PolicyDecision::Allow {
+                reason: "MCP stdio profile exported resource".to_string(),
+            },
+        );
+    }
+    Ok(policy)
 }
 
 fn mcp_server_profile_runtime(

@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M34 |
-| Milestone-level plans | Complete for M01-M34 |
+| Milestone-level specs | Complete for M01-M35 |
+| Milestone-level plans | Complete for M01-M35 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -293,6 +293,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M34-04 implementation | Complete |
 | M34-05 implementation | Complete |
 | M34 implementation | Complete |
+| M35 technical design | Complete |
+| M35 slice specs | Complete for M35-01 through M35-05 |
+| M35 slice plans | Complete for M35-01 through M35-05 |
+| M35 implementation | Planned |
 
 ## Milestone Spec and Plan Index
 
@@ -332,6 +336,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M32 MCP Export Profile Runtime | `docs/specs/M32-mcp-export-profile-runtime.spec.md` | `docs/plans/M32-mcp-export-profile-runtime.plan.md` | Start the MCP stdio server from explicit, validated export profiles. |
 | M33 MCP Built-in Tool Export Runtime | `docs/specs/M33-mcp-builtin-tool-export-runtime.spec.md` | `docs/plans/M33-mcp-builtin-tool-export-runtime.plan.md` | Expose curated built-in workspace inspection tools through explicit MCP stdio export profiles. |
 | M34 MCP Export Profile Inspection | `docs/specs/M34-mcp-export-profile-inspection.spec.md` | `docs/plans/M34-mcp-export-profile-inspection.plan.md` | Inspect and preflight MCP export profiles before starting stdio server sessions. |
+| M35 MCP Prompt Export Runtime | `docs/specs/M35-mcp-prompt-export-runtime.spec.md` | `docs/plans/M35-mcp-prompt-export-runtime.plan.md` | Expose explicit prompt exports through MCP stdio prompt methods. |
 
 ## M01 Slice Index
 
@@ -697,9 +702,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M34-04 JSON Redaction Regressions | `docs/specs/M34-04-json-redaction-regressions.spec.md` | `docs/plans/M34-04-json-redaction-regressions.plan.md` | Stable, parseable, redacted inspection output regression coverage. |
 | M34-05 Hardening Docs | `docs/specs/M34-05-hardening-docs.spec.md` | `docs/plans/M34-05-hardening-docs.plan.md` | README usage docs, milestone status, and final M34 quality gate evidence. |
 
+## M35 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M35-00 MCP Prompt Export Technical Design | `docs/specs/M35-00-mcp-prompt-export-technical-design.spec.md` | `docs/plans/M35-00-mcp-prompt-export-technical-design.plan.md` | Architecture baseline for prompt export contracts, registry, protocol methods, manifest declarations, CLI wiring, and privacy. |
+| M35-01 Prompt Export Contracts | `docs/specs/M35-01-prompt-export-contracts.spec.md` | `docs/plans/M35-01-prompt-export-contracts.plan.md` | Serializable `agent-mcp` prompt export contracts for descriptors, messages, list results, and get results. |
+| M35-02 Prompt Registry and Protocol | `docs/specs/M35-02-prompt-registry-and-protocol.spec.md` | `docs/plans/M35-02-prompt-registry-and-protocol.plan.md` | Prompt export registry plus `prompts/list` and `prompts/get` JSON-RPC handling. |
+| M35-03 Manifest Prompt Profile | `docs/specs/M35-03-manifest-prompt-profile.spec.md` | `docs/plans/M35-03-manifest-prompt-profile.plan.md` | Manifest-backed prompt declarations loaded into MCP server profile runtime state. |
+| M35-04 CLI Stdio Prompt Profile | `docs/specs/M35-04-cli-stdio-prompt-profile.spec.md` | `docs/plans/M35-04-cli-stdio-prompt-profile.plan.md` | `agent-cli mcp server stdio` serves manifest prompt exports through MCP prompt methods. |
+| M35-05 Hardening Docs | `docs/specs/M35-05-hardening-docs.spec.md` | `docs/plans/M35-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M35 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M34 complete; next milestone planning pending.
+Current implementation focus: `M35-01 prompt export contracts`.
 
 Most recent completed implementation documents:
 
@@ -764,7 +780,10 @@ Most recent completed implementation documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M34-00-mcp-export-profile-inspection-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M34-00-mcp-export-profile-inspection-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M35-00-mcp-prompt-export-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M35-00-mcp-prompt-export-technical-design.plan.md`
 
-Next implementation slice: pending next milestone planning.
+Next implementation slice:
+
+- `docs/specs/M35-01-prompt-export-contracts.spec.md`
+- `docs/plans/M35-01-prompt-export-contracts.plan.md`

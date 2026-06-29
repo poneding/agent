@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M35 |
-| Milestone-level plans | Complete for M01-M35 |
+| Milestone-level specs | Complete for M01-M36 |
+| Milestone-level plans | Complete for M01-M36 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -302,6 +302,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M35-04 implementation | Complete |
 | M35-05 implementation | Complete |
 | M35 implementation | Complete |
+| M36 technical design | Complete |
+| M36 slice specs | Complete for M36-01 through M36-05 |
+| M36 slice plans | Complete for M36-01 through M36-05 |
+| M36 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -342,6 +346,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M33 MCP Built-in Tool Export Runtime | `docs/specs/M33-mcp-builtin-tool-export-runtime.spec.md` | `docs/plans/M33-mcp-builtin-tool-export-runtime.plan.md` | Expose curated built-in workspace inspection tools through explicit MCP stdio export profiles. |
 | M34 MCP Export Profile Inspection | `docs/specs/M34-mcp-export-profile-inspection.spec.md` | `docs/plans/M34-mcp-export-profile-inspection.plan.md` | Inspect and preflight MCP export profiles before starting stdio server sessions. |
 | M35 MCP Prompt Export Runtime | `docs/specs/M35-mcp-prompt-export-runtime.spec.md` | `docs/plans/M35-mcp-prompt-export-runtime.plan.md` | Expose explicit prompt exports through MCP stdio prompt methods. |
+| M36 MCP Prompt Arguments Runtime | `docs/specs/M36-mcp-prompt-arguments-runtime.spec.md` | `docs/plans/M36-mcp-prompt-arguments-runtime.plan.md` | Render explicit MCP prompt exports from safe, declared string arguments. |
 
 ## M01 Slice Index
 
@@ -718,9 +723,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M35-04 CLI Stdio Prompt Profile | `docs/specs/M35-04-cli-stdio-prompt-profile.spec.md` | `docs/plans/M35-04-cli-stdio-prompt-profile.plan.md` | `agent-cli mcp server stdio` serves manifest prompt exports through MCP prompt methods. |
 | M35-05 Hardening Docs | `docs/specs/M35-05-hardening-docs.spec.md` | `docs/plans/M35-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M35 quality gate evidence. |
 
+## M36 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M36-00 MCP Prompt Arguments Technical Design | `docs/specs/M36-00-mcp-prompt-arguments-technical-design.spec.md` | `docs/plans/M36-00-mcp-prompt-arguments-technical-design.plan.md` | Architecture baseline for prompt argument descriptors, template rendering, manifest declarations, CLI stdio, and privacy. |
+| M36-01 Prompt Argument Contracts | `docs/specs/M36-01-prompt-argument-contracts.spec.md` | `docs/plans/M36-01-prompt-argument-contracts.plan.md` | Serializable prompt argument descriptors and `prompts/get` parameter contracts. |
+| M36-02 Prompt Template Rendering | `docs/specs/M36-02-prompt-template-rendering.spec.md` | `docs/plans/M36-02-prompt-template-rendering.plan.md` | Deterministic rendering of declared string arguments into prompt messages. |
+| M36-03 Manifest Prompt Arguments | `docs/specs/M36-03-manifest-prompt-arguments.spec.md` | `docs/plans/M36-03-manifest-prompt-arguments.plan.md` | Manifest-backed prompt argument declarations loaded into profile runtime state. |
+| M36-04 CLI Stdio Prompt Arguments | `docs/specs/M36-04-cli-stdio-prompt-arguments.spec.md` | `docs/plans/M36-04-cli-stdio-prompt-arguments.plan.md` | `agent-cli mcp server stdio` serves prompt arguments through MCP prompt methods. |
+| M36-05 Hardening Docs | `docs/specs/M36-05-hardening-docs.spec.md` | `docs/plans/M36-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M36 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: next milestone selection.
+Current implementation focus: `M36-01 prompt argument contracts`.
 
 Most recent completed implementation documents:
 
@@ -793,9 +809,29 @@ Most recent completed implementation documents:
 - `docs/specs/M35-05-hardening-docs.spec.md`
 - `docs/plans/M35-05-hardening-docs.plan.md`
 
+Most recent completed planning documents:
+
+- `docs/specs/M36-mcp-prompt-arguments-runtime.spec.md`
+- `docs/plans/M36-mcp-prompt-arguments-runtime.plan.md`
+- `docs/specs/M36-00-mcp-prompt-arguments-technical-design.spec.md`
+- `docs/plans/M36-00-mcp-prompt-arguments-technical-design.plan.md`
+- `docs/specs/M36-01-prompt-argument-contracts.spec.md`
+- `docs/plans/M36-01-prompt-argument-contracts.plan.md`
+- `docs/specs/M36-02-prompt-template-rendering.spec.md`
+- `docs/plans/M36-02-prompt-template-rendering.plan.md`
+- `docs/specs/M36-03-manifest-prompt-arguments.spec.md`
+- `docs/plans/M36-03-manifest-prompt-arguments.plan.md`
+- `docs/specs/M36-04-cli-stdio-prompt-arguments.spec.md`
+- `docs/plans/M36-04-cli-stdio-prompt-arguments.plan.md`
+- `docs/specs/M36-05-hardening-docs.spec.md`
+- `docs/plans/M36-05-hardening-docs.plan.md`
+
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M35-00-mcp-prompt-export-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M35-00-mcp-prompt-export-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M36-00-mcp-prompt-arguments-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M36-00-mcp-prompt-arguments-technical-design.plan.md`
 
-Next implementation slice: to be selected.
+Next implementation slice:
+
+- `docs/specs/M36-01-prompt-argument-contracts.spec.md`
+- `docs/plans/M36-01-prompt-argument-contracts.plan.md`

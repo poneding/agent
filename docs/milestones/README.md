@@ -263,6 +263,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M31-01 implementation | Complete |
 | M31-02 implementation | Complete |
 | M31-03 implementation | Complete |
+| M31-04 implementation | Complete |
 | M31 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -634,7 +635,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M31-04 server trace audit`.
+Current implementation focus: `M31-05 runtime hardening docs`.
 
 Most recent completed implementation documents:
 
@@ -662,6 +663,8 @@ Most recent completed implementation documents:
 - `docs/plans/M31-02-export-profile-bootstrap.plan.md`
 - `docs/specs/M31-03-cli-stdio-command.spec.md`
 - `docs/plans/M31-03-cli-stdio-command.plan.md`
+- `docs/specs/M31-04-server-trace-audit.spec.md`
+- `docs/plans/M31-04-server-trace-audit.plan.md`
 
 Most recent completed technical design documents:
 
@@ -670,5 +673,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M31-04-server-trace-audit.spec.md`
-- `docs/plans/M31-04-server-trace-audit.plan.md`
+- `docs/specs/M31-05-runtime-hardening-docs.spec.md`
+- `docs/plans/M31-05-runtime-hardening-docs.plan.md`

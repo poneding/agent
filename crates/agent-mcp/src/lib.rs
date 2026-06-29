@@ -13,6 +13,7 @@ pub mod server_session;
 pub mod server_status;
 pub mod server_stdio;
 pub mod server_tool;
+pub mod server_trace;
 pub mod tool;
 pub mod tool_mapping;
 
@@ -44,6 +45,9 @@ pub use server_status::{
 };
 pub use server_stdio::{McpServerFixture, handle_mcp_server_frame};
 pub use server_tool::{McpToolExport, McpToolExportRegistry, exported_tool_from_definition};
+pub use server_trace::{
+    McpServerTraceEntry, McpServerTraceSnapshot, format_mcp_server_trace_summary,
+};
 pub use tool::{McpToolCallRequest, McpToolCallResult, McpToolDescriptor, McpToolListResult};
 pub use tool_mapping::{
     McpLocalToolName, McpToolDefinition, local_tool_name_for_mcp_tool,

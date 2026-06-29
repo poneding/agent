@@ -3,9 +3,11 @@ use serde_json::Value;
 
 use crate::{
     McpJsonRpcError, McpJsonRpcFailure, McpJsonRpcId, McpServerFixture, handle_mcp_server_frame,
+    server_trace::{McpServerTraceEntry, McpServerTraceSnapshot},
 };
 
 const DEFAULT_SESSION_MAX_FRAME_BYTES: usize = 64 * 1024;
+const DEFAULT_SESSION_MAX_TRACE_ENTRIES: usize = 128;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -47,6 +49,7 @@ pub struct McpServerSessionSummary {
     pub responses_sent: u64,
     pub error_frames: u64,
     pub close_reason: Option<String>,
+    pub trace: McpServerTraceSnapshot,
 }
 
 pub struct McpServerSession {
@@ -57,6 +60,10 @@ pub struct McpServerSession {
     responses_sent: u64,
     error_frames: u64,
     close_reason: Option<String>,
+    trace_entries: Vec<McpServerTraceEntry>,
+    trace_total_entries: u64,
+    trace_error_entries: u64,
+    trace_truncated: bool,
 }
 
 impl McpServerSession {
@@ -70,6 +77,10 @@ impl McpServerSession {
             responses_sent: 0,
             error_frames: 0,
             close_reason: None,
+            trace_entries: Vec::new(),
+            trace_total_entries: 0,
+            trace_error_entries: 0,
+            trace_truncated: false,
         }
     }
 
@@ -86,12 +97,29 @@ impl McpServerSession {
             responses_sent: self.responses_sent,
             error_frames: self.error_frames,
             close_reason: self.close_reason.clone(),
+            trace: self.trace_snapshot(),
         }
+    }
+
+    #[must_use]
+    pub fn trace_snapshot(&self) -> McpServerTraceSnapshot {
+        McpServerTraceSnapshot::new(
+            self.trace_total_entries,
+            self.trace_error_entries,
+            self.trace_truncated,
+            self.trace_entries.clone(),
+        )
     }
 
     pub fn handle_frame(&mut self, frame: &str) -> String {
         if self.status == McpServerSessionStatus::Closed {
-            return self.record_error_response("MCP server session is closed");
+            let response = self.record_error_response("MCP server session is closed");
+            self.record_trace(McpServerTraceEntry::rejected_frame(
+                frame,
+                "error:closed",
+                self.fixture.state().initialized,
+            ));
+            return response;
         }
         if self
             .config
@@ -99,12 +127,23 @@ impl McpServerSession {
             .is_some_and(|max_frames| self.frames_received >= max_frames)
         {
             self.close("frame limit reached");
-            return self.record_error_response("MCP server session frame limit reached");
+            let response = self.record_error_response("MCP server session frame limit reached");
+            self.record_trace(McpServerTraceEntry::rejected_frame(
+                frame,
+                "error:frame_limit",
+                self.fixture.state().initialized,
+            ));
+            return response;
         }
 
         self.frames_received += 1;
         if frame.len() > self.config.max_frame_bytes {
-            return self.record_error_response("JSON-RPC frame too large");
+            let response = self.record_error_response("JSON-RPC frame too large");
+            self.record_trace(McpServerTraceEntry::oversized_frame(
+                "error:invalid_request",
+                self.fixture.state().initialized,
+            ));
+            return response;
         }
 
         let response = handle_mcp_server_frame(&mut self.fixture, frame);
@@ -112,6 +151,11 @@ impl McpServerSession {
             self.status = McpServerSessionStatus::Initialized;
         }
         self.record_response(&response);
+        self.record_trace(McpServerTraceEntry::from_frame_response(
+            frame,
+            &response,
+            self.fixture.state().initialized,
+        ));
 
         if self
             .config
@@ -128,6 +172,18 @@ impl McpServerSession {
         self.status = McpServerSessionStatus::Closed;
         self.close_reason = Some(bound_text(&reason.into(), 256));
         self.summary()
+    }
+
+    fn record_trace(&mut self, entry: McpServerTraceEntry) {
+        self.trace_total_entries += 1;
+        if entry.is_error() {
+            self.trace_error_entries += 1;
+        }
+        if self.trace_entries.len() == DEFAULT_SESSION_MAX_TRACE_ENTRIES {
+            self.trace_entries.remove(0);
+            self.trace_truncated = true;
+        }
+        self.trace_entries.push(entry);
     }
 
     fn record_response(&mut self, response: &str) {

@@ -12,19 +12,28 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M31-04 spec and existing observability redaction patterns**
+- [x] **Step 1: Read M31-04 spec and existing observability redaction patterns**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add server trace tests**
+- [x] **Step 1: Add server trace tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add trace contracts**
-- [ ] **Step 2: Integrate trace emission with session runtime**
-- [ ] **Step 3: Add bounded summary rendering**
+- [x] **Step 1: Add trace contracts**
+- [x] **Step 2: Integrate trace emission with session runtime**
+- [x] **Step 3: Add bounded summary rendering**
 
 ### Task 4: Verify and Commit
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m31 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m31 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp mcp_server_trace
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp
+```
 
 ```bash
 cargo fmt --all -- --check

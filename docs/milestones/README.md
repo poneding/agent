@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M37 |
-| Milestone-level plans | Complete for M01-M37 |
+| Milestone-level specs | Complete for M01-M38 |
+| Milestone-level plans | Complete for M01-M38 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -320,6 +320,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M37-04 implementation | Complete |
 | M37-05 implementation | Complete |
 | M37 implementation | Complete |
+| M38 technical design | Complete |
+| M38 slice specs | Complete for M38-01 through M38-05 |
+| M38 slice plans | Complete for M38-01 through M38-05 |
+| M38 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -362,6 +366,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M35 MCP Prompt Export Runtime | `docs/specs/M35-mcp-prompt-export-runtime.spec.md` | `docs/plans/M35-mcp-prompt-export-runtime.plan.md` | Expose explicit prompt exports through MCP stdio prompt methods. |
 | M36 MCP Prompt Arguments Runtime | `docs/specs/M36-mcp-prompt-arguments-runtime.spec.md` | `docs/plans/M36-mcp-prompt-arguments-runtime.plan.md` | Render explicit MCP prompt exports from safe, declared string arguments. |
 | M37 MCP Resource Templates Runtime | `docs/specs/M37-mcp-resource-templates-runtime.spec.md` | `docs/plans/M37-mcp-resource-templates-runtime.plan.md` | Expose explicit parameterized MCP resource templates with safe concrete URI reads. |
+| M38 MCP Completion Runtime | `docs/specs/M38-mcp-completion-runtime.spec.md` | `docs/plans/M38-mcp-completion-runtime.plan.md` | Serve safe MCP completions for prompt arguments and resource template variables. |
 
 ## M01 Slice Index
 
@@ -760,9 +765,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M37-04 CLI Stdio Resource Templates | `docs/specs/M37-04-cli-stdio-resource-templates.spec.md` | `docs/plans/M37-04-cli-stdio-resource-templates.plan.md` | `agent-cli mcp server stdio` serves resource templates through MCP resource methods. |
 | M37-05 Hardening Docs | `docs/specs/M37-05-hardening-docs.spec.md` | `docs/plans/M37-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M37 quality gate evidence. |
 
+## M38 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M38-00 MCP Completion Technical Design | `docs/specs/M38-00-mcp-completion-technical-design.spec.md` | `docs/plans/M38-00-mcp-completion-technical-design.plan.md` | Architecture baseline for completion refs, sources, manifest declarations, stdio dispatch, and privacy. |
+| M38-01 Completion Contracts | `docs/specs/M38-01-completion-contracts.spec.md` | `docs/plans/M38-01-completion-contracts.plan.md` | Serializable completion request/result contracts and deterministic bounded value behavior. |
+| M38-02 Prompt Argument Completions | `docs/specs/M38-02-prompt-argument-completions.spec.md` | `docs/plans/M38-02-prompt-argument-completions.plan.md` | Static completion sources for declared MCP prompt arguments. |
+| M38-03 Resource Template Completions | `docs/specs/M38-03-resource-template-completions.spec.md` | `docs/plans/M38-03-resource-template-completions.plan.md` | Static completion sources for declared MCP resource template variables. |
+| M38-04 CLI Stdio Completions | `docs/specs/M38-04-cli-stdio-completions.spec.md` | `docs/plans/M38-04-cli-stdio-completions.plan.md` | `agent-cli mcp server stdio` serves completions through MCP `completion/complete`. |
+| M38-05 Hardening Docs | `docs/specs/M38-05-hardening-docs.spec.md` | `docs/plans/M38-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M38 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: next milestone planning.
+Current implementation focus: `M38-01 completion contracts`.
 
 Most recent completed implementation documents:
 
@@ -857,6 +873,20 @@ Most recent completed implementation documents:
 
 Most recent completed planning documents:
 
+- `docs/specs/M38-mcp-completion-runtime.spec.md`
+- `docs/plans/M38-mcp-completion-runtime.plan.md`
+- `docs/specs/M38-00-mcp-completion-technical-design.spec.md`
+- `docs/plans/M38-00-mcp-completion-technical-design.plan.md`
+- `docs/specs/M38-01-completion-contracts.spec.md`
+- `docs/plans/M38-01-completion-contracts.plan.md`
+- `docs/specs/M38-02-prompt-argument-completions.spec.md`
+- `docs/plans/M38-02-prompt-argument-completions.plan.md`
+- `docs/specs/M38-03-resource-template-completions.spec.md`
+- `docs/plans/M38-03-resource-template-completions.plan.md`
+- `docs/specs/M38-04-cli-stdio-completions.spec.md`
+- `docs/plans/M38-04-cli-stdio-completions.plan.md`
+- `docs/specs/M38-05-hardening-docs.spec.md`
+- `docs/plans/M38-05-hardening-docs.plan.md`
 - `docs/specs/M37-mcp-resource-templates-runtime.spec.md`
 - `docs/plans/M37-mcp-resource-templates-runtime.plan.md`
 - `docs/specs/M37-00-mcp-resource-templates-technical-design.spec.md`
@@ -888,9 +918,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M37-00-mcp-resource-templates-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M37-00-mcp-resource-templates-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M38-00-mcp-completion-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M38-00-mcp-completion-technical-design.plan.md`
 
 Next implementation slice:
 
-- Pending next milestone spec and plan.
+- `docs/specs/M38-01-completion-contracts.spec.md`
+- `docs/plans/M38-01-completion-contracts.plan.md`

@@ -9,9 +9,10 @@ use tokio::sync::Mutex;
 
 use crate::{
     MCP_SERVER_PROTOCOL_VERSION, McpClient, McpClientRootProvider, McpEnvValue, McpError,
-    McpInitializeResult, McpJsonRpcFailure, McpJsonRpcId, McpJsonRpcSuccess, McpRootListResult,
-    McpServerCapabilities, McpServerConfig, McpServerId, McpServerMethod, McpToolDescriptor,
-    McpToolListResult, McpTransportConfig,
+    McpGatewayClient, McpInitializeResult, McpJsonRpcFailure, McpJsonRpcId, McpJsonRpcSuccess,
+    McpRootListResult, McpServerCapabilities, McpServerConfig, McpServerId, McpServerMethod,
+    McpToolCallRequest, McpToolCallResult, McpToolDescriptor, McpToolListResult,
+    McpTransportConfig,
 };
 
 const MAX_CLIENT_HTTP_BODY_BYTES: usize = 256 * 1024;
@@ -348,6 +349,37 @@ where
     }
 }
 
+#[async_trait]
+impl<T> McpGatewayClient for McpHttpClient<T>
+where
+    T: McpClientHttpTransport,
+{
+    async fn call_tool(&self, request: McpToolCallRequest) -> Result<McpToolCallResult, McpError> {
+        let mut state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(&request.server_id) {
+            return Err(McpError::Client(
+                "MCP client HTTP session is not initialized".to_string(),
+            ));
+        }
+        let config = state.config.clone().ok_or_else(|| {
+            McpError::Client("MCP client HTTP session is not initialized".to_string())
+        })?;
+
+        let response = state
+            .send_request(
+                &config,
+                McpServerMethod::ToolsCall.as_str(),
+                json!({
+                    "name": request.remote_tool_name,
+                    "arguments": request.input_json,
+                }),
+            )
+            .await?;
+        let result = mcp_client_http_success_result(response, "tools/call")?;
+        map_mcp_client_http_tool_call_result(&result)
+    }
+}
+
 impl McpClientHttpResponseFrame {
     #[must_use]
     pub const fn id(&self) -> &McpJsonRpcId {
@@ -513,6 +545,19 @@ fn map_mcp_client_http_tool_list_result(
         )?);
     }
     Ok(McpToolListResult::new(server_id, descriptors))
+}
+
+fn map_mcp_client_http_tool_call_result(result: &Value) -> Result<McpToolCallResult, McpError> {
+    let result_object = result
+        .as_object()
+        .ok_or_else(|| invalid_mcp_client_http_result("tools/call"))?;
+
+    if result_object.contains_key("output_json") {
+        return serde_json::from_value::<McpToolCallResult>(result.clone())
+            .map_err(|_| invalid_mcp_client_http_result("tools/call"));
+    }
+
+    Ok(McpToolCallResult::new(result.clone()))
 }
 
 fn object_field<'a>(

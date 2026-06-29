@@ -49,7 +49,7 @@ Define crate ownership, HTTP request/response contracts, transport trait boundar
 - [x] **Step 1: Add HTTP JSON-RPC client contracts**
 - [x] **Step 2: Add HTTP transport runtime**
 - [x] **Step 3: Implement `McpClient` over HTTP for initialize and tools/list**
-- [ ] **Step 4: Add gateway HTTP tools/call execution**
+- [x] **Step 4: Add gateway HTTP tools/call execution**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M45

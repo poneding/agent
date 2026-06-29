@@ -17,26 +17,26 @@
 - Read: `crates/agent-mcp/src/gateway.rs`
 - Read: `crates/agent-mcp/tests/mcp_gateway_stdio_tool_call.rs`
 
-- [ ] **Step 1: Review stdio gateway execution coverage**
+- [x] **Step 1: Review stdio gateway execution coverage**
 
 ### Task 2: Write Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_gateway_http_tool_call.rs`
 
-- [ ] **Step 1: Add gateway discover/register/execute test**
-- [ ] **Step 2: Add redaction and output-bound assertions**
+- [x] **Step 1: Add gateway discover/register/execute test**
+- [x] **Step 2: Add redaction and output-bound assertions**
 
 ### Task 3: Implement Tool Calls
 
 **Files:**
 - Modify: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Implement `McpGatewayClient` for `McpHttpClient<T>`**
+- [x] **Step 1: Implement `McpGatewayClient` for `McpHttpClient<T>`**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -48,7 +48,7 @@ CARGO_TARGET_DIR=target/codex-m45 cargo clippy -p agent-mcp --all-targets -- -D 
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M45-04**
+- [x] **Step 1: Commit M45-04**
 
 Run:
 

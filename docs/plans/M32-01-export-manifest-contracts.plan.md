@@ -12,19 +12,28 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M32-01 spec and existing profile validation code**
+- [x] **Step 1: Read M32-01 spec and existing profile validation code**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add manifest serde and validation tests**
+- [x] **Step 1: Add manifest serde and validation tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add manifest contracts**
-- [ ] **Step 2: Add parse and selection helpers**
-- [ ] **Step 3: Export contracts from `agent_mcp`**
+- [x] **Step 1: Add manifest contracts**
+- [x] **Step 2: Add parse and selection helpers**
+- [x] **Step 3: Export contracts from `agent_mcp`**
 
 ### Task 4: Verify and Commit
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m32 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp mcp_server_manifest
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp
+```
 
 ```bash
 cargo fmt --all -- --check

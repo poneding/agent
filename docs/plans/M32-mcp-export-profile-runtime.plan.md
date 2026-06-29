@@ -46,7 +46,7 @@ Define manifest ownership, profile construction, file resource boundaries, built
 - Execute: `docs/plans/M32-04-cli-profile-stdio.plan.md`
 - Execute: `docs/plans/M32-05-runtime-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add export manifest contracts**
+- [x] **Step 1: Add export manifest contracts**
 - [ ] **Step 2: Add resource export loader**
 - [ ] **Step 3: Add tool export catalog**
 - [ ] **Step 4: Add CLI profile stdio flags**

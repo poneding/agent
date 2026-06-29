@@ -64,8 +64,8 @@ pub use server_prompt::{
     McpPromptMessage,
 };
 pub use server_resource::{
-    McpResourceExport, McpResourceExportRegistry, McpResourceReadResult, McpResourceTemplateExport,
-    McpResourceTemplateMatch,
+    McpResourceExport, McpResourceExportRegistry, McpResourceReadResult,
+    McpResourceTemplateCompletionSource, McpResourceTemplateExport, McpResourceTemplateMatch,
 };
 pub use server_session::{
     McpServerSession, McpServerSessionConfig, McpServerSessionStatus, McpServerSessionSummary,

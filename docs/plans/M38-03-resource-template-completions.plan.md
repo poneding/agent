@@ -12,19 +12,19 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M38-03 spec and resource template registry code**
+- [x] **Step 1: Review M38-03 spec and resource template registry code**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add resource template variable completion lookup tests**
-- [ ] **Step 2: Add undeclared variable and disabled template tests**
-- [ ] **Step 3: Add empty completion and redaction tests**
+- [x] **Step 1: Add resource template variable completion lookup tests**
+- [x] **Step 2: Add undeclared variable and disabled template tests**
+- [x] **Step 3: Add empty completion and redaction tests**
 
 ### Task 3: Implement Resource Template Completion Sources
 
-- [ ] **Step 1: Add resource template completion source contract**
-- [ ] **Step 2: Validate completion sources against URI template variables**
-- [ ] **Step 3: Add resource registry completion lookup API**
+- [x] **Step 1: Add resource template completion source contract**
+- [x] **Step 2: Validate completion sources against URI template variables**
+- [x] **Step 3: Add resource registry completion lookup API**
 
 ### Task 4: Verify
 
@@ -34,7 +34,15 @@ CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_resource_template_completions
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m38 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_resource_template_completions
+```
 
 ### Task 5: Commit
 
@@ -43,4 +51,4 @@ git add crates docs
 git commit -m "feat: add mcp resource template completions"
 ```
 
-- [ ] **Step 1: Commit M38-03**
+- [x] **Step 1: Commit M38-03**

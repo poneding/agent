@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
 
 use agent_policy::{
@@ -7,10 +7,11 @@ use agent_policy::{
 use agent_types::{ActorRef, CorrelationId};
 use serde::{Deserialize, Serialize};
 
-use crate::McpError;
+use crate::{McpError, server_completion::McpCompletionResult};
 
 const DEFAULT_MAX_RESOURCE_CONTENT_BYTES: usize = 16 * 1024;
 const MAX_RESOURCE_DIAGNOSTIC_CHARS: usize = 256;
+const MAX_RESOURCE_COMPLETION_VALUES: usize = 50;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpResourceExport {
@@ -29,6 +30,26 @@ pub struct McpResourceTemplateExport {
     #[serde(rename = "mimeType")]
     pub mime_type: Option<String>,
     pub enabled: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpResourceTemplateCompletionSource {
+    pub variable: String,
+    pub values: Vec<String>,
+}
+
+impl McpResourceTemplateCompletionSource {
+    pub fn new<I, V>(variable: impl Into<String>, values: I) -> Result<Self, McpError>
+    where
+        I: IntoIterator<Item = V>,
+        V: AsRef<str>,
+    {
+        let variable = validate_template_variable_name(&variable.into())?;
+        let values = McpCompletionResult::from_values("", values, usize::MAX)?
+            .completion
+            .values;
+        Ok(Self { variable, values })
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -51,6 +72,7 @@ struct McpResourceTemplateRecord {
     export: McpResourceTemplateExport,
     path_root: Option<PathBuf>,
     path_template: Option<String>,
+    variable_completions: BTreeMap<String, Vec<String>>,
     sensitive: bool,
 }
 
@@ -135,7 +157,29 @@ impl McpResourceExportRegistry {
         D: Into<String>,
         M: Into<String>,
     {
-        self.insert_resource_template(uri_template, name, description, mime_type, true)
+        self.insert_resource_template(uri_template, name, description, mime_type, Vec::new(), true)
+    }
+
+    pub fn export_resource_template_with_completions<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        variable_completions: Vec<McpResourceTemplateCompletionSource>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            variable_completions,
+            true,
+        )
     }
 
     pub fn export_file_resource_template<D, M>(
@@ -249,7 +293,36 @@ impl McpResourceExportRegistry {
         D: Into<String>,
         M: Into<String>,
     {
-        self.insert_resource_template(uri_template, name, description, mime_type, false)
+        self.insert_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            Vec::new(),
+            false,
+        )
+    }
+
+    pub fn export_disabled_resource_template_with_completions<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        variable_completions: Vec<McpResourceTemplateCompletionSource>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            variable_completions,
+            false,
+        )
     }
 
     #[must_use]
@@ -302,6 +375,38 @@ impl McpResourceExportRegistry {
         }
 
         self.read_template_resource(policy, actor, correlation_id, uri)
+    }
+
+    pub fn complete_resource_template_variable(
+        &self,
+        uri_template: &str,
+        variable_name: &str,
+        prefix: &str,
+    ) -> Result<McpCompletionResult, McpError> {
+        let record = self
+            .resource_templates
+            .get(uri_template)
+            .filter(|record| record.export.enabled)
+            .ok_or_else(|| {
+                McpError::InvalidServerRequest(format!(
+                    "MCP resource template export not found: {}",
+                    redact_text(uri_template)
+                ))
+            })?;
+        let variable_name = validate_template_variable_name(variable_name)?;
+        let declared_variables = resource_template_variables(&record.export.uri_template)?;
+        if !declared_variables.contains(variable_name.as_str()) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "unknown MCP resource template variable: {}",
+                redact_text(&variable_name)
+            )));
+        }
+        let values = record
+            .variable_completions
+            .get(&variable_name)
+            .cloned()
+            .unwrap_or_default();
+        McpCompletionResult::from_values(prefix, values, MAX_RESOURCE_COMPLETION_VALUES)
     }
 
     fn insert_resource<M>(
@@ -362,6 +467,7 @@ impl McpResourceExportRegistry {
         name: impl Into<String>,
         description: Option<D>,
         mime_type: Option<M>,
+        variable_completions: Vec<McpResourceTemplateCompletionSource>,
         enabled: bool,
     ) -> Result<(), McpError>
     where
@@ -387,12 +493,14 @@ impl McpResourceExportRegistry {
             Some(Err(error)) => return Err(error),
             None => None,
         };
+        let variable_completions =
+            validate_resource_template_completion_sources(&uri_template, variable_completions)?;
 
         self.resource_templates.insert(
             uri_template.clone(),
             McpResourceTemplateRecord {
                 export: McpResourceTemplateExport {
-                    uri_template,
+                    uri_template: uri_template.clone(),
                     name,
                     description,
                     mime_type,
@@ -400,6 +508,7 @@ impl McpResourceExportRegistry {
                 },
                 path_root: None,
                 path_template: None,
+                variable_completions,
                 sensitive: false,
             },
         );
@@ -456,6 +565,7 @@ impl McpResourceExportRegistry {
                 },
                 path_root: Some(path_root),
                 path_template: Some(path_template),
+                variable_completions: BTreeMap::new(),
                 sensitive,
             },
         );
@@ -603,6 +713,77 @@ fn validate_uri_template(value: &str) -> Result<String, McpError> {
         return invalid_resource_template(trimmed);
     }
 
+    Ok(bound_text(trimmed, MAX_RESOURCE_DIAGNOSTIC_CHARS))
+}
+
+fn validate_resource_template_completion_sources(
+    uri_template: &str,
+    sources: Vec<McpResourceTemplateCompletionSource>,
+) -> Result<BTreeMap<String, Vec<String>>, McpError> {
+    let declared_variables = resource_template_variables(uri_template)?;
+    let mut completions = BTreeMap::new();
+
+    for source in sources {
+        if !declared_variables.contains(source.variable.as_str()) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "undeclared MCP resource template completion variable: {}",
+                redact_text(&source.variable)
+            )));
+        }
+        if completions
+            .insert(source.variable.clone(), source.values.clone())
+            .is_some()
+        {
+            return Err(McpError::InvalidServerRequest(format!(
+                "duplicate MCP resource template completion variable: {}",
+                redact_text(&source.variable)
+            )));
+        }
+    }
+
+    Ok(completions)
+}
+
+fn resource_template_variables(uri_template: &str) -> Result<BTreeSet<String>, McpError> {
+    let mut cursor = 0;
+    let mut variables = BTreeSet::new();
+    while let Some(start_relative) = uri_template[cursor..].find('{') {
+        let start = cursor + start_relative;
+        let variable_start = start + 1;
+        let Some(end_relative) = uri_template[variable_start..].find('}') else {
+            return Err(McpError::InvalidServerRequest(format!(
+                "invalid MCP resource template: {}",
+                redact_text(uri_template)
+            )));
+        };
+        let end = variable_start + end_relative;
+        let variable = &uri_template[variable_start..end];
+        if !valid_template_variable(variable) {
+            return Err(McpError::InvalidServerRequest(format!(
+                "invalid MCP resource template: {}",
+                redact_text(uri_template)
+            )));
+        }
+        variables.insert(variable.to_string());
+        cursor = end + 1;
+    }
+    if variables.is_empty() {
+        return Err(McpError::InvalidServerRequest(format!(
+            "invalid MCP resource template: {}",
+            redact_text(uri_template)
+        )));
+    }
+    Ok(variables)
+}
+
+fn validate_template_variable_name(value: &str) -> Result<String, McpError> {
+    let trimmed = value.trim();
+    if !valid_template_variable(trimmed) || is_secret_like(trimmed) {
+        return Err(McpError::InvalidServerRequest(format!(
+            "invalid MCP resource template variable: {}",
+            redact_text(trimmed)
+        )));
+    }
     Ok(bound_text(trimmed, MAX_RESOURCE_DIAGNOSTIC_CHARS))
 }
 

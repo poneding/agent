@@ -8,6 +8,7 @@ authors.workspace = true
 
 [dependencies]
 agent-policy = { path = "../agent-policy" }
+agent-sandbox = { path = "../agent-sandbox" }
 agent-tool = { path = "../agent-tool" }
 agent-types = { path = "../agent-types" }
 async-trait = "0.1"

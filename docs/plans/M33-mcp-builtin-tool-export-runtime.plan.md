@@ -46,7 +46,7 @@ Define the built-in export allow-list, workspace root requirement, manifest tool
 - Execute: `docs/plans/M33-04-stdio-tool-call-e2e.plan.md`
 - Execute: `docs/plans/M33-05-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add built-in tool export catalog**
+- [x] **Step 1: Add built-in tool export catalog**
 - [ ] **Step 2: Harden manifest tool binding diagnostics**
 - [ ] **Step 3: Add CLI workspace-backed profile startup**
 - [ ] **Step 4: Prove stdio tool list and call flow**

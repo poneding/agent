@@ -3,6 +3,8 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 
+use agent_sandbox::WorkspaceSandbox;
+use agent_tool::builtins::{GitDiffTool, GitStatusTool, ReadFileTool, SearchTextTool};
 use serde::{Deserialize, Serialize};
 
 use crate::{McpError, McpServerExportProfileBuilder, McpServerProfileRuntime};
@@ -79,6 +81,20 @@ pub struct McpServerResourceExportConfig {
     pub sensitive: bool,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct McpServerBuiltinToolExportCatalogConfig {
+    pub workspace_root: PathBuf,
+}
+
+impl McpServerBuiltinToolExportCatalogConfig {
+    #[must_use]
+    pub fn new(workspace_root: impl Into<PathBuf>) -> Self {
+        Self {
+            workspace_root: workspace_root.into(),
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct McpServerToolExportCatalog {
     tools: BTreeMap<String, Arc<dyn Tool>>,
@@ -110,6 +126,24 @@ impl McpServerToolExportCatalog {
     pub fn tool_names(&self) -> Vec<String> {
         self.tools.keys().cloned().collect()
     }
+}
+
+pub fn build_mcp_server_builtin_tool_export_catalog(
+    config: McpServerBuiltinToolExportCatalogConfig,
+) -> Result<McpServerToolExportCatalog, McpError> {
+    let sandbox = WorkspaceSandbox::new(&config.workspace_root).map_err(|error| {
+        McpError::InvalidServerRequest(format!(
+            "invalid MCP server builtin tool workspace root: {}",
+            redact_text(&error.to_string())
+        ))
+    })?;
+
+    let mut catalog = McpServerToolExportCatalog::default();
+    catalog.register(ReadFileTool::new(sandbox.clone()))?;
+    catalog.register(SearchTextTool::new(sandbox.clone()))?;
+    catalog.register(GitStatusTool::new(sandbox.clone()))?;
+    catalog.register(GitDiffTool::new(sandbox))?;
+    Ok(catalog)
 }
 
 pub fn parse_mcp_server_export_manifest_json(

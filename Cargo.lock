@@ -120,6 +120,7 @@ name = "agent-mcp"
 version = "0.1.0"
 dependencies = [
  "agent-policy",
+ "agent-sandbox",
  "agent-tool",
  "agent-types",
  "async-trait",

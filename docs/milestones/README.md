@@ -278,7 +278,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M33 technical design | Complete |
 | M33 slice specs | Complete for M33-01 through M33-05 |
 | M33 slice plans | Complete for M33-01 through M33-05 |
-| M33 implementation | Planned |
+| M33-01 implementation | Complete |
+| M33 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -673,7 +674,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M33-01 built-in tool export catalog`.
+Current implementation focus: `M33-02 manifest tool binding diagnostics`.
 
 Most recent completed implementation documents:
 
@@ -723,5 +724,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M33-01-builtin-tool-export-catalog.spec.md`
-- `docs/plans/M33-01-builtin-tool-export-catalog.plan.md`
+- `docs/specs/M33-02-manifest-tool-binding-diagnostics.spec.md`
+- `docs/plans/M33-02-manifest-tool-binding-diagnostics.plan.md`

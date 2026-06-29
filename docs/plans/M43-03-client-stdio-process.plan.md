@@ -17,18 +17,18 @@
 - Read: `crates/agent-mcp/src/client_stdio.rs`
 - Read: `crates/agent-mcp/src/config.rs`
 
-- [ ] **Step 1: Review stdio config and session transport trait**
+- [x] **Step 1: Review stdio config and session transport trait**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_stdio_process.rs`
 
-- [ ] **Step 1: Add process transport tests**
+- [x] **Step 1: Add process transport tests**
 
 Add tests for fixture process exchange, disabled config, early exit, and stderr redaction.
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -42,13 +42,13 @@ CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_proce
 - Modify: `crates/agent-mcp/Cargo.toml`
 - Modify: `crates/agent-mcp/src/client_stdio.rs`
 
-- [ ] **Step 1: Enable Tokio process/IO features if needed**
-- [ ] **Step 2: Add spawn, send, receive, and close behavior**
-- [ ] **Step 3: Add redacted process diagnostics**
+- [x] **Step 1: Enable Tokio process/IO features if needed**
+- [x] **Step 2: Add spawn, send, receive, and close behavior**
+- [x] **Step 3: Add redacted process diagnostics**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -60,7 +60,7 @@ CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_proce
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M43-03**
+- [x] **Step 1: Commit M43-03**
 
 Run:
 

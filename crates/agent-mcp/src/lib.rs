@@ -47,9 +47,10 @@ pub use client_sampling_stdio::{
     parse_mcp_sampling_stdio_request_frame,
 };
 pub use client_stdio::{
-    FixtureMcpClientStdioTransport, McpClientStdioResponseFrame, McpClientStdioSession,
-    McpClientStdioSessionStatus, McpClientStdioSessionSummary, McpClientStdioTransport,
-    parse_mcp_client_stdio_response_frame, render_mcp_client_stdio_request_frame,
+    FixtureMcpClientStdioTransport, McpClientStdioProcessTransport, McpClientStdioResponseFrame,
+    McpClientStdioSession, McpClientStdioSessionStatus, McpClientStdioSessionSummary,
+    McpClientStdioTransport, parse_mcp_client_stdio_response_frame,
+    render_mcp_client_stdio_request_frame,
 };
 pub use config::{McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig};
 pub use error::McpError;

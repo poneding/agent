@@ -47,7 +47,7 @@ Define manifest ownership, profile construction, file resource boundaries, built
 - Execute: `docs/plans/M32-05-runtime-hardening-docs.plan.md`
 
 - [x] **Step 1: Add export manifest contracts**
-- [ ] **Step 2: Add resource export loader**
+- [x] **Step 2: Add resource export loader**
 - [ ] **Step 3: Add tool export catalog**
 - [ ] **Step 4: Add CLI profile stdio flags**
 - [ ] **Step 5: Add hardening docs and final verification**

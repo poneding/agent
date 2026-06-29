@@ -12,19 +12,28 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M32-02 spec and resource registry behavior**
+- [x] **Step 1: Read M32-02 spec and resource registry behavior**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add resource loader tests**
+- [x] **Step 1: Add resource loader tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add resource loading helper**
-- [ ] **Step 2: Integrate helper with profile builder**
-- [ ] **Step 3: Add safe diagnostics**
+- [x] **Step 1: Add resource loading helper**
+- [x] **Step 2: Integrate helper with profile builder**
+- [x] **Step 3: Add safe diagnostics**
 
 ### Task 4: Verify and Commit
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m32 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp mcp_server_resource_loader
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp
+```
 
 ```bash
 cargo fmt --all -- --check

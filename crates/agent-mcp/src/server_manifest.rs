@@ -1,8 +1,10 @@
 use std::collections::BTreeSet;
+use std::fs;
+use std::path::{Component, Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::McpError;
+use crate::{McpError, McpServerExportProfileBuilder, McpServerProfileRuntime};
 
 pub const MCP_SERVER_EXPORT_MANIFEST_SCHEMA_VERSION: u32 = 1;
 
@@ -121,6 +123,55 @@ pub fn select_mcp_server_export_profile<'a>(
     ))
 }
 
+pub fn build_mcp_server_resource_profile_from_manifest(
+    manifest: &McpServerExportManifest,
+    profile_name: Option<&str>,
+    manifest_dir: impl AsRef<Path>,
+) -> Result<McpServerProfileRuntime, McpError> {
+    let profile = select_mcp_server_export_profile(manifest, profile_name)?;
+    let mut builder = McpServerExportProfileBuilder::new(&profile.name)?;
+    let manifest_dir = manifest_dir.as_ref();
+
+    for resource in &profile.resources {
+        let path = resolve_manifest_resource_path(manifest_dir, &resource.path)?;
+        let contents = fs::read_to_string(&path).map_err(|_| {
+            McpError::InvalidServerRequest(format!(
+                "failed to read MCP server export resource file: {}",
+                redact_text(&resource.path)
+            ))
+        })?;
+
+        match (resource.enabled, resource.sensitive) {
+            (true, true) => builder.export_sensitive_resource(
+                &resource.uri,
+                &resource.name,
+                resource.mime_type.clone(),
+                contents,
+            )?,
+            (true, false) => builder.export_resource(
+                &resource.uri,
+                &resource.name,
+                resource.mime_type.clone(),
+                contents,
+            )?,
+            (false, true) => builder.export_disabled_sensitive_resource(
+                &resource.uri,
+                &resource.name,
+                resource.mime_type.clone(),
+                contents,
+            )?,
+            (false, false) => builder.export_disabled_resource(
+                &resource.uri,
+                &resource.name,
+                resource.mime_type.clone(),
+                contents,
+            )?,
+        }
+    }
+
+    Ok(builder.build())
+}
+
 fn validate_profile(profile: &McpServerExportProfileConfig) -> Result<(), McpError> {
     let mut tool_names = BTreeSet::new();
     for tool in &profile.tools {
@@ -200,6 +251,41 @@ fn validate_resource_uri(value: &str) -> Result<String, McpError> {
         )));
     }
     Ok(bound_text(trimmed, MAX_MANIFEST_TEXT_CHARS))
+}
+
+fn resolve_manifest_resource_path(
+    manifest_dir: &Path,
+    resource_path: &str,
+) -> Result<PathBuf, McpError> {
+    let path = Path::new(resource_path);
+    if path.is_absolute() {
+        return Err(McpError::InvalidServerRequest(format!(
+            "MCP server export resource path must be relative to manifest directory: {}",
+            redact_text(resource_path)
+        )));
+    }
+
+    let mut normalized = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::Normal(part) => normalized.push(part),
+            Component::CurDir => {}
+            Component::ParentDir | Component::RootDir | Component::Prefix(_) => {
+                return Err(McpError::InvalidServerRequest(format!(
+                    "MCP server export resource path must stay under manifest directory: {}",
+                    redact_text(resource_path)
+                )));
+            }
+        }
+    }
+
+    if normalized.as_os_str().is_empty() {
+        return Err(McpError::InvalidServerRequest(
+            "MCP server export resource path cannot be empty".to_string(),
+        ));
+    }
+
+    Ok(manifest_dir.join(normalized))
 }
 
 fn default_enabled() -> bool {

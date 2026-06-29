@@ -144,6 +144,19 @@ impl McpServerExportProfileBuilder {
         self.insert_resource(uri, name, mime_type, contents, false, false)
     }
 
+    pub fn export_disabled_sensitive_resource<M>(
+        &mut self,
+        uri: impl Into<String>,
+        name: impl Into<String>,
+        mime_type: Option<M>,
+        contents: impl Into<String>,
+    ) -> Result<(), McpError>
+    where
+        M: Into<String>,
+    {
+        self.insert_resource(uri, name, mime_type, contents, false, true)
+    }
+
     #[must_use]
     pub fn build(mut self) -> McpServerProfileRuntime {
         self.profile.tool_names = self.tool_names.into_iter().collect();

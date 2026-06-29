@@ -270,6 +270,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M32 slice specs | Complete for M32-01 through M32-05 |
 | M32 slice plans | Complete for M32-01 through M32-05 |
 | M32-01 implementation | Complete |
+| M32-02 implementation | Complete |
 | M32 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -653,7 +654,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M32-02 resource export loader`.
+Current implementation focus: `M32-03 tool export catalog`.
 
 Most recent completed implementation documents:
 
@@ -687,6 +688,8 @@ Most recent completed implementation documents:
 - `docs/plans/M31-05-runtime-hardening-docs.plan.md`
 - `docs/specs/M32-01-export-manifest-contracts.spec.md`
 - `docs/plans/M32-01-export-manifest-contracts.plan.md`
+- `docs/specs/M32-02-resource-export-loader.spec.md`
+- `docs/plans/M32-02-resource-export-loader.plan.md`
 
 Most recent completed technical design documents:
 
@@ -695,5 +698,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M32-02-resource-export-loader.spec.md`
-- `docs/plans/M32-02-resource-export-loader.plan.md`
+- `docs/specs/M32-03-tool-export-catalog.spec.md`
+- `docs/plans/M32-03-tool-export-catalog.plan.md`

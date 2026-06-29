@@ -36,7 +36,8 @@ pub use server::{
 pub use server_manifest::{
     MCP_SERVER_EXPORT_MANIFEST_SCHEMA_VERSION, McpServerExportManifest,
     McpServerExportProfileConfig, McpServerResourceExportConfig, McpServerToolExportConfig,
-    parse_mcp_server_export_manifest_json, select_mcp_server_export_profile,
+    build_mcp_server_resource_profile_from_manifest, parse_mcp_server_export_manifest_json,
+    select_mcp_server_export_profile,
 };
 pub use server_profile::{
     McpServerExportProfile, McpServerExportProfileBuilder, McpServerProfileRuntime,

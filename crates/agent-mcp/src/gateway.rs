@@ -5,12 +5,14 @@ use agent_tool::{Tool, ToolDefinition, ToolError, ToolInput, ToolOutput, ToolReg
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    McpError, McpGatewayClient, McpRoot, McpServerConfig, McpServerHealth, McpServerId,
-    McpServerStatus, McpToolCallRequest, McpToolDefinition, McpToolDescriptor,
-    check_mcp_server_health, mcp_descriptor_to_tool_definition,
+    McpClientSamplingCapability, McpError, McpGatewayClient, McpRoot, McpSamplingValidationPolicy,
+    McpServerConfig, McpServerHealth, McpServerId, McpServerStatus, McpToolCallRequest,
+    McpToolDefinition, McpToolDescriptor, check_mcp_server_health,
+    mcp_descriptor_to_tool_definition,
 };
 
 const DEFAULT_MAX_RESPONSE_BYTES: usize = 16 * 1024;
+const MAX_GATEWAY_MESSAGE_CHARS: usize = 256;
 
 #[derive(Clone)]
 pub struct McpGateway {
@@ -39,12 +41,27 @@ impl McpGateway {
         let mut servers = Vec::new();
         let mut tools = Vec::new();
         let mut roots = Vec::new();
+        let mut sampling = Vec::new();
         let mut diagnostics = Vec::new();
         let mut local_names = BTreeSet::new();
+        let client_capabilities = self.client.client_capabilities();
+        let sampling_policy = McpSamplingValidationPolicy::default();
 
         for config in configs {
             let health = check_mcp_server_health(self.client.as_ref(), config).await;
             if config.enabled && health.status == McpServerStatus::Healthy {
+                if let Some(sampling_capability) = &client_capabilities.sampling {
+                    sampling.push(gateway_sampling_from_capability(
+                        config.id.clone(),
+                        sampling_capability,
+                    ));
+                    diagnostics.extend(gateway_sampling_policy_diagnostics(
+                        config.id.clone(),
+                        sampling_capability,
+                        &sampling_policy,
+                    ));
+                }
+
                 match self.client.list_roots(&config.id).await {
                     Ok(list) => {
                         for root in list.roots {
@@ -96,12 +113,14 @@ impl McpGateway {
                 .then_with(|| left.uri.cmp(&right.uri))
                 .then_with(|| left.name.cmp(&right.name))
         });
+        sampling.sort_by_key(|descriptor| descriptor.server_id.to_string());
         diagnostics.sort_by_key(|diagnostic| diagnostic.code.clone());
 
         McpGatewayReport {
             servers,
             tools,
             roots,
+            sampling,
             diagnostics,
         }
     }
@@ -131,6 +150,7 @@ pub struct McpGatewayReport {
     pub servers: Vec<McpServerHealth>,
     pub tools: Vec<McpGatewayToolDescriptor>,
     pub roots: Vec<McpGatewayRootDescriptor>,
+    pub sampling: Vec<McpGatewaySamplingDescriptor>,
     pub diagnostics: Vec<McpGatewayDiagnostic>,
 }
 
@@ -151,6 +171,15 @@ pub struct McpGatewayRootDescriptor {
     pub name: Option<String>,
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpGatewaySamplingDescriptor {
+    pub server_id: McpServerId,
+    pub available: bool,
+    pub tools_supported: bool,
+    pub context_supported: bool,
+    pub message: String,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpGatewayDiagnostic {
     pub severity: String,
@@ -165,10 +194,27 @@ impl McpGatewayDiagnostic {
         message: impl Into<String>,
         server_id: Option<McpServerId>,
     ) -> Self {
+        Self::new("error", code, message, server_id)
+    }
+
+    fn warning(
+        code: impl Into<String>,
+        message: impl Into<String>,
+        server_id: Option<McpServerId>,
+    ) -> Self {
+        Self::new("warning", code, message, server_id)
+    }
+
+    fn new(
+        severity: impl Into<String>,
+        code: impl Into<String>,
+        message: impl Into<String>,
+        server_id: Option<McpServerId>,
+    ) -> Self {
         Self {
-            severity: "error".to_string(),
+            severity: severity.into(),
             code: code.into(),
-            message: redact_secret_like_text(&message.into()),
+            message: gateway_public_message(&message.into()),
             server_id,
         }
     }
@@ -222,6 +268,42 @@ fn gateway_root_from_root(server_id: McpServerId, root: McpRoot) -> McpGatewayRo
     }
 }
 
+fn gateway_sampling_from_capability(
+    server_id: McpServerId,
+    capability: &McpClientSamplingCapability,
+) -> McpGatewaySamplingDescriptor {
+    McpGatewaySamplingDescriptor {
+        server_id,
+        available: true,
+        tools_supported: capability.tools,
+        context_supported: capability.context,
+        message: gateway_public_message("MCP sampling available with safe validation policy"),
+    }
+}
+
+fn gateway_sampling_policy_diagnostics(
+    server_id: McpServerId,
+    capability: &McpClientSamplingCapability,
+    policy: &McpSamplingValidationPolicy,
+) -> Vec<McpGatewayDiagnostic> {
+    let mut diagnostics = Vec::new();
+    if capability.tools && !policy.allow_tools {
+        diagnostics.push(McpGatewayDiagnostic::warning(
+            "sampling_tools_rejected_by_policy",
+            "MCP sampling tool requests are rejected by the current safe validation policy",
+            Some(server_id.clone()),
+        ));
+    }
+    if capability.context && !policy.allow_context {
+        diagnostics.push(McpGatewayDiagnostic::warning(
+            "sampling_context_rejected_by_policy",
+            "MCP sampling context requests are rejected by the current safe validation policy",
+            Some(server_id),
+        ));
+    }
+    diagnostics
+}
+
 fn bounded_tool_output(output: serde_json::Value, max_bytes: usize) -> serde_json::Value {
     let rendered = output.to_string();
     if rendered.len() <= max_bytes {
@@ -232,6 +314,22 @@ fn bounded_tool_output(output: serde_json::Value, max_bytes: usize) -> serde_jso
         "content": truncate_utf8(&rendered, max_bytes),
         "truncated": true,
     })
+}
+
+fn gateway_public_message(value: &str) -> String {
+    truncate_chars(&redact_secret_like_text(value), MAX_GATEWAY_MESSAGE_CHARS)
+}
+
+fn truncate_chars(value: &str, max_chars: usize) -> String {
+    if value.chars().count() <= max_chars {
+        return value.to_string();
+    }
+    if max_chars <= 3 {
+        return value.chars().take(max_chars).collect();
+    }
+
+    let prefix = value.chars().take(max_chars - 3).collect::<String>();
+    format!("{prefix}...")
 }
 
 fn truncate_utf8(value: &str, max_bytes: usize) -> String {

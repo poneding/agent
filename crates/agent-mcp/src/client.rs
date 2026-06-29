@@ -84,6 +84,10 @@ pub trait McpClient: Send + Sync {
 
 #[async_trait]
 pub trait McpGatewayClient: McpClient + McpClientRootProvider {
+    fn client_capabilities(&self) -> McpClientCapabilities {
+        McpClientCapabilities::default()
+    }
+
     async fn call_tool(&self, request: McpToolCallRequest) -> Result<McpToolCallResult, McpError>;
 }
 
@@ -193,6 +197,12 @@ impl FixtureMcpClient {
     }
 
     #[must_use]
+    pub fn with_sampling_capability(mut self, capability: McpClientSamplingCapability) -> Self {
+        self.client_capabilities.sampling = Some(capability);
+        self
+    }
+
+    #[must_use]
     pub fn call_count(&self, server_id: &str, remote_tool_name: &str) -> u32 {
         let Ok(server_id) = McpServerId::new(server_id) else {
             return 0;
@@ -285,6 +295,10 @@ impl McpSamplingProvider for FixtureMcpClient {
 
 #[async_trait]
 impl McpGatewayClient for FixtureMcpClient {
+    fn client_capabilities(&self) -> McpClientCapabilities {
+        FixtureMcpClient::client_capabilities(self)
+    }
+
     async fn call_tool(&self, request: McpToolCallRequest) -> Result<McpToolCallResult, McpError> {
         let key = (request.server_id, request.remote_tool_name);
         *self

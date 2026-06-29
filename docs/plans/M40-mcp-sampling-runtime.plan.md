@@ -49,7 +49,7 @@ Define sampling directionality, capability negotiation, request/result contracts
 - [x] **Step 1: Add sampling contracts**
 - [x] **Step 2: Add safe sampling request validation**
 - [x] **Step 3: Add client session sampling fixture behavior**
-- [ ] **Step 4: Wire gateway sampling diagnostics**
+- [x] **Step 4: Wire gateway sampling diagnostics**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M40

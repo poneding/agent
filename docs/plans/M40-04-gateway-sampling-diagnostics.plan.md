@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/gateway.rs`
 - Read: `crates/agent-mcp/tests/mcp_gateway_roots.rs`
 
-- [ ] **Step 1: Review gateway report patterns**
+- [x] **Step 1: Review gateway report patterns**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: roots diagnostics show the non-blocking discovery pattern to mirror.
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_gateway_sampling.rs`
 
-- [ ] **Step 1: Add gateway sampling report tests**
+- [x] **Step 1: Add gateway sampling report tests**
 
 Add tests named:
 
@@ -42,10 +42,17 @@ Add tests named:
 mcp_gateway_sampling_reports_availability_for_healthy_servers
 mcp_gateway_sampling_excludes_disabled_and_unhealthy_servers
 mcp_gateway_sampling_errors_are_redacted_and_do_not_block_tools
+mcp_gateway_sampling_policy_extension_diagnostics_do_not_block_tools
 mcp_gateway_sampling_report_serializes_stable_shape
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
+
+Verified failing before implementation:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling
+```
 
 Run:
 
@@ -61,21 +68,29 @@ Expected: tests fail because gateway sampling descriptors do not exist yet.
 - Modify: `crates/agent-mcp/src/gateway.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add `McpGatewaySamplingDescriptor`**
+- [x] **Step 1: Add `McpGatewaySamplingDescriptor`**
 
 Add a serializable descriptor with server ID, availability, `tools_supported`, `context_supported`, and a bounded redacted message.
 
-- [ ] **Step 2: Populate report descriptors**
+- [x] **Step 2: Populate report descriptors**
 
 During gateway discovery, add descriptors only for enabled healthy servers whose client capabilities include sampling. Sort descriptors by server ID and do not call `create_message`.
 
-- [ ] **Step 3: Add redacted diagnostics for unavailable paths**
+- [x] **Step 3: Add redacted diagnostics for unavailable paths**
 
-When a sampling capability is absent or rejected by safe-subset policy, add a diagnostic code without raw prompt content.
+When a sampling capability advertises optional tools/context extensions rejected by safe-subset policy, add diagnostic codes without raw prompt content.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
+```
 
 Run:
 
@@ -89,7 +104,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M40-04**
+- [x] **Step 1: Commit M40-04**
 
 Run:
 

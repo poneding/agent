@@ -63,7 +63,7 @@ Expose selected local tools through `tools/list` and `tools/call` with policy en
 
 Expose selected read-only resource descriptors and bounded reads.
 
-- [ ] **Step 4: Add stdio JSON-RPC fixture handling**
+- [x] **Step 4: Add stdio JSON-RPC fixture handling**
 
 Handle deterministic line-framed JSON-RPC requests for tests and future server mode.
 

@@ -363,8 +363,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M42-02 implementation | Complete |
 | M42-03 implementation | Complete |
 | M42-04 implementation | Complete |
-| M42-05 implementation | In progress |
-| M42 implementation | In progress |
+| M42-05 implementation | Complete |
+| M42 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -867,7 +867,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M42-05 hardening docs.
+Current implementation focus: M42 complete; next implementation focus pending.
 
 Most recent completed implementation documents:
 
@@ -879,6 +879,8 @@ Most recent completed implementation documents:
 - `docs/plans/M42-03-sampling-stdio-validation.plan.md`
 - `docs/specs/M42-04-sampling-stdio-redaction.spec.md`
 - `docs/plans/M42-04-sampling-stdio-redaction.plan.md`
+- `docs/specs/M42-05-hardening-docs.spec.md`
+- `docs/plans/M42-05-hardening-docs.plan.md`
 - `docs/specs/M41-01-sampling-model-request-mapping.spec.md`
 - `docs/plans/M41-01-sampling-model-request-mapping.plan.md`
 - `docs/specs/M41-02-sampling-model-provider.spec.md`

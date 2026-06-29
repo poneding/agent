@@ -18,7 +18,7 @@
 - Read: `README.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Read M42 specs and completed implementation slices**
+- [x] **Step 1: Read M42 specs and completed implementation slices**
 
 Expected: scope, safe subset, and focused tests are clear.
 
@@ -29,17 +29,17 @@ Expected: scope, safe subset, and focused tests are clear.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M42-mcp-sampling-stdio-dispatch.plan.md`
 
-- [ ] **Step 1: Update README sampling stdio dispatch usage**
+- [x] **Step 1: Update README sampling stdio dispatch usage**
 
 Add a concise note that M42 can dispatch fixture-grade `sampling/createMessage` JSON-RPC request frames through local sampling providers.
 
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 Mark M42-01 through M42-05 complete only after implementation and verification are done.
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M42 focused tests**
+- [x] **Step 1: Run final M42 focused tests**
 
 Run:
 
@@ -52,7 +52,7 @@ CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_red
 
 Expected: focused M42 tests pass.
 
-- [ ] **Step 2: Run final workspace gate**
+- [x] **Step 2: Run final workspace gate**
 
 Run:
 
@@ -66,7 +66,7 @@ Expected: final gates pass.
 
 ### Task 4: Commit
 
-- [ ] **Step 1: Commit M42-05**
+- [x] **Step 1: Commit M42-05**
 
 Run:
 

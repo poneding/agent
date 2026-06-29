@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M41 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, and a text-only MCP sampling model bridge through local `agent-model` providers.
+M01-M42 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, and fixture-grade MCP sampling stdio frame dispatch.
 
 ## Core Ideas
 
@@ -145,7 +145,7 @@ Disabled roots remain inspectable but are excluded from active root lists. Disab
 
 ## MCP Sampling
 
-`agent-mcp` can model MCP `sampling/createMessage` requests from external servers without handing model credentials or local tool access to those servers. M40 implements typed sampling contracts, a conservative request validator, deterministic fixture execution, and gateway availability diagnostics. M41 adds an `agent-core` bridge that maps safe text-only sampling requests to local `agent-model` providers.
+`agent-mcp` can model MCP `sampling/createMessage` requests from external servers without handing model credentials or local tool access to those servers. M40 implements typed sampling contracts, a conservative request validator, deterministic fixture execution, and gateway availability diagnostics. M41 adds an `agent-core` bridge that maps safe text-only sampling requests to local `agent-model` providers. M42 adds fixture-grade JSON-RPC stdio frame dispatch for server-initiated `sampling/createMessage` requests through the same local provider path.
 
 Given a configured `server_id`, `server_config`, and fixture `initialize_result`:
 
@@ -198,9 +198,39 @@ let sampling_provider = McpModelSamplingProvider::new(
 let response = create_mcp_sampling_message(&sampling_provider, &server_config, request).await?;
 ```
 
+Use the stdio dispatcher when tests or a future transport wrapper need to turn one MCP JSON-RPC sampling request frame into a JSON-RPC response frame:
+
+```rust
+use agent_mcp::{
+    MCP_SAMPLING_CREATE_MESSAGE_METHOD, handle_mcp_sampling_stdio_frame,
+};
+use serde_json::json;
+
+let frame = json!({
+    "jsonrpc": "2.0",
+    "id": "sample-1",
+    "method": MCP_SAMPLING_CREATE_MESSAGE_METHOD,
+    "params": {
+        "messages": [
+            {
+                "role": "user",
+                "content": {
+                    "type": "text",
+                    "text": "Summarize this fixture input."
+                }
+            }
+        ],
+        "maxTokens": 256
+    }
+})
+.to_string();
+
+let response_frame = handle_mcp_sampling_stdio_frame(&client, &server_config, &frame).await;
+```
+
 The safe subset rejects empty message lists, invalid token limits, unsupported `tools` / `toolChoice`, and `includeContext` values other than `none` before model streaming. The model bridge also rejects image, audio, tool-use, tool-result, and model `ToolCall` paths. Server model preferences remain advisory; local provider and model config always select the actual model runtime.
 
-Gateway reports, bridge errors, and public diagnostics expose bounded status codes only; they do not include request messages, system prompts, response content, media payloads, provider metadata, model credentials, or local secret names. Sampling does not grant filesystem, command, Git, browser, Desktop, local secret, or local tool permissions. Bidirectional stdio dispatch, approval UI, multimodal conversion, task-augmented sampling, and tool-enabled sampling loops are reserved for later milestones.
+Gateway reports, bridge errors, stdio error frames, and public diagnostics expose bounded status codes only; they do not include request messages, system prompts, response content, media payloads, provider metadata, model credentials, or local secret names. Sampling success frames contain the provider response by design. Sampling does not grant filesystem, command, Git, browser, Desktop, local secret, or local tool permissions. Live spawned-process transport, reentrant dispatch while a tool call is in flight, approval UI, Desktop review surfaces, multimodal conversion, task-augmented sampling, and tool-enabled sampling loops are reserved for later milestones.
 
 ## MCP Server Export
 
@@ -477,9 +507,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M41-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M41-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M41-mcp-sampling-model-bridge.spec.md)
+- [Latest completed spec](docs/specs/M42-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M42-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M42-mcp-sampling-stdio-dispatch.spec.md)
 - [Milestone index](docs/milestones/README.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)

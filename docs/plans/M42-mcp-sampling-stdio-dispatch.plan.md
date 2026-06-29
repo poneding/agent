@@ -50,7 +50,7 @@ Define crate ownership, JSON-RPC frame shape, dispatcher flow, validation-before
 - [x] **Step 2: Add provider-backed sampling stdio dispatcher**
 - [x] **Step 3: Add validation-before-provider guardrails**
 - [x] **Step 4: Add redacted public diagnostics**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M42
 
@@ -59,7 +59,7 @@ Define crate ownership, JSON-RPC frame shape, dispatcher flow, validation-before
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M42-mcp-sampling-stdio-dispatch.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,17 @@ CARGO_TARGET_DIR=target/codex-m42 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M42 complete and commit**
+- [x] **Step 2: Mark M42 complete and commit**
+
+Verification evidence on 2026-06-29:
+
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_contracts`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_dispatch`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_validation`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_redaction`
+- `git diff --check`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo fmt --all -- --check`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo xtask ci`
 
 Run:
 

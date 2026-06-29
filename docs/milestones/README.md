@@ -377,7 +377,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M44 technical design | Complete |
 | M44 slice specs | Complete for M44-01 through M44-05 |
 | M44 slice plans | Complete for M44-01 through M44-05 |
-| M44-01 implementation | In progress |
+| M44-01 implementation | Complete |
+| M44-02 implementation | In progress |
 | M44 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -905,7 +906,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M44-01 stdio tool call mapping.
+Current implementation focus: M44-02 gateway live stdio tools.
 
 Most recent completed implementation documents:
 

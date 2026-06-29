@@ -11,9 +11,11 @@ use tokio::sync::Mutex;
 use tokio::time::timeout;
 
 use crate::{
-    MCP_SERVER_PROTOCOL_VERSION, McpClient, McpEnvValue, McpError, McpInitializeResult,
-    McpJsonRpcFailure, McpJsonRpcId, McpJsonRpcSuccess, McpServerCapabilities, McpServerConfig,
-    McpServerId, McpServerMethod, McpToolDescriptor, McpToolListResult, McpTransportConfig,
+    MCP_SERVER_PROTOCOL_VERSION, McpClient, McpClientRootProvider, McpEnvValue, McpError,
+    McpGatewayClient, McpInitializeResult, McpJsonRpcFailure, McpJsonRpcId, McpJsonRpcSuccess,
+    McpRootListResult, McpServerCapabilities, McpServerConfig, McpServerId, McpServerMethod,
+    McpToolCallRequest, McpToolCallResult, McpToolDescriptor, McpToolListResult,
+    McpTransportConfig,
 };
 
 const MAX_CLIENT_STDIO_FRAME_BYTES: usize = 64 * 1024;
@@ -318,6 +320,50 @@ where
             .await?;
         let result = mcp_client_stdio_success_result(response, "tools/list")?;
         map_mcp_client_stdio_tool_list_result(server_id.clone(), &result)
+    }
+}
+
+#[async_trait]
+impl<T> McpClientRootProvider for McpStdioClient<T>
+where
+    T: McpClientStdioTransport,
+{
+    async fn list_roots(&self, server_id: &McpServerId) -> Result<McpRootListResult, McpError> {
+        let state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(server_id) {
+            return Err(McpError::Client(
+                "MCP client stdio session is not initialized".to_string(),
+            ));
+        }
+        Ok(McpRootListResult::empty())
+    }
+}
+
+#[async_trait]
+impl<T> McpGatewayClient for McpStdioClient<T>
+where
+    T: McpClientStdioTransport,
+{
+    async fn call_tool(&self, request: McpToolCallRequest) -> Result<McpToolCallResult, McpError> {
+        let mut state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(&request.server_id) {
+            return Err(McpError::Client(
+                "MCP client stdio session is not initialized".to_string(),
+            ));
+        }
+
+        let response = state
+            .session
+            .send_request(
+                McpServerMethod::ToolsCall.as_str(),
+                json!({
+                    "name": request.remote_tool_name,
+                    "arguments": request.input_json,
+                }),
+            )
+            .await?;
+        let result = mcp_client_stdio_success_result(response, "tools/call")?;
+        map_mcp_client_stdio_tool_call_result(&result)
     }
 }
 
@@ -642,6 +688,19 @@ fn map_mcp_client_stdio_tool_list_result(
         )?);
     }
     Ok(McpToolListResult::new(server_id, descriptors))
+}
+
+fn map_mcp_client_stdio_tool_call_result(result: &Value) -> Result<McpToolCallResult, McpError> {
+    let result_object = result
+        .as_object()
+        .ok_or_else(|| invalid_mcp_client_stdio_result("tools/call"))?;
+
+    if result_object.contains_key("output_json") {
+        return serde_json::from_value::<McpToolCallResult>(result.clone())
+            .map_err(|_| invalid_mcp_client_stdio_result("tools/call"));
+    }
+
+    Ok(McpToolCallResult::new(result.clone()))
 }
 
 fn object_field<'a>(

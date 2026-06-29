@@ -12,17 +12,19 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M34 inspection and CLI output**
+- [x] **Step 1: Review M34 inspection and CLI output**
 
 ### Task 2: Add Regression Tests
 
-- [ ] **Step 1: Add JSON shape assertions**
-- [ ] **Step 2: Add secret-like value redaction assertions**
-- [ ] **Step 3: Add protocol-only stdio regression if needed**
+- [x] **Step 1: Add JSON shape assertions**
+- [x] **Step 2: Add secret-like value redaction assertions**
+- [x] **Step 3: Add protocol-only stdio regression if needed**
 
 ### Task 3: Implement Fixes
 
-- [ ] **Step 1: Adjust redaction or rendering gaps**
+- [x] **Step 1: Adjust redaction or rendering gaps**
+
+No implementation changes were needed beyond regression coverage; existing redaction and protocol-only stdio behavior already satisfied this slice.
 
 ### Task 4: Verify
 
@@ -34,7 +36,17 @@ CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_ins
 CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m34 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_inspection
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command
+```
 
 ### Task 5: Commit
 
@@ -43,4 +55,4 @@ git add crates docs
 git commit -m "feat: harden mcp profile inspect redaction"
 ```
 
-- [ ] **Step 1: Commit M34-04**
+- [x] **Step 1: Commit M34-04**

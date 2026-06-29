@@ -214,3 +214,35 @@ fn mcp_server_profile_inspection_serializes_stable_snake_case_shape() {
         .expect("workspace diagnostic");
     assert_eq!(workspace_required["severity"], "error");
 }
+
+#[test]
+fn mcp_server_profile_inspection_redacts_secret_like_diagnostics() {
+    let root = temp_root("redacted-diagnostics");
+    let manifest = parse_mcp_server_export_manifest_json(
+        r#"{
+          "schema_version": 1,
+          "profiles": [
+            {
+              "name": "default",
+              "tools": [{"name": "workspace.read_file"}]
+            }
+          ]
+        }"#,
+    )
+    .expect("manifest");
+
+    let inspection = inspect_mcp_server_export_profile(
+        &manifest,
+        McpServerProfileInspectionOptions {
+            profile_name: None,
+            manifest_dir: root.clone(),
+            workspace_root: Some(root.join("token/sk-secret-workspace")),
+        },
+    )
+    .expect("inspection");
+    let rendered = serde_json::to_string(&inspection).expect("json");
+
+    assert!(rendered.contains("[redacted]"));
+    assert!(!rendered.contains("sk-secret"));
+    assert!(!rendered.contains("token/"));
+}

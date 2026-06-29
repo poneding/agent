@@ -47,7 +47,7 @@ Define crate ownership, transport trait boundaries, request/response id handling
 - Execute: `docs/plans/M43-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add client stdio codec contracts**
-- [ ] **Step 2: Add deterministic client stdio session runtime**
+- [x] **Step 2: Add deterministic client stdio session runtime**
 - [ ] **Step 3: Add spawned process transport**
 - [ ] **Step 4: Implement `McpClient` over stdio for initialize and tools/list**
 - [ ] **Step 5: Add hardening docs and final verification**

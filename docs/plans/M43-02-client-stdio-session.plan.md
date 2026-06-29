@@ -17,18 +17,18 @@
 - Read: `crates/agent-mcp/src/client_stdio.rs`
 - Read: `crates/agent-mcp/src/server_session.rs`
 
-- [ ] **Step 1: Review server session patterns and M43-01 codec**
+- [x] **Step 1: Review server session patterns and M43-01 codec**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_stdio_session.rs`
 
-- [ ] **Step 1: Add session tests**
+- [x] **Step 1: Add session tests**
 
 Add tests for matching success, mismatched ids, EOF, and summary counters.
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -42,13 +42,13 @@ CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_sessi
 - Modify: `crates/agent-mcp/src/client_stdio.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add transport trait and fixture transport**
-- [ ] **Step 2: Add session state and summary**
-- [ ] **Step 3: Add request/response matching**
+- [x] **Step 1: Add transport trait and fixture transport**
+- [x] **Step 2: Add session state and summary**
+- [x] **Step 3: Add request/response matching**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -60,7 +60,7 @@ CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_sessi
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M43-02**
+- [x] **Step 1: Commit M43-02**
 
 Run:
 

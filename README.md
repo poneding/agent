@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M35 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, and manifest-backed MCP prompt exports.
+M01-M36 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, and safe MCP prompt arguments.
 
 ## Core Ideas
 
@@ -216,14 +216,26 @@ Add explicit prompt exports to the same manifest when an MCP client should disco
         {
           "name": "review",
           "description": "Review current changes",
+          "arguments": [
+            {
+              "name": "topic",
+              "description": "Review topic",
+              "required": true
+            },
+            {
+              "name": "tone",
+              "description": "Optional tone",
+              "required": false
+            }
+          ],
           "messages": [
             {
               "role": "system",
-              "text": "You review changes carefully."
+              "text": "Use a {{tone}} tone."
             },
             {
               "role": "user",
-              "text": "Review the workspace diff."
+              "text": "Review {{topic}}."
             }
           ]
         }
@@ -233,7 +245,14 @@ Add explicit prompt exports to the same manifest when an MCP client should disco
 }
 ```
 
-Prompt exports are available through MCP `prompts/list` and `prompts/get` after initialization. Disabled prompts remain in the profile for inspection but are hidden from active MCP listings and cannot be fetched by name.
+Prompt exports are available through MCP `prompts/list` and `prompts/get` after initialization. Prompt arguments are explicit string values: `prompts/list` returns declared argument descriptors, and `prompts/get` renders matching `{{argument}}` placeholders from `params.arguments`.
+
+```json
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}
+{"jsonrpc":"2.0","id":2,"method":"prompts/get","params":{"name":"review","arguments":{"topic":"workspace diff","tone":"concise"}}}
+```
+
+Missing required arguments, unknown argument names, non-object `arguments`, and non-string argument values are rejected as invalid params. Disabled prompts remain in the profile for inspection but are hidden from active MCP listings and cannot be fetched by name. Prompt diagnostics and traces stay bounded and redacted; they do not expose raw prompt message text or argument values.
 
 ## CLI Release Packaging
 
@@ -292,10 +311,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M35-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M35-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M35-mcp-prompt-export-runtime.spec.md)
-- [Active milestone](docs/specs/M36-mcp-prompt-arguments-runtime.spec.md)
+- [Latest completed spec](docs/specs/M36-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M36-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M36-mcp-prompt-arguments-runtime.spec.md)
 - [Milestone index](docs/milestones/README.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)

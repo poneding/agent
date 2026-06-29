@@ -309,7 +309,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M36-02 implementation | Complete |
 | M36-03 implementation | Complete |
 | M36-04 implementation | Complete |
-| M36 implementation | In progress |
+| M36-05 implementation | Complete |
+| M36 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -740,7 +741,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M36-05 hardening docs`.
+Current implementation focus: next milestone planning.
 
 Most recent completed implementation documents:
 
@@ -820,6 +821,8 @@ Most recent completed implementation documents:
 - `docs/plans/M36-03-manifest-prompt-arguments.plan.md`
 - `docs/specs/M36-04-cli-stdio-prompt-arguments.spec.md`
 - `docs/plans/M36-04-cli-stdio-prompt-arguments.plan.md`
+- `docs/specs/M36-05-hardening-docs.spec.md`
+- `docs/plans/M36-05-hardening-docs.plan.md`
 
 Most recent completed planning documents:
 
@@ -845,5 +848,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M36-05-hardening-docs.spec.md`
-- `docs/plans/M36-05-hardening-docs.plan.md`
+- Pending next milestone spec and plan.

@@ -50,7 +50,7 @@ Define prompt argument ownership, string-only scope, template rendering, manifes
 - [x] **Step 2: Add template rendering and argument validation**
 - [x] **Step 3: Add manifest prompt argument declarations**
 - [x] **Step 4: Wire CLI stdio prompt arguments**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M36
 
@@ -59,7 +59,7 @@ Define prompt argument ownership, string-only scope, template rendering, manifes
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M36-mcp-prompt-arguments-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,13 @@ CARGO_TARGET_DIR=target/codex-m36 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M36 complete and commit**
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m36 cargo xtask ci
+```
+
+- [x] **Step 2: Mark M36 complete and commit**
 
 Run:
 

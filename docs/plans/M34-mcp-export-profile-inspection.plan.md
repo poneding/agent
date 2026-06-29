@@ -48,7 +48,7 @@ Define inspection ownership, diagnostics, CLI command shape, JSON contracts, red
 
 - [x] **Step 1: Add profile inspection contracts**
 - [x] **Step 2: Add CLI profile inspect command**
-- [ ] **Step 3: Add preflight diagnostics**
+- [x] **Step 3: Add preflight diagnostics**
 - [ ] **Step 4: Add JSON redaction regressions**
 - [ ] **Step 5: Add hardening docs and final verification**
 

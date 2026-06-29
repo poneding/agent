@@ -14,6 +14,12 @@ pub const MCP_SERVER_EXPORT_MANIFEST_SCHEMA_VERSION: u32 = 1;
 
 const MAX_MANIFEST_TEXT_CHARS: usize = 256;
 const REDACTED: &str = "[redacted]";
+const BUILTIN_WORKSPACE_TOOL_EXPORT_NAMES: &[&str] = &[
+    "workspace.git_diff",
+    "workspace.git_status",
+    "workspace.read_file",
+    "workspace.search_text",
+];
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpServerExportManifest {
@@ -291,6 +297,7 @@ pub fn inspect_mcp_server_export_profile(
             enabled: tool.enabled,
         })
         .collect::<Vec<_>>();
+    inspect_manifest_tools(profile, &mut diagnostics);
     let resources = profile
         .resources
         .iter()
@@ -299,7 +306,7 @@ pub fn inspect_mcp_server_export_profile(
         })
         .collect::<Vec<_>>();
 
-    if tools.iter().any(|tool| tool.enabled) {
+    if !tools.is_empty() {
         inspect_workspace_root(options.workspace_root.as_deref(), &mut diagnostics);
     }
 
@@ -309,6 +316,44 @@ pub fn inspect_mcp_server_export_profile(
         resources,
         diagnostics,
     })
+}
+
+fn inspect_manifest_tools(
+    profile: &McpServerExportProfileConfig,
+    diagnostics: &mut Vec<McpServerProfileInspectionDiagnostic>,
+) {
+    for tool in &profile.tools {
+        if !BUILTIN_WORKSPACE_TOOL_EXPORT_NAMES.contains(&tool.name.as_str()) {
+            diagnostics.push(McpServerProfileInspectionDiagnostic::error(
+                "tool_unknown",
+                format!(
+                    "MCP server export tool is not available: {}; known tools: {}",
+                    redact_text(&tool.name),
+                    known_builtin_workspace_tool_names()
+                ),
+            ));
+        }
+        if !tool.enabled {
+            diagnostics.push(McpServerProfileInspectionDiagnostic::warning(
+                "tool_disabled",
+                format!(
+                    "MCP server export tool is disabled and hidden from active exports: {}",
+                    redact_text(&tool.name)
+                ),
+            ));
+        }
+    }
+}
+
+fn known_builtin_workspace_tool_names() -> String {
+    bound_text(
+        &BUILTIN_WORKSPACE_TOOL_EXPORT_NAMES
+            .iter()
+            .map(|name| redact_text(name))
+            .collect::<Vec<_>>()
+            .join(", "),
+        MAX_MANIFEST_TEXT_CHARS,
+    )
 }
 
 fn inspect_manifest_resource(
@@ -332,6 +377,16 @@ fn inspect_manifest_resource(
             "resource_path_invalid",
             error.to_string(),
         )),
+    }
+
+    if !resource.enabled {
+        diagnostics.push(McpServerProfileInspectionDiagnostic::warning(
+            "resource_disabled",
+            format!(
+                "MCP server export resource is disabled and hidden from active exports: {}",
+                redact_text(&resource.uri)
+            ),
+        ));
     }
 
     McpServerProfileResourceInspection {
@@ -368,6 +423,14 @@ impl McpServerProfileInspectionDiagnostic {
     fn error(code: &str, message: impl AsRef<str>) -> Self {
         Self {
             severity: McpServerProfileInspectionSeverity::Error,
+            code: redact_text(code),
+            message: redact_text(message.as_ref()),
+        }
+    }
+
+    fn warning(code: &str, message: impl AsRef<str>) -> Self {
+        Self {
+            severity: McpServerProfileInspectionSeverity::Warning,
             code: redact_text(code),
             message: redact_text(message.as_ref()),
         }

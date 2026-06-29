@@ -12,18 +12,18 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M34-03 spec and M34-01 inspection contracts**
+- [x] **Step 1: Review M34-03 spec and M34-01 inspection contracts**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add missing workspace and invalid workspace tests**
-- [ ] **Step 2: Add unknown tool and missing resource tests**
-- [ ] **Step 3: Add CLI rendering coverage**
+- [x] **Step 1: Add missing workspace and invalid workspace tests**
+- [x] **Step 2: Add unknown tool and missing resource tests**
+- [x] **Step 3: Add CLI rendering coverage**
 
 ### Task 3: Implement Diagnostics
 
-- [ ] **Step 1: Add diagnostic codes and severities**
-- [ ] **Step 2: Align diagnostics with stdio startup behavior**
+- [x] **Step 1: Add diagnostic codes and severities**
+- [x] **Step 2: Align diagnostics with stdio startup behavior**
 
 ### Task 4: Verify
 
@@ -32,7 +32,16 @@ CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_pre
 CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_preflight_diagnostics
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command
+CARGO_TARGET_DIR=target/codex-m34 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p agent-mcp --all-targets -- -D warnings
+```
 
 ### Task 5: Commit
 
@@ -41,4 +50,4 @@ git add crates docs
 git commit -m "feat: add mcp profile preflight diagnostics"
 ```
 
-- [ ] **Step 1: Commit M34-03**
+- [x] **Step 1: Commit M34-03**

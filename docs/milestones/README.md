@@ -380,7 +380,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M44-01 implementation | Complete |
 | M44-02 implementation | Complete |
 | M44-03 implementation | Complete |
-| M44-04 implementation | In progress |
+| M44-04 implementation | Complete |
+| M44-05 implementation | In progress |
 | M44 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -908,7 +909,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M44-04 process E2E.
+Current implementation focus: M44-05 hardening docs.
 
 Most recent completed implementation documents:
 
@@ -1187,5 +1188,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M42-01-sampling-stdio-frame-contracts.spec.md`
-- `docs/plans/M42-01-sampling-stdio-frame-contracts.plan.md`
+- `docs/specs/M44-05-hardening-docs.spec.md`
+- `docs/plans/M44-05-hardening-docs.plan.md`

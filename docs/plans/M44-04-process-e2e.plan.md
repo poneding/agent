@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/tests/mcp_client_stdio_process.rs`
 - Read: `crates/agent-mcp/tests/mcp_client_stdio_mcp_client.rs`
 
-- [ ] **Step 1: Review existing process test helper pattern**
+- [x] **Step 1: Review existing process test helper pattern**
 
 ### Task 2: Add E2E Test
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_stdio_tool_call_process.rs`
 
-- [ ] **Step 1: Add helper process and gateway E2E test**
+- [x] **Step 1: Add helper process and gateway E2E test**
 
 ### Task 3: Fix Runtime Gaps
 
@@ -32,11 +32,11 @@
 - Modify: `crates/agent-mcp/src/client_stdio.rs`
 - Modify: `crates/agent-mcp/src/gateway.rs`
 
-- [ ] **Step 1: Fix issues revealed by process E2E**
+- [x] **Step 1: Fix issues revealed by process E2E**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -48,7 +48,7 @@ CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M44-04**
+- [x] **Step 1: Commit M44-04**
 
 Run:
 

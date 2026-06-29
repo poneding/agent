@@ -49,7 +49,7 @@ Define prompt export ownership, MCP method support, manifest shape, CLI boundari
 - [x] **Step 1: Add prompt export contracts**
 - [x] **Step 2: Add prompt registry and MCP protocol methods**
 - [x] **Step 3: Add manifest prompt declarations**
-- [ ] **Step 4: Wire CLI stdio prompt profiles**
+- [x] **Step 4: Wire CLI stdio prompt profiles**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M35

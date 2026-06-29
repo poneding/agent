@@ -12,19 +12,19 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M35-04 spec and CLI stdio bootstrap**
+- [x] **Step 1: Review M35-04 spec and CLI stdio bootstrap**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add prompt profile CLI parse/startup test**
-- [ ] **Step 2: Add prompts/list e2e test**
-- [ ] **Step 3: Add prompts/get e2e test**
+- [x] **Step 1: Add prompt profile CLI parse/startup test**
+- [x] **Step 2: Add prompts/list e2e test**
+- [x] **Step 3: Add prompts/get e2e test**
 
 ### Task 3: Implement CLI Wiring
 
-- [ ] **Step 1: Pass prompt exports into MCP session fixture**
-- [ ] **Step 2: Set prompt capability when prompt exports exist**
-- [ ] **Step 3: Preserve protocol-only stdout**
+- [x] **Step 1: Pass prompt exports into MCP session fixture**
+- [x] **Step 2: Set prompt capability when prompt exports exist**
+- [x] **Step 3: Preserve protocol-only stdout**
 
 ### Task 4: Verify
 
@@ -34,7 +34,15 @@ CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-cli --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-cli mcp_server_prompt_profile
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m35 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-cli mcp_server_prompt_profile
+```
 
 ### Task 5: Commit
 
@@ -43,4 +51,4 @@ git add crates docs
 git commit -m "feat: wire mcp stdio prompt profiles"
 ```
 
-- [ ] **Step 1: Commit M35-04**
+- [x] **Step 1: Commit M35-04**

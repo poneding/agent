@@ -388,7 +388,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M45 slice plans | Complete for M45-01 through M45-05 |
 | M45-01 implementation | Complete |
 | M45-02 implementation | Complete |
-| M45-03 implementation | In progress |
+| M45-03 implementation | Complete |
+| M45-04 implementation | In progress |
 | M45 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -928,7 +929,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M45-03 HTTP McpClient discovery.
+Current implementation focus: M45-04 HTTP gateway tool call.
 
 Most recent completed implementation documents:
 
@@ -1221,5 +1222,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M45-03-http-mcp-client-discovery.spec.md`
-- `docs/plans/M45-03-http-mcp-client-discovery.plan.md`
+- `docs/specs/M45-04-http-gateway-tool-call.spec.md`
+- `docs/plans/M45-04-http-gateway-tool-call.plan.md`

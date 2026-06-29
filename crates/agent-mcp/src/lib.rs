@@ -32,7 +32,7 @@ pub use client::{
 };
 pub use client_http::{
     FixtureMcpClientHttpTransport, McpClientHttpRequest, McpClientHttpReqwestTransport,
-    McpClientHttpResponse, McpClientHttpResponseFrame, McpClientHttpTransport,
+    McpClientHttpResponse, McpClientHttpResponseFrame, McpClientHttpTransport, McpHttpClient,
     parse_mcp_client_http_response_body, parse_mcp_client_http_response_text,
     render_mcp_client_http_request_body, validate_mcp_client_http_status,
 };

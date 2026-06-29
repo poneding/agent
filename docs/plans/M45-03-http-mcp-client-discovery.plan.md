@@ -17,15 +17,15 @@
 - Read: `crates/agent-mcp/src/client_stdio.rs`
 - Read: `crates/agent-mcp/src/client.rs`
 
-- [ ] **Step 1: Review stdio `McpClient` mapping**
+- [x] **Step 1: Review stdio `McpClient` mapping**
 
 ### Task 2: Write Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_mcp_client.rs`
 
-- [ ] **Step 1: Add initialize/list_tools fixture tests**
-- [ ] **Step 2: Add health and redaction tests**
+- [x] **Step 1: Add initialize/list_tools fixture tests**
+- [x] **Step 2: Add health and redaction tests**
 
 ### Task 3: Implement Client
 
@@ -33,12 +33,12 @@
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add `McpHttpClient<T>` session state**
-- [ ] **Step 2: Implement `McpClient` and root provider**
+- [x] **Step 1: Add `McpHttpClient<T>` session state**
+- [x] **Step 2: Implement `McpClient` and root provider**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -50,7 +50,7 @@ CARGO_TARGET_DIR=target/codex-m45 cargo clippy -p agent-mcp --all-targets -- -D 
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M45-03**
+- [x] **Step 1: Commit M45-03**
 
 Run:
 

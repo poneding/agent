@@ -27,6 +27,10 @@ use agent_eval::{
     ValidatedEvalScenario, ValidatedEvalSuite, parse_eval_scenario_json, parse_eval_suite_json,
     run_eval_scenarios, run_eval_suite, update_suite_goldens, write_eval_artifacts,
 };
+use agent_mcp::{
+    MCP_SERVER_PROTOCOL_VERSION, McpResourceExportRegistry, McpServerCapabilities, McpServerInfo,
+    McpServerState, McpServerStatusSummary, McpToolExportRegistry, mcp_server_status_summary,
+};
 use agent_memory::{
     InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
     MemoryError, MemoryImportPolicy, MemoryRecord, MemoryRetentionPolicy, MemoryScope,
@@ -91,6 +95,7 @@ pub enum CliCommand {
     Plugin(PluginCommand),
     SkillRoot(SkillRootCommand),
     Extension(ExtensionCommand),
+    McpServer(McpServerCommand),
     Memory(MemoryCommand),
     Task(TaskCliCommand),
     Eval(EvalCliCommand),
@@ -134,6 +139,11 @@ pub enum ExtensionCommand {
     List,
     Inspect { id: String },
     Health,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum McpServerCommand {
+    Status,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -349,6 +359,7 @@ where
         "plugin" => parse_plugin_command(&mut args),
         "skill" => parse_skill_command(&mut args),
         "extension" => parse_extension_command(&mut args),
+        "mcp" => parse_mcp_command(&mut args),
         "memory" => parse_memory_command(&mut args),
         "task" => parse_task_command(&mut args),
         "eval" => parse_eval_command(&mut args),
@@ -444,6 +455,10 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             let mut runtime = ExtensionCommandRuntime::default();
             render_extension_command(&mut runtime, command, OutputMode::Text)
         }
+        CliCommand::McpServer(command) => {
+            let mut runtime = McpServerCommandRuntime::default();
+            render_mcp_server_command(&mut runtime, command, OutputMode::Text)
+        }
         CliCommand::Memory(command) => {
             let mut runtime = MemoryCommandRuntime::default();
             render_memory_command(&mut runtime, command, OutputMode::Text)
@@ -497,6 +512,10 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             CliCommand::Extension(command) => {
                 let mut runtime = ExtensionCommandRuntime::default();
                 render_extension_command(&mut runtime, command, OutputMode::Text)
+            }
+            CliCommand::McpServer(command) => {
+                let mut runtime = McpServerCommandRuntime::default();
+                render_mcp_server_command(&mut runtime, command, OutputMode::Text)
             }
             CliCommand::Memory(command) => {
                 let mut runtime = MemoryCommandRuntime::default();
@@ -562,6 +581,10 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if let CliCommand::Extension(command) = invocation.command {
         let mut runtime = ExtensionCommandRuntime::default();
         return render_extension_command(&mut runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::McpServer(command) = invocation.command {
+        let mut runtime = McpServerCommandRuntime::default();
+        return render_mcp_server_command(&mut runtime, command, OutputMode::Json);
     }
     if let CliCommand::Memory(command) = invocation.command {
         let mut runtime = MemoryCommandRuntime::default();
@@ -780,6 +803,35 @@ where
     };
 
     Ok(CliCommand::Extension(command))
+}
+
+fn parse_mcp_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(scope) = args.next() else {
+        return Err(CliError::MissingValue("mcp".to_string()));
+    };
+    if scope != "server" {
+        return Err(CliError::UnknownArgument(format!("mcp {scope}")));
+    }
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("mcp server".to_string()));
+    };
+
+    let command = match subcommand.as_str() {
+        "status" => {
+            no_plugin_extra_args(args, "mcp server status")?;
+            McpServerCommand::Status
+        }
+        _ => {
+            return Err(CliError::UnknownArgument(format!(
+                "mcp server {subcommand}"
+            )));
+        }
+    };
+
+    Ok(CliCommand::McpServer(command))
 }
 
 fn parse_memory_command<I>(args: &mut I) -> Result<CliCommand, CliError>
@@ -2319,6 +2371,107 @@ fn extension_health_severity(status: ExtensionHealthStatus) -> &'static str {
 
 fn extension_registry_error(error: ExtensionRegistryError) -> ExtensionCommandError {
     ExtensionCommandError::new(error.to_string())
+}
+
+#[derive(Clone, Debug)]
+pub struct McpServerCommandRuntime {
+    summary: McpServerStatusSummary,
+}
+
+impl McpServerCommandRuntime {
+    #[must_use]
+    pub const fn new(summary: McpServerStatusSummary) -> Self {
+        Self { summary }
+    }
+
+    #[must_use]
+    pub const fn summary(&self) -> &McpServerStatusSummary {
+        &self.summary
+    }
+}
+
+impl Default for McpServerCommandRuntime {
+    fn default() -> Self {
+        let state = McpServerState::new(
+            McpServerInfo::new(
+                "agent",
+                env!("CARGO_PKG_VERSION"),
+                MCP_SERVER_PROTOCOL_VERSION,
+            )
+            .expect("built-in MCP server info is valid"),
+            McpServerCapabilities {
+                tools: true,
+                prompts: false,
+                resources: true,
+            },
+        );
+        Self {
+            summary: mcp_server_status_summary(
+                &state,
+                &McpToolExportRegistry::default(),
+                &McpResourceExportRegistry::default(),
+            ),
+        }
+    }
+}
+
+#[must_use]
+pub fn render_mcp_server_command(
+    runtime: &mut McpServerCommandRuntime,
+    command: McpServerCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match command {
+        McpServerCommand::Status => render_mcp_server_status(&runtime.summary, output_mode),
+    }
+}
+
+fn render_mcp_server_status(
+    summary: &McpServerStatusSummary,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => CliOutput::exit(render_mcp_server_status_text(summary)),
+        OutputMode::Json => CliOutput::exit(json_value_frame_line(serde_json::json!({
+            "type": "mcp_server_status",
+            "data": summary,
+        }))),
+    }
+}
+
+fn render_mcp_server_status_text(summary: &McpServerStatusSummary) -> String {
+    format!(
+        "MCP server status: {}\nserver={} version={}\nprotocol={}\ninitialized={}\ncapabilities: tools={} prompts={} resources={}\nstdio_fixture={}\nexported_tools={} {}\nexported_resources={} {}\n",
+        if summary.available {
+            "available"
+        } else {
+            "unavailable"
+        },
+        summary.server_name,
+        summary.server_version,
+        summary.protocol_version,
+        summary.initialized,
+        summary.capabilities.tools,
+        summary.capabilities.prompts,
+        summary.capabilities.resources,
+        if summary.stdio_fixture_available {
+            "available"
+        } else {
+            "unavailable"
+        },
+        summary.exported_tool_count,
+        status_list(&summary.exported_tool_names),
+        summary.exported_resource_count,
+        status_list(&summary.exported_resource_uris),
+    )
+}
+
+fn status_list(items: &[String]) -> String {
+    if items.is_empty() {
+        "(none)".to_string()
+    } else {
+        items.join(", ")
+    }
 }
 
 #[derive(Clone, Debug, Default)]

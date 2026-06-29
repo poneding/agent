@@ -12,17 +12,17 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M30-05 spec and completed M30 slice contracts**
+- [x] **Step 1: Read M30-05 spec and completed M30 slice contracts**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add CLI status and JSON render tests**
+- [x] **Step 1: Add CLI status and JSON render tests**
 
 ### Task 3: Implement
 
-- [ ] **Step 1: Add MCP server status command surface**
-- [ ] **Step 2: Add trace-safe export summaries**
-- [ ] **Step 3: Update README and milestone status**
+- [x] **Step 1: Add MCP server status command surface**
+- [x] **Step 2: Add trace-safe export summaries**
+- [x] **Step 3: Update README and milestone status**
 
 ### Task 4: Verify and Commit
 
@@ -31,6 +31,15 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 cargo xtask ci
+```
+
+Verified with:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m30 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m30 cargo clippy --workspace --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m30 cargo test --workspace
+CARGO_TARGET_DIR=target/codex-m30 cargo xtask ci
 ```
 
 ```bash

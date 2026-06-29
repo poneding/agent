@@ -46,6 +46,8 @@ crates/
     src/server.rs
     src/server_tool.rs
     src/server_resource.rs
+    src/server_status.rs
+    src/server_stdio.rs
     tests/mcp_server_*.rs
   agent-cli/
     tests/mcp_server_commands.rs
@@ -67,6 +69,12 @@ pub struct McpServerCapabilities {
     pub tools: bool,
     pub resources: bool,
     pub prompts: bool,
+}
+
+pub struct McpServerStatusSummary {
+    pub available: bool,
+    pub exported_tool_count: usize,
+    pub exported_resource_count: usize,
 }
 ```
 

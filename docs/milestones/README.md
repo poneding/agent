@@ -255,7 +255,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M30-02 implementation | Complete |
 | M30-03 implementation | Complete |
 | M30-04 implementation | Complete |
-| M30 implementation | In progress |
+| M30-05 implementation | Complete |
+| M30 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -614,7 +615,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M30-05 CLI trace docs`.
+Current implementation focus: `M30 complete; next milestone selection`.
 
 Most recent completed implementation documents:
 
@@ -634,13 +635,12 @@ Most recent completed implementation documents:
 - `docs/plans/M30-03-resource-export-registry.plan.md`
 - `docs/specs/M30-04-stdio-jsonrpc-fixture.spec.md`
 - `docs/plans/M30-04-stdio-jsonrpc-fixture.plan.md`
+- `docs/specs/M30-05-cli-trace-docs.spec.md`
+- `docs/plans/M30-05-cli-trace-docs.plan.md`
 
 Most recent completed technical design documents:
 
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M30-00-mcp-server-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M30-00-mcp-server-technical-design.plan.md`
 
-Next implementation slice:
-
-- `docs/specs/M30-05-cli-trace-docs.spec.md`
-- `docs/plans/M30-05-cli-trace-docs.plan.md`
+Next implementation slice: select the next milestone and create milestone-prefixed spec/plan documents before implementation.

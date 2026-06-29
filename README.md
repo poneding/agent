@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M29 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, and CI quality evidence gates.
+M01-M30 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, and policy-aware MCP server export fixtures.
 
 ## Core Ideas
 
@@ -97,6 +97,8 @@ cargo xtask package-cli --channel dev
 cargo xtask package-desktop --channel dev
 agent-cli --observability-summary
 agent-cli --observability-json
+agent-cli mcp server status
+agent-cli --json mcp server status
 agent-cli eval validate --manifest path/to/scenario.eval.json
 agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
 agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
@@ -120,6 +122,17 @@ The gate writes redacted evidence artifacts to `target/agent-ci/`:
 GitHub Actions uploads the same `target/agent-ci` directory for review.
 
 Use `cargo xtask ci` as the release-readiness gate before merge or packaging. Inspect `quality-gate-summary.txt` for the human summary and `quality-gate-report.json` for machine-readable evidence; artifacts are redacted summaries, not raw command logs.
+
+## MCP Server Export
+
+Inspect local MCP server readiness without starting a daemon:
+
+```bash
+agent-cli mcp server status
+agent-cli --json mcp server status
+```
+
+The status surface reports protocol version, capability flags, stdio fixture availability, and explicit export counts/names only. Exported tool calls and resource reads remain policy-gated in `agent-mcp`; status rendering does not execute tools or expose resource contents.
 
 ## CLI Release Packaging
 
@@ -178,8 +191,8 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M29-05-release-readiness-docs.spec.md)
-- [Latest completed plan](docs/plans/M29-05-release-readiness-docs.plan.md)
+- [Latest completed spec](docs/specs/M30-05-cli-trace-docs.spec.md)
+- [Latest completed plan](docs/plans/M30-05-cli-trace-docs.plan.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

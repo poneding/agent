@@ -15,6 +15,7 @@ dependencies = [
  "agent-context",
  "agent-core",
  "agent-eval",
+ "agent-mcp",
  "agent-memory",
  "agent-model",
  "agent-plugin",

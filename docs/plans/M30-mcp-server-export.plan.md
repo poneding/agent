@@ -67,7 +67,7 @@ Expose selected read-only resource descriptors and bounded reads.
 
 Handle deterministic line-framed JSON-RPC requests for tests and future server mode.
 
-- [ ] **Step 5: Add CLI, trace, and final docs**
+- [x] **Step 5: Add CLI, trace, and final docs**
 
 Expose safe server readiness commands, trace summaries, README docs, and final M30 status.
 
@@ -78,7 +78,7 @@ Expose safe server readiness commands, trace summaries, README docs, and final M
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M30-mcp-server-export.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -88,7 +88,7 @@ cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M30 complete and commit**
+- [x] **Step 2: Mark M30 complete and commit**
 
 Run:
 

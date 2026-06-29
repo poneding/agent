@@ -50,7 +50,7 @@ Define crate ownership, HTTP request/response contracts, transport trait boundar
 - [x] **Step 2: Add HTTP transport runtime**
 - [x] **Step 3: Implement `McpClient` over HTTP for initialize and tools/list**
 - [x] **Step 4: Add gateway HTTP tools/call execution**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M45
 
@@ -59,7 +59,7 @@ Define crate ownership, HTTP request/response contracts, transport trait boundar
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M45-mcp-client-streamable-http.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,7 @@ CARGO_TARGET_DIR=target/codex-m45 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M45 complete and commit**
+- [x] **Step 2: Mark M45 complete and commit**
 
 Run:
 
@@ -77,3 +77,15 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m45 mcp client streamable http"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_mcp_client` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_gateway_http_tool_call` passed.
+- `git diff --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo xtask ci` passed.

@@ -18,7 +18,7 @@
 - Read: `README.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Read M45 specs and completed implementation slices**
+- [x] **Step 1: Read M45 specs and completed implementation slices**
 
 ### Task 2: Update Docs
 
@@ -27,12 +27,12 @@
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M45-mcp-client-streamable-http.plan.md`
 
-- [ ] **Step 1: Update README streamable HTTP client usage**
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 1: Update README streamable HTTP client usage**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M45 focused tests**
+- [x] **Step 1: Run final M45 focused tests**
 
 Run:
 
@@ -42,7 +42,7 @@ CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_mcp_cl
 CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_gateway_http_tool_call
 ```
 
-- [ ] **Step 2: Run final workspace gate**
+- [x] **Step 2: Run final workspace gate**
 
 Run:
 
@@ -54,7 +54,7 @@ CARGO_TARGET_DIR=target/codex-m45 cargo xtask ci
 
 ### Task 4: Commit
 
-- [ ] **Step 1: Commit M45-05**
+- [x] **Step 1: Commit M45-05**
 
 Run:
 
@@ -62,3 +62,15 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m45 mcp client streamable http"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_mcp_client` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_gateway_http_tool_call` passed.
+- `git diff --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo xtask ci` passed.

@@ -390,8 +390,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M45-02 implementation | Complete |
 | M45-03 implementation | Complete |
 | M45-04 implementation | Complete |
-| M45-05 implementation | In progress |
-| M45 implementation | In progress |
+| M45-05 implementation | Complete |
+| M45 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -930,7 +930,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M45-05 hardening docs.
+Current implementation focus: M45 is complete. Next implementation slice will be selected separately.
 
 Most recent completed implementation documents:
 
@@ -1223,5 +1223,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M45-05-hardening-docs.spec.md`
-- `docs/plans/M45-05-hardening-docs.plan.md`
+- To be selected after M45 completion.

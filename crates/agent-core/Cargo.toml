@@ -8,6 +8,7 @@ authors.workspace = true
 
 [dependencies]
 agent-context = { path = "../agent-context" }
+agent-mcp = { path = "../agent-mcp" }
 agent-model = { path = "../agent-model" }
 agent-policy = { path = "../agent-policy" }
 agent-sandbox = { path = "../agent-sandbox" }
@@ -25,7 +26,6 @@ thiserror = "2"
 toml = "0.8"
 
 [dev-dependencies]
-agent-mcp = { path = "../agent-mcp" }
 agent-memory = { path = "../agent-memory" }
 agent-plugin = { path = "../agent-plugin" }
 futures = "0.3"

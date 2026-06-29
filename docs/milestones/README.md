@@ -350,7 +350,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M41 technical design | Complete |
 | M41 slice specs | Complete for M41-01 through M41-05 |
 | M41 slice plans | Complete for M41-01 through M41-05 |
-| M41-01 implementation | In progress |
+| M41-01 implementation | Complete |
+| M41-02 implementation | In progress |
 | M41 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -842,10 +843,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M41-01 sampling model request mapping.
+Current implementation focus: M41-02 sampling model provider.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M41-01-sampling-model-request-mapping.spec.md`
+- `docs/plans/M41-01-sampling-model-request-mapping.plan.md`
 - `docs/specs/M29-02-xtask-ci-runner.spec.md`
 - `docs/plans/M29-02-xtask-ci-runner.plan.md`
 - `docs/specs/M29-03-github-actions-workflow.spec.md`
@@ -1059,5 +1062,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M41-01-sampling-model-request-mapping.spec.md`
-- `docs/plans/M41-01-sampling-model-request-mapping.plan.md`
+- `docs/specs/M41-02-sampling-model-provider.spec.md`
+- `docs/plans/M41-02-sampling-model-provider.plan.md`

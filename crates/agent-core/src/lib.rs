@@ -10,6 +10,7 @@ pub mod context;
 pub mod extension;
 pub mod idempotency;
 pub mod local_coding;
+pub mod mcp_sampling;
 pub mod model_runtime;
 pub mod observability;
 pub mod recovery;
@@ -56,6 +57,10 @@ pub use idempotency::{IdempotentToolError, IdempotentToolExecutor, IdempotentToo
 pub use local_coding::{
     LocalCodingError, LocalCodingOutcome, LocalCodingRun, replay_local_coding_outcome,
     run_local_coding_fixture, run_local_coding_fixture_with_shell_denied,
+};
+pub use mcp_sampling::{
+    McpSamplingModelBridgeConfig, McpSamplingModelBridgeError, McpSamplingModelBridgeIds,
+    build_mcp_sampling_model_request,
 };
 pub use model_runtime::{
     AgentLoopBudget, AgentLoopFailureReason, AgentLoopOutcome, AgentLoopTerminalState,

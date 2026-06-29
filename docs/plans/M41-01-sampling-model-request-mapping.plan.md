@@ -17,7 +17,7 @@
 - Read: `crates/agent-model/src/request.rs`
 - Read: `crates/agent-mcp/src/client_sampling.rs`
 
-- [ ] **Step 1: Review mapping contracts**
+- [x] **Step 1: Review mapping contracts**
 
 Run:
 
@@ -33,7 +33,7 @@ Expected: mapping is pure and `ModelRequest.messages` is `Vec<String>`.
 **Files:**
 - Create: `crates/agent-core/tests/mcp_sampling_model_mapping.rs`
 
-- [ ] **Step 1: Add mapping tests**
+- [x] **Step 1: Add mapping tests**
 
 Add tests named:
 
@@ -44,7 +44,7 @@ mcp_sampling_model_mapping_uses_local_model_over_server_hints
 mcp_sampling_model_mapping_rejects_media_without_prompt_leak
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -61,11 +61,11 @@ Expected: tests fail because the bridge module and mapping contracts do not exis
 - Create: `crates/agent-core/src/mcp_sampling.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add `agent-mcp` as an `agent-core` dependency**
+- [x] **Step 1: Add `agent-mcp` as an `agent-core` dependency**
 
 Move the existing `agent-mcp` dev-dependency into `[dependencies]`.
 
-- [ ] **Step 2: Add bridge config, IDs, and error contracts**
+- [x] **Step 2: Add bridge config, IDs, and error contracts**
 
 Implement:
 
@@ -88,17 +88,17 @@ pub enum McpSamplingModelBridgeError {
 }
 ```
 
-- [ ] **Step 3: Add `build_mcp_sampling_model_request`**
+- [x] **Step 3: Add `build_mcp_sampling_model_request`**
 
 Validate with `McpSamplingValidationPolicy::default()`, reject unsupported content, and create role-prefixed text messages using local provider/model config.
 
-- [ ] **Step 4: Export contracts**
+- [x] **Step 4: Export contracts**
 
 Export the new module and public contracts from `agent-core/src/lib.rs`.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -112,7 +112,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M41-01**
+- [x] **Step 1: Commit M41-01**
 
 Run:
 

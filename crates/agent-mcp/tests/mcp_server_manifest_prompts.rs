@@ -17,6 +17,7 @@ fn mcp_server_manifest_prompts_serialize_and_parse_stable_shape() {
             prompts: vec![McpServerPromptExportConfig {
                 name: "review".to_string(),
                 description: Some("Review current changes".to_string()),
+                arguments: Vec::new(),
                 messages: vec![McpServerPromptMessageConfig {
                     role: "user".to_string(),
                     text: "Review the workspace diff".to_string(),

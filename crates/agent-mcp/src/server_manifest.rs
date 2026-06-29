@@ -8,7 +8,7 @@ use agent_tool::builtins::{GitDiffTool, GitStatusTool, ReadFileTool, SearchTextT
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    McpError, McpPromptExport, McpPromptMessage, McpServerExportProfileBuilder,
+    McpError, McpPromptArgument, McpPromptExport, McpPromptMessage, McpServerExportProfileBuilder,
     McpServerProfileRuntime,
 };
 use agent_tool::{Tool, ToolDefinition, ToolInput, ToolOutput};
@@ -98,9 +98,20 @@ pub struct McpServerPromptExportConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(default)]
+    pub arguments: Vec<McpServerPromptArgumentConfig>,
+    #[serde(default)]
     pub messages: Vec<McpServerPromptMessageConfig>,
     #[serde(default = "default_enabled")]
     pub enabled: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerPromptArgumentConfig {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub required: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -157,6 +168,16 @@ pub struct McpServerProfilePromptInspection {
     pub description: Option<String>,
     pub enabled: bool,
     pub message_count: usize,
+    pub argument_count: usize,
+    pub arguments: Vec<McpServerProfilePromptArgumentInspection>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerProfilePromptArgumentInspection {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub required: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -459,6 +480,16 @@ fn inspect_manifest_prompt(
         description: prompt.description.as_deref().map(redact_text),
         enabled: prompt.enabled,
         message_count: prompt.messages.len(),
+        argument_count: prompt.arguments.len(),
+        arguments: prompt
+            .arguments
+            .iter()
+            .map(|argument| McpServerProfilePromptArgumentInspection {
+                name: redact_text(&argument.name),
+                description: argument.description.as_deref().map(redact_text),
+                required: argument.required,
+            })
+            .collect(),
     }
 }
 
@@ -505,14 +536,26 @@ fn apply_manifest_prompts_to_builder(
     builder: &mut McpServerExportProfileBuilder,
 ) -> Result<(), McpError> {
     for prompt in &profile.prompts {
+        let arguments = prompt
+            .arguments
+            .iter()
+            .map(|argument| {
+                McpPromptArgument::new(
+                    &argument.name,
+                    argument.description.as_deref(),
+                    argument.required,
+                )
+            })
+            .collect::<Result<Vec<_>, _>>()?;
         let messages = prompt
             .messages
             .iter()
             .map(|message| McpPromptMessage::text(&message.role, &message.text))
             .collect::<Result<Vec<_>, _>>()?;
-        let export = McpPromptExport::new(
+        let export = McpPromptExport::new_with_arguments(
             &prompt.name,
             prompt.description.as_deref(),
+            arguments,
             messages,
             prompt.enabled,
         )?;
@@ -670,6 +713,21 @@ fn validate_profile(profile: &McpServerExportProfileConfig) -> Result<(), McpErr
         }
         if let Some(description) = &prompt.description {
             validate_public_text("prompt description", description)?;
+        }
+        let mut argument_names = BTreeSet::new();
+        for argument in &prompt.arguments {
+            let argument_name = validate_identifier_text("prompt argument name", &argument.name)?;
+            if !argument_names.insert(argument_name.clone()) {
+                return Err(McpError::InvalidServerRequest(format!(
+                    "duplicate MCP server export prompt argument in profile {} prompt {}: {}",
+                    redact_text(&profile.name),
+                    redact_text(&name),
+                    redact_text(&argument_name)
+                )));
+            }
+            if let Some(description) = &argument.description {
+                validate_public_text("prompt argument description", description)?;
+            }
         }
         if prompt.messages.is_empty() {
             return Err(McpError::InvalidServerRequest(format!(

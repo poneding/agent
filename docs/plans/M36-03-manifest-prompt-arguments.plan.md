@@ -12,19 +12,19 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M36-03 spec and manifest prompt profile code**
+- [x] **Step 1: Review M36-03 spec and manifest prompt profile code**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add manifest argument parse and serialization tests**
-- [ ] **Step 2: Add duplicate argument rejection tests**
-- [ ] **Step 3: Add inspection argument summary tests**
+- [x] **Step 1: Add manifest argument parse and serialization tests**
+- [x] **Step 2: Add duplicate argument rejection tests**
+- [x] **Step 3: Add inspection argument summary tests**
 
 ### Task 3: Implement Manifest Arguments
 
-- [ ] **Step 1: Add argument config structs**
-- [ ] **Step 2: Build prompt exports with arguments**
-- [ ] **Step 3: Include argument counts and names in inspection**
+- [x] **Step 1: Add argument config structs**
+- [x] **Step 2: Build prompt exports with arguments**
+- [x] **Step 3: Include argument counts and names in inspection**
 
 ### Task 4: Verify
 
@@ -34,7 +34,15 @@ CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_manifest_prompt_arguments
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m36 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_manifest_prompt_arguments
+```
 
 ### Task 5: Commit
 
@@ -43,4 +51,4 @@ git add crates docs
 git commit -m "feat: add mcp manifest prompt arguments"
 ```
 
-- [ ] **Step 1: Commit M36-03**
+- [x] **Step 1: Commit M36-03**

@@ -48,7 +48,7 @@ Define prompt argument ownership, string-only scope, template rendering, manifes
 
 - [x] **Step 1: Add prompt argument contracts**
 - [x] **Step 2: Add template rendering and argument validation**
-- [ ] **Step 3: Add manifest prompt argument declarations**
+- [x] **Step 3: Add manifest prompt argument declarations**
 - [ ] **Step 4: Wire CLI stdio prompt arguments**
 - [ ] **Step 5: Add hardening docs and final verification**
 

@@ -12,16 +12,16 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M35-01 spec and current MCP server contracts**
+- [x] **Step 1: Review M35-01 spec and current MCP server contracts**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_server_prompt_export.rs`
 
-- [ ] **Step 1: Add prompt descriptor and result serialization tests**
-- [ ] **Step 2: Add invalid prompt contract tests**
-- [ ] **Step 3: Add redaction and bounds tests**
+- [x] **Step 1: Add prompt descriptor and result serialization tests**
+- [x] **Step 2: Add invalid prompt contract tests**
+- [x] **Step 3: Add redaction and bounds tests**
 
 ### Task 3: Implement Contracts
 
@@ -29,9 +29,9 @@
 - Create: `crates/agent-mcp/src/server_prompt.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add prompt export data types**
-- [ ] **Step 2: Add constructors and validation**
-- [ ] **Step 3: Export public contracts**
+- [x] **Step 1: Add prompt export data types**
+- [x] **Step 2: Add constructors and validation**
+- [x] **Step 3: Export public contracts**
 
 ### Task 4: Verify
 
@@ -41,7 +41,15 @@ CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-mcp --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_export
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m35 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_export
+```
 
 ### Task 5: Commit
 
@@ -50,4 +58,4 @@ git add crates docs
 git commit -m "feat: add mcp prompt export contracts"
 ```
 
-- [ ] **Step 1: Commit M35-01**
+- [x] **Step 1: Commit M35-01**

@@ -9,6 +9,7 @@ pub mod policy;
 pub mod server;
 pub mod server_manifest;
 pub mod server_profile;
+pub mod server_prompt;
 pub mod server_resource;
 pub mod server_session;
 pub mod server_status;
@@ -47,6 +48,9 @@ pub use server_manifest::{
 pub use server_profile::{
     McpServerExportProfile, McpServerExportProfileBuilder, McpServerProfileRuntime,
     empty_mcp_server_export_profile,
+};
+pub use server_prompt::{
+    McpPromptDescriptor, McpPromptExport, McpPromptGetResult, McpPromptListResult, McpPromptMessage,
 };
 pub use server_resource::{McpResourceExport, McpResourceExportRegistry, McpResourceReadResult};
 pub use server_session::{

@@ -296,7 +296,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M35 technical design | Complete |
 | M35 slice specs | Complete for M35-01 through M35-05 |
 | M35 slice plans | Complete for M35-01 through M35-05 |
-| M35 implementation | Planned |
+| M35-01 implementation | Complete |
+| M35 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -715,7 +716,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M35-01 prompt export contracts`.
+Current implementation focus: `M35-02 prompt registry and protocol`.
 
 Most recent completed implementation documents:
 
@@ -777,6 +778,8 @@ Most recent completed implementation documents:
 - `docs/plans/M34-04-json-redaction-regressions.plan.md`
 - `docs/specs/M34-05-hardening-docs.spec.md`
 - `docs/plans/M34-05-hardening-docs.plan.md`
+- `docs/specs/M35-01-prompt-export-contracts.spec.md`
+- `docs/plans/M35-01-prompt-export-contracts.plan.md`
 
 Most recent completed technical design documents:
 
@@ -785,5 +788,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M35-01-prompt-export-contracts.spec.md`
-- `docs/plans/M35-01-prompt-export-contracts.plan.md`
+- `docs/specs/M35-02-prompt-registry-and-protocol.spec.md`
+- `docs/plans/M35-02-prompt-registry-and-protocol.plan.md`

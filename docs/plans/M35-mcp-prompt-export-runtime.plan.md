@@ -46,7 +46,7 @@ Define prompt export ownership, MCP method support, manifest shape, CLI boundari
 - Execute: `docs/plans/M35-04-cli-stdio-prompt-profile.plan.md`
 - Execute: `docs/plans/M35-05-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add prompt export contracts**
+- [x] **Step 1: Add prompt export contracts**
 - [ ] **Step 2: Add prompt registry and MCP protocol methods**
 - [ ] **Step 3: Add manifest prompt declarations**
 - [ ] **Step 4: Wire CLI stdio prompt profiles**

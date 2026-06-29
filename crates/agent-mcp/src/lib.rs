@@ -2,6 +2,7 @@
 //! MCP protocol contracts and deterministic client fixtures for agent.
 
 pub mod client;
+pub mod client_http;
 pub mod client_roots;
 pub mod client_sampling;
 pub mod client_sampling_stdio;
@@ -28,6 +29,11 @@ pub use client::{
     FixtureMcpClient, McpClient, McpClientRootProvider, McpGatewayClient, McpInitializeResult,
     McpSamplingProvider, McpServerCapabilities, McpServerHealth, McpServerStatus,
     check_mcp_server_health, create_mcp_sampling_message, list_mcp_client_roots,
+};
+pub use client_http::{
+    McpClientHttpResponseFrame, parse_mcp_client_http_response_body,
+    parse_mcp_client_http_response_text, render_mcp_client_http_request_body,
+    validate_mcp_client_http_status,
 };
 pub use client_roots::{
     MCP_ROOTS_LIST_CHANGED_NOTIFICATION_METHOD, McpClientCapabilities, McpClientRootCandidate,

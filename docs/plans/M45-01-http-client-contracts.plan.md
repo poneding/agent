@@ -17,15 +17,15 @@
 - Read: `crates/agent-mcp/src/client_stdio.rs`
 - Read: `crates/agent-mcp/src/server.rs`
 
-- [ ] **Step 1: Review existing JSON-RPC codec patterns**
+- [x] **Step 1: Review existing JSON-RPC codec patterns**
 
 ### Task 2: Write Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_contracts.rs`
 
-- [ ] **Step 1: Add request rendering and response parsing tests**
-- [ ] **Step 2: Add redaction regression tests**
+- [x] **Step 1: Add request rendering and response parsing tests**
+- [x] **Step 2: Add redaction regression tests**
 
 ### Task 3: Implement Contracts
 
@@ -33,12 +33,12 @@
 - Create: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add HTTP request/response structs and helpers**
-- [ ] **Step 2: Export public contracts**
+- [x] **Step 1: Add HTTP request/response structs and helpers**
+- [x] **Step 2: Export public contracts**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -50,7 +50,7 @@ CARGO_TARGET_DIR=target/codex-m45 cargo clippy -p agent-mcp --all-targets -- -D 
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M45-01**
+- [x] **Step 1: Commit M45-01**
 
 Run:
 

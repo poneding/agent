@@ -386,7 +386,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M45 technical design | Complete |
 | M45 slice specs | Complete for M45-01 through M45-05 |
 | M45 slice plans | Complete for M45-01 through M45-05 |
-| M45-01 implementation | In progress |
+| M45-01 implementation | Complete |
+| M45-02 implementation | In progress |
 | M45 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -926,7 +927,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M45-01 HTTP client contracts.
+Current implementation focus: M45-02 HTTP transport runtime.
 
 Most recent completed implementation documents:
 
@@ -1219,5 +1220,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M45-01-http-client-contracts.spec.md`
-- `docs/plans/M45-01-http-client-contracts.plan.md`
+- `docs/specs/M45-02-http-transport-runtime.spec.md`
+- `docs/plans/M45-02-http-transport-runtime.plan.md`

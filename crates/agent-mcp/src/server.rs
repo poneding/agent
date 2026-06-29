@@ -63,6 +63,7 @@ pub enum McpServerMethod {
     ToolsList,
     ToolsCall,
     ResourcesList,
+    ResourcesTemplatesList,
     ResourcesRead,
 }
 
@@ -75,6 +76,7 @@ impl McpServerMethod {
             "tools/list" => Ok(Self::ToolsList),
             "tools/call" => Ok(Self::ToolsCall),
             "resources/list" => Ok(Self::ResourcesList),
+            "resources/templates/list" => Ok(Self::ResourcesTemplatesList),
             "resources/read" => Ok(Self::ResourcesRead),
             other => Err(McpError::InvalidServerRequest(format!(
                 "unsupported method {}",
@@ -92,6 +94,7 @@ impl McpServerMethod {
             Self::ToolsList => "tools/list",
             Self::ToolsCall => "tools/call",
             Self::ResourcesList => "resources/list",
+            Self::ResourcesTemplatesList => "resources/templates/list",
             Self::ResourcesRead => "resources/read",
         }
     }

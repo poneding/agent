@@ -49,7 +49,7 @@ Define resource template ownership, URI template syntax, path resolution, manife
 - [x] **Step 1: Add resource template contracts**
 - [x] **Step 2: Add concrete URI matching and path resolution**
 - [x] **Step 3: Add manifest resource template declarations**
-- [ ] **Step 4: Wire CLI stdio resource templates**
+- [x] **Step 4: Wire CLI stdio resource templates**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M37

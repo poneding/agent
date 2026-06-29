@@ -2927,6 +2927,16 @@ fn mcp_server_stdio_policy(
             },
         );
     }
+    for uri_template in &profile.resource_template_uri_templates {
+        policy = policy.with_decision(
+            CapabilityAction::Read,
+            ResourceScope::new(ResourceKind::File, uri_template)
+                .map_err(McpServerStdioError::bootstrap)?,
+            PolicyDecision::Allow {
+                reason: "MCP stdio profile exported resource template".to_string(),
+            },
+        );
+    }
     Ok(policy)
 }
 

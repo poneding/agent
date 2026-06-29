@@ -490,7 +490,7 @@ impl McpResourceExportRegistry {
             ))),
             [(record, matched)] => {
                 let path = resolve_template_path(record, &matched.variables)?;
-                authorize_resource_read(policy, actor, correlation_id, uri)?;
+                authorize_resource_read(policy, actor, correlation_id, &matched.uri_template)?;
                 let contents = std::fs::read_to_string(&path).map_err(|error| {
                     McpError::InvalidServerRequest(format!(
                         "failed to read MCP resource template path: {}",

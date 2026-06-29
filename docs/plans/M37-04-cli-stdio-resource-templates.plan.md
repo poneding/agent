@@ -12,20 +12,20 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M37-04 spec and CLI stdio tests**
+- [x] **Step 1: Review M37-04 spec and CLI stdio tests**
 
 ### Task 2: Write Failing Tests
 
-- [ ] **Step 1: Add `resources/templates/list` e2e test**
-- [ ] **Step 2: Add template-backed `resources/read` e2e test**
-- [ ] **Step 3: Add invalid concrete URI and traversal e2e tests**
-- [ ] **Step 4: Add protocol-only stdout binary test**
+- [x] **Step 1: Add `resources/templates/list` e2e test**
+- [x] **Step 2: Add template-backed `resources/read` e2e test**
+- [x] **Step 3: Add invalid concrete URI and traversal e2e tests**
+- [x] **Step 4: Add protocol-only stdout binary test**
 
 ### Task 3: Implement CLI Wiring
 
-- [ ] **Step 1: Route `resources/templates/list` in stdio session**
-- [ ] **Step 2: Ensure profile runtime passes templates to sessions**
-- [ ] **Step 3: Preserve protocol-only stdout**
+- [x] **Step 1: Route `resources/templates/list` in stdio session**
+- [x] **Step 2: Ensure profile runtime passes templates to sessions**
+- [x] **Step 3: Preserve protocol-only stdout**
 
 ### Task 4: Verify
 
@@ -35,7 +35,16 @@ CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-cli --all-targets -- -D 
 CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-cli mcp_server_resource_templates
 ```
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m37 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-cli mcp_server_resource_templates
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_contracts
+```
 
 ### Task 5: Commit
 
@@ -44,4 +53,4 @@ git add crates docs
 git commit -m "feat: wire mcp stdio resource templates"
 ```
 
-- [ ] **Step 1: Commit M37-04**
+- [x] **Step 1: Commit M37-04**

@@ -317,6 +317,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M37-01 implementation | Complete |
 | M37-02 implementation | Complete |
 | M37-03 implementation | Complete |
+| M37-04 implementation | Complete |
 | M37 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -760,7 +761,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M37-04 CLI stdio resource templates`.
+Current implementation focus: `M37-05 hardening docs`.
 
 Most recent completed implementation documents:
 
@@ -848,6 +849,8 @@ Most recent completed implementation documents:
 - `docs/plans/M37-02-resource-template-matching.plan.md`
 - `docs/specs/M37-03-manifest-resource-templates.spec.md`
 - `docs/plans/M37-03-manifest-resource-templates.plan.md`
+- `docs/specs/M37-04-cli-stdio-resource-templates.spec.md`
+- `docs/plans/M37-04-cli-stdio-resource-templates.plan.md`
 
 Most recent completed planning documents:
 
@@ -855,8 +858,8 @@ Most recent completed planning documents:
 - `docs/plans/M37-mcp-resource-templates-runtime.plan.md`
 - `docs/specs/M37-00-mcp-resource-templates-technical-design.spec.md`
 - `docs/plans/M37-00-mcp-resource-templates-technical-design.plan.md`
-- `docs/specs/M37-04-cli-stdio-resource-templates.spec.md`
-- `docs/plans/M37-04-cli-stdio-resource-templates.plan.md`
+- `docs/specs/M37-05-hardening-docs.spec.md`
+- `docs/plans/M37-05-hardening-docs.plan.md`
 - `docs/specs/M37-02-resource-template-matching.spec.md`
 - `docs/plans/M37-02-resource-template-matching.plan.md`
 - `docs/specs/M37-03-manifest-resource-templates.spec.md`

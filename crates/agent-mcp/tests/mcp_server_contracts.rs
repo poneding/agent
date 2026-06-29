@@ -57,6 +57,10 @@ fn mcp_server_contracts_method_parses_supported_wire_names() {
         McpServerMethod::ResourcesList
     );
     assert_eq!(
+        McpServerMethod::parse("resources/templates/list").unwrap(),
+        McpServerMethod::ResourcesTemplatesList
+    );
+    assert_eq!(
         McpServerMethod::parse("resources/read").unwrap(),
         McpServerMethod::ResourcesRead
     );

@@ -67,7 +67,7 @@ fn mcp_server_resource_template_matching_reads_file_template() {
 
     let output = registry
         .read_resource(
-            &allow_policy("agent://workspace/file/src/lib.rs"),
+            &allow_policy("agent://workspace/file/{path}"),
             ActorRef::system(),
             CorrelationId::new(),
             "agent://workspace/file/src/lib.rs",
@@ -217,7 +217,7 @@ fn mcp_server_resource_template_matching_denied_read_returns_no_content() {
 
     let error = registry
         .read_resource(
-            &deny_policy("agent://workspace/file/README.md"),
+            &deny_policy("agent://workspace/file/{path}"),
             ActorRef::system(),
             CorrelationId::new(),
             "agent://workspace/file/README.md",
@@ -250,7 +250,7 @@ fn mcp_server_resource_template_matching_bounds_file_contents() {
 
     let output = registry
         .read_resource(
-            &allow_policy("agent://workspace/file/README.md"),
+            &allow_policy("agent://workspace/file/{path}"),
             ActorRef::system(),
             CorrelationId::new(),
             "agent://workspace/file/README.md",

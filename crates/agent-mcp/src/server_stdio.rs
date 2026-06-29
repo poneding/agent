@@ -120,6 +120,8 @@ fn dispatch_request(
         McpServerMethod::ResourcesList => {
             require_initialized(server).and_then(|()| list_resources(server, &request.params))
         }
+        McpServerMethod::ResourcesTemplatesList => require_initialized(server)
+            .and_then(|()| list_resource_templates(server, &request.params)),
         McpServerMethod::ResourcesRead => {
             require_initialized(server).and_then(|()| read_resource(server, &request.params))
         }
@@ -195,6 +197,16 @@ fn list_resources(server: &McpServerFixture, params: &Value) -> Result<Value, Mc
     require_object_params(params)?;
     Ok(json!({
         "resources": server.resource_exports.list_resources(),
+    }))
+}
+
+fn list_resource_templates(
+    server: &McpServerFixture,
+    params: &Value,
+) -> Result<Value, McpJsonRpcError> {
+    require_object_params(params)?;
+    Ok(json!({
+        "resourceTemplates": server.resource_exports.list_resource_templates(),
     }))
 }
 

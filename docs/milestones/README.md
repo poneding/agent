@@ -282,7 +282,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M33-02 implementation | Complete |
 | M33-03 implementation | Complete |
 | M33-04 implementation | Complete |
-| M33 implementation | In progress |
+| M33-05 implementation | Complete |
+| M33 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -677,7 +678,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M33-05 hardening docs`.
+Current implementation focus: M33 complete; next milestone planning can start.
 
 Most recent completed implementation documents:
 
@@ -719,13 +720,20 @@ Most recent completed implementation documents:
 - `docs/plans/M32-04-cli-profile-stdio.plan.md`
 - `docs/specs/M32-05-runtime-hardening-docs.spec.md`
 - `docs/plans/M32-05-runtime-hardening-docs.plan.md`
+- `docs/specs/M33-01-builtin-tool-export-catalog.spec.md`
+- `docs/plans/M33-01-builtin-tool-export-catalog.plan.md`
+- `docs/specs/M33-02-manifest-tool-binding-diagnostics.spec.md`
+- `docs/plans/M33-02-manifest-tool-binding-diagnostics.plan.md`
+- `docs/specs/M33-03-cli-workspace-tool-profile.spec.md`
+- `docs/plans/M33-03-cli-workspace-tool-profile.plan.md`
+- `docs/specs/M33-04-stdio-tool-call-e2e.spec.md`
+- `docs/plans/M33-04-stdio-tool-call-e2e.plan.md`
+- `docs/specs/M33-05-hardening-docs.spec.md`
+- `docs/plans/M33-05-hardening-docs.plan.md`
 
 Most recent completed technical design documents:
 
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M33-00-mcp-builtin-tool-export-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M33-00-mcp-builtin-tool-export-technical-design.plan.md`
 
-Next implementation slice:
-
-- `docs/specs/M33-05-hardening-docs.spec.md`
-- `docs/plans/M33-05-hardening-docs.plan.md`
+Next implementation slice: not assigned after M33 completion.

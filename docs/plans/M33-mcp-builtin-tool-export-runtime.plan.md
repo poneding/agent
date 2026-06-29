@@ -50,7 +50,7 @@ Define the built-in export allow-list, workspace root requirement, manifest tool
 - [x] **Step 2: Harden manifest tool binding diagnostics**
 - [x] **Step 3: Add CLI workspace-backed profile startup**
 - [x] **Step 4: Prove stdio tool list and call flow**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M33
 
@@ -59,7 +59,7 @@ Define the built-in export allow-list, workspace root requirement, manifest tool
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M33-mcp-builtin-tool-export-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,24 @@ CARGO_TARGET_DIR=target/codex-m33 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M33 complete and commit**
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m33 cargo xtask ci
+```
+
+Quality gate summary:
+
+```text
+Quality gate ci-local status=passed
+total=4 passed=4 failed=0 skipped=0
+fmt-check status=passed
+clippy status=passed
+test status=passed
+eval status=passed
+```
+
+- [x] **Step 2: Mark M33 complete and commit**
 
 Run:
 

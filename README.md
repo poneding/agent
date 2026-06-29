@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M32 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, and manifest-backed MCP export profiles.
+M01-M33 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, and curated built-in MCP tool exports.
 
 ## Core Ideas
 
@@ -101,6 +101,7 @@ agent-cli mcp server status
 agent-cli --json mcp server status
 agent-cli mcp server stdio
 agent-cli mcp server stdio --profile path/to/mcp-server-exports.json
+agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
 agent-cli eval validate --manifest path/to/scenario.eval.json
 agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
 agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
@@ -142,6 +143,7 @@ Run a local MCP stdio server process:
 agent-cli mcp server stdio
 agent-cli mcp server stdio --max-frames 1000
 agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --profile-name default
+agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
 ```
 
 The stdio command reads newline-delimited JSON-RPC frames from stdin and writes only MCP protocol responses to stdout. Diagnostics go to stderr, EOF closes the session cleanly, and `--json` is rejected for this command so script and MCP-client stdout stays protocol-only.
@@ -170,6 +172,26 @@ Use a manifest-backed profile to expose explicit resources:
 ```
 
 Profile resource paths are resolved relative to the manifest file directory and must stay under that directory. Tool declarations use the explicit `agent-mcp` export catalog contract, so callers opt in to exactly which local tools can be selected by a manifest.
+
+Use `--workspace` with a manifest-backed profile to expose curated built-in workspace inspection tools:
+
+```json
+{
+  "schema_version": 1,
+  "profiles": [
+    {
+      "name": "default",
+      "tools": [
+        {
+          "name": "workspace.read_file"
+        }
+      ]
+    }
+  ]
+}
+```
+
+The built-in MCP stdio catalog is allow-listed to workspace inspection tools: `workspace.read_file`, `workspace.search_text`, `workspace.git_status`, and `workspace.git_diff`. Shell commands and file edits are not part of the built-in export catalog. Tool calls are scoped by the selected profile, resolved through the workspace sandbox, and still pass through policy before execution.
 
 ## CLI Release Packaging
 
@@ -228,10 +250,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M32-05-runtime-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M32-05-runtime-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M32-mcp-export-profile-runtime.spec.md)
-- [Active milestone](docs/specs/M33-mcp-builtin-tool-export-runtime.spec.md)
+- [Latest completed spec](docs/specs/M33-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M33-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M33-mcp-builtin-tool-export-runtime.spec.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

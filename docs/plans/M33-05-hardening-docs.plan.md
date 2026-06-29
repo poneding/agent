@@ -12,17 +12,38 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Read M33 specs and completed implementation slices**
+- [x] **Step 1: Read M33 specs and completed implementation slices**
 
 ### Task 2: Update Docs
 
-- [ ] **Step 1: Update README built-in tool export usage**
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 1: Update README built-in tool export usage**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M33 focused tests**
-- [ ] **Step 2: Run `cargo xtask ci`**
+- [x] **Step 1: Run final M33 focused tests**
+- [x] **Step 2: Run `cargo xtask ci`**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-mcp mcp_server_builtin_tool_catalog
+CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-mcp mcp_server_manifest_tool_diagnostics
+CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-mcp mcp_server_builtin_tool_call
+CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-cli mcp_server_workspace_tool_profile
+CARGO_TARGET_DIR=target/codex-m33 cargo xtask ci
+```
+
+Quality gate summary:
+
+```text
+Quality gate ci-local status=passed
+total=4 passed=4 failed=0 skipped=0
+fmt-check status=passed
+clippy status=passed
+test status=passed
+eval status=passed
+```
 
 ### Task 4: Commit
 

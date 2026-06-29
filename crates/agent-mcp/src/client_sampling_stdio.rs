@@ -92,10 +92,10 @@ fn mcp_error_to_json_rpc_error(error: McpError) -> McpJsonRpcError {
             }
         }
         McpError::InvalidServerRequest(message) => McpJsonRpcError::invalid_request(message),
+        McpError::Client(_) => McpJsonRpcError::internal_error("sampling provider failed"),
         McpError::InvalidConfig(message)
         | McpError::InvalidToolDescriptor(message)
-        | McpError::ServerNotFound(message)
-        | McpError::Client(message) => McpJsonRpcError::internal_error(message),
+        | McpError::ServerNotFound(message) => McpJsonRpcError::internal_error(message),
     }
 }
 

@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/client_sampling_stdio.rs`
 - Read: `crates/agent-mcp/src/server.rs`
 
-- [ ] **Step 1: Review current JSON-RPC error redaction**
+- [x] **Step 1: Review current JSON-RPC error redaction**
 
 Expected: error rendering is centralized enough to harden.
 
@@ -26,7 +26,7 @@ Expected: error rendering is centralized enough to harden.
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_sampling_stdio_redaction.rs`
 
-- [ ] **Step 1: Add redaction tests**
+- [x] **Step 1: Add redaction tests**
 
 Add tests named:
 
@@ -37,7 +37,7 @@ mcp_sampling_stdio_redaction_bounds_error_messages
 mcp_sampling_stdio_redaction_rejects_secret_like_method_names_safely
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -52,13 +52,13 @@ Expected: tests fail until redaction is explicit.
 **Files:**
 - Modify: `crates/agent-mcp/src/client_sampling_stdio.rs`
 
-- [ ] **Step 1: Add bounded public error helper**
-- [ ] **Step 2: Redact provider and invalid frame diagnostics**
-- [ ] **Step 3: Preserve JSON-RPC error codes**
+- [x] **Step 1: Add bounded public error helper**
+- [x] **Step 2: Redact provider and invalid frame diagnostics**
+- [x] **Step 3: Preserve JSON-RPC error codes**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -72,7 +72,7 @@ Expected: focused checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M42-04**
+- [x] **Step 1: Commit M42-04**
 
 Run:
 

@@ -111,6 +111,9 @@ fn dispatch_request(
         McpServerMethod::PromptsGet => {
             require_initialized(server).and_then(|()| get_prompt(server, &request.params))
         }
+        McpServerMethod::CompletionComplete => {
+            require_initialized(server).and_then(|()| complete(server, &request.params))
+        }
         McpServerMethod::ToolsList => {
             require_initialized(server).and_then(|()| list_tools(server, &request.params))
         }
@@ -161,6 +164,45 @@ fn get_prompt(server: &McpServerFixture, params: &Value) -> Result<Value, McpJso
 
     serde_json::to_value(result)
         .map_err(|_| McpJsonRpcError::internal_error("failed to serialize prompt result"))
+}
+
+fn complete(server: &McpServerFixture, params: &Value) -> Result<Value, McpJsonRpcError> {
+    let params = require_object_params(params)?;
+    let reference = params
+        .get("ref")
+        .and_then(Value::as_object)
+        .ok_or_else(|| McpJsonRpcError::invalid_params("ref must be an object"))?;
+    let argument = params
+        .get("argument")
+        .and_then(Value::as_object)
+        .ok_or_else(|| McpJsonRpcError::invalid_params("argument must be an object"))?;
+    let reference_type = required_string_param(reference, "type")?;
+    let argument_name = required_string_param(argument, "name")?;
+    let argument_value = required_string_param_allow_empty(argument, "value")?;
+
+    let result = match reference_type {
+        "ref/prompt" => {
+            let name = required_string_param(reference, "name")?;
+            server
+                .prompt_exports
+                .complete_prompt_argument(name, argument_name, argument_value)
+        }
+        "ref/resource" => {
+            let uri = required_string_param(reference, "uri")?;
+            server.resource_exports.complete_resource_template_variable(
+                uri,
+                argument_name,
+                argument_value,
+            )
+        }
+        other => Err(crate::McpError::InvalidServerRequest(format!(
+            "unsupported MCP completion ref type: {other}"
+        ))),
+    }
+    .map_err(|error| McpJsonRpcError::invalid_params(error.to_string()))?;
+
+    serde_json::to_value(result)
+        .map_err(|_| McpJsonRpcError::internal_error("failed to serialize completion result"))
 }
 
 fn list_tools(server: &McpServerFixture, params: &Value) -> Result<Value, McpJsonRpcError> {
@@ -250,6 +292,16 @@ fn required_string_param<'a>(
         .get(name)
         .and_then(Value::as_str)
         .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| McpJsonRpcError::invalid_params(format!("missing string param: {name}")))
+}
+
+fn required_string_param_allow_empty<'a>(
+    params: &'a Map<String, Value>,
+    name: &str,
+) -> Result<&'a str, McpJsonRpcError> {
+    params
+        .get(name)
+        .and_then(Value::as_str)
         .ok_or_else(|| McpJsonRpcError::invalid_params(format!("missing string param: {name}")))
 }
 

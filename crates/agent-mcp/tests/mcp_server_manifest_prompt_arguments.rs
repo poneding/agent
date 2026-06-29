@@ -24,6 +24,7 @@ fn mcp_server_manifest_prompt_arguments_serialize_and_parse_stable_shape() {
                     description: Some("Review topic".to_string()),
                     required: true,
                 }],
+                argument_completions: Vec::new(),
                 messages: vec![McpServerPromptMessageConfig {
                     role: "user".to_string(),
                     text: "Review {{topic}}".to_string(),

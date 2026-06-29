@@ -8,7 +8,8 @@ use agent_tool::builtins::{GitDiffTool, GitStatusTool, ReadFileTool, SearchTextT
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    McpError, McpPromptArgument, McpPromptExport, McpPromptMessage, McpResourceExportRegistry,
+    McpError, McpPromptArgument, McpPromptArgumentCompletionSource, McpPromptExport,
+    McpPromptMessage, McpResourceExportRegistry, McpResourceTemplateCompletionSource,
     McpServerExportProfileBuilder, McpServerProfileRuntime,
 };
 use agent_tool::{Tool, ToolDefinition, ToolInput, ToolOutput};
@@ -101,12 +102,21 @@ pub struct McpServerResourceTemplateExportConfig {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub path_template: String,
+    #[serde(default)]
+    pub variable_completions: Vec<McpServerResourceTemplateCompletionConfig>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mime_type: Option<String>,
     #[serde(default = "default_enabled")]
     pub enabled: bool,
     #[serde(default)]
     pub sensitive: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerResourceTemplateCompletionConfig {
+    pub variable: String,
+    #[serde(default)]
+    pub values: Vec<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -117,9 +127,18 @@ pub struct McpServerPromptExportConfig {
     #[serde(default)]
     pub arguments: Vec<McpServerPromptArgumentConfig>,
     #[serde(default)]
+    pub argument_completions: Vec<McpServerPromptArgumentCompletionConfig>,
+    #[serde(default)]
     pub messages: Vec<McpServerPromptMessageConfig>,
     #[serde(default = "default_enabled")]
     pub enabled: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerPromptArgumentCompletionConfig {
+    pub argument: String,
+    #[serde(default)]
+    pub values: Vec<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -190,6 +209,7 @@ pub struct McpServerProfileResourceTemplateInspection {
     pub mime_type: Option<String>,
     pub enabled: bool,
     pub sensitive: bool,
+    pub completion_count: usize,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -200,6 +220,7 @@ pub struct McpServerProfilePromptInspection {
     pub enabled: bool,
     pub message_count: usize,
     pub argument_count: usize,
+    pub completion_count: usize,
     pub arguments: Vec<McpServerProfilePromptArgumentInspection>,
 }
 
@@ -529,6 +550,7 @@ fn inspect_manifest_resource_template(
         mime_type: template.mime_type.as_deref().map(redact_text),
         enabled: template.enabled,
         sensitive: template.sensitive,
+        completion_count: template.variable_completions.len(),
     }
 }
 
@@ -552,6 +574,7 @@ fn inspect_manifest_prompt(
         enabled: prompt.enabled,
         message_count: prompt.messages.len(),
         argument_count: prompt.arguments.len(),
+        completion_count: prompt.argument_completions.len(),
         arguments: prompt
             .arguments
             .iter()
@@ -623,10 +646,21 @@ fn apply_manifest_prompts_to_builder(
             .iter()
             .map(|message| McpPromptMessage::text(&message.role, &message.text))
             .collect::<Result<Vec<_>, _>>()?;
-        let export = McpPromptExport::new_with_arguments(
+        let argument_completions = prompt
+            .argument_completions
+            .iter()
+            .map(|completion| {
+                McpPromptArgumentCompletionSource::new(
+                    &completion.argument,
+                    completion.values.iter().map(String::as_str),
+                )
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let export = McpPromptExport::new_with_argument_completions(
             &prompt.name,
             prompt.description.as_deref(),
             arguments,
+            argument_completions,
             messages,
             prompt.enabled,
         )?;
@@ -728,38 +762,60 @@ fn apply_manifest_resource_templates_to_builder(
     builder: &mut McpServerExportProfileBuilder,
 ) -> Result<(), McpError> {
     for template in &profile.resource_templates {
+        let variable_completions = template
+            .variable_completions
+            .iter()
+            .map(|completion| {
+                McpResourceTemplateCompletionSource::new(
+                    &completion.variable,
+                    completion.values.iter().map(String::as_str),
+                )
+            })
+            .collect::<Result<Vec<_>, _>>()?;
         match (template.enabled, template.sensitive) {
-            (true, true) => builder.export_sensitive_file_resource_template(
+            (true, true) => builder.insert_file_resource_template(
                 &template.uri_template,
                 &template.name,
                 template.description.clone(),
                 template.mime_type.clone(),
                 manifest_dir,
                 &template.path_template,
+                variable_completions,
+                true,
+                true,
             )?,
-            (true, false) => builder.export_file_resource_template(
+            (true, false) => builder.insert_file_resource_template(
                 &template.uri_template,
                 &template.name,
                 template.description.clone(),
                 template.mime_type.clone(),
                 manifest_dir,
                 &template.path_template,
+                variable_completions,
+                true,
+                false,
             )?,
-            (false, true) => builder.export_disabled_sensitive_file_resource_template(
+            (false, true) => builder.insert_file_resource_template(
                 &template.uri_template,
                 &template.name,
                 template.description.clone(),
                 template.mime_type.clone(),
                 manifest_dir,
                 &template.path_template,
+                variable_completions,
+                false,
+                true,
             )?,
-            (false, false) => builder.export_disabled_file_resource_template(
+            (false, false) => builder.insert_file_resource_template(
                 &template.uri_template,
                 &template.name,
                 template.description.clone(),
                 template.mime_type.clone(),
                 manifest_dir,
                 &template.path_template,
+                variable_completions,
+                false,
+                false,
             )?,
         }
     }
@@ -858,6 +914,30 @@ fn validate_profile(profile: &McpServerExportProfileConfig) -> Result<(), McpErr
                 validate_public_text("prompt argument description", description)?;
             }
         }
+        let mut completion_arguments = BTreeSet::new();
+        for completion in &prompt.argument_completions {
+            let argument_name =
+                validate_identifier_text("prompt completion argument", &completion.argument)?;
+            if !argument_names.contains(&argument_name) {
+                return Err(McpError::InvalidServerRequest(format!(
+                    "undeclared MCP server export prompt completion argument in profile {} prompt {}: {}",
+                    redact_text(&profile.name),
+                    redact_text(&name),
+                    redact_text(&argument_name)
+                )));
+            }
+            if !completion_arguments.insert(argument_name.clone()) {
+                return Err(McpError::InvalidServerRequest(format!(
+                    "duplicate MCP server export prompt completion argument in profile {} prompt {}: {}",
+                    redact_text(&profile.name),
+                    redact_text(&name),
+                    redact_text(&argument_name)
+                )));
+            }
+            for value in &completion.values {
+                validate_public_text("prompt completion value", value)?;
+            }
+        }
         if prompt.messages.is_empty() {
             return Err(McpError::InvalidServerRequest(format!(
                 "MCP server export prompt requires at least one message: {}",
@@ -877,11 +957,22 @@ fn validate_resource_template_contract(
     template: &McpServerResourceTemplateExportConfig,
 ) -> Result<(), McpError> {
     let mut validator = McpResourceExportRegistry::default();
-    validator.export_resource_template(
+    let variable_completions = template
+        .variable_completions
+        .iter()
+        .map(|completion| {
+            McpResourceTemplateCompletionSource::new(
+                &completion.variable,
+                completion.values.iter().map(String::as_str),
+            )
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    validator.export_resource_template_with_completions(
         &template.uri_template,
         &template.name,
         template.description.clone(),
         template.mime_type.clone(),
+        variable_completions,
     )?;
     validate_template_path_text("resource template path_template", &template.path_template)?;
     Ok(())

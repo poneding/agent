@@ -202,6 +202,35 @@ impl McpResourceExportRegistry {
             mime_type,
             root,
             path_template,
+            Vec::new(),
+            true,
+            false,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn export_file_resource_template_with_completions<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+        variable_completions: Vec<McpResourceTemplateCompletionSource>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_file_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            root,
+            path_template,
+            variable_completions,
             true,
             false,
         )
@@ -227,6 +256,35 @@ impl McpResourceExportRegistry {
             mime_type,
             root,
             path_template,
+            Vec::new(),
+            true,
+            true,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn export_sensitive_file_resource_template_with_completions<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+        variable_completions: Vec<McpResourceTemplateCompletionSource>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_file_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            root,
+            path_template,
+            variable_completions,
             true,
             true,
         )
@@ -252,6 +310,35 @@ impl McpResourceExportRegistry {
             mime_type,
             root,
             path_template,
+            Vec::new(),
+            false,
+            false,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn export_disabled_file_resource_template_with_completions<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+        variable_completions: Vec<McpResourceTemplateCompletionSource>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_file_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            root,
+            path_template,
+            variable_completions,
             false,
             false,
         )
@@ -277,6 +364,35 @@ impl McpResourceExportRegistry {
             mime_type,
             root,
             path_template,
+            Vec::new(),
+            false,
+            true,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn export_disabled_sensitive_file_resource_template_with_completions<D, M>(
+        &mut self,
+        uri_template: impl Into<String>,
+        name: impl Into<String>,
+        description: Option<D>,
+        mime_type: Option<M>,
+        root: impl AsRef<Path>,
+        path_template: impl Into<String>,
+        variable_completions: Vec<McpResourceTemplateCompletionSource>,
+    ) -> Result<(), McpError>
+    where
+        D: Into<String>,
+        M: Into<String>,
+    {
+        self.insert_file_resource_template(
+            uri_template,
+            name,
+            description,
+            mime_type,
+            root,
+            path_template,
+            variable_completions,
             false,
             true,
         )
@@ -524,6 +640,7 @@ impl McpResourceExportRegistry {
         mime_type: Option<M>,
         root: impl AsRef<Path>,
         path_template: impl Into<String>,
+        variable_completions: Vec<McpResourceTemplateCompletionSource>,
         enabled: bool,
         sensitive: bool,
     ) -> Result<(), McpError>
@@ -552,6 +669,8 @@ impl McpResourceExportRegistry {
             Some(Err(error)) => return Err(error),
             None => None,
         };
+        let variable_completions =
+            validate_resource_template_completion_sources(&uri_template, variable_completions)?;
 
         self.resource_templates.insert(
             uri_template.clone(),
@@ -565,7 +684,7 @@ impl McpResourceExportRegistry {
                 },
                 path_root: Some(path_root),
                 path_template: Some(path_template),
-                variable_completions: BTreeMap::new(),
+                variable_completions,
                 sensitive,
             },
         );

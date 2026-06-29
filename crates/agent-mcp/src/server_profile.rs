@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     McpError, McpPromptExport, McpPromptExportRegistry, McpResourceExportRegistry,
-    McpToolExportRegistry,
+    McpResourceTemplateCompletionSource, McpToolExportRegistry,
 };
 
 const MAX_PROFILE_TEXT_CHARS: usize = 256;
@@ -208,6 +208,7 @@ impl McpServerExportProfileBuilder {
             mime_type,
             root,
             path_template,
+            Vec::new(),
             true,
             false,
         )
@@ -233,6 +234,7 @@ impl McpServerExportProfileBuilder {
             mime_type,
             root,
             path_template,
+            Vec::new(),
             true,
             true,
         )
@@ -258,6 +260,7 @@ impl McpServerExportProfileBuilder {
             mime_type,
             root,
             path_template,
+            Vec::new(),
             false,
             false,
         )
@@ -283,6 +286,7 @@ impl McpServerExportProfileBuilder {
             mime_type,
             root,
             path_template,
+            Vec::new(),
             false,
             true,
         )
@@ -393,7 +397,7 @@ impl McpServerExportProfileBuilder {
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn insert_file_resource_template<D, M>(
+    pub(crate) fn insert_file_resource_template<D, M>(
         &mut self,
         uri_template: impl Into<String>,
         name: impl Into<String>,
@@ -401,6 +405,7 @@ impl McpServerExportProfileBuilder {
         mime_type: Option<M>,
         root: impl AsRef<Path>,
         path_template: impl Into<String>,
+        variable_completions: Vec<McpResourceTemplateCompletionSource>,
         enabled: bool,
         sensitive: bool,
     ) -> Result<(), McpError>
@@ -412,41 +417,47 @@ impl McpServerExportProfileBuilder {
         match (enabled, sensitive) {
             (true, true) => self
                 .resource_exports
-                .export_sensitive_file_resource_template(
+                .export_sensitive_file_resource_template_with_completions(
                     &uri_template,
                     name,
                     description,
                     mime_type,
                     root,
                     path_template,
+                    variable_completions,
                 )?,
-            (true, false) => self.resource_exports.export_file_resource_template(
-                &uri_template,
-                name,
-                description,
-                mime_type,
-                root,
-                path_template,
-            )?,
+            (true, false) => self
+                .resource_exports
+                .export_file_resource_template_with_completions(
+                    &uri_template,
+                    name,
+                    description,
+                    mime_type,
+                    root,
+                    path_template,
+                    variable_completions,
+                )?,
             (false, true) => self
                 .resource_exports
-                .export_disabled_sensitive_file_resource_template(
+                .export_disabled_sensitive_file_resource_template_with_completions(
                     &uri_template,
                     name,
                     description,
                     mime_type,
                     root,
                     path_template,
+                    variable_completions,
                 )?,
             (false, false) => self
                 .resource_exports
-                .export_disabled_file_resource_template(
+                .export_disabled_file_resource_template_with_completions(
                     &uri_template,
                     name,
                     description,
                     mime_type,
                     root,
                     path_template,
+                    variable_completions,
                 )?,
         }
         if enabled {

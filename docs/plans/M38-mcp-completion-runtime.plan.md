@@ -49,7 +49,7 @@ Define completion request shape, ref handling, source ownership, manifest shape,
 - [x] **Step 1: Add completion contracts**
 - [x] **Step 2: Add prompt argument completion lookup**
 - [x] **Step 3: Add resource template variable completion lookup**
-- [ ] **Step 4: Wire CLI stdio completions**
+- [x] **Step 4: Wire CLI stdio completions**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M38

@@ -64,6 +64,10 @@ fn mcp_server_contracts_method_parses_supported_wire_names() {
         McpServerMethod::parse("resources/read").unwrap(),
         McpServerMethod::ResourcesRead
     );
+    assert_eq!(
+        McpServerMethod::parse("completion/complete").unwrap(),
+        McpServerMethod::CompletionComplete
+    );
     assert!(McpServerMethod::parse("secrets/read").is_err());
 }
 

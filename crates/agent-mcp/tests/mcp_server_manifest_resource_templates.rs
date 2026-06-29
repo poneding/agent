@@ -51,6 +51,7 @@ fn mcp_server_manifest_resource_templates_parse_and_serialize_stable_shape() {
             name: "Workspace file".to_string(),
             description: Some("Read a workspace file".to_string()),
             path_template: "{path}".to_string(),
+            variable_completions: Vec::new(),
             mime_type: Some("text/plain".to_string()),
             enabled: true,
             sensitive: false,

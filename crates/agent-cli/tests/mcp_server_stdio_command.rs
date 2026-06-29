@@ -24,7 +24,8 @@ fn mcp_server_stdio_command_parses_default_and_frame_limit() {
         CliCommand::McpServer(McpServerCommand::Stdio {
             max_frames: None,
             profile_path: None,
-            profile_name: None
+            profile_name: None,
+            workspace_root: None
         })
     );
 
@@ -35,7 +36,8 @@ fn mcp_server_stdio_command_parses_default_and_frame_limit() {
         CliCommand::McpServer(McpServerCommand::Stdio {
             max_frames: Some(2),
             profile_path: None,
-            profile_name: None
+            profile_name: None,
+            workspace_root: None
         })
     );
 

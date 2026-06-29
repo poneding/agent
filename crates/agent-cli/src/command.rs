@@ -28,12 +28,14 @@ use agent_eval::{
     run_eval_scenarios, run_eval_suite, update_suite_goldens, write_eval_artifacts,
 };
 use agent_mcp::{
-    MCP_SERVER_PROTOCOL_VERSION, McpResourceExportRegistry, McpServerCapabilities,
-    McpServerFixture, McpServerInfo, McpServerProfileRuntime, McpServerSession,
-    McpServerSessionConfig, McpServerSessionSummary, McpServerState, McpServerStatusSummary,
-    McpServerToolExportCatalog, McpToolExportRegistry, build_mcp_server_profile_from_manifest,
-    empty_mcp_server_export_profile, mcp_server_status_summary,
-    parse_mcp_server_export_manifest_json,
+    MCP_SERVER_PROTOCOL_VERSION, McpResourceExportRegistry,
+    McpServerBuiltinToolExportCatalogConfig, McpServerCapabilities, McpServerFixture,
+    McpServerInfo, McpServerProfileRuntime, McpServerSession, McpServerSessionConfig,
+    McpServerSessionSummary, McpServerState, McpServerStatusSummary, McpServerToolExportCatalog,
+    McpToolExportRegistry, build_mcp_server_builtin_tool_export_catalog,
+    build_mcp_server_profile_from_manifest, empty_mcp_server_export_profile,
+    mcp_server_status_summary, parse_mcp_server_export_manifest_json,
+    select_mcp_server_export_profile,
 };
 use agent_memory::{
     InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
@@ -152,6 +154,7 @@ pub enum McpServerCommand {
         max_frames: Option<u64>,
         profile_path: Option<PathBuf>,
         profile_name: Option<String>,
+        workspace_root: Option<PathBuf>,
     },
 }
 
@@ -160,6 +163,7 @@ pub struct McpServerStdioConfig {
     pub max_frames: Option<u64>,
     pub profile_path: Option<PathBuf>,
     pub profile_name: Option<String>,
+    pub workspace_root: Option<PathBuf>,
 }
 
 impl McpServerStdioConfig {
@@ -169,6 +173,7 @@ impl McpServerStdioConfig {
             max_frames,
             profile_path: None,
             profile_name: None,
+            workspace_root: None,
         }
     }
 
@@ -180,6 +185,12 @@ impl McpServerStdioConfig {
     ) -> Self {
         self.profile_path = Some(profile_path.into());
         self.profile_name = profile_name;
+        self
+    }
+
+    #[must_use]
+    pub fn with_workspace(mut self, workspace_root: impl Into<PathBuf>) -> Self {
+        self.workspace_root = Some(workspace_root.into());
         self
     }
 }
@@ -868,6 +879,7 @@ where
                 max_frames: config.max_frames,
                 profile_path: config.profile_path,
                 profile_name: config.profile_name,
+                workspace_root: config.workspace_root,
             }
         }
         _ => {
@@ -887,6 +899,7 @@ where
     let mut max_frames = None;
     let mut profile_path = None;
     let mut profile_name = None;
+    let mut workspace_root = None;
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--max-frames" => {
@@ -912,6 +925,13 @@ where
                 }
                 profile_name = Some(value);
             }
+            "--workspace" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                workspace_root = Some(PathBuf::from(value));
+            }
             _ => return Err(CliError::UnknownArgument(format!("mcp server stdio {arg}"))),
         }
     }
@@ -920,10 +940,16 @@ where
             "mcp server stdio --profile-name requires --profile".to_string(),
         ));
     }
+    if workspace_root.is_some() && profile_path.is_none() {
+        return Err(CliError::UnknownArgument(
+            "mcp server stdio --workspace requires --profile".to_string(),
+        ));
+    }
     Ok(McpServerStdioConfig {
         max_frames,
         profile_path,
         profile_name,
+        workspace_root,
     })
 }
 
@@ -2684,7 +2710,21 @@ fn mcp_server_profile_runtime(
     let manifest = parse_mcp_server_export_manifest_json(&manifest_json)
         .map_err(McpServerStdioError::bootstrap)?;
     let manifest_dir = profile_path.parent().unwrap_or_else(|| Path::new("."));
-    let catalog = McpServerToolExportCatalog::default();
+    let selected_profile =
+        select_mcp_server_export_profile(&manifest, config.profile_name.as_deref())
+            .map_err(McpServerStdioError::bootstrap)?;
+    let catalog = match config.workspace_root.as_ref() {
+        Some(workspace_root) => build_mcp_server_builtin_tool_export_catalog(
+            McpServerBuiltinToolExportCatalogConfig::new(workspace_root),
+        )
+        .map_err(McpServerStdioError::bootstrap)?,
+        None if selected_profile.tools.is_empty() => McpServerToolExportCatalog::default(),
+        None => {
+            return Err(McpServerStdioError::bootstrap(
+                "mcp server stdio --workspace is required for profile tool exports",
+            ));
+        }
+    };
     build_mcp_server_profile_from_manifest(
         &manifest,
         config.profile_name.as_deref(),

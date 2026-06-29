@@ -64,7 +64,8 @@ fn mcp_server_profile_command_parses_profile_flags() {
         CliCommand::McpServer(McpServerCommand::Stdio {
             max_frames: Some(3),
             profile_path: Some("profile.json".into()),
-            profile_name: Some("default".to_string())
+            profile_name: Some("default".to_string()),
+            workspace_root: None
         })
     );
     assert!(parse_cli_invocation(["mcp", "server", "stdio", "--profile-name", "default"]).is_err());

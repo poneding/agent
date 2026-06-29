@@ -81,6 +81,53 @@ pub struct McpServerResourceExportConfig {
     pub sensitive: bool,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpServerProfileInspectionSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerProfileInspectionOptions {
+    pub profile_name: Option<String>,
+    pub manifest_dir: PathBuf,
+    pub workspace_root: Option<PathBuf>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerProfileInspection {
+    pub profile_name: String,
+    pub tools: Vec<McpServerProfileToolInspection>,
+    pub resources: Vec<McpServerProfileResourceInspection>,
+    pub diagnostics: Vec<McpServerProfileInspectionDiagnostic>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerProfileToolInspection {
+    pub name: String,
+    pub enabled: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerProfileResourceInspection {
+    pub uri: String,
+    pub name: String,
+    pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mime_type: Option<String>,
+    pub enabled: bool,
+    pub sensitive: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerProfileInspectionDiagnostic {
+    pub severity: McpServerProfileInspectionSeverity,
+    pub code: String,
+    pub message: String,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct McpServerBuiltinToolExportCatalogConfig {
     pub workspace_root: PathBuf,
@@ -228,6 +275,103 @@ pub fn build_mcp_server_profile_from_manifest(
     apply_manifest_tools_to_builder(profile, catalog, &mut builder)?;
 
     Ok(builder.build())
+}
+
+pub fn inspect_mcp_server_export_profile(
+    manifest: &McpServerExportManifest,
+    options: McpServerProfileInspectionOptions,
+) -> Result<McpServerProfileInspection, McpError> {
+    let profile = select_mcp_server_export_profile(manifest, options.profile_name.as_deref())?;
+    let mut diagnostics = Vec::new();
+    let tools = profile
+        .tools
+        .iter()
+        .map(|tool| McpServerProfileToolInspection {
+            name: redact_text(&tool.name),
+            enabled: tool.enabled,
+        })
+        .collect::<Vec<_>>();
+    let resources = profile
+        .resources
+        .iter()
+        .map(|resource| {
+            inspect_manifest_resource(resource, &options.manifest_dir, &mut diagnostics)
+        })
+        .collect::<Vec<_>>();
+
+    if tools.iter().any(|tool| tool.enabled) {
+        inspect_workspace_root(options.workspace_root.as_deref(), &mut diagnostics);
+    }
+
+    Ok(McpServerProfileInspection {
+        profile_name: redact_text(&profile.name),
+        tools,
+        resources,
+        diagnostics,
+    })
+}
+
+fn inspect_manifest_resource(
+    resource: &McpServerResourceExportConfig,
+    manifest_dir: &Path,
+    diagnostics: &mut Vec<McpServerProfileInspectionDiagnostic>,
+) -> McpServerProfileResourceInspection {
+    match resolve_manifest_resource_path(manifest_dir, &resource.path) {
+        Ok(path) => {
+            if !path.is_file() {
+                diagnostics.push(McpServerProfileInspectionDiagnostic::error(
+                    "resource_missing",
+                    format!(
+                        "MCP server export resource file does not exist: {}",
+                        redact_text(&resource.path)
+                    ),
+                ));
+            }
+        }
+        Err(error) => diagnostics.push(McpServerProfileInspectionDiagnostic::error(
+            "resource_path_invalid",
+            error.to_string(),
+        )),
+    }
+
+    McpServerProfileResourceInspection {
+        uri: redact_text(&resource.uri),
+        name: redact_text(&resource.name),
+        path: redact_text(&resource.path),
+        mime_type: resource.mime_type.as_deref().map(redact_text),
+        enabled: resource.enabled,
+        sensitive: resource.sensitive,
+    }
+}
+
+fn inspect_workspace_root(
+    workspace_root: Option<&Path>,
+    diagnostics: &mut Vec<McpServerProfileInspectionDiagnostic>,
+) {
+    match workspace_root {
+        Some(root) if root.is_dir() => {}
+        Some(root) => diagnostics.push(McpServerProfileInspectionDiagnostic::error(
+            "workspace_invalid",
+            format!(
+                "MCP server export profile workspace root must be an existing directory: {}",
+                redact_text(&root.display().to_string())
+            ),
+        )),
+        None => diagnostics.push(McpServerProfileInspectionDiagnostic::error(
+            "workspace_required",
+            "MCP server export profile includes enabled tools and requires --workspace",
+        )),
+    }
+}
+
+impl McpServerProfileInspectionDiagnostic {
+    fn error(code: &str, message: impl AsRef<str>) -> Self {
+        Self {
+            severity: McpServerProfileInspectionSeverity::Error,
+            code: redact_text(code),
+            message: redact_text(message.as_ref()),
+        }
+    }
 }
 
 fn apply_manifest_tools_to_builder(

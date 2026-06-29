@@ -35,10 +35,13 @@ pub use server::{
 };
 pub use server_manifest::{
     MCP_SERVER_EXPORT_MANIFEST_SCHEMA_VERSION, McpServerBuiltinToolExportCatalogConfig,
-    McpServerExportManifest, McpServerExportProfileConfig, McpServerResourceExportConfig,
-    McpServerToolExportCatalog, McpServerToolExportConfig,
-    build_mcp_server_builtin_tool_export_catalog, build_mcp_server_profile_from_manifest,
-    build_mcp_server_resource_profile_from_manifest, build_mcp_server_tool_profile_from_manifest,
+    McpServerExportManifest, McpServerExportProfileConfig, McpServerProfileInspection,
+    McpServerProfileInspectionDiagnostic, McpServerProfileInspectionOptions,
+    McpServerProfileInspectionSeverity, McpServerProfileResourceInspection,
+    McpServerProfileToolInspection, McpServerResourceExportConfig, McpServerToolExportCatalog,
+    McpServerToolExportConfig, build_mcp_server_builtin_tool_export_catalog,
+    build_mcp_server_profile_from_manifest, build_mcp_server_resource_profile_from_manifest,
+    build_mcp_server_tool_profile_from_manifest, inspect_mcp_server_export_profile,
     parse_mcp_server_export_manifest_json, select_mcp_server_export_profile,
 };
 pub use server_profile::{

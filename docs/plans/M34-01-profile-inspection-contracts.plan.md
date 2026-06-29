@@ -12,16 +12,16 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M34-01 spec and current manifest helpers**
+- [x] **Step 1: Review M34-01 spec and current manifest helpers**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_server_profile_inspection.rs`
 
-- [ ] **Step 1: Add resource-only inspection test**
-- [ ] **Step 2: Add missing workspace diagnostic test**
-- [ ] **Step 3: Add disabled entries and serde shape tests**
+- [x] **Step 1: Add resource-only inspection test**
+- [x] **Step 2: Add missing workspace diagnostic test**
+- [x] **Step 3: Add disabled entries and serde shape tests**
 
 Run:
 
@@ -37,9 +37,9 @@ Expected: tests fail before implementation.
 - Modify: `crates/agent-mcp/src/server_manifest.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add inspection data types**
-- [ ] **Step 2: Add inspection builder**
-- [ ] **Step 3: Keep diagnostics redacted and bounded**
+- [x] **Step 1: Add inspection data types**
+- [x] **Step 2: Add inspection builder**
+- [x] **Step 3: Keep diagnostics redacted and bounded**
 
 ### Task 4: Verify
 
@@ -50,7 +50,16 @@ CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_ins
 CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp
 ```
 
-- [ ] **Step 1: Run focused and crate tests**
+- [x] **Step 1: Run focused and crate tests**
+
+Verified:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m34 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_inspection
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp
+```
 
 ### Task 5: Commit
 
@@ -59,4 +68,4 @@ git add crates docs
 git commit -m "feat: add mcp profile inspection contracts"
 ```
 
-- [ ] **Step 1: Commit M34-01**
+- [x] **Step 1: Commit M34-01**

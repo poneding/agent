@@ -287,7 +287,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M34 technical design | Complete |
 | M34 slice specs | Complete for M34-01 through M34-05 |
 | M34 slice plans | Complete for M34-01 through M34-05 |
-| M34 implementation | Planned |
+| M34-01 implementation | Complete |
+| M34 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -694,7 +695,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M34-01 profile inspection contracts`.
+Current implementation focus: `M34-02 CLI profile inspect command`.
 
 Most recent completed implementation documents:
 
@@ -746,6 +747,8 @@ Most recent completed implementation documents:
 - `docs/plans/M33-04-stdio-tool-call-e2e.plan.md`
 - `docs/specs/M33-05-hardening-docs.spec.md`
 - `docs/plans/M33-05-hardening-docs.plan.md`
+- `docs/specs/M34-01-profile-inspection-contracts.spec.md`
+- `docs/plans/M34-01-profile-inspection-contracts.plan.md`
 
 Most recent completed technical design documents:
 
@@ -754,5 +757,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M34-01-profile-inspection-contracts.spec.md`
-- `docs/plans/M34-01-profile-inspection-contracts.plan.md`
+- `docs/specs/M34-02-cli-profile-inspect-command.spec.md`
+- `docs/plans/M34-02-cli-profile-inspect-command.plan.md`

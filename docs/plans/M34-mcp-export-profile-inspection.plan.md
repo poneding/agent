@@ -50,7 +50,7 @@ Define inspection ownership, diagnostics, CLI command shape, JSON contracts, red
 - [x] **Step 2: Add CLI profile inspect command**
 - [x] **Step 3: Add preflight diagnostics**
 - [x] **Step 4: Add JSON redaction regressions**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M34
 
@@ -59,7 +59,7 @@ Define inspection ownership, diagnostics, CLI command shape, JSON contracts, red
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M34-mcp-export-profile-inspection.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,18 @@ CARGO_TARGET_DIR=target/codex-m34 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M34 complete and commit**
+Verified:
+
+```text
+Quality gate ci-local status=passed
+total=4 passed=4 failed=0 skipped=0
+fmt-check status=passed
+clippy status=passed
+test status=passed
+eval status=passed
+```
+
+- [x] **Step 2: Mark M34 complete and commit**
 
 Run:
 

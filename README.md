@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M33 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, and curated built-in MCP tool exports.
+M01-M34 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, and profile inspection preflight diagnostics.
 
 ## Core Ideas
 
@@ -137,6 +137,16 @@ agent-cli --json mcp server status
 
 The status surface reports protocol version, capability flags, stdio fixture availability, and explicit export counts/names only. Exported tool calls and resource reads remain policy-gated in `agent-mcp`; status rendering does not execute tools or expose resource contents.
 
+Inspect a manifest-backed export profile before starting stdio:
+
+```bash
+agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
+agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json --profile-name default --workspace .
+agent-cli --json mcp server profile inspect --profile path/to/mcp-server-exports.json --workspace .
+```
+
+Profile inspection reports selected tools, resources, enabled/disabled state, and preflight diagnostics for missing workspaces, invalid workspace roots, unknown tools, missing resource files, and disabled exports hidden from active MCP listings. Inspection never reads resource contents and keeps diagnostics bounded and redacted.
+
 Run a local MCP stdio server process:
 
 ```bash
@@ -250,10 +260,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M33-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M33-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M33-mcp-builtin-tool-export-runtime.spec.md)
-- [Active milestone](docs/specs/M34-mcp-export-profile-inspection.spec.md)
+- [Latest completed spec](docs/specs/M34-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M34-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M34-mcp-export-profile-inspection.spec.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)
 - [Agent notes](AGENTS.md)

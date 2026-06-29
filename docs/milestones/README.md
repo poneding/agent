@@ -291,7 +291,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M34-02 implementation | Complete |
 | M34-03 implementation | Complete |
 | M34-04 implementation | Complete |
-| M34 implementation | In progress |
+| M34-05 implementation | Complete |
+| M34 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -698,7 +699,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: `M34-05 hardening docs`.
+Current implementation focus: M34 complete; next milestone planning pending.
 
 Most recent completed implementation documents:
 
@@ -758,13 +759,12 @@ Most recent completed implementation documents:
 - `docs/plans/M34-03-preflight-diagnostics.plan.md`
 - `docs/specs/M34-04-json-redaction-regressions.spec.md`
 - `docs/plans/M34-04-json-redaction-regressions.plan.md`
+- `docs/specs/M34-05-hardening-docs.spec.md`
+- `docs/plans/M34-05-hardening-docs.plan.md`
 
 Most recent completed technical design documents:
 
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M34-00-mcp-export-profile-inspection-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M34-00-mcp-export-profile-inspection-technical-design.plan.md`
 
-Next implementation slice:
-
-- `docs/specs/M34-05-hardening-docs.spec.md`
-- `docs/plans/M34-05-hardening-docs.plan.md`
+Next implementation slice: pending next milestone planning.

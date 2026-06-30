@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Review metadata spec and existing HTTP contract patterns**
+- [x] **Step 1: Review metadata spec and existing HTTP contract patterns**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_oauth_metadata.rs`
 
-- [ ] **Step 1: Add focused OAuth metadata tests**
+- [x] **Step 1: Add focused OAuth metadata tests**
 
 Run:
 
@@ -40,15 +40,15 @@ Expected: tests fail before metadata contracts exist.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add OAuth metadata DTO**
-- [ ] **Step 2: Add protected resource metadata DTO**
-- [ ] **Step 3: Add validation helpers and redacted errors**
-- [ ] **Step 4: Export public contracts**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add OAuth metadata DTO**
+- [x] **Step 2: Add protected resource metadata DTO**
+- [x] **Step 3: Add validation helpers and redacted errors**
+- [x] **Step 4: Export public contracts**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -59,7 +59,7 @@ CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D 
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M51-01**
+- [x] **Step 1: Update status and commit M51-01**
 
 Run:
 
@@ -67,3 +67,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http oauth metadata contracts"
 ```
+
+### Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_metadata` passed.
+- `CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

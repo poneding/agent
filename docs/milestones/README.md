@@ -440,8 +440,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M51 technical design | Complete |
 | M51 slice specs | Complete for M51-01 through M51-05 |
 | M51 slice plans | Complete for M51-01 through M51-05 |
-| M51-01 implementation | In progress |
-| M51-02 implementation | Not started |
+| M51-01 implementation | Complete |
+| M51-02 implementation | In progress |
 | M51-03 implementation | Not started |
 | M51-04 implementation | Not started |
 | M51-05 implementation | Not started |
@@ -1056,7 +1056,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M51-01 OAuth metadata contracts.
+Current implementation focus: M51-02 protected resource discovery.
 
 Most recent completed implementation documents:
 
@@ -1078,6 +1078,8 @@ Most recent completed implementation documents:
 - `docs/plans/M51-mcp-http-oauth-authorization-runtime.plan.md`
 - `docs/specs/M51-00-mcp-http-oauth-authorization-technical-design.spec.md`
 - `docs/plans/M51-00-mcp-http-oauth-authorization-technical-design.plan.md`
+- `docs/specs/M51-01-oauth-metadata-contracts.spec.md`
+- `docs/plans/M51-01-oauth-metadata-contracts.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1435,5 +1437,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M51-01-oauth-metadata-contracts.spec.md`
-- `docs/plans/M51-01-oauth-metadata-contracts.plan.md`
+- `docs/specs/M51-02-protected-resource-discovery.spec.md`
+- `docs/plans/M51-02-protected-resource-discovery.plan.md`

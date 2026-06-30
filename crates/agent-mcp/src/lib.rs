@@ -32,7 +32,8 @@ pub use client::{
 };
 pub use client_http::{
     FixtureMcpClientHttpStreamTransport, FixtureMcpClientHttpTransport,
-    McpClientHttpCheckpointSummary, McpClientHttpReconnectAttempt,
+    McpClientHttpCheckpointSummary, McpClientHttpOAuthMetadata,
+    McpClientHttpProtectedResourceMetadata, McpClientHttpReconnectAttempt,
     McpClientHttpReconnectAttemptOutcome, McpClientHttpReconnectDecision,
     McpClientHttpReconnectFailureKind, McpClientHttpReconnectPolicy, McpClientHttpReconnectReport,
     McpClientHttpReplayDiagnostic, McpClientHttpReplayStatus, McpClientHttpRequest,

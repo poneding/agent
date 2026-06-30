@@ -60,6 +60,55 @@ pub struct McpClientHttpSessionMetadata {
     pub last_event_id: Option<String>,
 }
 
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthMetadata {
+    pub issuer: Option<String>,
+    pub authorization_endpoint: Option<String>,
+    pub token_endpoint: Option<String>,
+    pub registration_endpoint: Option<String>,
+    pub scopes_supported: Vec<String>,
+    pub token_endpoint_auth_methods_supported: Vec<String>,
+}
+
+impl McpClientHttpOAuthMetadata {
+    pub fn validate(&self) -> Result<(), McpError> {
+        validate_optional_mcp_client_http_oauth_url(self.issuer.as_deref())
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        validate_optional_mcp_client_http_oauth_url(self.authorization_endpoint.as_deref())
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        validate_optional_mcp_client_http_oauth_url(self.token_endpoint.as_deref())
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        validate_optional_mcp_client_http_oauth_url(self.registration_endpoint.as_deref())
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        validate_mcp_client_http_oauth_tokens(&self.scopes_supported)
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        validate_mcp_client_http_oauth_tokens(&self.token_endpoint_auth_methods_supported)
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpProtectedResourceMetadata {
+    pub resource: Option<String>,
+    pub authorization_servers: Vec<String>,
+    pub scopes_supported: Vec<String>,
+}
+
+impl McpClientHttpProtectedResourceMetadata {
+    pub fn validate(&self) -> Result<(), McpError> {
+        validate_optional_mcp_client_http_oauth_url(self.resource.as_deref())
+            .map_err(|_| invalid_mcp_client_http_protected_resource_metadata())?;
+        for authorization_server in &self.authorization_servers {
+            validate_mcp_client_http_oauth_url(authorization_server)
+                .map_err(|_| invalid_mcp_client_http_protected_resource_metadata())?;
+        }
+        validate_mcp_client_http_oauth_tokens(&self.scopes_supported)
+            .map_err(|_| invalid_mcp_client_http_protected_resource_metadata())?;
+        Ok(())
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpResponseEnvelope {
     pub mode: McpClientHttpResponseMode,
@@ -1869,6 +1918,39 @@ fn invalid_mcp_client_http_reconnect_policy() -> McpError {
 
 fn invalid_mcp_client_http_stream_supervisor_config() -> McpError {
     McpError::InvalidConfig("invalid MCP client HTTP stream supervisor config".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_metadata() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth metadata".to_string())
+}
+
+fn invalid_mcp_client_http_protected_resource_metadata() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP protected resource metadata".to_string())
+}
+
+fn validate_optional_mcp_client_http_oauth_url(value: Option<&str>) -> Result<(), McpError> {
+    match value {
+        Some(value) => validate_mcp_client_http_oauth_url(value),
+        None => Ok(()),
+    }
+}
+
+fn validate_mcp_client_http_oauth_url(value: &str) -> Result<(), McpError> {
+    let value = value.trim();
+    if value.is_empty() || !(value.starts_with("http://") || value.starts_with("https://")) {
+        return Err(invalid_mcp_client_http_oauth_metadata());
+    }
+    Ok(())
+}
+
+fn validate_mcp_client_http_oauth_tokens(values: &[String]) -> Result<(), McpError> {
+    for value in values {
+        let value = value.trim();
+        if value.is_empty() || value.chars().any(char::is_whitespace) {
+            return Err(invalid_mcp_client_http_oauth_metadata());
+        }
+    }
+    Ok(())
 }
 
 fn mcp_client_http_stream_reconnect_failed(

@@ -6,9 +6,9 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M54 are implemented. The repository has strong foundations for event-sourced runtime execution, typed storage and replay, tool policy and audit, model streaming, prompt/context management, memory, scheduler tasks, worktree/subagent foundations, plugins, Desktop bridge contracts, observability, evaluations, CI evidence, and a mature MCP extension layer including HTTP OAuth authorization-code token exchange.
+M01-M54 and the MX01 MCP epilogue are implemented. The repository has strong foundations for event-sourced runtime execution, typed storage and replay, tool policy and audit, model streaming, prompt/context management, memory, scheduler tasks, worktree/subagent foundations, plugins, Desktop bridge contracts, observability, evaluations, CI evidence, and a mature MCP extension layer including HTTP OAuth authorization-code token exchange plus P1-P3 MCP hardening for callbacks, protocol event summaries, sampling review contracts, management snapshots, and server export guardrails.
 
-The product roadmap is now re-centered on the user-facing goal: a Claude Code / Codex Desktop-class local coding agent with excellent CLI/TUI and Desktop workflows plus first-class multi-provider support. MCP expansion is parked as a primary track after M54 unless it directly unlocks product workflows.
+The product roadmap is now re-centered on the user-facing goal: a Claude Code / Codex Desktop-class local coding agent with excellent CLI/TUI and Desktop workflows plus first-class multi-provider support. MCP expansion remains parked as a primary track after M54; MX01 is an epilogue track and does not change the M55+ product roadmap priority.
 
 See [Product Roadmap](docs/roadmap/PRODUCT_ROADMAP.md) and [Milestones](docs/milestones/README.md) for the current direction.
 
@@ -169,7 +169,7 @@ gateway.register_tools(&mut registry, &report)?;
 
 Tool listing is discovery metadata only; it does not grant permission to execute remote tools. Local policy gates the registered gateway tool before a remote `tools/call` is sent. Remote success payloads are returned as tool output by design, then bounded locally by gateway surfaces. Public diagnostics are bounded and redacted: process stderr, command env, unresolved secret refs, prompt text, local tool arguments, and raw remote failure details are not surfaced. `McpEnvValue::SecretRef` values must be resolved outside `agent-mcp` before spawning a stdio client process.
 
-Reentrant server-to-client callbacks, sampling approval UI, MCP progress/logging/task protocols, and Desktop MCP management remain later work.
+MX01 adds typed reentrant client callback contracts for `roots/list` and `sampling/createMessage` frames that may arrive while stdio or streamable HTTP tool work is in flight. Unknown callbacks and callback notifications without request ids are safely rejected or ignored, and callback reports are bounded and redacted. Callback handling still routes through the existing root and sampling provider boundaries; it does not bypass local policy, tool registration, sandboxing, or permission checks.
 
 ## MCP Client Streamable HTTP
 
@@ -239,7 +239,7 @@ let stream_request = McpClientHttpStreamRequest::from_config_with_authorization(
 )?;
 ```
 
-Authorization diagnostics and errors do not expose bearer tokens, authorization header values, client secrets, raw discovery bodies, unresolved secret ref names, refresh tokens, or remote auth failure payloads. Existing `Authorization` headers conflict with explicit bearer authorization. Browser login, Desktop auth UX, token storage, refresh, revocation, DCR execution, provider-specific OAuth flows, server-specific replay guarantees, and MCP progress/logging/task protocols remain later work.
+Authorization diagnostics and errors do not expose bearer tokens, authorization header values, client secrets, raw discovery bodies, unresolved secret ref names, refresh tokens, or remote auth failure payloads. Existing `Authorization` headers conflict with explicit bearer authorization. Browser login, Desktop auth UX, token storage, refresh, revocation, DCR execution, provider-specific OAuth flows, and server-specific replay guarantees remain later work.
 
 M52 adds a token lifecycle foundation on top of that bearer boundary. `McpClientHttpOAuthTokenLease` represents caller-provided access-token material with optional expiry and scopes; `Debug` is redacted and the lease is intentionally not a durable serialization DTO. `McpClientHttpOAuthTokenSourceRef` is the durable-safe reference shape for an external auth or vault layer. `build_mcp_client_http_oauth_refresh_plan` deterministically classifies leases as usable, refresh-soon, expired, unknown-expiry, or scope-incompatible from caller-provided time and requirements. `build_mcp_client_http_request_with_oauth_token` and `build_mcp_client_http_stream_request_with_oauth_token` reject expired leases before applying `Authorization` headers, then delegate to the M51 request constructors.
 
@@ -338,6 +338,10 @@ if let Some(response) = outcome.response.as_ref() {
 
 Token exchange diagnostics and debug output do not expose authorization codes, PKCE verifiers, access tokens, refresh tokens, form bodies, authorization headers, client secrets, raw provider responses, or remote auth failure payloads. M54 does not implement browser/device login, callback hosting, Desktop account UX, durable encrypted token vaults, refresh-token persistence, refresh execution, revocation, dynamic client registration, or provider-specific OAuth quirks.
 
+MX01 adds typed MCP protocol event reports for progress, logging, task, and elicitation notifications. Bounded JSON-RPC frames are parsed into normalized, UI-safe summaries for CLI/JSON or bridge consumers, with raw prompts, tokens, secrets, headers, provider payloads, and remote failure bodies kept out of public diagnostics.
+
+MX01 still does not implement the P0 OAuth/Auth product closure: browser/device login, localhost callback servers, Desktop account picker UX, durable encrypted token vaults, refresh-token persistence, provider refresh execution, token revocation execution, dynamic client registration execution, OS keychain integration, or provider-specific login UX.
+
 ## MCP Sampling
 
 `agent-mcp` can model MCP `sampling/createMessage` requests from external servers without handing model credentials or local tool access to those servers. M40 implements typed sampling contracts, a conservative request validator, deterministic fixture execution, and gateway availability diagnostics. M41 adds an `agent-core` bridge that maps safe text-only sampling requests to local `agent-model` providers. M42 adds fixture-grade JSON-RPC stdio frame dispatch for server-initiated `sampling/createMessage` requests through the same local provider path.
@@ -425,7 +429,15 @@ let response_frame = handle_mcp_sampling_stdio_frame(&client, &server_config, &f
 
 The safe subset rejects empty message lists, invalid token limits, unsupported `tools` / `toolChoice`, and `includeContext` values other than `none` before model streaming. The model bridge also rejects image, audio, tool-use, tool-result, and model `ToolCall` paths. Server model preferences remain advisory; local provider and model config always select the actual model runtime.
 
-Gateway reports, bridge errors, stdio error frames, and public diagnostics expose bounded status codes only; they do not include request messages, system prompts, response content, media payloads, provider metadata, model credentials, or local secret names. Sampling success frames contain the provider response by design. Sampling does not grant filesystem, command, Git, browser, Desktop, local secret, or local tool permissions. Live spawned-process transport, reentrant dispatch while a tool call is in flight, approval UI, Desktop review surfaces, multimodal conversion, task-augmented sampling, and tool-enabled sampling loops are reserved for later milestones.
+Gateway reports, bridge errors, stdio error frames, and public diagnostics expose bounded status codes only; they do not include request messages, system prompts, response content, media payloads, provider metadata, model credentials, or local secret names. Sampling success frames contain the provider response by design. Sampling does not grant filesystem, command, Git, browser, Desktop, local secret, or local tool permissions.
+
+MX01 adds sampling approval request, decision, and report contracts; task-augmented sampling metadata; redacted review summaries; and default-deny tool-loop policy. These are productization contracts, not a complete approval UI. Tool-enabled sampling loops are not enabled by default, and live transport multiplexing, full Desktop review surfaces, multimodal conversion, and explicitly approved tool-loop execution remain later product work.
+
+## MCP Management Snapshot
+
+MX01 adds UI-safe MCP management snapshots in `agent-mcp` plus independent bridge DTOs in `agent-ui-bridge`. Snapshots summarize server status, transport kind, roots, sampling availability, stream status, auth status, last diagnostics, and extension health in bounded, serializable, redacted shapes for future CLI/Desktop rendering.
+
+Management snapshots are status reports only. They do not create permission leases, expose raw headers or tokens, read resource contents, reveal prompt text, or grant MCP servers local filesystem, command, Git, browser, Desktop, secret, or network authority.
 
 ## MCP Server Export
 
@@ -535,6 +547,8 @@ Use `--workspace` with a manifest-backed profile to expose curated built-in work
 ```
 
 The built-in MCP stdio catalog is allow-listed to workspace inspection tools: `workspace.read_file`, `workspace.search_text`, `workspace.git_status`, and `workspace.git_diff`. Shell commands and file edits are not part of the built-in export catalog. Tool calls are scoped by the selected profile, resolved through the workspace sandbox, and still pass through policy before execution.
+
+MX01 adds manifest `capability` declarations and `McpServerExportPolicyPreview` contracts for server export expansion guardrails. Read-only tool exports continue on the existing path. Enabled side-effecting declarations for command execution, file edits, Git writes, browser control, secret access, or network access are rejected by default, and disabled dangerous declarations can be inspected safely through policy preview without opening those capabilities.
 
 Add explicit prompt exports to the same manifest when an MCP client should discover reusable prompt templates:
 

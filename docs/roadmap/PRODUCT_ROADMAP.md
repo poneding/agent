@@ -39,6 +39,8 @@ Overall status: the runtime platform is ahead of the product. The next milestone
 
 MCP work is paused as a primary roadmap track after M54 completion. Future MCP slices are product backlog unless a near-term CLI/Desktop workflow requires them.
 
+MX01 is an MCP epilogue track for P1-P3 protocol hardening and bridge-safe contracts; the product roadmap remains M55+ and P0 OAuth/Auth product closure remains outside MX01.
+
 The current MCP baseline is enough to support product discovery, local gateway execution, stdio/HTTP clients, server exports, sampling foundations, stream supervision, OAuth planning, and authorization-code token exchange into token leases. Further MCP OAuth lifecycle polish is valuable, but it does not improve the main product experience as much as coding-loop, provider, CLI, and Desktop work.
 
 ## Product Milestone Roadmap

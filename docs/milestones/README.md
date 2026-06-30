@@ -8,7 +8,7 @@ Build the runtime spine first. The first working product should prove that a mod
 
 The active product direction is defined in [Product Roadmap](../roadmap/PRODUCT_ROADMAP.md).
 
-M30-M54 delivered a deep MCP extension track. That work remains valuable, but MCP is now parked as a primary roadmap track after the M54 token exchange closeout. The next milestones must rebalance toward the core product goal: a Claude Code / Codex Desktop-class coding agent with multi-provider support, excellent CLI/TUI and Desktop workflows, strong context, reliable recovery, and product-level evaluations.
+M30-M54 delivered a deep MCP extension track. That work remains valuable, but MCP is now parked as a primary roadmap track after the M54 token exchange closeout. MX01 was completed as a separate MCP epilogue for P1-P3 hardening and does not change the M55-M66 product roadmap priority. The next milestones must rebalance toward the core product goal: a Claude Code / Codex Desktop-class coding agent with multi-provider support, excellent CLI/TUI and Desktop workflows, strong context, reliable recovery, and product-level evaluations.
 
 Current focus:
 
@@ -52,8 +52,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Product roadmap reset | Complete for product capability assessment, MCP parking decision, and M55-M66 roadmap |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M54 |
-| Milestone-level plans | Complete for M01-M54 |
+| Milestone-level specs | Complete for M01-M54 and MX01 |
+| Milestone-level plans | Complete for M01-M54 and MX01 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -496,6 +496,15 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M55 slice specs | Complete for M55-01 through M55-04 |
 | M55 slice plans | Complete for M55-01 through M55-04 |
 | M55 implementation | Planned |
+| MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
+| MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
+| MX01-01 implementation | Complete |
+| MX01-02 implementation | Complete |
+| MX01-03 implementation | Complete |
+| MX01-04 implementation | Complete |
+| MX01-05 implementation | Complete |
+| MX01-06 implementation | Complete |
+| MX01 epilogue implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -556,6 +565,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M53 MCP HTTP OAuth Authorization Flow Runtime | `docs/specs/M53-mcp-http-oauth-authorization-flow-runtime.spec.md` | `docs/plans/M53-mcp-http-oauth-authorization-flow-runtime.plan.md` | Add PKCE/state contracts, authorization request planning, callback validation, token exchange DTOs, and flow diagnostics for MCP HTTP OAuth clients. |
 | M54 MCP HTTP OAuth Token Exchange Runtime | `docs/specs/M54-mcp-http-oauth-token-exchange-runtime.spec.md` | `docs/plans/M54-mcp-http-oauth-token-exchange-runtime.plan.md` | Execute OAuth authorization-code token exchange through typed transports, response contracts, redacted diagnostics, and token lease conversion. |
 | M55 Product Baseline and Roadmap Reset | `docs/specs/M55-product-baseline-roadmap-reset.spec.md` | `docs/plans/M55-product-baseline-roadmap-reset.plan.md` | Establish the mainline product baseline, smoke matrix, product gap backlog, and M56 bootstrap while keeping MCP parked unless product workflows require it. |
+| MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
 
@@ -1150,12 +1160,37 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M55-03 Product Gap Backlog | `docs/specs/M55-03-product-gap-backlog.spec.md` | `docs/plans/M55-03-product-gap-backlog.plan.md` | Convert baseline and smoke gaps into P0/P1/P2 product backlog items mapped to M56-M66. |
 | M55-04 M56 Bootstrap | `docs/specs/M55-04-m56-bootstrap.spec.md` | `docs/plans/M55-04-m56-bootstrap.plan.md` | Create M56 milestone spec/plan and the first implementation-ready repo session bootstrap slice. |
 
+## MX01 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| MX01-01 Reentrant Client Callbacks | `docs/specs/MX01-01-reentrant-callbacks.spec.md` | `docs/plans/MX01-01-reentrant-callbacks.plan.md` | Typed, redacted callback reports and fixture dispatch for roots/list, sampling, unknown callbacks, and safe rejection. |
+| MX01-02 MCP Progress Logging Task Events | `docs/specs/MX01-02-progress-logging-task-events.spec.md` | `docs/plans/MX01-02-progress-logging-task-events.plan.md` | Safe MCP progress, logging, task, and elicitation event parsing with UI-consumable summaries. |
+| MX01-03 Sampling Productization | `docs/specs/MX01-03-sampling-productization.spec.md` | `docs/plans/MX01-03-sampling-productization.plan.md` | Sampling approval request/decision contracts, task metadata, redacted review summaries, and default-deny tool-loop policy. |
+| MX01-04 Desktop/Bridge MCP Management Snapshot | `docs/specs/MX01-04-mcp-management-snapshot.spec.md` | `docs/plans/MX01-04-mcp-management-snapshot.plan.md` | UI-safe management snapshots for server status, transport, roots, sampling, stream, auth, diagnostics, and extension health. |
+| MX01-05 Server Export Expansion Guardrails | `docs/specs/MX01-05-server-export-guardrails.spec.md` | `docs/plans/MX01-05-server-export-guardrails.plan.md` | Manifest capability declarations and policy previews that default-deny dangerous side-effecting exports while preserving read-only exports. |
+| MX01-06 Hardening Docs and Verification | `docs/specs/MX01-06-hardening-docs-verification.spec.md` | `docs/plans/MX01-06-hardening-docs-verification.plan.md` | README, milestone, roadmap, plan status, and final verification evidence for the epilogue. |
+
 ## Active Work
 
-Current implementation focus: M55 Product Baseline and Roadmap Reset.
+Current implementation focus: MX01 epilogue complete; next product focus remains M55 Product Baseline and Roadmap Reset.
 
 Most recent completed implementation documents:
 
+- `docs/specs/MX01-mcp-epilogue.spec.md`
+- `docs/plans/MX01-mcp-epilogue.plan.md`
+- `docs/specs/MX01-01-reentrant-callbacks.spec.md`
+- `docs/plans/MX01-01-reentrant-callbacks.plan.md`
+- `docs/specs/MX01-02-progress-logging-task-events.spec.md`
+- `docs/plans/MX01-02-progress-logging-task-events.plan.md`
+- `docs/specs/MX01-03-sampling-productization.spec.md`
+- `docs/plans/MX01-03-sampling-productization.plan.md`
+- `docs/specs/MX01-04-mcp-management-snapshot.spec.md`
+- `docs/plans/MX01-04-mcp-management-snapshot.plan.md`
+- `docs/specs/MX01-05-server-export-guardrails.spec.md`
+- `docs/plans/MX01-05-server-export-guardrails.plan.md`
+- `docs/specs/MX01-06-hardening-docs-verification.spec.md`
+- `docs/plans/MX01-06-hardening-docs-verification.plan.md`
 - `docs/specs/M50-mcp-http-background-stream-supervision.spec.md`
 - `docs/plans/M50-mcp-http-background-stream-supervision.plan.md`
 - `docs/specs/M50-00-mcp-http-background-stream-supervision-technical-design.spec.md`

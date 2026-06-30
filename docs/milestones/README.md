@@ -491,6 +491,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M54-04 implementation | Complete |
 | M54-05 implementation | Complete |
 | M54 implementation | Complete |
+| M55 milestone spec | Complete |
+| M55 milestone plan | Complete |
+| M55 slice specs | Complete for M55-01 through M55-04 |
+| M55 slice plans | Complete for M55-01 through M55-04 |
+| M55 implementation | Planned |
 
 ## Milestone Spec and Plan Index
 
@@ -550,6 +555,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M52 MCP HTTP OAuth Token Lifecycle Runtime | `docs/specs/M52-mcp-http-oauth-token-lifecycle-runtime.spec.md` | `docs/plans/M52-mcp-http-oauth-token-lifecycle-runtime.plan.md` | Add token lease contracts, source references, refresh planning diagnostics, and authorized request factories for MCP HTTP clients. |
 | M53 MCP HTTP OAuth Authorization Flow Runtime | `docs/specs/M53-mcp-http-oauth-authorization-flow-runtime.spec.md` | `docs/plans/M53-mcp-http-oauth-authorization-flow-runtime.plan.md` | Add PKCE/state contracts, authorization request planning, callback validation, token exchange DTOs, and flow diagnostics for MCP HTTP OAuth clients. |
 | M54 MCP HTTP OAuth Token Exchange Runtime | `docs/specs/M54-mcp-http-oauth-token-exchange-runtime.spec.md` | `docs/plans/M54-mcp-http-oauth-token-exchange-runtime.plan.md` | Execute OAuth authorization-code token exchange through typed transports, response contracts, redacted diagnostics, and token lease conversion. |
+| M55 Product Baseline and Roadmap Reset | `docs/specs/M55-product-baseline-roadmap-reset.spec.md` | `docs/plans/M55-product-baseline-roadmap-reset.plan.md` | Establish the mainline product baseline, smoke matrix, product gap backlog, and M56 bootstrap while keeping MCP parked unless product workflows require it. |
 
 ## M01 Slice Index
 
@@ -1135,9 +1141,18 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M54-04 Lease Conversion Redaction | `docs/specs/M54-04-lease-conversion-redaction.spec.md` | `docs/plans/M54-04-lease-conversion-redaction.plan.md` | Convert successful token responses to existing token leases while omitting refresh-token persistence. |
 | M54-05 Hardening Docs | `docs/specs/M54-05-hardening-docs.spec.md` | `docs/plans/M54-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M54 quality gate evidence. |
 
+## M55 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M55-01 Capability Inventory | `docs/specs/M55-01-capability-inventory.spec.md` | `docs/plans/M55-01-capability-inventory.plan.md` | Map product capability domains to current crates, commands, tests, docs, completion estimates, gaps, and next milestone ownership. |
+| M55-02 Golden Path Smoke Matrix | `docs/specs/M55-02-golden-path-smoke-matrix.spec.md` | `docs/plans/M55-02-golden-path-smoke-matrix.plan.md` | Define executable or explicitly blocked smoke checks for the coding-agent golden path across CLI/TUI/Desktop bridge and runtime safety surfaces. |
+| M55-03 Product Gap Backlog | `docs/specs/M55-03-product-gap-backlog.spec.md` | `docs/plans/M55-03-product-gap-backlog.plan.md` | Convert baseline and smoke gaps into P0/P1/P2 product backlog items mapped to M56-M66. |
+| M55-04 M56 Bootstrap | `docs/specs/M55-04-m56-bootstrap.spec.md` | `docs/plans/M55-04-m56-bootstrap.plan.md` | Create M56 milestone spec/plan and the first implementation-ready repo session bootstrap slice. |
+
 ## Active Work
 
-Current implementation focus: M54 closeout verification, then M55 product baseline and roadmap reset.
+Current implementation focus: M55 Product Baseline and Roadmap Reset.
 
 Most recent completed implementation documents:
 
@@ -1578,9 +1593,10 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create `docs/specs/M55-product-baseline-roadmap-reset.spec.md`
-- Create `docs/plans/M55-product-baseline-roadmap-reset.plan.md`
-- Create M55 slice specs/plans for capability inventory, golden-path smoke matrix, product gap backlog, milestone index reset, and M56 bootstrap
+- Execute M55-01 Capability Inventory and produce `docs/roadmap/MAINLINE_CAPABILITY_BASELINE.md`
+- Execute M55-02 Golden Path Smoke Matrix and produce `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
+- Execute M55-03 Product Gap Backlog and produce `docs/roadmap/PRODUCT_GAP_BACKLOG.md`
+- Execute M55-04 M56 Bootstrap and create M56 implementation-ready planning docs
 
 Next implementation direction:
 

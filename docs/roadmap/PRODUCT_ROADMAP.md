@@ -71,8 +71,7 @@ Required slices:
 | M55-01 Capability Inventory | Map crates, tests, commands, and docs into product capability domains. |
 | M55-02 Golden Path Smoke Matrix | Define current CLI, TUI, Desktop, provider, coding-loop, and recovery smoke checks. |
 | M55-03 Product Gap Backlog | Convert gaps into prioritized product backlog items with owners by crate/surface. |
-| M55-04 Milestone Index Reset | Update milestone docs so M56-M66 become the visible forward path and MCP remains backlog. |
-| M55-05 Next Spec/Plan Bootstrap | Create M56 milestone spec/plan and first implementation slice spec/plan. |
+| M55-04 M56 Bootstrap | Update milestone docs, reconcile roadmap status, and create M56 milestone spec/plan plus the first implementation slice spec/plan. |
 
 Acceptance:
 

@@ -36,7 +36,7 @@ pub use client_http::{
     McpClientHttpAuthorizationDiagnosticSeverity, McpClientHttpAuthorizationReport,
     McpClientHttpCheckpointSummary, McpClientHttpOAuthMetadata, McpClientHttpOAuthTokenDiagnostic,
     McpClientHttpOAuthTokenDiagnosticCode, McpClientHttpOAuthTokenDiagnosticSeverity,
-    McpClientHttpOAuthTokenLease, McpClientHttpOAuthTokenStatus,
+    McpClientHttpOAuthTokenLease, McpClientHttpOAuthTokenSourceRef, McpClientHttpOAuthTokenStatus,
     McpClientHttpProtectedResourceMetadata, McpClientHttpReconnectAttempt,
     McpClientHttpReconnectAttemptOutcome, McpClientHttpReconnectDecision,
     McpClientHttpReconnectFailureKind, McpClientHttpReconnectPolicy, McpClientHttpReconnectReport,

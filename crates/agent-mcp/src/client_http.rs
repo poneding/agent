@@ -427,6 +427,39 @@ pub fn build_mcp_client_http_oauth_token_status(
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthTokenSourceRef {
+    pub source_id: String,
+    pub account_hint: Option<String>,
+    pub resource: Option<String>,
+}
+
+impl McpClientHttpOAuthTokenSourceRef {
+    pub fn new(
+        source_id: impl Into<String>,
+        account_hint: Option<impl Into<String>>,
+        resource: Option<impl Into<String>>,
+    ) -> Result<Self, McpError> {
+        let source_id = validate_mcp_client_http_oauth_token_source_id(&source_id.into())?;
+        let account_hint = normalize_mcp_client_http_oauth_token_source_hint(account_hint)?;
+        let resource = normalize_mcp_client_http_oauth_token_source_hint(resource)?;
+        Ok(Self {
+            source_id,
+            account_hint,
+            resource,
+        })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(
+            self.source_id.as_str(),
+            self.account_hint.as_deref(),
+            self.resource.as_deref(),
+        )
+        .map(|_| ())
+    }
+}
+
 pub fn build_mcp_client_http_authorization_report(
     config: &McpServerConfig,
     oauth_metadata: Option<&McpClientHttpOAuthMetadata>,
@@ -2246,6 +2279,42 @@ fn has_mcp_client_http_authorization_header(headers: &BTreeMap<String, McpEnvVal
         .any(|key| key.eq_ignore_ascii_case("authorization"))
 }
 
+fn validate_mcp_client_http_oauth_token_source_id(value: &str) -> Result<String, McpError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+        || value.chars().any(char::is_whitespace)
+        || !value
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.'))
+        || is_secret_like(value)
+    {
+        return Err(invalid_mcp_client_http_oauth_token_source());
+    }
+    Ok(value.to_string())
+}
+
+fn normalize_mcp_client_http_oauth_token_source_hint(
+    value: Option<impl Into<String>>,
+) -> Result<Option<String>, McpError> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    let value = value.into();
+    let value = value.trim();
+    if value.is_empty() {
+        return Ok(None);
+    }
+    if value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+        || is_secret_like(value)
+    {
+        return Err(invalid_mcp_client_http_oauth_token_source());
+    }
+    Ok(Some(value.to_string()))
+}
+
 fn reject_mcp_client_http_authorization_header_conflict(
     config: &McpServerConfig,
 ) -> Result<(), McpError> {
@@ -2450,6 +2519,10 @@ fn invalid_mcp_client_http_authorization() -> McpError {
 
 fn invalid_mcp_client_http_oauth_token_lease() -> McpError {
     McpError::InvalidConfig("invalid MCP client HTTP OAuth token lease".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_token_source() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth token source".to_string())
 }
 
 fn mcp_client_http_authorization_header_conflict() -> McpError {

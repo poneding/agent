@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M45 |
-| Milestone-level plans | Complete for M01-M45 |
+| Milestone-level specs | Complete for M01-M46 |
+| Milestone-level plans | Complete for M01-M46 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -392,6 +392,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M45-04 implementation | Complete |
 | M45-05 implementation | Complete |
 | M45 implementation | Complete |
+| M46 technical design | Complete |
+| M46 slice specs | Complete for M46-01 through M46-05 |
+| M46 slice plans | Complete for M46-01 through M46-05 |
+| M46-01 implementation | In progress |
+| M46 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -442,6 +447,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M43 MCP Client Stdio Transport Runtime | `docs/specs/M43-mcp-client-stdio-transport.spec.md` | `docs/plans/M43-mcp-client-stdio-transport.plan.md` | Start external MCP stdio servers and drive initialize/tools/list through typed client contracts with safe process diagnostics. |
 | M44 MCP Client Stdio Tool Call Runtime | `docs/specs/M44-mcp-client-stdio-tool-call.spec.md` | `docs/plans/M44-mcp-client-stdio-tool-call.plan.md` | Execute live MCP stdio tools through typed gateway contracts with local policy boundaries and safe diagnostics. |
 | M45 MCP Client Streamable HTTP Runtime | `docs/specs/M45-mcp-client-streamable-http.spec.md` | `docs/plans/M45-mcp-client-streamable-http.plan.md` | Drive external MCP streamable HTTP servers through typed client and gateway contracts for initialize, tools/list, and tools/call. |
+| M46 MCP HTTP SSE Response Runtime | `docs/specs/M46-mcp-http-sse-response-runtime.spec.md` | `docs/plans/M46-mcp-http-sse-response-runtime.plan.md` | Parse bounded streamable HTTP SSE response frames through typed MCP client contracts. |
 
 ## M01 Slice Index
 
@@ -928,12 +934,37 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M45-04 HTTP Gateway Tool Call | `docs/specs/M45-04-http-gateway-tool-call.spec.md` | `docs/plans/M45-04-http-gateway-tool-call.plan.md` | HTTP-backed MCP tools execute through gateway registration, local policy, redaction, and output bounding. |
 | M45-05 Hardening Docs | `docs/specs/M45-05-hardening-docs.spec.md` | `docs/plans/M45-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M45 quality gate evidence. |
 
+## M46 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M46-00 MCP HTTP SSE Response Technical Design | `docs/specs/M46-00-mcp-http-sse-response-technical-design.spec.md` | `docs/plans/M46-00-mcp-http-sse-response-technical-design.plan.md` | Architecture baseline for SSE response contracts, response modes, stream bounds, redaction, and verification. |
+| M46-01 SSE Event Contracts | `docs/specs/M46-01-sse-event-contracts.spec.md` | `docs/plans/M46-01-sse-event-contracts.plan.md` | Pure SSE event parser for bounded MCP HTTP response data. |
+| M46-02 HTTP Response Mode | `docs/specs/M46-02-http-response-mode.spec.md` | `docs/plans/M46-02-http-response-mode.plan.md` | Typed JSON/SSE response modes that extract JSON-RPC response frames safely. |
+| M46-03 Reqwest SSE Transport | `docs/specs/M46-03-reqwest-sse-transport.spec.md` | `docs/plans/M46-03-reqwest-sse-transport.plan.md` | Live reqwest transport classifies and bounds `text/event-stream` responses. |
+| M46-04 HTTP Client SSE Dispatch | `docs/specs/M46-04-http-client-sse-dispatch.spec.md` | `docs/plans/M46-04-http-client-sse-dispatch.plan.md` | HTTP client initialize, tools/list, and tools/call consume matching SSE response frames. |
+| M46-05 Hardening Docs | `docs/specs/M46-05-hardening-docs.spec.md` | `docs/plans/M46-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M46 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M45 is complete. Next implementation slice will be selected separately.
+Current implementation focus: M46-01 SSE event contracts.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M46-mcp-http-sse-response-runtime.spec.md`
+- `docs/plans/M46-mcp-http-sse-response-runtime.plan.md`
+- `docs/specs/M46-00-mcp-http-sse-response-technical-design.spec.md`
+- `docs/plans/M46-00-mcp-http-sse-response-technical-design.plan.md`
+- `docs/specs/M46-01-sse-event-contracts.spec.md`
+- `docs/plans/M46-01-sse-event-contracts.plan.md`
+- `docs/specs/M46-02-http-response-mode.spec.md`
+- `docs/plans/M46-02-http-response-mode.plan.md`
+- `docs/specs/M46-03-reqwest-sse-transport.spec.md`
+- `docs/plans/M46-03-reqwest-sse-transport.plan.md`
+- `docs/specs/M46-04-http-client-sse-dispatch.spec.md`
+- `docs/plans/M46-04-http-client-sse-dispatch.plan.md`
+- `docs/specs/M46-05-hardening-docs.spec.md`
+- `docs/plans/M46-05-hardening-docs.plan.md`
 - `docs/specs/M45-mcp-client-streamable-http.spec.md`
 - `docs/plans/M45-mcp-client-streamable-http.plan.md`
 - `docs/specs/M45-00-mcp-client-streamable-http-technical-design.spec.md`
@@ -1218,9 +1249,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M45-00-mcp-client-streamable-http-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M45-00-mcp-client-streamable-http-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M46-00-mcp-http-sse-response-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M46-00-mcp-http-sse-response-technical-design.plan.md`
 
 Next implementation slice:
 
-- To be selected after M45 completion.
+- `docs/specs/M46-01-sse-event-contracts.spec.md`
+- `docs/plans/M46-01-sse-event-contracts.plan.md`

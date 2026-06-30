@@ -550,7 +550,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M58-03 implementation | Complete |
 | M58-04 slice spec | Complete |
 | M58-04 slice plan | Complete |
-| M58-04 implementation | Planned |
+| M58-04 implementation | Complete |
 | M58 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1247,7 +1247,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M58-01 Repo Map and File Tree Summaries | `docs/specs/M58-01-repo-map-file-tree-summaries.spec.md` | `docs/plans/M58-01-repo-map-file-tree-summaries.plan.md` | Completed bounded project file/directory summaries, prompt-layer conversion, safe CLI/JSON output, and bridge snapshots. |
 | M58-02 Relevant File Retrieval | `docs/specs/M58-02-relevant-file-retrieval.spec.md` | `docs/plans/M58-02-relevant-file-retrieval.plan.md` | Completed deterministic lexical retrieval with scored candidates, budgeted selection, prompt-layer conversion, CLI/JSON output, and bridge snapshots. |
 | M58-03 Semantic and Hybrid Search | `docs/specs/M58-03-semantic-hybrid-search.spec.md` | `docs/plans/M58-03-semantic-hybrid-search.plan.md` | Completed optional embedding-backed project retrieval with deterministic hybrid scoring, lexical fallback, safe CLI/JSON output, and bridge snapshots. |
-| M58-04 Pinned Context and Budget Planning | `docs/specs/M58-04-pinned-context-budget-planning.spec.md` | `docs/plans/M58-04-pinned-context-budget-planning.plan.md` | Planned first-class required/optional pinned project context with prompt budget diagnostics, CLI/JSON output, and bridge snapshots. |
+| M58-04 Pinned Context and Budget Planning | `docs/specs/M58-04-pinned-context-budget-planning.spec.md` | `docs/plans/M58-04-pinned-context-budget-planning.plan.md` | Completed first-class required/optional pinned project context with prompt budget diagnostics, CLI/JSON output, and bridge snapshots. |
 
 ## MX01 Slice Index
 
@@ -1262,7 +1262,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M58-04 pinned context and budget planning.
+Current implementation focus: M58-05 context quality traces and eval planning.
 
 Most recent completed implementation documents:
 
@@ -1733,8 +1733,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create the M58-05 context quality traces and eval spec/plan after M58-04 implementation is underway or complete.
+- Create the M58-05 context quality traces and eval spec/plan.
 
 Next implementation direction:
 
-- Execute `docs/plans/M58-04-pinned-context-budget-planning.plan.md`, building on M58-03 hybrid retrieval and M58-02 lexical retrieval.
+- Execute the M58-05 context quality traces and eval slice after its spec/plan are written.

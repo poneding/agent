@@ -5,6 +5,7 @@ pub mod budget;
 pub mod compact;
 pub mod error;
 pub mod memory_layers;
+pub mod pins;
 pub mod project;
 pub mod prompt;
 pub mod retrieval;
@@ -18,6 +19,12 @@ pub use compact::{
 };
 pub use error::ContextError;
 pub use memory_layers::{memory_prompt_layer, memory_prompt_layers};
+pub use pins::{
+    PinnedContextItem, PinnedContextOmission, PinnedContextOmissionReason, PinnedContextPriority,
+    PinnedContextSource, PinnedProjectContextBudgetReport, PinnedProjectContextPin,
+    PinnedProjectContextRequest, PinnedProjectContextRetrievalLayer,
+    plan_pinned_project_context_budget,
+};
 pub use project::{
     ProjectContextDiagnostic, ProjectContextDiagnosticSeverity, ProjectContextLimits,
     ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,

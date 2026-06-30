@@ -79,7 +79,7 @@ Integrate configured embedding-backed retrieval where available, keep lexical re
 - Execute: `docs/specs/M58-04-pinned-context-budget-planning.spec.md`
 - Execute: `docs/plans/M58-04-pinned-context-budget-planning.plan.md`
 
-- [ ] **Step 1: Complete pinned context slice**
+- [x] **Step 1: Complete pinned context slice**
 
 Add typed pinned context requests, required/optional pin behavior, budget diagnostics, CLI/JSON controls, and prompt-layer integration.
 
@@ -123,7 +123,7 @@ Run exact-path staging and commit the final docs/status updates.
 - [x] Project file tree summaries are typed, bounded, serde-friendly, and tested.
 - [x] Relevant-file retrieval is deterministic and budget-aware.
 - [x] Semantic/hybrid retrieval is optional and fixture-tested.
-- [ ] Pinned context participates in prompt budget planning with diagnostics.
-- [ ] CLI/JSON and bridge surfaces expose safe context evidence.
+- [x] Pinned context participates in prompt budget planning with diagnostics.
+- [x] CLI/JSON and bridge surfaces expose safe context evidence.
 - [ ] Context quality traces and eval coverage are implemented.
 - [ ] Final workspace fmt/clippy/tests and `cargo xtask eval` pass.

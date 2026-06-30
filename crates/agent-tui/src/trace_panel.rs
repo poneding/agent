@@ -215,6 +215,27 @@ impl TracePanelState {
                     ),
                 ));
             }
+            UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(snapshot) => {
+                self.push(TracePanelEntry::new(
+                    TraceEntryKind::Runtime,
+                    "project-context-pinned-retrieval",
+                    format!(
+                        "{} kind={} pins={} omitted={} retrieval={} diagnostics={} tokens={}/{}",
+                        snapshot.workspace_root_display,
+                        snapshot.retrieval_kind,
+                        snapshot.included_count,
+                        snapshot.omitted_count,
+                        if snapshot.retrieval_included {
+                            "included"
+                        } else {
+                            "omitted"
+                        },
+                        snapshot.diagnostic_count,
+                        snapshot.used_tokens,
+                        snapshot.available_tokens
+                    ),
+                ));
+            }
             UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "extensions",

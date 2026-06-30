@@ -102,20 +102,26 @@ pub use observability::{
     verify_observability_evidence_replay, verify_observability_replay_fixture,
 };
 pub use project_context::{
-    ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
+    ContextBudget, ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
     ContextHybridCandidate, ContextHybridCandidateOmission, ContextHybridRetrievalReport,
     ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery,
     ContextRetrievalReport, ContextSelectionReason, ContextSemanticFallbackPolicy,
     ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode, ContextSemanticRetrievalStatus,
-    ContextSemanticRetrievalSummary, ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
-    ProjectContextLimits, ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,
+    ContextSemanticRetrievalSummary, PinnedContextItem, PinnedContextOmission,
+    PinnedContextOmissionReason, PinnedContextPriority, PinnedContextSource,
+    PinnedProjectContextBudgetReport, PinnedProjectContextPin, PinnedProjectContextRequest,
+    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity, ProjectContextLimits,
+    ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,
     ProjectDirectorySummary, ProjectFileKind, ProjectFileSummary, ProjectSemanticDocument,
 };
 pub use project_context::{
+    ProjectContextHybridPinnedRetrievalInput, ProjectContextHybridPinnedRetrievalReport,
     ProjectContextHybridRetrievalInput, ProjectContextHybridRetrievalReport,
+    ProjectContextPinnedRetrievalInput, ProjectContextPinnedRetrievalReport,
     ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
     ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
-    retrieve_project_context, retrieve_project_context_hybrid, scan_project_context,
+    retrieve_project_context, retrieve_project_context_hybrid,
+    retrieve_project_context_hybrid_pinned, retrieve_project_context_pinned, scan_project_context,
 };
 pub use provider_support::{
     ProviderSupportReport, ProviderSupportRole, ProviderSupportSummary,

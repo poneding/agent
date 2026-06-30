@@ -237,6 +237,24 @@ impl TranscriptState {
                     false,
                 ))
             }
+            UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(snapshot) => {
+                self.push(TranscriptItem::new(
+                    TranscriptItemKind::Progress,
+                    "project-context-pinned-retrieval",
+                    format!(
+                        "{} kind={} pins={} omitted={} retrieval={} diagnostics={} tokens={}/{}",
+                        snapshot.workspace_root_display,
+                        snapshot.retrieval_kind,
+                        snapshot.included_count,
+                        snapshot.omitted_count,
+                        if snapshot.retrieval_included { "included" } else { "omitted" },
+                        snapshot.diagnostic_count,
+                        snapshot.used_tokens,
+                        snapshot.available_tokens
+                    ),
+                    false,
+                ))
+            }
             UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "extensions",

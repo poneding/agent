@@ -3,10 +3,12 @@ use agent_core::{
     ContextCandidate, ContextCandidateOmission, ContextHybridCandidate,
     ContextHybridCandidateOmission, ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity,
     ContextSemanticRetrievalSummary, DiffEvidenceState, EditDiffFlowReport,
-    ObservabilityEvidenceBundle, ProjectContextDiagnosticSeverity,
-    ProjectContextHybridRetrievalReport, ProjectContextRetrievalReport, ProjectContextSummary,
-    ProjectFileSummary, RepoGitState, RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity,
-    StartupMigrationOutcome, TaskArtifact, TaskReviewSummary,
+    ObservabilityEvidenceBundle, PinnedContextItem, PinnedContextOmission,
+    ProjectContextDiagnosticSeverity, ProjectContextHybridPinnedRetrievalReport,
+    ProjectContextHybridRetrievalReport, ProjectContextPinnedRetrievalReport,
+    ProjectContextRetrievalReport, ProjectContextSummary, ProjectFileSummary, RepoGitState,
+    RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity, StartupMigrationOutcome,
+    TaskArtifact, TaskReviewSummary,
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{CheckpointId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
@@ -1460,6 +1462,175 @@ impl UiProjectContextHybridOmissionSummary {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextPinnedRetrievalSnapshot {
+    pub workspace_root_display: String,
+    pub task: String,
+    pub retrieval_kind: String,
+    pub max_candidates: u32,
+    pub retrieval_budget_tokens: u32,
+    pub context_budget_tokens: u32,
+    pub reserved_response_tokens: u32,
+    pub available_tokens: u32,
+    pub used_tokens: u32,
+    pub included_count: u32,
+    pub omitted_count: u32,
+    pub diagnostic_count: u32,
+    pub retrieval_included: bool,
+    pub retrieval_omitted_reason: Option<String>,
+    pub included: Vec<UiPinnedContextItemSummary>,
+    pub omitted: Vec<UiPinnedContextOmissionSummary>,
+    pub diagnostics: Vec<UiProjectContextRetrievalDiagnosticSummary>,
+}
+
+impl UiProjectContextPinnedRetrievalSnapshot {
+    pub fn from_retrieval_report(
+        report: &ProjectContextPinnedRetrievalReport,
+    ) -> Result<Self, UiBridgeError> {
+        Self::from_parts(
+            &report.summary.workspace_root_display,
+            &report.retrieval.query.task,
+            "lexical",
+            report.retrieval.query.max_candidates,
+            report.retrieval.query.budget_tokens,
+            &report.pinned,
+        )
+    }
+
+    pub fn from_hybrid_report(
+        report: &ProjectContextHybridPinnedRetrievalReport,
+    ) -> Result<Self, UiBridgeError> {
+        Self::from_parts(
+            &report.summary.workspace_root_display,
+            &report.hybrid.query.task,
+            "hybrid",
+            report.hybrid.query.max_candidates,
+            report.hybrid.query.budget_tokens,
+            &report.pinned,
+        )
+    }
+
+    fn from_parts(
+        workspace_root_display: &str,
+        task: &str,
+        retrieval_kind: &str,
+        max_candidates: u32,
+        retrieval_budget_tokens: u32,
+        pinned: &agent_core::PinnedProjectContextBudgetReport,
+    ) -> Result<Self, UiBridgeError> {
+        let workspace_root_display = bounded_task_text(workspace_root_display);
+        validate_non_empty(
+            "project context pinned retrieval workspace root",
+            &workspace_root_display,
+        )?;
+        let task = bounded_task_text(task);
+        validate_non_empty("project context pinned retrieval task", &task)?;
+        let retrieval_kind = bounded_task_text(retrieval_kind);
+        validate_non_empty("project context pinned retrieval kind", &retrieval_kind)?;
+        let included = pinned
+            .included
+            .iter()
+            .map(UiPinnedContextItemSummary::from_item)
+            .collect::<Result<Vec<_>, _>>()?;
+        let omitted = pinned
+            .omitted
+            .iter()
+            .map(UiPinnedContextOmissionSummary::from_omission)
+            .collect::<Result<Vec<_>, _>>()?;
+        let diagnostics = pinned
+            .diagnostics
+            .iter()
+            .map(retrieval_diagnostic_summary)
+            .collect::<Result<Vec<_>, UiBridgeError>>()?;
+
+        Ok(Self {
+            workspace_root_display,
+            task,
+            retrieval_kind,
+            max_candidates,
+            retrieval_budget_tokens,
+            context_budget_tokens: pinned.budget.max_tokens,
+            reserved_response_tokens: pinned.budget.reserved_response_tokens,
+            available_tokens: pinned.available_tokens,
+            used_tokens: pinned.used_tokens,
+            included_count: pinned.included.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many project context pinned inclusions".to_string())
+            })?,
+            omitted_count: pinned.omitted.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many project context pinned omissions".to_string())
+            })?,
+            diagnostic_count: pinned.diagnostics.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many project context pinned diagnostics".to_string())
+            })?,
+            retrieval_included: pinned.retrieval_included,
+            retrieval_omitted_reason: pinned
+                .retrieval_omitted_reason
+                .clone()
+                .map(|reason| bounded_task_text(&reason)),
+            included,
+            omitted,
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiPinnedContextItemSummary {
+    pub path: String,
+    pub kind: String,
+    pub language: Option<String>,
+    pub visibility: String,
+    pub token_estimate: u32,
+    pub priority: String,
+    pub source: String,
+    pub reason: String,
+}
+
+impl UiPinnedContextItemSummary {
+    fn from_item(item: &PinnedContextItem) -> Result<Self, UiBridgeError> {
+        let path = bounded_task_text(&item.path);
+        let reason = bounded_task_text(&item.reason);
+        validate_non_empty("pinned context item path", &path)?;
+        validate_non_empty("pinned context item reason", &reason)?;
+        Ok(Self {
+            path,
+            kind: item.kind.as_str().to_string(),
+            language: item
+                .language
+                .clone()
+                .map(|language| bounded_task_text(&language)),
+            visibility: item.visibility.as_str().to_string(),
+            token_estimate: item.token_estimate,
+            priority: item.priority.as_str().to_string(),
+            source: item.source.as_str().to_string(),
+            reason,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiPinnedContextOmissionSummary {
+    pub path: String,
+    pub priority: String,
+    pub reason: String,
+    pub message: String,
+}
+
+impl UiPinnedContextOmissionSummary {
+    fn from_omission(omission: &PinnedContextOmission) -> Result<Self, UiBridgeError> {
+        let path = bounded_task_text(&omission.path);
+        let message = bounded_task_text(&omission.message);
+        validate_non_empty("pinned context omission path", &path)?;
+        validate_non_empty("pinned context omission message", &message)?;
+        Ok(Self {
+            path,
+            priority: omission.priority.as_str().to_string(),
+            reason: omission.reason.as_str().to_string(),
+            message,
+        })
+    }
+}
+
 impl UiPromptDiagnosticSummary {
     pub fn new(
         severity: impl Into<String>,
@@ -1857,6 +2028,7 @@ pub enum UiJsonFrame {
     ProjectContextSnapshot(UiProjectContextSnapshot),
     ProjectContextRetrievalSnapshot(UiProjectContextRetrievalSnapshot),
     ProjectContextHybridRetrievalSnapshot(UiProjectContextHybridRetrievalSnapshot),
+    ProjectContextPinnedRetrievalSnapshot(UiProjectContextPinnedRetrievalSnapshot),
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),

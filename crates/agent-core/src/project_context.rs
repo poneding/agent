@@ -4,16 +4,22 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 pub use agent_context::{
-    ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
+    ContextBudget, ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
     ContextHybridCandidate, ContextHybridCandidateOmission, ContextHybridRetrievalReport,
     ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery,
     ContextRetrievalReport, ContextSelectionReason, ContextSemanticFallbackPolicy,
     ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode, ContextSemanticRetrievalStatus,
-    ContextSemanticRetrievalSummary, ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
-    ProjectContextLimits, ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,
+    ContextSemanticRetrievalSummary, PinnedContextItem, PinnedContextOmission,
+    PinnedContextOmissionReason, PinnedContextPriority, PinnedContextSource,
+    PinnedProjectContextBudgetReport, PinnedProjectContextPin, PinnedProjectContextRequest,
+    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity, ProjectContextLimits,
+    ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,
     ProjectDirectorySummary, ProjectFileKind, ProjectFileSummary, ProjectSemanticDocument,
 };
-use agent_context::{retrieve_hybrid_context, retrieve_relevant_context};
+use agent_context::{
+    PinnedProjectContextRetrievalLayer, plan_pinned_project_context_budget,
+    retrieve_hybrid_context, retrieve_relevant_context,
+};
 use agent_memory::EmbeddingProvider;
 use thiserror::Error;
 
@@ -53,6 +59,37 @@ pub struct ProjectContextHybridRetrievalInput {
 pub struct ProjectContextHybridRetrievalReport {
     pub summary: ProjectContextSummary,
     pub hybrid: ContextHybridRetrievalReport,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProjectContextPinnedRetrievalInput {
+    pub workspace_root: PathBuf,
+    pub limits: ProjectContextLimits,
+    pub query: ContextRetrievalQuery,
+    pub pinned_request: PinnedProjectContextRequest,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ProjectContextPinnedRetrievalReport {
+    pub summary: ProjectContextSummary,
+    pub retrieval: ContextRetrievalReport,
+    pub pinned: PinnedProjectContextBudgetReport,
+}
+
+pub struct ProjectContextHybridPinnedRetrievalInput {
+    pub workspace_root: PathBuf,
+    pub limits: ProjectContextLimits,
+    pub query: ContextRetrievalQuery,
+    pub semantic_config: ContextSemanticRetrievalConfig,
+    pub embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
+    pub pinned_request: PinnedProjectContextRequest,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ProjectContextHybridPinnedRetrievalReport {
+    pub summary: ProjectContextSummary,
+    pub hybrid: ContextHybridRetrievalReport,
+    pub pinned: PinnedProjectContextBudgetReport,
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -194,6 +231,84 @@ pub async fn retrieve_project_context_hybrid(
     Ok(ProjectContextHybridRetrievalReport {
         summary: scan_report.summary,
         hybrid,
+    })
+}
+
+pub fn retrieve_project_context_pinned(
+    input: ProjectContextPinnedRetrievalInput,
+) -> Result<ProjectContextPinnedRetrievalReport, ProjectContextRetrievalError> {
+    let scan_report = scan_project_context(ProjectContextScanInput {
+        workspace_root: input.workspace_root,
+        limits: input.limits,
+    })
+    .map_err(retrieval_error_from_scan)?;
+    let retrieval = retrieve_relevant_context(&scan_report.summary, input.query)
+        .map_err(retrieval_error_from_context)?;
+    let retrieval_layer = if input.pinned_request.include_retrieval {
+        Some(
+            PinnedProjectContextRetrievalLayer::lexical(
+                &retrieval,
+                "project-context-retrieval",
+                60,
+            )
+            .map_err(retrieval_error_from_context)?,
+        )
+    } else {
+        None
+    };
+    let pinned = plan_pinned_project_context_budget(
+        &scan_report.summary,
+        input.pinned_request,
+        retrieval_layer,
+    )
+    .map_err(retrieval_error_from_context)?;
+
+    Ok(ProjectContextPinnedRetrievalReport {
+        summary: scan_report.summary,
+        retrieval,
+        pinned,
+    })
+}
+
+pub async fn retrieve_project_context_hybrid_pinned(
+    input: ProjectContextHybridPinnedRetrievalInput,
+) -> Result<ProjectContextHybridPinnedRetrievalReport, ProjectContextRetrievalError> {
+    let scan_report = scan_project_context(ProjectContextScanInput {
+        workspace_root: input.workspace_root,
+        limits: input.limits,
+    })
+    .map_err(retrieval_error_from_scan)?;
+    let hybrid = retrieve_hybrid_context(
+        &scan_report.summary,
+        input.query,
+        input.semantic_config,
+        input.embedding_provider.as_deref(),
+    )
+    .await
+    .map_err(retrieval_error_from_context)?;
+    let retrieval_layer = if input.pinned_request.include_retrieval {
+        Some(
+            PinnedProjectContextRetrievalLayer::hybrid(
+                &hybrid,
+                "project-context-hybrid-retrieval",
+                60,
+            )
+            .map_err(retrieval_error_from_context)?,
+        )
+    } else {
+        None
+    };
+    let pinned = plan_pinned_project_context_budget(
+        &scan_report.summary,
+        input.pinned_request,
+        retrieval_layer,
+    )
+    .map_err(retrieval_error_from_context)?;
+
+    Ok(ProjectContextHybridPinnedRetrievalReport {
+        summary: scan_report.summary,
+        hybrid,
+        pinned,
     })
 }
 

@@ -26,7 +26,7 @@
 - Read: `crates/agent-ui-bridge/tests/project_context_retrieval_snapshot.rs`
 - Read: `crates/agent-ui-bridge/tests/project_context_semantic_snapshot.rs`
 
-- [ ] **Step 1: Review baseline behavior**
+- [x] **Step 1: Review baseline behavior**
 
 Run:
 
@@ -49,7 +49,7 @@ Expected: existing budget, lexical retrieval, semantic retrieval, CLI, and bridg
 **Files:**
 - Create: `crates/agent-context/tests/pinned_context_budget.rs`
 
-- [ ] **Step 1: Add pinned context contract tests**
+- [x] **Step 1: Add pinned context contract tests**
 
 Cover:
 
@@ -62,7 +62,7 @@ Cover:
 - lexical and hybrid retrieval reports can be used as optional retrieval context after pins
 - prompt-layer conversion includes pinned metadata and budget status but no raw file contents, secret values, vectors, or raw semantic document text
 
-- [ ] **Step 2: Run context pin tests and verify failure**
+- [x] **Step 2: Run context pin tests and verify failure**
 
 Run:
 
@@ -81,27 +81,27 @@ Expected: tests fail before pinned context contracts exist.
 - Modify if needed: `crates/agent-context/src/retrieval.rs`
 - Modify if needed: `crates/agent-context/src/semantic.rs`
 
-- [ ] **Step 1: Add typed pinned context contracts**
+- [x] **Step 1: Add typed pinned context contracts**
 
 Implement `PinnedProjectContextRequest`, `PinnedProjectContextPin`, `PinnedContextPriority`, `PinnedContextSource`, `PinnedContextItem`, `PinnedContextOmissionReason`, `PinnedContextOmission`, `PinnedProjectContextBudgetReport`, and safe diagnostics with stable serde names and validation constructors.
 
-- [ ] **Step 2: Add pin resolution**
+- [x] **Step 2: Add pin resolution**
 
 Resolve pins against `ProjectContextSummary` by normalized workspace-relative path. Preserve request order after normalization. Required unknown paths must fail; optional unknown paths must be omitted with warning diagnostics.
 
-- [ ] **Step 3: Add metadata-safe pinned prompt layers**
+- [x] **Step 3: Add metadata-safe pinned prompt layers**
 
 Build prompt-layer content from file metadata only: path, kind, language, visibility, size, line count, token estimate, priority, and reason. Do not read raw file contents. Preserve metadata-only visibility for secret-like, binary, generated, ignored, oversized, or metadata-only files.
 
-- [ ] **Step 4: Add budget planning**
+- [x] **Step 4: Add budget planning**
 
 Plan required pins first, optional pins second, and retrieval prompt layers last. Reuse existing `ContextBudget` validation and budget class semantics where possible. Required overflow must return a context error; optional overflow and retrieval overflow should become stable omissions.
 
-- [ ] **Step 5: Add retrieval integration**
+- [x] **Step 5: Add retrieval integration**
 
 Accept either lexical `ContextRetrievalReport` or semantic `ContextHybridRetrievalReport` as optional retrieval context. Existing M58-02 and M58-03 report contracts must remain unchanged and usable independently.
 
-- [ ] **Step 6: Run context pin tests**
+- [x] **Step 6: Run context pin tests**
 
 Run:
 
@@ -118,7 +118,7 @@ Expected: context pinned budget tests pass.
 - Modify: `crates/agent-core/src/project_context.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add core orchestration tests**
+- [x] **Step 1: Add core orchestration tests**
 
 Cover:
 
@@ -129,11 +129,11 @@ Cover:
 - hybrid retrieval plus pinned budget compatibility
 - secret-like pinned files staying metadata-only and redacted in serialized reports
 
-- [ ] **Step 2: Implement core helper**
+- [x] **Step 2: Implement core helper**
 
 Add typed input/report values that compose `scan_project_context`, lexical or hybrid retrieval, and pinned context budget planning. Keep pin resolution and budget decisions in `agent-context`.
 
-- [ ] **Step 3: Run core pin tests**
+- [x] **Step 3: Run core pin tests**
 
 Run:
 
@@ -149,7 +149,7 @@ Expected: core pinned budget tests pass.
 - Create: `crates/agent-cli/tests/project_context_pinned_commands.rs`
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Add CLI tests**
+- [x] **Step 1: Add CLI tests**
 
 Cover:
 
@@ -161,7 +161,7 @@ Cover:
 - unknown required pin, invalid pin path/reason, invalid budgets, and empty task exit with code `2`
 - task text, pin reasons, diagnostics, fixture paths, and secret-like values are bounded and redacted
 
-- [ ] **Step 2: Implement CLI flags**
+- [x] **Step 2: Implement CLI flags**
 
 Extend `repo context select` without changing default lexical behavior:
 
@@ -175,7 +175,7 @@ Extend `repo context select` without changing default lexical behavior:
 
 Keep existing `--pin` as a retrieval boost compatibility flag. M58-04 pinned budget planning should activate when a required/optional pin or explicit context budget flag is supplied.
 
-- [ ] **Step 3: Run CLI pin tests**
+- [x] **Step 3: Run CLI pin tests**
 
 Run:
 
@@ -194,7 +194,7 @@ Expected: CLI pinned budget tests pass.
 - Modify if needed: `crates/agent-tui/src/trace_panel.rs`
 - Modify if needed: `crates/agent-tui/src/transcript.rs`
 
-- [ ] **Step 1: Add bridge tests**
+- [x] **Step 1: Add bridge tests**
 
 Cover:
 
@@ -205,11 +205,11 @@ Cover:
 - retrieval budget inclusion/omission status
 - redaction of task text, pin reasons, diagnostics, secret-like file metadata, raw file contents, vectors, and semantic document text
 
-- [ ] **Step 2: Implement bridge mapping**
+- [x] **Step 2: Implement bridge mapping**
 
 Add a pinned budget snapshot frame derived from typed core reports. Keep UI summaries bounded and metadata-only.
 
-- [ ] **Step 3: Run bridge pin tests**
+- [x] **Step 3: Run bridge pin tests**
 
 Run:
 
@@ -227,7 +227,7 @@ Expected: bridge pinned budget tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -242,7 +242,7 @@ cargo test -p agent-ui-bridge --test project_context_pinned_snapshot
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for the M58-04 source, tests, and docs, then:
 
@@ -254,12 +254,12 @@ Expected: commit contains only M58-04 source, tests, and documentation/status up
 
 ### Completion Checklist
 
-- [ ] Pinned context request/report contracts are typed and serde-tested.
-- [ ] Required pins fail safely when unknown or over budget.
-- [ ] Optional pins omit safely with stable diagnostics.
-- [ ] Pinned context prompt layers are metadata-only and redacted.
-- [ ] Retrieval and hybrid retrieval remain independently usable.
-- [ ] Core scan-retrieve-plan orchestration exists.
-- [ ] CLI text/JSON output exposes safe pinned budget evidence.
-- [ ] UI bridge pinned budget snapshot shape is stable and safe.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Pinned context request/report contracts are typed and serde-tested.
+- [x] Required pins fail safely when unknown or over budget.
+- [x] Optional pins omit safely with stable diagnostics.
+- [x] Pinned context prompt layers are metadata-only and redacted.
+- [x] Retrieval and hybrid retrieval remain independently usable.
+- [x] Core scan-retrieve-plan orchestration exists.
+- [x] CLI text/JSON output exposes safe pinned budget evidence.
+- [x] UI bridge pinned budget snapshot shape is stable and safe.
+- [x] Focused fmt/clippy/tests pass.

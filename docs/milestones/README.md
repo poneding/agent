@@ -453,8 +453,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M52-02 implementation | Complete |
 | M52-03 implementation | Complete |
 | M52-04 implementation | Complete |
-| M52-05 implementation | In progress |
-| M52 implementation | In progress |
+| M52-05 implementation | Complete |
+| M52 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -1077,7 +1077,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M52-05 hardening docs.
+Current implementation focus: M52 complete; plan M53 before the next implementation slice.
 
 Most recent completed implementation documents:
 
@@ -1117,6 +1117,8 @@ Most recent completed implementation documents:
 - `docs/plans/M52-03-refresh-planning-diagnostics.plan.md`
 - `docs/specs/M52-04-authorized-request-factory.spec.md`
 - `docs/plans/M52-04-authorized-request-factory.plan.md`
+- `docs/specs/M52-05-hardening-docs.spec.md`
+- `docs/plans/M52-05-hardening-docs.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1488,5 +1490,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M52-03-refresh-planning-diagnostics.spec.md`
-- `docs/plans/M52-03-refresh-planning-diagnostics.plan.md`
+- Not yet planned. Create M53 milestone-level spec/plan before continuing implementation.

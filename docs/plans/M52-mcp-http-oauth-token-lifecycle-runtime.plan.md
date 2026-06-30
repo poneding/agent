@@ -50,7 +50,7 @@ Define crate ownership, token lease boundaries, redaction behavior, refresh plan
 - [x] **Step 2: Add token source reference boundary**
 - [x] **Step 3: Add refresh planning diagnostics**
 - [x] **Step 4: Add authorized request factory**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M52
 
@@ -59,7 +59,7 @@ Define crate ownership, token lease boundaries, redaction behavior, refresh plan
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M52-mcp-http-oauth-token-lifecycle-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,7 @@ CARGO_TARGET_DIR=target/codex-m52 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M52 complete and commit**
+- [x] **Step 2: Mark M52 complete and commit**
 
 Run:
 
@@ -77,3 +77,11 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m52 mcp http oauth token lifecycle runtime"
 ```
+
+Verification evidence, 2026-06-30:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m52 cargo xtask ci
+```
+
+Result: final M52 workspace gate passed. The expected `definitely-not-a-real-rustc-flag` fixture message appeared during the quality-gate tests and the command exited successfully.

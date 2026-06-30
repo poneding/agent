@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M51 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, fixture-grade MCP sampling stdio frame dispatch, live MCP client stdio transport and tool execution through the gateway, live MCP streamable HTTP request/response execution for initialize, tools/list, and tools/call, bounded MCP streamable HTTP SSE response parsing and dispatch, safe MCP HTTP session metadata plus SSE checkpoint tracking, typed bounded MCP HTTP GET stream ownership, bounded MCP HTTP stream reconnect reports, explicit MCP HTTP stream supervision ticks with cancellation, lease preflight, and redacted reports, plus an MCP HTTP OAuth authorization foundation with metadata contracts, discovery parsing, readiness diagnostics, and explicit bearer-token request boundaries.
+M01-M52 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, fixture-grade MCP sampling stdio frame dispatch, live MCP client stdio transport and tool execution through the gateway, live MCP streamable HTTP request/response execution for initialize, tools/list, and tools/call, bounded MCP streamable HTTP SSE response parsing and dispatch, safe MCP HTTP session metadata plus SSE checkpoint tracking, typed bounded MCP HTTP GET stream ownership, bounded MCP HTTP stream reconnect reports, explicit MCP HTTP stream supervision ticks with cancellation, lease preflight, and redacted reports, plus MCP HTTP OAuth authorization and token lifecycle foundations with metadata contracts, discovery parsing, readiness diagnostics, explicit bearer-token request boundaries, redacted token leases, safe token source references, deterministic refresh planning, and token-gated request factories.
 
 ## Core Ideas
 
@@ -236,6 +236,35 @@ let stream_request = McpClientHttpStreamRequest::from_config_with_authorization(
 ```
 
 Authorization diagnostics and errors do not expose bearer tokens, authorization header values, client secrets, raw discovery bodies, unresolved secret ref names, refresh tokens, or remote auth failure payloads. Existing `Authorization` headers conflict with explicit bearer authorization. Browser login, Desktop auth UX, token storage, refresh, revocation, DCR execution, provider-specific OAuth flows, server-specific replay guarantees, and MCP progress/logging/task protocols remain later work.
+
+M52 adds a token lifecycle foundation on top of that bearer boundary. `McpClientHttpOAuthTokenLease` represents caller-provided access-token material with optional expiry and scopes; `Debug` is redacted and the lease is intentionally not a durable serialization DTO. `McpClientHttpOAuthTokenSourceRef` is the durable-safe reference shape for an external auth or vault layer. `build_mcp_client_http_oauth_refresh_plan` deterministically classifies leases as usable, refresh-soon, expired, unknown-expiry, or scope-incompatible from caller-provided time and requirements. `build_mcp_client_http_request_with_oauth_token` and `build_mcp_client_http_stream_request_with_oauth_token` reject expired leases before applying `Authorization` headers, then delegate to the M51 request constructors.
+
+```rust
+use agent_mcp::{
+    McpClientHttpOAuthTokenLease, build_mcp_client_http_oauth_refresh_plan,
+    build_mcp_client_http_request_with_oauth_token,
+};
+
+let lease = McpClientHttpOAuthTokenLease::new(
+    "caller-provided-access-token",
+    Some(now_unix_ms + 60_000),
+    vec!["mcp:tools".to_string()],
+)?;
+let plan = build_mcp_client_http_oauth_refresh_plan(
+    &lease,
+    now_unix_ms,
+    10_000,
+    &["mcp:tools".to_string()],
+)?;
+let request = build_mcp_client_http_request_with_oauth_token(
+    &server_config,
+    request_body,
+    &lease,
+    now_unix_ms,
+)?;
+```
+
+Token lifecycle diagnostics and request factories do not expose access tokens, refresh tokens, authorization header values, client secrets, raw auth bodies, remote auth failures, or configured header values. Browser/device login, Desktop account UX, durable encrypted token storage, provider refresh calls, revocation, and dynamic client registration remain outside this milestone.
 
 ## MCP Sampling
 
@@ -601,9 +630,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M51-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M51-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M51-mcp-http-oauth-authorization-runtime.spec.md)
+- [Latest completed spec](docs/specs/M52-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M52-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M52-mcp-http-oauth-token-lifecycle-runtime.spec.md)
 - [Milestone index](docs/milestones/README.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)

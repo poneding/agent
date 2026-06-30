@@ -50,7 +50,7 @@ Define crate ownership, supervisor lifecycle, reconnect composition, cancellatio
 - [x] **Step 2: Add bounded supervisor runner**
 - [x] **Step 3: Add cancellation and lease boundary**
 - [x] **Step 4: Add redacted supervisor reports**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M50
 
@@ -59,7 +59,7 @@ Define crate ownership, supervisor lifecycle, reconnect composition, cancellatio
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M50-mcp-http-background-stream-supervision.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,7 @@ CARGO_TARGET_DIR=target/codex-m50 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M50 complete and commit**
+- [x] **Step 2: Mark M50 complete and commit**
 
 Run:
 
@@ -77,3 +77,15 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m50 mcp http background stream supervision"
 ```
+
+### Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_cancellation` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_reports` passed.
+- `git diff --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo xtask ci` passed. The known quality-gate fixture printed `error: Unrecognized option: 'definitely-not-a-real-rustc-flag'` and exited successfully.

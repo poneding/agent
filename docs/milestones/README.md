@@ -435,8 +435,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M50-02 implementation | Complete |
 | M50-03 implementation | Complete |
 | M50-04 implementation | Complete |
-| M50-05 implementation | In progress |
-| M50 implementation | In progress |
+| M50-05 implementation | Complete |
+| M50 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -1035,7 +1035,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M50-05 hardening docs.
+Current implementation focus: No active implementation slice; define M51 before continuing runtime implementation.
 
 Most recent completed implementation documents:
 
@@ -1051,6 +1051,8 @@ Most recent completed implementation documents:
 - `docs/plans/M50-03-cancellation-lease-boundary.plan.md`
 - `docs/specs/M50-04-supervisor-reports.spec.md`
 - `docs/plans/M50-04-supervisor-reports.plan.md`
+- `docs/specs/M50-05-hardening-docs.spec.md`
+- `docs/plans/M50-05-hardening-docs.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1394,5 +1396,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M50-05-hardening-docs.spec.md`
-- `docs/plans/M50-05-hardening-docs.plan.md`
+- Define `docs/specs/M51-*.spec.md` and `docs/plans/M51-*.plan.md` before implementation.

@@ -18,7 +18,7 @@
 - Read: `README.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Read M50 specs and completed implementation slices**
+- [x] **Step 1: Read M50 specs and completed implementation slices**
 
 ### Task 2: Update Docs
 
@@ -27,12 +27,12 @@
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M50-mcp-http-background-stream-supervision.plan.md`
 
-- [ ] **Step 1: Update README supervision usage**
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 1: Update README supervision usage**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M50 focused tests**
+- [x] **Step 1: Run final M50 focused tests**
 
 Run:
 
@@ -43,7 +43,7 @@ CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream
 CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_reports
 ```
 
-- [ ] **Step 2: Run final workspace gate**
+- [x] **Step 2: Run final workspace gate**
 
 Run:
 
@@ -55,7 +55,7 @@ CARGO_TARGET_DIR=target/codex-m50 cargo xtask ci
 
 ### Task 4: Commit
 
-- [ ] **Step 1: Commit M50-05**
+- [x] **Step 1: Commit M50-05**
 
 Run:
 
@@ -63,3 +63,15 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m50 mcp http background stream supervision"
 ```
+
+### Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_cancellation` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_reports` passed.
+- `git diff --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo xtask ci` passed. The quality-gate fixture printed the expected fake rustc flag error and exited successfully.

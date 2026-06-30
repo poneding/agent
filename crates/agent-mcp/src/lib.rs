@@ -40,6 +40,7 @@ pub use client_http::{
     McpClientHttpResponseFrame, McpClientHttpResponseMode, McpClientHttpSessionMetadata,
     McpClientHttpSseEvent, McpClientHttpSseResponse, McpClientHttpStreamDrainReport,
     McpClientHttpStreamOpen, McpClientHttpStreamReconnectReport, McpClientHttpStreamRequest,
+    McpClientHttpStreamSupervisorConfig, McpClientHttpStreamSupervisorStatus,
     McpClientHttpStreamTransport, McpClientHttpTransport, McpHttpClient,
     classify_mcp_client_http_reconnect_error, find_mcp_client_http_response_frame,
     parse_mcp_client_http_response_body, parse_mcp_client_http_response_mode_frames,

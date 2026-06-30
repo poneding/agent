@@ -470,6 +470,42 @@ impl McpClientHttpReconnectReport {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamSupervisorConfig {
+    pub server_id: McpServerId,
+    pub reconnect_policy: McpClientHttpReconnectPolicy,
+    pub max_ticks: u32,
+}
+
+impl McpClientHttpStreamSupervisorConfig {
+    #[must_use]
+    pub fn new(server_id: McpServerId) -> Self {
+        Self {
+            server_id,
+            reconnect_policy: McpClientHttpReconnectPolicy::default(),
+            max_ticks: 1,
+        }
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        if self.max_ticks == 0 {
+            return Err(invalid_mcp_client_http_stream_supervisor_config());
+        }
+        self.reconnect_policy.validate()
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpStreamSupervisorStatus {
+    Idle,
+    Running,
+    WaitingRetry,
+    Cancelled,
+    Failed,
+    Completed,
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpReconnectPolicy {
     pub max_attempts: u32,
@@ -1680,6 +1716,10 @@ fn invalid_mcp_client_http_session_metadata() -> McpError {
 
 fn invalid_mcp_client_http_reconnect_policy() -> McpError {
     McpError::InvalidConfig("invalid MCP client HTTP reconnect policy".to_string())
+}
+
+fn invalid_mcp_client_http_stream_supervisor_config() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP stream supervisor config".to_string())
 }
 
 fn mcp_client_http_stream_reconnect_failed(

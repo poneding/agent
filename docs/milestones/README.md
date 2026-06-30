@@ -407,7 +407,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M47-01 implementation | Complete |
 | M47-02 implementation | Complete |
 | M47-03 implementation | Complete |
-| M47-04 implementation | In progress |
+| M47-04 implementation | Complete |
+| M47-05 implementation | In progress |
 | M47 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -971,10 +972,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M47-04 SSE checkpoint tracking.
+Current implementation focus: M47-05 hardening docs.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M47-04-sse-checkpoint-tracking.spec.md`
+- `docs/plans/M47-04-sse-checkpoint-tracking.plan.md`
 - `docs/specs/M47-03-session-header-propagation.spec.md`
 - `docs/plans/M47-03-session-header-propagation.plan.md`
 - `docs/specs/M47-02-http-response-envelope.spec.md`
@@ -1284,5 +1287,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M47-04-sse-checkpoint-tracking.spec.md`
-- `docs/plans/M47-04-sse-checkpoint-tracking.plan.md`
+- `docs/specs/M47-05-hardening-docs.spec.md`
+- `docs/plans/M47-05-hardening-docs.plan.md`

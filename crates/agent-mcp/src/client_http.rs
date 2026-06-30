@@ -386,6 +386,11 @@ impl<T> McpHttpClient<T> {
             }),
         }
     }
+
+    pub async fn session_metadata_snapshot(&self) -> McpClientHttpSessionMetadata {
+        let state = self.state.lock().await;
+        state.session_metadata.clone()
+    }
 }
 
 impl McpHttpClient<McpClientHttpReqwestTransport> {
@@ -426,6 +431,12 @@ where
             McpError::InvalidServerRequest("MCP client HTTP request id exhausted".to_string())
         })?;
         Ok(McpJsonRpcId::Number(id))
+    }
+
+    fn record_accepted_response_metadata(&mut self, metadata: &McpClientHttpSessionMetadata) {
+        if let Some(last_event_id) = &metadata.last_event_id {
+            self.session_metadata.last_event_id = Some(last_event_id.clone());
+        }
     }
 }
 
@@ -473,7 +484,9 @@ where
             .send_request(&config, McpServerMethod::ToolsList.as_str(), json!({}))
             .await?;
         let result = mcp_client_http_success_result(dispatch.frame, "tools/list")?;
-        map_mcp_client_http_tool_list_result(server_id.clone(), &result)
+        let tools = map_mcp_client_http_tool_list_result(server_id.clone(), &result)?;
+        state.record_accepted_response_metadata(&dispatch.metadata);
+        Ok(tools)
     }
 }
 
@@ -520,7 +533,9 @@ where
             )
             .await?;
         let result = mcp_client_http_success_result(dispatch.frame, "tools/call")?;
-        map_mcp_client_http_tool_call_result(&result)
+        let output = map_mcp_client_http_tool_call_result(&result)?;
+        state.record_accepted_response_metadata(&dispatch.metadata);
+        Ok(output)
     }
 }
 

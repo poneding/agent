@@ -17,27 +17,27 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/tests/mcp_client_http_sse_dispatch.rs`
 
-- [ ] **Step 1: Review SSE dispatch and metadata state**
+- [x] **Step 1: Review SSE dispatch and metadata state**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_sse_checkpoints.rs`
 
-- [ ] **Step 1: Add checkpoint transition tests**
+- [x] **Step 1: Add checkpoint transition tests**
 
 ### Task 3: Implement Checkpoint Updates
 
 **Files:**
 - Modify: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Carry response metadata through dispatch**
-- [ ] **Step 2: Update checkpoint after successful operation mapping**
-- [ ] **Step 3: Preserve unchanged state on failures**
+- [x] **Step 1: Carry response metadata through dispatch**
+- [x] **Step 2: Update checkpoint after successful operation mapping**
+- [x] **Step 3: Preserve unchanged state on failures**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused tests and fmt**
+- [x] **Step 1: Run focused tests and fmt**
 
 Run:
 
@@ -49,7 +49,7 @@ CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M47-04**
+- [x] **Step 1: Update status and commit M47-04**
 
 Run:
 
@@ -57,3 +57,12 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: track mcp http sse checkpoints"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_checkpoints` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_dispatch` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

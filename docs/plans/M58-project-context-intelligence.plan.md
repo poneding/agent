@@ -56,8 +56,8 @@ Add typed project file/directory summaries, bounded workspace scanning in shared
 ### Task 3: M58-02 Relevant File Retrieval
 
 **Files:**
-- Create: `docs/specs/M58-02-relevant-file-retrieval.spec.md`
-- Create: `docs/plans/M58-02-relevant-file-retrieval.plan.md`
+- Execute: `docs/specs/M58-02-relevant-file-retrieval.spec.md`
+- Execute: `docs/plans/M58-02-relevant-file-retrieval.plan.md`
 
 - [ ] **Step 1: Complete lexical retrieval slice**
 

@@ -416,8 +416,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M48-01 implementation | Complete |
 | M48-02 implementation | Complete |
 | M48-03 implementation | Complete |
-| M48-04 implementation | In progress |
-| M48-05 implementation | Not started |
+| M48-04 implementation | Complete |
+| M48-05 implementation | In progress |
 | M48 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -993,10 +993,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M48-04 Bounded stream event drain.
+Current implementation focus: M48-05 hardening docs.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M48-04-bounded-stream-event-drain.spec.md`
+- `docs/plans/M48-04-bounded-stream-event-drain.plan.md`
 - `docs/specs/M48-03-stream-resume-snapshot.spec.md`
 - `docs/plans/M48-03-stream-resume-snapshot.plan.md`
 - `docs/specs/M48-02-reqwest-get-sse-stream-open.spec.md`
@@ -1322,5 +1324,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M48-04-bounded-stream-event-drain.spec.md`
-- `docs/plans/M48-04-bounded-stream-event-drain.plan.md`
+- `docs/specs/M48-05-hardening-docs.spec.md`
+- `docs/plans/M48-05-hardening-docs.plan.md`

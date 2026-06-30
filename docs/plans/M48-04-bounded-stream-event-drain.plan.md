@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/tests/mcp_client_http_sse_checkpoints.rs`
 
-- [ ] **Step 1: Review drain spec and existing checkpoint behavior**
+- [x] **Step 1: Review drain spec and existing checkpoint behavior**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_stream_drain.rs`
 
-- [ ] **Step 1: Add stream drain checkpoint tests**
+- [x] **Step 1: Add stream drain checkpoint tests**
 
 Run:
 
@@ -40,11 +40,11 @@ Expected: tests fail before stream drain API exists.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add `McpClientHttpStreamDrainReport`**
-- [ ] **Step 2: Add initialized stream drain method**
-- [ ] **Step 3: Validate event frames and checkpoint accepted ids**
-- [ ] **Step 4: Preserve redacted failures**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add `McpClientHttpStreamDrainReport`**
+- [x] **Step 2: Add initialized stream drain method**
+- [x] **Step 3: Validate event frames and checkpoint accepted ids**
+- [x] **Step 4: Preserve redacted failures**
+- [x] **Step 5: Run focused tests**
 
 Run:
 
@@ -56,7 +56,7 @@ Expected: focused tests pass.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -69,7 +69,7 @@ Expected: checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M48-04**
+- [x] **Step 1: Update status and commit M48-04**
 
 Run:
 
@@ -77,3 +77,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: drain mcp http stream events"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_drain` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

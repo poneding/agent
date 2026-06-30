@@ -271,6 +271,22 @@ impl McpClientHttpStreamOpen {
     }
 }
 
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamDrainReport {
+    pub accepted_events: usize,
+    pub last_event_id: Option<String>,
+}
+
+impl McpClientHttpStreamDrainReport {
+    #[must_use]
+    pub const fn new(accepted_events: usize, last_event_id: Option<String>) -> Self {
+        Self {
+            accepted_events,
+            last_event_id,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpResponse {
     pub status: u16,
@@ -613,6 +629,38 @@ impl<T> McpHttpClient<T> {
             &config,
             &state.session_metadata,
         )
+    }
+
+    pub async fn record_stream_open(
+        &self,
+        server_id: &McpServerId,
+        stream: McpClientHttpStreamOpen,
+    ) -> Result<McpClientHttpStreamDrainReport, McpError> {
+        let mut state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(server_id) {
+            return Err(McpError::Client(
+                "MCP client HTTP session is not initialized".to_string(),
+            ));
+        }
+
+        let mut accepted_events = 0usize;
+        let mut last_event_id = None;
+        for event in &stream.events {
+            let _frame = parse_mcp_client_http_response_text(&event.data)?;
+            if let Some(event_id) = &event.id {
+                last_event_id = Some(validate_mcp_client_http_metadata_value(event_id)?);
+            }
+            accepted_events += 1;
+        }
+
+        if let Some(event_id) = &last_event_id {
+            state.session_metadata.last_event_id = Some(event_id.clone());
+        }
+
+        Ok(McpClientHttpStreamDrainReport::new(
+            accepted_events,
+            last_event_id,
+        ))
     }
 }
 

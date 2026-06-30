@@ -354,6 +354,9 @@ pub enum McpClientHttpOAuthTokenDiagnosticSeverity {
 pub enum McpClientHttpOAuthTokenDiagnosticCode {
     TokenUsable,
     TokenExpiryUnknown,
+    TokenExpired,
+    TokenRefreshRecommended,
+    RequiredScopeMissing,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -397,6 +400,15 @@ impl McpClientHttpOAuthTokenDiagnostic {
             message,
         )
     }
+
+    #[must_use]
+    pub fn error(code: McpClientHttpOAuthTokenDiagnosticCode, message: impl Into<String>) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenDiagnosticSeverity::Error,
+            code,
+            message,
+        )
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -425,6 +437,83 @@ pub fn build_mcp_client_http_oauth_token_status(
         usable: true,
         diagnostics,
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthRefreshAction {
+    UseToken,
+    RefreshSoon,
+    Expired,
+    ScopeMismatch,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthRefreshPlan {
+    pub action: McpClientHttpOAuthRefreshAction,
+    pub diagnostics: Vec<McpClientHttpOAuthTokenDiagnostic>,
+}
+
+pub fn build_mcp_client_http_oauth_refresh_plan(
+    lease: &McpClientHttpOAuthTokenLease,
+    now_unix_ms: u64,
+    refresh_skew_ms: u64,
+    required_scopes: &[String],
+) -> Result<McpClientHttpOAuthRefreshPlan, McpError> {
+    lease.validate()?;
+    validate_mcp_client_http_oauth_tokens(required_scopes)
+        .map_err(|_| invalid_mcp_client_http_oauth_token_lease())?;
+
+    if required_scopes
+        .iter()
+        .any(|required_scope| !lease.scopes.iter().any(|scope| scope == required_scope))
+    {
+        return Ok(McpClientHttpOAuthRefreshPlan {
+            action: McpClientHttpOAuthRefreshAction::ScopeMismatch,
+            diagnostics: vec![McpClientHttpOAuthTokenDiagnostic::error(
+                McpClientHttpOAuthTokenDiagnosticCode::RequiredScopeMissing,
+                "Required MCP HTTP OAuth token scope is missing",
+            )],
+        });
+    }
+
+    let Some(expires_at_unix_ms) = lease.expires_at_unix_ms else {
+        return Ok(McpClientHttpOAuthRefreshPlan {
+            action: McpClientHttpOAuthRefreshAction::UseToken,
+            diagnostics: vec![McpClientHttpOAuthTokenDiagnostic::warning(
+                McpClientHttpOAuthTokenDiagnosticCode::TokenExpiryUnknown,
+                "MCP HTTP OAuth token lease expiry is unknown",
+            )],
+        });
+    };
+
+    if expires_at_unix_ms <= now_unix_ms {
+        return Ok(McpClientHttpOAuthRefreshPlan {
+            action: McpClientHttpOAuthRefreshAction::Expired,
+            diagnostics: vec![McpClientHttpOAuthTokenDiagnostic::error(
+                McpClientHttpOAuthTokenDiagnosticCode::TokenExpired,
+                "MCP HTTP OAuth token lease is expired",
+            )],
+        });
+    }
+
+    if expires_at_unix_ms <= now_unix_ms.saturating_add(refresh_skew_ms) {
+        return Ok(McpClientHttpOAuthRefreshPlan {
+            action: McpClientHttpOAuthRefreshAction::RefreshSoon,
+            diagnostics: vec![McpClientHttpOAuthTokenDiagnostic::warning(
+                McpClientHttpOAuthTokenDiagnosticCode::TokenRefreshRecommended,
+                "MCP HTTP OAuth token lease should be refreshed soon",
+            )],
+        });
+    }
+
+    Ok(McpClientHttpOAuthRefreshPlan {
+        action: McpClientHttpOAuthRefreshAction::UseToken,
+        diagnostics: vec![McpClientHttpOAuthTokenDiagnostic::info(
+            McpClientHttpOAuthTokenDiagnosticCode::TokenUsable,
+            "MCP HTTP OAuth token lease is usable",
+        )],
+    })
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

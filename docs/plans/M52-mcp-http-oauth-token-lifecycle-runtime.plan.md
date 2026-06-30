@@ -48,7 +48,7 @@ Define crate ownership, token lease boundaries, redaction behavior, refresh plan
 
 - [x] **Step 1: Add OAuth token lease contracts**
 - [x] **Step 2: Add token source reference boundary**
-- [ ] **Step 3: Add refresh planning diagnostics**
+- [x] **Step 3: Add refresh planning diagnostics**
 - [ ] **Step 4: Add authorized request factory**
 - [ ] **Step 5: Add hardening docs and final verification**
 

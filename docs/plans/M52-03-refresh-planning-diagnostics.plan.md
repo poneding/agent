@@ -16,14 +16,14 @@
 - Read: `docs/specs/M52-03-refresh-planning-diagnostics.spec.md`
 - Read: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Review refresh planning scope**
+- [x] **Step 1: Review refresh planning scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_oauth_token_refresh.rs`
 
-- [ ] **Step 1: Add refresh planning tests**
+- [x] **Step 1: Add refresh planning tests**
 
 ### Task 3: Implement Planning
 
@@ -31,16 +31,26 @@
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add refresh plan contracts**
-- [ ] **Step 2: Add expiry/skew evaluation**
-- [ ] **Step 3: Add required-scope diagnostics**
-- [ ] **Step 4: Export contracts**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add refresh plan contracts**
+- [x] **Step 2: Add expiry/skew evaluation**
+- [x] **Step 3: Add required-scope diagnostics**
+- [x] **Step 4: Export contracts**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M52-03**
+- [x] **Step 1: Update status and commit M52-03**
+
+Verification evidence, 2026-06-30:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token_refresh
+CARGO_TARGET_DIR=target/codex-m52 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p agent-mcp --all-targets -- -D warnings
+```
+
+Result: all focused M52-03 checks passed.

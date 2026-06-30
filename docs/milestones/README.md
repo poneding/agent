@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M49 |
-| Milestone-level plans | Complete for M01-M49 |
+| Milestone-level specs | Complete for M01-M50 |
+| Milestone-level plans | Complete for M01-M50 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -428,6 +428,15 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M49-04 implementation | Complete |
 | M49-05 implementation | Complete |
 | M49 implementation | Complete |
+| M50 technical design | Complete |
+| M50 slice specs | Complete for M50-01 through M50-05 |
+| M50 slice plans | Complete for M50-01 through M50-05 |
+| M50-01 implementation | In progress |
+| M50-02 implementation | Not started |
+| M50-03 implementation | Not started |
+| M50-04 implementation | Not started |
+| M50-05 implementation | Not started |
+| M50 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -482,6 +491,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M47 MCP HTTP Session Resume Runtime | `docs/specs/M47-mcp-http-session-resume-runtime.spec.md` | `docs/plans/M47-mcp-http-session-resume-runtime.plan.md` | Persist safe streamable HTTP session metadata and SSE checkpoints before reconnect/runtime stream ownership. |
 | M48 MCP HTTP Stream Ownership Runtime | `docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md` | `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md` | Open typed, bounded streamable HTTP GET SSE streams with safe resume headers before reconnect loops. |
 | M49 MCP HTTP Stream Reconnect Runtime | `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md` | `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md` | Add bounded stream reconnect policy, retry runner, replay diagnostics, and redacted reconnect reports. |
+| M50 MCP HTTP Background Stream Supervision Runtime | `docs/specs/M50-mcp-http-background-stream-supervision.spec.md` | `docs/plans/M50-mcp-http-background-stream-supervision.plan.md` | Add bounded background supervision foundations for MCP HTTP streams with cancellation, leases, and redacted reports. |
 
 ## M01 Slice Index
 
@@ -1012,12 +1022,27 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M49-04 Reconnect Trace Report | `docs/specs/M49-04-reconnect-trace-report.spec.md` | `docs/plans/M49-04-reconnect-trace-report.plan.md` | Typed, redacted reconnect trace reports for CLI/Desktop and future background surfaces. |
 | M49-05 Hardening Docs | `docs/specs/M49-05-hardening-docs.spec.md` | `docs/plans/M49-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M49 quality gate evidence. |
 
+## M50 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M50-00 MCP HTTP Background Stream Supervision Technical Design | `docs/specs/M50-00-mcp-http-background-stream-supervision-technical-design.spec.md` | `docs/plans/M50-00-mcp-http-background-stream-supervision-technical-design.plan.md` | Architecture baseline for supervisor lifecycle, reconnect composition, cancellation, leases, reports, redaction, and verification. |
+| M50-01 Stream Supervisor Contracts | `docs/specs/M50-01-stream-supervisor-contracts.spec.md` | `docs/plans/M50-01-stream-supervisor-contracts.plan.md` | Pure contracts for bounded MCP HTTP stream supervision config, status, validation, and serde shape. |
+| M50-02 Supervisor Runner | `docs/specs/M50-02-supervisor-runner.spec.md` | `docs/plans/M50-02-supervisor-runner.plan.md` | Bounded supervisor tick runner over M49 reconnect behavior. |
+| M50-03 Cancellation Lease Boundary | `docs/specs/M50-03-cancellation-lease-boundary.spec.md` | `docs/plans/M50-03-cancellation-lease-boundary.plan.md` | Explicit cancellation and lease preflight boundaries before stream side effects. |
+| M50-04 Supervisor Reports | `docs/specs/M50-04-supervisor-reports.spec.md` | `docs/plans/M50-04-supervisor-reports.plan.md` | Typed, redacted supervisor reports for CLI/Desktop and future background surfaces. |
+| M50-05 Hardening Docs | `docs/specs/M50-05-hardening-docs.spec.md` | `docs/plans/M50-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M50 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M49 complete.
+Current implementation focus: M50-01 stream supervisor contracts.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M50-mcp-http-background-stream-supervision.spec.md`
+- `docs/plans/M50-mcp-http-background-stream-supervision.plan.md`
+- `docs/specs/M50-00-mcp-http-background-stream-supervision-technical-design.spec.md`
+- `docs/plans/M50-00-mcp-http-background-stream-supervision-technical-design.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1356,7 +1381,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M49-00-mcp-http-stream-reconnect-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M50-00-mcp-http-background-stream-supervision-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M50-00-mcp-http-background-stream-supervision-technical-design.plan.md`
 
-Next implementation slice: none scheduled.
+Next implementation slice:
+
+- `docs/specs/M50-01-stream-supervisor-contracts.spec.md`
+- `docs/plans/M50-01-stream-supervisor-contracts.plan.md`

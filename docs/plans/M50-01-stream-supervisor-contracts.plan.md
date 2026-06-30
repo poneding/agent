@@ -1,0 +1,69 @@
+# M50-01 Stream Supervisor Contracts Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add pure contracts for bounded MCP HTTP stream supervision.
+
+**Architecture:** `agent-mcp::client_http` owns supervisor contracts and exports them through `agent-mcp`.
+
+**Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
+
+---
+
+### Task 1: Confirm Inputs
+
+**Files:**
+- Read: `docs/specs/M50-01-stream-supervisor-contracts.spec.md`
+- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/agent-mcp/src/lib.rs`
+
+- [ ] **Step 1: Review the spec and existing reconnect contracts**
+
+### Task 2: Write Failing Tests
+
+**Files:**
+- Create: `crates/agent-mcp/tests/mcp_client_http_stream_supervisor_contracts.rs`
+
+- [ ] **Step 1: Add focused supervisor contract tests**
+
+Run:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_contracts
+```
+
+Expected: tests fail before supervisor contracts exist.
+
+### Task 3: Implement Contracts
+
+**Files:**
+- Modify: `crates/agent-mcp/src/client_http.rs`
+- Modify: `crates/agent-mcp/src/lib.rs`
+
+- [ ] **Step 1: Add supervisor config**
+- [ ] **Step 2: Add lifecycle status enum**
+- [ ] **Step 3: Add validation and redacted errors**
+- [ ] **Step 4: Export public contracts**
+- [ ] **Step 5: Run focused tests**
+
+### Task 4: Verify
+
+- [ ] **Step 1: Run focused quality checks**
+
+Run:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings
+```
+
+### Task 5: Commit
+
+- [ ] **Step 1: Update status and commit M50-01**
+
+Run:
+
+```bash
+git add crates/agent-mcp docs
+git commit -m "feat: add mcp http stream supervisor contracts"
+```

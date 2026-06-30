@@ -2,6 +2,8 @@
 //! MCP protocol contracts and deterministic client fixtures for agent.
 
 pub mod client;
+pub mod client_callbacks;
+pub mod client_events;
 pub mod client_http;
 pub mod client_roots;
 pub mod client_sampling;
@@ -10,6 +12,7 @@ pub mod client_stdio;
 pub mod config;
 pub mod error;
 pub mod gateway;
+pub mod management_snapshot;
 pub mod policy;
 pub mod server;
 pub mod server_completion;
@@ -29,6 +32,16 @@ pub use client::{
     FixtureMcpClient, McpClient, McpClientRootProvider, McpGatewayClient, McpInitializeResult,
     McpSamplingProvider, McpServerCapabilities, McpServerHealth, McpServerStatus,
     check_mcp_server_health, create_mcp_sampling_message, list_mcp_client_roots,
+};
+pub use client_callbacks::{
+    McpClientCallbackDiagnostic, McpClientCallbackDiagnosticSeverity, McpClientCallbackDispatch,
+    McpClientCallbackKind, McpClientCallbackOutcome, McpClientCallbackPhase,
+    McpClientCallbackReport, McpClientCallbackTransportKind, handle_mcp_client_callback_frame,
+};
+pub use client_events::{
+    McpProtocolEventDiagnostic, McpProtocolEventDiagnosticSeverity, McpProtocolEventKind,
+    McpProtocolEventReport, McpProtocolEventStatus, McpProtocolEventSummary,
+    McpProtocolProgressSummary, parse_mcp_protocol_event_frame,
 };
 pub use client_http::{
     FixtureMcpClientHttpOAuthTokenExchangeTransport, FixtureMcpClientHttpStreamTransport,
@@ -89,9 +102,12 @@ pub use client_roots::{
 };
 pub use client_sampling::{
     McpClientSamplingCapability, McpCreateMessageRequestParams, McpCreateMessageResult,
-    McpModelHint, McpModelPreferences, McpSamplingContent, McpSamplingContentList,
-    McpSamplingDiagnostic, McpSamplingDiagnosticSeverity, McpSamplingIncludeContext,
-    McpSamplingMessage, McpSamplingRole, McpSamplingValidationPolicy, McpSamplingValidationReport,
+    McpModelHint, McpModelPreferences, McpSamplingApprovalDecision, McpSamplingApprovalPolicy,
+    McpSamplingApprovalReport, McpSamplingApprovalRequest, McpSamplingApprovalStatus,
+    McpSamplingContent, McpSamplingContentList, McpSamplingDecisionKind, McpSamplingDiagnostic,
+    McpSamplingDiagnosticSeverity, McpSamplingIncludeContext, McpSamplingMessage,
+    McpSamplingReviewSummary, McpSamplingRole, McpSamplingTaskMetadata, McpSamplingToolLoopPolicy,
+    McpSamplingValidationPolicy, McpSamplingValidationReport, build_mcp_sampling_approval_report,
     validate_mcp_sampling_request,
 };
 pub use client_sampling_stdio::{
@@ -110,6 +126,12 @@ pub use gateway::{
     McpGateway, McpGatewayDiagnostic, McpGatewayReport, McpGatewayRootDescriptor,
     McpGatewaySamplingDescriptor, McpGatewayToolDescriptor,
 };
+pub use management_snapshot::{
+    McpManagementAuthStatus, McpManagementDiagnosticSnapshot, McpManagementExtensionHealth,
+    McpManagementRootSnapshot, McpManagementSamplingSnapshot, McpManagementServerSnapshot,
+    McpManagementServerSnapshotInput, McpManagementSnapshot, McpManagementStreamStatus,
+    McpManagementTransportKind, mcp_management_root_from_inspection,
+};
 pub use policy::{
     McpPermissionProfile, McpPolicyMapping, default_policy_mapping_for_mcp_tool,
     permission_request_for_mcp_mapping,
@@ -124,19 +146,20 @@ pub use server_completion::{
 };
 pub use server_manifest::{
     MCP_SERVER_EXPORT_MANIFEST_SCHEMA_VERSION, McpServerBuiltinToolExportCatalogConfig,
-    McpServerExportManifest, McpServerExportProfileConfig, McpServerProfileInspection,
-    McpServerProfileInspectionDiagnostic, McpServerProfileInspectionOptions,
-    McpServerProfileInspectionSeverity, McpServerProfilePromptArgumentInspection,
-    McpServerProfilePromptInspection, McpServerProfileResourceInspection,
-    McpServerProfileResourceTemplateInspection, McpServerProfileToolInspection,
-    McpServerPromptArgumentCompletionConfig, McpServerPromptArgumentConfig,
-    McpServerPromptExportConfig, McpServerPromptMessageConfig, McpServerResourceExportConfig,
-    McpServerResourceTemplateCompletionConfig, McpServerResourceTemplateExportConfig,
-    McpServerToolExportCatalog, McpServerToolExportConfig,
-    build_mcp_server_builtin_tool_export_catalog, build_mcp_server_profile_from_manifest,
-    build_mcp_server_resource_profile_from_manifest, build_mcp_server_tool_profile_from_manifest,
-    inspect_mcp_server_export_profile, parse_mcp_server_export_manifest_json,
-    select_mcp_server_export_profile,
+    McpServerExportManifest, McpServerExportPolicyPreview, McpServerExportPolicyPreviewDecision,
+    McpServerExportProfileConfig, McpServerProfileInspection, McpServerProfileInspectionDiagnostic,
+    McpServerProfileInspectionOptions, McpServerProfileInspectionSeverity,
+    McpServerProfilePromptArgumentInspection, McpServerProfilePromptInspection,
+    McpServerProfileResourceInspection, McpServerProfileResourceTemplateInspection,
+    McpServerProfileToolInspection, McpServerPromptArgumentCompletionConfig,
+    McpServerPromptArgumentConfig, McpServerPromptExportConfig, McpServerPromptMessageConfig,
+    McpServerResourceExportConfig, McpServerResourceTemplateCompletionConfig,
+    McpServerResourceTemplateExportConfig, McpServerToolExportCapability,
+    McpServerToolExportCatalog, McpServerToolExportConfig, McpServerToolExportPolicyPreview,
+    build_mcp_server_builtin_tool_export_catalog, build_mcp_server_export_policy_preview,
+    build_mcp_server_profile_from_manifest, build_mcp_server_resource_profile_from_manifest,
+    build_mcp_server_tool_profile_from_manifest, inspect_mcp_server_export_profile,
+    parse_mcp_server_export_manifest_json, select_mcp_server_export_profile,
 };
 pub use server_profile::{
     McpServerExportProfile, McpServerExportProfileBuilder, McpServerProfileRuntime,

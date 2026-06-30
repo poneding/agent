@@ -18,6 +18,7 @@ pub use event::{
 pub use frame::{
     UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiExtensionCapabilityReview,
     UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary, UiJsonFrame,
+    UiMcpManagementDiagnostic, UiMcpManagementSnapshot, UiMcpServerManagementSummary,
     UiModelProviderSummary, UiObservabilitySnapshot, UiPlatformPathsSummary,
     UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary, UiSettingsProfileSummary,
     UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary,

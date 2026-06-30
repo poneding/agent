@@ -78,8 +78,30 @@ pub struct McpServerExportProfileConfig {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpServerToolExportConfig {
     pub name: String,
+    #[serde(default)]
+    pub capability: McpServerToolExportCapability,
     #[serde(default = "default_enabled")]
     pub enabled: bool,
+}
+
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpServerToolExportCapability {
+    #[default]
+    ReadOnly,
+    Command,
+    Edit,
+    GitWrite,
+    Browser,
+    Secret,
+    Network,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpServerExportPolicyPreviewDecision {
+    Allowed,
+    Denied,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -184,7 +206,24 @@ pub struct McpServerProfileInspection {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpServerProfileToolInspection {
     pub name: String,
+    pub capability: McpServerToolExportCapability,
     pub enabled: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerExportPolicyPreview {
+    pub profile_name: String,
+    pub tools: Vec<McpServerToolExportPolicyPreview>,
+    pub diagnostics: Vec<McpServerProfileInspectionDiagnostic>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpServerToolExportPolicyPreview {
+    pub name: String,
+    pub capability: McpServerToolExportCapability,
+    pub enabled: bool,
+    pub decision: McpServerExportPolicyPreviewDecision,
+    pub reason: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -404,6 +443,7 @@ pub fn inspect_mcp_server_export_profile(
         .iter()
         .map(|tool| McpServerProfileToolInspection {
             name: redact_text(&tool.name),
+            capability: tool.capability,
             enabled: tool.enabled,
         })
         .collect::<Vec<_>>();
@@ -440,11 +480,63 @@ pub fn inspect_mcp_server_export_profile(
     })
 }
 
+pub fn build_mcp_server_export_policy_preview(
+    manifest: &McpServerExportManifest,
+    profile_name: Option<&str>,
+) -> Result<McpServerExportPolicyPreview, McpError> {
+    let profile = select_mcp_server_export_profile(manifest, profile_name)?;
+    let mut diagnostics = Vec::new();
+    let mut tools = profile
+        .tools
+        .iter()
+        .map(|tool| {
+            let decision = if tool.capability.is_read_only() {
+                McpServerExportPolicyPreviewDecision::Allowed
+            } else {
+                McpServerExportPolicyPreviewDecision::Denied
+            };
+            if !tool.capability.is_read_only() {
+                diagnostics.push(McpServerProfileInspectionDiagnostic::warning(
+                    "tool_export_side_effecting_denied",
+                    format!(
+                        "MCP server export tool is denied by default guardrails: {}",
+                        redact_text(&tool.name)
+                    ),
+                ));
+            }
+            McpServerToolExportPolicyPreview {
+                name: redact_text(&tool.name),
+                capability: tool.capability,
+                enabled: tool.enabled,
+                decision,
+                reason: export_policy_preview_reason(tool.capability, tool.enabled),
+            }
+        })
+        .collect::<Vec<_>>();
+    tools.sort_by(|left, right| left.name.cmp(&right.name));
+    diagnostics.truncate(8);
+
+    Ok(McpServerExportPolicyPreview {
+        profile_name: redact_text(&profile.name),
+        tools,
+        diagnostics,
+    })
+}
+
 fn inspect_manifest_tools(
     profile: &McpServerExportProfileConfig,
     diagnostics: &mut Vec<McpServerProfileInspectionDiagnostic>,
 ) {
     for tool in &profile.tools {
+        if !tool.capability.is_read_only() {
+            diagnostics.push(McpServerProfileInspectionDiagnostic::warning(
+                "tool_export_side_effecting_denied",
+                format!(
+                    "MCP server export tool capability is denied by default guardrails: {}",
+                    redact_text(&tool.name)
+                ),
+            ));
+        }
         if !BUILTIN_WORKSPACE_TOOL_EXPORT_NAMES.contains(&tool.name.as_str()) {
             diagnostics.push(McpServerProfileInspectionDiagnostic::error(
                 "tool_unknown",
@@ -623,6 +715,41 @@ impl McpServerProfileInspectionDiagnostic {
             message: redact_text(message.as_ref()),
         }
     }
+}
+
+impl McpServerToolExportCapability {
+    #[must_use]
+    pub const fn is_read_only(self) -> bool {
+        matches!(self, Self::ReadOnly)
+    }
+
+    #[must_use]
+    pub const fn policy_name(self) -> &'static str {
+        match self {
+            Self::ReadOnly => "read_only",
+            Self::Command => "command",
+            Self::Edit => "edit",
+            Self::GitWrite => "git_write",
+            Self::Browser => "browser",
+            Self::Secret => "secret",
+            Self::Network => "network",
+        }
+    }
+}
+
+fn export_policy_preview_reason(
+    capability: McpServerToolExportCapability,
+    enabled: bool,
+) -> String {
+    if capability.is_read_only() {
+        return "read-only MCP server exports stay on the existing policy-gated path".to_string();
+    }
+
+    let state = if enabled { "enabled" } else { "disabled" };
+    format!(
+        "{state} {} MCP server exports are denied by default guardrails",
+        capability.policy_name()
+    )
 }
 
 fn apply_manifest_prompts_to_builder(
@@ -847,6 +974,13 @@ fn validate_profile(profile: &McpServerExportProfileConfig) -> Result<(), McpErr
     let mut tool_names = BTreeSet::new();
     for tool in &profile.tools {
         let name = validate_identifier_text("tool name", &tool.name)?;
+        if tool.enabled && !tool.capability.is_read_only() {
+            return Err(McpError::InvalidServerRequest(format!(
+                "MCP server export tool capability is denied by default: {} {}",
+                tool.capability.policy_name(),
+                redact_text(&name)
+            )));
+        }
         if !tool_names.insert(name.clone()) {
             return Err(McpError::InvalidServerRequest(format!(
                 "duplicate MCP server export tool in profile {}: {}",

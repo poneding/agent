@@ -158,6 +158,103 @@ pub struct UiObservabilitySnapshot {
     pub diagnostics: Vec<String>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMcpManagementSnapshot {
+    pub servers: Vec<UiMcpServerManagementSummary>,
+}
+
+impl UiMcpManagementSnapshot {
+    pub fn new(mut servers: Vec<UiMcpServerManagementSummary>) -> Result<Self, UiBridgeError> {
+        servers.sort_by(|left, right| left.server_id.cmp(&right.server_id));
+        Ok(Self { servers })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMcpServerManagementSummary {
+    pub server_id: String,
+    pub display_name: String,
+    pub enabled: bool,
+    pub status: String,
+    pub transport_kind: String,
+    pub root_count: u32,
+    pub sampling_available: bool,
+    pub sampling_tools_supported: bool,
+    pub sampling_context_supported: bool,
+    pub stream_status: String,
+    pub auth_status: String,
+    pub extension_health: String,
+    pub diagnostics: Vec<UiMcpManagementDiagnostic>,
+}
+
+impl UiMcpServerManagementSummary {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        server_id: impl Into<String>,
+        display_name: impl Into<String>,
+        enabled: bool,
+        status: impl Into<String>,
+        transport_kind: impl Into<String>,
+        root_count: u32,
+        sampling_available: bool,
+        sampling_tools_supported: bool,
+        sampling_context_supported: bool,
+        stream_status: impl Into<String>,
+        auth_status: impl Into<String>,
+        extension_health: impl Into<String>,
+        diagnostics: Vec<UiMcpManagementDiagnostic>,
+    ) -> Result<Self, UiBridgeError> {
+        let summary = Self {
+            server_id: bounded_task_text(&server_id.into()),
+            display_name: bounded_task_text(&display_name.into()),
+            enabled,
+            status: bounded_task_text(&status.into()),
+            transport_kind: bounded_task_text(&transport_kind.into()),
+            root_count,
+            sampling_available,
+            sampling_tools_supported,
+            sampling_context_supported,
+            stream_status: bounded_task_text(&stream_status.into()),
+            auth_status: bounded_task_text(&auth_status.into()),
+            extension_health: bounded_task_text(&extension_health.into()),
+            diagnostics: diagnostics.into_iter().take(8).collect(),
+        };
+        validate_non_empty("MCP server id", &summary.server_id)?;
+        validate_non_empty("MCP display name", &summary.display_name)?;
+        validate_non_empty("MCP status", &summary.status)?;
+        validate_non_empty("MCP transport kind", &summary.transport_kind)?;
+        validate_non_empty("MCP stream status", &summary.stream_status)?;
+        validate_non_empty("MCP auth status", &summary.auth_status)?;
+        validate_non_empty("MCP extension health", &summary.extension_health)?;
+        Ok(summary)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMcpManagementDiagnostic {
+    pub severity: String,
+    pub code: String,
+    pub message: String,
+}
+
+impl UiMcpManagementDiagnostic {
+    pub fn new(
+        severity: impl Into<String>,
+        code: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        let diagnostic = Self {
+            severity: bounded_task_text(&severity.into()),
+            code: bounded_task_text(&code.into()),
+            message: bounded_task_text(&message.into()),
+        };
+        validate_non_empty("MCP diagnostic severity", &diagnostic.severity)?;
+        validate_non_empty("MCP diagnostic code", &diagnostic.code)?;
+        validate_non_empty("MCP diagnostic message", &diagnostic.message)?;
+        Ok(diagnostic)
+    }
+}
+
 impl UiObservabilitySnapshot {
     pub fn from_evidence(evidence: &ObservabilityEvidenceBundle) -> Result<Self, UiBridgeError> {
         Ok(Self {

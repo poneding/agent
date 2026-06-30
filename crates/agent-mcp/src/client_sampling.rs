@@ -548,6 +548,292 @@ impl McpSamplingDiagnostic {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpSamplingTaskMetadata {
+    pub task_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub conversation_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub turn_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+}
+
+impl McpSamplingTaskMetadata {
+    pub fn new(task_id: impl Into<String>) -> Result<Self, McpError> {
+        let task_id = validate_public_sampling_text("sampling task id", &task_id.into())?;
+        Ok(Self {
+            task_id,
+            conversation_id: None,
+            turn_id: None,
+            title: None,
+        })
+    }
+
+    pub fn with_conversation_id(
+        mut self,
+        conversation_id: impl Into<String>,
+    ) -> Result<Self, McpError> {
+        self.conversation_id = Some(validate_public_sampling_text(
+            "sampling conversation id",
+            &conversation_id.into(),
+        )?);
+        Ok(self)
+    }
+
+    pub fn with_turn_id(mut self, turn_id: impl Into<String>) -> Result<Self, McpError> {
+        self.turn_id = Some(validate_public_sampling_text(
+            "sampling turn id",
+            &turn_id.into(),
+        )?);
+        Ok(self)
+    }
+
+    pub fn with_title(mut self, title: impl Into<String>) -> Result<Self, McpError> {
+        self.title = Some(validate_public_sampling_text(
+            "sampling task title",
+            &title.into(),
+        )?);
+        Ok(self)
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpSamplingApprovalStatus {
+    Pending,
+    Approved,
+    Denied,
+    ChangesRequested,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpSamplingDecisionKind {
+    Allow,
+    Deny,
+    RequestChanges,
+}
+
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpSamplingToolLoopPolicy {
+    #[default]
+    Deny,
+    AllowIfExplicitlyApproved,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpSamplingApprovalPolicy {
+    pub require_human_review: bool,
+    pub tool_loop_policy: McpSamplingToolLoopPolicy,
+}
+
+impl Default for McpSamplingApprovalPolicy {
+    fn default() -> Self {
+        Self {
+            require_human_review: true,
+            tool_loop_policy: McpSamplingToolLoopPolicy::Deny,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpSamplingReviewSummary {
+    pub message_count: usize,
+    pub text_block_count: usize,
+    pub media_block_count: usize,
+    pub tool_use_block_count: usize,
+    pub tool_result_block_count: usize,
+    pub max_tokens: u32,
+    pub has_system_prompt: bool,
+    pub requested_context: McpSamplingIncludeContext,
+    pub requested_tools: bool,
+    pub tool_choice_requested: bool,
+    pub tool_loop_default_denied: bool,
+    pub validation: McpSamplingValidationReport,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpSamplingApprovalRequest {
+    pub request_id: String,
+    pub server_id: crate::McpServerId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub task: Option<McpSamplingTaskMetadata>,
+    pub status: McpSamplingApprovalStatus,
+    pub policy: McpSamplingApprovalPolicy,
+    pub review: McpSamplingReviewSummary,
+}
+
+impl McpSamplingApprovalRequest {
+    pub fn new(
+        request_id: impl Into<String>,
+        server_id: crate::McpServerId,
+        request: &McpCreateMessageRequestParams,
+        task: Option<McpSamplingTaskMetadata>,
+        policy: McpSamplingApprovalPolicy,
+    ) -> Result<Self, McpError> {
+        Ok(Self {
+            request_id: validate_public_sampling_text(
+                "sampling approval request id",
+                &request_id.into(),
+            )?,
+            server_id,
+            task,
+            status: McpSamplingApprovalStatus::Pending,
+            review: McpSamplingReviewSummary::from_request(request, &policy),
+            policy,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpSamplingApprovalDecision {
+    pub request_id: String,
+    pub decision: McpSamplingDecisionKind,
+    pub reason: String,
+    pub decided_by: String,
+}
+
+impl McpSamplingApprovalDecision {
+    pub fn new(
+        request_id: impl Into<String>,
+        decision: McpSamplingDecisionKind,
+        reason: impl Into<String>,
+        decided_by: impl Into<String>,
+    ) -> Result<Self, McpError> {
+        Ok(Self {
+            request_id: validate_public_sampling_text(
+                "sampling approval request id",
+                &request_id.into(),
+            )?,
+            decision,
+            reason: validate_public_sampling_text("sampling approval reason", &reason.into())?,
+            decided_by: validate_public_sampling_text(
+                "sampling approval actor",
+                &decided_by.into(),
+            )?,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpSamplingApprovalReport {
+    pub request: McpSamplingApprovalRequest,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub decision: Option<McpSamplingApprovalDecision>,
+    pub approved: bool,
+    pub terminal_status: McpSamplingApprovalStatus,
+}
+
+impl McpSamplingApprovalReport {
+    #[must_use]
+    pub fn pending(request: McpSamplingApprovalRequest) -> Self {
+        Self {
+            request,
+            decision: None,
+            approved: false,
+            terminal_status: McpSamplingApprovalStatus::Pending,
+        }
+    }
+
+    #[must_use]
+    pub fn with_decision(
+        mut request: McpSamplingApprovalRequest,
+        decision: McpSamplingApprovalDecision,
+    ) -> Self {
+        let (approved, terminal_status) = match decision.decision {
+            McpSamplingDecisionKind::Allow => {
+                request.status = McpSamplingApprovalStatus::Approved;
+                (true, McpSamplingApprovalStatus::Approved)
+            }
+            McpSamplingDecisionKind::Deny => {
+                request.status = McpSamplingApprovalStatus::Denied;
+                (false, McpSamplingApprovalStatus::Denied)
+            }
+            McpSamplingDecisionKind::RequestChanges => {
+                request.status = McpSamplingApprovalStatus::ChangesRequested;
+                (false, McpSamplingApprovalStatus::ChangesRequested)
+            }
+        };
+
+        Self {
+            request,
+            decision: Some(decision),
+            approved,
+            terminal_status,
+        }
+    }
+}
+
+impl McpSamplingReviewSummary {
+    #[must_use]
+    pub fn from_request(
+        request: &McpCreateMessageRequestParams,
+        approval_policy: &McpSamplingApprovalPolicy,
+    ) -> Self {
+        let mut text_block_count = 0;
+        let mut media_block_count = 0;
+        let mut tool_use_block_count = 0;
+        let mut tool_result_block_count = 0;
+        for message in &request.messages {
+            for content in &message.content.content {
+                count_sampling_content(
+                    content,
+                    &mut text_block_count,
+                    &mut media_block_count,
+                    &mut tool_use_block_count,
+                    &mut tool_result_block_count,
+                );
+            }
+        }
+
+        let requested_tools = !request.tools.is_empty();
+        let tool_choice_requested = request.tool_choice.is_some();
+        let validation_policy = McpSamplingValidationPolicy {
+            allow_tools: matches!(
+                approval_policy.tool_loop_policy,
+                McpSamplingToolLoopPolicy::AllowIfExplicitlyApproved
+            ),
+            ..McpSamplingValidationPolicy::default()
+        };
+        let validation = validate_mcp_sampling_request(request, &validation_policy);
+
+        Self {
+            message_count: request.messages.len(),
+            text_block_count,
+            media_block_count,
+            tool_use_block_count,
+            tool_result_block_count,
+            max_tokens: request.max_tokens,
+            has_system_prompt: request.system_prompt.is_some(),
+            requested_context: request.include_context,
+            requested_tools,
+            tool_choice_requested,
+            tool_loop_default_denied: matches!(
+                approval_policy.tool_loop_policy,
+                McpSamplingToolLoopPolicy::Deny
+            ) && (requested_tools || tool_choice_requested),
+            validation,
+        }
+    }
+}
+
+pub fn build_mcp_sampling_approval_report(
+    request_id: impl Into<String>,
+    server_id: crate::McpServerId,
+    request: &McpCreateMessageRequestParams,
+    task: Option<McpSamplingTaskMetadata>,
+    policy: McpSamplingApprovalPolicy,
+    decision: Option<McpSamplingApprovalDecision>,
+) -> Result<McpSamplingApprovalReport, McpError> {
+    let request = McpSamplingApprovalRequest::new(request_id, server_id, request, task, policy)?;
+    Ok(match decision {
+        Some(decision) => McpSamplingApprovalReport::with_decision(request, decision),
+        None => McpSamplingApprovalReport::pending(request),
+    })
+}
+
 #[must_use]
 pub fn validate_mcp_sampling_request(
     request: &McpCreateMessageRequestParams,
@@ -652,6 +938,34 @@ fn validate_messages(
     }
 
     validate_tool_balance(&request.messages, diagnostics);
+}
+
+fn count_sampling_content(
+    content: &McpSamplingContent,
+    text_block_count: &mut usize,
+    media_block_count: &mut usize,
+    tool_use_block_count: &mut usize,
+    tool_result_block_count: &mut usize,
+) {
+    match content {
+        McpSamplingContent::Text { .. } => *text_block_count += 1,
+        McpSamplingContent::Image { .. } | McpSamplingContent::Audio { .. } => {
+            *media_block_count += 1;
+        }
+        McpSamplingContent::ToolUse { .. } => *tool_use_block_count += 1,
+        McpSamplingContent::ToolResult { content, .. } => {
+            *tool_result_block_count += 1;
+            for nested in content {
+                count_sampling_content(
+                    nested,
+                    text_block_count,
+                    media_block_count,
+                    tool_use_block_count,
+                    tool_result_block_count,
+                );
+            }
+        }
+    }
 }
 
 fn validate_content(
@@ -887,5 +1201,5 @@ fn is_secret_like(value: &str) -> bool {
         || normalized.contains("private_key")
         || normalized.contains("api_key")
         || normalized.contains("apikey")
-        || normalized.contains("sk_")
+        || normalized.starts_with("sk_")
 }

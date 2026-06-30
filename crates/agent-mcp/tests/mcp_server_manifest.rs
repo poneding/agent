@@ -1,7 +1,8 @@
 use agent_mcp::{
     MCP_SERVER_EXPORT_MANIFEST_SCHEMA_VERSION, McpServerExportManifest,
-    McpServerExportProfileConfig, McpServerResourceExportConfig, McpServerToolExportConfig,
-    parse_mcp_server_export_manifest_json, select_mcp_server_export_profile,
+    McpServerExportProfileConfig, McpServerResourceExportConfig, McpServerToolExportCapability,
+    McpServerToolExportConfig, parse_mcp_server_export_manifest_json,
+    select_mcp_server_export_profile,
 };
 
 #[test]
@@ -12,6 +13,7 @@ fn mcp_server_manifest_serializes_stable_shape() {
             name: "default".to_string(),
             tools: vec![McpServerToolExportConfig {
                 name: "test.echo".to_string(),
+                capability: McpServerToolExportCapability::ReadOnly,
                 enabled: true,
             }],
             resources: vec![McpServerResourceExportConfig {

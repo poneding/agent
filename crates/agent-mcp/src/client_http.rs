@@ -365,6 +365,7 @@ impl McpClientHttpReplayDiagnostic {
 pub struct McpClientHttpStreamReconnectReport {
     pub drain_report: McpClientHttpStreamDrainReport,
     pub replay_diagnostic: McpClientHttpReplayDiagnostic,
+    pub reconnect_report: McpClientHttpReconnectReport,
 }
 
 impl McpClientHttpStreamReconnectReport {
@@ -372,10 +373,99 @@ impl McpClientHttpStreamReconnectReport {
     pub const fn new(
         drain_report: McpClientHttpStreamDrainReport,
         replay_diagnostic: McpClientHttpReplayDiagnostic,
+        reconnect_report: McpClientHttpReconnectReport,
     ) -> Self {
         Self {
             drain_report,
             replay_diagnostic,
+            reconnect_report,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpReconnectAttemptOutcome {
+    Success,
+    Retry,
+    Failed,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpReconnectAttempt {
+    pub attempt: u32,
+    pub outcome: McpClientHttpReconnectAttemptOutcome,
+    pub failure_summary: Option<String>,
+    pub backoff_ms: Option<u64>,
+    pub replay_diagnostic: McpClientHttpReplayDiagnostic,
+}
+
+impl McpClientHttpReconnectAttempt {
+    #[must_use]
+    pub fn success(attempt: u32, replay_diagnostic: McpClientHttpReplayDiagnostic) -> Self {
+        Self {
+            attempt,
+            outcome: McpClientHttpReconnectAttemptOutcome::Success,
+            failure_summary: None,
+            backoff_ms: None,
+            replay_diagnostic,
+        }
+    }
+
+    #[must_use]
+    pub fn retry(
+        attempt: u32,
+        backoff_ms: u64,
+        failure_kind: McpClientHttpReconnectFailureKind,
+        replay_diagnostic: McpClientHttpReplayDiagnostic,
+    ) -> Self {
+        Self {
+            attempt,
+            outcome: McpClientHttpReconnectAttemptOutcome::Retry,
+            failure_summary: Some(failure_kind.public_reason().to_string()),
+            backoff_ms: Some(backoff_ms),
+            replay_diagnostic,
+        }
+    }
+
+    #[must_use]
+    pub fn failed(
+        attempt: u32,
+        failure_kind: McpClientHttpReconnectFailureKind,
+        replay_diagnostic: McpClientHttpReplayDiagnostic,
+    ) -> Self {
+        Self {
+            attempt,
+            outcome: McpClientHttpReconnectAttemptOutcome::Failed,
+            failure_summary: Some(failure_kind.public_reason().to_string()),
+            backoff_ms: None,
+            replay_diagnostic,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpReconnectReport {
+    pub attempts: Vec<McpClientHttpReconnectAttempt>,
+    pub succeeded: bool,
+    pub final_failure: Option<String>,
+}
+
+impl McpClientHttpReconnectReport {
+    #[must_use]
+    pub fn from_attempts(attempts: Vec<McpClientHttpReconnectAttempt>) -> Self {
+        let succeeded = attempts.last().is_some_and(|attempt| {
+            attempt.outcome == McpClientHttpReconnectAttemptOutcome::Success
+        });
+        let final_failure = attempts
+            .last()
+            .filter(|_| !succeeded)
+            .and_then(|attempt| attempt.failure_summary.clone());
+
+        Self {
+            attempts,
+            succeeded,
+            final_failure,
         }
     }
 }
@@ -871,6 +961,7 @@ impl<T> McpHttpClient<T> {
     {
         policy.validate()?;
         let mut attempt = 1u32;
+        let mut attempts = Vec::new();
         loop {
             let checkpoint_before = self.session_metadata_snapshot().await;
             let request = self.stream_request_snapshot(server_id).await?;
@@ -884,19 +975,41 @@ impl<T> McpHttpClient<T> {
                         &diagnostic_request,
                         Some(&checkpoint_after),
                     );
+                    attempts.push(McpClientHttpReconnectAttempt::success(
+                        attempt,
+                        replay_diagnostic.clone(),
+                    ));
+                    let reconnect_report = McpClientHttpReconnectReport::from_attempts(attempts);
                     return Ok(McpClientHttpStreamReconnectReport::new(
                         drain_report,
                         replay_diagnostic,
+                        reconnect_report,
                     ));
                 }
                 Err(error) => {
                     let failure_kind = classify_mcp_client_http_reconnect_error(&error);
+                    let replay_diagnostic = McpClientHttpReplayDiagnostic::from_reconnect_attempt(
+                        &checkpoint_before,
+                        &diagnostic_request,
+                        None,
+                    );
                     match policy.decision_for_attempt(attempt, failure_kind.is_retryable())? {
                         McpClientHttpReconnectDecision::Retry { backoff_ms } => {
+                            attempts.push(McpClientHttpReconnectAttempt::retry(
+                                attempt,
+                                backoff_ms,
+                                failure_kind,
+                                replay_diagnostic,
+                            ));
                             tokio::time::sleep(Duration::from_millis(backoff_ms)).await;
                             attempt += 1;
                         }
                         McpClientHttpReconnectDecision::Stop => {
+                            attempts.push(McpClientHttpReconnectAttempt::failed(
+                                attempt,
+                                failure_kind,
+                                replay_diagnostic,
+                            ));
                             return Err(mcp_client_http_stream_reconnect_failed(
                                 attempt,
                                 failure_kind,

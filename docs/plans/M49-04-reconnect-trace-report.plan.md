@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Review report spec and existing redaction helpers**
+- [x] **Step 1: Review report spec and existing redaction helpers**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_reconnect_trace.rs`
 
-- [ ] **Step 1: Add reconnect report tests**
+- [x] **Step 1: Add reconnect report tests**
 
 Run:
 
@@ -40,11 +40,11 @@ Expected: tests fail before reconnect trace reports exist.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add attempt and final report contracts**
-- [ ] **Step 2: Add redacted failure summaries**
-- [ ] **Step 3: Add stable serde shape**
-- [ ] **Step 4: Integrate reports with runner outcomes**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add attempt and final report contracts**
+- [x] **Step 2: Add redacted failure summaries**
+- [x] **Step 3: Add stable serde shape**
+- [x] **Step 4: Integrate reports with runner outcomes**
+- [x] **Step 5: Run focused tests**
 
 Run:
 
@@ -56,7 +56,7 @@ Expected: focused tests pass.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -69,7 +69,7 @@ Expected: checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M49-04**
+- [x] **Step 1: Update status and commit M49-04**
 
 Run:
 
@@ -77,3 +77,12 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http reconnect trace reports"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_trace` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_missed_event_replay` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

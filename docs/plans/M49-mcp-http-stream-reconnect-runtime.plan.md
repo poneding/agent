@@ -49,7 +49,7 @@ Define crate ownership, reconnect policy, runner composition, replay diagnostics
 - [x] **Step 1: Add reconnect policy contracts**
 - [x] **Step 2: Add bounded stream reconnect runner**
 - [x] **Step 3: Add missed-event replay diagnostics**
-- [ ] **Step 4: Add reconnect trace reports**
+- [x] **Step 4: Add reconnect trace reports**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M49

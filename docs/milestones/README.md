@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M51 |
-| Milestone-level plans | Complete for M01-M51 |
+| Milestone-level specs | Complete for M01-M52 |
+| Milestone-level plans | Complete for M01-M52 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -446,6 +446,15 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M51-04 implementation | Complete |
 | M51-05 implementation | Complete |
 | M51 implementation | Complete |
+| M52 technical design | Complete |
+| M52 slice specs | Complete for M52-01 through M52-05 |
+| M52 slice plans | Complete for M52-01 through M52-05 |
+| M52-01 implementation | In progress |
+| M52-02 implementation | Not started |
+| M52-03 implementation | Not started |
+| M52-04 implementation | Not started |
+| M52-05 implementation | Not started |
+| M52 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -502,6 +511,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M49 MCP HTTP Stream Reconnect Runtime | `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md` | `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md` | Add bounded stream reconnect policy, retry runner, replay diagnostics, and redacted reconnect reports. |
 | M50 MCP HTTP Background Stream Supervision Runtime | `docs/specs/M50-mcp-http-background-stream-supervision.spec.md` | `docs/plans/M50-mcp-http-background-stream-supervision.plan.md` | Add bounded background supervision foundations for MCP HTTP streams with cancellation, leases, and redacted reports. |
 | M51 MCP HTTP OAuth Authorization Runtime | `docs/specs/M51-mcp-http-oauth-authorization-runtime.spec.md` | `docs/plans/M51-mcp-http-oauth-authorization-runtime.plan.md` | Add OAuth authorization metadata, diagnostics, and explicit bearer-token request boundaries for MCP HTTP clients. |
+| M52 MCP HTTP OAuth Token Lifecycle Runtime | `docs/specs/M52-mcp-http-oauth-token-lifecycle-runtime.spec.md` | `docs/plans/M52-mcp-http-oauth-token-lifecycle-runtime.plan.md` | Add token lease contracts, source references, refresh planning diagnostics, and authorized request factories for MCP HTTP clients. |
 
 ## M01 Slice Index
 
@@ -1054,9 +1064,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M51-04 Bearer Token Request Boundary | `docs/specs/M51-04-bearer-token-request-boundary.spec.md` | `docs/plans/M51-04-bearer-token-request-boundary.plan.md` | Explicit bearer-token application for MCP HTTP POST and GET stream requests. |
 | M51-05 Hardening Docs | `docs/specs/M51-05-hardening-docs.spec.md` | `docs/plans/M51-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M51 quality gate evidence. |
 
+## M52 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M52-00 MCP HTTP OAuth Token Lifecycle Technical Design | `docs/specs/M52-00-mcp-http-oauth-token-lifecycle-technical-design.spec.md` | `docs/plans/M52-00-mcp-http-oauth-token-lifecycle-technical-design.plan.md` | Architecture baseline for token leases, token source references, refresh planning, request factories, redaction, and verification. |
+| M52-01 OAuth Token Lease Contracts | `docs/specs/M52-01-oauth-token-lease-contracts.spec.md` | `docs/plans/M52-01-oauth-token-lease-contracts.plan.md` | Redacted token lease and token status contracts for MCP HTTP authorization. |
+| M52-02 Token Source Reference Boundary | `docs/specs/M52-02-token-source-reference-boundary.spec.md` | `docs/plans/M52-02-token-source-reference-boundary.plan.md` | Safe token source references for external auth/storage layers without raw-token persistence in `agent-mcp`. |
+| M52-03 Refresh Planning Diagnostics | `docs/specs/M52-03-refresh-planning-diagnostics.spec.md` | `docs/plans/M52-03-refresh-planning-diagnostics.plan.md` | Deterministic refresh planning diagnostics for expiry, skew, unknown lifetime, and required scopes. |
+| M52-04 Authorized Request Factory | `docs/specs/M52-04-authorized-request-factory.spec.md` | `docs/plans/M52-04-authorized-request-factory.plan.md` | Compose usable token leases with the M51 bearer request boundary for POST and GET stream requests. |
+| M52-05 Hardening Docs | `docs/specs/M52-05-hardening-docs.spec.md` | `docs/plans/M52-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M52 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M51 complete; next implementation focus is not yet planned.
+Current implementation focus: M52-01 OAuth token lease contracts.
 
 Most recent completed implementation documents:
 
@@ -1325,6 +1346,20 @@ Most recent completed implementation documents:
 
 Most recent completed planning documents:
 
+- `docs/specs/M52-mcp-http-oauth-token-lifecycle-runtime.spec.md`
+- `docs/plans/M52-mcp-http-oauth-token-lifecycle-runtime.plan.md`
+- `docs/specs/M52-00-mcp-http-oauth-token-lifecycle-technical-design.spec.md`
+- `docs/plans/M52-00-mcp-http-oauth-token-lifecycle-technical-design.plan.md`
+- `docs/specs/M52-01-oauth-token-lease-contracts.spec.md`
+- `docs/plans/M52-01-oauth-token-lease-contracts.plan.md`
+- `docs/specs/M52-02-token-source-reference-boundary.spec.md`
+- `docs/plans/M52-02-token-source-reference-boundary.plan.md`
+- `docs/specs/M52-03-refresh-planning-diagnostics.spec.md`
+- `docs/plans/M52-03-refresh-planning-diagnostics.plan.md`
+- `docs/specs/M52-04-authorized-request-factory.spec.md`
+- `docs/plans/M52-04-authorized-request-factory.plan.md`
+- `docs/specs/M52-05-hardening-docs.spec.md`
+- `docs/plans/M52-05-hardening-docs.plan.md`
 - `docs/specs/M51-mcp-http-oauth-authorization-runtime.spec.md`
 - `docs/plans/M51-mcp-http-oauth-authorization-runtime.plan.md`
 - `docs/specs/M51-00-mcp-http-oauth-authorization-technical-design.spec.md`
@@ -1440,9 +1475,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M51-00-mcp-http-oauth-authorization-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M51-00-mcp-http-oauth-authorization-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M52-00-mcp-http-oauth-token-lifecycle-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M52-00-mcp-http-oauth-token-lifecycle-technical-design.plan.md`
 
 Next implementation slice:
 
-- None currently planned after M51.
+- `docs/specs/M52-01-oauth-token-lease-contracts.spec.md`
+- `docs/plans/M52-01-oauth-token-lease-contracts.plan.md`

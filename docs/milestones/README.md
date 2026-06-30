@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M48 |
-| Milestone-level plans | Complete for M01-M48 |
+| Milestone-level specs | Complete for M01-M49 |
+| Milestone-level plans | Complete for M01-M49 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -419,6 +419,15 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M48-04 implementation | Complete |
 | M48-05 implementation | Complete |
 | M48 implementation | Complete |
+| M49 technical design | Complete |
+| M49 slice specs | Complete for M49-01 through M49-05 |
+| M49 slice plans | Complete for M49-01 through M49-05 |
+| M49-01 implementation | In progress |
+| M49-02 implementation | Not started |
+| M49-03 implementation | Not started |
+| M49-04 implementation | Not started |
+| M49-05 implementation | Not started |
+| M49 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -472,6 +481,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M46 MCP HTTP SSE Response Runtime | `docs/specs/M46-mcp-http-sse-response-runtime.spec.md` | `docs/plans/M46-mcp-http-sse-response-runtime.plan.md` | Parse bounded streamable HTTP SSE response frames through typed MCP client contracts. |
 | M47 MCP HTTP Session Resume Runtime | `docs/specs/M47-mcp-http-session-resume-runtime.spec.md` | `docs/plans/M47-mcp-http-session-resume-runtime.plan.md` | Persist safe streamable HTTP session metadata and SSE checkpoints before reconnect/runtime stream ownership. |
 | M48 MCP HTTP Stream Ownership Runtime | `docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md` | `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md` | Open typed, bounded streamable HTTP GET SSE streams with safe resume headers before reconnect loops. |
+| M49 MCP HTTP Stream Reconnect Runtime | `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md` | `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md` | Add bounded stream reconnect policy, retry runner, replay diagnostics, and redacted reconnect reports. |
 
 ## M01 Slice Index
 
@@ -991,12 +1001,27 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M48-04 Bounded Stream Event Drain | `docs/specs/M48-04-bounded-stream-event-drain.spec.md` | `docs/plans/M48-04-bounded-stream-event-drain.plan.md` | Accepted stream SSE events update HTTP client checkpoint state safely. |
 | M48-05 Hardening Docs | `docs/specs/M48-05-hardening-docs.spec.md` | `docs/plans/M48-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M48 quality gate evidence. |
 
+## M49 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M49-00 MCP HTTP Stream Reconnect Technical Design | `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md` | `docs/plans/M49-00-mcp-http-stream-reconnect-technical-design.plan.md` | Architecture baseline for reconnect policy, runner composition, replay diagnostics, trace reports, redaction, and verification. |
+| M49-01 Reconnect Policy Contracts | `docs/specs/M49-01-reconnect-policy-contracts.spec.md` | `docs/plans/M49-01-reconnect-policy-contracts.plan.md` | Pure contracts for bounded reconnect policy, retry classification, and capped backoff. |
+| M49-02 Stream Reconnect Runner | `docs/specs/M49-02-stream-reconnect-runner.spec.md` | `docs/plans/M49-02-stream-reconnect-runner.plan.md` | Bounded reconnect runner over stream snapshots, stream transport, and event drain behavior. |
+| M49-03 Missed Event Replay Diagnostics | `docs/specs/M49-03-missed-event-replay-diagnostics.spec.md` | `docs/plans/M49-03-missed-event-replay-diagnostics.plan.md` | Safe diagnostics proving reconnect attempts requested resume from local checkpoints. |
+| M49-04 Reconnect Trace Report | `docs/specs/M49-04-reconnect-trace-report.spec.md` | `docs/plans/M49-04-reconnect-trace-report.plan.md` | Typed, redacted reconnect trace reports for CLI/Desktop and future background surfaces. |
+| M49-05 Hardening Docs | `docs/specs/M49-05-hardening-docs.spec.md` | `docs/plans/M49-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M49 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M48 is complete. Next implementation slice will be selected separately.
+Current implementation focus: M49-01 reconnect policy contracts.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
+- `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
+- `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
+- `docs/plans/M49-00-mcp-http-stream-reconnect-technical-design.plan.md`
 - `docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md`
 - `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md`
 - `docs/specs/M48-05-hardening-docs.spec.md`
@@ -1321,9 +1346,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M48-00-mcp-http-stream-ownership-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M48-00-mcp-http-stream-ownership-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M49-00-mcp-http-stream-reconnect-technical-design.plan.md`
 
 Next implementation slice:
 
-- To be selected after M48 completion.
+- `docs/specs/M49-01-reconnect-policy-contracts.spec.md`
+- `docs/plans/M49-01-reconnect-policy-contracts.plan.md`

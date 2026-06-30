@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/tests/mcp_client_http_stream_resume.rs`
 
-- [ ] **Step 1: Review replay diagnostics spec and snapshot behavior**
+- [x] **Step 1: Review replay diagnostics spec and snapshot behavior**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_missed_event_replay.rs`
 
-- [ ] **Step 1: Add replay diagnostics tests**
+- [x] **Step 1: Add replay diagnostics tests**
 
 Run:
 
@@ -40,11 +40,11 @@ Expected: tests fail before replay diagnostics exist.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add replay diagnostic contract**
-- [ ] **Step 2: Detect requested resume without raw event id exposure**
-- [ ] **Step 3: Detect checkpoint advancement**
-- [ ] **Step 4: Integrate diagnostics with reconnect outcomes**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add replay diagnostic contract**
+- [x] **Step 2: Detect requested resume without raw event id exposure**
+- [x] **Step 3: Detect checkpoint advancement**
+- [x] **Step 4: Integrate diagnostics with reconnect outcomes**
+- [x] **Step 5: Run focused tests**
 
 Run:
 
@@ -56,7 +56,7 @@ Expected: focused tests pass.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -69,7 +69,7 @@ Expected: checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M49-03**
+- [x] **Step 1: Update status and commit M49-03**
 
 Run:
 
@@ -77,3 +77,12 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http missed event replay diagnostics"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_missed_event_replay` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_stream_reconnect_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

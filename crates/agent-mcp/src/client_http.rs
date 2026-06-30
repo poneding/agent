@@ -287,6 +287,99 @@ impl McpClientHttpStreamDrainReport {
     }
 }
 
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpCheckpointSummary {
+    pub event_id_present: bool,
+}
+
+impl McpClientHttpCheckpointSummary {
+    #[must_use]
+    pub const fn new(event_id_present: bool) -> Self {
+        Self { event_id_present }
+    }
+
+    #[must_use]
+    pub fn from_session_metadata(metadata: &McpClientHttpSessionMetadata) -> Self {
+        Self::new(metadata.last_event_id.is_some())
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpReplayStatus {
+    NotRequested,
+    Requested,
+    CheckpointAdvanced,
+    Unknown,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpReplayDiagnostic {
+    pub requested_resume: bool,
+    pub checkpoint_advanced: bool,
+    pub checkpoint_before: McpClientHttpCheckpointSummary,
+    pub requested_checkpoint: McpClientHttpCheckpointSummary,
+    pub checkpoint_after: McpClientHttpCheckpointSummary,
+    pub replay_status: McpClientHttpReplayStatus,
+}
+
+impl McpClientHttpReplayDiagnostic {
+    #[must_use]
+    pub fn from_reconnect_attempt(
+        checkpoint_before: &McpClientHttpSessionMetadata,
+        request: &McpClientHttpStreamRequest,
+        checkpoint_after: Option<&McpClientHttpSessionMetadata>,
+    ) -> Self {
+        let requested_resume = mcp_client_http_stream_request_has_resume_checkpoint(request);
+        let checkpoint_advanced = checkpoint_after.is_some_and(|checkpoint_after| {
+            checkpoint_after.last_event_id.is_some()
+                && checkpoint_before.last_event_id != checkpoint_after.last_event_id
+        });
+        let replay_status = match (
+            checkpoint_after.is_some(),
+            checkpoint_advanced,
+            requested_resume,
+        ) {
+            (false, _, _) => McpClientHttpReplayStatus::Unknown,
+            (true, true, _) => McpClientHttpReplayStatus::CheckpointAdvanced,
+            (true, false, true) => McpClientHttpReplayStatus::Requested,
+            (true, false, false) => McpClientHttpReplayStatus::NotRequested,
+        };
+
+        Self {
+            requested_resume,
+            checkpoint_advanced,
+            checkpoint_before: McpClientHttpCheckpointSummary::from_session_metadata(
+                checkpoint_before,
+            ),
+            requested_checkpoint: McpClientHttpCheckpointSummary::new(requested_resume),
+            checkpoint_after: checkpoint_after
+                .map(McpClientHttpCheckpointSummary::from_session_metadata)
+                .unwrap_or_default(),
+            replay_status,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamReconnectReport {
+    pub drain_report: McpClientHttpStreamDrainReport,
+    pub replay_diagnostic: McpClientHttpReplayDiagnostic,
+}
+
+impl McpClientHttpStreamReconnectReport {
+    #[must_use]
+    pub const fn new(
+        drain_report: McpClientHttpStreamDrainReport,
+        replay_diagnostic: McpClientHttpReplayDiagnostic,
+    ) -> Self {
+        Self {
+            drain_report,
+            replay_diagnostic,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpReconnectPolicy {
     pub max_attempts: u32,
@@ -762,12 +855,40 @@ impl<T> McpHttpClient<T> {
     where
         S: McpClientHttpStreamTransport,
     {
+        self.reconnect_stream_with_replay_diagnostic(server_id, stream_transport, policy)
+            .await
+            .map(|report| report.drain_report)
+    }
+
+    pub async fn reconnect_stream_with_replay_diagnostic<S>(
+        &self,
+        server_id: &McpServerId,
+        stream_transport: &mut S,
+        policy: McpClientHttpReconnectPolicy,
+    ) -> Result<McpClientHttpStreamReconnectReport, McpError>
+    where
+        S: McpClientHttpStreamTransport,
+    {
         policy.validate()?;
         let mut attempt = 1u32;
         loop {
+            let checkpoint_before = self.session_metadata_snapshot().await;
             let request = self.stream_request_snapshot(server_id).await?;
+            let diagnostic_request = request.clone();
             match stream_transport.open_stream(request).await {
-                Ok(stream) => return self.record_stream_open(server_id, stream).await,
+                Ok(stream) => {
+                    let drain_report = self.record_stream_open(server_id, stream).await?;
+                    let checkpoint_after = self.session_metadata_snapshot().await;
+                    let replay_diagnostic = McpClientHttpReplayDiagnostic::from_reconnect_attempt(
+                        &checkpoint_before,
+                        &diagnostic_request,
+                        Some(&checkpoint_after),
+                    );
+                    return Ok(McpClientHttpStreamReconnectReport::new(
+                        drain_report,
+                        replay_diagnostic,
+                    ));
+                }
                 Err(error) => {
                     let failure_kind = classify_mcp_client_http_reconnect_error(&error);
                     match policy.decision_for_attempt(attempt, failure_kind.is_retryable())? {
@@ -1456,6 +1577,15 @@ fn mcp_client_http_stream_reconnect_failed(
         "MCP client HTTP stream reconnect failed after {attempts} attempt(s): {}",
         failure_kind.public_reason()
     ))
+}
+
+fn mcp_client_http_stream_request_has_resume_checkpoint(
+    request: &McpClientHttpStreamRequest,
+) -> bool {
+    request.headers.iter().any(|(key, value)| {
+        key.eq_ignore_ascii_case(MCP_CLIENT_HTTP_LAST_EVENT_ID_HEADER_CANONICAL)
+            && !value.trim().is_empty()
+    })
 }
 
 fn is_retryable_mcp_client_http_transport_error(message: &str) -> bool {

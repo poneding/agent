@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M53 |
-| Milestone-level plans | Complete for M01-M53 |
+| Milestone-level specs | Complete for M01-M54 |
+| Milestone-level plans | Complete for M01-M54 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -464,6 +464,15 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M53-04 implementation | Complete |
 | M53-05 implementation | Complete |
 | M53 implementation | Complete |
+| M54 technical design | Complete |
+| M54 slice specs | Complete for M54-01 through M54-05 |
+| M54 slice plans | Complete for M54-01 through M54-05 |
+| M54-01 implementation | Not started |
+| M54-02 implementation | Not started |
+| M54-03 implementation | Not started |
+| M54-04 implementation | Not started |
+| M54-05 implementation | Not started |
+| M54 implementation | Not started |
 
 ## Milestone Spec and Plan Index
 
@@ -522,6 +531,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M51 MCP HTTP OAuth Authorization Runtime | `docs/specs/M51-mcp-http-oauth-authorization-runtime.spec.md` | `docs/plans/M51-mcp-http-oauth-authorization-runtime.plan.md` | Add OAuth authorization metadata, diagnostics, and explicit bearer-token request boundaries for MCP HTTP clients. |
 | M52 MCP HTTP OAuth Token Lifecycle Runtime | `docs/specs/M52-mcp-http-oauth-token-lifecycle-runtime.spec.md` | `docs/plans/M52-mcp-http-oauth-token-lifecycle-runtime.plan.md` | Add token lease contracts, source references, refresh planning diagnostics, and authorized request factories for MCP HTTP clients. |
 | M53 MCP HTTP OAuth Authorization Flow Runtime | `docs/specs/M53-mcp-http-oauth-authorization-flow-runtime.spec.md` | `docs/plans/M53-mcp-http-oauth-authorization-flow-runtime.plan.md` | Add PKCE/state contracts, authorization request planning, callback validation, token exchange DTOs, and flow diagnostics for MCP HTTP OAuth clients. |
+| M54 MCP HTTP OAuth Token Exchange Runtime | `docs/specs/M54-mcp-http-oauth-token-exchange-runtime.spec.md` | `docs/plans/M54-mcp-http-oauth-token-exchange-runtime.plan.md` | Execute OAuth authorization-code token exchange through typed transports, response contracts, redacted diagnostics, and token lease conversion. |
 
 ## M01 Slice Index
 
@@ -1096,9 +1106,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M53-04 Flow Diagnostics Redaction | `docs/specs/M53-04-flow-diagnostics-redaction.spec.md` | `docs/plans/M53-04-flow-diagnostics-redaction.plan.md` | Serializable flow diagnostics and redaction regression coverage. |
 | M53-05 Hardening Docs | `docs/specs/M53-05-hardening-docs.spec.md` | `docs/plans/M53-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M53 quality gate evidence. |
 
+## M54 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M54-00 MCP HTTP OAuth Token Exchange Technical Design | `docs/specs/M54-00-mcp-http-oauth-token-exchange-technical-design.spec.md` | `docs/plans/M54-00-mcp-http-oauth-token-exchange-technical-design.plan.md` | Architecture baseline for token exchange execution, transport boundaries, response parsing, lease conversion, redaction, and verification. |
+| M54-01 Token Response Contracts | `docs/specs/M54-01-token-response-contracts.spec.md` | `docs/plans/M54-01-token-response-contracts.plan.md` | Token endpoint success/error response contracts, parser helpers, and redacted debug behavior. |
+| M54-02 Token Exchange Transport | `docs/specs/M54-02-token-exchange-transport.spec.md` | `docs/plans/M54-02-token-exchange-transport.plan.md` | Async OAuth token exchange form POST transport boundary with fixture and reqwest implementations. |
+| M54-03 Token Exchange Runner Diagnostics | `docs/specs/M54-03-token-exchange-runner-diagnostics.spec.md` | `docs/plans/M54-03-token-exchange-runner-diagnostics.plan.md` | Exchange runner reports for success, provider error, invalid response, and retryable transport failure. |
+| M54-04 Lease Conversion Redaction | `docs/specs/M54-04-lease-conversion-redaction.spec.md` | `docs/plans/M54-04-lease-conversion-redaction.plan.md` | Convert successful token responses to existing token leases while omitting refresh-token persistence. |
+| M54-05 Hardening Docs | `docs/specs/M54-05-hardening-docs.spec.md` | `docs/plans/M54-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M54 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M53 complete; next milestone planning.
+Current implementation focus: M54-01 token response contracts.
 
 Most recent completed implementation documents:
 
@@ -1154,6 +1175,20 @@ Most recent completed implementation documents:
 - `docs/plans/M53-04-flow-diagnostics-redaction.plan.md`
 - `docs/specs/M53-05-hardening-docs.spec.md`
 - `docs/plans/M53-05-hardening-docs.plan.md`
+- `docs/specs/M54-mcp-http-oauth-token-exchange-runtime.spec.md`
+- `docs/plans/M54-mcp-http-oauth-token-exchange-runtime.plan.md`
+- `docs/specs/M54-00-mcp-http-oauth-token-exchange-technical-design.spec.md`
+- `docs/plans/M54-00-mcp-http-oauth-token-exchange-technical-design.plan.md`
+- `docs/specs/M54-01-token-response-contracts.spec.md`
+- `docs/plans/M54-01-token-response-contracts.plan.md`
+- `docs/specs/M54-02-token-exchange-transport.spec.md`
+- `docs/plans/M54-02-token-exchange-transport.plan.md`
+- `docs/specs/M54-03-token-exchange-runner-diagnostics.spec.md`
+- `docs/plans/M54-03-token-exchange-runner-diagnostics.plan.md`
+- `docs/specs/M54-04-lease-conversion-redaction.spec.md`
+- `docs/plans/M54-04-lease-conversion-redaction.plan.md`
+- `docs/specs/M54-05-hardening-docs.spec.md`
+- `docs/plans/M54-05-hardening-docs.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1520,9 +1555,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M53-00-mcp-http-oauth-authorization-flow-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M53-00-mcp-http-oauth-authorization-flow-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M54-00-mcp-http-oauth-token-exchange-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M54-00-mcp-http-oauth-token-exchange-technical-design.plan.md`
 
 Next implementation slice:
 
-- To be planned after M53 completion.
+- `docs/specs/M54-01-token-response-contracts.spec.md`
+- `docs/plans/M54-01-token-response-contracts.plan.md`

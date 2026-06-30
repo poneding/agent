@@ -19,7 +19,7 @@
 - Read: `docs/roadmap/PRODUCT_GAP_BACKLOG.md`
 - Read: `docs/architecture/README.md`
 
-- [ ] **Step 1: Review product gates**
+- [x] **Step 1: Review product gates**
 
 Run:
 
@@ -74,7 +74,7 @@ Add deterministic fake-provider E2E/eval evidence and document real-provider opt
 
 Use the focused commands named by each slice plan.
 
-- [ ] **Step 2: Run final M56 gate**
+- [x] **Step 2: Run final M56 gate**
 
 Run:
 
@@ -96,11 +96,11 @@ Expected: all gates pass and M56 evidence artifacts are redacted.
 - Modify: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
 - Modify: `docs/plans/M56-coding-agent-golden-path-v1.plan.md`
 
-- [ ] **Step 1: Update product docs**
+- [x] **Step 1: Update product docs**
 
 Document the golden path command, fake-provider fixture, real-provider opt-in path, trace/audit/replay evidence, and known limitations.
 
-- [ ] **Step 2: Commit completion**
+- [x] **Step 2: Commit completion**
 
 Run exact-path staging for M56 files, source, tests, and docs, then:
 
@@ -115,5 +115,5 @@ Expected: commit contains implementation, tests, and docs for M56 completion.
 - [x] M56-01 through M56-05 are implemented and committed in focused stages.
 - [x] CLI/JSON can run the deterministic local coding golden path.
 - [x] Trace, permission, audit, replay, and final review evidence are present.
-- [ ] TUI/Desktop bridge contracts remain shared-runtime based.
-- [ ] Final M56 verification gates pass.
+- [x] TUI/Desktop bridge contracts remain shared-runtime based.
+- [x] Final M56 verification gates pass.

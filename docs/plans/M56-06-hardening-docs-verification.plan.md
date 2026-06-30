@@ -20,7 +20,7 @@
 - Read: `docs/milestones/README.md`
 - Read: `docs/plans/M56-coding-agent-golden-path-v1.plan.md`
 
-- [ ] **Step 1: Review closeout scope**
+- [x] **Step 1: Review closeout scope**
 
 Run:
 
@@ -37,7 +37,7 @@ Expected: closeout is docs/status/verification only, with no new runtime contrac
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Modify: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
 
-- [ ] **Step 1: Document the M56 acceptance command**
+- [x] **Step 1: Document the M56 acceptance command**
 
 Add the deterministic default command and artifact paths:
 
@@ -45,7 +45,7 @@ Add the deterministic default command and artifact paths:
 cargo xtask eval
 ```
 
-- [ ] **Step 2: Document real-provider limits**
+- [x] **Step 2: Document real-provider limits**
 
 State that default M56 is fixture-driven and credential-free; real-provider parity moves to M57.
 
@@ -56,7 +56,7 @@ State that default M56 is fixture-driven and credential-free; real-provider pari
 - Modify: `docs/plans/M56-coding-agent-golden-path-v1.plan.md`
 - Modify: `docs/plans/M56-06-hardening-docs-verification.plan.md`
 
-- [ ] **Step 1: Mark M56 complete after gates pass**
+- [x] **Step 1: Mark M56 complete after gates pass**
 
 Update milestone status, active focus, next action, and M57 handoff only after final verification succeeds.
 
@@ -66,7 +66,7 @@ Update milestone status, active focus, next action, and M57 handoff only after f
 - Read: `Cargo.toml`
 - Read: `xtask/src/lib.rs`
 
-- [ ] **Step 1: Run final M56 gates**
+- [x] **Step 1: Run final M56 gates**
 
 Run:
 
@@ -84,7 +84,7 @@ Expected: all commands pass and generated artifacts stay under ignored `target/`
 **Files:**
 - Modify/Create only M56 closeout docs and status files.
 
-- [ ] **Step 1: Commit closeout**
+- [x] **Step 1: Commit closeout**
 
 Run exact-path staging, then:
 
@@ -96,8 +96,8 @@ Expected: commit contains M56-06 spec/plan, README/roadmap/milestone status upda
 
 ### Completion Checklist
 
-- [ ] README documents the M56 golden-path command and artifacts.
-- [ ] Roadmap marks M56 complete and M57 next.
-- [ ] Milestones mark M56 implementation complete.
-- [ ] Final fmt/clippy/test/eval gates pass.
-- [ ] M56 closeout commit is created.
+- [x] README documents the M56 golden-path command and artifacts.
+- [x] Roadmap marks M56 complete and M57 next.
+- [x] Milestones mark M56 implementation complete.
+- [x] Final fmt/clippy/test/eval gates pass.
+- [x] M56 closeout commit is created.

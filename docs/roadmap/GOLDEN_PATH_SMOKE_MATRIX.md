@@ -49,7 +49,7 @@ M55 defines the smoke coverage needed to prove that `agent` is becoming a daily 
 
 ## Immediate M56-M60 Implications
 
-- M56 now has the GP-01 through GP-11 workflow covered by the deterministic local-coding eval fixture; final milestone closeout should keep that gate green.
+- M56 has the GP-01 through GP-11 workflow covered by the deterministic local-coding eval fixture.
 - M57 should close GP-18 with provider capability diagnostics and native adapters.
 - M58 should close GP-20 with repo-aware context selection and quality traces.
 - M59 should make GP-12 through GP-14 feel like one terminal workflow, not separate panels/tests.

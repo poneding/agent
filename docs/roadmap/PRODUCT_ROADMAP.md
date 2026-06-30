@@ -13,7 +13,7 @@ The percentages below are directional planning estimates based on the current re
 | Runtime spine, typed events, replay, checkpoints | 80% | `agent-core`, `agent-types`, `agent-storage`, M01-M04, M26-M29 | Needs product-level recovery UX and larger replay scenarios. |
 | Tool, policy, audit, sandbox foundations | 75% | M02, M03, M18, M19, `agent-tool`, `agent-policy`, `agent-sandbox` | Needs polished coding workflow defaults, stronger command streaming, and approval ergonomics. |
 | Model provider abstraction | 45% | M13-M17, fake provider, OpenAI-compatible adapter, config and secrets | Needs Anthropic, OpenAI, Gemini, local/Ollama, capability registry, routing, fallback, and account diagnostics. |
-| Local coding agent golden path | 40% | File edit, shell, Git, comprehensive loop, deterministic E2E fixtures | Needs daily-driver behavior: inspect repo, edit multiple files, run tests, recover from failures, summarize final changes. |
+| Local coding agent golden path | 60% | M56 repo/session, edit/diff, command/test, final review, and default local-coding eval scenario | Needs daily-driver behavior beyond the deterministic fixture: richer tasks, multi-file edits, retry/recovery UX, and real-provider parity. |
 | Context and memory | 50% | M05, M16, M23, prompt profiles, memory stores, retrieval design | Needs repo-aware context, semantic project indexing, memory review UX, and compaction quality gates. |
 | CLI and TUI product UX | 50% | M06, M20, `agent-cli`, `agent-tui`, JSON mode | Needs session switching, diff viewer, approval queue, slash command completeness, command cancellation, and stable batch recipes. |
 | Desktop product UX | 35% | M10, M21, `agent-desktop`, UI bridge contracts | Needs a real daily-use app: workspace dashboard, chat, diff review, permissions, provider settings, task monitor, logs, and recovery surfaces. |
@@ -21,7 +21,7 @@ The percentages below are directional planning estimates based on the current re
 | Worktree, subagents, teams | 40% | M09, `agent-worktree`, `agent-team` | Needs product workflows for parallel implementation, review, merge, and conflict resolution. |
 | Plugins and skills | 55% | M11, M22, `agent-plugin`, `agent-skill` | Needs marketplace-like management, compatibility checks in UI, and real plugin developer loop. |
 | MCP extension layer | 85% | M07, M22, M30-M54, `agent-mcp` | Sufficient for now. Remaining OAuth/token polish should be backlog unless unblocking product scenarios. |
-| Observability, evals, CI gates | 70% | M26-M29, `agent-eval`, `xtask` | Needs product-level coding eval corpus and Desktop/CLI smoke evidence. |
+| Observability, evals, CI gates | 75% | M26-M29, `agent-eval`, `xtask`, M56 local-coding golden path | Needs broader coding eval corpus and Desktop product smoke evidence. |
 | Packaging, settings, updates | 50% | M25, settings/update crates and tests | Needs beta-grade install, upgrade, config migration, secrets setup, and provider onboarding. |
 
 Overall status: the runtime platform is ahead of the product. The next milestones should deliver vertical product value, not more extension protocol depth.
@@ -48,7 +48,7 @@ The current MCP baseline is enough to support product discovery, local gateway e
 | Milestone | Name | Goal | Key Acceptance |
 |---|---|---|---|
 | M55 | Product Baseline and Roadmap Reset | Convert the current repo into a measurable product baseline and freeze MCP expansion. | Capability audit report, golden-path smoke matrix, milestone index updated, and next specs/plans created from product priorities. |
-| M56 | Coding Agent Golden Path v1 | Make `agent` useful as a local coding assistant in one repository session. | User can ask for a small code change, inspect files, apply edits, run tests, view diff, and get final summary through CLI/TUI. |
+| M56 | Coding Agent Golden Path v1 | Make `agent` useful as a local coding assistant in one repository session. | Deterministic CLI/JSON eval proves repo/session, edit/diff, command/test, final review, trace, audit, and replay evidence. |
 | M57 | Multi-Provider Runtime | Support real provider choice across OpenAI, Anthropic, Gemini, OpenAI-compatible, and local/Ollama-style endpoints. | Provider capability matrix, account diagnostics, model selection, streaming, tool-call compatibility, fallback, and redacted error reporting. |
 | M58 | Project Context Intelligence | Build repo-aware context assembly for coding tasks. | File tree summaries, relevant-file retrieval, semantic/lexical search, pinned context, budget planning, and context quality traces. |
 | M59 | CLI/TUI Daily Driver | Turn terminal usage into a polished developer workflow. | Slash commands, session restore, approval queue, diff viewer, command streaming/cancel, task status, and JSON/batch stability. |
@@ -86,7 +86,7 @@ Acceptance:
 
 ### M56 Coding Agent Golden Path v1
 
-Status: Active implementation target. Start from M56-01 Repo Session Bootstrap and create later slice specs/plans only as implementation reaches them.
+Status: Complete. `cargo xtask eval` now runs the default suite with the deterministic `default-m56-golden-path` local-coding scenario.
 
 Purpose: prove the project can behave like a real coding agent, not only a runtime library.
 
@@ -98,15 +98,18 @@ Required slices:
 | M56-02 Edit and Diff Flow | Strengthen file edit previews, apply flow, diff summaries, and approval payloads. |
 | M56-03 Command/Test Loop | Stream shell output, cancel commands, classify failures, and feed bounded observations back to the model. |
 | M56-04 Final Review Summary | Produce changed-file summary, test evidence, unresolved risks, and next actions. |
-| M56-05 Golden Path E2E | Run deterministic coding-agent scenarios through CLI/TUI with trace and audit evidence. |
+| M56-05 Golden Path E2E | Run deterministic coding-agent scenarios through CLI/JSON with trace and audit evidence. |
+| M56-06 Hardening Docs and Verification | Document the acceptance command, run final gates, and hand off to M57. |
 
 Acceptance:
 
-- A developer can run one command in a local repo and complete a small code change with reviewable diff and tests.
-- The full turn is event-sourced, permissioned, auditable, replayable, and recoverable.
-- The workflow works with fake provider fixtures and at least one real configured provider.
+- A developer can run one command to verify the deterministic local coding path and inspect redacted eval artifacts.
+- The fixture-driven turn is event-sourced, permissioned, auditable, replayable, and summarized.
+- Real-provider parity, capability diagnostics, and fallback behavior move to M57.
 
 ### M57 Multi-Provider Runtime
+
+Status: Next active implementation target.
 
 Purpose: make provider choice a product feature.
 

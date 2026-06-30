@@ -519,8 +519,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M56-05 implementation | Complete |
 | M56-06 slice spec | Complete |
 | M56-06 slice plan | Complete |
-| M56-06 implementation | Planned |
-| M56 implementation | In progress |
+| M56-06 implementation | Complete |
+| M56 implementation | Complete |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -1210,7 +1210,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M56-06 Hardening Docs and Verification.
+Current implementation focus: M57 Multi-Provider Runtime planning.
 
 Most recent completed implementation documents:
 
@@ -1665,10 +1665,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Implement M56-06 Hardening Docs and Verification from its committed spec/plan.
+- Create M57 milestone spec/plan and the first implementation slice.
 
 Next implementation direction:
 
-- M56-06 Hardening Docs and Verification
-- M56 Coding Agent Golden Path v1 closeout
 - M57 Multi-Provider Runtime

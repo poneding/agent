@@ -737,6 +737,76 @@ pub fn build_mcp_client_http_oauth_token_exchange_request(
 }
 
 #[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenExchangeHttpRequest {
+    pub token_endpoint: String,
+    pub form: Vec<(String, String)>,
+}
+
+impl McpClientHttpOAuthTokenExchangeHttpRequest {
+    pub fn new(
+        token_endpoint: impl Into<String>,
+        form: Vec<(String, String)>,
+    ) -> Result<Self, McpError> {
+        let token_endpoint = token_endpoint.into();
+        validate_mcp_client_http_oauth_token_exchange_endpoint(&token_endpoint)?;
+        validate_mcp_client_http_oauth_token_exchange_form(&form)?;
+        Ok(Self {
+            token_endpoint: token_endpoint.trim().to_string(),
+            form,
+        })
+    }
+
+    pub fn from_exchange_request(
+        request: &McpClientHttpOAuthTokenExchangeRequest,
+    ) -> Result<Self, McpError> {
+        Self::new(request.token_endpoint.as_str(), request.form.clone())
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(self.token_endpoint.as_str(), self.form.clone()).map(|_| ())
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenExchangeHttpRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let redacted_form = self
+            .form
+            .iter()
+            .map(|(name, _)| (name.as_str(), "[redacted]"))
+            .collect::<Vec<_>>();
+        f.debug_struct("McpClientHttpOAuthTokenExchangeHttpRequest")
+            .field("token_endpoint", &self.token_endpoint)
+            .field("form", &redacted_form)
+            .finish()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenExchangeHttpResponse {
+    pub status: u16,
+    pub body: String,
+}
+
+impl McpClientHttpOAuthTokenExchangeHttpResponse {
+    pub fn new(status: u16, body: impl Into<String>) -> Result<Self, McpError> {
+        validate_mcp_client_http_oauth_token_exchange_status(status)?;
+        Ok(Self {
+            status,
+            body: body.into(),
+        })
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenExchangeHttpResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthTokenExchangeHttpResponse")
+            .field("status", &self.status)
+            .field("body", &"[redacted]")
+            .finish()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
 pub struct McpClientHttpOAuthTokenResponse {
     pub access_token: String,
     pub token_type: String,
@@ -1950,6 +2020,14 @@ pub trait McpClientHttpStreamTransport: Send {
     ) -> Result<McpClientHttpStreamOpen, McpError>;
 }
 
+#[async_trait]
+pub trait McpClientHttpOAuthTokenExchangeTransport: Send {
+    async fn exchange_token(
+        &mut self,
+        request: McpClientHttpOAuthTokenExchangeHttpRequest,
+    ) -> Result<McpClientHttpOAuthTokenExchangeHttpResponse, McpError>;
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct FixtureMcpClientHttpTransport {
     inbound_responses: VecDeque<Result<McpClientHttpResponseEnvelope, McpError>>,
@@ -1988,6 +2066,46 @@ impl McpClientHttpTransport for FixtureMcpClientHttpTransport {
         self.inbound_responses.pop_front().unwrap_or_else(|| {
             Err(McpError::Client(
                 "MCP client HTTP fixture response missing".to_string(),
+            ))
+        })
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct FixtureMcpClientHttpOAuthTokenExchangeTransport {
+    inbound_responses: VecDeque<Result<McpClientHttpOAuthTokenExchangeHttpResponse, McpError>>,
+    sent_requests: Vec<McpClientHttpOAuthTokenExchangeHttpRequest>,
+}
+
+impl FixtureMcpClientHttpOAuthTokenExchangeTransport {
+    #[must_use]
+    pub fn from_responses<I>(responses: I) -> Self
+    where
+        I: IntoIterator<Item = Result<McpClientHttpOAuthTokenExchangeHttpResponse, McpError>>,
+    {
+        Self {
+            inbound_responses: responses.into_iter().collect(),
+            sent_requests: Vec::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn sent_requests(&self) -> &[McpClientHttpOAuthTokenExchangeHttpRequest] {
+        &self.sent_requests
+    }
+}
+
+#[async_trait]
+impl McpClientHttpOAuthTokenExchangeTransport for FixtureMcpClientHttpOAuthTokenExchangeTransport {
+    async fn exchange_token(
+        &mut self,
+        request: McpClientHttpOAuthTokenExchangeHttpRequest,
+    ) -> Result<McpClientHttpOAuthTokenExchangeHttpResponse, McpError> {
+        request.validate()?;
+        self.sent_requests.push(request);
+        self.inbound_responses.pop_front().unwrap_or_else(|| {
+            Err(McpError::Client(
+                "MCP client HTTP OAuth token exchange fixture response missing".to_string(),
             ))
         })
     }
@@ -2128,6 +2246,30 @@ impl McpClientHttpTransport for McpClientHttpReqwestTransport {
         let metadata = parse_mcp_client_http_session_metadata(&metadata_headers, &mode)?;
 
         Ok(McpClientHttpResponseEnvelope::new(mode, metadata))
+    }
+}
+
+#[async_trait]
+impl McpClientHttpOAuthTokenExchangeTransport for McpClientHttpReqwestTransport {
+    async fn exchange_token(
+        &mut self,
+        request: McpClientHttpOAuthTokenExchangeHttpRequest,
+    ) -> Result<McpClientHttpOAuthTokenExchangeHttpResponse, McpError> {
+        request.validate()?;
+        let response = self
+            .client
+            .post(request.token_endpoint)
+            .form(&request.form)
+            .send()
+            .await
+            .map_err(|_| mcp_client_http_oauth_token_exchange_transport_failed())?;
+        let status = response.status().as_u16();
+        let body = response
+            .text()
+            .await
+            .map_err(|_| mcp_client_http_oauth_token_exchange_transport_failed())?;
+        McpClientHttpOAuthTokenExchangeHttpResponse::new(status, body)
+            .map_err(|_| mcp_client_http_oauth_token_exchange_transport_failed())
     }
 }
 
@@ -3013,6 +3155,54 @@ fn validate_mcp_client_http_oauth_token_response_public_token(value: &str) -> Re
     Ok(())
 }
 
+fn validate_mcp_client_http_oauth_token_exchange_endpoint(value: &str) -> Result<(), McpError> {
+    validate_mcp_client_http_oauth_url(value)
+        .map_err(|_| invalid_mcp_client_http_oauth_token_exchange())
+}
+
+fn validate_mcp_client_http_oauth_token_exchange_form(
+    form: &[(String, String)],
+) -> Result<(), McpError> {
+    if form.is_empty() {
+        return Err(invalid_mcp_client_http_oauth_token_exchange());
+    }
+    for (name, value) in form {
+        validate_mcp_client_http_oauth_token_exchange_form_name(name)?;
+        validate_mcp_client_http_oauth_token_exchange_form_value(value)?;
+    }
+    Ok(())
+}
+
+fn validate_mcp_client_http_oauth_token_exchange_form_name(value: &str) -> Result<(), McpError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+        || value.chars().any(char::is_whitespace)
+    {
+        return Err(invalid_mcp_client_http_oauth_token_exchange());
+    }
+    Ok(())
+}
+
+fn validate_mcp_client_http_oauth_token_exchange_form_value(value: &str) -> Result<(), McpError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_BODY_BYTES
+        || value.chars().any(char::is_control)
+    {
+        return Err(invalid_mcp_client_http_oauth_token_exchange());
+    }
+    Ok(())
+}
+
+fn validate_mcp_client_http_oauth_token_exchange_status(status: u16) -> Result<(), McpError> {
+    if (100..600).contains(&status) {
+        return Ok(());
+    }
+    Err(invalid_mcp_client_http_oauth_token_exchange())
+}
+
 fn has_mcp_client_http_authorization_header(headers: &BTreeMap<String, McpEnvValue>) -> bool {
     headers
         .keys()
@@ -3371,6 +3561,14 @@ fn invalid_mcp_client_http_oauth_flow() -> McpError {
 
 fn invalid_mcp_client_http_oauth_token_response() -> McpError {
     McpError::InvalidConfig("invalid MCP client HTTP OAuth token response".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_token_exchange() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth token exchange".to_string())
+}
+
+fn mcp_client_http_oauth_token_exchange_transport_failed() -> McpError {
+    McpError::Client("MCP client HTTP OAuth token exchange transport failed".to_string())
 }
 
 fn mcp_client_http_oauth_token_expired() -> McpError {

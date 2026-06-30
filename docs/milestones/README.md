@@ -468,8 +468,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M54 slice specs | Complete for M54-01 through M54-05 |
 | M54 slice plans | Complete for M54-01 through M54-05 |
 | M54-01 implementation | Complete |
-| M54-02 implementation | In progress |
-| M54-03 implementation | Not started |
+| M54-02 implementation | Complete |
+| M54-03 implementation | In progress |
 | M54-04 implementation | Not started |
 | M54-05 implementation | Not started |
 | M54 implementation | In progress |
@@ -1119,7 +1119,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M54-02 token exchange transport.
+Current implementation focus: M54-03 token exchange runner diagnostics.
 
 Most recent completed implementation documents:
 
@@ -1181,8 +1181,8 @@ Most recent completed implementation documents:
 - `docs/plans/M54-00-mcp-http-oauth-token-exchange-technical-design.plan.md`
 - `docs/specs/M54-01-token-response-contracts.spec.md`
 - `docs/plans/M54-01-token-response-contracts.plan.md`
-- `docs/specs/M54-02-token-exchange-transport.spec.md`
-- `docs/plans/M54-02-token-exchange-transport.plan.md`
+- `docs/specs/M54-03-token-exchange-runner-diagnostics.spec.md`
+- `docs/plans/M54-03-token-exchange-runner-diagnostics.plan.md`
 - `docs/specs/M54-03-token-exchange-runner-diagnostics.spec.md`
 - `docs/plans/M54-03-token-exchange-runner-diagnostics.plan.md`
 - `docs/specs/M54-04-lease-conversion-redaction.spec.md`

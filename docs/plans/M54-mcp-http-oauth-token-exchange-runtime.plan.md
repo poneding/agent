@@ -47,7 +47,7 @@ Define crate ownership, exchange transport boundary, token response parsing, red
 - Execute: `docs/plans/M54-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add token response contracts**
-- [ ] **Step 2: Add token exchange transport boundary**
+- [x] **Step 2: Add token exchange transport boundary**
 - [ ] **Step 3: Add exchange runner diagnostics**
 - [ ] **Step 4: Add lease conversion and redaction hardening**
 - [ ] **Step 5: Add docs and final verification**

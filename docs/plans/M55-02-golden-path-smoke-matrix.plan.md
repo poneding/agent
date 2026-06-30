@@ -19,7 +19,7 @@
 - Read: `xtask/`
 - Read: relevant CLI, TUI, Desktop bridge, eval, and runtime tests
 
-- [ ] **Step 1: Review required smoke groups**
+- [x] **Step 1: Review required smoke groups**
 
 Run:
 
@@ -40,7 +40,7 @@ Expected: smoke row contract and status labels are clear.
 - Read: `crates/agent-core/`
 - Read: `crates/agent-eval/` if present
 
-- [ ] **Step 1: Map available commands**
+- [x] **Step 1: Map available commands**
 
 Run:
 
@@ -56,7 +56,7 @@ Expected: a command or blocker can be named for each required smoke group.
 **Files:**
 - Create: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
 
-- [ ] **Step 1: Create smoke matrix document**
+- [x] **Step 1: Create smoke matrix document**
 
 Include:
 
@@ -66,7 +66,7 @@ Include:
 - required fixture/config notes
 - immediate M56-M60 implications
 
-- [ ] **Step 2: Avoid overclaiming**
+- [x] **Step 2: Avoid overclaiming**
 
 Mark rows as `Documented`, `Blocked`, or `Missing` when no fresh execution evidence exists.
 
@@ -77,7 +77,7 @@ Mark rows as `Documented`, `Blocked`, or `Missing` when no fresh execution evide
 - Modify: `docs/plans/M55-02-golden-path-smoke-matrix.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run docs verification**
+- [x] **Step 1: Run docs verification**
 
 Run:
 
@@ -100,8 +100,8 @@ Expected: commit contains only M55-02 docs and status updates.
 
 ### Completion Checklist
 
-- [ ] Required smoke groups are present.
-- [ ] Every row has a command path or blocker.
-- [ ] Real-provider checks are opt-in.
-- [ ] Product safety checks cover permission, audit, trace, replay, and recovery.
-- [ ] `git diff --check` passes for changed docs.
+- [x] Required smoke groups are present.
+- [x] Every row has a command path or blocker.
+- [x] Real-provider checks are opt-in.
+- [x] Product safety checks cover permission, audit, trace, replay, and recovery.
+- [x] `git diff --check` passes for changed docs.

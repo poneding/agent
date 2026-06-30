@@ -81,6 +81,7 @@ pub enum ContextSelectionReason {
     DirectoryMatch,
     LanguageMatch,
     KindMatch,
+    SemanticMatch,
 }
 
 impl ContextSelectionReason {
@@ -93,6 +94,7 @@ impl ContextSelectionReason {
             Self::DirectoryMatch => "directory_match",
             Self::LanguageMatch => "language_match",
             Self::KindMatch => "kind_match",
+            Self::SemanticMatch => "semantic_match",
         }
     }
 }
@@ -198,7 +200,7 @@ impl ContextCandidate {
         })
     }
 
-    fn from_file(
+    pub(crate) fn from_file(
         file: &ProjectFileSummary,
         score: u32,
         reasons: Vec<ContextSelectionReason>,
@@ -447,7 +449,7 @@ pub fn retrieve_relevant_context(
     ))
 }
 
-fn score_file(
+pub(crate) fn score_file(
     file: &ProjectFileSummary,
     task_tokens: &BTreeSet<String>,
     pinned_paths: &HashSet<&str>,
@@ -502,7 +504,7 @@ fn intersection_count(left: &BTreeSet<String>, right: &BTreeSet<String>) -> u32 
         .unwrap_or(MAX_TOKEN_MATCHES)
 }
 
-fn lexical_tokens(value: &str) -> BTreeSet<String> {
+pub(crate) fn lexical_tokens(value: &str) -> BTreeSet<String> {
     let mut normalized = String::with_capacity(value.len());
     for ch in value.chars() {
         if ch.is_ascii_alphanumeric() {

@@ -1,16 +1,20 @@
 use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use agent_context::retrieve_relevant_context;
 pub use agent_context::{
     ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
+    ContextHybridCandidate, ContextHybridCandidateOmission, ContextHybridRetrievalReport,
     ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery,
-    ContextRetrievalReport, ContextSelectionReason, ProjectContextDiagnostic,
-    ProjectContextDiagnosticSeverity, ProjectContextLimits, ProjectContextOmission,
-    ProjectContextSummary, ProjectContextVisibility, ProjectDirectorySummary, ProjectFileKind,
-    ProjectFileSummary,
+    ContextRetrievalReport, ContextSelectionReason, ContextSemanticFallbackPolicy,
+    ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode, ContextSemanticRetrievalStatus,
+    ContextSemanticRetrievalSummary, ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
+    ProjectContextLimits, ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,
+    ProjectDirectorySummary, ProjectFileKind, ProjectFileSummary, ProjectSemanticDocument,
 };
+use agent_context::{retrieve_hybrid_context, retrieve_relevant_context};
+use agent_memory::EmbeddingProvider;
 use thiserror::Error;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -35,6 +39,20 @@ pub struct ProjectContextRetrievalInput {
 pub struct ProjectContextRetrievalReport {
     pub summary: ProjectContextSummary,
     pub retrieval: ContextRetrievalReport,
+}
+
+pub struct ProjectContextHybridRetrievalInput {
+    pub workspace_root: PathBuf,
+    pub limits: ProjectContextLimits,
+    pub query: ContextRetrievalQuery,
+    pub semantic_config: ContextSemanticRetrievalConfig,
+    pub embedding_provider: Option<Arc<dyn EmbeddingProvider>>,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ProjectContextHybridRetrievalReport {
+    pub summary: ProjectContextSummary,
+    pub hybrid: ContextHybridRetrievalReport,
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -153,6 +171,29 @@ pub fn retrieve_project_context(
     Ok(ProjectContextRetrievalReport {
         summary: scan_report.summary,
         retrieval,
+    })
+}
+
+pub async fn retrieve_project_context_hybrid(
+    input: ProjectContextHybridRetrievalInput,
+) -> Result<ProjectContextHybridRetrievalReport, ProjectContextRetrievalError> {
+    let scan_report = scan_project_context(ProjectContextScanInput {
+        workspace_root: input.workspace_root,
+        limits: input.limits,
+    })
+    .map_err(retrieval_error_from_scan)?;
+    let hybrid = retrieve_hybrid_context(
+        &scan_report.summary,
+        input.query,
+        input.semantic_config,
+        input.embedding_provider.as_deref(),
+    )
+    .await
+    .map_err(retrieval_error_from_context)?;
+
+    Ok(ProjectContextHybridRetrievalReport {
+        summary: scan_report.summary,
+        hybrid,
     })
 }
 

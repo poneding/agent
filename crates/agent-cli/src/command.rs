@@ -17,19 +17,22 @@ use agent_core::{
     CommandFailureClassification, CommandTestDiagnosticSeverity, CommandTestLoopError,
     CommandTestLoopInput, CommandTestLoopReport, ConfigDiagnostic, ConfigDiagnosticSeverity,
     ConfigLayer, ConfigLayerKind, ConfigOverride, ConfiguredTurnError, ConfiguredTurnInput,
-    ConfiguredTurnRunner, ContextRetrievalQuery, EditDiffDiagnosticSeverity, EditDiffFlowError,
-    EditDiffFlowInput, EditDiffFlowReport, EffectiveRuntimeConfig, ExtensionCapabilitySummary,
-    ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind,
-    ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
-    ExtensionSource, ExtensionSourceKind, PlatformPathOverrides, PlatformPaths,
-    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity, ProjectContextLimits,
+    ConfiguredTurnRunner, ContextRetrievalQuery, ContextSemanticFallbackPolicy,
+    ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode, EditDiffDiagnosticSeverity,
+    EditDiffFlowError, EditDiffFlowInput, EditDiffFlowReport, EffectiveRuntimeConfig,
+    ExtensionCapabilitySummary, ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus,
+    ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry,
+    ExtensionRegistryError, ExtensionSource, ExtensionSourceKind, PlatformPathOverrides,
+    PlatformPaths, ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
+    ProjectContextHybridRetrievalInput, ProjectContextHybridRetrievalReport, ProjectContextLimits,
     ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
     ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
     ProviderSupportReport, ProviderSupportRole, RepoGitState, RepoSessionBootstrapError,
     RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds, RuntimeModelConfig,
     SettingsError, SettingsProfile, StartupMigrationRunner, bootstrap_repo_session,
     coding_agent_model_requirements, replay_final_review, retrieve_project_context,
-    run_command_test_loop, run_edit_diff_flow, scan_project_context,
+    retrieve_project_context_hybrid, run_command_test_loop, run_edit_diff_flow,
+    scan_project_context,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -49,9 +52,10 @@ use agent_mcp::{
     parse_mcp_server_export_manifest_json, select_mcp_server_export_profile,
 };
 use agent_memory::{
-    InMemoryMemoryEditor, MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary,
-    MemoryError, MemoryImportPolicy, MemoryRecord, MemoryRetentionPolicy, MemoryScope,
-    MemorySensitivity, MemorySource, MemoryTombstone,
+    DeterministicEmbeddingProvider, EmbeddingProvider, InMemoryMemoryEditor, MemoryArchive,
+    MemoryArchiveError, MemoryEditor, MemoryEditorSummary, MemoryError, MemoryImportPolicy,
+    MemoryRecord, MemoryRetentionPolicy, MemoryScope, MemorySensitivity, MemorySource,
+    MemoryTombstone,
 };
 use agent_model::{
     EnvSecretResolver, ModelCapabilities, ModelConfigError, ModelCostProfile, ModelEndpointConfig,
@@ -82,11 +86,12 @@ use agent_ui_bridge::{
     UiConfigSnapshot, UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic,
     UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame,
     UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
-    UiPlatformPathsSummary, UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot,
-    UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole,
-    UiProviderSupportSummary, UiRepoSessionSnapshot, UiSettingsProfileSummary,
-    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
-    UiTaskSummary, encode_json_frame, normalize_runtime_event,
+    UiPlatformPathsSummary, UiProjectContextHybridRetrievalSnapshot,
+    UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
+    UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
+    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
+    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
+    normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -101,6 +106,53 @@ const DEFAULT_PROJECT_CONTEXT_MAX_FILE_BYTES: u64 = 64 * 1024;
 const DEFAULT_PROJECT_CONTEXT_MAX_TOTAL_BYTES: u64 = 2 * 1024 * 1024;
 const DEFAULT_CONTEXT_RETRIEVAL_MAX_CANDIDATES: u32 = 8;
 const DEFAULT_CONTEXT_RETRIEVAL_BUDGET_TOKENS: u32 = 1_200;
+const DEFAULT_CONTEXT_SEMANTIC_DIMENSIONS: usize = 4;
+const DEFAULT_CONTEXT_SEMANTIC_LEXICAL_WEIGHT: &str = "0.35";
+const DEFAULT_CONTEXT_SEMANTIC_SEMANTIC_WEIGHT: &str = "0.65";
+const DEFAULT_CONTEXT_SEMANTIC_MINIMUM_SCORE: &str = "0.0";
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProjectContextSemanticCliOptions {
+    pub mode: ProjectContextSemanticCliMode,
+    pub dimensions: usize,
+    pub lexical_weight: String,
+    pub semantic_weight: String,
+    pub minimum_score: String,
+    pub fallback: ProjectContextSemanticCliFallback,
+}
+
+impl Default for ProjectContextSemanticCliOptions {
+    fn default() -> Self {
+        Self {
+            mode: ProjectContextSemanticCliMode::Default,
+            dimensions: DEFAULT_CONTEXT_SEMANTIC_DIMENSIONS,
+            lexical_weight: DEFAULT_CONTEXT_SEMANTIC_LEXICAL_WEIGHT.to_string(),
+            semantic_weight: DEFAULT_CONTEXT_SEMANTIC_SEMANTIC_WEIGHT.to_string(),
+            minimum_score: DEFAULT_CONTEXT_SEMANTIC_MINIMUM_SCORE.to_string(),
+            fallback: ProjectContextSemanticCliFallback::Lexical,
+        }
+    }
+}
+
+impl ProjectContextSemanticCliOptions {
+    #[must_use]
+    pub const fn uses_hybrid_retrieval(&self) -> bool {
+        matches!(self.mode, ProjectContextSemanticCliMode::Fixture)
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ProjectContextSemanticCliMode {
+    Default,
+    Off,
+    Fixture,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ProjectContextSemanticCliFallback {
+    Lexical,
+    FailClosed,
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CliCommand {
@@ -132,6 +184,7 @@ pub enum CliCommand {
         max_candidates: u32,
         budget_tokens: u32,
         pinned_paths: Vec<String>,
+        semantic: ProjectContextSemanticCliOptions,
     },
     RepoEdit {
         workspace_root: PathBuf,
@@ -566,12 +619,14 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             max_candidates,
             budget_tokens,
             pinned_paths,
+            semantic,
         } => render_text_project_context_select(
             workspace_root,
             task,
             max_candidates,
             budget_tokens,
             pinned_paths,
+            semantic,
         ),
         CliCommand::RepoEdit {
             workspace_root,
@@ -663,12 +718,14 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 max_candidates,
                 budget_tokens,
                 pinned_paths,
+                semantic,
             } => render_text_project_context_select(
                 workspace_root,
                 task,
                 max_candidates,
                 budget_tokens,
                 pinned_paths,
+                semantic,
             ),
             CliCommand::RepoEdit {
                 workspace_root,
@@ -774,6 +831,7 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
         max_candidates,
         budget_tokens,
         pinned_paths,
+        semantic,
     } = invocation.command
     {
         return render_json_project_context_select(
@@ -782,6 +840,7 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
             max_candidates,
             budget_tokens,
             pinned_paths,
+            semantic,
         );
     }
     if let CliCommand::RepoEdit {
@@ -1006,6 +1065,7 @@ where
     let mut max_candidates = DEFAULT_CONTEXT_RETRIEVAL_MAX_CANDIDATES;
     let mut budget_tokens = DEFAULT_CONTEXT_RETRIEVAL_BUDGET_TOKENS;
     let mut pinned_paths = Vec::new();
+    let mut semantic = ProjectContextSemanticCliOptions::default();
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -1046,6 +1106,39 @@ where
                     ))
                 })?;
             }
+            "--semantic" => {
+                let value = take_flag_value(args, &arg)?;
+                semantic.mode = parse_project_context_semantic_mode(&value)?;
+            }
+            "--semantic-dimensions" => {
+                let value = take_flag_value(args, &arg)?;
+                semantic.dimensions = parse_project_context_semantic_dimensions(&value)?;
+            }
+            "--lexical-weight" => {
+                let value = take_flag_value(args, &arg)?;
+                semantic.lexical_weight = parse_project_context_semantic_number(
+                    "repo context select --lexical-weight",
+                    &value,
+                )?;
+            }
+            "--semantic-weight" => {
+                let value = take_flag_value(args, &arg)?;
+                semantic.semantic_weight = parse_project_context_semantic_number(
+                    "repo context select --semantic-weight",
+                    &value,
+                )?;
+            }
+            "--minimum-score" => {
+                let value = take_flag_value(args, &arg)?;
+                semantic.minimum_score = parse_project_context_semantic_number(
+                    "repo context select --minimum-score",
+                    &value,
+                )?;
+            }
+            "--semantic-fallback" => {
+                let value = take_flag_value(args, &arg)?;
+                semantic.fallback = parse_project_context_semantic_fallback(&value)?;
+            }
             _ => {
                 return Err(CliError::UnknownArgument(format!(
                     "repo context select {arg}"
@@ -1061,7 +1154,54 @@ where
         max_candidates,
         budget_tokens,
         pinned_paths,
+        semantic,
     })
+}
+
+fn parse_project_context_semantic_mode(
+    value: &str,
+) -> Result<ProjectContextSemanticCliMode, CliError> {
+    match value {
+        "off" => Ok(ProjectContextSemanticCliMode::Off),
+        "fixture" => Ok(ProjectContextSemanticCliMode::Fixture),
+        _ => Err(CliError::UnknownArgument(format!(
+            "repo context select --semantic {value}"
+        ))),
+    }
+}
+
+fn parse_project_context_semantic_fallback(
+    value: &str,
+) -> Result<ProjectContextSemanticCliFallback, CliError> {
+    match value {
+        "lexical" => Ok(ProjectContextSemanticCliFallback::Lexical),
+        "fail-closed" => Ok(ProjectContextSemanticCliFallback::FailClosed),
+        _ => Err(CliError::UnknownArgument(format!(
+            "repo context select --semantic-fallback {value}"
+        ))),
+    }
+}
+
+fn parse_project_context_semantic_dimensions(value: &str) -> Result<usize, CliError> {
+    let dimensions = value.parse::<usize>().map_err(|_| {
+        CliError::UnknownArgument(format!("repo context select --semantic-dimensions {value}"))
+    })?;
+    if dimensions == 0 {
+        return Err(CliError::UnknownArgument(format!(
+            "repo context select --semantic-dimensions {value}"
+        )));
+    }
+    Ok(dimensions)
+}
+
+fn parse_project_context_semantic_number(label: &str, value: &str) -> Result<String, CliError> {
+    let number = value
+        .parse::<f64>()
+        .map_err(|_| CliError::UnknownArgument(format!("{label} {value}")))?;
+    if !number.is_finite() || number < 0.0 {
+        return Err(CliError::UnknownArgument(format!("{label} {value}")));
+    }
+    Ok(value.to_string())
 }
 
 fn parse_repo_edit_args<I>(args: &mut I) -> Result<CliCommand, CliError>
@@ -5250,7 +5390,24 @@ fn render_text_project_context_select(
     max_candidates: u32,
     budget_tokens: u32,
     pinned_paths: Vec<String>,
+    semantic: ProjectContextSemanticCliOptions,
 ) -> CliOutput {
+    if semantic.uses_hybrid_retrieval() {
+        return match evaluate_project_context_hybrid_retrieval(
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+            semantic,
+        ) {
+            Ok(report) => CliOutput::exit(render_project_context_hybrid_retrieval_text(&report)),
+            Err(error) => {
+                CliOutput::failure(render_project_context_retrieval_error_text(&error), 2)
+            }
+        };
+    }
+
     match evaluate_project_context_retrieval(
         workspace_root,
         task,
@@ -5269,7 +5426,39 @@ fn render_json_project_context_select(
     max_candidates: u32,
     budget_tokens: u32,
     pinned_paths: Vec<String>,
+    semantic: ProjectContextSemanticCliOptions,
 ) -> CliOutput {
+    if semantic.uses_hybrid_retrieval() {
+        return match evaluate_project_context_hybrid_retrieval(
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+            semantic,
+        ) {
+            Ok(report) => {
+                let snapshot = match UiProjectContextHybridRetrievalSnapshot::from_report(&report) {
+                    Ok(snapshot) => snapshot,
+                    Err(error) => {
+                        let mut stdout = json_frame_line(UiJsonFrame::Error {
+                            code: "project_context_hybrid_retrieval_snapshot_failed".to_string(),
+                            message: redact_secret_like_text(&error.to_string()),
+                            recoverable: false,
+                        });
+                        stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                        return CliOutput::failure(stdout, 2);
+                    }
+                };
+                let mut stdout =
+                    json_frame_line(UiJsonFrame::ProjectContextHybridRetrievalSnapshot(snapshot));
+                stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                CliOutput::exit(stdout)
+            }
+            Err(error) => render_json_project_context_retrieval_error(error),
+        };
+    }
+
     match evaluate_project_context_retrieval(
         workspace_root,
         task,
@@ -5295,29 +5484,31 @@ fn render_json_project_context_select(
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
         }
-        Err(error) => {
-            let mut stdout = String::new();
-            for diagnostic in error.diagnostics() {
-                stdout.push_str(&json_frame_line(UiJsonFrame::ConfigDiagnostic {
-                    severity: format!("{:?}", diagnostic.severity).to_ascii_lowercase(),
-                    code: redact_secret_like_text(&diagnostic.code),
-                    message: redact_secret_like_text(&diagnostic.message),
-                    field_path: diagnostic
-                        .path
-                        .clone()
-                        .map(|path| redact_secret_like_text(&path)),
-                    source: None,
-                }));
-            }
-            stdout.push_str(&json_frame_line(UiJsonFrame::Error {
-                code: error.code().to_string(),
-                message: project_context_retrieval_error_message(&error),
-                recoverable: false,
-            }));
-            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
-            CliOutput::failure(stdout, 2)
-        }
+        Err(error) => render_json_project_context_retrieval_error(error),
     }
+}
+
+fn render_json_project_context_retrieval_error(error: ProjectContextRetrievalError) -> CliOutput {
+    let mut stdout = String::new();
+    for diagnostic in error.diagnostics() {
+        stdout.push_str(&json_frame_line(UiJsonFrame::ConfigDiagnostic {
+            severity: format!("{:?}", diagnostic.severity).to_ascii_lowercase(),
+            code: redact_secret_like_text(&diagnostic.code),
+            message: redact_secret_like_text(&diagnostic.message),
+            field_path: diagnostic
+                .path
+                .clone()
+                .map(|path| redact_secret_like_text(&path)),
+            source: None,
+        }));
+    }
+    stdout.push_str(&json_frame_line(UiJsonFrame::Error {
+        code: error.code().to_string(),
+        message: project_context_retrieval_error_message(&error),
+        recoverable: false,
+    }));
+    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+    CliOutput::failure(stdout, 2)
 }
 
 fn evaluate_project_context(
@@ -5343,6 +5534,90 @@ fn evaluate_project_context_retrieval(
         limits: default_project_context_limits(),
         query,
     })
+}
+
+fn evaluate_project_context_hybrid_retrieval(
+    workspace_root: PathBuf,
+    task: String,
+    max_candidates: u32,
+    budget_tokens: u32,
+    pinned_paths: Vec<String>,
+    semantic: ProjectContextSemanticCliOptions,
+) -> Result<ProjectContextHybridRetrievalReport, ProjectContextRetrievalError> {
+    let query = ContextRetrievalQuery::new(task, max_candidates, budget_tokens, pinned_paths)
+        .map_err(project_context_retrieval_error_from_context)?;
+    let semantic_config = semantic_config_from_cli(&semantic)?;
+    let provider = semantic_embedding_provider(&semantic)?;
+    let runtime = cli_runtime().map_err(project_context_retrieval_error_from_cli)?;
+
+    runtime.block_on(retrieve_project_context_hybrid(
+        ProjectContextHybridRetrievalInput {
+            workspace_root,
+            limits: default_project_context_limits(),
+            query,
+            semantic_config,
+            embedding_provider: provider,
+        },
+    ))
+}
+
+fn semantic_config_from_cli(
+    semantic: &ProjectContextSemanticCliOptions,
+) -> Result<ContextSemanticRetrievalConfig, ProjectContextRetrievalError> {
+    let lexical_weight = parse_validated_semantic_f64(&semantic.lexical_weight)?;
+    let semantic_weight = parse_validated_semantic_f64(&semantic.semantic_weight)?;
+    let minimum_score = parse_validated_semantic_f64(&semantic.minimum_score)?;
+    let fallback_policy = match semantic.fallback {
+        ProjectContextSemanticCliFallback::Lexical => ContextSemanticFallbackPolicy::LexicalOnly,
+        ProjectContextSemanticCliFallback::FailClosed => ContextSemanticFallbackPolicy::FailClosed,
+    };
+    let mode = match semantic.mode {
+        ProjectContextSemanticCliMode::Fixture => ContextSemanticRetrievalMode::Provider {
+            provider_id: "fixture".to_string(),
+            model_id: "fixture-embedding".to_string(),
+            dimensions: semantic.dimensions,
+        },
+        ProjectContextSemanticCliMode::Default | ProjectContextSemanticCliMode::Off => {
+            ContextSemanticRetrievalMode::Disabled
+        }
+    };
+
+    ContextSemanticRetrievalConfig::new(
+        mode,
+        lexical_weight,
+        semantic_weight,
+        minimum_score,
+        fallback_policy,
+    )
+    .map_err(project_context_retrieval_error_from_context)
+}
+
+fn semantic_embedding_provider(
+    semantic: &ProjectContextSemanticCliOptions,
+) -> Result<Option<Arc<dyn EmbeddingProvider>>, ProjectContextRetrievalError> {
+    if !semantic.uses_hybrid_retrieval() {
+        return Ok(None);
+    }
+    let provider =
+        DeterministicEmbeddingProvider::new("fixture", "fixture-embedding", semantic.dimensions)
+            .map_err(project_context_retrieval_error_from_memory)?;
+    Ok(Some(Arc::new(provider)))
+}
+
+fn parse_validated_semantic_f64(value: &str) -> Result<f64, ProjectContextRetrievalError> {
+    let number = value.parse::<f64>().map_err(|_| {
+        project_context_retrieval_error_from_message(
+            "project_context.retrieval.invalid_semantic_config",
+            "semantic numeric option is invalid",
+        )
+    })?;
+    if !number.is_finite() || number < 0.0 {
+        return Err(project_context_retrieval_error_from_message(
+            "project_context.retrieval.invalid_semantic_config",
+            "semantic numeric option is invalid",
+        ));
+    }
+    Ok(number)
 }
 
 fn default_project_context_limits() -> ProjectContextLimits {
@@ -5411,6 +5686,86 @@ fn render_project_context_retrieval_text(report: &ProjectContextRetrievalReport)
         "Project context selection: ready\nWorkspace: {}\nTask: {}\nSelected count: {}\nUsed tokens: {}/{}\nDiagnostics: {}\n{}{}\n",
         redact_secret_like_text(&report.summary.workspace_root_display),
         bounded_cli_text(&retrieval.query.task, 160),
+        retrieval.selected.len(),
+        retrieval.used_tokens,
+        retrieval.query.budget_tokens,
+        diagnostics,
+        selected,
+        omitted
+    )
+}
+
+fn render_project_context_hybrid_retrieval_text(
+    report: &ProjectContextHybridRetrievalReport,
+) -> String {
+    let retrieval = &report.hybrid;
+    let diagnostics = if retrieval.diagnostics.is_empty() {
+        "none".to_string()
+    } else {
+        retrieval
+            .diagnostics
+            .iter()
+            .map(|diagnostic| {
+                format!(
+                    "{}:{}",
+                    diagnostic.severity.as_str(),
+                    redact_secret_like_text(&diagnostic.code)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    let selected = retrieval
+        .selected
+        .iter()
+        .take(8)
+        .map(|candidate| {
+            let reasons = candidate
+                .candidate
+                .reasons
+                .iter()
+                .map(|reason| reason.as_str())
+                .collect::<Vec<_>>()
+                .join(",");
+            let semantic_score = candidate
+                .semantic_score
+                .map(|score| format!("{score:.3}"))
+                .unwrap_or_else(|| "none".to_string());
+            format!(
+                "- {} [{}; {}; score={}; lexical={:.3}; semantic={}; combined={:.3}; tokens={}; reasons={}]",
+                redact_secret_like_text(&candidate.candidate.path),
+                candidate.candidate.kind.as_str(),
+                candidate.candidate.visibility.as_str(),
+                candidate.candidate.score,
+                candidate.lexical_score,
+                semantic_score,
+                candidate.combined_score,
+                candidate.candidate.token_estimate,
+                reasons
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let selected = if selected.is_empty() {
+        "Selected: none\n".to_string()
+    } else {
+        format!("Selected:\n{selected}\n")
+    };
+    let omitted = if retrieval.omitted.is_empty() {
+        "Omitted candidates: none".to_string()
+    } else {
+        format!("Omitted candidates: {}", retrieval.omitted.len())
+    };
+
+    format!(
+        "Project context selection: ready\nWorkspace: {}\nTask: {}\nSemantic: {} provider={} model={} embedded={}/{}\nSelected count: {}\nUsed tokens: {}/{}\nDiagnostics: {}\n{}{}\n",
+        redact_secret_like_text(&report.summary.workspace_root_display),
+        bounded_cli_text(&retrieval.query.task, 160),
+        retrieval.semantic.status.as_str(),
+        retrieval.semantic.provider_id.as_deref().unwrap_or("none"),
+        retrieval.semantic.model_id.as_deref().unwrap_or("none"),
+        retrieval.semantic.embedded_document_count,
+        retrieval.semantic.document_count,
         retrieval.selected.len(),
         retrieval.used_tokens,
         retrieval.query.budget_tokens,
@@ -5507,12 +5862,36 @@ fn project_context_retrieval_error_message(error: &ProjectContextRetrievalError)
 fn project_context_retrieval_error_from_context(
     error: agent_context::ContextError,
 ) -> ProjectContextRetrievalError {
+    project_context_retrieval_error_from_message(
+        "project_context.retrieval.invalid",
+        &error.to_string(),
+    )
+}
+
+fn project_context_retrieval_error_from_memory(error: MemoryError) -> ProjectContextRetrievalError {
+    project_context_retrieval_error_from_message(
+        "project_context.retrieval.embedding_provider",
+        &error.to_string(),
+    )
+}
+
+fn project_context_retrieval_error_from_cli(error: CliError) -> ProjectContextRetrievalError {
+    project_context_retrieval_error_from_message(
+        "project_context.retrieval.runtime",
+        &error.to_string(),
+    )
+}
+
+fn project_context_retrieval_error_from_message(
+    code: &str,
+    message: &str,
+) -> ProjectContextRetrievalError {
     ProjectContextRetrievalError::Retrieval {
         diagnostics: vec![
             ProjectContextDiagnostic::new(
                 ProjectContextDiagnosticSeverity::Error,
-                "project_context.retrieval.invalid",
-                redact_secret_like_text(&error.to_string()),
+                code,
+                redact_secret_like_text(message),
                 None,
             )
             .expect("valid retrieval diagnostic"),

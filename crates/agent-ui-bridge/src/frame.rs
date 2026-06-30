@@ -1,8 +1,10 @@
 use agent_core::{
     CodingFinalReview, CommandExecutionStatus, CommandFailureClassification, CommandTestLoopReport,
-    ContextCandidate, ContextCandidateOmission, ContextRetrievalDiagnosticSeverity,
-    DiffEvidenceState, EditDiffFlowReport, ObservabilityEvidenceBundle,
-    ProjectContextDiagnosticSeverity, ProjectContextRetrievalReport, ProjectContextSummary,
+    ContextCandidate, ContextCandidateOmission, ContextHybridCandidate,
+    ContextHybridCandidateOmission, ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity,
+    ContextSemanticRetrievalSummary, DiffEvidenceState, EditDiffFlowReport,
+    ObservabilityEvidenceBundle, ProjectContextDiagnosticSeverity,
+    ProjectContextHybridRetrievalReport, ProjectContextRetrievalReport, ProjectContextSummary,
     ProjectFileSummary, RepoGitState, RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity,
     StartupMigrationOutcome, TaskArtifact, TaskReviewSummary,
 };
@@ -1241,6 +1243,223 @@ pub struct UiProjectContextRetrievalDiagnosticSummary {
     pub path: Option<String>,
 }
 
+fn retrieval_diagnostic_summary(
+    diagnostic: &ContextRetrievalDiagnostic,
+) -> Result<UiProjectContextRetrievalDiagnosticSummary, UiBridgeError> {
+    let severity = context_retrieval_diagnostic_severity_label(diagnostic.severity).to_string();
+    let code = bounded_task_text(&diagnostic.code);
+    let message = bounded_task_text(&diagnostic.message);
+    validate_non_empty("project context retrieval diagnostic code", &code)?;
+    validate_non_empty("project context retrieval diagnostic message", &message)?;
+    Ok(UiProjectContextRetrievalDiagnosticSummary {
+        severity,
+        code,
+        message,
+        path: diagnostic.path.clone().map(|path| bounded_task_text(&path)),
+    })
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct UiProjectContextRetrievalScore(f64);
+
+impl Eq for UiProjectContextRetrievalScore {}
+
+impl UiProjectContextRetrievalScore {
+    pub fn new(score: f64) -> Result<Self, UiBridgeError> {
+        if !score.is_finite() {
+            return Err(UiBridgeError::Validation(
+                "project context retrieval score must be finite".to_string(),
+            ));
+        }
+        Ok(Self((score * 1_000.0).round() / 1_000.0))
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextHybridRetrievalSnapshot {
+    pub workspace_root_display: String,
+    pub task: String,
+    pub max_candidates: u32,
+    pub budget_tokens: u32,
+    pub used_tokens: u32,
+    pub selected_count: u32,
+    pub omitted_count: u32,
+    pub diagnostic_count: u32,
+    pub semantic: UiProjectContextSemanticRetrievalSummary,
+    pub selected: Vec<UiProjectContextHybridCandidateSummary>,
+    pub omitted: Vec<UiProjectContextHybridOmissionSummary>,
+    pub diagnostics: Vec<UiProjectContextRetrievalDiagnosticSummary>,
+}
+
+impl UiProjectContextHybridRetrievalSnapshot {
+    pub fn from_report(
+        report: &ProjectContextHybridRetrievalReport,
+    ) -> Result<Self, UiBridgeError> {
+        let workspace_root_display = bounded_task_text(&report.summary.workspace_root_display);
+        validate_non_empty(
+            "project context hybrid retrieval workspace root",
+            &workspace_root_display,
+        )?;
+        let task = bounded_task_text(&report.hybrid.query.task);
+        validate_non_empty("project context hybrid retrieval task", &task)?;
+        let selected = report
+            .hybrid
+            .selected
+            .iter()
+            .map(UiProjectContextHybridCandidateSummary::from_candidate)
+            .collect::<Result<Vec<_>, _>>()?;
+        let omitted = report
+            .hybrid
+            .omitted
+            .iter()
+            .map(UiProjectContextHybridOmissionSummary::from_omission)
+            .collect::<Result<Vec<_>, _>>()?;
+        let diagnostics = report
+            .hybrid
+            .diagnostics
+            .iter()
+            .map(retrieval_diagnostic_summary)
+            .collect::<Result<Vec<_>, UiBridgeError>>()?;
+
+        Ok(Self {
+            workspace_root_display,
+            task,
+            max_candidates: report.hybrid.query.max_candidates,
+            budget_tokens: report.hybrid.query.budget_tokens,
+            used_tokens: report.hybrid.used_tokens,
+            selected_count: report.hybrid.selected.len().try_into().map_err(|_| {
+                UiBridgeError::Validation(
+                    "too many project context hybrid retrieval selections".to_string(),
+                )
+            })?,
+            omitted_count: report.hybrid.omitted.len().try_into().map_err(|_| {
+                UiBridgeError::Validation(
+                    "too many project context hybrid retrieval omissions".to_string(),
+                )
+            })?,
+            diagnostic_count: report.hybrid.diagnostics.len().try_into().map_err(|_| {
+                UiBridgeError::Validation(
+                    "too many project context hybrid retrieval diagnostics".to_string(),
+                )
+            })?,
+            semantic: UiProjectContextSemanticRetrievalSummary::from_summary(
+                &report.hybrid.semantic,
+            ),
+            selected,
+            omitted,
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextSemanticRetrievalSummary {
+    pub status: String,
+    pub provider_id: Option<String>,
+    pub model_id: Option<String>,
+    pub dimensions: Option<usize>,
+    pub document_count: u32,
+    pub embedded_document_count: u32,
+}
+
+impl UiProjectContextSemanticRetrievalSummary {
+    fn from_summary(summary: &ContextSemanticRetrievalSummary) -> Self {
+        Self {
+            status: summary.status.as_str().to_string(),
+            provider_id: summary
+                .provider_id
+                .clone()
+                .map(|provider| bounded_task_text(&provider)),
+            model_id: summary
+                .model_id
+                .clone()
+                .map(|model| bounded_task_text(&model)),
+            dimensions: summary.dimensions,
+            document_count: summary.document_count,
+            embedded_document_count: summary.embedded_document_count,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextHybridCandidateSummary {
+    pub path: String,
+    pub kind: String,
+    pub language: Option<String>,
+    pub size_bytes: u64,
+    pub line_count: Option<u32>,
+    pub token_estimate: u32,
+    pub visibility: String,
+    pub score: u32,
+    pub lexical_score: UiProjectContextRetrievalScore,
+    pub semantic_score: Option<UiProjectContextRetrievalScore>,
+    pub combined_score: UiProjectContextRetrievalScore,
+    pub reasons: Vec<String>,
+}
+
+impl UiProjectContextHybridCandidateSummary {
+    fn from_candidate(candidate: &ContextHybridCandidate) -> Result<Self, UiBridgeError> {
+        let base = UiProjectContextRetrievalCandidateSummary::from_candidate(&candidate.candidate)?;
+        Ok(Self {
+            path: base.path,
+            kind: base.kind,
+            language: base.language,
+            size_bytes: base.size_bytes,
+            line_count: base.line_count,
+            token_estimate: base.token_estimate,
+            visibility: base.visibility,
+            score: base.score,
+            lexical_score: UiProjectContextRetrievalScore::new(candidate.lexical_score)?,
+            semantic_score: candidate
+                .semantic_score
+                .map(UiProjectContextRetrievalScore::new)
+                .transpose()?,
+            combined_score: UiProjectContextRetrievalScore::new(candidate.combined_score)?,
+            reasons: base.reasons,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextHybridOmissionSummary {
+    pub path: String,
+    pub kind: String,
+    pub language: Option<String>,
+    pub size_bytes: u64,
+    pub line_count: Option<u32>,
+    pub token_estimate: u32,
+    pub visibility: String,
+    pub score: u32,
+    pub lexical_score: UiProjectContextRetrievalScore,
+    pub semantic_score: Option<UiProjectContextRetrievalScore>,
+    pub combined_score: UiProjectContextRetrievalScore,
+    pub reasons: Vec<String>,
+    pub reason: String,
+}
+
+impl UiProjectContextHybridOmissionSummary {
+    fn from_omission(omission: &ContextHybridCandidateOmission) -> Result<Self, UiBridgeError> {
+        let candidate =
+            UiProjectContextHybridCandidateSummary::from_candidate(&omission.candidate)?;
+        Ok(Self {
+            path: candidate.path,
+            kind: candidate.kind,
+            language: candidate.language,
+            size_bytes: candidate.size_bytes,
+            line_count: candidate.line_count,
+            token_estimate: candidate.token_estimate,
+            visibility: candidate.visibility,
+            score: candidate.score,
+            lexical_score: candidate.lexical_score,
+            semantic_score: candidate.semantic_score,
+            combined_score: candidate.combined_score,
+            reasons: candidate.reasons,
+            reason: omission.reason.as_str().to_string(),
+        })
+    }
+}
+
 impl UiPromptDiagnosticSummary {
     pub fn new(
         severity: impl Into<String>,
@@ -1637,6 +1856,7 @@ pub enum UiJsonFrame {
     PromptSummary(UiPromptSummary),
     ProjectContextSnapshot(UiProjectContextSnapshot),
     ProjectContextRetrievalSnapshot(UiProjectContextRetrievalSnapshot),
+    ProjectContextHybridRetrievalSnapshot(UiProjectContextHybridRetrievalSnapshot),
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),

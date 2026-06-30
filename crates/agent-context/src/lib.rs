@@ -8,6 +8,7 @@ pub mod memory_layers;
 pub mod project;
 pub mod prompt;
 pub mod retrieval;
+pub mod semantic;
 
 pub use budget::{
     BudgetClass, BudgetDecision, BudgetItem, BudgetPlan, ContextBudget, plan_context_budget,
@@ -33,6 +34,12 @@ pub use retrieval::{
     ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
     ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery,
     ContextRetrievalReport, ContextSelectionReason, retrieve_relevant_context,
+};
+pub use semantic::{
+    ContextHybridCandidate, ContextHybridCandidateOmission, ContextHybridRetrievalReport,
+    ContextSemanticFallbackPolicy, ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode,
+    ContextSemanticRetrievalStatus, ContextSemanticRetrievalSummary, ProjectSemanticDocument,
+    build_project_semantic_documents, retrieve_hybrid_context,
 };
 
 /// Returns a smoke-test string proving the context crate links shared types.

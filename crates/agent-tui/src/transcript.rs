@@ -219,6 +219,24 @@ impl TranscriptState {
                     false,
                 ))
             }
+            UiJsonFrame::ProjectContextHybridRetrievalSnapshot(snapshot) => {
+                self.push(TranscriptItem::new(
+                    TranscriptItemKind::Progress,
+                    "project-context-hybrid-retrieval",
+                    format!(
+                        "{} semantic={} provider={} selected={} omitted={} diagnostics={} tokens={}/{}",
+                        snapshot.workspace_root_display,
+                        snapshot.semantic.status,
+                        snapshot.semantic.provider_id.as_deref().unwrap_or("none"),
+                        snapshot.selected_count,
+                        snapshot.omitted_count,
+                        snapshot.diagnostic_count,
+                        snapshot.used_tokens,
+                        snapshot.budget_tokens
+                    ),
+                    false,
+                ))
+            }
             UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "extensions",

@@ -69,7 +69,7 @@ Rank relevant files from task text, paths, symbols, file metadata, and existing 
 - Execute: `docs/specs/M58-03-semantic-hybrid-search.spec.md`
 - Execute: `docs/plans/M58-03-semantic-hybrid-search.plan.md`
 
-- [ ] **Step 1: Complete optional semantic retrieval slice**
+- [x] **Step 1: Complete optional semantic retrieval slice**
 
 Integrate configured embedding-backed retrieval where available, keep lexical retrieval as the deterministic fallback, and add fixture-backed hybrid scoring tests.
 
@@ -122,7 +122,7 @@ Run exact-path staging and commit the final docs/status updates.
 
 - [x] Project file tree summaries are typed, bounded, serde-friendly, and tested.
 - [x] Relevant-file retrieval is deterministic and budget-aware.
-- [ ] Semantic/hybrid retrieval is optional and fixture-tested.
+- [x] Semantic/hybrid retrieval is optional and fixture-tested.
 - [ ] Pinned context participates in prompt budget planning with diagnostics.
 - [ ] CLI/JSON and bridge surfaces expose safe context evidence.
 - [ ] Context quality traces and eval coverage are implemented.

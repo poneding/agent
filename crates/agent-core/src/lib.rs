@@ -103,16 +103,19 @@ pub use observability::{
 };
 pub use project_context::{
     ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
+    ContextHybridCandidate, ContextHybridCandidateOmission, ContextHybridRetrievalReport,
     ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery,
-    ContextRetrievalReport, ContextSelectionReason, ProjectContextDiagnostic,
-    ProjectContextDiagnosticSeverity, ProjectContextLimits, ProjectContextOmission,
-    ProjectContextSummary, ProjectContextVisibility, ProjectDirectorySummary, ProjectFileKind,
-    ProjectFileSummary,
+    ContextRetrievalReport, ContextSelectionReason, ContextSemanticFallbackPolicy,
+    ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode, ContextSemanticRetrievalStatus,
+    ContextSemanticRetrievalSummary, ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
+    ProjectContextLimits, ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,
+    ProjectDirectorySummary, ProjectFileKind, ProjectFileSummary, ProjectSemanticDocument,
 };
 pub use project_context::{
+    ProjectContextHybridRetrievalInput, ProjectContextHybridRetrievalReport,
     ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
     ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
-    retrieve_project_context, scan_project_context,
+    retrieve_project_context, retrieve_project_context_hybrid, scan_project_context,
 };
 pub use provider_support::{
     ProviderSupportReport, ProviderSupportRole, ProviderSupportSummary,

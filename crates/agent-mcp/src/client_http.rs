@@ -595,6 +595,25 @@ impl<T> McpHttpClient<T> {
         let state = self.state.lock().await;
         state.session_metadata.clone()
     }
+
+    pub async fn stream_request_snapshot(
+        &self,
+        server_id: &McpServerId,
+    ) -> Result<McpClientHttpStreamRequest, McpError> {
+        let state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(server_id) {
+            return Err(McpError::Client(
+                "MCP client HTTP session is not initialized".to_string(),
+            ));
+        }
+        let config = state.config.clone().ok_or_else(|| {
+            McpError::Client("MCP client HTTP session is not initialized".to_string())
+        })?;
+        McpClientHttpStreamRequest::from_config_with_session_metadata(
+            &config,
+            &state.session_metadata,
+        )
+    }
 }
 
 impl McpHttpClient<McpClientHttpReqwestTransport> {

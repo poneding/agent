@@ -18,14 +18,14 @@
 - Read: `crates/agent-mcp/tests/mcp_client_http_session_headers.rs`
 - Read: `crates/agent-mcp/tests/mcp_client_http_sse_checkpoints.rs`
 
-- [ ] **Step 1: Review resume snapshot spec and existing session tests**
+- [x] **Step 1: Review resume snapshot spec and existing session tests**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_stream_resume.rs`
 
-- [ ] **Step 1: Add initialized stream snapshot tests**
+- [x] **Step 1: Add initialized stream snapshot tests**
 
 Run:
 
@@ -41,11 +41,11 @@ Expected: tests fail before snapshot API exists.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add stream request snapshot method**
-- [ ] **Step 2: Require initialized matching server id**
-- [ ] **Step 3: Include safe session and checkpoint headers**
-- [ ] **Step 4: Prove snapshot does not mutate state**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add stream request snapshot method**
+- [x] **Step 2: Require initialized matching server id**
+- [x] **Step 3: Include safe session and checkpoint headers**
+- [x] **Step 4: Prove snapshot does not mutate state**
+- [x] **Step 5: Run focused tests**
 
 Run:
 
@@ -57,7 +57,7 @@ Expected: focused tests pass.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -70,7 +70,7 @@ Expected: checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M48-03**
+- [x] **Step 1: Update status and commit M48-03**
 
 Run:
 
@@ -78,3 +78,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http stream resume snapshots"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_resume` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

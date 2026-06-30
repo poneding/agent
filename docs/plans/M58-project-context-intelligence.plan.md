@@ -76,8 +76,8 @@ Integrate configured embedding-backed retrieval where available, keep lexical re
 ### Task 5: M58-04 Pinned Context and Budget Planning
 
 **Files:**
-- Create: `docs/specs/M58-04-pinned-context-budget-planning.spec.md`
-- Create: `docs/plans/M58-04-pinned-context-budget-planning.plan.md`
+- Execute: `docs/specs/M58-04-pinned-context-budget-planning.spec.md`
+- Execute: `docs/plans/M58-04-pinned-context-budget-planning.plan.md`
 
 - [ ] **Step 1: Complete pinned context slice**
 

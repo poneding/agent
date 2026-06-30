@@ -20,7 +20,7 @@
 - Read: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Review M56 bootstrap contract**
+- [x] **Step 1: Review M56 bootstrap contract**
 
 Run:
 
@@ -36,11 +36,11 @@ Expected: M56 milestone and first-slice deliverables are clear.
 - Create: `docs/specs/M56-coding-agent-golden-path-v1.spec.md`
 - Create: `docs/plans/M56-coding-agent-golden-path-v1.plan.md`
 
-- [ ] **Step 1: Write M56 milestone spec**
+- [x] **Step 1: Write M56 milestone spec**
 
 Define the vertical coding-agent journey, runtime ownership, UI surfaces, tool/policy/audit requirements, trace/replay/recovery expectations, and acceptance gates.
 
-- [ ] **Step 2: Write M56 milestone plan**
+- [x] **Step 2: Write M56 milestone plan**
 
 Decompose M56 only as needed. Expected starting slices:
 
@@ -58,11 +58,11 @@ Adjust slice count only if M55 evidence proves a better breakdown.
 - Create: `docs/specs/M56-01-repo-session-bootstrap.spec.md`
 - Create: `docs/plans/M56-01-repo-session-bootstrap.plan.md`
 
-- [ ] **Step 1: Write M56-01 spec**
+- [x] **Step 1: Write M56-01 spec**
 
 Specify workspace input, durable session/conversation creation, Git/config/provider diagnostics, UI/JSON events, failure handling, security, and tests.
 
-- [ ] **Step 2: Write M56-01 plan**
+- [x] **Step 2: Write M56-01 plan**
 
 Name concrete crates, tests, commands, and acceptance checklist so implementation can start without another planning pass.
 
@@ -76,7 +76,7 @@ Name concrete crates, tests, commands, and acceptance checklist so implementatio
 - Modify: `docs/plans/M55-04-m56-bootstrap.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Verify docs**
+- [x] **Step 1: Verify docs**
 
 Run:
 
@@ -101,8 +101,8 @@ Expected: commit contains only M55-04 and M56 planning docs/status updates.
 
 ### Completion Checklist
 
-- [ ] M56 milestone spec/plan exist.
-- [ ] M56-01 spec/plan are implementation-ready.
-- [ ] M56 scope maps to M55 baseline, smoke matrix, and backlog.
-- [ ] Milestone index points to M56 as the next implementation focus after M55.
-- [ ] `git diff --check` passes for changed docs.
+- [x] M56 milestone spec/plan exist.
+- [x] M56-01 spec/plan are implementation-ready.
+- [x] M56 scope maps to M55 baseline, smoke matrix, and backlog.
+- [x] Milestone index points to M56 as the next implementation focus after M55.
+- [x] `git diff --check` passes for changed docs.

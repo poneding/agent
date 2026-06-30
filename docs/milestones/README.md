@@ -496,6 +496,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M55 slice specs | Complete for M55-01 through M55-04 |
 | M55 slice plans | Complete for M55-01 through M55-04 |
 | M55 implementation | Planned |
+| M56 milestone spec | Complete |
+| M56 milestone plan | Complete |
+| M56-01 slice spec | Complete |
+| M56-01 slice plan | Complete |
+| M56 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -565,6 +570,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M53 MCP HTTP OAuth Authorization Flow Runtime | `docs/specs/M53-mcp-http-oauth-authorization-flow-runtime.spec.md` | `docs/plans/M53-mcp-http-oauth-authorization-flow-runtime.plan.md` | Add PKCE/state contracts, authorization request planning, callback validation, token exchange DTOs, and flow diagnostics for MCP HTTP OAuth clients. |
 | M54 MCP HTTP OAuth Token Exchange Runtime | `docs/specs/M54-mcp-http-oauth-token-exchange-runtime.spec.md` | `docs/plans/M54-mcp-http-oauth-token-exchange-runtime.plan.md` | Execute OAuth authorization-code token exchange through typed transports, response contracts, redacted diagnostics, and token lease conversion. |
 | M55 Product Baseline and Roadmap Reset | `docs/specs/M55-product-baseline-roadmap-reset.spec.md` | `docs/plans/M55-product-baseline-roadmap-reset.plan.md` | Establish the mainline product baseline, smoke matrix, product gap backlog, and M56 bootstrap while keeping MCP parked unless product workflows require it. |
+| M56 Coding Agent Golden Path v1 | `docs/specs/M56-coding-agent-golden-path-v1.spec.md` | `docs/plans/M56-coding-agent-golden-path-v1.plan.md` | Make `agent` useful as a local coding assistant by proving repo bootstrap, edit/diff, command/test, final review, trace, audit, and replay through one vertical workflow. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1160,6 +1166,16 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M55-03 Product Gap Backlog | `docs/specs/M55-03-product-gap-backlog.spec.md` | `docs/plans/M55-03-product-gap-backlog.plan.md` | Convert baseline and smoke gaps into P0/P1/P2 product backlog items mapped to M56-M66. |
 | M55-04 M56 Bootstrap | `docs/specs/M55-04-m56-bootstrap.spec.md` | `docs/plans/M55-04-m56-bootstrap.plan.md` | Create M56 milestone spec/plan and the first implementation-ready repo session bootstrap slice. |
 
+## M56 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M56-01 Repo Session Bootstrap | `docs/specs/M56-01-repo-session-bootstrap.spec.md` | `docs/plans/M56-01-repo-session-bootstrap.plan.md` | Open a workspace, load config, detect Git state, create durable runtime ids, and emit safe CLI/JSON session diagnostics. |
+| M56-02 Edit and Diff Flow | To be created before implementation | To be created before implementation | Strengthen edit previews, apply flow, diff summaries, and approval payloads. |
+| M56-03 Command/Test Loop | To be created before implementation | To be created before implementation | Stream or bound command output, support cancellation-ready state, classify failures, and return observations to the model. |
+| M56-04 Final Review Summary | To be created before implementation | To be created before implementation | Produce changed-file, test, trace, audit, risk, and next-action summaries. |
+| M56-05 Golden Path E2E | To be created before implementation | To be created before implementation | Run deterministic coding-agent scenarios through CLI/JSON with trace, permission, audit, and replay evidence. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1173,7 +1189,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: MX01 epilogue complete; next product focus remains M55 Product Baseline and Roadmap Reset.
+Current implementation focus: complete M55 status hardening, then start M56-01 Repo Session Bootstrap.
 
 Most recent completed implementation documents:
 
@@ -1628,13 +1644,11 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Execute M55-01 Capability Inventory and produce `docs/roadmap/MAINLINE_CAPABILITY_BASELINE.md`
-- Execute M55-02 Golden Path Smoke Matrix and produce `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
-- Execute M55-03 Product Gap Backlog and produce `docs/roadmap/PRODUCT_GAP_BACKLOG.md`
-- Execute M55-04 M56 Bootstrap and create M56 implementation-ready planning docs
+- Complete M55 hardening by reconciling README, roadmap, milestone status, and M55 plan checkboxes
+- Start M56-01 Repo Session Bootstrap implementation from `docs/plans/M56-01-repo-session-bootstrap.plan.md`
 
 Next implementation direction:
 
-- M55 Product Baseline and Roadmap Reset
+- M56-01 Repo Session Bootstrap
 - M56 Coding Agent Golden Path v1
 - M57 Multi-Provider Runtime

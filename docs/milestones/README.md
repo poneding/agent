@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M52 |
-| Milestone-level plans | Complete for M01-M52 |
+| Milestone-level specs | Complete for M01-M53 |
+| Milestone-level plans | Complete for M01-M53 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -455,6 +455,15 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M52-04 implementation | Complete |
 | M52-05 implementation | Complete |
 | M52 implementation | Complete |
+| M53 technical design | Complete |
+| M53 slice specs | Complete for M53-01 through M53-05 |
+| M53 slice plans | Complete for M53-01 through M53-05 |
+| M53-01 implementation | In progress |
+| M53-02 implementation | Not started |
+| M53-03 implementation | Not started |
+| M53-04 implementation | Not started |
+| M53-05 implementation | Not started |
+| M53 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -512,6 +521,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M50 MCP HTTP Background Stream Supervision Runtime | `docs/specs/M50-mcp-http-background-stream-supervision.spec.md` | `docs/plans/M50-mcp-http-background-stream-supervision.plan.md` | Add bounded background supervision foundations for MCP HTTP streams with cancellation, leases, and redacted reports. |
 | M51 MCP HTTP OAuth Authorization Runtime | `docs/specs/M51-mcp-http-oauth-authorization-runtime.spec.md` | `docs/plans/M51-mcp-http-oauth-authorization-runtime.plan.md` | Add OAuth authorization metadata, diagnostics, and explicit bearer-token request boundaries for MCP HTTP clients. |
 | M52 MCP HTTP OAuth Token Lifecycle Runtime | `docs/specs/M52-mcp-http-oauth-token-lifecycle-runtime.spec.md` | `docs/plans/M52-mcp-http-oauth-token-lifecycle-runtime.plan.md` | Add token lease contracts, source references, refresh planning diagnostics, and authorized request factories for MCP HTTP clients. |
+| M53 MCP HTTP OAuth Authorization Flow Runtime | `docs/specs/M53-mcp-http-oauth-authorization-flow-runtime.spec.md` | `docs/plans/M53-mcp-http-oauth-authorization-flow-runtime.plan.md` | Add PKCE/state contracts, authorization request planning, callback validation, token exchange DTOs, and flow diagnostics for MCP HTTP OAuth clients. |
 
 ## M01 Slice Index
 
@@ -1075,9 +1085,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M52-04 Authorized Request Factory | `docs/specs/M52-04-authorized-request-factory.spec.md` | `docs/plans/M52-04-authorized-request-factory.plan.md` | Compose usable token leases with the M51 bearer request boundary for POST and GET stream requests. |
 | M52-05 Hardening Docs | `docs/specs/M52-05-hardening-docs.spec.md` | `docs/plans/M52-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M52 quality gate evidence. |
 
+## M53 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M53-00 MCP HTTP OAuth Authorization Flow Technical Design | `docs/specs/M53-00-mcp-http-oauth-authorization-flow-technical-design.spec.md` | `docs/plans/M53-00-mcp-http-oauth-authorization-flow-technical-design.plan.md` | Architecture baseline for PKCE/state, authorization URL planning, callback validation, token exchange DTOs, redaction, and verification. |
+| M53-01 PKCE State Contracts | `docs/specs/M53-01-pkce-state-contracts.spec.md` | `docs/plans/M53-01-pkce-state-contracts.plan.md` | PKCE verifier/challenge and OAuth state contracts for authorization flows. |
+| M53-02 Authorization Request Planning | `docs/specs/M53-02-authorization-request-planning.spec.md` | `docs/plans/M53-02-authorization-request-planning.plan.md` | Deterministic authorization URL plans from OAuth metadata, client id, redirect URI, scopes, PKCE challenge, and state. |
+| M53-03 Callback Token Exchange Contracts | `docs/specs/M53-03-callback-token-exchange-contracts.spec.md` | `docs/plans/M53-03-callback-token-exchange-contracts.plan.md` | State-validated callback outcomes and redacted token exchange request DTOs without network execution. |
+| M53-04 Flow Diagnostics Redaction | `docs/specs/M53-04-flow-diagnostics-redaction.spec.md` | `docs/plans/M53-04-flow-diagnostics-redaction.plan.md` | Serializable flow diagnostics and redaction regression coverage. |
+| M53-05 Hardening Docs | `docs/specs/M53-05-hardening-docs.spec.md` | `docs/plans/M53-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M53 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M52 complete; plan M53 before the next implementation slice.
+Current implementation focus: M53-01 PKCE state contracts.
 
 Most recent completed implementation documents:
 
@@ -1119,6 +1140,10 @@ Most recent completed implementation documents:
 - `docs/plans/M52-04-authorized-request-factory.plan.md`
 - `docs/specs/M52-05-hardening-docs.spec.md`
 - `docs/plans/M52-05-hardening-docs.plan.md`
+- `docs/specs/M53-mcp-http-oauth-authorization-flow-runtime.spec.md`
+- `docs/plans/M53-mcp-http-oauth-authorization-flow-runtime.plan.md`
+- `docs/specs/M53-00-mcp-http-oauth-authorization-flow-technical-design.spec.md`
+- `docs/plans/M53-00-mcp-http-oauth-authorization-flow-technical-design.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1485,9 +1510,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M52-00-mcp-http-oauth-token-lifecycle-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M52-00-mcp-http-oauth-token-lifecycle-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M53-00-mcp-http-oauth-authorization-flow-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M53-00-mcp-http-oauth-authorization-flow-technical-design.plan.md`
 
 Next implementation slice:
 
-- Not yet planned. Create M53 milestone-level spec/plan before continuing implementation.
+- `docs/specs/M53-01-pkce-state-contracts.spec.md`
+- `docs/plans/M53-01-pkce-state-contracts.plan.md`

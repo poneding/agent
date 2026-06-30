@@ -528,7 +528,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-01 implementation | Complete |
 | M57-02 slice spec | Complete |
 | M57-02 slice plan | Complete |
-| M57-02 implementation | Planned |
+| M57-02 implementation | Complete |
+| M57-03 slice spec | Planned |
+| M57-03 slice plan | Planned |
+| M57-03 implementation | Planned |
 | M57 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1212,7 +1215,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M57-01 Provider Capability Matrix | `docs/specs/M57-01-provider-capability-matrix.spec.md` | `docs/plans/M57-01-provider-capability-matrix.plan.md` | Completed typed provider/model capability profiles, deterministic mismatch diagnostics, and CLI/JSON capability summaries. |
-| M57-02 Anthropic Adapter | `docs/specs/M57-02-anthropic-adapter.spec.md` | `docs/plans/M57-02-anthropic-adapter.plan.md` | Add a native Anthropic/Claude adapter with fixture-backed streaming and tool-use mapping. |
+| M57-02 Anthropic Adapter | `docs/specs/M57-02-anthropic-adapter.spec.md` | `docs/plans/M57-02-anthropic-adapter.plan.md` | Completed native Anthropic/Claude adapter with fixture-backed streaming and tool-use mapping. |
+| M57-03 Gemini Adapter | `docs/specs/M57-03-gemini-adapter.spec.md` | `docs/plans/M57-03-gemini-adapter.plan.md` | Planned native Gemini adapter with fixture-backed streaming and tool-use mapping. |
 
 ## MX01 Slice Index
 
@@ -1227,7 +1231,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M57-02 Anthropic Adapter implementation.
+Current implementation focus: M57-03 Gemini Adapter planning.
 
 Most recent completed implementation documents:
 
@@ -1682,8 +1686,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- After M57-02 implementation, create M57-03 Gemini Adapter spec and plan.
+- Create M57-03 Gemini Adapter spec and plan.
 
 Next implementation direction:
 
-- Implement M57-02 Anthropic Adapter from its committed spec/plan.
+- M57 Multi-Provider Runtime

@@ -21,7 +21,7 @@
 - Read: `crates/agent-cli/src/providers.rs`
 - Read: `crates/agent-cli/tests/live_provider_registration.rs`
 
-- [ ] **Step 1: Review current provider adapter baseline**
+- [x] **Step 1: Review current provider adapter baseline**
 
 Run:
 
@@ -41,7 +41,7 @@ Expected: existing OpenAI-compatible request/stream mapping and CLI provider reg
 - Modify: `crates/agent-cli/tests/config_diagnostics.rs`
 - Modify: `crates/agent-cli/tests/live_provider_registration.rs`
 
-- [ ] **Step 1: Add agent-model Anthropic tests**
+- [x] **Step 1: Add agent-model Anthropic tests**
 
 Cover:
 
@@ -52,7 +52,7 @@ Cover:
 - tool-use stream mapping from partial JSON to `ModelStreamEvent::ToolCall`
 - provider response and transport error redaction/retryability
 
-- [ ] **Step 2: Add config and capability tests**
+- [x] **Step 2: Add config and capability tests**
 
 Cover:
 
@@ -61,7 +61,7 @@ Cover:
 - default Anthropic capability profile includes streaming and tool calls
 - capability defaults remain deterministic for fake/OpenAI-compatible providers
 
-- [ ] **Step 3: Add CLI diagnostics and registration tests**
+- [x] **Step 3: Add CLI diagnostics and registration tests**
 
 Cover:
 
@@ -70,7 +70,7 @@ Cover:
 - enabled Anthropic provider registers with an in-memory secret
 - missing Anthropic env secret fails before network and redacts secret-like values
 
-- [ ] **Step 4: Run focused tests and verify failure**
+- [x] **Step 4: Run focused tests and verify failure**
 
 Run:
 
@@ -92,19 +92,19 @@ Expected: tests fail before Anthropic contracts and implementation exist.
 - Modify: `crates/agent-model/src/config.rs`
 - Modify: `crates/agent-model/src/registry.rs`
 
-- [ ] **Step 1: Extend typed provider kind and config validation**
+- [x] **Step 1: Extend typed provider kind and config validation**
 
 Add `ModelProviderKind::Anthropic`, require `api_key`, and keep serde names stable and snake_case.
 
-- [ ] **Step 2: Add request builder and transport contracts**
+- [x] **Step 2: Add request builder and transport contracts**
 
 Add `AnthropicHttpRequest`, `AnthropicHttpResponse`, `AnthropicTransport`, fixture transport, and reqwest transport with `x-api-key`, `anthropic-version`, JSON body, timeout, status handling, and URL/message redaction.
 
-- [ ] **Step 3: Add provider and stream parser**
+- [x] **Step 3: Add provider and stream parser**
 
 Implement `AnthropicProvider`, text delta parsing, tool-use accumulation by content-block index, completion mapping, unknown-event tolerance, bounded error messages, and retryability classification.
 
-- [ ] **Step 4: Add default capabilities**
+- [x] **Step 4: Add default capabilities**
 
 Add `ModelCapabilities::anthropic_default()` and update `default_for_provider_kind`.
 
@@ -115,11 +115,11 @@ Add `ModelCapabilities::anthropic_default()` and update `default_for_provider_ki
 - Modify: `crates/agent-cli/src/command.rs`
 - Modify if needed: `crates/agent-cli/tests/config_diagnostics.rs`
 
-- [ ] **Step 1: Register configured Anthropic providers**
+- [x] **Step 1: Register configured Anthropic providers**
 
 Instantiate `AnthropicProvider` for enabled Anthropic configs, resolve secrets before live invocation, and redact registration errors.
 
-- [ ] **Step 2: Render Anthropic kind/capabilities**
+- [x] **Step 2: Render Anthropic kind/capabilities**
 
 Update provider kind labels and ensure existing config check text/JSON summaries include Anthropic capability metadata without exposing endpoint URLs or secret refs.
 
@@ -130,7 +130,7 @@ Update provider kind labels and ensure existing config check text/JSON summaries
 - Modify: `docs/milestones/README.md`
 - Modify if needed: `docs/plans/M57-multi-provider-runtime.plan.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -146,7 +146,7 @@ cargo test -p agent-cli live_provider_registration
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging, then:
 
@@ -158,9 +158,9 @@ Expected: commit contains Anthropic contracts, adapter implementation, CLI wirin
 
 ### Completion Checklist
 
-- [ ] Anthropic provider kind and config validation are typed and serde-tested.
-- [ ] Anthropic request builder and stream parser are fixture-tested.
-- [ ] Tool-use streaming maps to `ModelStreamEvent::ToolCall`.
-- [ ] Provider errors are bounded, retryable where appropriate, and redacted.
-- [ ] CLI registration and config diagnostics include Anthropic without secrets.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Anthropic provider kind and config validation are typed and serde-tested.
+- [x] Anthropic request builder and stream parser are fixture-tested.
+- [x] Tool-use streaming maps to `ModelStreamEvent::ToolCall`.
+- [x] Provider errors are bounded, retryable where appropriate, and redacted.
+- [x] CLI registration and config diagnostics include Anthropic without secrets.
+- [x] Focused fmt/clippy/tests pass.

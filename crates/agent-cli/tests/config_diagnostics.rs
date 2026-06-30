@@ -41,6 +41,24 @@ timeout_ms = 1000
     .to_string()
 }
 
+fn anthropic_config_toml() -> String {
+    let mut config = valid_config_toml();
+    config.push_str(
+        r#"
+[[model.providers]]
+id = "anthropic"
+kind = "anthropic"
+default_model = "claude-3-5-sonnet-latest"
+enabled = true
+base_url = "https://api.anthropic.com/v1"
+timeout_ms = 30000
+api_key_provider = "env"
+api_key_name = "ANTHROPIC_API_KEY"
+"#,
+    );
+    config
+}
+
 fn write_config(name: &str, contents: &str) -> PathBuf {
     let path = std::env::temp_dir().join(format!("agent-cli-{name}-{}.toml", std::process::id()));
     fs::write(&path, contents).expect("write config fixture");
@@ -221,6 +239,72 @@ fn cli_config_diagnostics_json_renders_config_summary() {
         frames.last(),
         Some(UiJsonFrame::Done { event_count: 0 })
     ));
+}
+
+#[test]
+fn cli_config_diagnostics_text_reports_anthropic_capabilities() {
+    let path = write_config("anthropic-text", &anthropic_config_toml());
+    let invocation = parse_cli_invocation(["--config-check", "--config", path.to_str().unwrap()])
+        .expect("parse config check");
+
+    let output = render_cli_invocation(invocation);
+
+    assert_eq!(output.status_code, 0);
+    assert!(output.stdout.contains("Providers: anthropic, fake, openai"));
+    assert!(output.stdout.contains(
+        "anthropic: streaming=true tool_calls=true structured_outputs=false image_input=false context=200000 output=8192"
+    ));
+    assert!(!output.stdout.contains("ANTHROPIC_API_KEY"));
+}
+
+#[test]
+fn cli_config_diagnostics_json_renders_anthropic_capabilities() {
+    let path = write_config("anthropic-json", &anthropic_config_toml());
+    let invocation = parse_cli_invocation([
+        "--json",
+        "--config-check",
+        "--config",
+        path.to_str().unwrap(),
+        "--provider",
+        "anthropic",
+        "--model",
+        "claude-3-5-sonnet-latest",
+    ])
+    .expect("parse json config check");
+
+    let output = render_cli_invocation(invocation);
+
+    assert_eq!(output.status_code, 0);
+    let frames = parse_frames(&output.stdout);
+    let snapshot = frames.iter().find_map(|frame| {
+        if let UiJsonFrame::ConfigSnapshot(snapshot) = frame {
+            Some(snapshot)
+        } else {
+            None
+        }
+    });
+    let snapshot = snapshot.expect("config snapshot frame");
+    let anthropic_provider = snapshot
+        .providers
+        .iter()
+        .find(|provider| provider.id == "anthropic")
+        .expect("anthropic provider summary");
+
+    assert_eq!(snapshot.selected_provider, "anthropic");
+    assert!(anthropic_provider.capabilities.streaming);
+    assert!(anthropic_provider.capabilities.tool_calls);
+    assert!(!anthropic_provider.capabilities.structured_outputs);
+    assert!(!anthropic_provider.capabilities.image_input);
+    assert_eq!(
+        anthropic_provider.capabilities.max_context_tokens,
+        Some(200_000)
+    );
+    assert_eq!(
+        anthropic_provider.capabilities.max_output_tokens,
+        Some(8192)
+    );
+    assert!(anthropic_provider.capabilities.cost.is_none());
+    assert!(!output.stdout.contains("ANTHROPIC_API_KEY"));
 }
 
 #[test]

@@ -50,7 +50,7 @@ Add typed provider/model capability profiles, mismatch diagnostics, default prof
 - Create later: `docs/specs/M57-04-local-provider-adapter.spec.md`
 - Create later: `docs/plans/M57-04-local-provider-adapter.plan.md`
 
-- [ ] **Step 1: Add native Anthropic adapter**
+- [x] **Step 1: Add native Anthropic adapter**
 
 Implement fixture-backed Claude streaming/tool-use mapping with safe diagnostics.
 
@@ -100,7 +100,7 @@ Run exact-path staging and commit the final docs/status updates.
 ### Completion Checklist
 
 - [x] Provider capability matrix is typed, serde-friendly, and tested.
-- [ ] Anthropic adapter is implemented with fixture-backed tests.
+- [x] Anthropic adapter is implemented with fixture-backed tests.
 - [ ] Gemini adapter is implemented with fixture-backed tests.
 - [ ] Local/Ollama-compatible provider is implemented with local endpoint safety.
 - [ ] CLI/JSON provider diagnostics and fallback behavior are tested.

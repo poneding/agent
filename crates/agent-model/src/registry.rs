@@ -57,10 +57,24 @@ impl ModelCapabilities {
     }
 
     #[must_use]
+    pub fn anthropic_default() -> Self {
+        Self {
+            streaming: true,
+            tool_calls: true,
+            structured_outputs: false,
+            image_input: false,
+            max_context_tokens: Some(200_000),
+            max_output_tokens: Some(8192),
+            cost: None,
+        }
+    }
+
+    #[must_use]
     pub fn default_for_provider_kind(kind: ModelProviderKind) -> Self {
         match kind {
             ModelProviderKind::Fake => Self::fake_default(),
             ModelProviderKind::OpenAiCompatible => Self::openai_compatible_default(),
+            ModelProviderKind::Anthropic => Self::anthropic_default(),
         }
     }
 

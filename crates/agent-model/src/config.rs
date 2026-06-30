@@ -44,6 +44,7 @@ impl SecretRef {
 pub enum ModelProviderKind {
     Fake,
     OpenAiCompatible,
+    Anthropic,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -121,7 +122,11 @@ impl ModelProviderConfig {
         if let Some(api_key) = &self.api_key {
             api_key.validate()?;
         }
-        if self.kind == ModelProviderKind::OpenAiCompatible && self.api_key.is_none() {
+        if matches!(
+            self.kind,
+            ModelProviderKind::OpenAiCompatible | ModelProviderKind::Anthropic
+        ) && self.api_key.is_none()
+        {
             return Err(ModelConfigError::MissingSecretRef {
                 provider_id: self.id.clone(),
             });

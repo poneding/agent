@@ -36,6 +36,19 @@ fn openai_provider(id: &str, secret_name: &str, enabled: bool) -> ModelProviderC
     .expect("valid OpenAI-compatible provider")
 }
 
+fn anthropic_provider(id: &str, secret_name: &str, enabled: bool) -> ModelProviderConfig {
+    ModelProviderConfig::new(
+        id,
+        ModelProviderKind::Anthropic,
+        "claude-3-5-sonnet-latest",
+        ModelEndpointConfig::new(Some("https://api.anthropic.com/v1"), 30_000)
+            .expect("valid endpoint"),
+        Some(SecretRef::new("env", secret_name).expect("valid secret ref")),
+        enabled,
+    )
+    .expect("valid Anthropic provider")
+}
+
 fn invocation_policy() -> ModelInvocationPolicy {
     ModelInvocationPolicy::new(
         30_000,
@@ -81,21 +94,26 @@ fn prompt_requirements() -> ModelRequestRequirements {
 #[test]
 fn live_provider_registration_registers_enabled_config_providers() {
     let secret_ref = SecretRef::new("env", "AGENT_TEST_OPENAI_API_KEY").expect("secret ref");
+    let anthropic_secret_ref =
+        SecretRef::new("env", "AGENT_TEST_ANTHROPIC_API_KEY").expect("secret ref");
     let resolver = InMemorySecretResolver::new()
         .with_secret(secret_ref, "sk-test-secret")
+        .expect("secret resolver")
+        .with_secret(anthropic_secret_ref, "sk-ant-test-secret")
         .expect("secret resolver");
     let effective = effective_config(
         "fake",
         vec![
             fake_provider("fake", true),
             openai_provider("openai", "AGENT_TEST_OPENAI_API_KEY", true),
+            anthropic_provider("anthropic", "AGENT_TEST_ANTHROPIC_API_KEY", true),
         ],
     );
 
     let registry = build_model_provider_registry(&effective, "hello", Arc::new(resolver))
         .expect("registry builds");
 
-    assert_eq!(registry.len(), 2);
+    assert_eq!(registry.len(), 3);
     assert_eq!(
         registry.get("fake").expect("fake provider").config.id,
         "fake"
@@ -107,6 +125,14 @@ fn live_provider_registration_registers_enabled_config_providers() {
             .config
             .id,
         "openai"
+    );
+    assert_eq!(
+        registry
+            .require_capabilities("anthropic", &prompt_requirements())
+            .expect("anthropic provider")
+            .config
+            .id,
+        "anthropic"
     );
 }
 
@@ -152,6 +178,34 @@ fn live_provider_registration_missing_env_secret_fails_before_network() {
     assert!(rendered.contains("secret"));
     assert!(!rendered.contains(&missing_name));
     assert!(!rendered.contains("sk-test-secret"));
+    assert!(!rendered.contains("api_key"));
+    assert!(!rendered.contains("token"));
+    assert!(!rendered.contains("password"));
+}
+
+#[test]
+fn live_provider_registration_missing_anthropic_env_secret_fails_before_network() {
+    let missing_name = format!(
+        "AGENT_TEST_M57_MISSING_ANTHROPIC_API_KEY_{}",
+        std::process::id()
+    );
+    let effective = effective_config(
+        "anthropic",
+        vec![
+            fake_provider("fake", true),
+            anthropic_provider("anthropic", &missing_name, true),
+        ],
+    );
+
+    let error = build_model_provider_registry(&effective, "hello", Arc::new(EnvSecretResolver))
+        .expect_err("missing secret should fail at registration");
+    let rendered = error.to_string();
+
+    assert!(rendered.contains("prompt runtime failed"));
+    assert!(rendered.contains("anthropic"));
+    assert!(rendered.contains("secret"));
+    assert!(!rendered.contains(&missing_name));
+    assert!(!rendered.contains("sk-ant-test-secret"));
     assert!(!rendered.contains("api_key"));
     assert!(!rendered.contains("token"));
     assert!(!rendered.contains("password"));

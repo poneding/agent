@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 //! Model provider contracts for agent.
 
+pub mod anthropic;
 pub mod config;
 pub mod fake;
 pub mod invocation_policy;
@@ -11,6 +12,11 @@ pub mod request;
 pub mod secrets;
 pub mod stream;
 
+pub use anthropic::{
+    AnthropicError, AnthropicHttpRequest, AnthropicHttpResponse, AnthropicProvider,
+    AnthropicTransport, FixtureAnthropicTransport, ReqwestAnthropicTransport,
+    build_anthropic_request_body, parse_anthropic_sse,
+};
 pub use config::{
     ModelConfigError, ModelEndpointConfig, ModelProviderCatalog, ModelProviderConfig,
     ModelProviderKind, SecretRef,

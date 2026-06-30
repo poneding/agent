@@ -8,6 +8,10 @@ fn api_key_ref() -> SecretRef {
     SecretRef::new("env", "OPENAI_API_KEY").expect("valid secret ref")
 }
 
+fn anthropic_api_key_ref() -> SecretRef {
+    SecretRef::new("env", "ANTHROPIC_API_KEY").expect("valid secret ref")
+}
+
 #[test]
 fn provider_config_serializes_stable_shape() {
     let config = ModelProviderConfig::new(
@@ -56,6 +60,57 @@ fn provider_config_requires_secret_ref_for_openai_compatible() {
     assert!(matches!(
         err,
         ModelConfigError::MissingSecretRef { provider_id } if provider_id == "openai"
+    ));
+}
+
+#[test]
+fn provider_config_serializes_anthropic_kind() {
+    let config = ModelProviderConfig::new(
+        "anthropic",
+        ModelProviderKind::Anthropic,
+        "claude-3-5-sonnet-latest",
+        ModelEndpointConfig::new(Some("https://api.anthropic.com/v1"), 30_000)
+            .expect("valid endpoint"),
+        Some(anthropic_api_key_ref()),
+        true,
+    )
+    .expect("valid provider config");
+
+    assert_eq!(
+        serde_json::to_value(config).expect("serialize provider config"),
+        json!({
+            "id": "anthropic",
+            "kind": "anthropic",
+            "default_model": "claude-3-5-sonnet-latest",
+            "endpoint": {
+                "base_url": "https://api.anthropic.com/v1",
+                "timeout_ms": 30000
+            },
+            "api_key": {
+                "provider": "env",
+                "name": "ANTHROPIC_API_KEY"
+            },
+            "enabled": true
+        })
+    );
+}
+
+#[test]
+fn provider_config_requires_secret_ref_for_anthropic() {
+    let err = ModelProviderConfig::new(
+        "anthropic",
+        ModelProviderKind::Anthropic,
+        "claude-3-5-sonnet-latest",
+        ModelEndpointConfig::new(Some("https://api.anthropic.com/v1"), 30_000)
+            .expect("valid endpoint"),
+        None,
+        true,
+    )
+    .expect_err("missing secret ref rejected");
+
+    assert!(matches!(
+        err,
+        ModelConfigError::MissingSecretRef { provider_id } if provider_id == "anthropic"
     ));
 }
 

@@ -537,7 +537,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-04 implementation | Complete |
 | M57-05 slice spec | Complete |
 | M57-05 slice plan | Complete |
-| M57-05 implementation | Planned |
+| M57-05 implementation | Complete |
 | M57 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1224,7 +1224,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-02 Anthropic Adapter | `docs/specs/M57-02-anthropic-adapter.spec.md` | `docs/plans/M57-02-anthropic-adapter.plan.md` | Completed native Anthropic/Claude adapter with fixture-backed streaming and tool-use mapping. |
 | M57-03 Gemini Adapter | `docs/specs/M57-03-gemini-adapter.spec.md` | `docs/plans/M57-03-gemini-adapter.plan.md` | Completed native Gemini adapter with fixture-backed streaming and function-call mapping. |
 | M57-04 Local Provider Adapter | `docs/specs/M57-04-local-provider-adapter.spec.md` | `docs/plans/M57-04-local-provider-adapter.plan.md` | Completed local/Ollama-compatible provider with local endpoint safety, fixture-backed JSONL streaming, tool-call mapping, diagnostics, and CLI registration. |
-| M57-05 Provider UX Fallback | `docs/specs/M57-05-provider-ux-fallback.spec.md` | `docs/plans/M57-05-provider-ux-fallback.plan.md` | Planned typed provider support summaries, compatible-only fallback selection, redacted config-check output, and M56 coding-path fallback coverage. |
+| M57-05 Provider UX Fallback | `docs/specs/M57-05-provider-ux-fallback.spec.md` | `docs/plans/M57-05-provider-ux-fallback.plan.md` | Completed typed provider support summaries, compatible-only fallback selection, redacted config-check output, and M56 coding-path fallback coverage. |
 
 ## MX01 Slice Index
 
@@ -1239,7 +1239,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M57-05 Provider UX Fallback implementation.
+Current implementation focus: M57 final verification and closeout.
 
 Most recent completed implementation documents:
 
@@ -1698,8 +1698,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- After M57-05 implementation, complete M57 closeout docs and verification planning.
+- Complete M57 closeout docs and verification planning.
 
 Next implementation direction:
 
-- Implement typed provider support summaries, compatible-only fallback, and redacted config-check output for M57-05.
+- Run final M57 gates and close out the multi-provider runtime milestone.

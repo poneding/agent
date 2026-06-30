@@ -66,7 +66,7 @@ Implement local endpoint profile, local HTTP safety checks, and diagnostics.
 - Execute: `docs/specs/M57-05-provider-ux-fallback.spec.md`
 - Execute: `docs/plans/M57-05-provider-ux-fallback.plan.md`
 
-- [ ] **Step 1: Complete provider UX/fallback slice**
+- [x] **Step 1: Complete provider UX/fallback slice**
 
 Expose provider capability diagnostics through CLI/JSON, ensure fallback only selects compatible providers, and add redacted support output.
 
@@ -101,6 +101,6 @@ Run exact-path staging and commit the final docs/status updates.
 - [x] Anthropic adapter is implemented with fixture-backed tests.
 - [x] Gemini adapter is implemented with fixture-backed tests.
 - [x] Local/Ollama-compatible provider is implemented with local endpoint safety.
-- [ ] CLI/JSON provider diagnostics and fallback behavior are tested.
+- [x] CLI/JSON provider diagnostics and fallback behavior are tested.
 - [ ] M56 golden path remains green under `cargo xtask eval`.
 - [ ] Final workspace fmt/clippy/tests pass.

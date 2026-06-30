@@ -39,10 +39,14 @@ fn runtime_ids() -> RuntimeIds {
 }
 
 fn provider_config() -> ModelProviderConfig {
+    provider_config_with_id("fake", "fake-scripted")
+}
+
+fn provider_config_with_id(id: &str, model: &str) -> ModelProviderConfig {
     ModelProviderConfig::new(
-        "fake",
+        id,
         ModelProviderKind::Fake,
-        "fake-scripted",
+        model,
         ModelEndpointConfig::new(None, 30_000).expect("valid endpoint"),
         None,
         true,
@@ -74,24 +78,36 @@ fn requirements() -> ModelRequestRequirements {
 }
 
 fn invocation_policy() -> ModelInvocationPolicy {
+    invocation_policy_with_fallback(Vec::new())
+}
+
+fn invocation_policy_with_fallback(fallback_provider_ids: Vec<&str>) -> ModelInvocationPolicy {
     ModelInvocationPolicy::new(
         30_000,
         ModelRetryPolicy::new(1, Vec::new()).expect("valid retry"),
-        ModelFallbackChain::new(Vec::<String>::new()).expect("valid fallback"),
+        ModelFallbackChain::new(fallback_provider_ids).expect("valid fallback"),
     )
     .expect("valid policy")
 }
 
 fn effective_config(config: ModelProviderConfig) -> agent_core::EffectiveRuntimeConfig {
+    effective_config_with_policy(config.id.clone(), vec![config], invocation_policy())
+}
+
+fn effective_config_with_policy(
+    default_provider: String,
+    providers: Vec<ModelProviderConfig>,
+    invocation_policy: ModelInvocationPolicy,
+) -> agent_core::EffectiveRuntimeConfig {
     let layer = ConfigLayer {
         kind: ConfigLayerKind::BuiltIn,
         source: "test".to_string(),
         config: AgentRuntimeConfig {
             schema_version: AGENT_CONFIG_SCHEMA_VERSION,
             model: RuntimeModelConfig {
-                default_provider: "fake".to_string(),
-                catalog: ModelProviderCatalog::new(vec![config]).expect("valid catalog"),
-                invocation_policy: invocation_policy(),
+                default_provider,
+                catalog: ModelProviderCatalog::new(providers).expect("valid catalog"),
+                invocation_policy,
             },
         },
     };
@@ -111,10 +127,17 @@ fn loop_budget() -> AgentLoopBudget {
 }
 
 fn input(ids: RuntimeIds, config: ModelProviderConfig) -> ComprehensiveTurnInput {
+    input_with_effective(ids, effective_config(config))
+}
+
+fn input_with_effective(
+    ids: RuntimeIds,
+    effective_config: agent_core::EffectiveRuntimeConfig,
+) -> ComprehensiveTurnInput {
     ComprehensiveTurnInput {
         ids,
         user_message: "Update notes.txt and verify the workspace".to_string(),
-        effective_config: effective_config(config),
+        effective_config,
         requirements: requirements(),
         loop_budget: loop_budget(),
     }
@@ -301,6 +324,29 @@ fn registry(config: ModelProviderConfig) -> ModelProviderRegistry {
     .expect("registry")
 }
 
+fn fallback_registry(
+    primary_config: ModelProviderConfig,
+    fallback_config: ModelProviderConfig,
+) -> ModelProviderRegistry {
+    let mut incompatible = capabilities();
+    incompatible.tool_calls = false;
+    ModelProviderRegistry::new(vec![
+        RegisteredModelProvider::new(
+            primary_config,
+            incompatible,
+            ScriptedProvider::new(Vec::new()),
+        )
+        .expect("registered primary"),
+        RegisteredModelProvider::new(
+            fallback_config,
+            capabilities(),
+            ScriptedProvider::new(local_coding_streams()),
+        )
+        .expect("registered fallback"),
+    ])
+    .expect("registry")
+}
+
 #[tokio::test]
 async fn comprehensive_turn_completes_local_coding_workflow() {
     let ids = runtime_ids();
@@ -372,4 +418,40 @@ async fn comprehensive_turn_completes_local_coding_workflow() {
             _ => None,
         });
     assert_eq!(replayed_final, Some("Updated notes.txt and verified it."));
+}
+
+#[tokio::test]
+async fn comprehensive_turn_uses_tool_capable_fallback_for_local_coding_workflow() {
+    let ids = runtime_ids();
+    let primary_config = provider_config_with_id("primary", "primary-model");
+    let fallback_config = provider_config_with_id("fallback", "fallback-model");
+    let effective = effective_config_with_policy(
+        "primary".to_string(),
+        vec![primary_config.clone(), fallback_config.clone()],
+        invocation_policy_with_fallback(vec!["fallback"]),
+    );
+    let fixture = local_coding_fixture();
+    let mut effects = InMemoryEventStore::default();
+
+    let outcome = ComprehensiveTurnRunner::run_with_idempotency(
+        input_with_effective(ids, effective),
+        &fallback_registry(primary_config, fallback_config),
+        ComprehensiveTurnResources {
+            tools: &fixture.tools,
+            policy: &fixture.policy,
+        },
+        &mut effects,
+    )
+    .await
+    .expect("local coding turn uses fallback");
+
+    assert_eq!(outcome.terminal_state, AgentLoopTerminalState::Done);
+    assert_eq!(
+        fs::read_to_string(fixture.workspace.path().join("notes.txt")).expect("edited file"),
+        "hello from agent\n"
+    );
+    assert_eq!(
+        outcome.final_message.as_deref(),
+        Some("Updated notes.txt and verified it.")
+    );
 }

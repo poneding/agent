@@ -15,6 +15,8 @@ pub struct UiConfigSnapshot {
     pub selected_provider: String,
     pub selected_model: String,
     pub providers: Vec<UiModelProviderSummary>,
+    #[serde(default)]
+    pub provider_support: Vec<UiProviderSupportSummary>,
     pub diagnostics: Vec<UiConfigDiagnostic>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub platform_paths: Option<UiPlatformPathsSummary>,
@@ -39,10 +41,25 @@ impl UiConfigSnapshot {
             selected_provider,
             selected_model,
             providers,
+            provider_support: Vec::new(),
             diagnostics,
             platform_paths: None,
             settings: None,
         })
+    }
+
+    #[must_use]
+    pub fn with_provider_support(
+        mut self,
+        mut provider_support: Vec<UiProviderSupportSummary>,
+    ) -> Self {
+        provider_support.sort_by(|left, right| {
+            left.fallback_index
+                .cmp(&right.fallback_index)
+                .then_with(|| left.provider_id.cmp(&right.provider_id))
+        });
+        self.provider_support = provider_support;
+        self
     }
 
     #[must_use]
@@ -695,6 +712,54 @@ pub struct UiModelProviderSummary {
     pub default_model: String,
     pub enabled: bool,
     pub capabilities: UiModelProviderCapabilities,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProviderSupportSummary {
+    pub provider_id: String,
+    pub kind: String,
+    pub role: UiProviderSupportRole,
+    pub fallback_index: Option<u32>,
+    pub enabled: bool,
+    pub compatible: bool,
+    pub missing: Vec<String>,
+}
+
+impl UiProviderSupportSummary {
+    pub fn new(
+        provider_id: impl Into<String>,
+        kind: impl Into<String>,
+        role: UiProviderSupportRole,
+        fallback_index: Option<u32>,
+        enabled: bool,
+        compatible: bool,
+        missing: Vec<String>,
+    ) -> Result<Self, UiBridgeError> {
+        let provider_id = provider_id.into();
+        let kind = kind.into();
+        validate_non_empty("provider id", &provider_id)?;
+        validate_non_empty("provider kind", &kind)?;
+        for capability in &missing {
+            validate_non_empty("missing capability", capability)?;
+        }
+        Ok(Self {
+            provider_id,
+            kind,
+            role,
+            fallback_index,
+            enabled,
+            compatible,
+            missing,
+        })
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum UiProviderSupportRole {
+    Selected,
+    Fallback,
+    CatalogOnly,
 }
 
 impl UiModelProviderSummary {

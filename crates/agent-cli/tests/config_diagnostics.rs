@@ -6,7 +6,7 @@ use agent_cli::{
     CliCommand, CliError, ModelSelection, OutputMode, parse_cli_invocation, render_cli_invocation,
 };
 use agent_core::ConfigOverride;
-use agent_ui_bridge::UiJsonFrame;
+use agent_ui_bridge::{UiJsonFrame, UiProviderSupportRole};
 
 fn valid_config_toml() -> String {
     r#"
@@ -93,6 +93,25 @@ timeout_ms = 30000
     config
 }
 
+fn local_fallback_config_toml() -> String {
+    let mut config = valid_config_toml().replace(
+        "fallback_provider_ids = [\"fake\"]",
+        "fallback_provider_ids = [\"fake\", \"local\"]",
+    );
+    config.push_str(
+        r#"
+[[model.providers]]
+id = "local"
+kind = "local"
+default_model = "llama3.1"
+enabled = true
+base_url = "http://localhost:11434"
+timeout_ms = 30000
+"#,
+    );
+    config
+}
+
 fn write_config(name: &str, contents: &str) -> PathBuf {
     let path = std::env::temp_dir().join(format!("agent-cli-{name}-{}.toml", std::process::id()));
     fs::write(&path, contents).expect("write config fixture");
@@ -165,6 +184,23 @@ fn cli_config_diagnostics_text_reports_valid_config() {
         "Secret store: os_keychain available=false writable=false fallback=env_fallback"
     ));
     assert!(output.stdout.contains("Config dir: "));
+}
+
+#[test]
+fn cli_config_diagnostics_text_reports_provider_support() {
+    let path = write_config("support-text", &local_fallback_config_toml());
+    let invocation = parse_cli_invocation(["--config-check", "--config", path.to_str().unwrap()])
+        .expect("parse config check");
+
+    let output = render_cli_invocation(invocation);
+
+    assert_eq!(output.status_code, 0);
+    assert!(output.stdout.contains(
+        "Provider support: selected=openai missing=tool_calls; fallback[0]=fake missing=tool_calls; fallback[1]=local compatible=true"
+    ));
+    assert!(!output.stdout.contains("OPENAI_API_KEY"));
+    assert!(!output.stdout.contains("localhost:11434"));
+    assert!(!output.stdout.contains("api_key"));
 }
 
 #[test]
@@ -273,6 +309,59 @@ fn cli_config_diagnostics_json_renders_config_summary() {
         frames.last(),
         Some(UiJsonFrame::Done { event_count: 0 })
     ));
+}
+
+#[test]
+fn cli_config_diagnostics_json_renders_provider_support() {
+    let path = write_config("support-json", &local_fallback_config_toml());
+    let invocation = parse_cli_invocation([
+        "--json",
+        "--config-check",
+        "--config",
+        path.to_str().unwrap(),
+    ])
+    .expect("parse json config check");
+
+    let output = render_cli_invocation(invocation);
+
+    assert_eq!(output.status_code, 0);
+    let frames = parse_frames(&output.stdout);
+    let snapshot = frames.iter().find_map(|frame| {
+        if let UiJsonFrame::ConfigSnapshot(snapshot) = frame {
+            Some(snapshot)
+        } else {
+            None
+        }
+    });
+    let snapshot = snapshot.expect("config snapshot frame");
+    let selected = snapshot
+        .provider_support
+        .iter()
+        .find(|provider| provider.provider_id == "openai")
+        .expect("selected support");
+    let fake = snapshot
+        .provider_support
+        .iter()
+        .find(|provider| provider.provider_id == "fake")
+        .expect("fake support");
+    let local = snapshot
+        .provider_support
+        .iter()
+        .find(|provider| provider.provider_id == "local")
+        .expect("local support");
+
+    assert_eq!(selected.role, UiProviderSupportRole::Selected);
+    assert!(!selected.compatible);
+    assert_eq!(selected.missing, vec!["tool_calls"]);
+    assert_eq!(fake.role, UiProviderSupportRole::Fallback);
+    assert_eq!(fake.fallback_index, Some(0));
+    assert_eq!(fake.missing, vec!["tool_calls"]);
+    assert_eq!(local.role, UiProviderSupportRole::Fallback);
+    assert_eq!(local.fallback_index, Some(1));
+    assert!(local.compatible);
+    assert!(local.missing.is_empty());
+    assert!(!output.stdout.contains("OPENAI_API_KEY"));
+    assert!(!output.stdout.contains("localhost:11434"));
 }
 
 #[test]

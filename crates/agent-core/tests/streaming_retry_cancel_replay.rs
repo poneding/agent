@@ -122,6 +122,14 @@ fn registered(
     RegisteredModelProvider::new(config, capabilities(), provider).expect("registered provider")
 }
 
+fn registered_with_capabilities(
+    config: ModelProviderConfig,
+    capabilities: ModelCapabilities,
+    provider: Arc<dyn ModelProvider>,
+) -> RegisteredModelProvider {
+    RegisteredModelProvider::new(config, capabilities, provider).expect("registered provider")
+}
+
 fn provider_error(code: &str, retryable: bool) -> ModelError {
     ModelError::Provider {
         code: code.to_string(),
@@ -306,6 +314,51 @@ async fn streaming_retry_uses_fallback_provider_after_stream_failure() {
     assert_eq!(outcome.attempts[0].provider_id, "primary");
     assert_eq!(outcome.attempts[1].provider_id, "backup");
     assert_eq!(primary_requests.lock().expect("requests").len(), 1);
+    assert_eq!(backup_requests.lock().expect("requests").len(), 1);
+}
+
+#[tokio::test]
+async fn streaming_retry_skips_incompatible_fallback_provider() {
+    let primary_config = provider_config("primary", "primary-model");
+    let tiny_config = provider_config("tiny", "tiny-model");
+    let backup_config = provider_config("backup", "backup-model");
+    let effective = effective_config(
+        "primary",
+        vec![
+            primary_config.clone(),
+            tiny_config.clone(),
+            backup_config.clone(),
+        ],
+        invocation_policy(1, vec![ModelFailureKind::Transport], vec!["tiny", "backup"]),
+    );
+    let (primary, primary_requests) = ScriptedProvider::new(vec![ProviderOutcome::Stream(
+        stream_error_before_delta("model.transport", true),
+    )]);
+    let (tiny, tiny_requests) =
+        ScriptedProvider::new(vec![ProviderOutcome::Stream(stream_text_chunks(&["tiny"]))]);
+    let (backup, backup_requests) =
+        ScriptedProvider::new(vec![ProviderOutcome::Stream(stream_text_chunks(&[
+            "fallback",
+        ]))]);
+    let mut tiny_capabilities = capabilities();
+    tiny_capabilities.max_context_tokens = Some(512);
+    let registry = ModelProviderRegistry::new(vec![
+        registered(primary_config, primary),
+        registered_with_capabilities(tiny_config, tiny_capabilities, tiny),
+        registered(backup_config, backup),
+    ])
+    .expect("registry");
+
+    let outcome = ConfiguredTurnRunner::run(configured_input(runtime_ids(), effective), &registry)
+        .await
+        .expect("compatible fallback stream succeeds");
+
+    assert_eq!(outcome.final_message, "fallback");
+    assert_eq!(outcome.attempts.len(), 2);
+    assert_eq!(outcome.attempts[0].provider_id, "primary");
+    assert_eq!(outcome.attempts[1].provider_id, "backup");
+    assert_eq!(primary_requests.lock().expect("requests").len(), 1);
+    assert_eq!(tiny_requests.lock().expect("requests").len(), 0);
     assert_eq!(backup_requests.lock().expect("requests").len(), 1);
 }
 

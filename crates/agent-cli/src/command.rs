@@ -21,10 +21,11 @@ use agent_core::{
     EditDiffFlowReport, EffectiveRuntimeConfig, ExtensionCapabilitySummary, ExtensionCompatibility,
     ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary,
     ExtensionRecord, ExtensionRegistry, ExtensionRegistryError, ExtensionSource,
-    ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, RepoGitState,
-    RepoSessionBootstrapError, RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds,
-    RuntimeModelConfig, SettingsError, SettingsProfile, StartupMigrationRunner,
-    bootstrap_repo_session, replay_final_review, run_command_test_loop, run_edit_diff_flow,
+    ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, ProviderSupportReport,
+    ProviderSupportRole, RepoGitState, RepoSessionBootstrapError, RepoSessionBootstrapInput,
+    RepoSessionBootstrapReport, RuntimeIds, RuntimeModelConfig, SettingsError, SettingsProfile,
+    StartupMigrationRunner, bootstrap_repo_session, coding_agent_model_requirements,
+    replay_final_review, run_command_test_loop, run_edit_diff_flow,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -78,9 +79,9 @@ use agent_ui_bridge::{
     UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame,
     UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
     UiPlatformPathsSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
-    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
-    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
-    normalize_runtime_event,
+    UiProviderSupportRole, UiProviderSupportSummary, UiRepoSessionSnapshot,
+    UiSettingsProfileSummary, UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary,
+    UiTaskSnapshot, UiTaskSummary, encode_json_frame, normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -5573,12 +5574,17 @@ fn evaluate_config_check(
     config_override: ConfigOverride,
 ) -> Result<ConfigCheckReport, CliError> {
     let effective = evaluate_runtime_config(config_path, config_override)?;
+    let provider_support = ProviderSupportReport::from_effective_config(
+        &effective,
+        &coding_agent_model_requirements(),
+    );
     let settings = SettingsProfile::default();
     let platform_paths =
         PlatformPaths::current(PlatformPathOverrides::default()).map_err(map_settings_error)?;
 
     Ok(ConfigCheckReport {
         effective,
+        provider_support,
         platform_paths,
         settings,
         secret_store_summary: secret_store_summary(),
@@ -5612,6 +5618,7 @@ fn evaluate_runtime_config(
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct ConfigCheckReport {
     effective: EffectiveRuntimeConfig,
+    provider_support: ProviderSupportReport,
     platform_paths: PlatformPaths,
     settings: SettingsProfile,
     secret_store_summary: String,
@@ -5651,12 +5658,14 @@ fn render_config_summary_text(report: &ConfigCheckReport) -> String {
     let effective = &report.effective;
     let provider_ids = config_provider_ids(effective).join(", ");
     let provider_capabilities = config_provider_capabilities_summary(effective);
+    let provider_support = config_provider_support_summary(&report.provider_support);
     format!(
-        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nProvider capabilities: {}\nLayers: {}\nDiagnostics: {}\nSettings profile: {}\nRelease channel: {}\nSecret store: {}\nConfig dir: {}\nData dir: {}\nCache dir: {}\nLog dir: {}\n",
+        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nProvider capabilities: {}\nProvider support: {}\nLayers: {}\nDiagnostics: {}\nSettings profile: {}\nRelease channel: {}\nSecret store: {}\nConfig dir: {}\nData dir: {}\nCache dir: {}\nLog dir: {}\n",
         effective.selected_provider,
         effective.selected_model,
         provider_ids,
         provider_capabilities,
+        provider_support,
         effective.layers.len(),
         effective.diagnostics.len(),
         report.settings.profile_id,
@@ -5667,6 +5676,45 @@ fn render_config_summary_text(report: &ConfigCheckReport) -> String {
         report.platform_paths.cache_dir.display(),
         report.platform_paths.log_dir.display()
     )
+}
+
+fn config_provider_support_summary(report: &ProviderSupportReport) -> String {
+    let mut entries = Vec::new();
+    if let Some(selected) = report.selected() {
+        entries.push(format!(
+            "selected={} {}",
+            selected.provider_id,
+            provider_support_status(selected.enabled, selected.compatible, &selected.missing)
+        ));
+    }
+    for fallback in report.fallbacks() {
+        let fallback_index = fallback.fallback_index.unwrap_or(0);
+        entries.push(format!(
+            "fallback[{fallback_index}]={} {}",
+            fallback.provider_id,
+            provider_support_status(fallback.enabled, fallback.compatible, &fallback.missing)
+        ));
+    }
+    entries.join("; ")
+}
+
+fn provider_support_status(
+    enabled: bool,
+    compatible: bool,
+    missing: &[agent_model::ModelCapability],
+) -> String {
+    if !enabled {
+        return "enabled=false".to_string();
+    }
+    if compatible {
+        return "compatible=true".to_string();
+    }
+    let missing = missing
+        .iter()
+        .map(|capability| capability.as_str())
+        .collect::<Vec<_>>()
+        .join(",");
+    format!("missing={missing}")
 }
 
 fn config_provider_capabilities_summary(effective: &EffectiveRuntimeConfig) -> String {
@@ -5770,6 +5818,12 @@ fn ui_config_snapshot(report: &ConfigCheckReport) -> Result<UiConfigSnapshot, Cl
         diagnostics,
     )
     .map_err(map_ui_bridge_error)?;
+    let provider_support = report
+        .provider_support
+        .providers
+        .iter()
+        .map(ui_provider_support_summary)
+        .collect::<Result<Vec<_>, _>>()?;
     let platform_paths = ui_platform_paths_summary(&report.platform_paths)?;
     let settings = UiSettingsProfileSummary::new(
         report.settings.profile_id.clone(),
@@ -5780,6 +5834,7 @@ fn ui_config_snapshot(report: &ConfigCheckReport) -> Result<UiConfigSnapshot, Cl
     )
     .map_err(map_ui_bridge_error)?;
     Ok(snapshot
+        .with_provider_support(provider_support)
         .with_platform_paths(platform_paths)
         .with_settings(settings))
 }
@@ -5809,6 +5864,33 @@ fn ui_model_cost_profile(cost: &ModelCostProfile) -> Result<UiModelCostProfile, 
         cost.currency.clone(),
     )
     .map_err(map_ui_bridge_error)
+}
+
+fn ui_provider_support_summary(
+    support: &agent_core::ProviderSupportSummary,
+) -> Result<UiProviderSupportSummary, CliError> {
+    UiProviderSupportSummary::new(
+        support.provider_id.clone(),
+        model_provider_kind_label(support.kind),
+        ui_provider_support_role(support.role),
+        support.fallback_index,
+        support.enabled,
+        support.compatible,
+        support
+            .missing
+            .iter()
+            .map(|capability| capability.as_str().to_string())
+            .collect(),
+    )
+    .map_err(map_ui_bridge_error)
+}
+
+fn ui_provider_support_role(role: ProviderSupportRole) -> UiProviderSupportRole {
+    match role {
+        ProviderSupportRole::Selected => UiProviderSupportRole::Selected,
+        ProviderSupportRole::Fallback => UiProviderSupportRole::Fallback,
+        ProviderSupportRole::CatalogOnly => UiProviderSupportRole::CatalogOnly,
+    }
 }
 
 fn ui_platform_paths_summary(paths: &PlatformPaths) -> Result<UiPlatformPathsSummary, CliError> {

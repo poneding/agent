@@ -25,7 +25,7 @@
 - Read: `crates/agent-cli/tests/config_diagnostics.rs`
 - Read: `crates/agent-ui-bridge/src/frame.rs`
 
-- [ ] **Step 1: Review current provider support and fallback baseline**
+- [x] **Step 1: Review current provider support and fallback baseline**
 
 Run:
 
@@ -50,7 +50,7 @@ Expected: existing fallback, streaming retry, local coding, and config diagnosti
 - Modify: `crates/agent-cli/tests/config_diagnostics.rs`
 - Modify if needed: `crates/agent-ui-bridge/tests/*`
 
-- [ ] **Step 1: Add provider compatibility tests**
+- [x] **Step 1: Add provider compatibility tests**
 
 Cover:
 
@@ -59,7 +59,7 @@ Cover:
 - disabled providers are reported as incompatible
 - support summaries do not include endpoint URLs, secret ref names, prompt text, or response body text
 
-- [ ] **Step 2: Add runtime fallback tests**
+- [x] **Step 2: Add runtime fallback tests**
 
 Cover:
 
@@ -68,7 +68,7 @@ Cover:
 - missing fallback provider ids remain terminal configuration errors
 - no fallback occurs after a stream crosses the side-effect boundary with text or tool-call output
 
-- [ ] **Step 3: Add CLI/JSON support-output tests**
+- [x] **Step 3: Add CLI/JSON support-output tests**
 
 Cover:
 
@@ -77,14 +77,14 @@ Cover:
 - support output reports missing capabilities as labels
 - local endpoint URLs, API key provider/name pairs, raw secret-like values, and query strings are not present
 
-- [ ] **Step 4: Add M56 fallback regression test**
+- [x] **Step 4: Add M56 fallback regression test**
 
 Cover:
 
 - deterministic local coding fixture completes when the selected provider is incompatible or fails safely and a tool-capable fallback provider satisfies the coding requirements
 - final output and attempt/provider evidence stay stable
 
-- [ ] **Step 5: Run focused tests and verify failure**
+- [x] **Step 5: Run focused tests and verify failure**
 
 Run:
 
@@ -108,19 +108,19 @@ Expected: new tests fail before provider support reports, JSON contracts, and co
 - Modify: `crates/agent-core/src/lib.rs`
 - Modify: `crates/agent-core/src/model_runtime.rs`
 
-- [ ] **Step 1: Add coding-turn requirements helper**
+- [x] **Step 1: Add coding-turn requirements helper**
 
 Add a shared helper for M56/M57 coding-agent model requirements so config-check and runtime tests evaluate the same capability profile.
 
-- [ ] **Step 2: Add typed provider support report**
+- [x] **Step 2: Add typed provider support report**
 
 Add serde-friendly provider support summary types that include provider id, kind, role, fallback index, enabled state, compatibility, and missing capabilities.
 
-- [ ] **Step 3: Build reports from effective config**
+- [x] **Step 3: Build reports from effective config**
 
 Construct support reports from `EffectiveRuntimeConfig`, default provider capabilities, invocation fallback order, and the shared coding requirements.
 
-- [ ] **Step 4: Keep diagnostics redacted and bounded**
+- [x] **Step 4: Keep diagnostics redacted and bounded**
 
 Ensure support report construction never includes endpoint URLs, secret refs, prompts, response bodies, or raw transport errors.
 
@@ -130,19 +130,19 @@ Ensure support report construction never includes endpoint URLs, secret refs, pr
 - Modify: `crates/agent-core/src/model_runtime.rs`
 - Modify if needed: `crates/agent-model/src/invocation_policy.rs`
 
-- [ ] **Step 1: Resolve selected-provider incompatibility through fallback**
+- [x] **Step 1: Resolve selected-provider incompatibility through fallback**
 
 When the selected provider misses requirements and a compatible fallback exists, resolve the runtime to the first compatible fallback without invoking the incompatible provider.
 
-- [ ] **Step 2: Skip incompatible fallback candidates after failures**
+- [x] **Step 2: Skip incompatible fallback candidates after failures**
 
 During retry/fallback execution, skip fallback providers that are registered but missing capabilities and continue to the next fallback candidate.
 
-- [ ] **Step 3: Preserve terminal diagnostics**
+- [x] **Step 3: Preserve terminal diagnostics**
 
 If no compatible fallback exists, return stable terminal errors that include provider ids and missing capability labels, without prompts or secrets.
 
-- [ ] **Step 4: Preserve side-effect boundary behavior**
+- [x] **Step 4: Preserve side-effect boundary behavior**
 
 Do not retry or fallback after a stream has emitted text or tool-call output.
 
@@ -154,15 +154,15 @@ Do not retry or fallback after a stream has emitted text or tool-call output.
 - Modify: `crates/agent-ui-bridge/src/lib.rs`
 - Modify if needed: `crates/agent-cli/tests/config_diagnostics.rs`
 
-- [ ] **Step 1: Add text support summary**
+- [x] **Step 1: Add text support summary**
 
 Add a stable `Provider support:` line to `--config-check` output that names selected/fallback compatibility and missing capabilities.
 
-- [ ] **Step 2: Add JSON support contracts**
+- [x] **Step 2: Add JSON support contracts**
 
 Extend config JSON output additively with provider support summaries, either on `UiConfigSnapshot` or as a dedicated frame.
 
-- [ ] **Step 3: Redact support output**
+- [x] **Step 3: Redact support output**
 
 Verify output does not expose endpoint URLs, credentials, secret ref names, prompt text, query strings, or provider response bodies.
 
@@ -173,7 +173,7 @@ Verify output does not expose endpoint URLs, credentials, secret ref names, prom
 - Modify: `docs/plans/M57-multi-provider-runtime.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -190,7 +190,7 @@ cargo test -p agent-cli config_diagnostics
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit implementation**
+- [x] **Step 2: Commit implementation**
 
 Run exact-path staging, then:
 
@@ -202,8 +202,8 @@ Expected: commit contains provider support contracts, compatible-only fallback b
 
 ### Completion Checklist
 
-- [ ] Provider support summaries are typed, serde-friendly, and redacted.
-- [ ] Config-check text and JSON expose selected/fallback compatibility.
-- [ ] Runtime fallback skips incompatible providers before invocation.
-- [ ] M56 local coding path has deterministic compatible-fallback coverage.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Provider support summaries are typed, serde-friendly, and redacted.
+- [x] Config-check text and JSON expose selected/fallback compatibility.
+- [x] Runtime fallback skips incompatible providers before invocation.
+- [x] M56 local coding path has deterministic compatible-fallback coverage.
+- [x] Focused fmt/clippy/tests pass.

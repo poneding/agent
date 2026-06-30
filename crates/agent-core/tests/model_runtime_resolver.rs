@@ -3,7 +3,8 @@ use std::sync::Arc;
 use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentRuntimeConfig, ConfigDiagnostic, ConfigLayerSummary,
     ConfigOverride, EffectiveRuntimeConfig, ModelRuntimeError, ModelRuntimeResolver,
-    RuntimeModelConfig, build_effective_runtime_config,
+    ProviderSupportReport, ProviderSupportRole, RuntimeModelConfig, build_effective_runtime_config,
+    coding_agent_model_requirements,
 };
 use agent_model::{
     FakeModelProvider, FakeModelScript, ModelCapabilities, ModelCapability, ModelEndpointConfig,
@@ -41,10 +42,14 @@ fn prompt_requirements() -> ModelRequestRequirements {
 }
 
 fn invocation_policy() -> ModelInvocationPolicy {
+    invocation_policy_with_fallback(Vec::new())
+}
+
+fn invocation_policy_with_fallback(fallback_provider_ids: Vec<&str>) -> ModelInvocationPolicy {
     ModelInvocationPolicy::new(
         30_000,
         ModelRetryPolicy::new(1, Vec::new()).expect("valid retry"),
-        ModelFallbackChain::new(Vec::<String>::new()).expect("valid fallback"),
+        ModelFallbackChain::new(fallback_provider_ids).expect("valid fallback"),
     )
     .expect("valid invocation policy")
 }
@@ -74,16 +79,36 @@ fn openai_provider() -> ModelProviderConfig {
     .expect("valid OpenAI-compatible provider")
 }
 
+fn local_provider(id: &str, model: &str, enabled: bool) -> ModelProviderConfig {
+    ModelProviderConfig::new(
+        id,
+        ModelProviderKind::Local,
+        model,
+        ModelEndpointConfig::new(Some("http://localhost:11434"), 30_000).expect("valid endpoint"),
+        None,
+        enabled,
+    )
+    .expect("valid local provider")
+}
+
 fn runtime_config(
     default_provider: &str,
     providers: Vec<ModelProviderConfig>,
+) -> AgentRuntimeConfig {
+    runtime_config_with_policy(default_provider, providers, invocation_policy())
+}
+
+fn runtime_config_with_policy(
+    default_provider: &str,
+    providers: Vec<ModelProviderConfig>,
+    invocation_policy: ModelInvocationPolicy,
 ) -> AgentRuntimeConfig {
     AgentRuntimeConfig {
         schema_version: AGENT_CONFIG_SCHEMA_VERSION,
         model: RuntimeModelConfig {
             default_provider: default_provider.to_string(),
             catalog: ModelProviderCatalog::new(providers).expect("valid catalog"),
-            invocation_policy: invocation_policy(),
+            invocation_policy,
         },
     }
 }
@@ -93,8 +118,22 @@ fn effective_config(
     selected_model: &str,
     providers: Vec<ModelProviderConfig>,
 ) -> EffectiveRuntimeConfig {
+    effective_config_with_policy(
+        selected_provider,
+        selected_model,
+        providers,
+        invocation_policy(),
+    )
+}
+
+fn effective_config_with_policy(
+    selected_provider: &str,
+    selected_model: &str,
+    providers: Vec<ModelProviderConfig>,
+    invocation_policy: ModelInvocationPolicy,
+) -> EffectiveRuntimeConfig {
     EffectiveRuntimeConfig {
-        config: runtime_config(selected_provider, providers),
+        config: runtime_config_with_policy(selected_provider, providers, invocation_policy),
         selected_provider: selected_provider.to_string(),
         selected_model: selected_model.to_string(),
         layers: vec![ConfigLayerSummary {
@@ -126,8 +165,72 @@ fn registered_fake(id: &str, caps: ModelCapabilities) -> RegisteredModelProvider
     .expect("valid registered provider")
 }
 
+fn registered_config(
+    config: ModelProviderConfig,
+    caps: ModelCapabilities,
+) -> RegisteredModelProvider {
+    RegisteredModelProvider::new(
+        config,
+        caps,
+        Arc::new(FakeModelProvider::new(FakeModelScript::text("ready"))),
+    )
+    .expect("valid registered provider")
+}
+
 fn registry(providers: Vec<RegisteredModelProvider>) -> ModelProviderRegistry {
     ModelProviderRegistry::new(providers).expect("valid registry")
+}
+
+#[test]
+fn provider_support_report_marks_selected_and_fallback_compatibility() {
+    let effective = effective_config_with_policy(
+        "openai",
+        "gpt-4.1-mini",
+        vec![
+            openai_provider(),
+            fake_provider("fake", "fake-scripted", true),
+            local_provider("local", "llama3.1", true),
+        ],
+        invocation_policy_with_fallback(vec!["fake", "local"]),
+    );
+
+    let report = ProviderSupportReport::from_effective_config(
+        &effective,
+        &coding_agent_model_requirements(),
+    );
+
+    let selected = report
+        .providers
+        .iter()
+        .find(|provider| provider.provider_id == "openai")
+        .expect("selected provider summary");
+    assert_eq!(selected.role, ProviderSupportRole::Selected);
+    assert!(!selected.compatible);
+    assert_eq!(selected.missing, vec![ModelCapability::ToolCalls]);
+
+    let fake = report
+        .providers
+        .iter()
+        .find(|provider| provider.provider_id == "fake")
+        .expect("fake fallback summary");
+    assert_eq!(fake.role, ProviderSupportRole::Fallback);
+    assert_eq!(fake.fallback_index, Some(0));
+    assert_eq!(fake.missing, vec![ModelCapability::ToolCalls]);
+
+    let local = report
+        .providers
+        .iter()
+        .find(|provider| provider.provider_id == "local")
+        .expect("local fallback summary");
+    assert_eq!(local.role, ProviderSupportRole::Fallback);
+    assert_eq!(local.fallback_index, Some(1));
+    assert!(local.compatible);
+    assert!(local.missing.is_empty());
+
+    let rendered = format!("{report:?}");
+    assert!(!rendered.contains("OPENAI_API_KEY"));
+    assert!(!rendered.contains("localhost:11434"));
+    assert!(!rendered.contains("api_key"));
 }
 
 #[test]
@@ -209,6 +312,36 @@ fn model_runtime_resolver_rejects_missing_capabilities() {
             missing,
         } if provider_id == "fake" && missing == vec![ModelCapability::ContextTokens]
     ));
+}
+
+#[test]
+fn model_runtime_resolver_uses_compatible_fallback_when_selected_missing_capabilities() {
+    let primary_config = fake_provider("primary", "primary-model", true);
+    let tiny_config = fake_provider("tiny", "tiny-model", true);
+    let capable_config = fake_provider("capable", "capable-model", true);
+    let effective = effective_config_with_policy(
+        "primary",
+        "primary-model",
+        vec![
+            primary_config.clone(),
+            tiny_config.clone(),
+            capable_config.clone(),
+        ],
+        invocation_policy_with_fallback(vec!["tiny", "capable"]),
+    );
+    let registry = registry(vec![
+        registered_config(primary_config, capabilities(true, false, false, Some(4096))),
+        registered_config(tiny_config, capabilities(true, false, false, Some(4096))),
+        registered_config(capable_config, capabilities(true, true, false, Some(4096))),
+    ]);
+
+    let runtime =
+        ModelRuntimeResolver::resolve(&effective, &registry, &coding_agent_model_requirements())
+            .expect("compatible fallback selected");
+
+    assert_eq!(runtime.provider_id, "capable");
+    assert_eq!(runtime.model, "capable-model");
+    assert!(runtime.capabilities.tool_calls);
 }
 
 #[test]

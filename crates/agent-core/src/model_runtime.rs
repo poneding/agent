@@ -11,7 +11,8 @@ use agent_context::{
 use agent_model::{
     ModelCapabilities, ModelCapability, ModelError, ModelFailureKind, ModelInvocationPolicy,
     ModelProvider, ModelProviderRegistry, ModelRegistryError, ModelRequest,
-    ModelRequestRequirements, ModelStreamEvent, ModelStreamResult, collect_model_event_stream,
+    ModelRequestRequirements, ModelStreamEvent, ModelStreamResult, RegisteredModelProvider,
+    collect_model_event_stream,
 };
 use agent_policy::PolicyEngine;
 use agent_storage::{EventStore, IdempotencyKey, IdempotencyStore};
@@ -98,8 +99,25 @@ impl ModelRuntimeResolver {
         }
 
         let registered = registry
-            .require_capabilities(selected_provider, requirements)
+            .get(selected_provider)
             .map_err(ModelRuntimeError::from_registry)?;
+        let selected_missing = registered.capabilities.missing_for(requirements);
+        if !selected_missing.is_empty() {
+            if let Some(fallback) = first_compatible_fallback_runtime(
+                effective,
+                registry,
+                requirements,
+                selected_provider,
+                selected_model,
+                registered,
+            )? {
+                return Ok(fallback);
+            }
+            return Err(ModelRuntimeError::MissingCapabilities {
+                provider_id: selected_provider.to_string(),
+                missing: selected_missing,
+            });
+        }
 
         Ok(ConfiguredModelRuntime {
             provider_id: selected_provider.to_string(),
@@ -109,6 +127,61 @@ impl ModelRuntimeResolver {
             invocation_policy: effective.config.model.invocation_policy.clone(),
         })
     }
+}
+
+fn first_compatible_fallback_runtime(
+    effective: &EffectiveRuntimeConfig,
+    registry: &ModelProviderRegistry,
+    requirements: &ModelRequestRequirements,
+    selected_provider: &str,
+    selected_model: &str,
+    selected_registered: &RegisteredModelProvider,
+) -> Result<Option<ConfiguredModelRuntime>, ModelRuntimeError> {
+    let use_model_override = selected_model != selected_registered.config.default_model;
+    for fallback_provider_id in &effective
+        .config
+        .model
+        .invocation_policy
+        .fallback
+        .provider_ids
+    {
+        if fallback_provider_id == selected_provider {
+            continue;
+        }
+        let Some(fallback_config) = effective
+            .config
+            .model
+            .catalog
+            .providers
+            .iter()
+            .find(|provider| provider.id == *fallback_provider_id)
+        else {
+            return Err(ModelRuntimeError::ProviderNotRegistered {
+                provider_id: fallback_provider_id.clone(),
+            });
+        };
+        if !fallback_config.enabled {
+            continue;
+        }
+        let registered = match registry.require_capabilities(fallback_provider_id, requirements) {
+            Ok(registered) => registered,
+            Err(ModelRegistryError::MissingCapabilities { .. }) => continue,
+            Err(error) => return Err(ModelRuntimeError::from_registry(error)),
+        };
+        let model = if use_model_override {
+            selected_model.to_string()
+        } else {
+            registered.config.default_model.clone()
+        };
+        return Ok(Some(ConfiguredModelRuntime {
+            provider_id: fallback_provider_id.clone(),
+            model,
+            provider: registered.provider(),
+            capabilities: registered.capabilities.clone(),
+            invocation_policy: effective.config.model.invocation_policy.clone(),
+        }));
+    }
+    Ok(None)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -184,6 +257,7 @@ impl ModelInvocationRunner {
             }
         }
 
+        let mut skipped_fallback_missing = None;
         for fallback_provider_id in &runtime.invocation_policy.fallback.provider_ids {
             let registered = match registry.require_capabilities(fallback_provider_id, requirements)
             {
@@ -198,11 +272,8 @@ impl ModelInvocationRunner {
                     provider_id,
                     missing,
                 }) => {
-                    return Err(ModelInvocationError::FallbackMissingCapabilities {
-                        provider_id,
-                        missing,
-                        attempts,
-                    });
+                    skipped_fallback_missing.get_or_insert((provider_id, missing));
+                    continue;
                 }
                 Err(error) => {
                     return Err(ModelInvocationError::SelectedProviderUnavailable {
@@ -245,6 +316,14 @@ impl ModelInvocationRunner {
                     ));
                 }
             }
+        }
+
+        if let Some((provider_id, missing)) = skipped_fallback_missing {
+            return Err(ModelInvocationError::FallbackMissingCapabilities {
+                provider_id,
+                missing,
+                attempts,
+            });
         }
 
         let failure = last_failure.expect("at least one selected provider attempt was recorded");
@@ -1277,6 +1356,7 @@ struct StreamingInvocationState {
     current_stream: Option<agent_model::ModelEventStream>,
     crossed_side_effect_boundary: bool,
     last_failure: Option<InvocationFailure>,
+    skipped_fallback_missing: Option<(String, Vec<ModelCapability>)>,
     terminal_error: Option<ModelError>,
     done: bool,
 }
@@ -1310,6 +1390,7 @@ impl StreamingInvocationState {
             current_stream: None,
             crossed_side_effect_boundary: false,
             last_failure: None,
+            skipped_fallback_missing: None,
             terminal_error: None,
             done: false,
         }
@@ -1355,7 +1436,7 @@ impl StreamingInvocationState {
             }));
         }
 
-        if self.fallback_index < self.runtime.invocation_policy.fallback.provider_ids.len() {
+        while self.fallback_index < self.runtime.invocation_policy.fallback.provider_ids.len() {
             let fallback_provider_id =
                 self.runtime.invocation_policy.fallback.provider_ids[self.fallback_index].clone();
             self.fallback_index += 1;
@@ -1374,11 +1455,9 @@ impl StreamingInvocationState {
                     provider_id,
                     missing,
                 }) => {
-                    return Err(ModelInvocationError::FallbackMissingCapabilities {
-                        provider_id,
-                        missing,
-                        attempts: self.attempts_snapshot(),
-                    });
+                    self.skipped_fallback_missing
+                        .get_or_insert((provider_id, missing));
+                    continue;
                 }
                 Err(error) => {
                     return Err(ModelInvocationError::SelectedProviderUnavailable {
@@ -1400,6 +1479,14 @@ impl StreamingInvocationState {
                 model,
                 provider,
             }));
+        }
+
+        if let Some((provider_id, missing)) = self.skipped_fallback_missing.take() {
+            return Err(ModelInvocationError::FallbackMissingCapabilities {
+                provider_id,
+                missing,
+                attempts: self.attempts_snapshot(),
+            });
         }
 
         Ok(None)

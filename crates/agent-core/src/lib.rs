@@ -16,6 +16,7 @@ pub mod local_coding;
 pub mod mcp_sampling;
 pub mod model_runtime;
 pub mod observability;
+pub mod provider_support;
 pub mod recovery;
 pub mod repo_session;
 pub mod runtime;
@@ -98,6 +99,10 @@ pub use observability::{
     ObservabilityEvidenceOptions, ObservabilityEvidenceSummary, ReplayEvidenceSummary,
     build_observability_evidence, build_observability_evidence_at,
     verify_observability_evidence_replay, verify_observability_replay_fixture,
+};
+pub use provider_support::{
+    ProviderSupportReport, ProviderSupportRole, ProviderSupportSummary,
+    coding_agent_model_requirements,
 };
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
 pub use repo_session::{

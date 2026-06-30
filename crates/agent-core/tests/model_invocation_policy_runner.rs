@@ -100,6 +100,14 @@ fn registered(
     RegisteredModelProvider::new(config, capabilities(), provider).expect("registered provider")
 }
 
+fn registered_with_capabilities(
+    config: ModelProviderConfig,
+    capabilities: ModelCapabilities,
+    provider: Arc<dyn ModelProvider>,
+) -> RegisteredModelProvider {
+    RegisteredModelProvider::new(config, capabilities, provider).expect("registered provider")
+}
+
 fn request() -> ModelRequest {
     ModelRequest {
         provider: "template-provider".to_string(),
@@ -261,6 +269,49 @@ async fn model_invocation_policy_uses_fallback_provider() {
     assert_eq!(backup_requests.len(), 1);
     assert_eq!(backup_requests[0].provider, "backup");
     assert_eq!(backup_requests[0].model, "backup-model");
+}
+
+#[tokio::test]
+async fn model_invocation_policy_skips_incompatible_fallback_provider() {
+    let primary_config = provider_config("primary", "primary-model");
+    let tiny_config = provider_config("tiny", "tiny-model");
+    let backup_config = provider_config("backup", "backup-model");
+    let effective = effective_config(
+        "primary",
+        vec![
+            primary_config.clone(),
+            tiny_config.clone(),
+            backup_config.clone(),
+        ],
+        invocation_policy(1, vec![ModelFailureKind::Transport], vec!["tiny", "backup"]),
+    );
+    let (primary, primary_requests) =
+        RecordingProvider::scripted(vec![Err(provider_error("model.transport", true))]);
+    let (tiny, tiny_requests) = RecordingProvider::scripted(vec![Ok(stream_text("tiny"))]);
+    let (backup, backup_requests) = RecordingProvider::scripted(vec![Ok(stream_text("fallback"))]);
+    let mut tiny_capabilities = capabilities();
+    tiny_capabilities.max_context_tokens = Some(512);
+    let registry = ModelProviderRegistry::new(vec![
+        registered(primary_config, primary),
+        registered_with_capabilities(tiny_config, tiny_capabilities, tiny),
+        registered(backup_config, backup),
+    ])
+    .expect("registry");
+    let runtime =
+        ModelRuntimeResolver::resolve(&effective, &registry, &requirements()).expect("runtime");
+
+    let outcome = ModelInvocationRunner::run(&runtime, &registry, &requirements(), request())
+        .await
+        .expect("compatible fallback succeeds");
+
+    assert_eq!(outcome.provider_id, "backup");
+    assert_eq!(outcome.stream, stream_text("fallback"));
+    assert_eq!(outcome.attempts.len(), 2);
+    assert_eq!(outcome.attempts[0].provider_id, "primary");
+    assert_eq!(outcome.attempts[1].provider_id, "backup");
+    assert_eq!(primary_requests.lock().expect("requests").len(), 1);
+    assert_eq!(tiny_requests.lock().expect("requests").len(), 0);
+    assert_eq!(backup_requests.lock().expect("requests").len(), 1);
 }
 
 #[tokio::test]

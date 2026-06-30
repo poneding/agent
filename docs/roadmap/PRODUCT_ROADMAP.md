@@ -131,7 +131,7 @@ Acceptance:
 
 ### M58 Project Context Intelligence
 
-Status: M58-01, M58-02, M58-03, and M58-04 complete; M58-05 context quality traces and eval planning is next.
+Status: M58-01, M58-02, M58-03, and M58-04 complete; M58-05 context quality traces and eval spec/plan are complete and implementation is next.
 
 Purpose: build repo-aware context assembly for coding tasks.
 

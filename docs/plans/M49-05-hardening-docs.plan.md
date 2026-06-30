@@ -18,7 +18,7 @@
 - Read: `README.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Read M49 specs and completed implementation slices**
+- [x] **Step 1: Read M49 specs and completed implementation slices**
 
 ### Task 2: Update Docs
 
@@ -27,12 +27,12 @@
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 
-- [ ] **Step 1: Update README reconnect usage**
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 1: Update README reconnect usage**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M49 focused tests**
+- [x] **Step 1: Run final M49 focused tests**
 
 Run:
 
@@ -43,7 +43,7 @@ CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_missed
 CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_trace
 ```
 
-- [ ] **Step 2: Run final workspace gate**
+- [x] **Step 2: Run final workspace gate**
 
 Run:
 
@@ -55,7 +55,7 @@ CARGO_TARGET_DIR=target/codex-m49 cargo xtask ci
 
 ### Task 4: Commit
 
-- [ ] **Step 1: Commit M49-05**
+- [x] **Step 1: Commit M49-05**
 
 Run:
 
@@ -63,3 +63,15 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m49 mcp http stream reconnect runtime"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_policy` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_stream_reconnect_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_missed_event_replay` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_trace` passed.
+- `git diff --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo xtask ci` passed. The known quality-gate fixture printed `error: Unrecognized option: 'definitely-not-a-real-rustc-flag'` and the command exited 0.

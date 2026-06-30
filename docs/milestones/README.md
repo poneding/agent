@@ -426,8 +426,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M49-02 implementation | Complete |
 | M49-03 implementation | Complete |
 | M49-04 implementation | Complete |
-| M49-05 implementation | In progress |
-| M49 implementation | In progress |
+| M49-05 implementation | Complete |
+| M49 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -1014,7 +1014,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M49-05 hardening docs.
+Current implementation focus: M49 complete.
 
 Most recent completed implementation documents:
 
@@ -1030,6 +1030,8 @@ Most recent completed implementation documents:
 - `docs/plans/M49-03-missed-event-replay-diagnostics.plan.md`
 - `docs/specs/M49-04-reconnect-trace-report.spec.md`
 - `docs/plans/M49-04-reconnect-trace-report.plan.md`
+- `docs/specs/M49-05-hardening-docs.spec.md`
+- `docs/plans/M49-05-hardening-docs.plan.md`
 - `docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md`
 - `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md`
 - `docs/specs/M48-05-hardening-docs.spec.md`
@@ -1357,7 +1359,4 @@ Most recent completed technical design documents:
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M49-00-mcp-http-stream-reconnect-technical-design.plan.md`
 
-Next implementation slice:
-
-- `docs/specs/M49-05-hardening-docs.spec.md`
-- `docs/plans/M49-05-hardening-docs.plan.md`
+Next implementation slice: none scheduled.

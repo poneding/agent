@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M48 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, fixture-grade MCP sampling stdio frame dispatch, live MCP client stdio transport and tool execution through the gateway, live MCP streamable HTTP request/response execution for initialize, tools/list, and tools/call, bounded MCP streamable HTTP SSE response parsing and dispatch, safe MCP HTTP session metadata plus SSE checkpoint tracking, and typed bounded MCP HTTP GET stream ownership.
+M01-M49 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, fixture-grade MCP sampling stdio frame dispatch, live MCP client stdio transport and tool execution through the gateway, live MCP streamable HTTP request/response execution for initialize, tools/list, and tools/call, bounded MCP streamable HTTP SSE response parsing and dispatch, safe MCP HTTP session metadata plus SSE checkpoint tracking, typed bounded MCP HTTP GET stream ownership, and bounded MCP HTTP stream reconnect reports.
 
 ## Core Ideas
 
@@ -169,7 +169,7 @@ Reentrant server-to-client callbacks, sampling approval UI, MCP progress/logging
 
 ## MCP Client Streamable HTTP
 
-`agent-mcp` can also drive streamable HTTP MCP server configs through the same typed client and gateway contracts. M45 implements request/response JSON-RPC over HTTP POST for `initialize`, `tools/list`, and `tools/call`. M46 adds bounded `text/event-stream` response parsing: SSE events are parsed into typed response frames, local request id matching selects the expected JSON-RPC response, and initialize/list/call work when the server answers with SSE frames. M47 captures safe response metadata for `Mcp-Session-Id`, `MCP-Protocol-Version`, and the latest accepted SSE event id, then sends session headers on later initialized requests. M48 adds typed GET stream request snapshots, a reqwest-backed bounded SSE stream-open boundary, and explicit stream event drain reports that update checkpoints after accepted events.
+`agent-mcp` can also drive streamable HTTP MCP server configs through the same typed client and gateway contracts. M45 implements request/response JSON-RPC over HTTP POST for `initialize`, `tools/list`, and `tools/call`. M46 adds bounded `text/event-stream` response parsing: SSE events are parsed into typed response frames, local request id matching selects the expected JSON-RPC response, and initialize/list/call work when the server answers with SSE frames. M47 captures safe response metadata for `Mcp-Session-Id`, `MCP-Protocol-Version`, and the latest accepted SSE event id, then sends session headers on later initialized requests. M48 adds typed GET stream request snapshots, a reqwest-backed bounded SSE stream-open boundary, and explicit stream event drain reports that update checkpoints after accepted events. M49 adds bounded reconnect policy, retry classification, reconnect runner composition, safe replay diagnostics, and typed reconnect trace reports.
 
 ```rust
 use std::sync::Arc;
@@ -189,7 +189,7 @@ gateway.register_tools(&mut registry, &report)?;
 
 HTTP configs use `McpTransportConfig::StreamableHttp`. Literal headers are sent with each request, while `McpEnvValue::SecretRef` header values must be resolved outside `agent-mcp` before request construction. Public diagnostics are bounded and redacted: raw URLs with credentials, header values, session ids, event ids, unresolved secret ref names, request bodies, local tool arguments, remote status bodies, raw SSE data, and raw remote failure details are not surfaced. Local policy still gates registered gateway tools before any remote HTTP `tools/call` is sent, and remote success payloads are bounded locally by gateway surfaces.
 
-M48 stream ownership remains bounded and explicit: clients can build a resume-aware GET stream request, open a typed `text/event-stream` response, parse accepted events, and advance the local checkpoint through `record_stream_open`. It does not yet implement automatic reconnect loops, missed-event replay guarantees, background stream scheduling, OAuth/DCR, or progress/logging/task protocols.
+M49 stream reconnect remains bounded and explicit: clients can build a resume-aware GET stream request, open a typed `text/event-stream` response, retry according to `McpClientHttpReconnectPolicy`, advance the local checkpoint through `record_stream_open`, and inspect `McpClientHttpReconnectReport` plus `McpClientHttpReplayDiagnostic` without exposing raw session ids, event ids, headers, stream bodies, or remote failure payloads. Replay diagnostics prove whether the local request included `Last-Event-ID` and whether the local checkpoint advanced; they do not claim the remote server replayed every missed event. Background stream supervision, OAuth/DCR, Desktop stream management UX, and MCP progress/logging/task protocols are later work.
 
 ## MCP Sampling
 
@@ -555,9 +555,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M48-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M48-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md)
+- [Latest completed spec](docs/specs/M49-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M49-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md)
 - [Milestone index](docs/milestones/README.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)

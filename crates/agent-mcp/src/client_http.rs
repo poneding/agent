@@ -878,6 +878,30 @@ impl McpClientHttpStreamRequest {
     }
 }
 
+pub fn build_mcp_client_http_request_with_oauth_token(
+    config: &McpServerConfig,
+    body_json: Value,
+    lease: &McpClientHttpOAuthTokenLease,
+    now_unix_ms: u64,
+) -> Result<McpClientHttpRequest, McpError> {
+    let authorization = mcp_client_http_authorization_from_oauth_token_lease(lease, now_unix_ms)?;
+    McpClientHttpRequest::from_config_with_authorization(config, body_json, &authorization)
+}
+
+pub fn build_mcp_client_http_stream_request_with_oauth_token(
+    config: &McpServerConfig,
+    session_metadata: &McpClientHttpSessionMetadata,
+    lease: &McpClientHttpOAuthTokenLease,
+    now_unix_ms: u64,
+) -> Result<McpClientHttpStreamRequest, McpError> {
+    let authorization = mcp_client_http_authorization_from_oauth_token_lease(lease, now_unix_ms)?;
+    McpClientHttpStreamRequest::from_config_with_session_metadata_and_authorization(
+        config,
+        session_metadata,
+        &authorization,
+    )
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpStreamOpen {
     pub metadata: McpClientHttpSessionMetadata,
@@ -2432,6 +2456,21 @@ fn insert_mcp_client_http_authorization_header(
     Ok(())
 }
 
+fn mcp_client_http_authorization_from_oauth_token_lease(
+    lease: &McpClientHttpOAuthTokenLease,
+    now_unix_ms: u64,
+) -> Result<McpClientHttpAuthorization, McpError> {
+    lease.validate()?;
+    if lease
+        .expires_at_unix_ms
+        .is_some_and(|expires_at_unix_ms| expires_at_unix_ms <= now_unix_ms)
+    {
+        return Err(mcp_client_http_oauth_token_expired());
+    }
+    McpClientHttpAuthorization::new(lease.access_token.as_str())
+        .map_err(|_| invalid_mcp_client_http_oauth_token_lease())
+}
+
 fn capability_enabled(value: Option<&Value>) -> bool {
     match value {
         Some(Value::Bool(enabled)) => *enabled,
@@ -2612,6 +2651,10 @@ fn invalid_mcp_client_http_oauth_token_lease() -> McpError {
 
 fn invalid_mcp_client_http_oauth_token_source() -> McpError {
     McpError::InvalidConfig("invalid MCP client HTTP OAuth token source".to_string())
+}
+
+fn mcp_client_http_oauth_token_expired() -> McpError {
+    McpError::InvalidConfig("MCP client HTTP OAuth token lease is expired".to_string())
 }
 
 fn mcp_client_http_authorization_header_conflict() -> McpError {

@@ -452,8 +452,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M52-01 implementation | Complete |
 | M52-02 implementation | Complete |
 | M52-03 implementation | Complete |
-| M52-04 implementation | In progress |
-| M52-05 implementation | Not started |
+| M52-04 implementation | Complete |
+| M52-05 implementation | In progress |
 | M52 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -1077,7 +1077,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M52-04 authorized request factory.
+Current implementation focus: M52-05 hardening docs.
 
 Most recent completed implementation documents:
 
@@ -1115,6 +1115,8 @@ Most recent completed implementation documents:
 - `docs/plans/M52-02-token-source-reference-boundary.plan.md`
 - `docs/specs/M52-03-refresh-planning-diagnostics.spec.md`
 - `docs/plans/M52-03-refresh-planning-diagnostics.plan.md`
+- `docs/specs/M52-04-authorized-request-factory.spec.md`
+- `docs/plans/M52-04-authorized-request-factory.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1360,8 +1362,8 @@ Most recent completed planning documents:
 - `docs/plans/M52-01-oauth-token-lease-contracts.plan.md`
 - `docs/specs/M52-02-token-source-reference-boundary.spec.md`
 - `docs/plans/M52-02-token-source-reference-boundary.plan.md`
-- `docs/specs/M52-04-authorized-request-factory.spec.md`
-- `docs/plans/M52-04-authorized-request-factory.plan.md`
+- `docs/specs/M52-05-hardening-docs.spec.md`
+- `docs/plans/M52-05-hardening-docs.plan.md`
 - `docs/specs/M52-04-authorized-request-factory.spec.md`
 - `docs/plans/M52-04-authorized-request-factory.plan.md`
 - `docs/specs/M52-05-hardening-docs.spec.md`

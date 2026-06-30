@@ -16,14 +16,14 @@
 - Read: `docs/specs/M52-04-authorized-request-factory.spec.md`
 - Read: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Review request factory scope**
+- [x] **Step 1: Review request factory scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_oauth_token_requests.rs`
 
-- [ ] **Step 1: Add authorized request factory tests**
+- [x] **Step 1: Add authorized request factory tests**
 
 ### Task 3: Implement Factory
 
@@ -31,16 +31,26 @@
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add POST request factory**
-- [ ] **Step 2: Add GET stream request factory**
-- [ ] **Step 3: Add expired-token rejection**
-- [ ] **Step 4: Export helpers**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add POST request factory**
+- [x] **Step 2: Add GET stream request factory**
+- [x] **Step 3: Add expired-token rejection**
+- [x] **Step 4: Export helpers**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M52-04**
+- [x] **Step 1: Update status and commit M52-04**
+
+Verification evidence, 2026-06-30:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token_requests
+CARGO_TARGET_DIR=target/codex-m52 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p agent-mcp --all-targets -- -D warnings
+```
+
+Result: all focused M52-04 checks passed.

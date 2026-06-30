@@ -51,6 +51,8 @@ pub use client_http::{
     McpClientHttpStreamSupervisorTick, McpClientHttpStreamTransport, McpClientHttpTransport,
     McpHttpClient, build_mcp_client_http_authorization_report,
     build_mcp_client_http_oauth_refresh_plan, build_mcp_client_http_oauth_token_status,
+    build_mcp_client_http_request_with_oauth_token,
+    build_mcp_client_http_stream_request_with_oauth_token,
     classify_mcp_client_http_reconnect_error, find_mcp_client_http_response_frame,
     parse_mcp_client_http_oauth_metadata_json,
     parse_mcp_client_http_protected_resource_metadata_json, parse_mcp_client_http_response_body,

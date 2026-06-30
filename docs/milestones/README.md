@@ -555,6 +555,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M58-05 slice plan | Complete |
 | M58-05 implementation | Complete |
 | M58 implementation | Complete |
+| M59 milestone spec | Complete |
+| M59 milestone plan | Complete |
+| M59-01 slice spec | Complete |
+| M59-01 slice plan | Complete |
+| M59-01 implementation | Planned |
+| M59 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -627,6 +633,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M56 Coding Agent Golden Path v1 | `docs/specs/M56-coding-agent-golden-path-v1.spec.md` | `docs/plans/M56-coding-agent-golden-path-v1.plan.md` | Make `agent` useful as a local coding assistant by proving repo bootstrap, edit/diff, command/test, final review, trace, audit, and replay through one vertical workflow. |
 | M57 Multi-Provider Runtime | `docs/specs/M57-multi-provider-runtime.spec.md` | `docs/plans/M57-multi-provider-runtime.plan.md` | Make provider choice typed, diagnosable, and product-ready across OpenAI-compatible, Anthropic, Gemini, and local/Ollama-style providers. |
 | M58 Project Context Intelligence | `docs/specs/M58-project-context-intelligence.spec.md` | `docs/plans/M58-project-context-intelligence.plan.md` | Build repo-aware context assembly with file tree summaries, relevant-file retrieval, pinned context, budget planning, and context quality traces. |
+| M59 CLI/TUI Daily Driver | `docs/specs/M59-cli-tui-daily-driver.spec.md` | `docs/plans/M59-cli-tui-daily-driver.plan.md` | Turn terminal usage into a polished developer workflow with session restore/switch, slash commands, approvals, diffs, command controls, task status, and stable JSON/batch recipes. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1253,6 +1260,16 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M58-04 Pinned Context and Budget Planning | `docs/specs/M58-04-pinned-context-budget-planning.spec.md` | `docs/plans/M58-04-pinned-context-budget-planning.plan.md` | Completed first-class required/optional pinned project context with prompt budget diagnostics, CLI/JSON output, and bridge snapshots. |
 | M58-05 Context Quality Traces and Eval | `docs/specs/M58-05-context-quality-traces-eval.spec.md` | `docs/plans/M58-05-context-quality-traces-eval.plan.md` | Completed typed context quality traces, safe CLI/bridge evidence, and deterministic context-quality eval coverage in the default suite. |
 
+## M59 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M59-01 Session Restore and Switch | `docs/specs/M59-01-session-restore-switch.spec.md` | `docs/plans/M59-01-session-restore-switch.plan.md` | Planned typed terminal session directory, CLI/JSON list/resume commands, bridge switch command, and TUI session panel state. |
+| M59-02 Slash Command Catalog and Status Hub | TBD | TBD | Planned typed slash command catalog, aliases, status hub, and plain/TUI discoverability. |
+| M59-03 Approval Queue and Permission Review | TBD | TBD | Planned actionable approval queue with safe previews, focus movement, lease display, and batch-safe decisions. |
+| M59-04 Diff Viewer and Command Streaming Controls | TBD | TBD | Planned daily-driver diff navigation, command/test output state, and cancellation readiness. |
+| M59-05 Task Status and JSON/Batch Recipes | TBD | TBD | Planned task status panel polish and documented stable terminal recipes. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1270,6 +1287,10 @@ Current implementation focus: M59 CLI/TUI Daily Driver.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M59-cli-tui-daily-driver.spec.md`
+- `docs/plans/M59-cli-tui-daily-driver.plan.md`
+- `docs/specs/M59-01-session-restore-switch.spec.md`
+- `docs/plans/M59-01-session-restore-switch.plan.md`
 - `docs/specs/M58-project-context-intelligence.spec.md`
 - `docs/plans/M58-project-context-intelligence.plan.md`
 - `docs/specs/M58-01-repo-map-file-tree-summaries.spec.md`
@@ -1739,8 +1760,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create M59 CLI/TUI Daily Driver slice specs and plans from the product roadmap.
+- Create M59-02 slash command catalog/status hub spec and plan after M59-01 implementation.
 
 Next implementation direction:
 
-- Start M59 by tightening terminal daily-driver workflows on top of the completed M58 project context intelligence stack.
+- Execute `docs/plans/M59-01-session-restore-switch.plan.md` to add terminal session restore/switch as the first daily-driver slice.

@@ -151,6 +151,28 @@ Acceptance:
 - Pinned context and budget planning are typed and visible through CLI/JSON and bridge contracts.
 - Context quality is covered by deterministic tests and at least one eval scenario.
 
+### M59 CLI/TUI Daily Driver
+
+Status: Planned. Milestone-level spec/plan and the first session restore/switch slice spec/plan are ready; implementation starts with M59-01.
+
+Purpose: make terminal use feel like a coherent daily coding workflow instead of separate command demos.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M59-01 Session Restore and Switch | Add a typed terminal session directory, CLI/JSON list/resume commands, bridge switch command, and TUI session panel state. |
+| M59-02 Slash Command Catalog and Status Hub | Make common terminal actions discoverable and consistent through typed slash command descriptors and status output. |
+| M59-03 Approval Queue and Permission Review | Improve approval review with safe previews, focus movement, lease display, and batch-safe decisions. |
+| M59-04 Diff Viewer and Command Streaming Controls | Improve diff navigation, command/test output state, and cancellation readiness in terminal panels. |
+| M59-05 Task Status and JSON/Batch Recipes | Polish task status visibility and document/test stable JSON and batch workflows. |
+
+Acceptance:
+
+- A developer can restore or switch recent sessions from CLI/JSON and TUI.
+- Slash commands, approvals, diffs, command/test status, and tasks are visible and actionable in terminal workflows.
+- JSON and batch recipes are documented, deterministic, bounded, and redacted.
+
 ## Capability Gates
 
 Each future milestone should ship with:

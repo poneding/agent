@@ -506,11 +506,27 @@ pub enum McpClientHttpStreamSupervisorStatus {
     Completed,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamSupervisorControl {
+    pub cancelled: bool,
+    pub lease_valid: bool,
+}
+
+impl Default for McpClientHttpStreamSupervisorControl {
+    fn default() -> Self {
+        Self {
+            cancelled: false,
+            lease_valid: true,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpStreamSupervisorTick {
     pub status: McpClientHttpStreamSupervisorStatus,
     pub ticks_completed: u32,
     pub reconnect_report: Option<McpClientHttpStreamReconnectReport>,
+    pub stop_reason: Option<String>,
 }
 
 impl McpClientHttpStreamSupervisorTick {
@@ -524,6 +540,21 @@ impl McpClientHttpStreamSupervisorTick {
             status,
             ticks_completed,
             reconnect_report,
+            stop_reason: None,
+        }
+    }
+
+    #[must_use]
+    pub fn stopped(
+        status: McpClientHttpStreamSupervisorStatus,
+        ticks_completed: u32,
+        stop_reason: impl Into<String>,
+    ) -> Self {
+        Self {
+            status,
+            ticks_completed,
+            reconnect_report: None,
+            stop_reason: Some(stop_reason.into()),
         }
     }
 }
@@ -1088,7 +1119,41 @@ impl<T> McpHttpClient<T> {
     where
         S: McpClientHttpStreamTransport,
     {
+        let control = McpClientHttpStreamSupervisorControl::default();
+        self.supervise_stream_tick_with_control(
+            supervisor,
+            stream_transport,
+            ticks_completed,
+            &control,
+        )
+        .await
+    }
+
+    pub async fn supervise_stream_tick_with_control<S>(
+        &self,
+        supervisor: &McpClientHttpStreamSupervisorConfig,
+        stream_transport: &mut S,
+        ticks_completed: u32,
+        control: &McpClientHttpStreamSupervisorControl,
+    ) -> Result<McpClientHttpStreamSupervisorTick, McpError>
+    where
+        S: McpClientHttpStreamTransport,
+    {
         supervisor.validate()?;
+        if control.cancelled {
+            return Ok(McpClientHttpStreamSupervisorTick::stopped(
+                McpClientHttpStreamSupervisorStatus::Cancelled,
+                ticks_completed.min(supervisor.max_ticks),
+                "MCP client HTTP stream supervision cancelled",
+            ));
+        }
+        if !control.lease_valid {
+            return Ok(McpClientHttpStreamSupervisorTick::stopped(
+                McpClientHttpStreamSupervisorStatus::Failed,
+                ticks_completed.min(supervisor.max_ticks),
+                "MCP client HTTP stream supervisor lease is invalid",
+            ));
+        }
         if ticks_completed >= supervisor.max_ticks {
             return Ok(McpClientHttpStreamSupervisorTick::new(
                 McpClientHttpStreamSupervisorStatus::Completed,

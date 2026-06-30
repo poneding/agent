@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-scheduler/src/lib.rs`
 
-- [ ] **Step 1: Review cancellation and scheduler lease boundaries**
+- [x] **Step 1: Review cancellation and scheduler lease boundaries**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_stream_supervisor_cancellation.rs`
 
-- [ ] **Step 1: Add cancellation and lease tests**
+- [x] **Step 1: Add cancellation and lease tests**
 
 Run:
 
@@ -40,15 +40,15 @@ Expected: tests fail before control contracts exist.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add supervisor control contract**
-- [ ] **Step 2: Preflight cancellation before side effects**
-- [ ] **Step 3: Preflight lease validity before side effects**
-- [ ] **Step 4: Preserve checkpoint state on preflight stop**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add supervisor control contract**
+- [x] **Step 2: Preflight cancellation before side effects**
+- [x] **Step 3: Preflight lease validity before side effects**
+- [x] **Step 4: Preserve checkpoint state on preflight stop**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -59,7 +59,7 @@ CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D 
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M50-03**
+- [x] **Step 1: Update status and commit M50-03**
 
 Run:
 
@@ -67,3 +67,12 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http stream supervisor cancellation boundary"
 ```
+
+### Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_cancellation` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

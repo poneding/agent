@@ -196,10 +196,12 @@ fn mcp_client_http_stream_supervisor_runner_tick_serializes_stable_shape() {
         status: McpClientHttpStreamSupervisorStatus::Completed,
         ticks_completed: 3,
         reconnect_report: None,
+        stop_reason: None,
     })
     .expect("json");
 
     assert_eq!(value["status"], "completed");
     assert_eq!(value["ticks_completed"], 3);
     assert!(value["reconnect_report"].is_null());
+    assert!(value["stop_reason"].is_null());
 }

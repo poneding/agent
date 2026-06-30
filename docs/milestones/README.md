@@ -4,6 +4,21 @@
 
 Build the runtime spine first. The first working product should prove that a model-driven turn can be streamed, persisted, permission-checked, tool-executed, audited, and replayed from one shared Rust core. CLI and Desktop then become clients of the same runtime truth.
 
+## Product Roadmap Reset
+
+The active product direction is defined in [Product Roadmap](../roadmap/PRODUCT_ROADMAP.md).
+
+M30-M54 delivered a deep MCP extension track. That work remains valuable, but MCP is now parked as a primary roadmap track after the M54 token exchange closeout. The next milestones must rebalance toward the core product goal: a Claude Code / Codex Desktop-class coding agent with multi-provider support, excellent CLI/TUI and Desktop workflows, strong context, reliable recovery, and product-level evaluations.
+
+Current focus:
+
+- M55 Product Baseline and Roadmap Reset
+- M56 Coding Agent Golden Path v1
+- M57 Multi-Provider Runtime
+- M58 Project Context Intelligence
+- M59 CLI/TUI Daily Driver
+- M60 Desktop Daily Driver
+
 ## Document Layout
 
 Milestone coordination lives here. Detailed specs and implementation plans live in sibling directories under `docs/`.
@@ -11,6 +26,8 @@ Milestone coordination lives here. Detailed specs and implementation plans live 
 ```text
 docs/
   architecture/
+  roadmap/
+    PRODUCT_ROADMAP.md
   milestones/
     README.md
   specs/
@@ -32,6 +49,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Scope | Status |
 |---|---|
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
+| Product roadmap reset | Complete for product capability assessment, MCP parking decision, and M55-M66 roadmap |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
 | Milestone-level specs | Complete for M01-M54 |
@@ -470,9 +488,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M54-01 implementation | Complete |
 | M54-02 implementation | Complete |
 | M54-03 implementation | Complete |
-| M54-04 implementation | In progress |
-| M54-05 implementation | Not started |
-| M54 implementation | In progress |
+| M54-04 implementation | Complete |
+| M54-05 implementation | Complete |
+| M54 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -1119,7 +1137,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M54-04 lease conversion redaction.
+Current implementation focus: M54 closeout verification, then M55 product baseline and roadmap reset.
 
 Most recent completed implementation documents:
 
@@ -1558,7 +1576,14 @@ Most recent completed technical design documents:
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M54-00-mcp-http-oauth-token-exchange-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M54-00-mcp-http-oauth-token-exchange-technical-design.plan.md`
 
-Next implementation slice:
+Next planning action:
 
-- `docs/specs/M54-04-lease-conversion-redaction.spec.md`
-- `docs/plans/M54-04-lease-conversion-redaction.plan.md`
+- Create `docs/specs/M55-product-baseline-roadmap-reset.spec.md`
+- Create `docs/plans/M55-product-baseline-roadmap-reset.plan.md`
+- Create M55 slice specs/plans for capability inventory, golden-path smoke matrix, product gap backlog, milestone index reset, and M56 bootstrap
+
+Next implementation direction:
+
+- M55 Product Baseline and Roadmap Reset
+- M56 Coding Agent Golden Path v1
+- M57 Multi-Provider Runtime

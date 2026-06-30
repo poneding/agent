@@ -18,7 +18,7 @@
 - Read: `README.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Read M54 specs and completed implementation slices**
+- [x] **Step 1: Read M54 specs and completed implementation slices**
 
 ### Task 2: Update Docs
 
@@ -27,12 +27,12 @@
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M54-mcp-http-oauth-token-exchange-runtime.plan.md`
 
-- [ ] **Step 1: Update README token exchange usage**
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 1: Update README token exchange usage**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M54 focused tests**
+- [x] **Step 1: Run final M54 focused tests**
 
 Run:
 
@@ -43,7 +43,7 @@ CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_
 CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_exchange_lease
 ```
 
-- [ ] **Step 2: Run final workspace gate**
+- [x] **Step 2: Run final workspace gate**
 
 Run:
 

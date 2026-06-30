@@ -996,7 +996,7 @@ impl fmt::Debug for McpClientHttpOAuthTokenResponse {
                 "refresh_token",
                 &redacted_optional_value(self.refresh_token.as_ref()),
             )
-            .field("scope", &self.scope)
+            .field("scope", &redacted_scope_values(&self.scope))
             .finish()
     }
 }
@@ -1149,9 +1149,29 @@ impl fmt::Debug for McpClientHttpOAuthTokenLease {
         f.debug_struct("McpClientHttpOAuthTokenLease")
             .field("access_token", &"[redacted]")
             .field("expires_at_unix_ms", &self.expires_at_unix_ms)
-            .field("scopes", &self.scopes)
+            .field("scopes", &redacted_scope_values(&self.scopes))
             .finish()
     }
+}
+
+pub fn build_mcp_client_http_oauth_token_lease_from_exchange_response(
+    response: &McpClientHttpOAuthTokenResponse,
+    now_unix_ms: u64,
+) -> Result<McpClientHttpOAuthTokenLease, McpError> {
+    if !response.token_type.eq_ignore_ascii_case("bearer") {
+        return Err(invalid_mcp_client_http_oauth_token_lease());
+    }
+
+    let expires_at_unix_ms = response.expires_in_seconds.map(|expires_in_seconds| {
+        now_unix_ms.saturating_add(expires_in_seconds.saturating_mul(1000))
+    });
+    let scopes = response
+        .scope
+        .iter()
+        .map(|scope| scope.trim().to_string())
+        .collect::<Vec<_>>();
+
+    McpClientHttpOAuthTokenLease::new(response.access_token.as_str(), expires_at_unix_ms, scopes)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -3489,6 +3509,13 @@ fn normalize_mcp_client_http_oauth_callback_value(
 
 fn redacted_optional_value(value: Option<&String>) -> Option<&'static str> {
     value.map(|_| "[redacted]")
+}
+
+fn redacted_scope_values(values: &[String]) -> Vec<String> {
+    values
+        .iter()
+        .map(|value| redact_secret_like_text(value))
+        .collect()
 }
 
 fn is_mcp_client_http_oauth_unreserved_char(value: char) -> bool {

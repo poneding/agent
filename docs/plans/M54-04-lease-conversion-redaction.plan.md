@@ -16,14 +16,14 @@
 - Read: `docs/specs/M54-04-lease-conversion-redaction.spec.md`
 - Read: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Review lease conversion scope**
+- [x] **Step 1: Review lease conversion scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_oauth_token_exchange_lease.rs`
 
-- [ ] **Step 1: Add lease conversion and redaction tests**
+- [x] **Step 1: Add lease conversion and redaction tests**
 
 ### Task 3: Implement Lease Conversion
 
@@ -31,13 +31,13 @@
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add conversion helper**
-- [ ] **Step 2: Reuse token lease validation**
-- [ ] **Step 3: Export helper**
+- [x] **Step 1: Add conversion helper**
+- [x] **Step 2: Reuse token lease validation**
+- [x] **Step 3: Export helper**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 

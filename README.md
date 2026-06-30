@@ -6,7 +6,11 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M53 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, fixture-grade MCP sampling stdio frame dispatch, live MCP client stdio transport and tool execution through the gateway, live MCP streamable HTTP request/response execution for initialize, tools/list, and tools/call, bounded MCP streamable HTTP SSE response parsing and dispatch, safe MCP HTTP session metadata plus SSE checkpoint tracking, typed bounded MCP HTTP GET stream ownership, bounded MCP HTTP stream reconnect reports, explicit MCP HTTP stream supervision ticks with cancellation, lease preflight, and redacted reports, plus MCP HTTP OAuth authorization, token lifecycle, and authorization-flow foundations with metadata contracts, discovery parsing, readiness diagnostics, explicit bearer-token request boundaries, redacted token leases, safe token source references, deterministic refresh planning, token-gated request factories, PKCE/state contracts, authorization request planning, callback validation, token exchange DTOs, and redacted flow diagnostics.
+M01-M54 are implemented. The repository has strong foundations for event-sourced runtime execution, typed storage and replay, tool policy and audit, model streaming, prompt/context management, memory, scheduler tasks, worktree/subagent foundations, plugins, Desktop bridge contracts, observability, evaluations, CI evidence, and a mature MCP extension layer including HTTP OAuth authorization-code token exchange.
+
+The product roadmap is now re-centered on the user-facing goal: a Claude Code / Codex Desktop-class local coding agent with excellent CLI/TUI and Desktop workflows plus first-class multi-provider support. MCP expansion is parked as a primary track after M54 unless it directly unlocks product workflows.
+
+See [Product Roadmap](docs/roadmap/PRODUCT_ROADMAP.md) and [Milestones](docs/milestones/README.md) for the current direction.
 
 ## Core Ideas
 
@@ -314,6 +318,25 @@ let exchange_report = build_mcp_client_http_oauth_token_exchange_flow_report(&to
 ```
 
 Authorization-flow diagnostics and reports do not expose PKCE verifiers, state values, authorization codes, callback queries, provider descriptions, access tokens, refresh tokens, authorization headers, client secrets, raw auth bodies, or remote auth failure payloads. Browser/device login, localhost callback servers, Desktop account UX, durable encrypted token storage, remote token exchange execution, provider refresh calls, revocation, and dynamic client registration remain outside this milestone.
+
+M54 executes that token exchange DTO through a typed HTTP form POST boundary and converts successful bearer token responses into `McpClientHttpOAuthTokenLease` values. `McpClientHttpOAuthTokenExchangeTransport` owns the async exchange boundary, with fixture and reqwest implementations. `exchange_mcp_client_http_oauth_token` returns a redacted report plus optional secret-bearing token response. `build_mcp_client_http_oauth_token_lease_from_exchange_response` maps successful bearer responses into existing token lifecycle contracts using caller-provided time for expiry calculation.
+
+```rust
+use agent_mcp::{
+    McpClientHttpOAuthTokenExchangeTransport, build_mcp_client_http_oauth_token_lease_from_exchange_response,
+    exchange_mcp_client_http_oauth_token,
+};
+
+let outcome = exchange_mcp_client_http_oauth_token(&mut transport, &token_exchange).await?;
+if let Some(response) = outcome.response.as_ref() {
+    let lease = build_mcp_client_http_oauth_token_lease_from_exchange_response(
+        response,
+        now_unix_ms,
+    )?;
+}
+```
+
+Token exchange diagnostics and debug output do not expose authorization codes, PKCE verifiers, access tokens, refresh tokens, form bodies, authorization headers, client secrets, raw provider responses, or remote auth failure payloads. M54 does not implement browser/device login, callback hosting, Desktop account UX, durable encrypted token vaults, refresh-token persistence, refresh execution, revocation, dynamic client registration, or provider-specific OAuth quirks.
 
 ## MCP Sampling
 

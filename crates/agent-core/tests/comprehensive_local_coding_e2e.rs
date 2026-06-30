@@ -55,7 +55,10 @@ fn capabilities() -> ModelCapabilities {
         streaming: true,
         tool_calls: true,
         structured_outputs: false,
+        image_input: false,
         max_context_tokens: Some(4096),
+        max_output_tokens: Some(1024),
+        cost: None,
     }
 }
 
@@ -64,7 +67,9 @@ fn requirements() -> ModelRequestRequirements {
         streaming: true,
         tool_calls: true,
         structured_outputs: false,
+        image_input: false,
         min_context_tokens: Some(1024),
+        min_output_tokens: Some(1024),
     }
 }
 

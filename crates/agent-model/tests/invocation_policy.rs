@@ -127,7 +127,10 @@ fn fallback_chain_selects_first_compatible_provider() {
                 streaming: true,
                 tool_calls: false,
                 structured_outputs: false,
+                image_input: false,
                 max_context_tokens: Some(1024),
+                max_output_tokens: Some(512),
+                cost: None,
             },
         ),
         registered(
@@ -136,7 +139,10 @@ fn fallback_chain_selects_first_compatible_provider() {
                 streaming: true,
                 tool_calls: true,
                 structured_outputs: false,
+                image_input: false,
                 max_context_tokens: Some(8192),
+                max_output_tokens: Some(4096),
+                cost: None,
             },
         ),
     ])
@@ -146,7 +152,9 @@ fn fallback_chain_selects_first_compatible_provider() {
         streaming: true,
         tool_calls: true,
         structured_outputs: false,
+        image_input: false,
         min_context_tokens: Some(4096),
+        min_output_tokens: Some(1024),
     };
 
     let selected = fallback

@@ -49,10 +49,10 @@ use agent_memory::{
     MemorySensitivity, MemorySource, MemoryTombstone,
 };
 use agent_model::{
-    EnvSecretResolver, ModelConfigError, ModelEndpointConfig, ModelFallbackChain,
-    ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig, ModelProviderKind,
-    ModelProviderRegistry, ModelRequestRequirements, ModelRetryPolicy, OsKeychainSecretStore,
-    SecretStoreBackend,
+    EnvSecretResolver, ModelCapabilities, ModelConfigError, ModelCostProfile, ModelEndpointConfig,
+    ModelFallbackChain, ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig,
+    ModelProviderKind, ModelProviderRegistry, ModelRequestRequirements, ModelRetryPolicy,
+    OsKeychainSecretStore, SecretStoreBackend,
 };
 use agent_plugin::{
     PLUGIN_RUNTIME_API_VERSION, PluginManifest, PluginManifestError, PluginPermission,
@@ -76,10 +76,11 @@ use agent_ui_bridge::{
     UiBridgeError, UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity,
     UiConfigSnapshot, UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic,
     UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame,
-    UiModelProviderSummary, UiPlatformPathsSummary, UiPromptDiagnosticSummary,
-    UiPromptLayerSummary, UiPromptSummary, UiRepoSessionSnapshot, UiSettingsProfileSummary,
-    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
-    UiTaskSummary, encode_json_frame, normalize_runtime_event,
+    UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
+    UiPlatformPathsSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
+    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
+    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
+    normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -4439,7 +4440,9 @@ fn prompt_requirements() -> ModelRequestRequirements {
         streaming: true,
         tool_calls: false,
         structured_outputs: false,
+        image_input: false,
         min_context_tokens: Some(1024),
+        min_output_tokens: Some(1024),
     }
 }
 
@@ -5647,11 +5650,13 @@ fn built_in_runtime_config() -> Result<AgentRuntimeConfig, CliError> {
 fn render_config_summary_text(report: &ConfigCheckReport) -> String {
     let effective = &report.effective;
     let provider_ids = config_provider_ids(effective).join(", ");
+    let provider_capabilities = config_provider_capabilities_summary(effective);
     format!(
-        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nLayers: {}\nDiagnostics: {}\nSettings profile: {}\nRelease channel: {}\nSecret store: {}\nConfig dir: {}\nData dir: {}\nCache dir: {}\nLog dir: {}\n",
+        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nProvider capabilities: {}\nLayers: {}\nDiagnostics: {}\nSettings profile: {}\nRelease channel: {}\nSecret store: {}\nConfig dir: {}\nData dir: {}\nCache dir: {}\nLog dir: {}\n",
         effective.selected_provider,
         effective.selected_model,
         provider_ids,
+        provider_capabilities,
         effective.layers.len(),
         effective.diagnostics.len(),
         report.settings.profile_id,
@@ -5662,6 +5667,37 @@ fn render_config_summary_text(report: &ConfigCheckReport) -> String {
         report.platform_paths.cache_dir.display(),
         report.platform_paths.log_dir.display()
     )
+}
+
+fn config_provider_capabilities_summary(effective: &EffectiveRuntimeConfig) -> String {
+    let mut entries = effective
+        .config
+        .model
+        .catalog
+        .providers
+        .iter()
+        .map(|provider| {
+            let capabilities = ModelCapabilities::default_for_provider_kind(provider.kind);
+            format!(
+                "{}: streaming={} tool_calls={} structured_outputs={} image_input={} context={} output={}",
+                provider.id,
+                capabilities.streaming,
+                capabilities.tool_calls,
+                capabilities.structured_outputs,
+                capabilities.image_input,
+                format_capability_token_limit(capabilities.max_context_tokens),
+                format_capability_token_limit(capabilities.max_output_tokens)
+            )
+        })
+        .collect::<Vec<_>>();
+    entries.sort();
+    entries.join("; ")
+}
+
+fn format_capability_token_limit(limit: Option<u32>) -> String {
+    limit
+        .map(|value| value.to_string())
+        .unwrap_or_else(|| "unknown".to_string())
 }
 
 fn secret_store_summary() -> String {
@@ -5709,11 +5745,13 @@ fn ui_config_snapshot(report: &ConfigCheckReport) -> Result<UiConfigSnapshot, Cl
         .providers
         .iter()
         .map(|provider| {
+            let capabilities = ModelCapabilities::default_for_provider_kind(provider.kind);
             UiModelProviderSummary::new(
                 provider.id.clone(),
                 model_provider_kind_label(provider.kind),
                 provider.default_model.clone(),
                 provider.enabled,
+                ui_model_provider_capabilities(&capabilities)?,
             )
             .map_err(map_ui_bridge_error)
         })
@@ -5744,6 +5782,33 @@ fn ui_config_snapshot(report: &ConfigCheckReport) -> Result<UiConfigSnapshot, Cl
     Ok(snapshot
         .with_platform_paths(platform_paths)
         .with_settings(settings))
+}
+
+fn ui_model_provider_capabilities(
+    capabilities: &ModelCapabilities,
+) -> Result<UiModelProviderCapabilities, CliError> {
+    Ok(UiModelProviderCapabilities::new(
+        capabilities.streaming,
+        capabilities.tool_calls,
+        capabilities.structured_outputs,
+        capabilities.image_input,
+        capabilities.max_context_tokens,
+        capabilities.max_output_tokens,
+        capabilities
+            .cost
+            .as_ref()
+            .map(ui_model_cost_profile)
+            .transpose()?,
+    ))
+}
+
+fn ui_model_cost_profile(cost: &ModelCostProfile) -> Result<UiModelCostProfile, CliError> {
+    UiModelCostProfile::new(
+        cost.input_per_million.clone(),
+        cost.output_per_million.clone(),
+        cost.currency.clone(),
+    )
+    .map_err(map_ui_bridge_error)
 }
 
 fn ui_platform_paths_summary(paths: &PlatformPaths) -> Result<UiPlatformPathsSummary, CliError> {

@@ -72,7 +72,9 @@ fn prompt_requirements() -> ModelRequestRequirements {
         streaming: true,
         tool_calls: false,
         structured_outputs: false,
+        image_input: false,
         min_context_tokens: Some(1024),
+        min_output_tokens: Some(1024),
     }
 }
 

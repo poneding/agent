@@ -1,11 +1,16 @@
 use agent_ui_bridge::{
     UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiJsonFrame,
-    UiModelProviderSummary, encode_json_frame,
+    UiModelProviderCapabilities, UiModelProviderSummary, encode_json_frame,
 };
 use serde_json::json;
 
+fn capabilities() -> UiModelProviderCapabilities {
+    UiModelProviderCapabilities::new(true, false, false, false, Some(4096), Some(1024), None)
+}
+
 fn provider(id: &str, kind: &str, model: &str, enabled: bool) -> UiModelProviderSummary {
-    UiModelProviderSummary::new(id, kind, model, enabled).expect("valid provider summary")
+    UiModelProviderSummary::new(id, kind, model, enabled, capabilities())
+        .expect("valid provider summary")
 }
 
 fn diagnostic() -> UiConfigDiagnostic {
@@ -44,13 +49,31 @@ fn config_snapshot_serializes_stable_shape() {
                     "id": "fake",
                     "kind": "fake",
                     "default_model": "fake-scripted",
-                    "enabled": true
+                    "enabled": true,
+                    "capabilities": {
+                        "streaming": true,
+                        "tool_calls": false,
+                        "structured_outputs": false,
+                        "image_input": false,
+                        "max_context_tokens": 4096,
+                        "max_output_tokens": 1024,
+                        "cost": null
+                    }
                 },
                 {
                     "id": "openai",
                     "kind": "open_ai_compatible",
                     "default_model": "gpt-4.1-mini",
-                    "enabled": true
+                    "enabled": true,
+                    "capabilities": {
+                        "streaming": true,
+                        "tool_calls": false,
+                        "structured_outputs": false,
+                        "image_input": false,
+                        "max_context_tokens": 4096,
+                        "max_output_tokens": 1024,
+                        "cost": null
+                    }
                 }
             ],
             "diagnostics": [
@@ -108,7 +131,7 @@ fn config_snapshot_redacts_secret_like_values() {
     assert!(!serialized.contains("OPENAI_API_KEY"));
     assert!(!serialized.contains("sk-test-secret"));
     assert!(!serialized.contains("api_key"));
-    assert!(!serialized.contains("token"));
+    assert!(!serialized.contains("api_token"));
     assert!(!serialized.contains("password"));
     assert!(!serialized.contains("secret"));
 }

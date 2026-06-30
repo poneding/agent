@@ -27,7 +27,7 @@ pub fn build_model_provider_registry(
         let registered = match provider.kind {
             ModelProviderKind::Fake => RegisteredModelProvider::new(
                 provider.clone(),
-                fake_capabilities(),
+                ModelCapabilities::fake_default(),
                 Arc::new(FakeModelProvider::new(FakeModelScript::text(
                     &fake_response(prompt),
                 ))),
@@ -55,7 +55,7 @@ pub fn build_model_provider_registry(
                     })?;
                 RegisteredModelProvider::new(
                     provider.clone(),
-                    openai_compatible_capabilities(),
+                    ModelCapabilities::openai_compatible_default(),
                     Arc::new(provider_impl),
                 )
                 .map_err(|error| prompt_runtime_error(error.to_string()))?
@@ -94,22 +94,4 @@ pub(crate) fn redact_secret_like_text(input: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
-}
-
-fn fake_capabilities() -> ModelCapabilities {
-    ModelCapabilities {
-        streaming: true,
-        tool_calls: false,
-        structured_outputs: false,
-        max_context_tokens: Some(4096),
-    }
-}
-
-fn openai_compatible_capabilities() -> ModelCapabilities {
-    ModelCapabilities {
-        streaming: true,
-        tool_calls: false,
-        structured_outputs: false,
-        max_context_tokens: Some(128_000),
-    }
 }

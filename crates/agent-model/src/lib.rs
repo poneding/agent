@@ -28,8 +28,8 @@ pub use openai_compatible::{
 };
 pub use provider::{ModelError, ModelProvider};
 pub use registry::{
-    ModelCapabilities, ModelCapability, ModelProviderRegistry, ModelRegistryError,
-    ModelRequestRequirements, RegisteredModelProvider,
+    ModelCapabilities, ModelCapability, ModelCapabilityProfileError, ModelCostProfile,
+    ModelProviderRegistry, ModelRegistryError, ModelRequestRequirements, RegisteredModelProvider,
 };
 pub use request::ModelRequest;
 pub use secrets::{

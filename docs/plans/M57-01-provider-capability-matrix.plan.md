@@ -20,7 +20,7 @@
 - Read: `crates/agent-cli/tests/config_diagnostics.rs`
 - Read: `crates/agent-ui-bridge/src/frame.rs`
 
-- [ ] **Step 1: Review current capability behavior**
+- [x] **Step 1: Review current capability behavior**
 
 Run:
 
@@ -38,7 +38,7 @@ Expected: current streaming/tool/structured/context capability checks and config
 - Modify: `crates/agent-model/tests/provider_registry.rs`
 - Modify: `crates/agent-cli/tests/config_diagnostics.rs`
 
-- [ ] **Step 1: Add agent-model capability tests**
+- [x] **Step 1: Add agent-model capability tests**
 
 Cover:
 
@@ -47,7 +47,7 @@ Cover:
 - deterministic missing capability order
 - default profiles for fake and OpenAI-compatible providers
 
-- [ ] **Step 2: Add CLI config diagnostics tests**
+- [x] **Step 2: Add CLI config diagnostics tests**
 
 Cover:
 
@@ -55,7 +55,7 @@ Cover:
 - JSON config snapshot includes parseable provider capability metadata
 - secret-like provider values remain redacted
 
-- [ ] **Step 3: Run focused tests and verify failure**
+- [x] **Step 3: Run focused tests and verify failure**
 
 Run:
 
@@ -73,15 +73,15 @@ Expected: tests fail before capability matrix implementation exists.
 - Modify if needed: `crates/agent-model/src/config.rs`
 - Modify: `crates/agent-model/src/lib.rs`
 
-- [ ] **Step 1: Extend typed capability contracts**
+- [x] **Step 1: Extend typed capability contracts**
 
 Add image input, output token, and optional cost metadata while preserving serde compatibility.
 
-- [ ] **Step 2: Add matching and diagnostics helpers**
+- [x] **Step 2: Add matching and diagnostics helpers**
 
 Expose deterministic missing capability labels and keep mismatch diagnostics typed.
 
-- [ ] **Step 3: Add default capability profiles**
+- [x] **Step 3: Add default capability profiles**
 
 Provide stable profiles for fake and OpenAI-compatible providers.
 
@@ -91,11 +91,11 @@ Provide stable profiles for fake and OpenAI-compatible providers.
 - Modify: `crates/agent-cli/src/command.rs`
 - Modify if needed: `crates/agent-ui-bridge/src/frame.rs`
 
-- [ ] **Step 1: Render text summary**
+- [x] **Step 1: Render text summary**
 
 Include concise capability summaries in `--config-check` output.
 
-- [ ] **Step 2: Render JSON summary**
+- [x] **Step 2: Render JSON summary**
 
 Expose parseable provider capability metadata through existing config snapshot frames.
 
@@ -105,7 +105,7 @@ Expose parseable provider capability metadata through existing config snapshot f
 - Modify: `docs/plans/M57-01-provider-capability-matrix.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -119,7 +119,7 @@ cargo test -p agent-cli config_diagnostics
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging, then:
 
@@ -131,8 +131,8 @@ Expected: commit contains capability contracts, CLI/JSON summaries, tests, and d
 
 ### Completion Checklist
 
-- [ ] Capability matrix fields are typed and serde-tested.
-- [ ] Requirement matching includes image input and output token needs.
-- [ ] Missing capability diagnostics are deterministic and redacted.
-- [ ] Config check text/JSON exposes provider capability summaries.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Capability matrix fields are typed and serde-tested.
+- [x] Requirement matching includes image input and output token needs.
+- [x] Missing capability diagnostics are deterministic and redacted.
+- [x] Config check text/JSON exposes provider capability summaries.
+- [x] Focused fmt/clippy/tests pass.

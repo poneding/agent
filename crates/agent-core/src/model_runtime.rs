@@ -1652,6 +1652,13 @@ impl ModelRuntimeError {
                 field: "model.providers".to_string(),
                 message: format!("invalid registered provider config: {error}"),
             },
+            ModelRegistryError::InvalidCapabilities {
+                provider_id,
+                source,
+            } => Self::InvalidSelection {
+                field: format!("model.providers.{provider_id}.capabilities"),
+                message: format!("invalid registered provider capabilities: {source}"),
+            },
         }
     }
 }

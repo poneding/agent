@@ -104,6 +104,9 @@ fn cli_config_diagnostics_text_reports_valid_config() {
     assert!(output.stdout.contains("Selected provider: openai"));
     assert!(output.stdout.contains("Selected model: gpt-4.1-mini"));
     assert!(output.stdout.contains("Providers: fake, openai"));
+    assert!(output.stdout.contains(
+        "Provider capabilities: fake: streaming=true tool_calls=false structured_outputs=false image_input=false context=4096 output=1024; openai: streaming=true tool_calls=false structured_outputs=false image_input=false context=128000 output=16384"
+    ));
     assert!(output.stdout.contains("Settings profile: default"));
     assert!(output.stdout.contains("Release channel: dev"));
     assert!(output.stdout.contains(
@@ -146,6 +149,28 @@ fn cli_config_diagnostics_json_renders_config_summary() {
     let snapshot = snapshot.expect("config snapshot frame");
     assert_eq!(snapshot.selected_provider, "fake");
     assert_eq!(snapshot.selected_model, "fake-custom");
+    let fake_provider = snapshot
+        .providers
+        .iter()
+        .find(|provider| provider.id == "fake")
+        .expect("fake provider summary");
+    assert!(fake_provider.capabilities.streaming);
+    assert!(!fake_provider.capabilities.tool_calls);
+    assert!(!fake_provider.capabilities.structured_outputs);
+    assert!(!fake_provider.capabilities.image_input);
+    assert_eq!(fake_provider.capabilities.max_context_tokens, Some(4096));
+    assert_eq!(fake_provider.capabilities.max_output_tokens, Some(1024));
+    assert!(fake_provider.capabilities.cost.is_none());
+    let openai_provider = snapshot
+        .providers
+        .iter()
+        .find(|provider| provider.id == "openai")
+        .expect("openai provider summary");
+    assert_eq!(
+        openai_provider.capabilities.max_context_tokens,
+        Some(128_000)
+    );
+    assert_eq!(openai_provider.capabilities.max_output_tokens, Some(16_384));
     assert_eq!(
         snapshot
             .settings

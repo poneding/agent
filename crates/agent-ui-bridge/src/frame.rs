@@ -616,11 +616,85 @@ impl UiSettingsProfileSummary {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiModelProviderCapabilities {
+    pub streaming: bool,
+    pub tool_calls: bool,
+    pub structured_outputs: bool,
+    pub image_input: bool,
+    pub max_context_tokens: Option<u32>,
+    pub max_output_tokens: Option<u32>,
+    pub cost: Option<UiModelCostProfile>,
+}
+
+impl UiModelProviderCapabilities {
+    #[must_use]
+    pub fn new(
+        streaming: bool,
+        tool_calls: bool,
+        structured_outputs: bool,
+        image_input: bool,
+        max_context_tokens: Option<u32>,
+        max_output_tokens: Option<u32>,
+        cost: Option<UiModelCostProfile>,
+    ) -> Self {
+        Self {
+            streaming,
+            tool_calls,
+            structured_outputs,
+            image_input,
+            max_context_tokens,
+            max_output_tokens,
+            cost,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiModelCostProfile {
+    pub input_per_million: Option<String>,
+    pub output_per_million: Option<String>,
+    pub currency: String,
+}
+
+impl UiModelCostProfile {
+    pub fn new(
+        input_per_million: Option<String>,
+        output_per_million: Option<String>,
+        currency: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        let currency = currency.into();
+        validate_non_empty("provider cost currency", &currency)?;
+        if input_per_million
+            .as_ref()
+            .is_some_and(|value| value.trim().is_empty())
+        {
+            return Err(UiBridgeError::Validation(
+                "provider cost input_per_million must not be empty".to_string(),
+            ));
+        }
+        if output_per_million
+            .as_ref()
+            .is_some_and(|value| value.trim().is_empty())
+        {
+            return Err(UiBridgeError::Validation(
+                "provider cost output_per_million must not be empty".to_string(),
+            ));
+        }
+        Ok(Self {
+            input_per_million,
+            output_per_million,
+            currency,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UiModelProviderSummary {
     pub id: String,
     pub kind: String,
     pub default_model: String,
     pub enabled: bool,
+    pub capabilities: UiModelProviderCapabilities,
 }
 
 impl UiModelProviderSummary {
@@ -629,6 +703,7 @@ impl UiModelProviderSummary {
         kind: impl Into<String>,
         default_model: impl Into<String>,
         enabled: bool,
+        capabilities: UiModelProviderCapabilities,
     ) -> Result<Self, UiBridgeError> {
         let id = id.into();
         let kind = kind.into();
@@ -642,6 +717,7 @@ impl UiModelProviderSummary {
             kind,
             default_model,
             enabled,
+            capabilities,
         })
     }
 }

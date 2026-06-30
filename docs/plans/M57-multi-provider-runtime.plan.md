@@ -37,7 +37,7 @@ Expected: existing fake/OpenAI-compatible provider registry behavior passes befo
 **Files:**
 - Execute: `docs/plans/M57-01-provider-capability-matrix.plan.md`
 
-- [ ] **Step 1: Complete capability matrix slice**
+- [x] **Step 1: Complete capability matrix slice**
 
 Add typed provider/model capability profiles, mismatch diagnostics, default profiles for current providers, and CLI/JSON exposure.
 
@@ -100,7 +100,7 @@ Run exact-path staging and commit the final docs/status updates.
 
 ### Completion Checklist
 
-- [ ] Provider capability matrix is typed, serde-friendly, and tested.
+- [x] Provider capability matrix is typed, serde-friendly, and tested.
 - [ ] Anthropic adapter is implemented with fixture-backed tests.
 - [ ] Gemini adapter is implemented with fixture-backed tests.
 - [ ] Local/Ollama-compatible provider is implemented with local endpoint safety.

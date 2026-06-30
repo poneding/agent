@@ -25,7 +25,10 @@ fn fake_capabilities() -> ModelCapabilities {
         streaming: true,
         tool_calls: false,
         structured_outputs: false,
+        image_input: false,
         max_context_tokens: Some(4096),
+        max_output_tokens: Some(1024),
+        cost: None,
     }
 }
 
@@ -120,7 +123,9 @@ fn provider_registry_accepts_compatible_capabilities() {
         streaming: true,
         tool_calls: false,
         structured_outputs: false,
+        image_input: false,
         min_context_tokens: Some(2048),
+        min_output_tokens: Some(512),
     };
 
     let registered = registry
@@ -138,7 +143,9 @@ fn provider_registry_reports_missing_capabilities() {
         streaming: true,
         tool_calls: true,
         structured_outputs: true,
+        image_input: true,
         min_context_tokens: Some(8192),
+        min_output_tokens: Some(2048),
     };
 
     let err = registry
@@ -152,7 +159,9 @@ fn provider_registry_reports_missing_capabilities() {
                 && missing == vec![
                     ModelCapability::ToolCalls,
                     ModelCapability::StructuredOutputs,
+                    ModelCapability::ImageInput,
                     ModelCapability::ContextTokens,
+                    ModelCapability::OutputTokens,
                 ]
     ));
 }

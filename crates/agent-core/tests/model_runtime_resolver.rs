@@ -22,7 +22,10 @@ fn capabilities(
         streaming,
         tool_calls,
         structured_outputs,
+        image_input: false,
         max_context_tokens,
+        max_output_tokens: Some(1024),
+        cost: None,
     }
 }
 
@@ -31,7 +34,9 @@ fn prompt_requirements() -> ModelRequestRequirements {
         streaming: true,
         tool_calls: false,
         structured_outputs: false,
+        image_input: false,
         min_context_tokens: Some(1024),
+        min_output_tokens: Some(1024),
     }
 }
 

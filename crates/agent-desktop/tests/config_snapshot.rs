@@ -1,9 +1,15 @@
 use agent_desktop::{DesktopConfigSnapshot, DesktopError};
-use agent_ui_bridge::{UiConfigSnapshot, UiModelProviderSummary};
+use agent_ui_bridge::{UiConfigSnapshot, UiModelProviderCapabilities, UiModelProviderSummary};
 
 fn provider() -> UiModelProviderSummary {
-    UiModelProviderSummary::new("fake", "fake", "fake-scripted", true)
-        .expect("valid provider summary")
+    UiModelProviderSummary::new(
+        "fake",
+        "fake",
+        "fake-scripted",
+        true,
+        UiModelProviderCapabilities::new(true, false, false, false, Some(4096), Some(1024), None),
+    )
+    .expect("valid provider summary")
 }
 
 #[test]

@@ -537,6 +537,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-05 slice plan | Complete |
 | M57-05 implementation | Complete |
 | M57 implementation | Complete |
+| M58 milestone spec | Complete |
+| M58 milestone plan | Complete |
+| M58-01 slice spec | Complete |
+| M58-01 slice plan | Complete |
+| M58-01 implementation | Planned |
+| M58 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -608,6 +614,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M55 Product Baseline and Roadmap Reset | `docs/specs/M55-product-baseline-roadmap-reset.spec.md` | `docs/plans/M55-product-baseline-roadmap-reset.plan.md` | Establish the mainline product baseline, smoke matrix, product gap backlog, and M56 bootstrap while keeping MCP parked unless product workflows require it. |
 | M56 Coding Agent Golden Path v1 | `docs/specs/M56-coding-agent-golden-path-v1.spec.md` | `docs/plans/M56-coding-agent-golden-path-v1.plan.md` | Make `agent` useful as a local coding assistant by proving repo bootstrap, edit/diff, command/test, final review, trace, audit, and replay through one vertical workflow. |
 | M57 Multi-Provider Runtime | `docs/specs/M57-multi-provider-runtime.spec.md` | `docs/plans/M57-multi-provider-runtime.plan.md` | Make provider choice typed, diagnosable, and product-ready across OpenAI-compatible, Anthropic, Gemini, and local/Ollama-style providers. |
+| M58 Project Context Intelligence | `docs/specs/M58-project-context-intelligence.spec.md` | `docs/plans/M58-project-context-intelligence.plan.md` | Build repo-aware context assembly with file tree summaries, relevant-file retrieval, pinned context, budget planning, and context quality traces. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1224,6 +1231,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-04 Local Provider Adapter | `docs/specs/M57-04-local-provider-adapter.spec.md` | `docs/plans/M57-04-local-provider-adapter.plan.md` | Completed local/Ollama-compatible provider with local endpoint safety, fixture-backed JSONL streaming, tool-call mapping, diagnostics, and CLI registration. |
 | M57-05 Provider UX Fallback | `docs/specs/M57-05-provider-ux-fallback.spec.md` | `docs/plans/M57-05-provider-ux-fallback.plan.md` | Completed typed provider support summaries, compatible-only fallback selection, redacted config-check output, and M56 coding-path fallback coverage. |
 
+## M58 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M58-01 Repo Map and File Tree Summaries | `docs/specs/M58-01-repo-map-file-tree-summaries.spec.md` | `docs/plans/M58-01-repo-map-file-tree-summaries.plan.md` | Planned bounded project file/directory summaries, prompt-layer conversion, safe CLI/JSON output, and bridge snapshots. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1237,10 +1250,14 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M58 Project Context Intelligence spec/plan bootstrap.
+Current implementation focus: M58-01 repo map and file tree summaries implementation.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M58-project-context-intelligence.spec.md`
+- `docs/plans/M58-project-context-intelligence.plan.md`
+- `docs/specs/M58-01-repo-map-file-tree-summaries.spec.md`
+- `docs/plans/M58-01-repo-map-file-tree-summaries.plan.md`
 - `docs/specs/M57-multi-provider-runtime.spec.md`
 - `docs/plans/M57-multi-provider-runtime.plan.md`
 - `docs/specs/M57-05-provider-ux-fallback.spec.md`
@@ -1698,8 +1715,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create the M58 milestone spec/plan and first implementation slice for project context intelligence.
+- Create the M58-02 relevant-file retrieval spec/plan after M58-01 is underway or complete.
 
 Next implementation direction:
 
-- Start M58 with repo map, file tree summary, and bounded context assembly once the spec/plan is in place.
+- Execute `docs/plans/M58-01-repo-map-file-tree-summaries.plan.md` with focused context/core/CLI/bridge verification.

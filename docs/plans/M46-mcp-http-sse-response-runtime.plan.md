@@ -49,7 +49,7 @@ Define crate ownership, SSE event contracts, response-mode boundaries, stream bo
 - [x] **Step 1: Add SSE event parsing contracts**
 - [x] **Step 2: Add HTTP response-mode contracts**
 - [x] **Step 3: Add reqwest `text/event-stream` response handling**
-- [ ] **Step 4: Dispatch HTTP client calls from SSE response frames**
+- [x] **Step 4: Dispatch HTTP client calls from SSE response frames**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M46

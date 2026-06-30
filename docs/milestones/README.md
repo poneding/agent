@@ -398,7 +398,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M46-01 implementation | Complete |
 | M46-02 implementation | Complete |
 | M46-03 implementation | Complete |
-| M46-04 implementation | In progress |
+| M46-04 implementation | Complete |
+| M46-05 implementation | In progress |
 | M46 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -950,7 +951,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M46-04 HTTP client SSE dispatch.
+Current implementation focus: M46-05 hardening docs.
 
 Most recent completed implementation documents:
 
@@ -1257,5 +1258,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M46-04-http-client-sse-dispatch.spec.md`
-- `docs/plans/M46-04-http-client-sse-dispatch.plan.md`
+- `docs/specs/M46-05-hardening-docs.spec.md`
+- `docs/plans/M46-05-hardening-docs.plan.md`

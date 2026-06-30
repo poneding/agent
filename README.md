@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M52 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, fixture-grade MCP sampling stdio frame dispatch, live MCP client stdio transport and tool execution through the gateway, live MCP streamable HTTP request/response execution for initialize, tools/list, and tools/call, bounded MCP streamable HTTP SSE response parsing and dispatch, safe MCP HTTP session metadata plus SSE checkpoint tracking, typed bounded MCP HTTP GET stream ownership, bounded MCP HTTP stream reconnect reports, explicit MCP HTTP stream supervision ticks with cancellation, lease preflight, and redacted reports, plus MCP HTTP OAuth authorization and token lifecycle foundations with metadata contracts, discovery parsing, readiness diagnostics, explicit bearer-token request boundaries, redacted token leases, safe token source references, deterministic refresh planning, and token-gated request factories.
+M01-M53 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, fixture-grade MCP sampling stdio frame dispatch, live MCP client stdio transport and tool execution through the gateway, live MCP streamable HTTP request/response execution for initialize, tools/list, and tools/call, bounded MCP streamable HTTP SSE response parsing and dispatch, safe MCP HTTP session metadata plus SSE checkpoint tracking, typed bounded MCP HTTP GET stream ownership, bounded MCP HTTP stream reconnect reports, explicit MCP HTTP stream supervision ticks with cancellation, lease preflight, and redacted reports, plus MCP HTTP OAuth authorization, token lifecycle, and authorization-flow foundations with metadata contracts, discovery parsing, readiness diagnostics, explicit bearer-token request boundaries, redacted token leases, safe token source references, deterministic refresh planning, token-gated request factories, PKCE/state contracts, authorization request planning, callback validation, token exchange DTOs, and redacted flow diagnostics.
 
 ## Core Ideas
 
@@ -265,6 +265,55 @@ let request = build_mcp_client_http_request_with_oauth_token(
 ```
 
 Token lifecycle diagnostics and request factories do not expose access tokens, refresh tokens, authorization header values, client secrets, raw auth bodies, remote auth failures, or configured header values. Browser/device login, Desktop account UX, durable encrypted token storage, provider refresh calls, revocation, and dynamic client registration remain outside this milestone.
+
+M53 adds a typed OAuth authorization-flow foundation for callers that own browser launch, callback hosting, remote token endpoint execution, and secret storage. `McpClientHttpOAuthPkceVerifier`, `McpClientHttpOAuthPkceChallenge`, and `McpClientHttpOAuthState` validate caller-provided flow material. `build_mcp_client_http_oauth_authorization_request_plan` creates a deterministic authorization URL plan. `validate_mcp_client_http_oauth_callback` validates returned code/state shape and classifies provider errors. `build_mcp_client_http_oauth_token_exchange_request` creates the final token exchange form DTO without executing a network call. Flow reports expose UI-safe diagnostics for authorization-ready, callback, and token-exchange-ready states.
+
+```rust
+use agent_mcp::{
+    McpClientHttpOAuthAuthorizationRequestInput, McpClientHttpOAuthCallbackInput,
+    McpClientHttpOAuthPkceChallenge, McpClientHttpOAuthPkceVerifier, McpClientHttpOAuthState,
+    build_mcp_client_http_oauth_authorization_flow_report,
+    build_mcp_client_http_oauth_authorization_request_plan,
+    build_mcp_client_http_oauth_token_exchange_flow_report,
+    build_mcp_client_http_oauth_token_exchange_request, validate_mcp_client_http_oauth_callback,
+};
+
+let input = McpClientHttpOAuthAuthorizationRequestInput::new(
+    "mcp-client",
+    "http://127.0.0.1:8080/oauth/callback",
+    vec!["mcp:tools".to_string()],
+)?;
+let verifier = McpClientHttpOAuthPkceVerifier::new(
+    "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+)?;
+let challenge = McpClientHttpOAuthPkceChallenge::s256(&verifier)?;
+let state = McpClientHttpOAuthState::new("state-0123456789abcdef")?;
+let authorization_plan = build_mcp_client_http_oauth_authorization_request_plan(
+    &oauth_metadata,
+    &input,
+    &challenge,
+    &state,
+)?;
+let authorization_report =
+    build_mcp_client_http_oauth_authorization_flow_report(&authorization_plan);
+
+let callback = McpClientHttpOAuthCallbackInput::new(
+    Some("callback-code-from-provider"),
+    Some("state-0123456789abcdef"),
+    None::<String>,
+    None::<String>,
+)?;
+let validation = validate_mcp_client_http_oauth_callback(&callback, &state)?;
+let token_exchange = build_mcp_client_http_oauth_token_exchange_request(
+    &oauth_metadata,
+    &input,
+    &verifier,
+    &validation,
+)?;
+let exchange_report = build_mcp_client_http_oauth_token_exchange_flow_report(&token_exchange);
+```
+
+Authorization-flow diagnostics and reports do not expose PKCE verifiers, state values, authorization codes, callback queries, provider descriptions, access tokens, refresh tokens, authorization headers, client secrets, raw auth bodies, or remote auth failure payloads. Browser/device login, localhost callback servers, Desktop account UX, durable encrypted token storage, remote token exchange execution, provider refresh calls, revocation, and dynamic client registration remain outside this milestone.
 
 ## MCP Sampling
 

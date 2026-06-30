@@ -462,8 +462,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M53-02 implementation | Complete |
 | M53-03 implementation | Complete |
 | M53-04 implementation | Complete |
-| M53-05 implementation | In progress |
-| M53 implementation | In progress |
+| M53-05 implementation | Complete |
+| M53 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -1098,7 +1098,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M53-05 hardening docs.
+Current implementation focus: M53 complete; next milestone planning.
 
 Most recent completed implementation documents:
 
@@ -1152,6 +1152,8 @@ Most recent completed implementation documents:
 - `docs/plans/M53-03-callback-token-exchange-contracts.plan.md`
 - `docs/specs/M53-04-flow-diagnostics-redaction.spec.md`
 - `docs/plans/M53-04-flow-diagnostics-redaction.plan.md`
+- `docs/specs/M53-05-hardening-docs.spec.md`
+- `docs/plans/M53-05-hardening-docs.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1523,5 +1525,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M53-05-hardening-docs.spec.md`
-- `docs/plans/M53-05-hardening-docs.plan.md`
+- To be planned after M53 completion.

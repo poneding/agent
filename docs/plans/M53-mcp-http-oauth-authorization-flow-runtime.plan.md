@@ -50,7 +50,7 @@ Define crate ownership, PKCE/state boundaries, authorization URL planning, callb
 - [x] **Step 2: Add authorization request planning**
 - [x] **Step 3: Add callback validation and token exchange DTOs**
 - [x] **Step 4: Add flow diagnostics and redaction hardening**
-- [ ] **Step 5: Add docs and final verification**
+- [x] **Step 5: Add docs and final verification**
 
 ### Task 4: Complete M53
 
@@ -59,7 +59,7 @@ Define crate ownership, PKCE/state boundaries, authorization URL planning, callb
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M53-mcp-http-oauth-authorization-flow-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,19 @@ CARGO_TARGET_DIR=target/codex-m53 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M53 complete and commit**
+Evidence, 2026-06-30:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_pkce_state
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_authorization_request
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_callback
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_flow_diagnostics
+git diff --check
+CARGO_TARGET_DIR=target/codex-m53 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m53 cargo xtask ci
+```
+
+- [x] **Step 2: Mark M53 complete and commit**
 
 Run:
 

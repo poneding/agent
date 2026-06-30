@@ -58,6 +58,22 @@ pub struct McpClientHttpSessionMetadata {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpResponseEnvelope {
+    pub mode: McpClientHttpResponseMode,
+    pub metadata: McpClientHttpSessionMetadata,
+}
+
+impl McpClientHttpResponseEnvelope {
+    #[must_use]
+    pub const fn new(
+        mode: McpClientHttpResponseMode,
+        metadata: McpClientHttpSessionMetadata,
+    ) -> Self {
+        Self { mode, metadata }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "kind", content = "response")]
 pub enum McpClientHttpResponseMode {
     Json(McpClientHttpResponse),
@@ -149,9 +165,27 @@ impl From<McpClientHttpResponse> for McpClientHttpResponseMode {
     }
 }
 
+impl From<McpClientHttpResponse> for McpClientHttpResponseEnvelope {
+    fn from(response: McpClientHttpResponse) -> Self {
+        Self::new(response.into(), McpClientHttpSessionMetadata::default())
+    }
+}
+
 impl From<McpClientHttpSseResponse> for McpClientHttpResponseMode {
     fn from(response: McpClientHttpSseResponse) -> Self {
         Self::Sse(response)
+    }
+}
+
+impl From<McpClientHttpSseResponse> for McpClientHttpResponseEnvelope {
+    fn from(response: McpClientHttpSseResponse) -> Self {
+        Self::new(response.into(), McpClientHttpSessionMetadata::default())
+    }
+}
+
+impl From<McpClientHttpResponseMode> for McpClientHttpResponseEnvelope {
+    fn from(mode: McpClientHttpResponseMode) -> Self {
+        Self::new(mode, McpClientHttpSessionMetadata::default())
     }
 }
 
@@ -160,12 +194,12 @@ pub trait McpClientHttpTransport: Send {
     async fn send_request(
         &mut self,
         request: McpClientHttpRequest,
-    ) -> Result<McpClientHttpResponseMode, McpError>;
+    ) -> Result<McpClientHttpResponseEnvelope, McpError>;
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct FixtureMcpClientHttpTransport {
-    inbound_responses: VecDeque<Result<McpClientHttpResponseMode, McpError>>,
+    inbound_responses: VecDeque<Result<McpClientHttpResponseEnvelope, McpError>>,
     sent_requests: Vec<McpClientHttpRequest>,
 }
 
@@ -174,7 +208,7 @@ impl FixtureMcpClientHttpTransport {
     pub fn from_responses<I, R>(responses: I) -> Self
     where
         I: IntoIterator<Item = Result<R, McpError>>,
-        R: Into<McpClientHttpResponseMode>,
+        R: Into<McpClientHttpResponseEnvelope>,
     {
         Self {
             inbound_responses: responses
@@ -196,7 +230,7 @@ impl McpClientHttpTransport for FixtureMcpClientHttpTransport {
     async fn send_request(
         &mut self,
         request: McpClientHttpRequest,
-    ) -> Result<McpClientHttpResponseMode, McpError> {
+    ) -> Result<McpClientHttpResponseEnvelope, McpError> {
         self.sent_requests.push(request);
         self.inbound_responses.pop_front().unwrap_or_else(|| {
             Err(McpError::Client(
@@ -244,7 +278,7 @@ impl McpClientHttpTransport for McpClientHttpReqwestTransport {
     async fn send_request(
         &mut self,
         request: McpClientHttpRequest,
-    ) -> Result<McpClientHttpResponseMode, McpError> {
+    ) -> Result<McpClientHttpResponseEnvelope, McpError> {
         let mut builder = self
             .client
             .post(&request.url)
@@ -264,6 +298,7 @@ impl McpClientHttpTransport for McpClientHttpReqwestTransport {
             .get(reqwest::header::CONTENT_TYPE)
             .and_then(|value| value.to_str().ok())
             .map(ToString::to_string);
+        let metadata_headers = mcp_client_http_metadata_headers(response.headers());
 
         let body = response
             .text()
@@ -280,9 +315,9 @@ impl McpClientHttpTransport for McpClientHttpReqwestTransport {
             .is_some_and(is_mcp_client_http_sse_content_type)
         {
             let events = parse_mcp_client_http_sse_events(&body)?;
-            return Ok(McpClientHttpResponseMode::Sse(
-                McpClientHttpSseResponse::new(events),
-            ));
+            let mode = McpClientHttpResponseMode::Sse(McpClientHttpSseResponse::new(events));
+            let metadata = parse_mcp_client_http_session_metadata(&metadata_headers, &mode)?;
+            return Ok(McpClientHttpResponseEnvelope::new(mode, metadata));
         }
         if content_type
             .as_deref()
@@ -297,10 +332,10 @@ impl McpClientHttpTransport for McpClientHttpReqwestTransport {
             McpError::InvalidServerRequest("invalid MCP client HTTP response body".to_string())
         })?;
 
-        Ok(McpClientHttpResponseMode::Json(McpClientHttpResponse {
-            status,
-            body_json,
-        }))
+        let mode = McpClientHttpResponseMode::Json(McpClientHttpResponse { status, body_json });
+        let metadata = parse_mcp_client_http_session_metadata(&metadata_headers, &mode)?;
+
+        Ok(McpClientHttpResponseEnvelope::new(mode, metadata))
     }
 }
 
@@ -349,8 +384,8 @@ where
         let id = self.allocate_request_id()?;
         let body = render_mcp_client_http_request_body(id.clone(), method, params)?;
         let request = McpClientHttpRequest::from_config(config, body)?;
-        let response = self.transport.send_request(request).await?;
-        find_mcp_client_http_response_frame(&response, &id)
+        let envelope = self.transport.send_request(request).await?;
+        find_mcp_client_http_response_frame(&envelope.mode, &id)
     }
 
     fn allocate_request_id(&mut self) -> Result<McpJsonRpcId, McpError> {
@@ -853,6 +888,23 @@ fn is_secret_like(value: &str) -> bool {
         || normalized.contains("api_key")
         || normalized.contains("apikey")
         || normalized.contains("sk_")
+}
+
+fn mcp_client_http_metadata_headers(
+    headers: &reqwest::header::HeaderMap,
+) -> BTreeMap<String, String> {
+    [
+        MCP_CLIENT_HTTP_SESSION_ID_HEADER,
+        MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER,
+    ]
+    .into_iter()
+    .filter_map(|name| {
+        headers
+            .get(name)
+            .and_then(|value| value.to_str().ok())
+            .map(|value| (name.to_string(), value.to_string()))
+    })
+    .collect()
 }
 
 fn parse_mcp_client_http_metadata_header(

@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
 use agent_mcp::{
-    McpClient as _, McpClientHttpRequest, McpClientHttpResponse, McpClientHttpResponseMode,
+    McpClient as _, McpClientHttpRequest, McpClientHttpResponse, McpClientHttpResponseEnvelope,
     McpClientHttpTransport, McpError, McpGateway, McpGatewayClient as _, McpHttpClient,
     McpServerConfig, McpServerId, McpServerStatus, McpToolCallRequest, McpTransportConfig,
 };
@@ -11,7 +11,7 @@ use async_trait::async_trait;
 use serde_json::{Value, json};
 
 struct RecordingTransport {
-    inbound_responses: VecDeque<Result<McpClientHttpResponseMode, McpError>>,
+    inbound_responses: VecDeque<Result<McpClientHttpResponseEnvelope, McpError>>,
     sent_requests: Arc<Mutex<Vec<McpClientHttpRequest>>>,
 }
 
@@ -19,7 +19,7 @@ impl RecordingTransport {
     fn from_responses<I, R>(responses: I) -> (Self, Arc<Mutex<Vec<McpClientHttpRequest>>>)
     where
         I: IntoIterator<Item = Result<R, McpError>>,
-        R: Into<McpClientHttpResponseMode>,
+        R: Into<McpClientHttpResponseEnvelope>,
     {
         let sent_requests = Arc::new(Mutex::new(Vec::new()));
         (
@@ -40,7 +40,7 @@ impl McpClientHttpTransport for RecordingTransport {
     async fn send_request(
         &mut self,
         request: McpClientHttpRequest,
-    ) -> Result<McpClientHttpResponseMode, McpError> {
+    ) -> Result<McpClientHttpResponseEnvelope, McpError> {
         self.sent_requests
             .lock()
             .expect("sent requests")

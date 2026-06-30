@@ -7,8 +7,8 @@ use std::time::Duration;
 
 use agent_mcp::{
     FixtureMcpClientHttpTransport, McpClientHttpRequest, McpClientHttpReqwestTransport,
-    McpClientHttpResponse, McpClientHttpResponseMode, McpClientHttpTransport as _, McpEnvValue,
-    McpServerConfig, McpServerId, McpTransportConfig,
+    McpClientHttpResponse, McpClientHttpResponseMode, McpClientHttpSessionMetadata,
+    McpClientHttpTransport as _, McpEnvValue, McpServerConfig, McpServerId, McpTransportConfig,
 };
 use serde_json::{Value, json};
 
@@ -24,13 +24,22 @@ fn spawn_server(
     content_type: &'static str,
     body: &'static str,
 ) -> (String, Receiver<RecordedRequest>) {
+    spawn_server_with_headers(status, content_type, body, Vec::new())
+}
+
+fn spawn_server_with_headers(
+    status: &'static str,
+    content_type: &'static str,
+    body: &'static str,
+    extra_headers: Vec<(&'static str, &'static str)>,
+) -> (String, Receiver<RecordedRequest>) {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind server");
     let addr = listener.local_addr().expect("server addr");
     let (tx, rx) = mpsc::channel();
 
     thread::spawn(move || {
         let (stream, _) = listener.accept().expect("accept");
-        let recorded = read_request(stream, status, content_type, body);
+        let recorded = read_request(stream, status, content_type, body, &extra_headers);
         tx.send(recorded).expect("send recorded request");
     });
 
@@ -42,6 +51,7 @@ fn read_request(
     status: &str,
     content_type: &str,
     response_body: &str,
+    extra_headers: &[(&str, &str)],
 ) -> RecordedRequest {
     let mut reader = BufReader::new(stream.try_clone().expect("clone stream"));
     let mut request_line = String::new();
@@ -75,10 +85,17 @@ fn read_request(
     reader.read_exact(&mut body).expect("body");
     let body = String::from_utf8(body).expect("utf8 body");
 
-    let response = format!(
-        "HTTP/1.1 {status}\r\ncontent-type: {content_type}\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{response_body}",
+    let mut response = format!("HTTP/1.1 {status}\r\ncontent-type: {content_type}\r\n");
+    for (name, value) in extra_headers {
+        response.push_str(name);
+        response.push_str(": ");
+        response.push_str(value);
+        response.push_str("\r\n");
+    }
+    response.push_str(&format!(
+        "content-length: {}\r\nconnection: close\r\n\r\n{response_body}",
         response_body.len()
-    );
+    ));
     stream.write_all(response.as_bytes()).expect("response");
     stream.flush().expect("flush");
 
@@ -118,7 +135,8 @@ async fn mcp_client_http_transport_fixture_records_and_returns_response() {
 
     let actual = transport.send_request(request.clone()).await.expect("send");
 
-    assert_eq!(actual, McpClientHttpResponseMode::Json(response));
+    assert_eq!(actual.mode, McpClientHttpResponseMode::Json(response));
+    assert_eq!(actual.metadata, McpClientHttpSessionMetadata::default());
     assert_eq!(transport.sent_requests(), &[request]);
 }
 
@@ -196,7 +214,7 @@ async fn mcp_client_http_transport_reqwest_posts_json_and_headers() {
         .expect("recorded request");
     let body = serde_json::from_str::<Value>(&recorded.body).expect("json body");
 
-    let McpClientHttpResponseMode::Json(response) = response else {
+    let McpClientHttpResponseMode::Json(response) = response.mode else {
         panic!("expected json response mode");
     };
     assert_eq!(response.status, 200);
@@ -255,7 +273,7 @@ async fn mcp_client_http_transport_reqwest_parses_sse_response() {
         .recv_timeout(Duration::from_secs(5))
         .expect("recorded request");
 
-    let McpClientHttpResponseMode::Sse(response) = response else {
+    let McpClientHttpResponseMode::Sse(response) = response.mode else {
         panic!("expected sse response mode");
     };
     assert_eq!(response.events.len(), 1);
@@ -264,6 +282,40 @@ async fn mcp_client_http_transport_reqwest_parses_sse_response() {
         response.events[0].data,
         r#"{"jsonrpc":"2.0","id":1,"result":{"ok":true}}"#
     );
+}
+
+#[tokio::test]
+async fn mcp_client_http_transport_reqwest_captures_response_metadata() {
+    let (url, rx) = spawn_server_with_headers(
+        "200 OK",
+        "text/event-stream",
+        "id: event-1\ndata: {\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"ok\":true}}\n\n",
+        vec![
+            ("Mcp-Session-Id", "session-1"),
+            ("MCP-Protocol-Version", "2025-11-25"),
+        ],
+    );
+    let request = McpClientHttpRequest::new(
+        url,
+        BTreeMap::new(),
+        json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}),
+        5_000,
+    )
+    .expect("request");
+    let mut transport = McpClientHttpReqwestTransport::new();
+
+    let response = transport.send_request(request).await.expect("send");
+    let _recorded = rx
+        .recv_timeout(Duration::from_secs(5))
+        .expect("recorded request");
+
+    assert_eq!(response.metadata.session_id.as_deref(), Some("session-1"));
+    assert_eq!(
+        response.metadata.protocol_version.as_deref(),
+        Some("2025-11-25")
+    );
+    assert_eq!(response.metadata.last_event_id.as_deref(), Some("event-1"));
+    assert!(matches!(response.mode, McpClientHttpResponseMode::Sse(_)));
 }
 
 #[tokio::test]

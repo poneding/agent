@@ -17,7 +17,7 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/tests/mcp_client_http_transport.rs`
 
-- [ ] **Step 1: Review response-mode and transport contracts**
+- [x] **Step 1: Review response-mode and transport contracts**
 
 ### Task 2: Write Failing Tests
 
@@ -25,7 +25,7 @@
 - Create: `crates/agent-mcp/tests/mcp_client_http_response_envelope.rs`
 - Modify: `crates/agent-mcp/tests/mcp_client_http_transport.rs`
 
-- [ ] **Step 1: Add envelope and transport metadata tests**
+- [x] **Step 1: Add envelope and transport metadata tests**
 
 ### Task 3: Implement Envelope Integration
 
@@ -33,14 +33,14 @@
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add response envelope contract**
-- [ ] **Step 2: Update fixture transport conversions**
-- [ ] **Step 3: Update reqwest transport header extraction**
-- [ ] **Step 4: Preserve response-mode frame parsing behavior**
+- [x] **Step 1: Add response envelope contract**
+- [x] **Step 2: Update fixture transport conversions**
+- [x] **Step 3: Update reqwest transport header extraction**
+- [x] **Step 4: Preserve response-mode frame parsing behavior**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused tests and fmt**
+- [x] **Step 1: Run focused tests and fmt**
 
 Run:
 
@@ -52,7 +52,7 @@ CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M47-02**
+- [x] **Step 1: Update status and commit M47-02**
 
 Run:
 
@@ -60,3 +60,12 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http response envelopes"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_response_envelope` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

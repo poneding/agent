@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/tests/mcp_client_http_transport.rs`
 
-- [ ] **Step 1: Review stream-open spec and existing reqwest tests**
+- [x] **Step 1: Review stream-open spec and existing reqwest tests**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_stream_transport.rs`
 
-- [ ] **Step 1: Add fixture and reqwest GET SSE tests**
+- [x] **Step 1: Add fixture and reqwest GET SSE tests**
 
 Run:
 
@@ -40,11 +40,11 @@ Expected: tests fail before stream transport contracts exist.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add `McpClientHttpStreamOpen`**
-- [ ] **Step 2: Add `McpClientHttpStreamTransport` and fixture transport**
-- [ ] **Step 3: Implement reqwest GET SSE stream open**
-- [ ] **Step 4: Preserve redacted diagnostics**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add `McpClientHttpStreamOpen`**
+- [x] **Step 2: Add `McpClientHttpStreamTransport` and fixture transport**
+- [x] **Step 3: Implement reqwest GET SSE stream open**
+- [x] **Step 4: Preserve redacted diagnostics**
+- [x] **Step 5: Run focused tests**
 
 Run:
 
@@ -56,7 +56,7 @@ Expected: focused tests pass.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -69,7 +69,7 @@ Expected: checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M48-02**
+- [x] **Step 1: Update status and commit M48-02**
 
 Run:
 
@@ -77,3 +77,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: open mcp http get sse streams"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

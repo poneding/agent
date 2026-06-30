@@ -256,6 +256,22 @@ impl McpClientHttpStreamRequest {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamOpen {
+    pub metadata: McpClientHttpSessionMetadata,
+    pub events: Vec<McpClientHttpSseEvent>,
+}
+
+impl McpClientHttpStreamOpen {
+    #[must_use]
+    pub const fn new(
+        metadata: McpClientHttpSessionMetadata,
+        events: Vec<McpClientHttpSseEvent>,
+    ) -> Self {
+        Self { metadata, events }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpResponse {
     pub status: u16,
     pub body_json: Value,
@@ -306,6 +322,14 @@ pub trait McpClientHttpTransport: Send {
     ) -> Result<McpClientHttpResponseEnvelope, McpError>;
 }
 
+#[async_trait]
+pub trait McpClientHttpStreamTransport: Send {
+    async fn open_stream(
+        &mut self,
+        request: McpClientHttpStreamRequest,
+    ) -> Result<McpClientHttpStreamOpen, McpError>;
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct FixtureMcpClientHttpTransport {
     inbound_responses: VecDeque<Result<McpClientHttpResponseEnvelope, McpError>>,
@@ -344,6 +368,45 @@ impl McpClientHttpTransport for FixtureMcpClientHttpTransport {
         self.inbound_responses.pop_front().unwrap_or_else(|| {
             Err(McpError::Client(
                 "MCP client HTTP fixture response missing".to_string(),
+            ))
+        })
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct FixtureMcpClientHttpStreamTransport {
+    inbound_streams: VecDeque<Result<McpClientHttpStreamOpen, McpError>>,
+    sent_requests: Vec<McpClientHttpStreamRequest>,
+}
+
+impl FixtureMcpClientHttpStreamTransport {
+    #[must_use]
+    pub fn from_streams<I>(streams: I) -> Self
+    where
+        I: IntoIterator<Item = Result<McpClientHttpStreamOpen, McpError>>,
+    {
+        Self {
+            inbound_streams: streams.into_iter().collect(),
+            sent_requests: Vec::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn sent_requests(&self) -> &[McpClientHttpStreamRequest] {
+        &self.sent_requests
+    }
+}
+
+#[async_trait]
+impl McpClientHttpStreamTransport for FixtureMcpClientHttpStreamTransport {
+    async fn open_stream(
+        &mut self,
+        request: McpClientHttpStreamRequest,
+    ) -> Result<McpClientHttpStreamOpen, McpError> {
+        self.sent_requests.push(request);
+        self.inbound_streams.pop_front().unwrap_or_else(|| {
+            Err(McpError::Client(
+                "MCP client HTTP fixture stream missing".to_string(),
             ))
         })
     }
@@ -445,6 +508,60 @@ impl McpClientHttpTransport for McpClientHttpReqwestTransport {
         let metadata = parse_mcp_client_http_session_metadata(&metadata_headers, &mode)?;
 
         Ok(McpClientHttpResponseEnvelope::new(mode, metadata))
+    }
+}
+
+#[async_trait]
+impl McpClientHttpStreamTransport for McpClientHttpReqwestTransport {
+    async fn open_stream(
+        &mut self,
+        request: McpClientHttpStreamRequest,
+    ) -> Result<McpClientHttpStreamOpen, McpError> {
+        let mut builder = self
+            .client
+            .get(&request.url)
+            .timeout(Duration::from_millis(request.timeout_ms));
+        for (key, value) in &request.headers {
+            builder = builder.header(key, value);
+        }
+
+        let response = builder
+            .send()
+            .await
+            .map_err(|_| McpError::Client("MCP client HTTP stream transport failed".to_string()))?;
+        let status = response.status().as_u16();
+        validate_mcp_client_http_status(status)?;
+        let content_type = response
+            .headers()
+            .get(reqwest::header::CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .map(ToString::to_string);
+        let metadata_headers = mcp_client_http_metadata_headers(response.headers());
+
+        if !content_type
+            .as_deref()
+            .is_some_and(is_mcp_client_http_sse_content_type)
+        {
+            return Err(McpError::InvalidServerRequest(
+                "unsupported MCP client HTTP stream content type".to_string(),
+            ));
+        }
+
+        let body = response
+            .text()
+            .await
+            .map_err(|_| McpError::Client("MCP client HTTP stream read failed".to_string()))?;
+        if body.len() > MAX_CLIENT_HTTP_BODY_BYTES {
+            return Err(McpError::InvalidServerRequest(
+                "MCP client HTTP stream body too large".to_string(),
+            ));
+        }
+
+        let events = parse_mcp_client_http_sse_events(&body)?;
+        let mode = McpClientHttpResponseMode::Sse(McpClientHttpSseResponse::new(events.clone()));
+        let metadata = parse_mcp_client_http_session_metadata(&metadata_headers, &mode)?;
+
+        Ok(McpClientHttpStreamOpen::new(metadata, events))
     }
 }
 

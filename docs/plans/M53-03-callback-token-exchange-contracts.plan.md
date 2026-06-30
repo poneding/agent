@@ -16,14 +16,14 @@
 - Read: `docs/specs/M53-03-callback-token-exchange-contracts.spec.md`
 - Read: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Review callback and exchange scope**
+- [x] **Step 1: Review callback and exchange scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_oauth_callback.rs`
 
-- [ ] **Step 1: Add callback and token exchange tests**
+- [x] **Step 1: Add callback and token exchange tests**
 
 ### Task 3: Implement Contracts
 
@@ -31,16 +31,26 @@
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add callback input and validation result**
-- [ ] **Step 2: Add token exchange request DTO**
-- [ ] **Step 3: Add state and code validation**
-- [ ] **Step 4: Export contracts**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add callback input and validation result**
+- [x] **Step 2: Add token exchange request DTO**
+- [x] **Step 3: Add state and code validation**
+- [x] **Step 4: Export contracts**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M53-03**
+- [x] **Step 1: Update status and commit M53-03**
+
+Verification evidence, 2026-06-30:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_callback
+CARGO_TARGET_DIR=target/codex-m53 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m53 cargo clippy -p agent-mcp --all-targets -- -D warnings
+```
+
+Result: all focused M53-03 checks passed.

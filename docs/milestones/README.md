@@ -460,8 +460,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M53 slice plans | Complete for M53-01 through M53-05 |
 | M53-01 implementation | Complete |
 | M53-02 implementation | Complete |
-| M53-03 implementation | In progress |
-| M53-04 implementation | Not started |
+| M53-03 implementation | Complete |
+| M53-04 implementation | In progress |
 | M53-05 implementation | Not started |
 | M53 implementation | In progress |
 
@@ -1098,7 +1098,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M53-03 callback token exchange contracts.
+Current implementation focus: M53-04 flow diagnostics redaction.
 
 Most recent completed implementation documents:
 
@@ -1148,6 +1148,8 @@ Most recent completed implementation documents:
 - `docs/plans/M53-01-pkce-state-contracts.plan.md`
 - `docs/specs/M53-02-authorization-request-planning.spec.md`
 - `docs/plans/M53-02-authorization-request-planning.plan.md`
+- `docs/specs/M53-03-callback-token-exchange-contracts.spec.md`
+- `docs/plans/M53-03-callback-token-exchange-contracts.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1519,5 +1521,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M53-03-callback-token-exchange-contracts.spec.md`
-- `docs/plans/M53-03-callback-token-exchange-contracts.plan.md`
+- `docs/specs/M53-04-flow-diagnostics-redaction.spec.md`
+- `docs/plans/M53-04-flow-diagnostics-redaction.plan.md`

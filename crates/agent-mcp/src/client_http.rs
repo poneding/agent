@@ -448,6 +448,177 @@ pub fn build_mcp_client_http_oauth_authorization_request_plan(
 }
 
 #[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthCallbackInput {
+    pub code: Option<String>,
+    pub state: Option<String>,
+    pub error: Option<String>,
+    pub error_description: Option<String>,
+}
+
+impl McpClientHttpOAuthCallbackInput {
+    pub fn new<C, S, E, D>(
+        code: Option<C>,
+        state: Option<S>,
+        error: Option<E>,
+        error_description: Option<D>,
+    ) -> Result<Self, McpError>
+    where
+        C: Into<String>,
+        S: Into<String>,
+        E: Into<String>,
+        D: Into<String>,
+    {
+        Ok(Self {
+            code: normalize_mcp_client_http_oauth_callback_value(code)?,
+            state: normalize_mcp_client_http_oauth_callback_value(state)?,
+            error: normalize_mcp_client_http_oauth_callback_value(error)?,
+            error_description: normalize_mcp_client_http_oauth_callback_value(error_description)?,
+        })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        normalize_mcp_client_http_oauth_callback_value(self.code.as_deref())?;
+        normalize_mcp_client_http_oauth_callback_value(self.state.as_deref())?;
+        normalize_mcp_client_http_oauth_callback_value(self.error.as_deref())?;
+        normalize_mcp_client_http_oauth_callback_value(self.error_description.as_deref())?;
+        Ok(())
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthCallbackInput {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthCallbackInput")
+            .field("code", &redacted_optional_value(self.code.as_ref()))
+            .field("state", &redacted_optional_value(self.state.as_ref()))
+            .field("error", &redacted_optional_value(self.error.as_ref()))
+            .field(
+                "error_description",
+                &redacted_optional_value(self.error_description.as_ref()),
+            )
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum McpClientHttpOAuthCallbackOutcome {
+    Success,
+    ProviderError,
+    StateMismatch,
+    Invalid,
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthCallbackValidation {
+    pub accepted: bool,
+    pub outcome: McpClientHttpOAuthCallbackOutcome,
+    pub code: Option<String>,
+}
+
+impl fmt::Debug for McpClientHttpOAuthCallbackValidation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthCallbackValidation")
+            .field("accepted", &self.accepted)
+            .field("outcome", &self.outcome)
+            .field("code", &redacted_optional_value(self.code.as_ref()))
+            .finish()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenExchangeRequest {
+    pub token_endpoint: String,
+    pub form: Vec<(String, String)>,
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenExchangeRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let redacted_form = self
+            .form
+            .iter()
+            .map(|(name, _)| (name.as_str(), "[redacted]"))
+            .collect::<Vec<_>>();
+        f.debug_struct("McpClientHttpOAuthTokenExchangeRequest")
+            .field("token_endpoint", &self.token_endpoint)
+            .field("form", &redacted_form)
+            .finish()
+    }
+}
+
+pub fn validate_mcp_client_http_oauth_callback(
+    input: &McpClientHttpOAuthCallbackInput,
+    expected_state: &McpClientHttpOAuthState,
+) -> Result<McpClientHttpOAuthCallbackValidation, McpError> {
+    input.validate()?;
+    expected_state.validate()?;
+
+    if input.state.as_deref() != Some(expected_state.state.as_str()) {
+        return Ok(McpClientHttpOAuthCallbackValidation {
+            accepted: false,
+            outcome: McpClientHttpOAuthCallbackOutcome::StateMismatch,
+            code: None,
+        });
+    }
+
+    if input.error.is_some() {
+        return Ok(McpClientHttpOAuthCallbackValidation {
+            accepted: false,
+            outcome: McpClientHttpOAuthCallbackOutcome::ProviderError,
+            code: None,
+        });
+    }
+
+    let Some(code) = input.code.clone() else {
+        return Ok(McpClientHttpOAuthCallbackValidation {
+            accepted: false,
+            outcome: McpClientHttpOAuthCallbackOutcome::Invalid,
+            code: None,
+        });
+    };
+
+    Ok(McpClientHttpOAuthCallbackValidation {
+        accepted: true,
+        outcome: McpClientHttpOAuthCallbackOutcome::Success,
+        code: Some(code),
+    })
+}
+
+pub fn build_mcp_client_http_oauth_token_exchange_request(
+    metadata: &McpClientHttpOAuthMetadata,
+    input: &McpClientHttpOAuthAuthorizationRequestInput,
+    pkce_verifier: &McpClientHttpOAuthPkceVerifier,
+    validation: &McpClientHttpOAuthCallbackValidation,
+) -> Result<McpClientHttpOAuthTokenExchangeRequest, McpError> {
+    metadata
+        .validate()
+        .map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+    input.validate()?;
+    pkce_verifier.validate()?;
+    let token_endpoint = metadata
+        .token_endpoint
+        .as_deref()
+        .ok_or_else(invalid_mcp_client_http_oauth_flow)?;
+    validate_mcp_client_http_oauth_url(token_endpoint)
+        .map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+    let Some(code) = validation.code.as_deref() else {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    };
+    if !validation.accepted || validation.outcome != McpClientHttpOAuthCallbackOutcome::Success {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+
+    Ok(McpClientHttpOAuthTokenExchangeRequest {
+        token_endpoint: token_endpoint.to_string(),
+        form: vec![
+            ("grant_type".to_string(), "authorization_code".to_string()),
+            ("code".to_string(), code.to_string()),
+            ("redirect_uri".to_string(), input.redirect_uri.clone()),
+            ("client_id".to_string(), input.client_id.clone()),
+            ("code_verifier".to_string(), pkce_verifier.verifier.clone()),
+        ],
+    })
+}
+
+#[derive(Clone, Eq, PartialEq)]
 pub struct McpClientHttpOAuthTokenLease {
     pub access_token: String,
     pub expires_at_unix_ms: Option<u64>,
@@ -2618,6 +2789,28 @@ fn validate_mcp_client_http_oauth_pkce_challenge(
         return Err(invalid_mcp_client_http_oauth_flow());
     }
     Ok(())
+}
+
+fn normalize_mcp_client_http_oauth_callback_value(
+    value: Option<impl Into<String>>,
+) -> Result<Option<String>, McpError> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    let value = value.into();
+    let value = value.trim();
+    if value.is_empty() {
+        return Ok(None);
+    }
+    if value.chars().count() > MAX_CLIENT_HTTP_MESSAGE_CHARS || value.chars().any(char::is_control)
+    {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    Ok(Some(value.to_string()))
+}
+
+fn redacted_optional_value(value: Option<&String>) -> Option<&'static str> {
+    value.map(|_| "[redacted]")
 }
 
 fn is_mcp_client_http_oauth_unreserved_char(value: char) -> bool {

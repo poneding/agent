@@ -18,6 +18,11 @@
       "path": "scenarios/m56-golden-path.eval.json",
       "alias": "m56-golden-path",
       "labels": ["default", "coding", "m56", "smoke"]
+    },
+    {
+      "path": "scenarios/m58-context-quality.eval.json",
+      "alias": "m58-context-quality",
+      "labels": ["default", "context", "m58", "smoke"]
     }
   ]
 }

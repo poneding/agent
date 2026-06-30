@@ -35,6 +35,7 @@ fn manifest(kind: EvalScenarioKind, fixtures: EvalFixtures) -> EvalScenarioManif
         expectations: EvalExpectations {
             expected_status: EvalExpectedStatus::Passed,
             required_events: Vec::new(),
+            context_quality: None,
             golden: None,
         },
         metadata: BTreeMap::new(),
@@ -47,6 +48,7 @@ fn kind_slug(kind: EvalScenarioKind) -> &'static str {
         EvalScenarioKind::FakeModelTurn => "fake-model",
         EvalScenarioKind::LocalCoding => "local-coding",
         EvalScenarioKind::EvidenceOnly => "evidence",
+        EvalScenarioKind::ContextQuality => "context-quality",
     }
 }
 

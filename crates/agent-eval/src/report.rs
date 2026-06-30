@@ -224,4 +224,5 @@ pub enum EvalEvidenceSource {
     ReplayTrace,
     EvidenceBundle,
     LocalCoding,
+    ContextQuality,
 }

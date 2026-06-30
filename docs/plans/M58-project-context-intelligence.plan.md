@@ -89,7 +89,7 @@ Add typed pinned context requests, required/optional pin behavior, budget diagno
 - Create: `docs/specs/M58-05-context-quality-traces-eval.spec.md`
 - Create: `docs/plans/M58-05-context-quality-traces-eval.plan.md`
 
-- [ ] **Step 1: Complete quality/eval slice**
+- [x] **Step 1: Complete quality/eval slice**
 
 Add context quality traces, UI-safe summaries, deterministic eval fixture coverage, and default-suite integration if the scenario is stable enough for the main gate.
 
@@ -101,7 +101,7 @@ Add context quality traces, UI-safe summaries, deterministic eval fixture covera
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M58-project-context-intelligence.plan.md`
 
-- [ ] **Step 1: Run final M58 gates**
+- [x] **Step 1: Run final M58 gates**
 
 Run:
 
@@ -114,7 +114,7 @@ cargo xtask eval
 
 Expected: all gates pass with context summaries and eval artifacts redacted.
 
-- [ ] **Step 2: Commit M58 closeout**
+- [x] **Step 2: Commit M58 closeout**
 
 Run exact-path staging and commit the final docs/status updates.
 
@@ -125,5 +125,5 @@ Run exact-path staging and commit the final docs/status updates.
 - [x] Semantic/hybrid retrieval is optional and fixture-tested.
 - [x] Pinned context participates in prompt budget planning with diagnostics.
 - [x] CLI/JSON and bridge surfaces expose safe context evidence.
-- [ ] Context quality traces and eval coverage are implemented.
-- [ ] Final workspace fmt/clippy/tests and `cargo xtask eval` pass.
+- [x] Context quality traces and eval coverage are implemented.
+- [x] Final workspace fmt/clippy/tests and `cargo xtask eval` pass.

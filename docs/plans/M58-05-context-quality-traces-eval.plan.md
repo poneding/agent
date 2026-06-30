@@ -28,7 +28,7 @@
 - Read: `crates/agent-eval/src/runner.rs`
 - Read: `docs/eval/default.suite.json`
 
-- [ ] **Step 1: Review current context and eval behavior**
+- [x] **Step 1: Review current context and eval behavior**
 
 Run:
 
@@ -51,7 +51,7 @@ Expected: existing context retrieval, pinned budget, eval runner, golden compari
 **Files:**
 - Create: `crates/agent-context/tests/context_quality_traces.rs`
 
-- [ ] **Step 1: Add quality trace tests**
+- [x] **Step 1: Add quality trace tests**
 
 Cover:
 
@@ -64,7 +64,7 @@ Cover:
 - signal ordering is deterministic by signal kind, request/report order, path, and message
 - task text, paths, pin reasons, diagnostics, raw file contents, raw semantic document text, and vectors are redacted or absent
 
-- [ ] **Step 2: Run quality trace tests and verify failure**
+- [x] **Step 2: Run quality trace tests and verify failure**
 
 Run:
 
@@ -83,19 +83,19 @@ Expected: tests fail before quality trace contracts exist.
 - Modify if needed: `crates/agent-context/src/semantic.rs`
 - Modify if needed: `crates/agent-context/src/pins.rs`
 
-- [ ] **Step 1: Add typed quality contracts**
+- [x] **Step 1: Add typed quality contracts**
 
 Implement `ContextQualityTrace`, `ContextQualityRetrievalKind`, `ContextQualityBudgetPressure`, `ContextQualitySignal`, `ContextQualitySignalKind`, `ContextQualityDiagnosticSeverity`, and `ContextQualityDiagnostic` with stable serde names and validation constructors.
 
-- [ ] **Step 2: Add quality derivation helpers**
+- [x] **Step 2: Add quality derivation helpers**
 
 Build lexical, hybrid, pinned lexical, and pinned hybrid quality traces from existing reports. Do not rescan files, rerun retrieval, or duplicate scoring logic.
 
-- [ ] **Step 3: Add redaction and bounded output**
+- [x] **Step 3: Add redaction and bounded output**
 
 Ensure task text, diagnostic messages, paths, pin reasons, and signal messages are bounded and redacted. Do not include raw file contents, raw semantic documents, vectors, absolute workspace roots, or secret-like values.
 
-- [ ] **Step 4: Run context quality tests**
+- [x] **Step 4: Run context quality tests**
 
 Run:
 
@@ -112,7 +112,7 @@ Expected: context quality trace tests pass.
 - Modify: `crates/agent-core/src/project_context.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add core orchestration tests**
+- [x] **Step 1: Add core orchestration tests**
 
 Cover:
 
@@ -123,11 +123,11 @@ Cover:
 - invalid workspace or invalid required pins fail before trace construction
 - serialized quality reports stay workspace-relative and redacted
 
-- [ ] **Step 2: Implement core helpers**
+- [x] **Step 2: Implement core helpers**
 
 Add typed input/report values or helper functions that compose existing M58 retrieval helpers with quality trace construction. Keep all quality decisions in `agent-context`.
 
-- [ ] **Step 3: Run core quality tests**
+- [x] **Step 3: Run core quality tests**
 
 Run:
 
@@ -143,7 +143,7 @@ Expected: core quality trace tests pass.
 - Create: `crates/agent-cli/tests/project_context_quality_commands.rs`
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Add CLI tests**
+- [x] **Step 1: Add CLI tests**
 
 Cover:
 
@@ -154,7 +154,7 @@ Cover:
 - invalid quality requests reuse existing exit code `2` behavior
 - task text, diagnostics, fixture paths, pin reasons, and secret-like values are redacted
 
-- [ ] **Step 2: Implement CLI flag and routing**
+- [x] **Step 2: Implement CLI flag and routing**
 
 Extend `repo context select` with:
 
@@ -164,7 +164,7 @@ Extend `repo context select` with:
 
 Keep existing lexical, semantic, and pinned behavior unchanged unless the flag is present. Reuse core quality helpers; do not compute quality in CLI renderers.
 
-- [ ] **Step 3: Run CLI quality tests**
+- [x] **Step 3: Run CLI quality tests**
 
 Run:
 
@@ -183,7 +183,7 @@ Expected: CLI quality trace tests pass.
 - Modify: `crates/agent-tui/src/trace_panel.rs`
 - Modify: `crates/agent-tui/src/transcript.rs`
 
-- [ ] **Step 1: Add bridge tests**
+- [x] **Step 1: Add bridge tests**
 
 Cover:
 
@@ -193,11 +193,11 @@ Cover:
 - budget pressure, retrieval kind, selected/pinned counts, omitted counts, and token counts
 - redaction of task text, signal messages, diagnostics, fixture paths, raw contents, vectors, and secret-like values
 
-- [ ] **Step 2: Implement bridge mapping**
+- [x] **Step 2: Implement bridge mapping**
 
 Add a `UiJsonFrame` variant and UI summary structs derived from typed core/context quality reports. Update TUI trace/transcript reducers for compact display.
 
-- [ ] **Step 3: Run bridge quality tests**
+- [x] **Step 3: Run bridge quality tests**
 
 Run:
 
@@ -220,7 +220,7 @@ Expected: bridge quality snapshot tests pass.
 - Modify: `crates/agent-eval/src/lib.rs`
 - Modify: `docs/eval/default.suite.json`
 
-- [ ] **Step 1: Add eval tests and fixture**
+- [x] **Step 1: Add eval tests and fixture**
 
 Cover:
 
@@ -230,11 +230,11 @@ Cover:
 - redacted diagnostics and artifacts
 - optional default-suite/golden integration when output is stable
 
-- [ ] **Step 2: Implement eval scenario support**
+- [x] **Step 2: Implement eval scenario support**
 
 Add a deterministic context-quality scenario kind that runs core context selection over the fixture workspace and compares the resulting trace against typed expectations.
 
-- [ ] **Step 3: Run eval tests and default suite**
+- [x] **Step 3: Run eval tests and default suite**
 
 Run:
 
@@ -254,7 +254,7 @@ Expected: context-quality eval tests pass, and the default suite passes if the M
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Modify if needed: `README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -271,7 +271,7 @@ cargo xtask eval
 
 Expected: focused checks and eval suite pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for the M58-05 source, tests, eval fixtures, and docs, then:
 
@@ -283,11 +283,11 @@ Expected: commit contains only M58-05 source, tests, eval fixtures, and document
 
 ### Completion Checklist
 
-- [ ] Quality trace contracts are typed and serde-tested.
-- [ ] Lexical, hybrid, pinned lexical, and pinned hybrid reports produce deterministic traces.
-- [ ] Quality traces include selected, omitted, pinned, budget, semantic, and diagnostic evidence.
-- [ ] CLI text/JSON output exposes quality evidence only when requested.
-- [ ] UI bridge quality snapshot shape is stable and safe.
-- [ ] Context quality eval scenario is deterministic and credential-free.
-- [ ] Default eval suite includes M58 quality coverage if stable.
-- [ ] Focused fmt/clippy/tests and `cargo xtask eval` pass.
+- [x] Quality trace contracts are typed and serde-tested.
+- [x] Lexical, hybrid, pinned lexical, and pinned hybrid reports produce deterministic traces.
+- [x] Quality traces include selected, omitted, pinned, budget, semantic, and diagnostic evidence.
+- [x] CLI text/JSON output exposes quality evidence only when requested.
+- [x] UI bridge quality snapshot shape is stable and safe.
+- [x] Context quality eval scenario is deterministic and credential-free.
+- [x] Default eval suite includes M58 quality coverage if stable.
+- [x] Focused fmt/clippy/tests and `cargo xtask eval` pass.

@@ -8,9 +8,10 @@ use thiserror::Error;
 
 use crate::output::CliOutput;
 use agent_context::{
-    PromptAssemblyOutcome, PromptAssemblyRequest, PromptBudget, PromptDiagnosticSeverity,
-    PromptLayer, PromptLayerKind, PromptLayerPolicy, PromptLayerSensitivity, PromptLayerSource,
-    PromptLayerVisibility, PromptProfile, PromptProfileId, PromptRuntime, PromptSnapshot,
+    ContextQualityTrace, PromptAssemblyOutcome, PromptAssemblyRequest, PromptBudget,
+    PromptDiagnosticSeverity, PromptLayer, PromptLayerKind, PromptLayerPolicy,
+    PromptLayerSensitivity, PromptLayerSource, PromptLayerVisibility, PromptProfile,
+    PromptProfileId, PromptRuntime, PromptSnapshot,
 };
 use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, CommandExecutionStatus,
@@ -25,9 +26,11 @@ use agent_core::{
     ExtensionRegistryError, ExtensionSource, ExtensionSourceKind, PinnedProjectContextBudgetReport,
     PinnedProjectContextPin, PinnedProjectContextRequest, PlatformPathOverrides, PlatformPaths,
     ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
-    ProjectContextHybridPinnedRetrievalInput, ProjectContextHybridPinnedRetrievalReport,
+    ProjectContextHybridPinnedQualityRetrievalReport, ProjectContextHybridPinnedRetrievalInput,
+    ProjectContextHybridPinnedRetrievalReport, ProjectContextHybridQualityRetrievalReport,
     ProjectContextHybridRetrievalInput, ProjectContextHybridRetrievalReport, ProjectContextLimits,
-    ProjectContextPinnedRetrievalInput, ProjectContextPinnedRetrievalReport,
+    ProjectContextPinnedQualityRetrievalReport, ProjectContextPinnedRetrievalInput,
+    ProjectContextPinnedRetrievalReport, ProjectContextQualityRetrievalReport,
     ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
     ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
     ProviderSupportReport, ProviderSupportRole, RepoGitState, RepoSessionBootstrapError,
@@ -35,7 +38,9 @@ use agent_core::{
     SettingsError, SettingsProfile, StartupMigrationRunner, bootstrap_repo_session,
     coding_agent_model_requirements, replay_final_review, retrieve_project_context,
     retrieve_project_context_hybrid, retrieve_project_context_hybrid_pinned,
-    retrieve_project_context_pinned, run_command_test_loop, run_edit_diff_flow,
+    retrieve_project_context_hybrid_pinned_quality, retrieve_project_context_hybrid_quality,
+    retrieve_project_context_pinned, retrieve_project_context_pinned_quality,
+    retrieve_project_context_quality, run_command_test_loop, run_edit_diff_flow,
     scan_project_context,
 };
 use agent_eval::{
@@ -91,11 +96,12 @@ use agent_ui_bridge::{
     UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame,
     UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
     UiPlatformPathsSummary, UiProjectContextHybridRetrievalSnapshot,
-    UiProjectContextPinnedRetrievalSnapshot, UiProjectContextRetrievalSnapshot,
-    UiProjectContextSnapshot, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
-    UiProviderSupportRole, UiProviderSupportSummary, UiRepoSessionSnapshot,
-    UiSettingsProfileSummary, UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary,
-    UiTaskSnapshot, UiTaskSummary, encode_json_frame, normalize_runtime_event,
+    UiProjectContextPinnedRetrievalSnapshot, UiProjectContextQualityTraceSnapshot,
+    UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
+    UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
+    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
+    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
+    normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -165,6 +171,18 @@ impl ProjectContextPinnedCliOptions {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct ProjectContextSelectCliInput {
+    workspace_root: PathBuf,
+    task: String,
+    max_candidates: u32,
+    budget_tokens: u32,
+    pinned_paths: Vec<String>,
+    semantic: ProjectContextSemanticCliOptions,
+    pinned_context: ProjectContextPinnedCliOptions,
+    quality_trace: bool,
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum ProjectContextSemanticCliMode {
     Default,
@@ -210,6 +228,7 @@ pub enum CliCommand {
         pinned_paths: Vec<String>,
         semantic: ProjectContextSemanticCliOptions,
         pinned_context: ProjectContextPinnedCliOptions,
+        quality_trace: bool,
     },
     RepoEdit {
         workspace_root: PathBuf,
@@ -646,7 +665,8 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             pinned_paths,
             semantic,
             pinned_context,
-        } => render_text_project_context_select(
+            quality_trace,
+        } => render_text_project_context_select(ProjectContextSelectCliInput {
             workspace_root,
             task,
             max_candidates,
@@ -654,7 +674,8 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             pinned_paths,
             semantic,
             pinned_context,
-        ),
+            quality_trace,
+        }),
         CliCommand::RepoEdit {
             workspace_root,
             path,
@@ -747,7 +768,8 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 pinned_paths,
                 semantic,
                 pinned_context,
-            } => render_text_project_context_select(
+                quality_trace,
+            } => render_text_project_context_select(ProjectContextSelectCliInput {
                 workspace_root,
                 task,
                 max_candidates,
@@ -755,7 +777,8 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 pinned_paths,
                 semantic,
                 pinned_context,
-            ),
+                quality_trace,
+            }),
             CliCommand::RepoEdit {
                 workspace_root,
                 path,
@@ -862,9 +885,10 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
         pinned_paths,
         semantic,
         pinned_context,
+        quality_trace,
     } = invocation.command
     {
-        return render_json_project_context_select(
+        return render_json_project_context_select(ProjectContextSelectCliInput {
             workspace_root,
             task,
             max_candidates,
@@ -872,7 +896,8 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
             pinned_paths,
             semantic,
             pinned_context,
-        );
+            quality_trace,
+        });
     }
     if let CliCommand::RepoEdit {
         workspace_root,
@@ -1098,6 +1123,7 @@ where
     let mut pinned_paths = Vec::new();
     let mut semantic = ProjectContextSemanticCliOptions::default();
     let mut pinned_context = ProjectContextPinnedCliOptions::default();
+    let mut quality_trace = false;
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -1122,6 +1148,7 @@ where
                 }
                 pinned_paths.push(value);
             }
+            "--quality-trace" => quality_trace = true,
             "--required-pin" => {
                 let value = take_flag_value(args, &arg)?;
                 if value.trim().is_empty() {
@@ -1229,6 +1256,7 @@ where
         pinned_paths,
         semantic,
         pinned_context,
+        quality_trace,
     })
 }
 
@@ -2971,6 +2999,7 @@ fn eval_kind_label(kind: EvalScenarioKind) -> &'static str {
         EvalScenarioKind::FakeModelTurn => "fake_model_turn",
         EvalScenarioKind::LocalCoding => "local_coding",
         EvalScenarioKind::EvidenceOnly => "evidence_only",
+        EvalScenarioKind::ContextQuality => "context_quality",
     }
 }
 
@@ -5468,15 +5497,30 @@ fn render_json_project_context(workspace_root: PathBuf) -> CliOutput {
     }
 }
 
-fn render_text_project_context_select(
-    workspace_root: PathBuf,
-    task: String,
-    max_candidates: u32,
-    budget_tokens: u32,
-    pinned_paths: Vec<String>,
-    semantic: ProjectContextSemanticCliOptions,
-    pinned_context: ProjectContextPinnedCliOptions,
-) -> CliOutput {
+fn render_text_project_context_select(input: ProjectContextSelectCliInput) -> CliOutput {
+    let ProjectContextSelectCliInput {
+        workspace_root,
+        task,
+        max_candidates,
+        budget_tokens,
+        pinned_paths,
+        semantic,
+        pinned_context,
+        quality_trace,
+    } = input;
+
+    if quality_trace {
+        return render_text_project_context_select_quality(
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+            semantic,
+            pinned_context,
+        );
+    }
+
     if pinned_context.uses_pinned_budget() {
         if semantic.uses_hybrid_retrieval() {
             return match evaluate_project_context_hybrid_pinned_retrieval(
@@ -5540,7 +5584,7 @@ fn render_text_project_context_select(
     }
 }
 
-fn render_json_project_context_select(
+fn render_text_project_context_select_quality(
     workspace_root: PathBuf,
     task: String,
     max_candidates: u32,
@@ -5549,6 +5593,93 @@ fn render_json_project_context_select(
     semantic: ProjectContextSemanticCliOptions,
     pinned_context: ProjectContextPinnedCliOptions,
 ) -> CliOutput {
+    if pinned_context.uses_pinned_budget() {
+        if semantic.uses_hybrid_retrieval() {
+            return match evaluate_project_context_hybrid_pinned_quality_retrieval(
+                workspace_root,
+                task,
+                max_candidates,
+                budget_tokens,
+                pinned_paths,
+                semantic,
+                pinned_context,
+            ) {
+                Ok(report) => {
+                    CliOutput::exit(render_project_context_hybrid_pinned_quality_text(&report))
+                }
+                Err(error) => {
+                    CliOutput::failure(render_project_context_retrieval_error_text(&error), 2)
+                }
+            };
+        }
+
+        return match evaluate_project_context_pinned_quality_retrieval(
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+            pinned_context,
+        ) {
+            Ok(report) => CliOutput::exit(render_project_context_pinned_quality_text(&report)),
+            Err(error) => {
+                CliOutput::failure(render_project_context_retrieval_error_text(&error), 2)
+            }
+        };
+    }
+
+    if semantic.uses_hybrid_retrieval() {
+        return match evaluate_project_context_hybrid_quality_retrieval(
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+            semantic,
+        ) {
+            Ok(report) => CliOutput::exit(render_project_context_hybrid_quality_text(&report)),
+            Err(error) => {
+                CliOutput::failure(render_project_context_retrieval_error_text(&error), 2)
+            }
+        };
+    }
+
+    match evaluate_project_context_quality_retrieval(
+        workspace_root,
+        task,
+        max_candidates,
+        budget_tokens,
+        pinned_paths,
+    ) {
+        Ok(report) => CliOutput::exit(render_project_context_quality_text(&report)),
+        Err(error) => CliOutput::failure(render_project_context_retrieval_error_text(&error), 2),
+    }
+}
+
+fn render_json_project_context_select(input: ProjectContextSelectCliInput) -> CliOutput {
+    let ProjectContextSelectCliInput {
+        workspace_root,
+        task,
+        max_candidates,
+        budget_tokens,
+        pinned_paths,
+        semantic,
+        pinned_context,
+        quality_trace,
+    } = input;
+
+    if quality_trace {
+        return render_json_project_context_select_quality(
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+            semantic,
+            pinned_context,
+        );
+    }
+
     if pinned_context.uses_pinned_budget() {
         if semantic.uses_hybrid_retrieval() {
             return match evaluate_project_context_hybrid_pinned_retrieval(
@@ -5678,6 +5809,202 @@ fn render_json_project_context_select(
     }
 }
 
+fn render_json_project_context_select_quality(
+    workspace_root: PathBuf,
+    task: String,
+    max_candidates: u32,
+    budget_tokens: u32,
+    pinned_paths: Vec<String>,
+    semantic: ProjectContextSemanticCliOptions,
+    pinned_context: ProjectContextPinnedCliOptions,
+) -> CliOutput {
+    if pinned_context.uses_pinned_budget() {
+        if semantic.uses_hybrid_retrieval() {
+            return match evaluate_project_context_hybrid_pinned_quality_retrieval(
+                workspace_root,
+                task,
+                max_candidates,
+                budget_tokens,
+                pinned_paths,
+                semantic,
+                pinned_context,
+            ) {
+                Ok(report) => render_json_project_context_hybrid_pinned_quality(&report),
+                Err(error) => render_json_project_context_retrieval_error(error),
+            };
+        }
+
+        return match evaluate_project_context_pinned_quality_retrieval(
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+            pinned_context,
+        ) {
+            Ok(report) => render_json_project_context_pinned_quality(&report),
+            Err(error) => render_json_project_context_retrieval_error(error),
+        };
+    }
+
+    if semantic.uses_hybrid_retrieval() {
+        return match evaluate_project_context_hybrid_quality_retrieval(
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+            semantic,
+        ) {
+            Ok(report) => render_json_project_context_hybrid_quality(&report),
+            Err(error) => render_json_project_context_retrieval_error(error),
+        };
+    }
+
+    match evaluate_project_context_quality_retrieval(
+        workspace_root,
+        task,
+        max_candidates,
+        budget_tokens,
+        pinned_paths,
+    ) {
+        Ok(report) => render_json_project_context_quality(&report),
+        Err(error) => render_json_project_context_retrieval_error(error),
+    }
+}
+
+fn render_json_project_context_quality(report: &ProjectContextQualityRetrievalReport) -> CliOutput {
+    let retrieval_report = ProjectContextRetrievalReport {
+        summary: report.summary.clone(),
+        retrieval: report.retrieval.clone(),
+    };
+    let snapshot = match UiProjectContextRetrievalSnapshot::from_report(&retrieval_report) {
+        Ok(snapshot) => snapshot,
+        Err(error) => {
+            let mut stdout = json_frame_line(UiJsonFrame::Error {
+                code: "project_context_retrieval_snapshot_failed".to_string(),
+                message: redact_secret_like_text(&error.to_string()),
+                recoverable: false,
+            });
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            return CliOutput::failure(stdout, 2);
+        }
+    };
+    let mut stdout = json_frame_line(UiJsonFrame::ProjectContextRetrievalSnapshot(snapshot));
+    if let Err(output) = append_project_context_quality_trace_json(&mut stdout, &report.quality) {
+        return output;
+    }
+    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+    CliOutput::exit(stdout)
+}
+
+fn render_json_project_context_hybrid_quality(
+    report: &ProjectContextHybridQualityRetrievalReport,
+) -> CliOutput {
+    let retrieval_report = ProjectContextHybridRetrievalReport {
+        summary: report.summary.clone(),
+        hybrid: report.hybrid.clone(),
+    };
+    let snapshot = match UiProjectContextHybridRetrievalSnapshot::from_report(&retrieval_report) {
+        Ok(snapshot) => snapshot,
+        Err(error) => {
+            let mut stdout = json_frame_line(UiJsonFrame::Error {
+                code: "project_context_hybrid_retrieval_snapshot_failed".to_string(),
+                message: redact_secret_like_text(&error.to_string()),
+                recoverable: false,
+            });
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            return CliOutput::failure(stdout, 2);
+        }
+    };
+    let mut stdout = json_frame_line(UiJsonFrame::ProjectContextHybridRetrievalSnapshot(snapshot));
+    if let Err(output) = append_project_context_quality_trace_json(&mut stdout, &report.quality) {
+        return output;
+    }
+    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+    CliOutput::exit(stdout)
+}
+
+fn render_json_project_context_pinned_quality(
+    report: &ProjectContextPinnedQualityRetrievalReport,
+) -> CliOutput {
+    let retrieval_report = ProjectContextPinnedRetrievalReport {
+        summary: report.summary.clone(),
+        retrieval: report.retrieval.clone(),
+        pinned: report.pinned.clone(),
+    };
+    let snapshot =
+        match UiProjectContextPinnedRetrievalSnapshot::from_retrieval_report(&retrieval_report) {
+            Ok(snapshot) => snapshot,
+            Err(error) => {
+                let mut stdout = json_frame_line(UiJsonFrame::Error {
+                    code: "project_context_pinned_retrieval_snapshot_failed".to_string(),
+                    message: redact_secret_like_text(&error.to_string()),
+                    recoverable: false,
+                });
+                stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                return CliOutput::failure(stdout, 2);
+            }
+        };
+    let mut stdout = json_frame_line(UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(snapshot));
+    if let Err(output) = append_project_context_quality_trace_json(&mut stdout, &report.quality) {
+        return output;
+    }
+    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+    CliOutput::exit(stdout)
+}
+
+fn render_json_project_context_hybrid_pinned_quality(
+    report: &ProjectContextHybridPinnedQualityRetrievalReport,
+) -> CliOutput {
+    let retrieval_report = ProjectContextHybridPinnedRetrievalReport {
+        summary: report.summary.clone(),
+        hybrid: report.hybrid.clone(),
+        pinned: report.pinned.clone(),
+    };
+    let snapshot =
+        match UiProjectContextPinnedRetrievalSnapshot::from_hybrid_report(&retrieval_report) {
+            Ok(snapshot) => snapshot,
+            Err(error) => {
+                let mut stdout = json_frame_line(UiJsonFrame::Error {
+                    code: "project_context_pinned_retrieval_snapshot_failed".to_string(),
+                    message: redact_secret_like_text(&error.to_string()),
+                    recoverable: false,
+                });
+                stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                return CliOutput::failure(stdout, 2);
+            }
+        };
+    let mut stdout = json_frame_line(UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(snapshot));
+    if let Err(output) = append_project_context_quality_trace_json(&mut stdout, &report.quality) {
+        return output;
+    }
+    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+    CliOutput::exit(stdout)
+}
+
+fn append_project_context_quality_trace_json(
+    stdout: &mut String,
+    trace: &ContextQualityTrace,
+) -> Result<(), CliOutput> {
+    let snapshot = match UiProjectContextQualityTraceSnapshot::from_trace(trace) {
+        Ok(snapshot) => snapshot,
+        Err(error) => {
+            let mut output = json_frame_line(UiJsonFrame::Error {
+                code: "project_context_quality_trace_snapshot_failed".to_string(),
+                message: redact_secret_like_text(&error.to_string()),
+                recoverable: false,
+            });
+            output.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            return Err(CliOutput::failure(output, 2));
+        }
+    };
+    stdout.push_str(&json_frame_line(
+        UiJsonFrame::ProjectContextQualityTraceSnapshot(snapshot),
+    ));
+    Ok(())
+}
+
 fn render_json_project_context_retrieval_error(error: ProjectContextRetrievalError) -> CliOutput {
     let mut stdout = String::new();
     for diagnostic in error.diagnostics() {
@@ -5726,6 +6053,22 @@ fn evaluate_project_context_retrieval(
     })
 }
 
+fn evaluate_project_context_quality_retrieval(
+    workspace_root: PathBuf,
+    task: String,
+    max_candidates: u32,
+    budget_tokens: u32,
+    pinned_paths: Vec<String>,
+) -> Result<ProjectContextQualityRetrievalReport, ProjectContextRetrievalError> {
+    let query = ContextRetrievalQuery::new(task, max_candidates, budget_tokens, pinned_paths)
+        .map_err(project_context_retrieval_error_from_context)?;
+    retrieve_project_context_quality(ProjectContextRetrievalInput {
+        workspace_root,
+        limits: default_project_context_limits(),
+        query,
+    })
+}
+
 fn evaluate_project_context_hybrid_retrieval(
     workspace_root: PathBuf,
     task: String,
@@ -5741,6 +6084,31 @@ fn evaluate_project_context_hybrid_retrieval(
     let runtime = cli_runtime().map_err(project_context_retrieval_error_from_cli)?;
 
     runtime.block_on(retrieve_project_context_hybrid(
+        ProjectContextHybridRetrievalInput {
+            workspace_root,
+            limits: default_project_context_limits(),
+            query,
+            semantic_config,
+            embedding_provider: provider,
+        },
+    ))
+}
+
+fn evaluate_project_context_hybrid_quality_retrieval(
+    workspace_root: PathBuf,
+    task: String,
+    max_candidates: u32,
+    budget_tokens: u32,
+    pinned_paths: Vec<String>,
+    semantic: ProjectContextSemanticCliOptions,
+) -> Result<ProjectContextHybridQualityRetrievalReport, ProjectContextRetrievalError> {
+    let query = ContextRetrievalQuery::new(task, max_candidates, budget_tokens, pinned_paths)
+        .map_err(project_context_retrieval_error_from_context)?;
+    let semantic_config = semantic_config_from_cli(&semantic)?;
+    let provider = semantic_embedding_provider(&semantic)?;
+    let runtime = cli_runtime().map_err(project_context_retrieval_error_from_cli)?;
+
+    runtime.block_on(retrieve_project_context_hybrid_quality(
         ProjectContextHybridRetrievalInput {
             workspace_root,
             limits: default_project_context_limits(),
@@ -5770,6 +6138,25 @@ fn evaluate_project_context_pinned_retrieval(
     })
 }
 
+fn evaluate_project_context_pinned_quality_retrieval(
+    workspace_root: PathBuf,
+    task: String,
+    max_candidates: u32,
+    budget_tokens: u32,
+    pinned_paths: Vec<String>,
+    pinned_context: ProjectContextPinnedCliOptions,
+) -> Result<ProjectContextPinnedQualityRetrievalReport, ProjectContextRetrievalError> {
+    let query = ContextRetrievalQuery::new(task, max_candidates, budget_tokens, pinned_paths)
+        .map_err(project_context_retrieval_error_from_context)?;
+    let pinned_request = pinned_request_from_cli(&pinned_context)?;
+    retrieve_project_context_pinned_quality(ProjectContextPinnedRetrievalInput {
+        workspace_root,
+        limits: default_project_context_limits(),
+        query,
+        pinned_request,
+    })
+}
+
 fn evaluate_project_context_hybrid_pinned_retrieval(
     workspace_root: PathBuf,
     task: String,
@@ -5787,6 +6174,34 @@ fn evaluate_project_context_hybrid_pinned_retrieval(
     let runtime = cli_runtime().map_err(project_context_retrieval_error_from_cli)?;
 
     runtime.block_on(retrieve_project_context_hybrid_pinned(
+        ProjectContextHybridPinnedRetrievalInput {
+            workspace_root,
+            limits: default_project_context_limits(),
+            query,
+            semantic_config,
+            embedding_provider: provider,
+            pinned_request,
+        },
+    ))
+}
+
+fn evaluate_project_context_hybrid_pinned_quality_retrieval(
+    workspace_root: PathBuf,
+    task: String,
+    max_candidates: u32,
+    budget_tokens: u32,
+    pinned_paths: Vec<String>,
+    semantic: ProjectContextSemanticCliOptions,
+    pinned_context: ProjectContextPinnedCliOptions,
+) -> Result<ProjectContextHybridPinnedQualityRetrievalReport, ProjectContextRetrievalError> {
+    let query = ContextRetrievalQuery::new(task, max_candidates, budget_tokens, pinned_paths)
+        .map_err(project_context_retrieval_error_from_context)?;
+    let semantic_config = semantic_config_from_cli(&semantic)?;
+    let provider = semantic_embedding_provider(&semantic)?;
+    let pinned_request = pinned_request_from_cli(&pinned_context)?;
+    let runtime = cli_runtime().map_err(project_context_retrieval_error_from_cli)?;
+
+    runtime.block_on(retrieve_project_context_hybrid_pinned_quality(
         ProjectContextHybridPinnedRetrievalInput {
             workspace_root,
             limits: default_project_context_limits(),
@@ -6066,6 +6481,139 @@ fn render_project_context_hybrid_pinned_retrieval_text(
         report.hybrid.query.max_candidates,
         report.hybrid.query.budget_tokens,
         &report.pinned,
+    )
+}
+
+fn render_project_context_quality_text(report: &ProjectContextQualityRetrievalReport) -> String {
+    format!(
+        "Project context selection: ready\nTask: {}\nSelected count: {}\nUsed tokens: {}/{}\n{}",
+        bounded_cli_text(&report.retrieval.query.task, 160),
+        report.retrieval.selected.len(),
+        report.retrieval.used_tokens,
+        report.retrieval.query.budget_tokens,
+        render_context_quality_trace_text(&report.quality)
+    )
+}
+
+fn render_project_context_hybrid_quality_text(
+    report: &ProjectContextHybridQualityRetrievalReport,
+) -> String {
+    format!(
+        "Project context selection: ready\nTask: {}\nSemantic: {} provider={} model={} embedded={}/{}\nSelected count: {}\nUsed tokens: {}/{}\n{}",
+        bounded_cli_text(&report.hybrid.query.task, 160),
+        report.hybrid.semantic.status.as_str(),
+        report
+            .hybrid
+            .semantic
+            .provider_id
+            .as_deref()
+            .unwrap_or("none"),
+        report.hybrid.semantic.model_id.as_deref().unwrap_or("none"),
+        report.hybrid.semantic.embedded_document_count,
+        report.hybrid.semantic.document_count,
+        report.hybrid.selected.len(),
+        report.hybrid.used_tokens,
+        report.hybrid.query.budget_tokens,
+        render_context_quality_trace_text(&report.quality)
+    )
+}
+
+fn render_project_context_pinned_quality_text(
+    report: &ProjectContextPinnedQualityRetrievalReport,
+) -> String {
+    format!(
+        "Project context pinned selection: ready\nTask: {}\nRetrieval: lexical max_candidates={} budget_tokens={}\nPinned budget: {}/{} tokens (max={}, reserved={})\n{}",
+        bounded_cli_text(&report.retrieval.query.task, 160),
+        report.retrieval.query.max_candidates,
+        report.retrieval.query.budget_tokens,
+        report.pinned.used_tokens,
+        report.pinned.available_tokens,
+        report.pinned.budget.max_tokens,
+        report.pinned.budget.reserved_response_tokens,
+        render_context_quality_trace_text(&report.quality)
+    )
+}
+
+fn render_project_context_hybrid_pinned_quality_text(
+    report: &ProjectContextHybridPinnedQualityRetrievalReport,
+) -> String {
+    format!(
+        "Project context pinned selection: ready\nTask: {}\nRetrieval: hybrid max_candidates={} budget_tokens={}\nPinned budget: {}/{} tokens (max={}, reserved={})\n{}",
+        bounded_cli_text(&report.hybrid.query.task, 160),
+        report.hybrid.query.max_candidates,
+        report.hybrid.query.budget_tokens,
+        report.pinned.used_tokens,
+        report.pinned.available_tokens,
+        report.pinned.budget.max_tokens,
+        report.pinned.budget.reserved_response_tokens,
+        render_context_quality_trace_text(&report.quality)
+    )
+}
+
+fn render_context_quality_trace_text(trace: &ContextQualityTrace) -> String {
+    let diagnostics = if trace.diagnostics.is_empty() {
+        "Diagnostics: none\n".to_string()
+    } else {
+        let diagnostics = trace
+            .diagnostics
+            .iter()
+            .take(8)
+            .map(|diagnostic| {
+                let path = diagnostic
+                    .path
+                    .as_ref()
+                    .map(|path| format!(" path={}", redact_secret_like_text(path)))
+                    .unwrap_or_default();
+                format!(
+                    "- {}:{}{} message={}",
+                    diagnostic.severity.as_str(),
+                    redact_secret_like_text(&diagnostic.code),
+                    path,
+                    bounded_cli_text(&diagnostic.message, 160)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        format!("Diagnostics: {}\n{diagnostics}\n", trace.diagnostics.len())
+    };
+    let signals = if trace.signals.is_empty() {
+        "Signals: none\n".to_string()
+    } else {
+        let signals = trace
+            .signals
+            .iter()
+            .take(16)
+            .map(|signal| {
+                let path = signal
+                    .path
+                    .as_ref()
+                    .map(|path| format!(" path={}", redact_secret_like_text(path)))
+                    .unwrap_or_default();
+                format!(
+                    "- {}{} weight={} message={}",
+                    signal.kind.as_str(),
+                    path,
+                    signal.weight,
+                    bounded_cli_text(&signal.message, 160)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        format!("Signals: {}\n{signals}\n", trace.signals.len())
+    };
+
+    format!(
+        "Context quality: ready\nRetrieval kind: {}\nBudget pressure: {}\nSelected/Omitted: {}/{}\nPinned included/omitted: {}/{}\nTokens: {}/{}\n{}{}",
+        trace.retrieval_kind.as_str(),
+        trace.budget_pressure.as_str(),
+        trace.selected_count,
+        trace.omitted_count,
+        trace.pinned_included_count,
+        trace.pinned_omitted_count,
+        trace.used_tokens,
+        trace.available_tokens,
+        diagnostics,
+        signals
     )
 }
 

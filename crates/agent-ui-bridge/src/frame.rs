@@ -1,7 +1,8 @@
 use agent_core::{
     CodingFinalReview, CommandExecutionStatus, CommandFailureClassification, CommandTestLoopReport,
     ContextCandidate, ContextCandidateOmission, ContextHybridCandidate,
-    ContextHybridCandidateOmission, ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity,
+    ContextHybridCandidateOmission, ContextQualityDiagnostic, ContextQualitySignal,
+    ContextQualityTrace, ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity,
     ContextSemanticRetrievalSummary, DiffEvidenceState, EditDiffFlowReport,
     ObservabilityEvidenceBundle, PinnedContextItem, PinnedContextOmission,
     ProjectContextDiagnosticSeverity, ProjectContextHybridPinnedRetrievalReport,
@@ -1631,6 +1632,109 @@ impl UiPinnedContextOmissionSummary {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextQualityTraceSnapshot {
+    pub workspace_root_display: String,
+    pub task: String,
+    pub retrieval_kind: String,
+    pub selected_count: u32,
+    pub omitted_count: u32,
+    pub pinned_included_count: u32,
+    pub pinned_omitted_count: u32,
+    pub used_tokens: u32,
+    pub available_tokens: u32,
+    pub budget_pressure: String,
+    pub signal_count: u32,
+    pub diagnostic_count: u32,
+    pub signals: Vec<UiContextQualitySignalSummary>,
+    pub diagnostics: Vec<UiContextQualityDiagnosticSummary>,
+}
+
+impl UiProjectContextQualityTraceSnapshot {
+    pub fn from_trace(trace: &ContextQualityTrace) -> Result<Self, UiBridgeError> {
+        let workspace_root_display = bounded_task_text(&trace.workspace_root_display);
+        validate_non_empty("context quality workspace root", &workspace_root_display)?;
+        let task = bounded_task_text(&trace.task);
+        validate_non_empty("context quality task", &task)?;
+        let signals = trace
+            .signals
+            .iter()
+            .map(UiContextQualitySignalSummary::from_signal)
+            .collect::<Result<Vec<_>, _>>()?;
+        let diagnostics = trace
+            .diagnostics
+            .iter()
+            .map(UiContextQualityDiagnosticSummary::from_diagnostic)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Self {
+            workspace_root_display,
+            task,
+            retrieval_kind: trace.retrieval_kind.as_str().to_string(),
+            selected_count: trace.selected_count,
+            omitted_count: trace.omitted_count,
+            pinned_included_count: trace.pinned_included_count,
+            pinned_omitted_count: trace.pinned_omitted_count,
+            used_tokens: trace.used_tokens,
+            available_tokens: trace.available_tokens,
+            budget_pressure: trace.budget_pressure.as_str().to_string(),
+            signal_count: trace.signals.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many context quality signals".to_string())
+            })?,
+            diagnostic_count: trace.diagnostics.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many context quality diagnostics".to_string())
+            })?,
+            signals,
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiContextQualitySignalSummary {
+    pub path: Option<String>,
+    pub kind: String,
+    pub weight: u32,
+    pub message: String,
+}
+
+impl UiContextQualitySignalSummary {
+    fn from_signal(signal: &ContextQualitySignal) -> Result<Self, UiBridgeError> {
+        let path = signal.path.clone().map(|path| bounded_task_text(&path));
+        let message = bounded_task_text(&signal.message);
+        validate_non_empty("context quality signal message", &message)?;
+        Ok(Self {
+            path,
+            kind: signal.kind.as_str().to_string(),
+            weight: signal.weight,
+            message,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiContextQualityDiagnosticSummary {
+    pub severity: String,
+    pub code: String,
+    pub message: String,
+    pub path: Option<String>,
+}
+
+impl UiContextQualityDiagnosticSummary {
+    fn from_diagnostic(diagnostic: &ContextQualityDiagnostic) -> Result<Self, UiBridgeError> {
+        let code = bounded_task_text(&diagnostic.code);
+        let message = bounded_task_text(&diagnostic.message);
+        validate_non_empty("context quality diagnostic code", &code)?;
+        validate_non_empty("context quality diagnostic message", &message)?;
+        Ok(Self {
+            severity: diagnostic.severity.as_str().to_string(),
+            code,
+            message,
+            path: diagnostic.path.clone().map(|path| bounded_task_text(&path)),
+        })
+    }
+}
+
 impl UiPromptDiagnosticSummary {
     pub fn new(
         severity: impl Into<String>,
@@ -2029,6 +2133,7 @@ pub enum UiJsonFrame {
     ProjectContextRetrievalSnapshot(UiProjectContextRetrievalSnapshot),
     ProjectContextHybridRetrievalSnapshot(UiProjectContextHybridRetrievalSnapshot),
     ProjectContextPinnedRetrievalSnapshot(UiProjectContextPinnedRetrievalSnapshot),
+    ProjectContextQualityTraceSnapshot(UiProjectContextQualityTraceSnapshot),
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),

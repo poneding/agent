@@ -29,6 +29,7 @@ pub enum EvalScenarioKind {
     FakeModelTurn,
     LocalCoding,
     EvidenceOnly,
+    ContextQuality,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -56,7 +57,19 @@ pub struct EvalExpectations {
     #[serde(default)]
     pub required_events: Vec<String>,
     #[serde(default)]
+    pub context_quality: Option<EvalContextQualityExpectations>,
+    #[serde(default)]
     pub golden: Option<Utf8PathBuf>,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct EvalContextQualityExpectations {
+    pub task: String,
+    pub required_selected_paths: Vec<String>,
+    pub required_pinned_paths: Vec<String>,
+    pub max_diagnostics: Option<usize>,
+    pub require_retrieval_included: bool,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -157,6 +170,7 @@ where
     validate_scenario_id(&manifest.id)?;
     validate_non_empty("name", &manifest.name)?;
     validate_permissions(&manifest.permissions)?;
+    validate_context_quality_expectations(manifest.kind, &manifest.expectations)?;
     validate_metadata(&manifest.metadata)?;
 
     let normalized_fixture_root = normalize_root(fixture_root)?;
@@ -228,6 +242,52 @@ fn validate_permissions(permissions: &EvalPermissionProfile) -> Result<(), EvalM
                 field: "permissions.env",
                 message: "environment declarations must be keys only, not key=value pairs"
                     .to_string(),
+            });
+        }
+    }
+    Ok(())
+}
+
+fn validate_context_quality_expectations(
+    kind: EvalScenarioKind,
+    expectations: &EvalExpectations,
+) -> Result<(), EvalManifestError> {
+    let Some(context_quality) = expectations.context_quality.as_ref() else {
+        if kind == EvalScenarioKind::ContextQuality {
+            return Err(EvalManifestError::InvalidField {
+                field: "expectations.context_quality",
+                message: "context_quality expectations are required for context_quality scenarios"
+                    .to_string(),
+            });
+        }
+        return Ok(());
+    };
+
+    validate_non_empty("expectations.context_quality.task", &context_quality.task)?;
+    validate_expectation_paths(
+        "expectations.context_quality.required_selected_paths",
+        &context_quality.required_selected_paths,
+    )?;
+    validate_expectation_paths(
+        "expectations.context_quality.required_pinned_paths",
+        &context_quality.required_pinned_paths,
+    )?;
+    Ok(())
+}
+
+fn validate_expectation_paths(
+    field: &'static str,
+    paths: &[String],
+) -> Result<(), EvalManifestError> {
+    for path in paths {
+        validate_non_empty(field, path)?;
+        let path = Utf8Path::new(path);
+        reject_parent_components(field, path)?;
+        if path.is_absolute() {
+            return Err(EvalManifestError::UnsafePath {
+                field,
+                path: path.to_path_buf(),
+                message: "absolute paths are not allowed".to_string(),
             });
         }
     }
@@ -312,6 +372,9 @@ fn enforce_required_fixture(
             Some("fixtures.model_script")
         }
         EvalScenarioKind::LocalCoding if fixtures.workspace.is_none() => Some("fixtures.workspace"),
+        EvalScenarioKind::ContextQuality if fixtures.workspace.is_none() => {
+            Some("fixtures.workspace")
+        }
         _ => None,
     };
 

@@ -8,6 +8,7 @@ pub mod memory_layers;
 pub mod pins;
 pub mod project;
 pub mod prompt;
+pub mod quality;
 pub mod retrieval;
 pub mod semantic;
 
@@ -36,6 +37,13 @@ pub use prompt::{
     PromptLayerKind, PromptLayerPolicy, PromptLayerSensitivity, PromptLayerSource,
     PromptLayerVisibility, PromptMessage, PromptOverlay, PromptOverlayAction, PromptProfile,
     PromptProfileId, PromptRuntime, PromptSnapshot, assemble_prompt_bundle,
+};
+pub use quality::{
+    ContextQualityBudgetPressure, ContextQualityDiagnostic, ContextQualityDiagnosticSeverity,
+    ContextQualityRetrievalKind, ContextQualitySignal, ContextQualitySignalKind,
+    ContextQualityTrace, build_context_quality_trace_from_hybrid,
+    build_context_quality_trace_from_pinned_hybrid,
+    build_context_quality_trace_from_pinned_retrieval, build_context_quality_trace_from_retrieval,
 };
 pub use retrieval::{
     ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,

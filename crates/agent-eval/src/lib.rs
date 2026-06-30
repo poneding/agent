@@ -13,10 +13,10 @@ pub use golden::{
     compare_report_to_golden_json, normalized_report_golden, update_suite_goldens,
 };
 pub use manifest::{
-    EVAL_SCENARIO_SCHEMA_VERSION, EvalDiagnostic, EvalDiagnosticSeverity, EvalExpectations,
-    EvalExpectedStatus, EvalFixtures, EvalManifestError, EvalPermissionProfile, EvalScenarioKind,
-    EvalScenarioManifest, ValidatedEvalFixtures, ValidatedEvalScenario, parse_eval_scenario_json,
-    validate_eval_scenario,
+    EVAL_SCENARIO_SCHEMA_VERSION, EvalContextQualityExpectations, EvalDiagnostic,
+    EvalDiagnosticSeverity, EvalExpectations, EvalExpectedStatus, EvalFixtures, EvalManifestError,
+    EvalPermissionProfile, EvalScenarioKind, EvalScenarioManifest, ValidatedEvalFixtures,
+    ValidatedEvalScenario, parse_eval_scenario_json, validate_eval_scenario,
 };
 pub use report::{
     EVAL_RUN_REPORT_SCHEMA_VERSION, EvalArtifactOptions, EvalArtifactSet, EvalEvidenceSource,

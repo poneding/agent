@@ -236,6 +236,25 @@ impl TracePanelState {
                     ),
                 ));
             }
+            UiJsonFrame::ProjectContextQualityTraceSnapshot(snapshot) => {
+                self.push(TracePanelEntry::new(
+                    TraceEntryKind::Runtime,
+                    "project-context-quality",
+                    format!(
+                        "{} kind={} pressure={} selected={} omitted={} pins={}/{} diagnostics={} tokens={}/{}",
+                        snapshot.workspace_root_display,
+                        snapshot.retrieval_kind,
+                        snapshot.budget_pressure,
+                        snapshot.selected_count,
+                        snapshot.omitted_count,
+                        snapshot.pinned_included_count,
+                        snapshot.pinned_omitted_count,
+                        snapshot.diagnostic_count,
+                        snapshot.used_tokens,
+                        snapshot.available_tokens
+                    ),
+                ));
+            }
             UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "extensions",

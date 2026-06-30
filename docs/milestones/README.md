@@ -423,8 +423,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M49 slice specs | Complete for M49-01 through M49-05 |
 | M49 slice plans | Complete for M49-01 through M49-05 |
 | M49-01 implementation | Complete |
-| M49-02 implementation | In progress |
-| M49-03 implementation | Not started |
+| M49-02 implementation | Complete |
+| M49-03 implementation | In progress |
 | M49-04 implementation | Not started |
 | M49-05 implementation | Not started |
 | M49 implementation | In progress |
@@ -1014,7 +1014,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M49-02 stream reconnect runner.
+Current implementation focus: M49-03 missed event replay diagnostics.
 
 Most recent completed implementation documents:
 
@@ -1024,6 +1024,8 @@ Most recent completed implementation documents:
 - `docs/plans/M49-00-mcp-http-stream-reconnect-technical-design.plan.md`
 - `docs/specs/M49-01-reconnect-policy-contracts.spec.md`
 - `docs/plans/M49-01-reconnect-policy-contracts.plan.md`
+- `docs/specs/M49-02-stream-reconnect-runner.spec.md`
+- `docs/plans/M49-02-stream-reconnect-runner.plan.md`
 - `docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md`
 - `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md`
 - `docs/specs/M48-05-hardening-docs.spec.md`
@@ -1353,5 +1355,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M49-02-stream-reconnect-runner.spec.md`
-- `docs/plans/M49-02-stream-reconnect-runner.plan.md`
+- `docs/specs/M49-03-missed-event-replay-diagnostics.spec.md`
+- `docs/plans/M49-03-missed-event-replay-diagnostics.plan.md`

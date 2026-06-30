@@ -752,6 +752,40 @@ impl<T> McpHttpClient<T> {
             last_event_id,
         ))
     }
+
+    pub async fn reconnect_stream<S>(
+        &self,
+        server_id: &McpServerId,
+        stream_transport: &mut S,
+        policy: McpClientHttpReconnectPolicy,
+    ) -> Result<McpClientHttpStreamDrainReport, McpError>
+    where
+        S: McpClientHttpStreamTransport,
+    {
+        policy.validate()?;
+        let mut attempt = 1u32;
+        loop {
+            let request = self.stream_request_snapshot(server_id).await?;
+            match stream_transport.open_stream(request).await {
+                Ok(stream) => return self.record_stream_open(server_id, stream).await,
+                Err(error) => {
+                    let failure_kind = classify_mcp_client_http_reconnect_error(&error);
+                    match policy.decision_for_attempt(attempt, failure_kind.is_retryable())? {
+                        McpClientHttpReconnectDecision::Retry { backoff_ms } => {
+                            tokio::time::sleep(Duration::from_millis(backoff_ms)).await;
+                            attempt += 1;
+                        }
+                        McpClientHttpReconnectDecision::Stop => {
+                            return Err(mcp_client_http_stream_reconnect_failed(
+                                attempt,
+                                failure_kind,
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl McpHttpClient<McpClientHttpReqwestTransport> {
@@ -1412,6 +1446,16 @@ fn invalid_mcp_client_http_session_metadata() -> McpError {
 
 fn invalid_mcp_client_http_reconnect_policy() -> McpError {
     McpError::InvalidConfig("invalid MCP client HTTP reconnect policy".to_string())
+}
+
+fn mcp_client_http_stream_reconnect_failed(
+    attempts: u32,
+    failure_kind: McpClientHttpReconnectFailureKind,
+) -> McpError {
+    McpError::Client(format!(
+        "MCP client HTTP stream reconnect failed after {attempts} attempt(s): {}",
+        failure_kind.public_reason()
+    ))
 }
 
 fn is_retryable_mcp_client_http_transport_error(message: &str) -> bool {

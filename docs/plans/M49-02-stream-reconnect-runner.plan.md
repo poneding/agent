@@ -18,14 +18,14 @@
 - Read: `crates/agent-mcp/tests/mcp_client_http_stream_transport.rs`
 - Read: `crates/agent-mcp/tests/mcp_client_http_stream_drain.rs`
 
-- [ ] **Step 1: Review runner spec and existing stream tests**
+- [x] **Step 1: Review runner spec and existing stream tests**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_stream_reconnect_runner.rs`
 
-- [ ] **Step 1: Add reconnect runner tests**
+- [x] **Step 1: Add reconnect runner tests**
 
 Run:
 
@@ -41,11 +41,11 @@ Expected: tests fail before reconnect runner exists.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add reconnect runner API**
-- [ ] **Step 2: Use fresh stream request snapshots per attempt**
-- [ ] **Step 3: Drain accepted stream events**
-- [ ] **Step 4: Stop on exhausted or non-retryable failures**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add reconnect runner API**
+- [x] **Step 2: Use fresh stream request snapshots per attempt**
+- [x] **Step 3: Drain accepted stream events**
+- [x] **Step 4: Stop on exhausted or non-retryable failures**
+- [x] **Step 5: Run focused tests**
 
 Run:
 
@@ -57,7 +57,7 @@ Expected: focused tests pass.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -70,7 +70,7 @@ Expected: checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M49-02**
+- [x] **Step 1: Update status and commit M49-02**
 
 Run:
 
@@ -78,3 +78,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http stream reconnect runner"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_stream_reconnect_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

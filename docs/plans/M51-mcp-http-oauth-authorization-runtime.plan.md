@@ -47,7 +47,7 @@ Define crate ownership, metadata contracts, explicit token boundary, redaction b
 - Execute: `docs/plans/M51-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add OAuth metadata contracts**
-- [ ] **Step 2: Add protected-resource discovery contracts**
+- [x] **Step 2: Add protected-resource discovery contracts**
 - [ ] **Step 3: Add authorization diagnostics**
 - [ ] **Step 4: Add bearer-token request boundary**
 - [ ] **Step 5: Add hardening docs and final verification**

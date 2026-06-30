@@ -109,6 +109,75 @@ impl McpClientHttpProtectedResourceMetadata {
     }
 }
 
+pub fn parse_mcp_client_http_oauth_metadata_json(
+    value: &Value,
+) -> Result<McpClientHttpOAuthMetadata, McpError> {
+    let value = value
+        .as_object()
+        .ok_or_else(invalid_mcp_client_http_oauth_metadata)?;
+    let metadata = McpClientHttpOAuthMetadata {
+        issuer: optional_mcp_client_http_oauth_string_field(
+            value,
+            "issuer",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+        authorization_endpoint: optional_mcp_client_http_oauth_string_field(
+            value,
+            "authorization_endpoint",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+        token_endpoint: optional_mcp_client_http_oauth_string_field(
+            value,
+            "token_endpoint",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+        registration_endpoint: optional_mcp_client_http_oauth_string_field(
+            value,
+            "registration_endpoint",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+        scopes_supported: optional_mcp_client_http_oauth_string_array_field(
+            value,
+            "scopes_supported",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+        token_endpoint_auth_methods_supported: optional_mcp_client_http_oauth_string_array_field(
+            value,
+            "token_endpoint_auth_methods_supported",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+    };
+    metadata.validate()?;
+    Ok(metadata)
+}
+
+pub fn parse_mcp_client_http_protected_resource_metadata_json(
+    value: &Value,
+) -> Result<McpClientHttpProtectedResourceMetadata, McpError> {
+    let value = value
+        .as_object()
+        .ok_or_else(invalid_mcp_client_http_protected_resource_metadata)?;
+    let metadata = McpClientHttpProtectedResourceMetadata {
+        resource: optional_mcp_client_http_oauth_string_field(
+            value,
+            "resource",
+            invalid_mcp_client_http_protected_resource_metadata,
+        )?,
+        authorization_servers: optional_mcp_client_http_oauth_string_array_field(
+            value,
+            "authorization_servers",
+            invalid_mcp_client_http_protected_resource_metadata,
+        )?,
+        scopes_supported: optional_mcp_client_http_oauth_string_array_field(
+            value,
+            "scopes_supported",
+            invalid_mcp_client_http_protected_resource_metadata,
+        )?,
+    };
+    metadata.validate()?;
+    Ok(metadata)
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpResponseEnvelope {
     pub mode: McpClientHttpResponseMode,
@@ -1755,6 +1824,36 @@ fn optional_string_field(
         Some(Value::String(text)) if !text.trim().is_empty() => Ok(Some(text.clone())),
         Some(Value::String(_)) | Some(Value::Null) | None => Ok(None),
         Some(_) => Err(invalid_mcp_client_http_result(operation)),
+    }
+}
+
+fn optional_mcp_client_http_oauth_string_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    invalid: fn() -> McpError,
+) -> Result<Option<String>, McpError> {
+    match value.get(field) {
+        Some(Value::String(text)) if !text.trim().is_empty() => Ok(Some(text.clone())),
+        Some(Value::String(_)) | Some(Value::Null) | None => Ok(None),
+        Some(_) => Err(invalid()),
+    }
+}
+
+fn optional_mcp_client_http_oauth_string_array_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    invalid: fn() -> McpError,
+) -> Result<Vec<String>, McpError> {
+    match value.get(field) {
+        Some(Value::Array(values)) => values
+            .iter()
+            .map(|value| match value {
+                Value::String(text) if !text.trim().is_empty() => Ok(text.clone()),
+                _ => Err(invalid()),
+            })
+            .collect(),
+        Some(Value::Null) | None => Ok(Vec::new()),
+        Some(_) => Err(invalid()),
     }
 }
 

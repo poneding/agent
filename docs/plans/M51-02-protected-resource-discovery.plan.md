@@ -16,14 +16,14 @@
 - Read: `docs/specs/M51-02-protected-resource-discovery.spec.md`
 - Read: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Review discovery spec and parsing helpers**
+- [x] **Step 1: Review discovery spec and parsing helpers**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_oauth_discovery.rs`
 
-- [ ] **Step 1: Add discovery parser tests**
+- [x] **Step 1: Add discovery parser tests**
 
 Run:
 
@@ -37,15 +37,15 @@ CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add OAuth metadata JSON parser**
-- [ ] **Step 2: Add protected resource metadata JSON parser**
-- [ ] **Step 3: Add redacted parser diagnostics**
-- [ ] **Step 4: Export parser helpers**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add OAuth metadata JSON parser**
+- [x] **Step 2: Add protected resource metadata JSON parser**
+- [x] **Step 3: Add redacted parser diagnostics**
+- [x] **Step 4: Export parser helpers**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -56,7 +56,7 @@ CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D 
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M51-02**
+- [x] **Step 1: Update status and commit M51-02**
 
 Run:
 
@@ -64,3 +64,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http oauth metadata discovery"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_discovery`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings`

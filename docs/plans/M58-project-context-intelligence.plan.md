@@ -66,8 +66,8 @@ Rank relevant files from task text, paths, symbols, file metadata, and existing 
 ### Task 4: M58-03 Semantic and Hybrid Search
 
 **Files:**
-- Create: `docs/specs/M58-03-semantic-hybrid-search.spec.md`
-- Create: `docs/plans/M58-03-semantic-hybrid-search.plan.md`
+- Execute: `docs/specs/M58-03-semantic-hybrid-search.spec.md`
+- Execute: `docs/plans/M58-03-semantic-hybrid-search.plan.md`
 
 - [ ] **Step 1: Complete optional semantic retrieval slice**
 

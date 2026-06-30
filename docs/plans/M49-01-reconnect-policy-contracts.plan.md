@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Review the spec and existing stream contracts**
+- [x] **Step 1: Review the spec and existing stream contracts**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_reconnect_policy.rs`
 
-- [ ] **Step 1: Add focused reconnect policy tests**
+- [x] **Step 1: Add focused reconnect policy tests**
 
 Run:
 
@@ -40,11 +40,11 @@ Expected: tests fail before reconnect policy contracts exist.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add `McpClientHttpReconnectPolicy`**
-- [ ] **Step 2: Add validation and capped backoff**
-- [ ] **Step 3: Add retry classification helpers**
-- [ ] **Step 4: Export public contracts**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add `McpClientHttpReconnectPolicy`**
+- [x] **Step 2: Add validation and capped backoff**
+- [x] **Step 3: Add retry classification helpers**
+- [x] **Step 4: Export public contracts**
+- [x] **Step 5: Run focused tests**
 
 Run:
 
@@ -56,7 +56,7 @@ Expected: focused tests pass.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -69,7 +69,7 @@ Expected: checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M49-01**
+- [x] **Step 1: Update status and commit M49-01**
 
 Run:
 
@@ -77,3 +77,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http reconnect policy contracts"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_policy` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

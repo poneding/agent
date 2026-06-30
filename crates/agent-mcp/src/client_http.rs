@@ -287,6 +287,96 @@ impl McpClientHttpStreamDrainReport {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpReconnectPolicy {
+    pub max_attempts: u32,
+    pub initial_backoff_ms: u64,
+    pub max_backoff_ms: u64,
+}
+
+impl Default for McpClientHttpReconnectPolicy {
+    fn default() -> Self {
+        Self {
+            max_attempts: 3,
+            initial_backoff_ms: 250,
+            max_backoff_ms: 4_000,
+        }
+    }
+}
+
+impl McpClientHttpReconnectPolicy {
+    pub fn validate(&self) -> Result<(), McpError> {
+        if self.max_attempts == 0
+            || self.initial_backoff_ms == 0
+            || self.max_backoff_ms == 0
+            || self.initial_backoff_ms > self.max_backoff_ms
+        {
+            return Err(invalid_mcp_client_http_reconnect_policy());
+        }
+        Ok(())
+    }
+
+    pub fn decision_for_attempt(
+        &self,
+        attempt: u32,
+        retryable: bool,
+    ) -> Result<McpClientHttpReconnectDecision, McpError> {
+        self.validate()?;
+        if !retryable || attempt >= self.max_attempts {
+            return Ok(McpClientHttpReconnectDecision::Stop);
+        }
+
+        Ok(McpClientHttpReconnectDecision::Retry {
+            backoff_ms: self.backoff_for_attempt(attempt),
+        })
+    }
+
+    #[must_use]
+    pub fn backoff_for_attempt(&self, attempt: u32) -> u64 {
+        let multiplier = attempt.saturating_sub(1);
+        let mut backoff_ms = self.initial_backoff_ms;
+        for _ in 0..multiplier {
+            backoff_ms = backoff_ms.saturating_mul(2).min(self.max_backoff_ms);
+        }
+        backoff_ms.min(self.max_backoff_ms)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpReconnectDecision {
+    Retry { backoff_ms: u64 },
+    Stop,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpReconnectFailureKind {
+    RetryableTransport,
+    RetryableStatus,
+    NonRetryableConfig,
+    NonRetryableValidation,
+    NonRetryableOther,
+}
+
+impl McpClientHttpReconnectFailureKind {
+    #[must_use]
+    pub const fn is_retryable(self) -> bool {
+        matches!(self, Self::RetryableTransport | Self::RetryableStatus)
+    }
+
+    #[must_use]
+    pub const fn public_reason(self) -> &'static str {
+        match self {
+            Self::RetryableTransport => "retryable MCP client HTTP transport failure",
+            Self::RetryableStatus => "retryable MCP client HTTP status failure",
+            Self::NonRetryableConfig => "non-retryable MCP client HTTP config failure",
+            Self::NonRetryableValidation => "non-retryable MCP client HTTP validation failure",
+            Self::NonRetryableOther => "non-retryable MCP client HTTP failure",
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpResponse {
     pub status: u16,
@@ -909,6 +999,28 @@ pub fn validate_mcp_client_http_status(status: u16) -> Result<(), McpError> {
     )))
 }
 
+#[must_use]
+pub fn classify_mcp_client_http_reconnect_error(
+    error: &McpError,
+) -> McpClientHttpReconnectFailureKind {
+    match error {
+        McpError::InvalidConfig(_) => McpClientHttpReconnectFailureKind::NonRetryableConfig,
+        McpError::InvalidServerRequest(_) => {
+            McpClientHttpReconnectFailureKind::NonRetryableValidation
+        }
+        McpError::Client(message) if is_retryable_mcp_client_http_transport_error(message) => {
+            McpClientHttpReconnectFailureKind::RetryableTransport
+        }
+        McpError::Client(message) if retryable_mcp_client_http_status(message) => {
+            McpClientHttpReconnectFailureKind::RetryableStatus
+        }
+        McpError::Client(_) => McpClientHttpReconnectFailureKind::NonRetryableOther,
+        McpError::InvalidToolDescriptor(_) | McpError::ServerNotFound(_) => {
+            McpClientHttpReconnectFailureKind::NonRetryableOther
+        }
+    }
+}
+
 pub fn parse_mcp_client_http_sse_events(
     body: &str,
 ) -> Result<Vec<McpClientHttpSseEvent>, McpError> {
@@ -1296,6 +1408,30 @@ fn validate_mcp_client_http_metadata_value(value: &str) -> Result<String, McpErr
 
 fn invalid_mcp_client_http_session_metadata() -> McpError {
     McpError::InvalidServerRequest("invalid MCP client HTTP session metadata".to_string())
+}
+
+fn invalid_mcp_client_http_reconnect_policy() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP reconnect policy".to_string())
+}
+
+fn is_retryable_mcp_client_http_transport_error(message: &str) -> bool {
+    let message = message.to_ascii_lowercase();
+    message.contains("transport failed") || message.contains("stream read failed")
+}
+
+fn retryable_mcp_client_http_status(message: &str) -> bool {
+    let Some(status) = parse_mcp_client_http_status_from_message(message) else {
+        return false;
+    };
+    status == 408 || status == 429 || status >= 500
+}
+
+fn parse_mcp_client_http_status_from_message(message: &str) -> Option<u16> {
+    let (_, suffix) = message.rsplit_once("HTTP status ")?;
+    suffix
+        .split_whitespace()
+        .next()
+        .and_then(|status| status.parse::<u16>().ok())
 }
 
 #[derive(Default)]

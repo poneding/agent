@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M47 |
-| Milestone-level plans | Complete for M01-M47 |
+| Milestone-level specs | Complete for M01-M48 |
+| Milestone-level plans | Complete for M01-M48 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -417,8 +417,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M48-02 implementation | Complete |
 | M48-03 implementation | Complete |
 | M48-04 implementation | Complete |
-| M48-05 implementation | In progress |
-| M48 implementation | In progress |
+| M48-05 implementation | Complete |
+| M48 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -993,10 +993,14 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M48-05 hardening docs.
+Current implementation focus: M48 is complete. Next implementation slice will be selected separately.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md`
+- `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md`
+- `docs/specs/M48-05-hardening-docs.spec.md`
+- `docs/plans/M48-05-hardening-docs.plan.md`
 - `docs/specs/M48-04-bounded-stream-event-drain.spec.md`
 - `docs/plans/M48-04-bounded-stream-event-drain.plan.md`
 - `docs/specs/M48-03-stream-resume-snapshot.spec.md`
@@ -1005,8 +1009,6 @@ Most recent completed implementation documents:
 - `docs/plans/M48-02-reqwest-get-sse-stream-open.plan.md`
 - `docs/specs/M48-01-http-stream-request-contracts.spec.md`
 - `docs/plans/M48-01-http-stream-request-contracts.plan.md`
-- `docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md`
-- `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md`
 - `docs/specs/M48-00-mcp-http-stream-ownership-technical-design.spec.md`
 - `docs/plans/M48-00-mcp-http-stream-ownership-technical-design.plan.md`
 - `docs/specs/M47-mcp-http-session-resume-runtime.spec.md`
@@ -1324,5 +1326,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M48-05-hardening-docs.spec.md`
-- `docs/plans/M48-05-hardening-docs.plan.md`
+- To be selected after M48 completion.

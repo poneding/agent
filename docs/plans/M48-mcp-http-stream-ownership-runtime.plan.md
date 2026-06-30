@@ -50,7 +50,7 @@ Define crate ownership, stream request contracts, stream transport boundary, res
 - [x] **Step 2: Add reqwest GET SSE stream open**
 - [x] **Step 3: Add initialized stream resume snapshots**
 - [x] **Step 4: Add bounded stream event drain**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M48
 
@@ -59,7 +59,7 @@ Define crate ownership, stream request contracts, stream transport boundary, res
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,7 @@ CARGO_TARGET_DIR=target/codex-m48 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M48 complete and commit**
+- [x] **Step 2: Mark M48 complete and commit**
 
 Run:
 
@@ -77,3 +77,15 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m48 mcp http stream ownership runtime"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_request` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_resume` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_drain` passed.
+- `git diff --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo xtask ci` passed. The `definitely-not-a-real-rustc-flag` output is expected from an existing quality-gate fixture.

@@ -5849,6 +5849,7 @@ fn model_provider_kind_label(kind: ModelProviderKind) -> &'static str {
         ModelProviderKind::Fake => "fake",
         ModelProviderKind::OpenAiCompatible => "open_ai_compatible",
         ModelProviderKind::Anthropic => "anthropic",
+        ModelProviderKind::Gemini => "gemini",
     }
 }
 

@@ -53,7 +53,7 @@ Add typed provider/model capability profiles, mismatch diagnostics, default prof
 
 Implement fixture-backed Claude streaming/tool-use mapping with safe diagnostics.
 
-- [ ] **Step 2: Add native Gemini adapter**
+- [x] **Step 2: Add native Gemini adapter**
 
 Implement fixture-backed Gemini streaming/tool-use mapping with safe diagnostics.
 
@@ -100,7 +100,7 @@ Run exact-path staging and commit the final docs/status updates.
 
 - [x] Provider capability matrix is typed, serde-friendly, and tested.
 - [x] Anthropic adapter is implemented with fixture-backed tests.
-- [ ] Gemini adapter is implemented with fixture-backed tests.
+- [x] Gemini adapter is implemented with fixture-backed tests.
 - [ ] Local/Ollama-compatible provider is implemented with local endpoint safety.
 - [ ] CLI/JSON provider diagnostics and fallback behavior are tested.
 - [ ] M56 golden path remains green under `cargo xtask eval`.

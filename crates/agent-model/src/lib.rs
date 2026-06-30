@@ -4,6 +4,7 @@
 pub mod anthropic;
 pub mod config;
 pub mod fake;
+pub mod gemini;
 pub mod invocation_policy;
 pub mod openai_compatible;
 pub mod provider;
@@ -22,6 +23,11 @@ pub use config::{
     ModelProviderKind, SecretRef,
 };
 pub use fake::{FakeModelProvider, FakeModelScript, FakeToolCall};
+pub use gemini::{
+    FixtureGeminiTransport, GeminiError, GeminiHttpRequest, GeminiHttpResponse, GeminiProvider,
+    GeminiTransport, ReqwestGeminiTransport, build_gemini_request_body,
+    gemini_stream_generate_content_url, parse_gemini_sse,
+};
 pub use invocation_policy::{
     ModelFailureKind, ModelFallbackChain, ModelInvocationPolicy, ModelInvocationPolicyError,
     ModelRetryPolicy,

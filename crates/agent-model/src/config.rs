@@ -45,6 +45,7 @@ pub enum ModelProviderKind {
     Fake,
     OpenAiCompatible,
     Anthropic,
+    Gemini,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -124,7 +125,9 @@ impl ModelProviderConfig {
         }
         if matches!(
             self.kind,
-            ModelProviderKind::OpenAiCompatible | ModelProviderKind::Anthropic
+            ModelProviderKind::OpenAiCompatible
+                | ModelProviderKind::Anthropic
+                | ModelProviderKind::Gemini
         ) && self.api_key.is_none()
         {
             return Err(ModelConfigError::MissingSecretRef {

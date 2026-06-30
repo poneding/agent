@@ -12,6 +12,10 @@ fn anthropic_api_key_ref() -> SecretRef {
     SecretRef::new("env", "ANTHROPIC_API_KEY").expect("valid secret ref")
 }
 
+fn gemini_api_key_ref() -> SecretRef {
+    SecretRef::new("env", "GEMINI_API_KEY").expect("valid secret ref")
+}
+
 #[test]
 fn provider_config_serializes_stable_shape() {
     let config = ModelProviderConfig::new(
@@ -111,6 +115,63 @@ fn provider_config_requires_secret_ref_for_anthropic() {
     assert!(matches!(
         err,
         ModelConfigError::MissingSecretRef { provider_id } if provider_id == "anthropic"
+    ));
+}
+
+#[test]
+fn provider_config_serializes_gemini_kind() {
+    let config = ModelProviderConfig::new(
+        "gemini",
+        ModelProviderKind::Gemini,
+        "gemini-1.5-pro",
+        ModelEndpointConfig::new(
+            Some("https://generativelanguage.googleapis.com/v1beta"),
+            30_000,
+        )
+        .expect("valid endpoint"),
+        Some(gemini_api_key_ref()),
+        true,
+    )
+    .expect("valid provider config");
+
+    assert_eq!(
+        serde_json::to_value(config).expect("serialize provider config"),
+        json!({
+            "id": "gemini",
+            "kind": "gemini",
+            "default_model": "gemini-1.5-pro",
+            "endpoint": {
+                "base_url": "https://generativelanguage.googleapis.com/v1beta",
+                "timeout_ms": 30000
+            },
+            "api_key": {
+                "provider": "env",
+                "name": "GEMINI_API_KEY"
+            },
+            "enabled": true
+        })
+    );
+}
+
+#[test]
+fn provider_config_requires_secret_ref_for_gemini() {
+    let err = ModelProviderConfig::new(
+        "gemini",
+        ModelProviderKind::Gemini,
+        "gemini-1.5-pro",
+        ModelEndpointConfig::new(
+            Some("https://generativelanguage.googleapis.com/v1beta"),
+            30_000,
+        )
+        .expect("valid endpoint"),
+        None,
+        true,
+    )
+    .expect_err("missing secret ref rejected");
+
+    assert!(matches!(
+        err,
+        ModelConfigError::MissingSecretRef { provider_id } if provider_id == "gemini"
     ));
 }
 

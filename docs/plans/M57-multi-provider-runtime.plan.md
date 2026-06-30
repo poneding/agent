@@ -46,8 +46,7 @@ Add typed provider/model capability profiles, mismatch diagnostics, default prof
 **Files:**
 - Execute: `docs/plans/M57-02-anthropic-adapter.plan.md`
 - Execute: `docs/plans/M57-03-gemini-adapter.plan.md`
-- Create later: `docs/specs/M57-04-local-provider-adapter.spec.md`
-- Create later: `docs/plans/M57-04-local-provider-adapter.plan.md`
+- Execute: `docs/plans/M57-04-local-provider-adapter.plan.md`
 
 - [x] **Step 1: Add native Anthropic adapter**
 

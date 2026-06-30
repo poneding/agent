@@ -495,7 +495,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M55 milestone plan | Complete |
 | M55 slice specs | Complete for M55-01 through M55-04 |
 | M55 slice plans | Complete for M55-01 through M55-04 |
-| M55 implementation | Planned |
+| M55 implementation | Complete |
+| M55-01 implementation | Complete |
+| M55-02 implementation | Complete |
+| M55-03 implementation | Complete |
+| M55-04 implementation | Complete |
 | M56 milestone spec | Complete |
 | M56 milestone plan | Complete |
 | M56-01 slice spec | Complete |
@@ -1189,7 +1193,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: complete M55 status hardening, then start M56-01 Repo Session Bootstrap.
+Current implementation focus: M56-01 Repo Session Bootstrap.
 
 Most recent completed implementation documents:
 
@@ -1644,7 +1648,7 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Complete M55 hardening by reconciling README, roadmap, milestone status, and M55 plan checkboxes
+- Create later M56 slice specs/plans only when the active slice needs them; do not force a fixed slice count beyond the product complexity.
 - Start M56-01 Repo Session Bootstrap implementation from `docs/plans/M56-01-repo-session-bootstrap.plan.md`
 
 Next implementation direction:

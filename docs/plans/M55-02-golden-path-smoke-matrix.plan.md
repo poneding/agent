@@ -87,7 +87,7 @@ git diff --check -- docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md docs/plans/M55-02-g
 
 Expected: no whitespace errors.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging only:
 

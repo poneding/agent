@@ -22,7 +22,7 @@
 - Read: `docs/templates/spec-template.md`
 - Read: `docs/templates/plan-template.md`
 
-- [ ] **Step 1: Review mainline direction**
+- [x] **Step 1: Review mainline direction**
 
 Run:
 
@@ -39,11 +39,11 @@ Expected: M55-M66 are the visible forward path and MCP expansion is parked after
 - Create: `docs/specs/M55-product-baseline-roadmap-reset.spec.md`
 - Create: `docs/plans/M55-product-baseline-roadmap-reset.plan.md`
 
-- [ ] **Step 1: Write milestone-level spec and plan**
+- [x] **Step 1: Write milestone-level spec and plan**
 
 Define purpose, product context, scope, documentation contracts, state handling, security/privacy, testing strategy, and acceptance criteria.
 
-- [ ] **Step 2: Verify and commit the milestone planning baseline**
+- [x] **Step 2: Verify and commit the milestone planning baseline**
 
 Run:
 
@@ -68,19 +68,19 @@ Expected: commit includes only the M55 milestone-level spec/plan and does not st
 - Create: `docs/plans/M55-04-m56-bootstrap.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Create slice specs**
+- [x] **Step 1: Create slice specs**
 
 Use four slices because M55 has four independent product outcomes: inventory, smoke matrix, backlog, and M56 bootstrap.
 
-- [ ] **Step 2: Create slice plans**
+- [x] **Step 2: Create slice plans**
 
 Each plan must name concrete files, implementation steps, verification commands, and completion checklist.
 
-- [ ] **Step 3: Update milestone index**
+- [x] **Step 3: Update milestone index**
 
 Add M55 to the milestone-level index and add an M55 slice index without marking implementation complete.
 
-- [ ] **Step 4: Verify and commit slice planning**
+- [x] **Step 4: Verify and commit slice planning**
 
 Run:
 
@@ -104,19 +104,19 @@ Expected: commit includes only M55 slice planning and milestone index updates.
 - Execute: `docs/plans/M55-03-product-gap-backlog.plan.md`
 - Execute: `docs/plans/M55-04-m56-bootstrap.plan.md`
 
-- [ ] **Step 1: Complete M55-01 capability inventory**
+- [x] **Step 1: Complete M55-01 capability inventory**
 
 Produce `docs/roadmap/MAINLINE_CAPABILITY_BASELINE.md` from repository evidence.
 
-- [ ] **Step 2: Complete M55-02 smoke matrix**
+- [x] **Step 2: Complete M55-02 smoke matrix**
 
 Produce `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md` and add an executable helper only if an existing command cannot represent the smoke path.
 
-- [ ] **Step 3: Complete M55-03 product gap backlog**
+- [x] **Step 3: Complete M55-03 product gap backlog**
 
 Produce `docs/roadmap/PRODUCT_GAP_BACKLOG.md` with P0/P1/P2 ownership by M56-M66.
 
-- [ ] **Step 4: Complete M55-04 M56 bootstrap**
+- [x] **Step 4: Complete M55-04 M56 bootstrap**
 
 Create M56 milestone-level spec/plan and the minimal first implementation slice specs/plans needed to start coding.
 
@@ -128,11 +128,11 @@ Create M56 milestone-level spec/plan and the minimal first implementation slice 
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M55-product-baseline-roadmap-reset.plan.md`
 
-- [ ] **Step 1: Reconcile status across docs**
+- [x] **Step 1: Reconcile status across docs**
 
 Ensure README, PRD references, roadmap, milestone status, M55 artifacts, and M56 bootstrap agree on the next product direction.
 
-- [ ] **Step 2: Run final verification**
+- [x] **Step 2: Run final verification**
 
 Run:
 
@@ -150,7 +150,7 @@ cargo test --workspace
 
 Expected: docs-only changes pass whitespace checks; code changes pass focused and workspace gates.
 
-- [ ] **Step 3: Commit M55 completion**
+- [x] **Step 3: Commit M55 completion**
 
 Run exact-path `git add` commands for M55 files only, then:
 

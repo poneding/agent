@@ -82,7 +82,7 @@ git diff --check -- docs/roadmap/PRODUCT_GAP_BACKLOG.md docs/plans/M55-03-produc
 
 Expected: no whitespace errors.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging only:
 

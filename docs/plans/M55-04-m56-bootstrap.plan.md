@@ -86,7 +86,7 @@ git diff --check -- docs/specs/M56-coding-agent-golden-path-v1.spec.md docs/plan
 
 Expected: no whitespace errors.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging only:
 

@@ -89,7 +89,7 @@ git diff --check -- docs/roadmap/MAINLINE_CAPABILITY_BASELINE.md docs/plans/M55-
 
 Expected: no whitespace errors.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging only:
 

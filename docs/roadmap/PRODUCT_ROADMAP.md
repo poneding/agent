@@ -64,6 +64,8 @@ The current MCP baseline is enough to support product discovery, local gateway e
 
 ### M55 Product Baseline and Roadmap Reset
 
+Status: Complete. The baseline, smoke matrix, product backlog, and M56 bootstrap docs now define the mainline product direction.
+
 Purpose: stop roadmap drift and produce a clear baseline before new feature work.
 
 Required slices:
@@ -83,6 +85,8 @@ Acceptance:
 - Product acceptance tests are defined before code changes resume.
 
 ### M56 Coding Agent Golden Path v1
+
+Status: Active implementation target. Start from M56-01 Repo Session Bootstrap and create later slice specs/plans only as implementation reaches them.
 
 Purpose: prove the project can behave like a real coding agent, not only a runtime library.
 

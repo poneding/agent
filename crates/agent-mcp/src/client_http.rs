@@ -447,6 +447,106 @@ pub fn build_mcp_client_http_oauth_authorization_request_plan(
     })
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthFlowDiagnosticSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthFlowDiagnosticCode {
+    AuthorizationRequestReady,
+    CallbackAccepted,
+    StateMismatch,
+    ProviderError,
+    InvalidCallback,
+    TokenExchangeReady,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthFlowDiagnostic {
+    pub severity: McpClientHttpOAuthFlowDiagnosticSeverity,
+    pub code: McpClientHttpOAuthFlowDiagnosticCode,
+    pub message: String,
+}
+
+impl McpClientHttpOAuthFlowDiagnostic {
+    #[must_use]
+    pub fn new(
+        severity: McpClientHttpOAuthFlowDiagnosticSeverity,
+        code: McpClientHttpOAuthFlowDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            severity,
+            code,
+            message: message.into(),
+        }
+    }
+
+    #[must_use]
+    pub fn info(code: McpClientHttpOAuthFlowDiagnosticCode, message: impl Into<String>) -> Self {
+        Self::new(
+            McpClientHttpOAuthFlowDiagnosticSeverity::Info,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn warning(code: McpClientHttpOAuthFlowDiagnosticCode, message: impl Into<String>) -> Self {
+        Self::new(
+            McpClientHttpOAuthFlowDiagnosticSeverity::Warning,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn error(code: McpClientHttpOAuthFlowDiagnosticCode, message: impl Into<String>) -> Self {
+        Self::new(
+            McpClientHttpOAuthFlowDiagnosticSeverity::Error,
+            code,
+            message,
+        )
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthFlowReport {
+    pub ready: bool,
+    pub diagnostics: Vec<McpClientHttpOAuthFlowDiagnostic>,
+}
+
+#[must_use]
+pub fn build_mcp_client_http_oauth_authorization_flow_report(
+    _plan: &McpClientHttpOAuthAuthorizationRequestPlan,
+) -> McpClientHttpOAuthFlowReport {
+    McpClientHttpOAuthFlowReport {
+        ready: true,
+        diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::info(
+            McpClientHttpOAuthFlowDiagnosticCode::AuthorizationRequestReady,
+            "MCP HTTP OAuth authorization request is ready",
+        )],
+    }
+}
+
+#[must_use]
+pub fn build_mcp_client_http_oauth_token_exchange_flow_report(
+    _request: &McpClientHttpOAuthTokenExchangeRequest,
+) -> McpClientHttpOAuthFlowReport {
+    McpClientHttpOAuthFlowReport {
+        ready: true,
+        diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::info(
+            McpClientHttpOAuthFlowDiagnosticCode::TokenExchangeReady,
+            "MCP HTTP OAuth token exchange request is ready",
+        )],
+    }
+}
+
 #[derive(Clone, Eq, PartialEq)]
 pub struct McpClientHttpOAuthCallbackInput {
     pub code: Option<String>,
@@ -512,6 +612,7 @@ pub struct McpClientHttpOAuthCallbackValidation {
     pub accepted: bool,
     pub outcome: McpClientHttpOAuthCallbackOutcome,
     pub code: Option<String>,
+    pub diagnostics: Vec<McpClientHttpOAuthFlowDiagnostic>,
 }
 
 impl fmt::Debug for McpClientHttpOAuthCallbackValidation {
@@ -520,6 +621,7 @@ impl fmt::Debug for McpClientHttpOAuthCallbackValidation {
             .field("accepted", &self.accepted)
             .field("outcome", &self.outcome)
             .field("code", &redacted_optional_value(self.code.as_ref()))
+            .field("diagnostics", &self.diagnostics)
             .finish()
     }
 }
@@ -556,6 +658,10 @@ pub fn validate_mcp_client_http_oauth_callback(
             accepted: false,
             outcome: McpClientHttpOAuthCallbackOutcome::StateMismatch,
             code: None,
+            diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::error(
+                McpClientHttpOAuthFlowDiagnosticCode::StateMismatch,
+                "MCP HTTP OAuth callback state did not match",
+            )],
         });
     }
 
@@ -564,6 +670,10 @@ pub fn validate_mcp_client_http_oauth_callback(
             accepted: false,
             outcome: McpClientHttpOAuthCallbackOutcome::ProviderError,
             code: None,
+            diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::error(
+                McpClientHttpOAuthFlowDiagnosticCode::ProviderError,
+                "MCP HTTP OAuth provider returned an authorization error",
+            )],
         });
     }
 
@@ -572,6 +682,10 @@ pub fn validate_mcp_client_http_oauth_callback(
             accepted: false,
             outcome: McpClientHttpOAuthCallbackOutcome::Invalid,
             code: None,
+            diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::error(
+                McpClientHttpOAuthFlowDiagnosticCode::InvalidCallback,
+                "MCP HTTP OAuth callback did not include an authorization code",
+            )],
         });
     };
 
@@ -579,6 +693,10 @@ pub fn validate_mcp_client_http_oauth_callback(
         accepted: true,
         outcome: McpClientHttpOAuthCallbackOutcome::Success,
         code: Some(code),
+        diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::info(
+            McpClientHttpOAuthFlowDiagnosticCode::CallbackAccepted,
+            "MCP HTTP OAuth callback was accepted",
+        )],
     })
 }
 

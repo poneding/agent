@@ -49,7 +49,7 @@ Define crate ownership, PKCE/state boundaries, authorization URL planning, callb
 - [x] **Step 1: Add PKCE and state contracts**
 - [x] **Step 2: Add authorization request planning**
 - [x] **Step 3: Add callback validation and token exchange DTOs**
-- [ ] **Step 4: Add flow diagnostics and redaction hardening**
+- [x] **Step 4: Add flow diagnostics and redaction hardening**
 - [ ] **Step 5: Add docs and final verification**
 
 ### Task 4: Complete M53

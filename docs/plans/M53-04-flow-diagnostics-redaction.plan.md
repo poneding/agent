@@ -16,14 +16,14 @@
 - Read: `docs/specs/M53-04-flow-diagnostics-redaction.spec.md`
 - Read: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Review diagnostic scope**
+- [x] **Step 1: Review diagnostic scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_oauth_flow_diagnostics.rs`
 
-- [ ] **Step 1: Add flow diagnostic tests**
+- [x] **Step 1: Add flow diagnostic tests**
 
 ### Task 3: Implement Diagnostics
 
@@ -31,16 +31,26 @@
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add diagnostic severity/code contracts**
-- [ ] **Step 2: Add redacted builder helpers**
-- [ ] **Step 3: Wire diagnostics into flow helpers**
-- [ ] **Step 4: Export contracts**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add diagnostic severity/code contracts**
+- [x] **Step 2: Add redacted builder helpers**
+- [x] **Step 3: Wire diagnostics into flow helpers**
+- [x] **Step 4: Export contracts**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
+
+Evidence, 2026-06-30:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m53 cargo fmt --all
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_flow_diagnostics
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_callback
+CARGO_TARGET_DIR=target/codex-m53 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m53 cargo clippy -p agent-mcp --all-targets -- -D warnings
+```
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M53-04**
+- [x] **Step 1: Update status and commit M53-04**

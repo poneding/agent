@@ -178,6 +178,177 @@ pub fn parse_mcp_client_http_protected_resource_metadata_json(
     Ok(metadata)
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpAuthorizationDiagnosticSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpAuthorizationDiagnosticCode {
+    AuthorizationReady,
+    AuthorizationHeaderConflict,
+    StreamableHttpRequired,
+    MissingProtectedResourceMetadata,
+    MissingOAuthMetadata,
+    MissingTokenEndpoint,
+    MissingProtectedResourceScopes,
+    MissingOAuthScopes,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpAuthorizationDiagnostic {
+    pub severity: McpClientHttpAuthorizationDiagnosticSeverity,
+    pub code: McpClientHttpAuthorizationDiagnosticCode,
+    pub message: String,
+}
+
+impl McpClientHttpAuthorizationDiagnostic {
+    #[must_use]
+    pub fn new(
+        severity: McpClientHttpAuthorizationDiagnosticSeverity,
+        code: McpClientHttpAuthorizationDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            severity,
+            code,
+            message: message.into(),
+        }
+    }
+
+    #[must_use]
+    pub fn info(
+        code: McpClientHttpAuthorizationDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpAuthorizationDiagnosticSeverity::Info,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn warning(
+        code: McpClientHttpAuthorizationDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpAuthorizationDiagnosticSeverity::Warning,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn error(
+        code: McpClientHttpAuthorizationDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpAuthorizationDiagnosticSeverity::Error,
+            code,
+            message,
+        )
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpAuthorizationReport {
+    pub authorized: bool,
+    pub diagnostics: Vec<McpClientHttpAuthorizationDiagnostic>,
+}
+
+pub fn build_mcp_client_http_authorization_report(
+    config: &McpServerConfig,
+    oauth_metadata: Option<&McpClientHttpOAuthMetadata>,
+    protected_resource_metadata: Option<&McpClientHttpProtectedResourceMetadata>,
+) -> McpClientHttpAuthorizationReport {
+    let mut diagnostics = Vec::new();
+    let mut metadata_usable = true;
+
+    let McpTransportConfig::StreamableHttp { headers, .. } = &config.transport else {
+        diagnostics.push(McpClientHttpAuthorizationDiagnostic::error(
+            McpClientHttpAuthorizationDiagnosticCode::StreamableHttpRequired,
+            "MCP HTTP authorization requires streamable HTTP transport",
+        ));
+        return McpClientHttpAuthorizationReport {
+            authorized: false,
+            diagnostics,
+        };
+    };
+
+    if has_mcp_client_http_authorization_header(headers) {
+        diagnostics.push(McpClientHttpAuthorizationDiagnostic::error(
+            McpClientHttpAuthorizationDiagnosticCode::AuthorizationHeaderConflict,
+            "Configured authorization header conflicts with MCP HTTP authorization",
+        ));
+    }
+
+    match protected_resource_metadata {
+        Some(metadata) if metadata.scopes_supported.is_empty() => {
+            diagnostics.push(McpClientHttpAuthorizationDiagnostic::warning(
+                McpClientHttpAuthorizationDiagnosticCode::MissingProtectedResourceScopes,
+                "Protected resource metadata does not list supported scopes",
+            ));
+        }
+        Some(_) => {}
+        None => {
+            metadata_usable = false;
+            diagnostics.push(McpClientHttpAuthorizationDiagnostic::warning(
+                McpClientHttpAuthorizationDiagnosticCode::MissingProtectedResourceMetadata,
+                "Protected resource metadata is missing",
+            ));
+        }
+    }
+
+    match oauth_metadata {
+        Some(metadata) => {
+            if metadata.token_endpoint.is_none() {
+                metadata_usable = false;
+                diagnostics.push(McpClientHttpAuthorizationDiagnostic::warning(
+                    McpClientHttpAuthorizationDiagnosticCode::MissingTokenEndpoint,
+                    "OAuth metadata does not include a token endpoint",
+                ));
+            }
+            if metadata.scopes_supported.is_empty() {
+                diagnostics.push(McpClientHttpAuthorizationDiagnostic::warning(
+                    McpClientHttpAuthorizationDiagnosticCode::MissingOAuthScopes,
+                    "OAuth metadata does not list supported scopes",
+                ));
+            }
+        }
+        None => {
+            metadata_usable = false;
+            diagnostics.push(McpClientHttpAuthorizationDiagnostic::warning(
+                McpClientHttpAuthorizationDiagnosticCode::MissingOAuthMetadata,
+                "OAuth authorization server metadata is missing",
+            ));
+        }
+    }
+
+    let authorized = metadata_usable
+        && !diagnostics.iter().any(|diagnostic| {
+            diagnostic.severity == McpClientHttpAuthorizationDiagnosticSeverity::Error
+        });
+
+    if authorized && diagnostics.is_empty() {
+        diagnostics.push(McpClientHttpAuthorizationDiagnostic::info(
+            McpClientHttpAuthorizationDiagnosticCode::AuthorizationReady,
+            "MCP HTTP authorization metadata is usable",
+        ));
+    }
+
+    McpClientHttpAuthorizationReport {
+        authorized,
+        diagnostics,
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpResponseEnvelope {
     pub mode: McpClientHttpResponseMode,
@@ -1855,6 +2026,12 @@ fn optional_mcp_client_http_oauth_string_array_field(
         Some(Value::Null) | None => Ok(Vec::new()),
         Some(_) => Err(invalid()),
     }
+}
+
+fn has_mcp_client_http_authorization_header(headers: &BTreeMap<String, McpEnvValue>) -> bool {
+    headers
+        .keys()
+        .any(|key| key.eq_ignore_ascii_case("authorization"))
 }
 
 fn capability_enabled(value: Option<&Value>) -> bool {

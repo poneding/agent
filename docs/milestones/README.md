@@ -442,8 +442,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M51 slice plans | Complete for M51-01 through M51-05 |
 | M51-01 implementation | Complete |
 | M51-02 implementation | Complete |
-| M51-03 implementation | In progress |
-| M51-04 implementation | Not started |
+| M51-03 implementation | Complete |
+| M51-04 implementation | In progress |
 | M51-05 implementation | Not started |
 | M51 implementation | In progress |
 
@@ -1056,7 +1056,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M51-03 authorization policy diagnostics.
+Current implementation focus: M51-04 bearer-token request boundary.
 
 Most recent completed implementation documents:
 
@@ -1082,6 +1082,8 @@ Most recent completed implementation documents:
 - `docs/plans/M51-01-oauth-metadata-contracts.plan.md`
 - `docs/specs/M51-02-protected-resource-discovery.spec.md`
 - `docs/plans/M51-02-protected-resource-discovery.plan.md`
+- `docs/specs/M51-03-authorization-policy-diagnostics.spec.md`
+- `docs/plans/M51-03-authorization-policy-diagnostics.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1439,5 +1441,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M51-03-authorization-policy-diagnostics.spec.md`
-- `docs/plans/M51-03-authorization-policy-diagnostics.plan.md`
+- `docs/specs/M51-04-bearer-token-request-boundary.spec.md`
+- `docs/plans/M51-04-bearer-token-request-boundary.plan.md`

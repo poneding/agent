@@ -32,6 +32,8 @@ pub use client::{
 };
 pub use client_http::{
     FixtureMcpClientHttpStreamTransport, FixtureMcpClientHttpTransport,
+    McpClientHttpAuthorizationDiagnostic, McpClientHttpAuthorizationDiagnosticCode,
+    McpClientHttpAuthorizationDiagnosticSeverity, McpClientHttpAuthorizationReport,
     McpClientHttpCheckpointSummary, McpClientHttpOAuthMetadata,
     McpClientHttpProtectedResourceMetadata, McpClientHttpReconnectAttempt,
     McpClientHttpReconnectAttemptOutcome, McpClientHttpReconnectDecision,
@@ -44,7 +46,8 @@ pub use client_http::{
     McpClientHttpStreamSupervisorConfig, McpClientHttpStreamSupervisorControl,
     McpClientHttpStreamSupervisorReport, McpClientHttpStreamSupervisorStatus,
     McpClientHttpStreamSupervisorTick, McpClientHttpStreamTransport, McpClientHttpTransport,
-    McpHttpClient, classify_mcp_client_http_reconnect_error, find_mcp_client_http_response_frame,
+    McpHttpClient, build_mcp_client_http_authorization_report,
+    classify_mcp_client_http_reconnect_error, find_mcp_client_http_response_frame,
     parse_mcp_client_http_oauth_metadata_json,
     parse_mcp_client_http_protected_resource_metadata_json, parse_mcp_client_http_response_body,
     parse_mcp_client_http_response_mode_frames, parse_mcp_client_http_response_text,

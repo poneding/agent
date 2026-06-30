@@ -47,7 +47,7 @@ Define crate ownership, PKCE/state boundaries, authorization URL planning, callb
 - Execute: `docs/plans/M53-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add PKCE and state contracts**
-- [ ] **Step 2: Add authorization request planning**
+- [x] **Step 2: Add authorization request planning**
 - [ ] **Step 3: Add callback validation and token exchange DTOs**
 - [ ] **Step 4: Add flow diagnostics and redaction hardening**
 - [ ] **Step 5: Add docs and final verification**

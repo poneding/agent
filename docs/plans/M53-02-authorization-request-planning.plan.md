@@ -16,14 +16,14 @@
 - Read: `docs/specs/M53-02-authorization-request-planning.spec.md`
 - Read: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Review authorization request scope**
+- [x] **Step 1: Review authorization request scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_oauth_authorization_request.rs`
 
-- [ ] **Step 1: Add authorization request planning tests**
+- [x] **Step 1: Add authorization request planning tests**
 
 ### Task 3: Implement Planning
 
@@ -31,16 +31,26 @@
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add input and plan DTOs**
-- [ ] **Step 2: Add deterministic URL construction**
-- [ ] **Step 3: Add validation and redacted errors**
-- [ ] **Step 4: Export contracts**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add input and plan DTOs**
+- [x] **Step 2: Add deterministic URL construction**
+- [x] **Step 3: Add validation and redacted errors**
+- [x] **Step 4: Export contracts**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M53-02**
+- [x] **Step 1: Update status and commit M53-02**
+
+Verification evidence, 2026-06-30:
+
+```bash
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_authorization_request
+CARGO_TARGET_DIR=target/codex-m53 cargo fmt --all -- --check
+CARGO_TARGET_DIR=target/codex-m53 cargo clippy -p agent-mcp --all-targets -- -D warnings
+```
+
+Result: all focused M53-02 checks passed.

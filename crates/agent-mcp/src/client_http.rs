@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use tokio::sync::Mutex;
+use url::Url;
 
 use crate::{
     MCP_SERVER_PROTOCOL_VERSION, McpClient, McpClientRootProvider, McpEnvValue, McpError,
@@ -363,6 +364,87 @@ impl fmt::Debug for McpClientHttpOAuthState {
             .field("state", &"[redacted]")
             .finish()
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthAuthorizationRequestInput {
+    pub client_id: String,
+    pub redirect_uri: String,
+    pub scopes: Vec<String>,
+}
+
+impl McpClientHttpOAuthAuthorizationRequestInput {
+    pub fn new(
+        client_id: impl Into<String>,
+        redirect_uri: impl Into<String>,
+        scopes: Vec<String>,
+    ) -> Result<Self, McpError> {
+        let client_id = validate_mcp_client_http_oauth_client_id(&client_id.into())?;
+        let redirect_uri = validate_mcp_client_http_oauth_redirect_uri(&redirect_uri.into())?;
+        validate_mcp_client_http_oauth_tokens(&scopes)
+            .map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+        Ok(Self {
+            client_id,
+            redirect_uri,
+            scopes,
+        })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(
+            self.client_id.as_str(),
+            self.redirect_uri.as_str(),
+            self.scopes.clone(),
+        )
+        .map(|_| ())
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthAuthorizationRequestPlan {
+    pub authorization_url: String,
+    pub state_id: String,
+    pub code_challenge_method: String,
+    pub scopes: Vec<String>,
+}
+
+pub fn build_mcp_client_http_oauth_authorization_request_plan(
+    metadata: &McpClientHttpOAuthMetadata,
+    input: &McpClientHttpOAuthAuthorizationRequestInput,
+    pkce_challenge: &McpClientHttpOAuthPkceChallenge,
+    state: &McpClientHttpOAuthState,
+) -> Result<McpClientHttpOAuthAuthorizationRequestPlan, McpError> {
+    metadata
+        .validate()
+        .map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+    input.validate()?;
+    validate_mcp_client_http_oauth_pkce_challenge(pkce_challenge)?;
+    state.validate()?;
+
+    let endpoint = metadata
+        .authorization_endpoint
+        .as_deref()
+        .ok_or_else(invalid_mcp_client_http_oauth_flow)?;
+    let mut url = Url::parse(endpoint).map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+    url.set_query(None);
+    url.set_fragment(None);
+    {
+        let mut pairs = url.query_pairs_mut();
+        pairs.append_pair("response_type", "code");
+        pairs.append_pair("client_id", &input.client_id);
+        pairs.append_pair("redirect_uri", &input.redirect_uri);
+        pairs.append_pair("scope", &input.scopes.join(" "));
+        pairs.append_pair("state", &state.state);
+        pairs.append_pair("code_challenge", &pkce_challenge.challenge);
+        pairs.append_pair("code_challenge_method", &pkce_challenge.method);
+    }
+
+    Ok(McpClientHttpOAuthAuthorizationRequestPlan {
+        authorization_url: url.to_string(),
+        state_id: state.state.clone(),
+        code_challenge_method: pkce_challenge.method.clone(),
+        scopes: input.scopes.clone(),
+    })
 }
 
 #[derive(Clone, Eq, PartialEq)]
@@ -2499,6 +2581,43 @@ fn validate_mcp_client_http_oauth_state(value: &str) -> Result<String, McpError>
         return Err(invalid_mcp_client_http_oauth_flow());
     }
     Ok(value.to_string())
+}
+
+fn validate_mcp_client_http_oauth_client_id(value: &str) -> Result<String, McpError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+        || value.chars().any(char::is_whitespace)
+        || is_secret_like(value)
+    {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    Ok(value.to_string())
+}
+
+fn validate_mcp_client_http_oauth_redirect_uri(value: &str) -> Result<String, McpError> {
+    let value = value.trim();
+    if value.is_empty() || is_secret_like(value) {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    validate_mcp_client_http_oauth_url(value).map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+    Ok(value.to_string())
+}
+
+fn validate_mcp_client_http_oauth_pkce_challenge(
+    challenge: &McpClientHttpOAuthPkceChallenge,
+) -> Result<(), McpError> {
+    if challenge.method != "S256"
+        || challenge.challenge.chars().count() != MIN_CLIENT_HTTP_OAUTH_PKCE_VERIFIER_CHARS
+        || !challenge
+            .challenge
+            .chars()
+            .all(is_mcp_client_http_oauth_unreserved_char)
+    {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    Ok(())
 }
 
 fn is_mcp_client_http_oauth_unreserved_char(value: char) -> bool {

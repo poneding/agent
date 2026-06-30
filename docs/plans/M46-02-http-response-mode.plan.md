@@ -12,21 +12,31 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review M46-01 parser contracts and this spec**
+- [x] **Step 1: Review M46-01 parser contracts and this spec**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add `mcp_client_http_response_mode` tests**
+- [x] **Step 1: Add `mcp_client_http_response_mode` tests**
 
 ### Task 3: Implement Response Mode
 
-- [ ] **Step 1: Add response-mode types and frame extraction helpers**
-- [ ] **Step 2: Preserve existing JSON response behavior**
+- [x] **Step 1: Add response-mode types and frame extraction helpers**
+- [x] **Step 2: Preserve existing JSON response behavior**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused tests and clippy**
+- [x] **Step 1: Run focused tests and clippy**
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M46-02**
+- [x] **Step 1: Commit M46-02**
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

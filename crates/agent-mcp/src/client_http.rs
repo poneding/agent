@@ -35,6 +35,25 @@ pub struct McpClientHttpSseEvent {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpSseResponse {
+    pub events: Vec<McpClientHttpSseEvent>,
+}
+
+impl McpClientHttpSseResponse {
+    #[must_use]
+    pub const fn new(events: Vec<McpClientHttpSseEvent>) -> Self {
+        Self { events }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "kind", content = "response")]
+pub enum McpClientHttpResponseMode {
+    Json(McpClientHttpResponse),
+    Sse(McpClientHttpSseResponse),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpRequest {
     pub url: String,
     pub headers: BTreeMap<String, String>,
@@ -527,6 +546,35 @@ pub fn parse_mcp_client_http_sse_events(
     flush_mcp_client_http_sse_event(&mut pending, &mut events)?;
 
     Ok(events)
+}
+
+pub fn parse_mcp_client_http_response_mode_frames(
+    response: &McpClientHttpResponseMode,
+) -> Result<Vec<McpClientHttpResponseFrame>, McpError> {
+    match response {
+        McpClientHttpResponseMode::Json(response) => {
+            parse_mcp_client_http_response_body(&response.body_json).map(|frame| vec![frame])
+        }
+        McpClientHttpResponseMode::Sse(response) => response
+            .events
+            .iter()
+            .map(|event| parse_mcp_client_http_response_text(&event.data))
+            .collect(),
+    }
+}
+
+pub fn find_mcp_client_http_response_frame(
+    response: &McpClientHttpResponseMode,
+    id: &McpJsonRpcId,
+) -> Result<McpClientHttpResponseFrame, McpError> {
+    parse_mcp_client_http_response_mode_frames(response)?
+        .into_iter()
+        .find(|frame| frame.id() == id)
+        .ok_or_else(|| {
+            McpError::InvalidServerRequest(
+                "MCP client HTTP matching response id missing".to_string(),
+            )
+        })
 }
 
 fn mcp_client_http_success_result(

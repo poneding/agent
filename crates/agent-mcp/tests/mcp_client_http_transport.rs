@@ -7,8 +7,8 @@ use std::time::Duration;
 
 use agent_mcp::{
     FixtureMcpClientHttpTransport, McpClientHttpRequest, McpClientHttpReqwestTransport,
-    McpClientHttpResponse, McpClientHttpTransport as _, McpEnvValue, McpServerConfig, McpServerId,
-    McpTransportConfig,
+    McpClientHttpResponse, McpClientHttpResponseMode, McpClientHttpTransport as _, McpEnvValue,
+    McpServerConfig, McpServerId, McpTransportConfig,
 };
 use serde_json::{Value, json};
 
@@ -19,21 +19,30 @@ struct RecordedRequest {
     body: String,
 }
 
-fn spawn_server(status: &'static str, body: &'static str) -> (String, Receiver<RecordedRequest>) {
+fn spawn_server(
+    status: &'static str,
+    content_type: &'static str,
+    body: &'static str,
+) -> (String, Receiver<RecordedRequest>) {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind server");
     let addr = listener.local_addr().expect("server addr");
     let (tx, rx) = mpsc::channel();
 
     thread::spawn(move || {
         let (stream, _) = listener.accept().expect("accept");
-        let recorded = read_request(stream, status, body);
+        let recorded = read_request(stream, status, content_type, body);
         tx.send(recorded).expect("send recorded request");
     });
 
     (format!("http://{addr}/mcp"), rx)
 }
 
-fn read_request(mut stream: TcpStream, status: &str, response_body: &str) -> RecordedRequest {
+fn read_request(
+    mut stream: TcpStream,
+    status: &str,
+    content_type: &str,
+    response_body: &str,
+) -> RecordedRequest {
     let mut reader = BufReader::new(stream.try_clone().expect("clone stream"));
     let mut request_line = String::new();
     reader.read_line(&mut request_line).expect("request line");
@@ -67,7 +76,7 @@ fn read_request(mut stream: TcpStream, status: &str, response_body: &str) -> Rec
     let body = String::from_utf8(body).expect("utf8 body");
 
     let response = format!(
-        "HTTP/1.1 {status}\r\ncontent-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{response_body}",
+        "HTTP/1.1 {status}\r\ncontent-type: {content_type}\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{response_body}",
         response_body.len()
     );
     stream.write_all(response.as_bytes()).expect("response");
@@ -109,7 +118,7 @@ async fn mcp_client_http_transport_fixture_records_and_returns_response() {
 
     let actual = transport.send_request(request.clone()).await.expect("send");
 
-    assert_eq!(actual, response);
+    assert_eq!(actual, McpClientHttpResponseMode::Json(response));
     assert_eq!(transport.sent_requests(), &[request]);
 }
 
@@ -165,7 +174,11 @@ fn mcp_client_http_transport_rejects_invalid_configs_before_request() {
 
 #[tokio::test]
 async fn mcp_client_http_transport_reqwest_posts_json_and_headers() {
-    let (url, rx) = spawn_server("200 OK", r#"{"jsonrpc":"2.0","id":1,"result":{"ok":true}}"#);
+    let (url, rx) = spawn_server(
+        "200 OK",
+        "application/json",
+        r#"{"jsonrpc":"2.0","id":1,"result":{"ok":true}}"#,
+    );
     let mut headers = BTreeMap::new();
     headers.insert("x-test".to_string(), "fixture".to_string());
     let request = McpClientHttpRequest::new(
@@ -183,6 +196,9 @@ async fn mcp_client_http_transport_reqwest_posts_json_and_headers() {
         .expect("recorded request");
     let body = serde_json::from_str::<Value>(&recorded.body).expect("json body");
 
+    let McpClientHttpResponseMode::Json(response) = response else {
+        panic!("expected json response mode");
+    };
     assert_eq!(response.status, 200);
     assert_eq!(response.body_json["result"]["ok"], true);
     assert_eq!(recorded.path, "/mcp");
@@ -194,6 +210,7 @@ async fn mcp_client_http_transport_reqwest_posts_json_and_headers() {
 async fn mcp_client_http_transport_reqwest_non_success_status_is_redacted() {
     let (url, rx) = spawn_server(
         "503 Service Unavailable",
+        "application/json",
         r#"{"error":"sk-secret-token api_key password"}"#,
     );
     let request = McpClientHttpRequest::new(
@@ -215,4 +232,62 @@ async fn mcp_client_http_transport_reqwest_non_success_status_is_redacted() {
     assert!(!message.contains("sk-secret-token"));
     assert!(!message.contains("api_key"));
     assert!(!message.contains("password"));
+}
+
+#[tokio::test]
+async fn mcp_client_http_transport_reqwest_parses_sse_response() {
+    let (url, rx) = spawn_server(
+        "200 OK",
+        "text/event-stream; charset=utf-8",
+        "event: message\ndata: {\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"ok\":true}}\n\n",
+    );
+    let request = McpClientHttpRequest::new(
+        url,
+        BTreeMap::new(),
+        json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}),
+        5_000,
+    )
+    .expect("request");
+    let mut transport = McpClientHttpReqwestTransport::new();
+
+    let response = transport.send_request(request).await.expect("send");
+    let _recorded = rx
+        .recv_timeout(Duration::from_secs(5))
+        .expect("recorded request");
+
+    let McpClientHttpResponseMode::Sse(response) = response else {
+        panic!("expected sse response mode");
+    };
+    assert_eq!(response.events.len(), 1);
+    assert_eq!(response.events[0].event.as_deref(), Some("message"));
+    assert_eq!(
+        response.events[0].data,
+        r#"{"jsonrpc":"2.0","id":1,"result":{"ok":true}}"#
+    );
+}
+
+#[tokio::test]
+async fn mcp_client_http_transport_reqwest_rejects_unsupported_content_type_safely() {
+    let (url, rx) = spawn_server("200 OK", "text/plain", "sk-secret-token should not leak");
+    let request = McpClientHttpRequest::new(
+        url,
+        BTreeMap::new(),
+        json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}),
+        5_000,
+    )
+    .expect("request");
+    let mut transport = McpClientHttpReqwestTransport::new();
+
+    let error = transport
+        .send_request(request)
+        .await
+        .expect_err("content type");
+    let _recorded = rx
+        .recv_timeout(Duration::from_secs(5))
+        .expect("recorded request");
+    let message = error.to_string();
+
+    assert!(message.contains("unsupported MCP client HTTP response content type"));
+    assert!(!message.contains("sk-secret-token"));
+    assert!(!message.contains("text/plain"));
 }

@@ -397,7 +397,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M46 slice plans | Complete for M46-01 through M46-05 |
 | M46-01 implementation | Complete |
 | M46-02 implementation | Complete |
-| M46-03 implementation | In progress |
+| M46-03 implementation | Complete |
+| M46-04 implementation | In progress |
 | M46 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -949,7 +950,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M46-03 Reqwest SSE transport.
+Current implementation focus: M46-04 HTTP client SSE dispatch.
 
 Most recent completed implementation documents:
 
@@ -1256,5 +1257,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M46-03-reqwest-sse-transport.spec.md`
-- `docs/plans/M46-03-reqwest-sse-transport.plan.md`
+- `docs/specs/M46-04-http-client-sse-dispatch.spec.md`
+- `docs/plans/M46-04-http-client-sse-dispatch.plan.md`

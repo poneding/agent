@@ -2,28 +2,32 @@ use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
 use agent_mcp::{
-    McpClient as _, McpClientHttpRequest, McpClientHttpResponse, McpClientHttpTransport, McpError,
-    McpGateway, McpGatewayClient as _, McpHttpClient, McpServerConfig, McpServerId,
-    McpServerStatus, McpToolCallRequest, McpTransportConfig,
+    McpClient as _, McpClientHttpRequest, McpClientHttpResponse, McpClientHttpResponseMode,
+    McpClientHttpTransport, McpError, McpGateway, McpGatewayClient as _, McpHttpClient,
+    McpServerConfig, McpServerId, McpServerStatus, McpToolCallRequest, McpTransportConfig,
 };
 use agent_tool::{ToolInput, ToolName, ToolRegistry};
 use async_trait::async_trait;
 use serde_json::{Value, json};
 
 struct RecordingTransport {
-    inbound_responses: VecDeque<Result<McpClientHttpResponse, McpError>>,
+    inbound_responses: VecDeque<Result<McpClientHttpResponseMode, McpError>>,
     sent_requests: Arc<Mutex<Vec<McpClientHttpRequest>>>,
 }
 
 impl RecordingTransport {
-    fn from_responses<I>(responses: I) -> (Self, Arc<Mutex<Vec<McpClientHttpRequest>>>)
+    fn from_responses<I, R>(responses: I) -> (Self, Arc<Mutex<Vec<McpClientHttpRequest>>>)
     where
-        I: IntoIterator<Item = Result<McpClientHttpResponse, McpError>>,
+        I: IntoIterator<Item = Result<R, McpError>>,
+        R: Into<McpClientHttpResponseMode>,
     {
         let sent_requests = Arc::new(Mutex::new(Vec::new()));
         (
             Self {
-                inbound_responses: responses.into_iter().collect(),
+                inbound_responses: responses
+                    .into_iter()
+                    .map(|response| response.map(Into::into))
+                    .collect(),
                 sent_requests: Arc::clone(&sent_requests),
             },
             sent_requests,
@@ -36,7 +40,7 @@ impl McpClientHttpTransport for RecordingTransport {
     async fn send_request(
         &mut self,
         request: McpClientHttpRequest,
-    ) -> Result<McpClientHttpResponse, McpError> {
+    ) -> Result<McpClientHttpResponseMode, McpError> {
         self.sent_requests
             .lock()
             .expect("sent requests")

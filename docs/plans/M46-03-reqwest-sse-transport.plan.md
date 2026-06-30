@@ -12,20 +12,30 @@
 
 ### Task 1: Confirm Inputs
 
-- [ ] **Step 1: Review response-mode contracts**
+- [x] **Step 1: Review response-mode contracts**
 
 ### Task 2: Write Tests
 
-- [ ] **Step 1: Add local-server SSE transport tests**
+- [x] **Step 1: Add local-server SSE transport tests**
 
 ### Task 3: Implement Transport
 
-- [ ] **Step 1: Classify content type and parse SSE response bodies**
+- [x] **Step 1: Classify content type and parse SSE response bodies**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused tests and clippy**
+- [x] **Step 1: Run focused tests and clippy**
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M46-03**
+- [x] **Step 1: Commit M46-03**
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_mcp_client` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_gateway_http_tool_call` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

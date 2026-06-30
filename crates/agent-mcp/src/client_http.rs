@@ -132,28 +132,44 @@ impl McpClientHttpResponse {
     }
 }
 
+impl From<McpClientHttpResponse> for McpClientHttpResponseMode {
+    fn from(response: McpClientHttpResponse) -> Self {
+        Self::Json(response)
+    }
+}
+
+impl From<McpClientHttpSseResponse> for McpClientHttpResponseMode {
+    fn from(response: McpClientHttpSseResponse) -> Self {
+        Self::Sse(response)
+    }
+}
+
 #[async_trait]
 pub trait McpClientHttpTransport: Send {
     async fn send_request(
         &mut self,
         request: McpClientHttpRequest,
-    ) -> Result<McpClientHttpResponse, McpError>;
+    ) -> Result<McpClientHttpResponseMode, McpError>;
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct FixtureMcpClientHttpTransport {
-    inbound_responses: VecDeque<Result<McpClientHttpResponse, McpError>>,
+    inbound_responses: VecDeque<Result<McpClientHttpResponseMode, McpError>>,
     sent_requests: Vec<McpClientHttpRequest>,
 }
 
 impl FixtureMcpClientHttpTransport {
     #[must_use]
-    pub fn from_responses<I>(responses: I) -> Self
+    pub fn from_responses<I, R>(responses: I) -> Self
     where
-        I: IntoIterator<Item = Result<McpClientHttpResponse, McpError>>,
+        I: IntoIterator<Item = Result<R, McpError>>,
+        R: Into<McpClientHttpResponseMode>,
     {
         Self {
-            inbound_responses: responses.into_iter().collect(),
+            inbound_responses: responses
+                .into_iter()
+                .map(|response| response.map(Into::into))
+                .collect(),
             sent_requests: Vec::new(),
         }
     }
@@ -169,7 +185,7 @@ impl McpClientHttpTransport for FixtureMcpClientHttpTransport {
     async fn send_request(
         &mut self,
         request: McpClientHttpRequest,
-    ) -> Result<McpClientHttpResponse, McpError> {
+    ) -> Result<McpClientHttpResponseMode, McpError> {
         self.sent_requests.push(request);
         self.inbound_responses.pop_front().unwrap_or_else(|| {
             Err(McpError::Client(
@@ -217,7 +233,7 @@ impl McpClientHttpTransport for McpClientHttpReqwestTransport {
     async fn send_request(
         &mut self,
         request: McpClientHttpRequest,
-    ) -> Result<McpClientHttpResponse, McpError> {
+    ) -> Result<McpClientHttpResponseMode, McpError> {
         let mut builder = self
             .client
             .post(&request.url)
@@ -232,6 +248,11 @@ impl McpClientHttpTransport for McpClientHttpReqwestTransport {
         })?;
         let status = response.status().as_u16();
         validate_mcp_client_http_status(status)?;
+        let content_type = response
+            .headers()
+            .get(reqwest::header::CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .map(ToString::to_string);
 
         let body = response
             .text()
@@ -242,11 +263,33 @@ impl McpClientHttpTransport for McpClientHttpReqwestTransport {
                 "MCP client HTTP response body too large".to_string(),
             ));
         }
+
+        if content_type
+            .as_deref()
+            .is_some_and(is_mcp_client_http_sse_content_type)
+        {
+            let events = parse_mcp_client_http_sse_events(&body)?;
+            return Ok(McpClientHttpResponseMode::Sse(
+                McpClientHttpSseResponse::new(events),
+            ));
+        }
+        if content_type
+            .as_deref()
+            .is_some_and(|content_type| !is_mcp_client_http_json_content_type(content_type))
+        {
+            return Err(McpError::InvalidServerRequest(
+                "unsupported MCP client HTTP response content type".to_string(),
+            ));
+        }
+
         let body_json = serde_json::from_str::<Value>(&body).map_err(|_| {
             McpError::InvalidServerRequest("invalid MCP client HTTP response body".to_string())
         })?;
 
-        Ok(McpClientHttpResponse { status, body_json })
+        Ok(McpClientHttpResponseMode::Json(McpClientHttpResponse {
+            status,
+            body_json,
+        }))
     }
 }
 
@@ -296,13 +339,7 @@ where
         let body = render_mcp_client_http_request_body(id.clone(), method, params)?;
         let request = McpClientHttpRequest::from_config(config, body)?;
         let response = self.transport.send_request(request).await?;
-        let frame = parse_mcp_client_http_response_body(&response.body_json)?;
-        if frame.id() != &id {
-            return Err(McpError::InvalidServerRequest(
-                "MCP client HTTP unexpected response id".to_string(),
-            ));
-        }
-        Ok(frame)
+        find_mcp_client_http_response_frame(&response, &id)
     }
 
     fn allocate_request_id(&mut self) -> Result<McpJsonRpcId, McpError> {
@@ -742,6 +779,20 @@ fn public_http_message(value: &str) -> String {
         &redact_secret_like_text(value),
         MAX_CLIENT_HTTP_MESSAGE_CHARS,
     )
+}
+
+fn is_mcp_client_http_sse_content_type(content_type: &str) -> bool {
+    content_type
+        .split(';')
+        .next()
+        .is_some_and(|value| value.trim().eq_ignore_ascii_case("text/event-stream"))
+}
+
+fn is_mcp_client_http_json_content_type(content_type: &str) -> bool {
+    content_type.split(';').next().is_some_and(|value| {
+        let value = value.trim().to_ascii_lowercase();
+        value == "application/json" || value.ends_with("+json")
+    })
 }
 
 fn truncate_chars(value: &str, max_chars: usize) -> String {

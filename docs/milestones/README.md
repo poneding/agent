@@ -410,6 +410,15 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M47-04 implementation | Complete |
 | M47-05 implementation | Complete |
 | M47 implementation | Complete |
+| M48 technical design | Complete |
+| M48 slice specs | Complete for M48-01 through M48-05 |
+| M48 slice plans | Complete for M48-01 through M48-05 |
+| M48-01 implementation | In progress |
+| M48-02 implementation | Not started |
+| M48-03 implementation | Not started |
+| M48-04 implementation | Not started |
+| M48-05 implementation | Not started |
+| M48 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -462,6 +471,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M45 MCP Client Streamable HTTP Runtime | `docs/specs/M45-mcp-client-streamable-http.spec.md` | `docs/plans/M45-mcp-client-streamable-http.plan.md` | Drive external MCP streamable HTTP servers through typed client and gateway contracts for initialize, tools/list, and tools/call. |
 | M46 MCP HTTP SSE Response Runtime | `docs/specs/M46-mcp-http-sse-response-runtime.spec.md` | `docs/plans/M46-mcp-http-sse-response-runtime.plan.md` | Parse bounded streamable HTTP SSE response frames through typed MCP client contracts. |
 | M47 MCP HTTP Session Resume Runtime | `docs/specs/M47-mcp-http-session-resume-runtime.spec.md` | `docs/plans/M47-mcp-http-session-resume-runtime.plan.md` | Persist safe streamable HTTP session metadata and SSE checkpoints before reconnect/runtime stream ownership. |
+| M48 MCP HTTP Stream Ownership Runtime | `docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md` | `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md` | Open typed, bounded streamable HTTP GET SSE streams with safe resume headers before reconnect loops. |
 
 ## M01 Slice Index
 
@@ -970,12 +980,27 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M47-04 SSE Checkpoint Tracking | `docs/specs/M47-04-sse-checkpoint-tracking.spec.md` | `docs/plans/M47-04-sse-checkpoint-tracking.plan.md` | Accepted bounded SSE responses update a local last-event checkpoint safely. |
 | M47-05 Hardening Docs | `docs/specs/M47-05-hardening-docs.spec.md` | `docs/plans/M47-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M47 quality gate evidence. |
 
+## M48 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M48-00 MCP HTTP Stream Ownership Technical Design | `docs/specs/M48-00-mcp-http-stream-ownership-technical-design.spec.md` | `docs/plans/M48-00-mcp-http-stream-ownership-technical-design.plan.md` | Architecture baseline for GET stream request contracts, transport, resume headers, bounded drain, redaction, and verification. |
+| M48-01 HTTP Stream Request Contracts | `docs/specs/M48-01-http-stream-request-contracts.spec.md` | `docs/plans/M48-01-http-stream-request-contracts.plan.md` | Pure contracts for safe MCP streamable HTTP GET stream requests and resume headers. |
+| M48-02 Reqwest GET SSE Stream Open | `docs/specs/M48-02-reqwest-get-sse-stream-open.spec.md` | `docs/plans/M48-02-reqwest-get-sse-stream-open.plan.md` | Live reqwest GET stream-open boundary for bounded MCP HTTP SSE streams. |
+| M48-03 Stream Resume Snapshot | `docs/specs/M48-03-stream-resume-snapshot.spec.md` | `docs/plans/M48-03-stream-resume-snapshot.plan.md` | Initialized HTTP clients expose safe stream request snapshots with checkpoint headers. |
+| M48-04 Bounded Stream Event Drain | `docs/specs/M48-04-bounded-stream-event-drain.spec.md` | `docs/plans/M48-04-bounded-stream-event-drain.plan.md` | Accepted stream SSE events update HTTP client checkpoint state safely. |
+| M48-05 Hardening Docs | `docs/specs/M48-05-hardening-docs.spec.md` | `docs/plans/M48-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M48 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M47 is complete. Next implementation slice will be selected separately.
+Current implementation focus: M48-01 HTTP stream request contracts.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md`
+- `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md`
+- `docs/specs/M48-00-mcp-http-stream-ownership-technical-design.spec.md`
+- `docs/plans/M48-00-mcp-http-stream-ownership-technical-design.plan.md`
 - `docs/specs/M47-mcp-http-session-resume-runtime.spec.md`
 - `docs/plans/M47-mcp-http-session-resume-runtime.plan.md`
 - `docs/specs/M47-00-mcp-http-session-resume-technical-design.spec.md`
@@ -1286,9 +1311,10 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M47-00-mcp-http-session-resume-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M47-00-mcp-http-session-resume-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M48-00-mcp-http-stream-ownership-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M48-00-mcp-http-stream-ownership-technical-design.plan.md`
 
 Next implementation slice:
 
-- To be selected after M47 completion.
+- `docs/specs/M48-01-http-stream-request-contracts.spec.md`
+- `docs/plans/M48-01-http-stream-request-contracts.plan.md`

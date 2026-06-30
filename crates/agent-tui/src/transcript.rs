@@ -154,6 +154,20 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::CommandTestSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "command-test",
+                format!(
+                    "{} status={} classification={} exit={}",
+                    snapshot.command,
+                    snapshot.status,
+                    snapshot.classification,
+                    snapshot
+                        .exit_code
+                        .map_or_else(|| "none".to_string(), |code| code.to_string())
+                ),
+                false,
+            )),
             UiJsonFrame::PromptSummary(summary) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "prompt",

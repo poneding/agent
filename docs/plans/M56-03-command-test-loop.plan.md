@@ -23,7 +23,7 @@
 - Read: `crates/agent-cli/src/command.rs`
 - Read: `crates/agent-ui-bridge/src/frame.rs`
 
-- [ ] **Step 1: Review command/test boundaries**
+- [x] **Step 1: Review command/test boundaries**
 
 Run:
 
@@ -38,7 +38,7 @@ Expected: scope is limited to command/test evidence, bounded output, cancellatio
 **Files:**
 - Create: `crates/agent-core/tests/command_test_loop.rs`
 
-- [ ] **Step 1: Add core tests**
+- [x] **Step 1: Add core tests**
 
 Cover:
 
@@ -51,7 +51,7 @@ Cover:
 - invalid workspace or cwd rejects before command execution
 - returned observation is bounded and suitable for model feedback
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -67,19 +67,19 @@ Expected: tests fail before the core command/test loop exists.
 - Create: `crates/agent-core/src/command_test.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add typed contracts**
+- [x] **Step 1: Add typed contracts**
 
 Implement `CommandTestLoopInput`, `CommandTestLoopReport`, command intent, execution status, failure classification, bounded output, cancellation state, observation summary, diagnostics, and errors.
 
-- [ ] **Step 2: Orchestrate existing shell tool**
+- [x] **Step 2: Orchestrate existing shell tool**
 
 Use `ShellCommandTool` through `ToolLoop` with `workspace.shell_command`. Do not spawn commands directly from `agent-core`.
 
-- [ ] **Step 3: Extract safe evidence**
+- [x] **Step 3: Extract safe evidence**
 
 Deserialize `ShellCommandResult`, classify status, bound/redact stdout/stderr, build cancellation readiness, and preserve ordered runtime events.
 
-- [ ] **Step 4: Run core checks**
+- [x] **Step 4: Run core checks**
 
 Run:
 
@@ -102,19 +102,19 @@ Expected: shell tool, command/test loop, and model observation checks pass.
 - Modify if needed: `crates/agent-tui/src/render.rs`
 - Create: `crates/agent-tui/tests/command_panel.rs`
 
-- [ ] **Step 1: Add bridge snapshot tests**
+- [x] **Step 1: Add bridge snapshot tests**
 
 Cover safe serialization, truncation, redaction, classification labels, command display bounds, and frame encoding.
 
-- [ ] **Step 2: Implement bridge snapshot**
+- [x] **Step 2: Implement bridge snapshot**
 
 Expose a UI-safe command/test snapshot derived from `CommandTestLoopReport`.
 
-- [ ] **Step 3: Ensure TUI can consume evidence**
+- [x] **Step 3: Ensure TUI can consume evidence**
 
 Add or extend TUI state for command/test evidence while preserving existing shell and diff rendering behavior.
 
-- [ ] **Step 4: Run bridge/TUI checks**
+- [x] **Step 4: Run bridge/TUI checks**
 
 Run:
 
@@ -131,7 +131,7 @@ Expected: UI evidence tests pass.
 - Create: `crates/agent-cli/tests/command_test_loop.rs`
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Add CLI tests**
+- [x] **Step 1: Add CLI tests**
 
 Cover:
 
@@ -142,11 +142,11 @@ Cover:
 - invalid workspace/cwd/argument shape exits with code `2`
 - secret-like output and diagnostics are redacted/bounded
 
-- [ ] **Step 2: Implement CLI command**
+- [x] **Step 2: Implement CLI command**
 
 Add parser and renderer using core command/test loop. Do not accept environment variable overrides in this slice.
 
-- [ ] **Step 3: Run CLI checks**
+- [x] **Step 3: Run CLI checks**
 
 Run:
 
@@ -162,7 +162,7 @@ Expected: CLI tests pass.
 - Modify: `docs/plans/M56-03-command-test-loop.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -179,7 +179,7 @@ cargo test -p agent-tui command_panel
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for M56-03 source, tests, and docs, then:
 
@@ -191,11 +191,11 @@ Expected: commit contains only M56-03 source, tests, and documentation/status up
 
 ### Completion Checklist
 
-- [ ] Core command/test flow exists and uses tool-loop/tool-policy boundaries.
-- [ ] Success, command failure, test failure, timeout, policy, and tool failure outcomes are classified.
-- [ ] Command stdout/stderr and observations are bounded and redacted.
-- [ ] Cancellation readiness is explicit in the report.
-- [ ] CLI text and JSON surfaces exist.
-- [ ] UI bridge/TUI command evidence is safe and serializable.
-- [ ] Observation feedback remains compatible with the comprehensive model loop.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Core command/test flow exists and uses tool-loop/tool-policy boundaries.
+- [x] Success, command failure, test failure, timeout, policy, and tool failure outcomes are classified.
+- [x] Command stdout/stderr and observations are bounded and redacted.
+- [x] Cancellation readiness is explicit in the report.
+- [x] CLI text and JSON surfaces exist.
+- [x] UI bridge/TUI command evidence is safe and serializable.
+- [x] Observation feedback remains compatible with the comprehensive model loop.
+- [x] Focused fmt/clippy/tests pass.

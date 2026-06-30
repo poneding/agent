@@ -13,16 +13,18 @@ use agent_context::{
     PromptLayerVisibility, PromptProfile, PromptProfileId, PromptRuntime, PromptSnapshot,
 };
 use agent_core::{
-    AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
-    ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigOverride, ConfiguredTurnError,
-    ConfiguredTurnInput, ConfiguredTurnRunner, EditDiffDiagnosticSeverity, EditDiffFlowError,
-    EditDiffFlowInput, EditDiffFlowReport, EffectiveRuntimeConfig, ExtensionCapabilitySummary,
-    ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind,
-    ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
-    ExtensionSource, ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, RepoGitState,
+    AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, CommandExecutionStatus,
+    CommandFailureClassification, CommandTestDiagnosticSeverity, CommandTestLoopError,
+    CommandTestLoopInput, CommandTestLoopReport, ConfigDiagnostic, ConfigDiagnosticSeverity,
+    ConfigLayer, ConfigLayerKind, ConfigOverride, ConfiguredTurnError, ConfiguredTurnInput,
+    ConfiguredTurnRunner, EditDiffDiagnosticSeverity, EditDiffFlowError, EditDiffFlowInput,
+    EditDiffFlowReport, EffectiveRuntimeConfig, ExtensionCapabilitySummary, ExtensionCompatibility,
+    ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary,
+    ExtensionRecord, ExtensionRegistry, ExtensionRegistryError, ExtensionSource,
+    ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, RepoGitState,
     RepoSessionBootstrapError, RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds,
     RuntimeModelConfig, SettingsError, SettingsProfile, StartupMigrationRunner,
-    bootstrap_repo_session, run_edit_diff_flow,
+    bootstrap_repo_session, run_command_test_loop, run_edit_diff_flow,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -71,12 +73,13 @@ use agent_types::{
     WorkspaceId,
 };
 use agent_ui_bridge::{
-    UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
-    UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot,
-    UiExtensionSummary, UiJsonFrame, UiModelProviderSummary, UiPlatformPathsSummary,
-    UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary, UiRepoSessionSnapshot,
-    UiSettingsProfileSummary, UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary,
-    UiTaskSnapshot, UiTaskSummary, encode_json_frame, normalize_runtime_event,
+    UiBridgeError, UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity,
+    UiConfigSnapshot, UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic,
+    UiExtensionSnapshot, UiExtensionSummary, UiJsonFrame, UiModelProviderSummary,
+    UiPlatformPathsSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
+    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
+    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
+    normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -113,6 +116,14 @@ pub enum CliCommand {
         expected_file: Option<PathBuf>,
         replacement_file: PathBuf,
         apply: bool,
+    },
+    RepoCommand {
+        workspace_root: PathBuf,
+        cwd: String,
+        timeout_ms: u64,
+        program: String,
+        args: Vec<String>,
+        classify_as_test: bool,
     },
     Plugin(PluginCommand),
     SkillRoot(SkillRootCommand),
@@ -524,6 +535,21 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             replacement_file,
             apply,
         } => render_text_repo_edit(workspace_root, path, expected_file, replacement_file, apply),
+        CliCommand::RepoCommand {
+            workspace_root,
+            cwd,
+            timeout_ms,
+            program,
+            args,
+            classify_as_test,
+        } => render_text_repo_command(
+            workspace_root,
+            cwd,
+            timeout_ms,
+            program,
+            args,
+            classify_as_test,
+        ),
         CliCommand::Plugin(command) => {
             let mut runtime = PluginCommandRuntime::default();
             render_plugin_command(&mut runtime, command, OutputMode::Text)
@@ -591,6 +617,21 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             } => {
                 render_text_repo_edit(workspace_root, path, expected_file, replacement_file, apply)
             }
+            CliCommand::RepoCommand {
+                workspace_root,
+                cwd,
+                timeout_ms,
+                program,
+                args,
+                classify_as_test,
+            } => render_text_repo_command(
+                workspace_root,
+                cwd,
+                timeout_ms,
+                program,
+                args,
+                classify_as_test,
+            ),
             CliCommand::BatchPrompt { prompt } => {
                 render_prompt_runtime(prompt, invocation.config_path, invocation.config_override)
             }
@@ -670,6 +711,24 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     } = invocation.command
     {
         return render_json_repo_edit(workspace_root, path, expected_file, replacement_file, apply);
+    }
+    if let CliCommand::RepoCommand {
+        workspace_root,
+        cwd,
+        timeout_ms,
+        program,
+        args,
+        classify_as_test,
+    } = invocation.command
+    {
+        return render_json_repo_command(
+            workspace_root,
+            cwd,
+            timeout_ms,
+            program,
+            args,
+            classify_as_test,
+        );
     }
     if matches!(
         invocation.command,
@@ -798,6 +857,8 @@ where
     match subcommand.as_str() {
         "session" => parse_repo_session_args(args),
         "edit" => parse_repo_edit_args(args),
+        "command" => parse_repo_command_args(args, false),
+        "test" => parse_repo_command_args(args, true),
         _ => Err(CliError::UnknownArgument(format!("repo {subcommand}"))),
     }
 }
@@ -892,6 +953,63 @@ where
         replacement_file: replacement_file
             .ok_or_else(|| CliError::MissingValue("repo edit --replacement-file".to_string()))?,
         apply: apply.unwrap_or(false),
+    })
+}
+
+fn parse_repo_command_args<I>(args: &mut I, classify_as_test: bool) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut workspace_root = None;
+    let mut cwd = ".".to_string();
+    let mut timeout_ms = 30_000;
+    let mut command_args = Vec::new();
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--workspace" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                workspace_root = Some(PathBuf::from(value));
+            }
+            "--cwd" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                cwd = value;
+            }
+            "--timeout-ms" => {
+                let value = take_flag_value(args, &arg)?;
+                timeout_ms = value.parse::<u64>().map_err(|_| {
+                    CliError::UnknownArgument(format!("repo command --timeout-ms {value}"))
+                })?;
+            }
+            "--" => {
+                command_args.extend(args.by_ref());
+                break;
+            }
+            _ => return Err(CliError::UnknownArgument(format!("repo command {arg}"))),
+        }
+    }
+
+    if command_args.is_empty() {
+        return Err(CliError::MissingValue("repo command --".to_string()));
+    }
+    let program = command_args.remove(0);
+    if program.trim().is_empty() {
+        return Err(CliError::MissingValue("repo command program".to_string()));
+    }
+
+    Ok(CliCommand::RepoCommand {
+        workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
+        cwd,
+        timeout_ms,
+        program,
+        args: command_args,
+        classify_as_test,
     })
 }
 
@@ -5031,6 +5149,216 @@ fn repo_edit_error_message(error: &EditDiffFlowError) -> String {
             "workspace or edit input is invalid".to_string()
         }
         EditDiffFlowError::ToolFailed { .. } => "edit/diff tool flow failed".to_string(),
+    }
+}
+
+fn render_text_repo_command(
+    workspace_root: PathBuf,
+    cwd: String,
+    timeout_ms: u64,
+    program: String,
+    args: Vec<String>,
+    classify_as_test: bool,
+) -> CliOutput {
+    match evaluate_repo_command(
+        workspace_root,
+        cwd,
+        timeout_ms,
+        program,
+        args,
+        classify_as_test,
+    ) {
+        Ok(report) => CliOutput::exit(render_repo_command_summary_text(&report)),
+        Err(error) => CliOutput::failure(render_repo_command_error_text(&error), 2),
+    }
+}
+
+fn render_json_repo_command(
+    workspace_root: PathBuf,
+    cwd: String,
+    timeout_ms: u64,
+    program: String,
+    args: Vec<String>,
+    classify_as_test: bool,
+) -> CliOutput {
+    match evaluate_repo_command(
+        workspace_root,
+        cwd,
+        timeout_ms,
+        program,
+        args,
+        classify_as_test,
+    ) {
+        Ok(report) => {
+            let snapshot = match UiCommandTestSnapshot::from_report(&report) {
+                Ok(snapshot) => snapshot,
+                Err(error) => {
+                    let mut stdout = json_frame_line(UiJsonFrame::Error {
+                        code: "command_test_snapshot_failed".to_string(),
+                        message: redact_secret_like_text(&error.to_string()),
+                        recoverable: false,
+                    });
+                    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                    return CliOutput::failure(stdout, 2);
+                }
+            };
+            let mut stdout = json_frame_line(UiJsonFrame::CommandTestSnapshot(snapshot));
+            let mut event_count = 0;
+            for event in &report.events {
+                stdout.push_str(&json_frame_line(UiJsonFrame::Event(
+                    normalize_runtime_event(event),
+                )));
+                event_count += 1;
+            }
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count }));
+            CliOutput::exit(stdout)
+        }
+        Err(error) => {
+            let mut stdout = String::new();
+            for diagnostic in error.diagnostics() {
+                stdout.push_str(&json_frame_line(UiJsonFrame::ConfigDiagnostic {
+                    severity: command_test_diagnostic_severity_label(diagnostic.severity)
+                        .to_string(),
+                    code: redact_secret_like_text(&diagnostic.code),
+                    message: redact_secret_like_text(&diagnostic.message),
+                    field_path: None,
+                    source: None,
+                }));
+            }
+            for event in error.events() {
+                stdout.push_str(&json_frame_line(UiJsonFrame::Event(
+                    normalize_runtime_event(event),
+                )));
+            }
+            stdout.push_str(&json_frame_line(UiJsonFrame::Error {
+                code: error.code().to_string(),
+                message: repo_command_error_message(&error),
+                recoverable: false,
+            }));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done {
+                event_count: error.events().len().try_into().unwrap_or(u64::MAX),
+            }));
+            CliOutput::failure(stdout, 2)
+        }
+    }
+}
+
+fn evaluate_repo_command(
+    workspace_root: PathBuf,
+    cwd: String,
+    timeout_ms: u64,
+    program: String,
+    args: Vec<String>,
+    classify_as_test: bool,
+) -> Result<CommandTestLoopReport, CommandTestLoopError> {
+    run_command_test_loop(CommandTestLoopInput {
+        workspace_root,
+        program,
+        args,
+        cwd,
+        timeout_ms,
+        classify_as_test,
+        ids: RuntimeIds {
+            workspace_id: WorkspaceId::new(),
+            conversation_id: ConversationId::new(),
+            turn_id: TurnId::new(),
+            correlation_id: CorrelationId::new(),
+        },
+    })
+}
+
+fn render_repo_command_summary_text(report: &CommandTestLoopReport) -> String {
+    let exit = report
+        .exit_code
+        .map_or_else(|| "none".to_string(), |code| code.to_string());
+    let diagnostics = if report.diagnostics.is_empty() {
+        "none".to_string()
+    } else {
+        report
+            .diagnostics
+            .iter()
+            .map(|diagnostic| {
+                format!(
+                    "{}:{}",
+                    command_test_diagnostic_severity_label(diagnostic.severity),
+                    redact_secret_like_text(&diagnostic.code)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    let stdout = if report.stdout.text.is_empty() {
+        "none".to_string()
+    } else {
+        redact_secret_like_text(&report.stdout.text)
+    };
+    let stderr = if report.stderr.text.is_empty() {
+        "none".to_string()
+    } else {
+        redact_secret_like_text(&report.stderr.text)
+    };
+    format!(
+        "Repo command: {}\nCommand: {}\nCwd: {}\nClassification: {}\nExit: {}\nTimed out: {}\nCancellation: {}\nStdout:\n{}\nStderr:\n{}\nDiagnostics: {}\nWorkspace ID: {}\nConversation ID: {}\n",
+        command_status_label(report.status),
+        redact_secret_like_text(&report.command.display),
+        redact_secret_like_text(&report.command.cwd),
+        command_classification_label(report.classification),
+        exit,
+        report.timed_out,
+        redact_secret_like_text(&report.cancellation.reason),
+        stdout,
+        stderr,
+        diagnostics,
+        report.workspace_id,
+        report.conversation_id
+    )
+}
+
+fn render_repo_command_error_text(error: &CommandTestLoopError) -> String {
+    format!(
+        "repo command failed: {} ({})\n",
+        repo_command_error_message(error),
+        error.code()
+    )
+}
+
+fn repo_command_error_message(error: &CommandTestLoopError) -> String {
+    match error {
+        CommandTestLoopError::InvalidWorkspace { .. } => {
+            "workspace or command input is invalid".to_string()
+        }
+        CommandTestLoopError::ToolFailed { .. } => "command/test tool flow failed".to_string(),
+    }
+}
+
+fn command_status_label(status: CommandExecutionStatus) -> &'static str {
+    match status {
+        CommandExecutionStatus::Succeeded => "succeeded",
+        CommandExecutionStatus::Failed => "failed",
+        CommandExecutionStatus::TimedOut => "timed_out",
+        CommandExecutionStatus::WaitingApproval => "waiting_approval",
+        CommandExecutionStatus::Denied => "denied",
+        CommandExecutionStatus::ToolFailed => "tool_failed",
+    }
+}
+
+fn command_classification_label(classification: CommandFailureClassification) -> &'static str {
+    match classification {
+        CommandFailureClassification::None => "none",
+        CommandFailureClassification::TestFailure => "test_failure",
+        CommandFailureClassification::CommandFailure => "command_failure",
+        CommandFailureClassification::Timeout => "timeout",
+        CommandFailureClassification::PolicyDenied => "policy_denied",
+        CommandFailureClassification::WaitingApproval => "waiting_approval",
+        CommandFailureClassification::ToolFailure => "tool_failure",
+        CommandFailureClassification::InvalidInput => "invalid_input",
+    }
+}
+
+fn command_test_diagnostic_severity_label(severity: CommandTestDiagnosticSeverity) -> &'static str {
+    match severity {
+        CommandTestDiagnosticSeverity::Warning => "warning",
+        CommandTestDiagnosticSeverity::Error => "error",
     }
 }
 

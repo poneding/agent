@@ -1,7 +1,7 @@
 use agent_core::{
-    DiffEvidenceState, EditDiffFlowReport, ObservabilityEvidenceBundle, RepoGitState,
-    RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity, StartupMigrationOutcome,
-    TaskArtifact, TaskReviewSummary,
+    CommandExecutionStatus, CommandFailureClassification, CommandTestLoopReport, DiffEvidenceState,
+    EditDiffFlowReport, ObservabilityEvidenceBundle, RepoGitState, RepoSessionBootstrapReport,
+    RepoSessionDiagnosticSeverity, StartupMigrationOutcome, TaskArtifact, TaskReviewSummary,
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{CheckpointId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
@@ -292,6 +292,71 @@ impl UiEditDiffSnapshot {
             redacted: report.preview.redacted || report.diff.redacted,
             diagnostic_count: report.diagnostics.len().try_into().map_err(|_| {
                 UiBridgeError::Validation("too many edit diff diagnostics".to_string())
+            })?,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiCommandTestSnapshot {
+    pub workspace_id: WorkspaceId,
+    pub conversation_id: ConversationId,
+    pub command: String,
+    pub cwd: String,
+    pub classify_as_test: bool,
+    pub status: String,
+    pub classification: String,
+    pub exit_code: Option<i32>,
+    pub stdout: String,
+    pub stderr: String,
+    pub stdout_byte_count: u64,
+    pub stderr_byte_count: u64,
+    pub timed_out: bool,
+    pub cancellable: bool,
+    pub cancellation_reason: String,
+    pub observation: String,
+    pub truncated: bool,
+    pub redacted: bool,
+    pub diagnostic_count: u32,
+}
+
+impl UiCommandTestSnapshot {
+    pub fn from_report(report: &CommandTestLoopReport) -> Result<Self, UiBridgeError> {
+        let command = bounded_task_text(&report.command.display);
+        let cwd = bounded_task_text(&report.command.cwd);
+        validate_non_empty("command test command", &command)?;
+        validate_non_empty("command test cwd", &cwd)?;
+        let stdout = bounded_diff_text(&report.stdout.text);
+        let stderr = bounded_diff_text(&report.stderr.text);
+        let observation = bounded_diff_text(&report.observation.message);
+        let cancellation_reason = bounded_task_text(&report.cancellation.reason);
+        validate_non_empty("command test cancellation reason", &cancellation_reason)?;
+
+        Ok(Self {
+            workspace_id: report.workspace_id,
+            conversation_id: report.conversation_id,
+            command,
+            cwd,
+            classify_as_test: report.command.classify_as_test,
+            status: command_status_label(report.status).to_string(),
+            classification: command_classification_label(report.classification).to_string(),
+            exit_code: report.exit_code,
+            stdout,
+            stderr,
+            stdout_byte_count: report.stdout.byte_count,
+            stderr_byte_count: report.stderr.byte_count,
+            timed_out: report.timed_out,
+            cancellable: report.cancellation.cancellable,
+            cancellation_reason,
+            observation,
+            truncated: report.stdout.truncated
+                || report.stderr.truncated
+                || report.observation.truncated,
+            redacted: report.stdout.redacted
+                || report.stderr.redacted
+                || report.observation.redacted,
+            diagnostic_count: report.diagnostics.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many command test diagnostics".to_string())
             })?,
         })
     }
@@ -1046,6 +1111,7 @@ pub enum UiJsonFrame {
     ConfigSnapshot(UiConfigSnapshot),
     RepoSessionSnapshot(UiRepoSessionSnapshot),
     EditDiffSnapshot(UiEditDiffSnapshot),
+    CommandTestSnapshot(UiCommandTestSnapshot),
     PromptSummary(UiPromptSummary),
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),
@@ -1094,6 +1160,30 @@ fn diff_state_label(state: DiffEvidenceState) -> &'static str {
         DiffEvidenceState::Preview => "preview",
         DiffEvidenceState::Applied => "applied",
         DiffEvidenceState::Unavailable => "unavailable",
+    }
+}
+
+fn command_status_label(status: CommandExecutionStatus) -> &'static str {
+    match status {
+        CommandExecutionStatus::Succeeded => "succeeded",
+        CommandExecutionStatus::Failed => "failed",
+        CommandExecutionStatus::TimedOut => "timed_out",
+        CommandExecutionStatus::WaitingApproval => "waiting_approval",
+        CommandExecutionStatus::Denied => "denied",
+        CommandExecutionStatus::ToolFailed => "tool_failed",
+    }
+}
+
+fn command_classification_label(classification: CommandFailureClassification) -> &'static str {
+    match classification {
+        CommandFailureClassification::None => "none",
+        CommandFailureClassification::TestFailure => "test_failure",
+        CommandFailureClassification::CommandFailure => "command_failure",
+        CommandFailureClassification::Timeout => "timeout",
+        CommandFailureClassification::PolicyDenied => "policy_denied",
+        CommandFailureClassification::WaitingApproval => "waiting_approval",
+        CommandFailureClassification::ToolFailure => "tool_failure",
+        CommandFailureClassification::InvalidInput => "invalid_input",
     }
 }
 

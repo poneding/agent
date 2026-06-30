@@ -138,6 +138,19 @@ impl TracePanelState {
                     snapshot.changed_file_count
                 ),
             )),
+            UiJsonFrame::CommandTestSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "command-test",
+                format!(
+                    "{} status={} classification={} exit={}",
+                    snapshot.command,
+                    snapshot.status,
+                    snapshot.classification,
+                    snapshot
+                        .exit_code
+                        .map_or_else(|| "none".to_string(), |code| code.to_string())
+                ),
+            )),
             UiJsonFrame::PromptSummary(summary) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "prompt",

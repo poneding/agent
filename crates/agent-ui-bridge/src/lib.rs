@@ -16,12 +16,13 @@ pub use event::{
     UiEventPayload, UiTaskNotification, normalize_runtime_event,
 };
 pub use frame::{
-    UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiEditDiffSnapshot,
-    UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
-    UiJsonFrame, UiMcpManagementDiagnostic, UiMcpManagementSnapshot, UiMcpServerManagementSummary,
-    UiModelProviderSummary, UiObservabilitySnapshot, UiPlatformPathsSummary,
-    UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary, UiRepoSessionDiagnostic,
-    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
-    UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary, UiTaskReviewSummaryArtifact,
-    UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
+    UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
+    UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot,
+    UiExtensionSummary, UiJsonFrame, UiMcpManagementDiagnostic, UiMcpManagementSnapshot,
+    UiMcpServerManagementSummary, UiModelProviderSummary, UiObservabilitySnapshot,
+    UiPlatformPathsSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
+    UiRepoSessionDiagnostic, UiRepoSessionSnapshot, UiSettingsProfileSummary,
+    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary,
+    UiTaskReviewSummaryArtifact, UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary,
+    encode_json_frame,
 };

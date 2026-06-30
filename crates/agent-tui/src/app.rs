@@ -1,8 +1,8 @@
 use agent_ui_bridge::UiJsonFrame;
 
 use crate::{
-    ApprovalPanelState, ComposerAction, ComposerState, DiffPanelState, SlashCommand,
-    TaskPanelState, TracePanelState, TranscriptState, TuiEffect,
+    ApprovalPanelState, CommandPanelState, ComposerAction, ComposerState, DiffPanelState,
+    SlashCommand, TaskPanelState, TracePanelState, TranscriptState, TuiEffect,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -98,6 +98,7 @@ pub struct TuiApp {
     pub transcript: TranscriptState,
     pub approval_panel: ApprovalPanelState,
     pub diff_panel: Option<DiffPanelState>,
+    pub command_panel: Option<CommandPanelState>,
     pub trace_panel: TracePanelState,
     pub task_panel: TaskPanelState,
     pub side_panel: TuiSidePanel,
@@ -140,6 +141,9 @@ impl TuiApp {
                 self.approval_panel.reduce_frame(&frame);
                 self.trace_panel.reduce_frame(&frame);
                 self.task_panel.reduce_frame(&frame);
+                if let UiJsonFrame::CommandTestSnapshot(snapshot) = frame.as_ref() {
+                    self.command_panel = Some(CommandPanelState::from_snapshot(snapshot, 800));
+                }
                 self.diff_panel = self
                     .approval_panel
                     .focused_request()
@@ -208,6 +212,7 @@ impl Default for TuiApp {
             transcript: TranscriptState::default(),
             approval_panel: ApprovalPanelState::default(),
             diff_panel: None,
+            command_panel: None,
             trace_panel: TracePanelState::default(),
             task_panel: TaskPanelState::default(),
             side_panel: TuiSidePanel::default(),

@@ -3,6 +3,7 @@
 
 pub mod app;
 pub mod approval_panel;
+pub mod command_panel;
 pub mod composer;
 pub mod diff_panel;
 pub mod extension_panel;
@@ -15,6 +16,7 @@ pub mod transcript;
 
 pub use app::{StatusBarState, TerminalSize, TuiAction, TuiApp, TuiScreen, TuiSidePanel};
 pub use approval_panel::{ApprovalPanelAction, ApprovalPanelState};
+pub use command_panel::CommandPanelState;
 pub use composer::{ComposerAction, ComposerState, TuiBridgeContext, TuiEffect};
 pub use diff_panel::DiffPanelState;
 pub use extension_panel::ExtensionPanelState;

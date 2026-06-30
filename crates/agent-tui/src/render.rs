@@ -5,8 +5,8 @@ use ratatui::widgets::{Block, Borders, Paragraph};
 use ratatui::{Frame, Terminal};
 
 use crate::{
-    ApprovalPanelState, ComposerState, DiffPanelState, TaskPanelState, TracePanelState,
-    TranscriptState, TuiApp, TuiScreen, TuiSidePanel,
+    ApprovalPanelState, CommandPanelState, ComposerState, DiffPanelState, TaskPanelState,
+    TracePanelState, TranscriptState, TuiApp, TuiScreen, TuiSidePanel,
 };
 
 pub fn render_app(frame: &mut Frame<'_>, app: &TuiApp) {
@@ -84,6 +84,8 @@ fn render_panel(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
         TuiSidePanel::Auto => {
             if let Some(diff) = &app.diff_panel {
                 ("Diff", render_diff_panel(diff))
+            } else if let Some(command) = &app.command_panel {
+                ("Command", render_command_panel(command))
             } else if !app.approval_panel.pending.is_empty() {
                 ("Approval", render_approval_panel(&app.approval_panel))
             } else {
@@ -122,6 +124,10 @@ fn render_approval_panel(panel: &ApprovalPanelState) -> String {
 
 fn render_diff_panel(diff: &DiffPanelState) -> String {
     diff.render_text()
+}
+
+fn render_command_panel(command: &CommandPanelState) -> String {
+    command.render_text()
 }
 
 fn render_trace_panel(panel: &TracePanelState) -> String {

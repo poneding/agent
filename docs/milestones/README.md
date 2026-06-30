@@ -505,6 +505,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M56-01 slice spec | Complete |
 | M56-01 slice plan | Complete |
 | M56-01 implementation | Complete |
+| M56-02 slice spec | Complete |
+| M56-02 slice plan | Complete |
+| M56-02 implementation | Complete |
+| M56-03 slice spec | Complete |
+| M56-03 slice plan | Complete |
+| M56-03 implementation | Planned |
 | M56 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1177,7 +1183,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 |---|---|---|---|
 | M56-01 Repo Session Bootstrap | `docs/specs/M56-01-repo-session-bootstrap.spec.md` | `docs/plans/M56-01-repo-session-bootstrap.plan.md` | Open a workspace, load config, detect Git state, create durable runtime ids, and emit safe CLI/JSON session diagnostics. |
 | M56-02 Edit and Diff Flow | `docs/specs/M56-02-edit-diff-flow.spec.md` | `docs/plans/M56-02-edit-diff-flow.plan.md` | Completed typed edit/diff preview and apply flow with CLI text/JSON surfaces, UI bridge snapshot, TUI consumption, redaction, and focused verification. |
-| M56-03 Command/Test Loop | To be created before implementation | To be created before implementation | Stream or bound command output, support cancellation-ready state, classify failures, and return observations to the model. |
+| M56-03 Command/Test Loop | `docs/specs/M56-03-command-test-loop.spec.md` | `docs/plans/M56-03-command-test-loop.plan.md` | Stream or bound command output, support cancellation-ready state, classify failures, and return observations to the model. |
 | M56-04 Final Review Summary | To be created before implementation | To be created before implementation | Produce changed-file, test, trace, audit, risk, and next-action summaries. |
 | M56-05 Golden Path E2E | To be created before implementation | To be created before implementation | Run deterministic coding-agent scenarios through CLI/JSON with trace, permission, audit, and replay evidence. |
 
@@ -1649,8 +1655,7 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create later M56 slice specs/plans only when the active slice needs them; do not force a fixed slice count beyond the product complexity.
-- Create M56-03 Command/Test Loop spec/plan before implementation.
+- Implement M56-03 Command/Test Loop from its committed spec/plan.
 
 Next implementation direction:
 

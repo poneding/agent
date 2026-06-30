@@ -3,8 +3,10 @@ use std::fmt;
 use std::time::Duration;
 
 use async_trait::async_trait;
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use tokio::sync::Mutex;
 
 use crate::{
@@ -19,6 +21,10 @@ const MAX_CLIENT_HTTP_BODY_BYTES: usize = 256 * 1024;
 const MAX_CLIENT_HTTP_MESSAGE_CHARS: usize = 256;
 const MAX_CLIENT_HTTP_METADATA_VALUE_CHARS: usize = 256;
 const MAX_CLIENT_HTTP_SSE_EVENT_DATA_BYTES: usize = 64 * 1024;
+const MIN_CLIENT_HTTP_OAUTH_PKCE_VERIFIER_CHARS: usize = 43;
+const MAX_CLIENT_HTTP_OAUTH_PKCE_VERIFIER_CHARS: usize = 128;
+const MIN_CLIENT_HTTP_OAUTH_STATE_CHARS: usize = 16;
+const MAX_CLIENT_HTTP_OAUTH_STATE_CHARS: usize = 256;
 
 const MCP_CLIENT_HTTP_SESSION_ID_HEADER_CANONICAL: &str = "Mcp-Session-Id";
 const MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER_CANONICAL: &str = "MCP-Protocol-Version";
@@ -290,6 +296,71 @@ impl fmt::Debug for McpClientHttpAuthorization {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("McpClientHttpAuthorization")
             .field("bearer_token", &"[redacted]")
+            .finish()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthPkceVerifier {
+    pub verifier: String,
+}
+
+impl McpClientHttpOAuthPkceVerifier {
+    pub fn new(verifier: impl Into<String>) -> Result<Self, McpError> {
+        let verifier = validate_mcp_client_http_oauth_pkce_verifier(&verifier.into())?;
+        Ok(Self { verifier })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(self.verifier.as_str()).map(|_| ())
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthPkceVerifier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthPkceVerifier")
+            .field("verifier", &"[redacted]")
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthPkceChallenge {
+    pub challenge: String,
+    pub method: String,
+}
+
+impl McpClientHttpOAuthPkceChallenge {
+    pub fn s256(verifier: &McpClientHttpOAuthPkceVerifier) -> Result<Self, McpError> {
+        verifier.validate()?;
+        let digest = Sha256::digest(verifier.verifier.as_bytes());
+        Ok(Self {
+            challenge: URL_SAFE_NO_PAD.encode(digest),
+            method: "S256".to_string(),
+        })
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthState {
+    pub state: String,
+}
+
+impl McpClientHttpOAuthState {
+    pub fn new(state: impl Into<String>) -> Result<Self, McpError> {
+        let state = validate_mcp_client_http_oauth_state(&state.into())?;
+        Ok(Self { state })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(self.state.as_str()).map(|_| ())
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthState")
+            .field("state", &"[redacted]")
             .finish()
     }
 }
@@ -2408,6 +2479,32 @@ fn validate_mcp_client_http_oauth_token_source_id(value: &str) -> Result<String,
     Ok(value.to_string())
 }
 
+fn validate_mcp_client_http_oauth_pkce_verifier(value: &str) -> Result<String, McpError> {
+    let value = value.trim();
+    if !(MIN_CLIENT_HTTP_OAUTH_PKCE_VERIFIER_CHARS..=MAX_CLIENT_HTTP_OAUTH_PKCE_VERIFIER_CHARS)
+        .contains(&value.chars().count())
+        || !value.chars().all(is_mcp_client_http_oauth_unreserved_char)
+    {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    Ok(value.to_string())
+}
+
+fn validate_mcp_client_http_oauth_state(value: &str) -> Result<String, McpError> {
+    let value = value.trim();
+    if !(MIN_CLIENT_HTTP_OAUTH_STATE_CHARS..=MAX_CLIENT_HTTP_OAUTH_STATE_CHARS)
+        .contains(&value.chars().count())
+        || !value.chars().all(is_mcp_client_http_oauth_unreserved_char)
+    {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    Ok(value.to_string())
+}
+
+fn is_mcp_client_http_oauth_unreserved_char(value: char) -> bool {
+    value.is_ascii_alphanumeric() || matches!(value, '-' | '.' | '_' | '~')
+}
+
 fn normalize_mcp_client_http_oauth_token_source_hint(
     value: Option<impl Into<String>>,
 ) -> Result<Option<String>, McpError> {
@@ -2651,6 +2748,10 @@ fn invalid_mcp_client_http_oauth_token_lease() -> McpError {
 
 fn invalid_mcp_client_http_oauth_token_source() -> McpError {
     McpError::InvalidConfig("invalid MCP client HTTP OAuth token source".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_flow() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth flow".to_string())
 }
 
 fn mcp_client_http_oauth_token_expired() -> McpError {

@@ -294,6 +294,139 @@ impl fmt::Debug for McpClientHttpAuthorization {
     }
 }
 
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenLease {
+    pub access_token: String,
+    pub expires_at_unix_ms: Option<u64>,
+    pub scopes: Vec<String>,
+}
+
+impl McpClientHttpOAuthTokenLease {
+    pub fn new(
+        access_token: impl Into<String>,
+        expires_at_unix_ms: Option<u64>,
+        scopes: Vec<String>,
+    ) -> Result<Self, McpError> {
+        let access_token = access_token.into();
+        let access_token = access_token.trim();
+        if access_token.is_empty() || access_token.chars().any(char::is_control) {
+            return Err(invalid_mcp_client_http_oauth_token_lease());
+        }
+        validate_mcp_client_http_oauth_tokens(&scopes)
+            .map_err(|_| invalid_mcp_client_http_oauth_token_lease())?;
+        Ok(Self {
+            access_token: access_token.to_string(),
+            expires_at_unix_ms,
+            scopes,
+        })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(
+            self.access_token.as_str(),
+            self.expires_at_unix_ms,
+            self.scopes.clone(),
+        )
+        .map(|_| ())
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenLease {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthTokenLease")
+            .field("access_token", &"[redacted]")
+            .field("expires_at_unix_ms", &self.expires_at_unix_ms)
+            .field("scopes", &self.scopes)
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthTokenDiagnosticSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthTokenDiagnosticCode {
+    TokenUsable,
+    TokenExpiryUnknown,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthTokenDiagnostic {
+    pub severity: McpClientHttpOAuthTokenDiagnosticSeverity,
+    pub code: McpClientHttpOAuthTokenDiagnosticCode,
+    pub message: String,
+}
+
+impl McpClientHttpOAuthTokenDiagnostic {
+    #[must_use]
+    pub fn new(
+        severity: McpClientHttpOAuthTokenDiagnosticSeverity,
+        code: McpClientHttpOAuthTokenDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            severity,
+            code,
+            message: message.into(),
+        }
+    }
+
+    #[must_use]
+    pub fn info(code: McpClientHttpOAuthTokenDiagnosticCode, message: impl Into<String>) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenDiagnosticSeverity::Info,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn warning(
+        code: McpClientHttpOAuthTokenDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenDiagnosticSeverity::Warning,
+            code,
+            message,
+        )
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthTokenStatus {
+    pub usable: bool,
+    pub diagnostics: Vec<McpClientHttpOAuthTokenDiagnostic>,
+}
+
+#[must_use]
+pub fn build_mcp_client_http_oauth_token_status(
+    lease: &McpClientHttpOAuthTokenLease,
+) -> McpClientHttpOAuthTokenStatus {
+    let diagnostics = if lease.expires_at_unix_ms.is_some() {
+        vec![McpClientHttpOAuthTokenDiagnostic::info(
+            McpClientHttpOAuthTokenDiagnosticCode::TokenUsable,
+            "MCP HTTP OAuth token lease is usable",
+        )]
+    } else {
+        vec![McpClientHttpOAuthTokenDiagnostic::warning(
+            McpClientHttpOAuthTokenDiagnosticCode::TokenExpiryUnknown,
+            "MCP HTTP OAuth token lease expiry is unknown",
+        )]
+    };
+
+    McpClientHttpOAuthTokenStatus {
+        usable: true,
+        diagnostics,
+    }
+}
+
 pub fn build_mcp_client_http_authorization_report(
     config: &McpServerConfig,
     oauth_metadata: Option<&McpClientHttpOAuthMetadata>,
@@ -2313,6 +2446,10 @@ fn invalid_mcp_client_http_protected_resource_metadata() -> McpError {
 
 fn invalid_mcp_client_http_authorization() -> McpError {
     McpError::InvalidConfig("MCP client HTTP bearer authorization is empty".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_token_lease() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth token lease".to_string())
 }
 
 fn mcp_client_http_authorization_header_conflict() -> McpError {

@@ -16,14 +16,14 @@
 - Read: `docs/specs/M52-01-oauth-token-lease-contracts.spec.md`
 - Read: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Review token lease contract scope**
+- [x] **Step 1: Review token lease contract scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_oauth_token.rs`
 
-- [ ] **Step 1: Add token lease contract tests**
+- [x] **Step 1: Add token lease contract tests**
 
 Run:
 
@@ -37,15 +37,15 @@ CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add token lease DTO and validation**
-- [ ] **Step 2: Add token status DTO and diagnostics**
-- [ ] **Step 3: Add redacted debug behavior**
-- [ ] **Step 4: Export contracts**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add token lease DTO and validation**
+- [x] **Step 2: Add token status DTO and diagnostics**
+- [x] **Step 3: Add redacted debug behavior**
+- [x] **Step 4: Export contracts**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -56,7 +56,7 @@ CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p agent-mcp --all-targets -- -D 
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M52-01**
+- [x] **Step 1: Update status and commit M52-01**
 
 Run:
 
@@ -64,3 +64,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http oauth token lease contracts"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token`
+- `CARGO_TARGET_DIR=target/codex-m52 cargo fmt --all -- --check`
+- `CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p agent-mcp --all-targets -- -D warnings`

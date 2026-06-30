@@ -46,7 +46,7 @@ Define crate ownership, token lease boundaries, redaction behavior, refresh plan
 - Execute: `docs/plans/M52-04-authorized-request-factory.plan.md`
 - Execute: `docs/plans/M52-05-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add OAuth token lease contracts**
+- [x] **Step 1: Add OAuth token lease contracts**
 - [ ] **Step 2: Add token source reference boundary**
 - [ ] **Step 3: Add refresh planning diagnostics**
 - [ ] **Step 4: Add authorized request factory**

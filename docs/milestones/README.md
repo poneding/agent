@@ -449,8 +449,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M52 technical design | Complete |
 | M52 slice specs | Complete for M52-01 through M52-05 |
 | M52 slice plans | Complete for M52-01 through M52-05 |
-| M52-01 implementation | In progress |
-| M52-02 implementation | Not started |
+| M52-01 implementation | Complete |
+| M52-02 implementation | In progress |
 | M52-03 implementation | Not started |
 | M52-04 implementation | Not started |
 | M52-05 implementation | Not started |
@@ -1077,7 +1077,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M52-01 OAuth token lease contracts.
+Current implementation focus: M52-02 token source reference boundary.
 
 Most recent completed implementation documents:
 
@@ -1109,6 +1109,8 @@ Most recent completed implementation documents:
 - `docs/plans/M51-04-bearer-token-request-boundary.plan.md`
 - `docs/specs/M51-05-hardening-docs.spec.md`
 - `docs/plans/M51-05-hardening-docs.plan.md`
+- `docs/specs/M52-01-oauth-token-lease-contracts.spec.md`
+- `docs/plans/M52-01-oauth-token-lease-contracts.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1480,5 +1482,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M52-01-oauth-token-lease-contracts.spec.md`
-- `docs/plans/M52-01-oauth-token-lease-contracts.plan.md`
+- `docs/specs/M52-02-token-source-reference-boundary.spec.md`
+- `docs/plans/M52-02-token-source-reference-boundary.plan.md`

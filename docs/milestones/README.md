@@ -559,6 +559,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M59-01 slice spec | Complete |
 | M59-01 slice plan | Complete |
 | M59-01 implementation | Complete |
+| M59-02 slice spec | Complete |
+| M59-02 slice plan | Complete |
+| M59-02 implementation | Planned |
 | M59 implementation | In Progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1264,7 +1267,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M59-01 Session Restore and Switch | `docs/specs/M59-01-session-restore-switch.spec.md` | `docs/plans/M59-01-session-restore-switch.plan.md` | Completed typed terminal session directory, CLI/JSON list/resume commands, bridge switch command, and TUI session panel state. |
-| M59-02 Slash Command Catalog and Status Hub | TBD | TBD | Planned typed slash command catalog, aliases, status hub, and plain/TUI discoverability. |
+| M59-02 Slash Command Catalog and Status Hub | `docs/specs/M59-02-slash-command-status-hub.spec.md` | `docs/plans/M59-02-slash-command-status-hub.plan.md` | Planned typed slash command catalog, aliases, status hub, and plain/TUI discoverability. |
 | M59-03 Approval Queue and Permission Review | TBD | TBD | Planned actionable approval queue with safe previews, focus movement, lease display, and batch-safe decisions. |
 | M59-04 Diff Viewer and Command Streaming Controls | TBD | TBD | Planned daily-driver diff navigation, command/test output state, and cancellation readiness. |
 | M59-05 Task Status and JSON/Batch Recipes | TBD | TBD | Planned task status panel polish and documented stable terminal recipes. |
@@ -1759,8 +1762,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create M59-02 slash command catalog/status hub spec and plan after M59-01 implementation.
+- Create M59-03 approval queue/permission review spec and plan after M59-02 implementation.
 
 Next implementation direction:
 
-- After M59-02 planning, implement the slash command catalog/status hub slice.
+- Execute `docs/plans/M59-02-slash-command-status-hub.plan.md` to add the slash command catalog/status hub slice.

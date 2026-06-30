@@ -64,9 +64,9 @@ Added typed session summaries, restore/switch validation, CLI/JSON commands, bri
 - Create: `docs/specs/M59-02-slash-command-status-hub.spec.md`
 - Create: `docs/plans/M59-02-slash-command-status-hub.plan.md`
 
-- [ ] **Step 1: Plan slash command/status slice**
+- [x] **Step 1: Plan slash command/status slice**
 
-Define a typed slash command catalog, help/status rendering, aliases, argument validation, plain REPL parity, and tests for discoverability.
+Defined a typed slash command catalog, help/status rendering, aliases, argument validation, plain REPL parity, and tests for discoverability in M59-02.
 
 ### Task 4: M59-03 Approval Queue and Permission Review
 

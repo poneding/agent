@@ -50,7 +50,7 @@ Define crate ownership, metadata contracts, explicit token boundary, redaction b
 - [x] **Step 2: Add protected-resource discovery contracts**
 - [x] **Step 3: Add authorization diagnostics**
 - [x] **Step 4: Add bearer-token request boundary**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M51
 
@@ -59,7 +59,7 @@ Define crate ownership, metadata contracts, explicit token boundary, redaction b
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M51-mcp-http-oauth-authorization-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,7 @@ CARGO_TARGET_DIR=target/codex-m51 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M51 complete and commit**
+- [x] **Step 2: Mark M51 complete and commit**
 
 Run:
 
@@ -77,3 +77,11 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m51 mcp http oauth authorization runtime"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m51 cargo xtask ci`
+- Expected fixture text was printed: `error: Unrecognized option: 'definitely-not-a-real-rustc-flag'`.
+- Command exited successfully.

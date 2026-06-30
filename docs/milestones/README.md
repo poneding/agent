@@ -444,8 +444,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M51-02 implementation | Complete |
 | M51-03 implementation | Complete |
 | M51-04 implementation | Complete |
-| M51-05 implementation | In progress |
-| M51 implementation | In progress |
+| M51-05 implementation | Complete |
+| M51 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -1056,7 +1056,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M51-05 hardening docs.
+Current implementation focus: M51 complete; next implementation focus is not yet planned.
 
 Most recent completed implementation documents:
 
@@ -1086,6 +1086,8 @@ Most recent completed implementation documents:
 - `docs/plans/M51-03-authorization-policy-diagnostics.plan.md`
 - `docs/specs/M51-04-bearer-token-request-boundary.spec.md`
 - `docs/plans/M51-04-bearer-token-request-boundary.plan.md`
+- `docs/specs/M51-05-hardening-docs.spec.md`
+- `docs/plans/M51-05-hardening-docs.plan.md`
 - `docs/specs/M49-mcp-http-stream-reconnect-runtime.spec.md`
 - `docs/plans/M49-mcp-http-stream-reconnect-runtime.plan.md`
 - `docs/specs/M49-00-mcp-http-stream-reconnect-technical-design.spec.md`
@@ -1443,5 +1445,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M51-05-hardening-docs.spec.md`
-- `docs/plans/M51-05-hardening-docs.plan.md`
+- None currently planned after M51.

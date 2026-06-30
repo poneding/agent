@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M50 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, fixture-grade MCP sampling stdio frame dispatch, live MCP client stdio transport and tool execution through the gateway, live MCP streamable HTTP request/response execution for initialize, tools/list, and tools/call, bounded MCP streamable HTTP SSE response parsing and dispatch, safe MCP HTTP session metadata plus SSE checkpoint tracking, typed bounded MCP HTTP GET stream ownership, bounded MCP HTTP stream reconnect reports, and explicit MCP HTTP stream supervision ticks with cancellation, lease preflight, and redacted reports.
+M01-M51 are implemented, including redacted observability evidence bundles, CLI debug exports, UI-safe snapshots, replay verification, deterministic evaluation suites, CI quality evidence gates, policy-aware MCP server export fixtures, a runnable MCP stdio server runtime, manifest-backed MCP export profiles, curated built-in MCP tool exports, profile inspection preflight diagnostics, manifest-backed MCP prompt exports, safe MCP prompt arguments, manifest-backed MCP resource templates, safe MCP completions, explicit MCP client roots for gateway flows, a safe MCP sampling foundation, a text-only MCP sampling model bridge through local `agent-model` providers, fixture-grade MCP sampling stdio frame dispatch, live MCP client stdio transport and tool execution through the gateway, live MCP streamable HTTP request/response execution for initialize, tools/list, and tools/call, bounded MCP streamable HTTP SSE response parsing and dispatch, safe MCP HTTP session metadata plus SSE checkpoint tracking, typed bounded MCP HTTP GET stream ownership, bounded MCP HTTP stream reconnect reports, explicit MCP HTTP stream supervision ticks with cancellation, lease preflight, and redacted reports, plus an MCP HTTP OAuth authorization foundation with metadata contracts, discovery parsing, readiness diagnostics, and explicit bearer-token request boundaries.
 
 ## Core Ideas
 
@@ -207,7 +207,35 @@ let tick = client
 let report = McpClientHttpStreamSupervisorReport::from_tick(&tick);
 ```
 
-Supervisor reports expose status, completed tick count, public terminal summaries, and redacted reconnect summaries. They do not expose raw URLs, headers, session ids, event ids, stream bodies, scheduler internals, or remote failure payloads. OAuth/DCR, Desktop stream management UX, server-specific replay guarantees, and MCP progress/logging/task protocols remain later work.
+Supervisor reports expose status, completed tick count, public terminal summaries, and redacted reconnect summaries. They do not expose raw URLs, headers, session ids, event ids, stream bodies, scheduler internals, or remote failure payloads.
+
+M51 adds the MCP HTTP OAuth authorization foundation without owning login UX or token lifecycle. `agent-mcp` exposes typed `McpClientHttpOAuthMetadata` and `McpClientHttpProtectedResourceMetadata`, parses caller-provided discovery JSON with redacted errors, builds `McpClientHttpAuthorizationReport` readiness diagnostics, and applies caller-provided `McpClientHttpAuthorization` bearer material only at explicit POST or GET stream request construction boundaries.
+
+```rust
+use agent_mcp::{
+    McpClientHttpAuthorization, McpClientHttpRequest, McpClientHttpStreamRequest,
+    build_mcp_client_http_authorization_report,
+};
+
+let report = build_mcp_client_http_authorization_report(
+    &server_config,
+    Some(&oauth_metadata),
+    Some(&protected_resource_metadata),
+);
+
+let authorization = McpClientHttpAuthorization::new("caller-provided-access-token")?;
+let post_request = McpClientHttpRequest::from_config_with_authorization(
+    &server_config,
+    request_body,
+    &authorization,
+)?;
+let stream_request = McpClientHttpStreamRequest::from_config_with_authorization(
+    &server_config,
+    &authorization,
+)?;
+```
+
+Authorization diagnostics and errors do not expose bearer tokens, authorization header values, client secrets, raw discovery bodies, unresolved secret ref names, refresh tokens, or remote auth failure payloads. Existing `Authorization` headers conflict with explicit bearer authorization. Browser login, Desktop auth UX, token storage, refresh, revocation, DCR execution, provider-specific OAuth flows, server-specific replay guarantees, and MCP progress/logging/task protocols remain later work.
 
 ## MCP Sampling
 
@@ -573,9 +601,9 @@ When `--out-dir` is provided, reports are written as:
 - [Architecture guide](docs/architecture/README.md)
 - [Architecture decisions](docs/adr/)
 - [Milestones](docs/milestones/README.md)
-- [Latest completed spec](docs/specs/M50-05-hardening-docs.spec.md)
-- [Latest completed plan](docs/plans/M50-05-hardening-docs.plan.md)
-- [Latest completed milestone](docs/specs/M50-mcp-http-background-stream-supervision.spec.md)
+- [Latest completed spec](docs/specs/M51-05-hardening-docs.spec.md)
+- [Latest completed plan](docs/plans/M51-05-hardening-docs.plan.md)
+- [Latest completed milestone](docs/specs/M51-mcp-http-oauth-authorization-runtime.spec.md)
 - [Milestone index](docs/milestones/README.md)
 - [M19 technical design](docs/specs/M19-00-interactive-approval-technical-design.spec.md)
 - [Templates](docs/templates/)

@@ -18,7 +18,7 @@
 - Read: `README.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Read M51 specs and completed implementation slices**
+- [x] **Step 1: Read M51 specs and completed implementation slices**
 
 ### Task 2: Update Docs
 
@@ -27,12 +27,12 @@
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M51-mcp-http-oauth-authorization-runtime.plan.md`
 
-- [ ] **Step 1: Update README authorization usage**
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 1: Update README authorization usage**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M51 focused tests**
+- [x] **Step 1: Run final M51 focused tests**
 
 Run:
 
@@ -43,7 +43,7 @@ CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_author
 CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_bearer_authorization
 ```
 
-- [ ] **Step 2: Run final workspace gate**
+- [x] **Step 2: Run final workspace gate**
 
 Run:
 
@@ -55,7 +55,7 @@ CARGO_TARGET_DIR=target/codex-m51 cargo xtask ci
 
 ### Task 4: Commit
 
-- [ ] **Step 1: Commit M51-05**
+- [x] **Step 1: Commit M51-05**
 
 Run:
 
@@ -63,3 +63,17 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m51 mcp http oauth authorization runtime"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_metadata`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_discovery`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_authorization_diagnostics`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_bearer_authorization`
+- `git diff --check`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo xtask ci`
+
+Note: `cargo xtask ci` printed the expected fake rustc flag fixture message, `error: Unrecognized option: 'definitely-not-a-real-rustc-flag'`, and exited successfully.

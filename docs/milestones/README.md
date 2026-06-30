@@ -535,8 +535,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-04 slice spec | Complete |
 | M57-04 slice plan | Complete |
 | M57-04 implementation | Complete |
-| M57-05 slice spec | Planned |
-| M57-05 slice plan | Planned |
+| M57-05 slice spec | Complete |
+| M57-05 slice plan | Complete |
 | M57-05 implementation | Planned |
 | M57 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
@@ -1224,7 +1224,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-02 Anthropic Adapter | `docs/specs/M57-02-anthropic-adapter.spec.md` | `docs/plans/M57-02-anthropic-adapter.plan.md` | Completed native Anthropic/Claude adapter with fixture-backed streaming and tool-use mapping. |
 | M57-03 Gemini Adapter | `docs/specs/M57-03-gemini-adapter.spec.md` | `docs/plans/M57-03-gemini-adapter.plan.md` | Completed native Gemini adapter with fixture-backed streaming and function-call mapping. |
 | M57-04 Local Provider Adapter | `docs/specs/M57-04-local-provider-adapter.spec.md` | `docs/plans/M57-04-local-provider-adapter.plan.md` | Completed local/Ollama-compatible provider with local endpoint safety, fixture-backed JSONL streaming, tool-call mapping, diagnostics, and CLI registration. |
-| M57-05 Provider UX Fallback | `docs/specs/M57-05-provider-ux-fallback.spec.md` | `docs/plans/M57-05-provider-ux-fallback.plan.md` | Planned provider fallback UX, diagnostics, and M56 golden path provider regression coverage. |
+| M57-05 Provider UX Fallback | `docs/specs/M57-05-provider-ux-fallback.spec.md` | `docs/plans/M57-05-provider-ux-fallback.plan.md` | Planned typed provider support summaries, compatible-only fallback selection, redacted config-check output, and M56 coding-path fallback coverage. |
 
 ## MX01 Slice Index
 
@@ -1239,10 +1239,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current planning focus: M57-05 Provider UX Fallback spec and plan.
+Current implementation focus: M57-05 Provider UX Fallback implementation.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M57-05-provider-ux-fallback.spec.md`
+- `docs/plans/M57-05-provider-ux-fallback.plan.md`
 - `docs/specs/M57-04-local-provider-adapter.spec.md`
 - `docs/plans/M57-04-local-provider-adapter.plan.md`
 - `docs/specs/MX01-mcp-epilogue.spec.md`
@@ -1696,8 +1698,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create M57-05 Provider UX Fallback spec and plan.
+- After M57-05 implementation, complete M57 closeout docs and verification planning.
 
 Next implementation direction:
 
-- Plan M57-05 Provider UX Fallback from the committed M57 roadmap.
+- Implement typed provider support summaries, compatible-only fallback, and redacted config-check output for M57-05.

@@ -63,8 +63,8 @@ Implement local endpoint profile, local HTTP safety checks, and diagnostics.
 ### Task 4: Provider UX and Fallback
 
 **Files:**
-- Create later: `docs/specs/M57-05-provider-ux-fallback.spec.md`
-- Create later: `docs/plans/M57-05-provider-ux-fallback.plan.md`
+- Execute: `docs/specs/M57-05-provider-ux-fallback.spec.md`
+- Execute: `docs/plans/M57-05-provider-ux-fallback.plan.md`
 
 - [ ] **Step 1: Complete provider UX/fallback slice**
 

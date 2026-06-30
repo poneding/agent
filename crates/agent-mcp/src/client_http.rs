@@ -17,12 +17,21 @@ use crate::{
 
 const MAX_CLIENT_HTTP_BODY_BYTES: usize = 256 * 1024;
 const MAX_CLIENT_HTTP_MESSAGE_CHARS: usize = 256;
+const MAX_CLIENT_HTTP_SSE_EVENT_DATA_BYTES: usize = 64 * 1024;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum McpClientHttpResponseFrame {
     Success(McpJsonRpcSuccess),
     Failure(McpJsonRpcFailure),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpSseEvent {
+    pub event: Option<String>,
+    pub id: Option<String>,
+    pub retry_ms: Option<u64>,
+    pub data: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -479,6 +488,47 @@ pub fn validate_mcp_client_http_status(status: u16) -> Result<(), McpError> {
     )))
 }
 
+pub fn parse_mcp_client_http_sse_events(
+    body: &str,
+) -> Result<Vec<McpClientHttpSseEvent>, McpError> {
+    if body.len() > MAX_CLIENT_HTTP_BODY_BYTES {
+        return Err(McpError::InvalidServerRequest(
+            "MCP client HTTP SSE response body too large".to_string(),
+        ));
+    }
+
+    let mut events = Vec::new();
+    let mut pending = PendingMcpClientHttpSseEvent::default();
+    for raw_line in body.lines() {
+        let line = raw_line.strip_suffix('\r').unwrap_or(raw_line);
+        if line.is_empty() {
+            flush_mcp_client_http_sse_event(&mut pending, &mut events)?;
+            continue;
+        }
+        if line.starts_with(':') {
+            continue;
+        }
+
+        let (field, value) = line.split_once(':').map_or((line, ""), |(field, value)| {
+            (field, value.strip_prefix(' ').unwrap_or(value))
+        });
+        match field {
+            "data" => pending.push_data(value)?,
+            "event" => pending.event = non_empty_sse_value(value),
+            "id" => pending.id = non_empty_sse_value(value),
+            "retry" => {
+                if let Ok(retry_ms) = value.parse::<u64>() {
+                    pending.retry_ms = Some(retry_ms);
+                }
+            }
+            _ => {}
+        }
+    }
+    flush_mcp_client_http_sse_event(&mut pending, &mut events)?;
+
+    Ok(events)
+}
+
 fn mcp_client_http_success_result(
     response: McpClientHttpResponseFrame,
     operation: &str,
@@ -676,4 +726,73 @@ fn is_secret_like(value: &str) -> bool {
         || normalized.contains("api_key")
         || normalized.contains("apikey")
         || normalized.contains("sk_")
+}
+
+#[derive(Default)]
+struct PendingMcpClientHttpSseEvent {
+    event: Option<String>,
+    id: Option<String>,
+    retry_ms: Option<u64>,
+    data_lines: Vec<String>,
+    data_bytes: usize,
+}
+
+impl PendingMcpClientHttpSseEvent {
+    fn push_data(&mut self, value: &str) -> Result<(), McpError> {
+        let separator_bytes = usize::from(!self.data_lines.is_empty());
+        self.data_bytes = self
+            .data_bytes
+            .checked_add(separator_bytes)
+            .and_then(|bytes| bytes.checked_add(value.len()))
+            .ok_or_else(mcp_client_http_sse_event_too_large)?;
+        if self.data_bytes > MAX_CLIENT_HTTP_SSE_EVENT_DATA_BYTES {
+            return Err(mcp_client_http_sse_event_too_large());
+        }
+        self.data_lines.push(value.to_string());
+        Ok(())
+    }
+
+    fn reset(&mut self) {
+        self.event = None;
+        self.id = None;
+        self.retry_ms = None;
+        self.data_lines.clear();
+        self.data_bytes = 0;
+    }
+}
+
+fn flush_mcp_client_http_sse_event(
+    pending: &mut PendingMcpClientHttpSseEvent,
+    events: &mut Vec<McpClientHttpSseEvent>,
+) -> Result<(), McpError> {
+    if pending.data_lines.is_empty() {
+        pending.reset();
+        return Ok(());
+    }
+
+    let data = pending.data_lines.join("\n");
+    if data.len() > MAX_CLIENT_HTTP_SSE_EVENT_DATA_BYTES {
+        return Err(mcp_client_http_sse_event_too_large());
+    }
+
+    events.push(McpClientHttpSseEvent {
+        event: pending.event.take(),
+        id: pending.id.take(),
+        retry_ms: pending.retry_ms.take(),
+        data,
+    });
+    pending.reset();
+    Ok(())
+}
+
+fn non_empty_sse_value(value: &str) -> Option<String> {
+    if value.is_empty() {
+        None
+    } else {
+        Some(value.to_string())
+    }
+}
+
+fn mcp_client_http_sse_event_too_large() -> McpError {
+    McpError::InvalidServerRequest("MCP client HTTP SSE event data too large".to_string())
 }

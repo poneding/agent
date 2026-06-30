@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Review the spec and existing HTTP contracts**
+- [x] **Step 1: Review the spec and existing HTTP contracts**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_sse_contracts.rs`
 
-- [ ] **Step 1: Add focused SSE parser tests**
+- [x] **Step 1: Add focused SSE parser tests**
 
 Run:
 
@@ -40,9 +40,9 @@ Expected: tests fail before the parser exists.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add `McpClientHttpSseEvent` and parsing function**
-- [ ] **Step 2: Export public contracts**
-- [ ] **Step 3: Run focused tests**
+- [x] **Step 1: Add `McpClientHttpSseEvent` and parsing function**
+- [x] **Step 2: Export public contracts**
+- [x] **Step 3: Run focused tests**
 
 Run:
 
@@ -54,7 +54,7 @@ Expected: focused tests pass.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -67,7 +67,7 @@ Expected: checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M46-01**
+- [x] **Step 1: Update status and commit M46-01**
 
 Run:
 
@@ -75,3 +75,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http sse event contracts"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

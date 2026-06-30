@@ -395,7 +395,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M46 technical design | Complete |
 | M46 slice specs | Complete for M46-01 through M46-05 |
 | M46 slice plans | Complete for M46-01 through M46-05 |
-| M46-01 implementation | In progress |
+| M46-01 implementation | Complete |
+| M46-02 implementation | In progress |
 | M46 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -947,7 +948,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M46-01 SSE event contracts.
+Current implementation focus: M46-02 HTTP response mode.
 
 Most recent completed implementation documents:
 
@@ -1254,5 +1255,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M46-01-sse-event-contracts.spec.md`
-- `docs/plans/M46-01-sse-event-contracts.plan.md`
+- `docs/specs/M46-02-http-response-mode.spec.md`
+- `docs/plans/M46-02-http-response-mode.plan.md`

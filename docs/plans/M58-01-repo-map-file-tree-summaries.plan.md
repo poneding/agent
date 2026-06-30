@@ -45,7 +45,7 @@ Baseline verification on 2026-06-30:
 **Files:**
 - Create: `crates/agent-context/tests/project_context_summary.rs`
 
-- [ ] **Step 1: Add serialization and validation tests**
+- [x] **Step 1: Add serialization and validation tests**
 
 Cover:
 
@@ -55,7 +55,7 @@ Cover:
 - secret-like summaries serialize metadata without content previews
 - prompt-layer conversion produces a project prompt layer with bounded content and workspace sensitivity
 
-- [ ] **Step 2: Run context tests and verify failure**
+- [x] **Step 2: Run context tests and verify failure**
 
 Run:
 
@@ -72,15 +72,15 @@ Expected: tests fail before project context contracts exist.
 - Modify: `crates/agent-context/src/error.rs`
 - Modify: `crates/agent-context/src/lib.rs`
 
-- [ ] **Step 1: Add typed contracts**
+- [x] **Step 1: Add typed contracts**
 
 Implement project limits, file summaries, directory summaries, omissions, diagnostics, visibility, file kind, validation constructors, and stable serde shapes.
 
-- [ ] **Step 2: Add prompt-layer conversion**
+- [x] **Step 2: Add prompt-layer conversion**
 
 Convert a safe project summary into `PromptLayerKind::Project` content with bounded path lists and no raw secret-like content.
 
-- [ ] **Step 3: Run context tests**
+- [x] **Step 3: Run context tests**
 
 Run:
 
@@ -95,7 +95,7 @@ Expected: context tests pass.
 **Files:**
 - Create: `crates/agent-core/tests/project_context_scan.rs`
 
-- [ ] **Step 1: Add bounded workspace scan tests**
+- [x] **Step 1: Add bounded workspace scan tests**
 
 Cover:
 
@@ -106,7 +106,7 @@ Cover:
 - max files, max depth, and max total bytes produce deterministic diagnostics
 - invalid workspace roots fail before scan results are emitted
 
-- [ ] **Step 2: Run core tests and verify failure**
+- [x] **Step 2: Run core tests and verify failure**
 
 Run:
 
@@ -123,15 +123,15 @@ Expected: tests fail before core scanning exists.
 - Modify: `crates/agent-core/src/lib.rs`
 - Modify if useful: `crates/agent-core/src/context.rs`
 
-- [ ] **Step 1: Add scan input and report**
+- [x] **Step 1: Add scan input and report**
 
 Implement a typed scan input with workspace root, limits, optional include/exclude path patterns if needed, and a report wrapping `ProjectContextSummary`.
 
-- [ ] **Step 2: Add bounded traversal**
+- [x] **Step 2: Add bounded traversal**
 
 Use std filesystem APIs, canonical workspace containment checks, deterministic sorting, implicit exclusions, binary/oversized detection, and bounded text inspection for metadata only.
 
-- [ ] **Step 3: Run core tests**
+- [x] **Step 3: Run core tests**
 
 Run:
 
@@ -147,7 +147,7 @@ Expected: core scan tests pass.
 - Create: `crates/agent-cli/tests/project_context_commands.rs`
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Add CLI tests**
+- [x] **Step 1: Add CLI tests**
 
 Cover:
 
@@ -156,11 +156,11 @@ Cover:
 - invalid workspace exits with code `2`
 - secret-like fixture content is not rendered
 
-- [ ] **Step 2: Implement CLI command**
+- [x] **Step 2: Implement CLI command**
 
 Add a product-oriented project context command that calls `agent-core` and renders typed output using existing text/JSON patterns.
 
-- [ ] **Step 3: Run CLI tests**
+- [x] **Step 3: Run CLI tests**
 
 Run:
 
@@ -177,15 +177,15 @@ Expected: CLI tests pass.
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Modify if needed: `crates/agent-ui-bridge/src/lib.rs`
 
-- [ ] **Step 1: Add bridge tests**
+- [x] **Step 1: Add bridge tests**
 
 Cover stable JSON shape, single-line frame encoding, bounded previews, hidden secret-like details, and deterministic sorting.
 
-- [ ] **Step 2: Implement bridge mapping**
+- [x] **Step 2: Implement bridge mapping**
 
 Add a `UiProjectContextSnapshot` or equivalent frame that is derived from `ProjectContextSummary`.
 
-- [ ] **Step 3: Run bridge tests**
+- [x] **Step 3: Run bridge tests**
 
 Run:
 
@@ -201,13 +201,13 @@ Expected: bridge tests pass.
 - Modify: `docs/plans/M58-01-repo-map-file-tree-summaries.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge --all-targets -- -D warnings
+cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
 cargo test -p agent-context project_context_summary
 cargo test -p agent-core project_context_scan
 cargo test -p agent-cli project_context_commands
@@ -216,7 +216,7 @@ cargo test -p agent-ui-bridge project_context_snapshot
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for the M58-01 source, tests, and docs, then:
 
@@ -226,11 +226,27 @@ git commit -m "feat: add m58 repo map summaries"
 
 Expected: commit contains only M58-01 source, tests, and documentation/status updates.
 
+Focused verification on 2026-06-30:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings`
+- `cargo test -p agent-context --test project_context_summary`
+- `cargo test -p agent-core --test project_context_scan`
+- `cargo test -p agent-cli --test project_context_commands`
+- `cargo test -p agent-ui-bridge --test project_context_snapshot`
+- `cargo test -p agent-tui trace_panel`
+- `cargo test -p agent-tui transcript`
+
+Additional workspace verification on 2026-06-30:
+
+- `cargo clippy --workspace --all-targets -- -D warnings`
+- `cargo test --workspace`
+
 ### Completion Checklist
 
-- [ ] Project context summary contracts are typed and serde-tested.
-- [ ] Project summaries convert into safe project prompt layers.
-- [ ] Core workspace scanning is bounded, deterministic, and redacted.
-- [ ] CLI text/JSON output exposes safe project context evidence.
-- [ ] UI bridge snapshot shape is stable and safe.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Project context summary contracts are typed and serde-tested.
+- [x] Project summaries convert into safe project prompt layers.
+- [x] Core workspace scanning is bounded, deterministic, and redacted.
+- [x] CLI text/JSON output exposes safe project context evidence.
+- [x] UI bridge snapshot shape is stable and safe.
+- [x] Focused fmt/clippy/tests pass.

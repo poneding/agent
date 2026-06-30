@@ -5,6 +5,7 @@ pub mod budget;
 pub mod compact;
 pub mod error;
 pub mod memory_layers;
+pub mod project;
 pub mod prompt;
 
 pub use budget::{
@@ -15,6 +16,11 @@ pub use compact::{
 };
 pub use error::ContextError;
 pub use memory_layers::{memory_prompt_layer, memory_prompt_layers};
+pub use project::{
+    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity, ProjectContextLimits,
+    ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,
+    ProjectDirectorySummary, ProjectFileKind, ProjectFileSummary,
+};
 pub use prompt::{
     PromptAssemblyOutcome, PromptAssemblyReport, PromptAssemblyRequest, PromptBudget, PromptBundle,
     PromptDiagnostic, PromptDiagnosticSeverity, PromptLayer, PromptLayerHash, PromptLayerId,

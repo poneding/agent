@@ -21,11 +21,13 @@ use agent_core::{
     EditDiffFlowReport, EffectiveRuntimeConfig, ExtensionCapabilitySummary, ExtensionCompatibility,
     ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary,
     ExtensionRecord, ExtensionRegistry, ExtensionRegistryError, ExtensionSource,
-    ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, ProviderSupportReport,
-    ProviderSupportRole, RepoGitState, RepoSessionBootstrapError, RepoSessionBootstrapInput,
-    RepoSessionBootstrapReport, RuntimeIds, RuntimeModelConfig, SettingsError, SettingsProfile,
-    StartupMigrationRunner, bootstrap_repo_session, coding_agent_model_requirements,
-    replay_final_review, run_command_test_loop, run_edit_diff_flow,
+    ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, ProjectContextLimits,
+    ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
+    ProviderSupportReport, ProviderSupportRole, RepoGitState, RepoSessionBootstrapError,
+    RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds, RuntimeModelConfig,
+    SettingsError, SettingsProfile, StartupMigrationRunner, bootstrap_repo_session,
+    coding_agent_model_requirements, replay_final_review, run_command_test_loop,
+    run_edit_diff_flow, scan_project_context,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -78,10 +80,11 @@ use agent_ui_bridge::{
     UiConfigSnapshot, UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic,
     UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame,
     UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
-    UiPlatformPathsSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
-    UiProviderSupportRole, UiProviderSupportSummary, UiRepoSessionSnapshot,
-    UiSettingsProfileSummary, UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary,
-    UiTaskSnapshot, UiTaskSummary, encode_json_frame, normalize_runtime_event,
+    UiPlatformPathsSummary, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
+    UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
+    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
+    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
+    normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -90,6 +93,10 @@ use crate::repl::{PlainReplRuntimeError, render_plain_repl_prompt, run_plain_rep
 
 const DEFAULT_MODEL_PROVIDER: &str = "fake";
 const DEFAULT_MODEL_NAME: &str = "fake-scripted";
+const DEFAULT_PROJECT_CONTEXT_MAX_FILES: u32 = 512;
+const DEFAULT_PROJECT_CONTEXT_MAX_DEPTH: u32 = 8;
+const DEFAULT_PROJECT_CONTEXT_MAX_FILE_BYTES: u64 = 64 * 1024;
+const DEFAULT_PROJECT_CONTEXT_MAX_TOTAL_BYTES: u64 = 2 * 1024 * 1024;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CliCommand {
@@ -110,6 +117,9 @@ pub enum CliCommand {
     ConfigCheck,
     StartupCheck,
     RepoSession {
+        workspace_root: PathBuf,
+    },
+    RepoContext {
         workspace_root: PathBuf,
     },
     RepoEdit {
@@ -538,6 +548,7 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
         CliCommand::RepoSession { workspace_root } => {
             render_text_repo_session(workspace_root, None, ConfigOverride::default())
         }
+        CliCommand::RepoContext { workspace_root } => render_text_project_context(workspace_root),
         CliCommand::RepoEdit {
             workspace_root,
             path,
@@ -619,6 +630,9 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 invocation.config_path,
                 invocation.config_override,
             ),
+            CliCommand::RepoContext { workspace_root } => {
+                render_text_project_context(workspace_root)
+            }
             CliCommand::RepoEdit {
                 workspace_root,
                 path,
@@ -713,6 +727,9 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
             invocation.config_override,
             invocation.model_selection,
         );
+    }
+    if let CliCommand::RepoContext { workspace_root } = invocation.command {
+        return render_json_project_context(workspace_root);
     }
     if let CliCommand::RepoEdit {
         workspace_root,
@@ -871,6 +888,7 @@ where
     };
     match subcommand.as_str() {
         "session" => parse_repo_session_args(args),
+        "context" => parse_repo_context_args(args),
         "edit" => parse_repo_edit_args(args),
         "command" => parse_repo_command_args(args, false),
         "test" => parse_repo_command_args(args, true),
@@ -898,6 +916,29 @@ where
     }
 
     Ok(CliCommand::RepoSession {
+        workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
+    })
+}
+
+fn parse_repo_context_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut workspace_root = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--workspace" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                workspace_root = Some(PathBuf::from(value));
+            }
+            _ => return Err(CliError::UnknownArgument(format!("repo context {arg}"))),
+        }
+    }
+
+    Ok(CliCommand::RepoContext {
         workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
     })
 }
@@ -5028,6 +5069,140 @@ fn repo_git_state_label(state: RepoGitState) -> &'static str {
         RepoGitState::Dirty => "dirty",
         RepoGitState::NotRepository => "not_repository",
         RepoGitState::Unavailable => "unavailable",
+    }
+}
+
+fn render_text_project_context(workspace_root: PathBuf) -> CliOutput {
+    match evaluate_project_context(workspace_root) {
+        Ok(report) => CliOutput::exit(render_project_context_summary_text(&report)),
+        Err(error) => CliOutput::failure(render_project_context_error_text(&error), 2),
+    }
+}
+
+fn render_json_project_context(workspace_root: PathBuf) -> CliOutput {
+    match evaluate_project_context(workspace_root) {
+        Ok(report) => {
+            let snapshot = match UiProjectContextSnapshot::from_summary(&report.summary) {
+                Ok(snapshot) => snapshot,
+                Err(error) => {
+                    let mut stdout = json_frame_line(UiJsonFrame::Error {
+                        code: "project_context_snapshot_failed".to_string(),
+                        message: redact_secret_like_text(&error.to_string()),
+                        recoverable: false,
+                    });
+                    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                    return CliOutput::failure(stdout, 2);
+                }
+            };
+            let mut stdout = json_frame_line(UiJsonFrame::ProjectContextSnapshot(snapshot));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::exit(stdout)
+        }
+        Err(error) => {
+            let mut stdout = String::new();
+            for diagnostic in error.diagnostics() {
+                stdout.push_str(&json_frame_line(UiJsonFrame::ConfigDiagnostic {
+                    severity: format!("{:?}", diagnostic.severity).to_ascii_lowercase(),
+                    code: redact_secret_like_text(&diagnostic.code),
+                    message: redact_secret_like_text(&diagnostic.message),
+                    field_path: diagnostic
+                        .path
+                        .clone()
+                        .map(|path| redact_secret_like_text(&path)),
+                    source: None,
+                }));
+            }
+            stdout.push_str(&json_frame_line(UiJsonFrame::Error {
+                code: error.code().to_string(),
+                message: project_context_error_message(&error),
+                recoverable: false,
+            }));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::failure(stdout, 2)
+        }
+    }
+}
+
+fn evaluate_project_context(
+    workspace_root: PathBuf,
+) -> Result<ProjectContextScanReport, ProjectContextScanError> {
+    scan_project_context(ProjectContextScanInput {
+        workspace_root,
+        limits: default_project_context_limits(),
+    })
+}
+
+fn default_project_context_limits() -> ProjectContextLimits {
+    ProjectContextLimits::new(
+        DEFAULT_PROJECT_CONTEXT_MAX_FILES,
+        DEFAULT_PROJECT_CONTEXT_MAX_DEPTH,
+        DEFAULT_PROJECT_CONTEXT_MAX_FILE_BYTES,
+        DEFAULT_PROJECT_CONTEXT_MAX_TOTAL_BYTES,
+    )
+    .expect("default project context limits are valid")
+}
+
+fn render_project_context_summary_text(report: &ProjectContextScanReport) -> String {
+    let summary = &report.summary;
+    let diagnostics = if summary.diagnostics.is_empty() {
+        "none".to_string()
+    } else {
+        summary
+            .diagnostics
+            .iter()
+            .map(|diagnostic| {
+                format!(
+                    "{}:{}",
+                    format!("{:?}", diagnostic.severity).to_ascii_lowercase(),
+                    redact_secret_like_text(&diagnostic.code)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    let files = summary
+        .files
+        .iter()
+        .take(8)
+        .map(|file| {
+            format!(
+                "- {} [{}; {}]",
+                redact_secret_like_text(&file.path),
+                file.kind.as_str(),
+                file.visibility.as_str()
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let files = if files.is_empty() {
+        "Top files: none\n".to_string()
+    } else {
+        format!("Top files:\n{files}\n")
+    };
+
+    format!(
+        "Project context: ready\nWorkspace: {}\nFiles: {}\nDirectories: {}\nOmitted: {}\nDiagnostics: {}\n{}",
+        redact_secret_like_text(&summary.workspace_root_display),
+        summary.files.len(),
+        summary.directories.len(),
+        summary.omitted.len(),
+        diagnostics,
+        files
+    )
+}
+
+fn render_project_context_error_text(error: &ProjectContextScanError) -> String {
+    format!(
+        "project context failed: {} ({})\n",
+        project_context_error_message(error),
+        error.code()
+    )
+}
+
+fn project_context_error_message(error: &ProjectContextScanError) -> String {
+    match error {
+        ProjectContextScanError::InvalidWorkspace { .. } => "workspace root is invalid".to_string(),
+        ProjectContextScanError::Scan { .. } => "project context scan failed".to_string(),
     }
 }
 

@@ -49,7 +49,7 @@ Baseline verification on 2026-06-30:
 - Execute: `docs/specs/M58-01-repo-map-file-tree-summaries.spec.md`
 - Execute: `docs/plans/M58-01-repo-map-file-tree-summaries.plan.md`
 
-- [ ] **Step 1: Complete bounded project summary slice**
+- [x] **Step 1: Complete bounded project summary slice**
 
 Add typed project file/directory summaries, bounded workspace scanning in shared runtime code, prompt-layer conversion, CLI/JSON output, bridge snapshots, and redaction tests.
 
@@ -120,7 +120,7 @@ Run exact-path staging and commit the final docs/status updates.
 
 ### Completion Checklist
 
-- [ ] Project file tree summaries are typed, bounded, serde-friendly, and tested.
+- [x] Project file tree summaries are typed, bounded, serde-friendly, and tested.
 - [ ] Relevant-file retrieval is deterministic and budget-aware.
 - [ ] Semantic/hybrid retrieval is optional and fixture-tested.
 - [ ] Pinned context participates in prompt budget planning with diagnostics.

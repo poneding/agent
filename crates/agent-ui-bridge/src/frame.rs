@@ -1,6 +1,7 @@
 use agent_core::{
     CodingFinalReview, CommandExecutionStatus, CommandFailureClassification, CommandTestLoopReport,
-    DiffEvidenceState, EditDiffFlowReport, ObservabilityEvidenceBundle, RepoGitState,
+    DiffEvidenceState, EditDiffFlowReport, ObservabilityEvidenceBundle,
+    ProjectContextDiagnosticSeverity, ProjectContextSummary, ProjectFileSummary, RepoGitState,
     RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity, StartupMigrationOutcome,
     TaskArtifact, TaskReviewSummary,
 };
@@ -955,6 +956,121 @@ pub struct UiPromptDiagnosticSummary {
     pub layer_id: Option<String>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextSnapshot {
+    pub workspace_root_display: String,
+    pub file_count: u32,
+    pub directory_count: u32,
+    pub omitted_count: u32,
+    pub diagnostic_count: u32,
+    pub files: Vec<UiProjectContextFileSummary>,
+    pub omitted: Vec<UiProjectContextOmissionSummary>,
+    pub diagnostics: Vec<UiProjectContextDiagnosticSummary>,
+}
+
+impl UiProjectContextSnapshot {
+    pub fn from_summary(summary: &ProjectContextSummary) -> Result<Self, UiBridgeError> {
+        let workspace_root_display = bounded_task_text(&summary.workspace_root_display);
+        validate_non_empty("project context workspace root", &workspace_root_display)?;
+        let files = summary
+            .files
+            .iter()
+            .map(UiProjectContextFileSummary::from_summary)
+            .collect::<Result<Vec<_>, _>>()?;
+        let omitted = summary
+            .omitted
+            .iter()
+            .map(|omission| {
+                let path = bounded_task_text(&omission.path);
+                let reason = bounded_task_text(&omission.reason);
+                validate_non_empty("project context omission path", &path)?;
+                validate_non_empty("project context omission reason", &reason)?;
+                Ok(UiProjectContextOmissionSummary { path, reason })
+            })
+            .collect::<Result<Vec<_>, UiBridgeError>>()?;
+        let diagnostics = summary
+            .diagnostics
+            .iter()
+            .map(|diagnostic| {
+                let severity = project_context_diagnostic_severity_label(diagnostic.severity);
+                let code = bounded_task_text(&diagnostic.code);
+                let message = bounded_task_text(&diagnostic.message);
+                validate_non_empty("project context diagnostic code", &code)?;
+                validate_non_empty("project context diagnostic message", &message)?;
+                Ok(UiProjectContextDiagnosticSummary {
+                    severity: severity.to_string(),
+                    code,
+                    message,
+                    path: diagnostic.path.clone().map(|path| bounded_task_text(&path)),
+                })
+            })
+            .collect::<Result<Vec<_>, UiBridgeError>>()?;
+
+        Ok(Self {
+            workspace_root_display,
+            file_count: summary.files.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many project context files".to_string())
+            })?,
+            directory_count: summary.directories.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many project context directories".to_string())
+            })?,
+            omitted_count: summary.omitted.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many project context omissions".to_string())
+            })?,
+            diagnostic_count: summary.diagnostics.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many project context diagnostics".to_string())
+            })?,
+            files,
+            omitted,
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextFileSummary {
+    pub path: String,
+    pub kind: String,
+    pub language: Option<String>,
+    pub size_bytes: u64,
+    pub line_count: Option<u32>,
+    pub token_estimate: u32,
+    pub visibility: String,
+}
+
+impl UiProjectContextFileSummary {
+    fn from_summary(summary: &ProjectFileSummary) -> Result<Self, UiBridgeError> {
+        let path = bounded_task_text(&summary.path);
+        validate_non_empty("project context file path", &path)?;
+        Ok(Self {
+            path,
+            kind: summary.kind.as_str().to_string(),
+            language: summary
+                .language
+                .clone()
+                .map(|language| bounded_task_text(&language)),
+            size_bytes: summary.size_bytes,
+            line_count: summary.line_count,
+            token_estimate: summary.token_estimate,
+            visibility: summary.visibility.as_str().to_string(),
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextOmissionSummary {
+    pub path: String,
+    pub reason: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextDiagnosticSummary {
+    pub severity: String,
+    pub code: String,
+    pub message: String,
+    pub path: Option<String>,
+}
+
 impl UiPromptDiagnosticSummary {
     pub fn new(
         severity: impl Into<String>,
@@ -1349,6 +1465,7 @@ pub enum UiJsonFrame {
     CommandTestSnapshot(UiCommandTestSnapshot),
     FinalReviewSnapshot(UiFinalReviewSnapshot),
     PromptSummary(UiPromptSummary),
+    ProjectContextSnapshot(UiProjectContextSnapshot),
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
@@ -1420,6 +1537,16 @@ fn command_classification_label(classification: CommandFailureClassification) ->
         CommandFailureClassification::WaitingApproval => "waiting_approval",
         CommandFailureClassification::ToolFailure => "tool_failure",
         CommandFailureClassification::InvalidInput => "invalid_input",
+    }
+}
+
+fn project_context_diagnostic_severity_label(
+    severity: ProjectContextDiagnosticSeverity,
+) -> &'static str {
+    match severity {
+        ProjectContextDiagnosticSeverity::Info => "info",
+        ProjectContextDiagnosticSeverity::Warning => "warning",
+        ProjectContextDiagnosticSeverity::Error => "error",
     }
 }
 

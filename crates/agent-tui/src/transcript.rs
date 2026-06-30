@@ -190,6 +190,19 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::ProjectContextSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "project-context",
+                format!(
+                    "{} files={} dirs={} omitted={} diagnostics={}",
+                    snapshot.workspace_root_display,
+                    snapshot.file_count,
+                    snapshot.directory_count,
+                    snapshot.omitted_count,
+                    snapshot.diagnostic_count
+                ),
+                false,
+            )),
             UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "extensions",

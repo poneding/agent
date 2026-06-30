@@ -541,7 +541,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M58 milestone plan | Complete |
 | M58-01 slice spec | Complete |
 | M58-01 slice plan | Complete |
-| M58-01 implementation | Planned |
+| M58-01 implementation | Complete |
 | M58 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1235,7 +1235,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
-| M58-01 Repo Map and File Tree Summaries | `docs/specs/M58-01-repo-map-file-tree-summaries.spec.md` | `docs/plans/M58-01-repo-map-file-tree-summaries.plan.md` | Planned bounded project file/directory summaries, prompt-layer conversion, safe CLI/JSON output, and bridge snapshots. |
+| M58-01 Repo Map and File Tree Summaries | `docs/specs/M58-01-repo-map-file-tree-summaries.spec.md` | `docs/plans/M58-01-repo-map-file-tree-summaries.plan.md` | Completed bounded project file/directory summaries, prompt-layer conversion, safe CLI/JSON output, and bridge snapshots. |
 
 ## MX01 Slice Index
 
@@ -1250,7 +1250,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M58-01 repo map and file tree summaries implementation.
+Current implementation focus: M58-02 relevant-file retrieval planning.
 
 Most recent completed implementation documents:
 
@@ -1719,4 +1719,4 @@ Next planning action:
 
 Next implementation direction:
 
-- Execute `docs/plans/M58-01-repo-map-file-tree-summaries.plan.md` with focused context/core/CLI/bridge verification.
+- Create and execute the M58-02 relevant-file retrieval spec/plan, building on M58-01 project summaries.

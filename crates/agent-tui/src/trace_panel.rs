@@ -171,6 +171,18 @@ impl TracePanelState {
                     summary.display_name, summary.profile_version, summary.message_count
                 ),
             )),
+            UiJsonFrame::ProjectContextSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "project-context",
+                format!(
+                    "{} files={} dirs={} omitted={} diagnostics={}",
+                    snapshot.workspace_root_display,
+                    snapshot.file_count,
+                    snapshot.directory_count,
+                    snapshot.omitted_count,
+                    snapshot.diagnostic_count
+                ),
+            )),
             UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "extensions",

@@ -16,6 +16,7 @@ pub mod local_coding;
 pub mod mcp_sampling;
 pub mod model_runtime;
 pub mod observability;
+pub mod project_context;
 pub mod provider_support;
 pub mod recovery;
 pub mod repo_session;
@@ -99,6 +100,15 @@ pub use observability::{
     ObservabilityEvidenceOptions, ObservabilityEvidenceSummary, ReplayEvidenceSummary,
     build_observability_evidence, build_observability_evidence_at,
     verify_observability_evidence_replay, verify_observability_replay_fixture,
+};
+pub use project_context::{
+    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity, ProjectContextLimits,
+    ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,
+    ProjectDirectorySummary, ProjectFileKind, ProjectFileSummary,
+};
+pub use project_context::{
+    ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
+    scan_project_context,
 };
 pub use provider_support::{
     ProviderSupportReport, ProviderSupportRole, ProviderSupportSummary,

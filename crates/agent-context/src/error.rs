@@ -12,4 +12,6 @@ pub enum ContextError {
     InvalidPin(String),
     #[error("compaction request is invalid: {0}")]
     InvalidCompaction(String),
+    #[error("project context is invalid: {0}")]
+    InvalidProjectContext(String),
 }

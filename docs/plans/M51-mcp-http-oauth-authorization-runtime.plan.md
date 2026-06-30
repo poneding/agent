@@ -49,7 +49,7 @@ Define crate ownership, metadata contracts, explicit token boundary, redaction b
 - [x] **Step 1: Add OAuth metadata contracts**
 - [x] **Step 2: Add protected-resource discovery contracts**
 - [x] **Step 3: Add authorization diagnostics**
-- [ ] **Step 4: Add bearer-token request boundary**
+- [x] **Step 4: Add bearer-token request boundary**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M51

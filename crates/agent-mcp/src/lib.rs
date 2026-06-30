@@ -31,7 +31,7 @@ pub use client::{
     check_mcp_server_health, create_mcp_sampling_message, list_mcp_client_roots,
 };
 pub use client_http::{
-    FixtureMcpClientHttpStreamTransport, FixtureMcpClientHttpTransport,
+    FixtureMcpClientHttpStreamTransport, FixtureMcpClientHttpTransport, McpClientHttpAuthorization,
     McpClientHttpAuthorizationDiagnostic, McpClientHttpAuthorizationDiagnosticCode,
     McpClientHttpAuthorizationDiagnosticSeverity, McpClientHttpAuthorizationReport,
     McpClientHttpCheckpointSummary, McpClientHttpOAuthMetadata,

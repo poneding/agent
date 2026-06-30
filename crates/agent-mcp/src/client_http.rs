@@ -263,6 +263,37 @@ pub struct McpClientHttpAuthorizationReport {
     pub diagnostics: Vec<McpClientHttpAuthorizationDiagnostic>,
 }
 
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpAuthorization {
+    pub bearer_token: String,
+}
+
+impl McpClientHttpAuthorization {
+    pub fn new(bearer_token: impl Into<String>) -> Result<Self, McpError> {
+        let bearer_token = bearer_token.into();
+        let bearer_token = bearer_token.trim();
+        if bearer_token.is_empty() || bearer_token.chars().any(char::is_control) {
+            return Err(invalid_mcp_client_http_authorization());
+        }
+        Ok(Self {
+            bearer_token: bearer_token.to_string(),
+        })
+    }
+
+    fn bearer_header_value(&self) -> Result<String, McpError> {
+        Self::new(self.bearer_token.as_str())
+            .map(|authorization| format!("Bearer {}", authorization.bearer_token))
+    }
+}
+
+impl fmt::Debug for McpClientHttpAuthorization {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpAuthorization")
+            .field("bearer_token", &"[redacted]")
+            .finish()
+    }
+}
+
 pub fn build_mcp_client_http_authorization_report(
     config: &McpServerConfig,
     oauth_metadata: Option<&McpClientHttpOAuthMetadata>,
@@ -411,6 +442,19 @@ impl McpClientHttpRequest {
         Self::from_config_with_session_metadata(config, body_json, None)
     }
 
+    pub fn from_config_with_authorization(
+        config: &McpServerConfig,
+        body_json: Value,
+        authorization: &McpClientHttpAuthorization,
+    ) -> Result<Self, McpError> {
+        Self::from_config_with_session_metadata_and_authorization(
+            config,
+            body_json,
+            None,
+            authorization,
+        )
+    }
+
     pub fn from_config_with_session_metadata(
         config: &McpServerConfig,
         body_json: Value,
@@ -456,6 +500,19 @@ impl McpClientHttpRequest {
 
         Self::new(url.clone(), resolved_headers, body_json, config.timeout_ms)
     }
+
+    pub fn from_config_with_session_metadata_and_authorization(
+        config: &McpServerConfig,
+        body_json: Value,
+        session_metadata: Option<&McpClientHttpSessionMetadata>,
+        authorization: &McpClientHttpAuthorization,
+    ) -> Result<Self, McpError> {
+        reject_mcp_client_http_authorization_header_conflict(config)?;
+        let mut request =
+            Self::from_config_with_session_metadata(config, body_json, session_metadata)?;
+        insert_mcp_client_http_authorization_header(&mut request.headers, authorization)?;
+        Ok(request)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -492,6 +549,17 @@ impl McpClientHttpStreamRequest {
 
     pub fn from_config(config: &McpServerConfig) -> Result<Self, McpError> {
         Self::from_config_with_session_metadata(config, &McpClientHttpSessionMetadata::default())
+    }
+
+    pub fn from_config_with_authorization(
+        config: &McpServerConfig,
+        authorization: &McpClientHttpAuthorization,
+    ) -> Result<Self, McpError> {
+        Self::from_config_with_session_metadata_and_authorization(
+            config,
+            &McpClientHttpSessionMetadata::default(),
+            authorization,
+        )
     }
 
     pub fn from_config_with_session_metadata(
@@ -541,6 +609,17 @@ impl McpClientHttpStreamRequest {
         )?;
 
         Self::new(url.clone(), resolved_headers, config.timeout_ms)
+    }
+
+    pub fn from_config_with_session_metadata_and_authorization(
+        config: &McpServerConfig,
+        session_metadata: &McpClientHttpSessionMetadata,
+        authorization: &McpClientHttpAuthorization,
+    ) -> Result<Self, McpError> {
+        reject_mcp_client_http_authorization_header_conflict(config)?;
+        let mut request = Self::from_config_with_session_metadata(config, session_metadata)?;
+        insert_mcp_client_http_authorization_header(&mut request.headers, authorization)?;
+        Ok(request)
     }
 }
 
@@ -2034,6 +2113,34 @@ fn has_mcp_client_http_authorization_header(headers: &BTreeMap<String, McpEnvVal
         .any(|key| key.eq_ignore_ascii_case("authorization"))
 }
 
+fn reject_mcp_client_http_authorization_header_conflict(
+    config: &McpServerConfig,
+) -> Result<(), McpError> {
+    if let McpTransportConfig::StreamableHttp { headers, .. } = &config.transport
+        && has_mcp_client_http_authorization_header(headers)
+    {
+        return Err(mcp_client_http_authorization_header_conflict());
+    }
+    Ok(())
+}
+
+fn insert_mcp_client_http_authorization_header(
+    headers: &mut BTreeMap<String, String>,
+    authorization: &McpClientHttpAuthorization,
+) -> Result<(), McpError> {
+    if headers
+        .keys()
+        .any(|key| key.eq_ignore_ascii_case("authorization"))
+    {
+        return Err(mcp_client_http_authorization_header_conflict());
+    }
+    headers.insert(
+        "Authorization".to_string(),
+        authorization.bearer_header_value()?,
+    );
+    Ok(())
+}
+
 fn capability_enabled(value: Option<&Value>) -> bool {
     match value {
         Some(Value::Bool(enabled)) => *enabled,
@@ -2202,6 +2309,16 @@ fn invalid_mcp_client_http_oauth_metadata() -> McpError {
 
 fn invalid_mcp_client_http_protected_resource_metadata() -> McpError {
     McpError::InvalidConfig("invalid MCP client HTTP protected resource metadata".to_string())
+}
+
+fn invalid_mcp_client_http_authorization() -> McpError {
+    McpError::InvalidConfig("MCP client HTTP bearer authorization is empty".to_string())
+}
+
+fn mcp_client_http_authorization_header_conflict() -> McpError {
+    McpError::InvalidConfig(
+        "MCP client HTTP authorization header conflicts with configured header".to_string(),
+    )
 }
 
 fn validate_optional_mcp_client_http_oauth_url(value: Option<&str>) -> Result<(), McpError> {

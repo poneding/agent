@@ -20,7 +20,7 @@
 - Read: `docs/milestones/README.md`
 - Read: `docs/architecture/README.md`
 
-- [ ] **Step 1: Review required baseline domains**
+- [x] **Step 1: Review required baseline domains**
 
 Run:
 
@@ -41,7 +41,7 @@ Expected: required domains, status vocabulary, and evidence contract are clear.
 - Read: `docs/eval/` if present
 - Read: `xtask/`
 
-- [ ] **Step 1: List crates and commands**
+- [x] **Step 1: List crates and commands**
 
 Run:
 
@@ -58,7 +58,7 @@ Expected: enough evidence to map domains to concrete implementation and verifica
 **Files:**
 - Create: `docs/roadmap/MAINLINE_CAPABILITY_BASELINE.md`
 
-- [ ] **Step 1: Create capability baseline**
+- [x] **Step 1: Create capability baseline**
 
 Include:
 
@@ -68,7 +68,7 @@ Include:
 - cross-cutting product risks
 - immediate implications for M56-M66
 
-- [ ] **Step 2: Mark uncertain items explicitly**
+- [x] **Step 2: Mark uncertain items explicitly**
 
 Use `Unknown` only when paired with a concrete verification command or file path.
 
@@ -79,7 +79,7 @@ Use `Unknown` only when paired with a concrete verification command or file path
 - Modify: `docs/plans/M55-01-capability-inventory.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run docs verification**
+- [x] **Step 1: Run docs verification**
 
 Run:
 
@@ -102,8 +102,8 @@ Expected: commit contains only M55-01 baseline docs and status updates.
 
 ### Completion Checklist
 
-- [ ] Required domains are present.
-- [ ] Evidence points to real files, commands, tests, or docs.
-- [ ] Gaps are mapped to M56-M66.
-- [ ] MCP is represented as parked extension depth.
-- [ ] `git diff --check` passes for changed docs.
+- [x] Required domains are present.
+- [x] Evidence points to real files, commands, tests, or docs.
+- [x] Gaps are mapped to M56-M66.
+- [x] MCP is represented as parked extension depth.
+- [x] `git diff --check` passes for changed docs.

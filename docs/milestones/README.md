@@ -529,9 +529,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-02 slice spec | Complete |
 | M57-02 slice plan | Complete |
 | M57-02 implementation | Complete |
-| M57-03 slice spec | Planned |
-| M57-03 slice plan | Planned |
+| M57-03 slice spec | Complete |
+| M57-03 slice plan | Complete |
 | M57-03 implementation | Planned |
+| M57-04 slice spec | Planned |
+| M57-04 slice plan | Planned |
+| M57-04 implementation | Planned |
 | M57 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1216,7 +1219,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 |---|---|---|---|
 | M57-01 Provider Capability Matrix | `docs/specs/M57-01-provider-capability-matrix.spec.md` | `docs/plans/M57-01-provider-capability-matrix.plan.md` | Completed typed provider/model capability profiles, deterministic mismatch diagnostics, and CLI/JSON capability summaries. |
 | M57-02 Anthropic Adapter | `docs/specs/M57-02-anthropic-adapter.spec.md` | `docs/plans/M57-02-anthropic-adapter.plan.md` | Completed native Anthropic/Claude adapter with fixture-backed streaming and tool-use mapping. |
-| M57-03 Gemini Adapter | `docs/specs/M57-03-gemini-adapter.spec.md` | `docs/plans/M57-03-gemini-adapter.plan.md` | Planned native Gemini adapter with fixture-backed streaming and tool-use mapping. |
+| M57-03 Gemini Adapter | `docs/specs/M57-03-gemini-adapter.spec.md` | `docs/plans/M57-03-gemini-adapter.plan.md` | Add a native Gemini adapter with fixture-backed streaming and function-call mapping. |
+| M57-04 Local Provider Adapter | `docs/specs/M57-04-local-provider-adapter.spec.md` | `docs/plans/M57-04-local-provider-adapter.plan.md` | Planned local/Ollama-compatible provider with local endpoint safety and diagnostics. |
 
 ## MX01 Slice Index
 
@@ -1231,7 +1235,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M57-03 Gemini Adapter planning.
+Current implementation focus: M57-03 Gemini Adapter implementation.
 
 Most recent completed implementation documents:
 
@@ -1686,8 +1690,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create M57-03 Gemini Adapter spec and plan.
+- After M57-03 implementation, create M57-04 Local Provider Adapter spec and plan.
 
 Next implementation direction:
 
-- M57 Multi-Provider Runtime
+- Implement M57-03 Gemini Adapter from its committed spec/plan.

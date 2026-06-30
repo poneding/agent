@@ -517,6 +517,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M56-05 slice spec | Complete |
 | M56-05 slice plan | Complete |
 | M56-05 implementation | Complete |
+| M56-06 slice spec | Complete |
+| M56-06 slice plan | Complete |
+| M56-06 implementation | Planned |
 | M56 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1192,6 +1195,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M56-03 Command/Test Loop | `docs/specs/M56-03-command-test-loop.spec.md` | `docs/plans/M56-03-command-test-loop.plan.md` | Stream or bound command output, support cancellation-ready state, classify failures, and return observations to the model. |
 | M56-04 Final Review Summary | `docs/specs/M56-04-final-review-summary.spec.md` | `docs/plans/M56-04-final-review-summary.plan.md` | Produce changed-file, test, trace, audit, risk, and next-action summaries. |
 | M56-05 Golden Path E2E | `docs/specs/M56-05-golden-path-e2e.spec.md` | `docs/plans/M56-05-golden-path-e2e.plan.md` | Run deterministic coding-agent scenarios through CLI/JSON with trace, permission, audit, and replay evidence. |
+| M56-06 Hardening Docs and Verification | `docs/specs/M56-06-hardening-docs-verification.spec.md` | `docs/plans/M56-06-hardening-docs-verification.plan.md` | Document the M56 golden path, run final gates, and hand off to M57. |
 
 ## MX01 Slice Index
 
@@ -1206,7 +1210,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M56 hardening, final verification, and closeout docs.
+Current implementation focus: M56-06 Hardening Docs and Verification.
 
 Most recent completed implementation documents:
 
@@ -1661,9 +1665,10 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Run M56 final gates and update closeout documentation.
+- Implement M56-06 Hardening Docs and Verification from its committed spec/plan.
 
 Next implementation direction:
 
+- M56-06 Hardening Docs and Verification
 - M56 Coding Agent Golden Path v1 closeout
 - M57 Multi-Provider Runtime

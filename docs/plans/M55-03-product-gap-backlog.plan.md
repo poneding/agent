@@ -18,7 +18,7 @@
 - Read: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
 - Read: `docs/roadmap/PRODUCT_ROADMAP.md`
 
-- [ ] **Step 1: Review backlog contract**
+- [x] **Step 1: Review backlog contract**
 
 Run:
 
@@ -34,7 +34,7 @@ Expected: backlog item shape, priorities, and status rules are clear.
 - Read: `docs/roadmap/MAINLINE_CAPABILITY_BASELINE.md`
 - Read: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
 
-- [ ] **Step 1: Map evidence to gaps**
+- [x] **Step 1: Map evidence to gaps**
 
 For each capability domain and smoke row, identify:
 
@@ -51,7 +51,7 @@ Expected: all P0 coding-agent daily-driver blockers are captured.
 **Files:**
 - Create: `docs/roadmap/PRODUCT_GAP_BACKLOG.md`
 
-- [ ] **Step 1: Create backlog document**
+- [x] **Step 1: Create backlog document**
 
 Include:
 
@@ -61,7 +61,7 @@ Include:
 - cross-milestone dependencies
 - M56 immediate start list
 
-- [ ] **Step 2: Keep items product-shaped**
+- [x] **Step 2: Keep items product-shaped**
 
 Write each item as a user-visible outcome with acceptance evidence, not as an internal implementation wish list.
 
@@ -72,7 +72,7 @@ Write each item as a user-visible outcome with acceptance evidence, not as an in
 - Modify: `docs/plans/M55-03-product-gap-backlog.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run docs verification**
+- [x] **Step 1: Run docs verification**
 
 Run:
 
@@ -95,8 +95,8 @@ Expected: commit contains only M55-03 docs and status updates.
 
 ### Completion Checklist
 
-- [ ] Every P0 has a target milestone and acceptance signal.
-- [ ] M56 has a clear immediate start list.
-- [ ] Later milestones have scoped backlog without premature implementation detail.
-- [ ] MCP epilogue work is parked or explicitly product-linked.
-- [ ] `git diff --check` passes for changed docs.
+- [x] Every P0 has a target milestone and acceptance signal.
+- [x] M56 has a clear immediate start list.
+- [x] Later milestones have scoped backlog without premature implementation detail.
+- [x] MCP epilogue work is parked or explicitly product-linked.
+- [x] `git diff --check` passes for changed docs.

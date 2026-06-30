@@ -46,6 +46,7 @@ pub enum ModelProviderKind {
     OpenAiCompatible,
     Anthropic,
     Gemini,
+    Local,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -123,6 +124,9 @@ impl ModelProviderConfig {
         if let Some(api_key) = &self.api_key {
             api_key.validate()?;
         }
+        if self.kind == ModelProviderKind::Local {
+            validate_local_endpoint(&self.id, &self.endpoint)?;
+        }
         if matches!(
             self.kind,
             ModelProviderKind::OpenAiCompatible
@@ -181,6 +185,8 @@ pub enum ModelConfigError {
     InvalidTimeout { timeout_ms: u64 },
     #[error("unsafe model endpoint url: {url}")]
     UnsafeEndpointUrl { url: String },
+    #[error("model provider {provider_id} requires an endpoint")]
+    MissingEndpoint { provider_id: String },
     #[error("model provider {provider_id} requires a secret reference")]
     MissingSecretRef { provider_id: String },
     #[error("duplicate model provider id: {id}")]
@@ -225,9 +231,43 @@ fn is_safe_endpoint_url(url: &str) -> bool {
     let Some(rest) = url.strip_prefix("http://") else {
         return false;
     };
-    is_local_http_host(rest, "localhost") || is_local_http_host(rest, "127.0.0.1")
+    is_local_http_host(rest, "localhost")
+        || is_local_http_host(rest, "127.0.0.1")
+        || is_local_http_host(rest, "[::1]")
 }
 
 fn is_local_http_host(rest: &str, host: &str) -> bool {
     rest == host || rest.starts_with(&format!("{host}/")) || rest.starts_with(&format!("{host}:"))
+}
+
+fn validate_local_endpoint(
+    provider_id: &str,
+    endpoint: &ModelEndpointConfig,
+) -> Result<(), ModelConfigError> {
+    let Some(base_url) = endpoint.base_url.as_deref() else {
+        return Err(ModelConfigError::MissingEndpoint {
+            provider_id: provider_id.to_string(),
+        });
+    };
+    if !is_safe_local_endpoint_url(base_url) {
+        return Err(ModelConfigError::UnsafeEndpointUrl {
+            url: base_url.to_string(),
+        });
+    }
+    Ok(())
+}
+
+fn is_safe_local_endpoint_url(url: &str) -> bool {
+    let rest = url
+        .strip_prefix("http://")
+        .or_else(|| url.strip_prefix("https://"));
+    let Some(rest) = rest else {
+        return false;
+    };
+    if rest.contains('@') || rest.contains('?') || rest.contains('#') {
+        return false;
+    }
+    is_local_http_host(rest, "localhost")
+        || is_local_http_host(rest, "127.0.0.1")
+        || is_local_http_host(rest, "[::1]")
 }

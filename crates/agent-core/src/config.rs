@@ -527,7 +527,9 @@ fn field_for_model_error(index: usize, error: &ModelConfigError) -> String {
         ModelConfigError::EmptyProviderId | ModelConfigError::InvalidProviderId { .. } => "id",
         ModelConfigError::EmptyDefaultModel { .. } => "default_model",
         ModelConfigError::InvalidTimeout { .. } => "timeout_ms",
-        ModelConfigError::UnsafeEndpointUrl { .. } => "base_url",
+        ModelConfigError::MissingEndpoint { .. } | ModelConfigError::UnsafeEndpointUrl { .. } => {
+            "base_url"
+        }
         ModelConfigError::MissingSecretRef { .. }
         | ModelConfigError::EmptySecretProvider
         | ModelConfigError::InvalidSecretProvider { .. }

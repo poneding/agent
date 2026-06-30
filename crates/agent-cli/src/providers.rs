@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use agent_core::EffectiveRuntimeConfig;
 use agent_model::{
-    AnthropicProvider, FakeModelProvider, FakeModelScript, GeminiProvider, ModelCapabilities,
-    ModelProviderKind, ModelProviderRegistry, OpenAiCompatibleProvider, RegisteredModelProvider,
-    ReqwestAnthropicTransport, ReqwestGeminiTransport, ReqwestOpenAiCompatibleTransport,
-    SecretResolver,
+    AnthropicProvider, FakeModelProvider, FakeModelScript, GeminiProvider, LocalProvider,
+    ModelCapabilities, ModelProviderKind, ModelProviderRegistry, OpenAiCompatibleProvider,
+    RegisteredModelProvider, ReqwestAnthropicTransport, ReqwestGeminiTransport,
+    ReqwestLocalTransport, ReqwestOpenAiCompatibleTransport, SecretResolver,
 };
 
 use crate::command::CliError;
@@ -108,6 +108,19 @@ pub fn build_model_provider_registry(
                 RegisteredModelProvider::new(
                     provider.clone(),
                     ModelCapabilities::gemini_default(),
+                    Arc::new(provider_impl),
+                )
+                .map_err(|error| prompt_runtime_error(error.to_string()))?
+            }
+            ModelProviderKind::Local => {
+                let provider_impl =
+                    LocalProvider::new(provider.clone(), Arc::new(ReqwestLocalTransport::new()))
+                        .map_err(|error| {
+                            prompt_runtime_error(redact_secret_like_text(&error.to_string()))
+                        })?;
+                RegisteredModelProvider::new(
+                    provider.clone(),
+                    ModelCapabilities::local_default(),
                     Arc::new(provider_impl),
                 )
                 .map_err(|error| prompt_runtime_error(error.to_string()))?

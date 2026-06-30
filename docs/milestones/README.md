@@ -534,7 +534,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-03 implementation | Complete |
 | M57-04 slice spec | Complete |
 | M57-04 slice plan | Complete |
-| M57-04 implementation | Planned |
+| M57-04 implementation | Complete |
 | M57-05 slice spec | Planned |
 | M57-05 slice plan | Planned |
 | M57-05 implementation | Planned |
@@ -1223,7 +1223,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-01 Provider Capability Matrix | `docs/specs/M57-01-provider-capability-matrix.spec.md` | `docs/plans/M57-01-provider-capability-matrix.plan.md` | Completed typed provider/model capability profiles, deterministic mismatch diagnostics, and CLI/JSON capability summaries. |
 | M57-02 Anthropic Adapter | `docs/specs/M57-02-anthropic-adapter.spec.md` | `docs/plans/M57-02-anthropic-adapter.plan.md` | Completed native Anthropic/Claude adapter with fixture-backed streaming and tool-use mapping. |
 | M57-03 Gemini Adapter | `docs/specs/M57-03-gemini-adapter.spec.md` | `docs/plans/M57-03-gemini-adapter.plan.md` | Completed native Gemini adapter with fixture-backed streaming and function-call mapping. |
-| M57-04 Local Provider Adapter | `docs/specs/M57-04-local-provider-adapter.spec.md` | `docs/plans/M57-04-local-provider-adapter.plan.md` | Add a local/Ollama-compatible provider with local endpoint safety and diagnostics. |
+| M57-04 Local Provider Adapter | `docs/specs/M57-04-local-provider-adapter.spec.md` | `docs/plans/M57-04-local-provider-adapter.plan.md` | Completed local/Ollama-compatible provider with local endpoint safety, fixture-backed JSONL streaming, tool-call mapping, diagnostics, and CLI registration. |
 | M57-05 Provider UX Fallback | `docs/specs/M57-05-provider-ux-fallback.spec.md` | `docs/plans/M57-05-provider-ux-fallback.plan.md` | Planned provider fallback UX, diagnostics, and M56 golden path provider regression coverage. |
 
 ## MX01 Slice Index
@@ -1239,10 +1239,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M57-04 Local Provider Adapter implementation.
+Current planning focus: M57-05 Provider UX Fallback spec and plan.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M57-04-local-provider-adapter.spec.md`
+- `docs/plans/M57-04-local-provider-adapter.plan.md`
 - `docs/specs/MX01-mcp-epilogue.spec.md`
 - `docs/plans/MX01-mcp-epilogue.plan.md`
 - `docs/specs/MX01-01-reentrant-callbacks.spec.md`
@@ -1694,8 +1696,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- After M57-04 implementation, create M57-05 Provider UX Fallback spec and plan.
+- Create M57-05 Provider UX Fallback spec and plan.
 
 Next implementation direction:
 
-- Implement M57-04 Local Provider Adapter from its committed spec/plan.
+- Plan M57-05 Provider UX Fallback from the committed M57 roadmap.

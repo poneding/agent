@@ -83,12 +83,26 @@ impl ModelCapabilities {
     }
 
     #[must_use]
+    pub fn local_default() -> Self {
+        Self {
+            streaming: true,
+            tool_calls: true,
+            structured_outputs: false,
+            image_input: false,
+            max_context_tokens: Some(8192),
+            max_output_tokens: Some(2048),
+            cost: None,
+        }
+    }
+
+    #[must_use]
     pub fn default_for_provider_kind(kind: ModelProviderKind) -> Self {
         match kind {
             ModelProviderKind::Fake => Self::fake_default(),
             ModelProviderKind::OpenAiCompatible => Self::openai_compatible_default(),
             ModelProviderKind::Anthropic => Self::anthropic_default(),
             ModelProviderKind::Gemini => Self::gemini_default(),
+            ModelProviderKind::Local => Self::local_default(),
         }
     }
 

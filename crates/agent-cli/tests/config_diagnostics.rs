@@ -77,6 +77,22 @@ api_key_name = "GEMINI_API_KEY"
     config
 }
 
+fn local_config_toml() -> String {
+    let mut config = valid_config_toml();
+    config.push_str(
+        r#"
+[[model.providers]]
+id = "local"
+kind = "local"
+default_model = "llama3.1"
+enabled = true
+base_url = "http://localhost:11434"
+timeout_ms = 30000
+"#,
+    );
+    config
+}
+
 fn write_config(name: &str, contents: &str) -> PathBuf {
     let path = std::env::temp_dir().join(format!("agent-cli-{name}-{}.toml", std::process::id()));
     fs::write(&path, contents).expect("write config fixture");
@@ -386,6 +402,66 @@ fn cli_config_diagnostics_json_renders_gemini_capabilities() {
     assert_eq!(gemini_provider.capabilities.max_output_tokens, Some(8192));
     assert!(gemini_provider.capabilities.cost.is_none());
     assert!(!output.stdout.contains("GEMINI_API_KEY"));
+}
+
+#[test]
+fn cli_config_diagnostics_text_reports_local_capabilities() {
+    let path = write_config("local-text", &local_config_toml());
+    let invocation = parse_cli_invocation(["--config-check", "--config", path.to_str().unwrap()])
+        .expect("parse config check");
+
+    let output = render_cli_invocation(invocation);
+
+    assert_eq!(output.status_code, 0);
+    assert!(output.stdout.contains("Providers: fake, local, openai"));
+    assert!(output.stdout.contains(
+        "local: streaming=true tool_calls=true structured_outputs=false image_input=false context=8192 output=2048"
+    ));
+    assert!(!output.stdout.contains("localhost:11434"));
+}
+
+#[test]
+fn cli_config_diagnostics_json_renders_local_capabilities() {
+    let path = write_config("local-json", &local_config_toml());
+    let invocation = parse_cli_invocation([
+        "--json",
+        "--config-check",
+        "--config",
+        path.to_str().unwrap(),
+        "--provider",
+        "local",
+        "--model",
+        "llama3.1",
+    ])
+    .expect("parse json config check");
+
+    let output = render_cli_invocation(invocation);
+
+    assert_eq!(output.status_code, 0);
+    let frames = parse_frames(&output.stdout);
+    let snapshot = frames.iter().find_map(|frame| {
+        if let UiJsonFrame::ConfigSnapshot(snapshot) = frame {
+            Some(snapshot)
+        } else {
+            None
+        }
+    });
+    let snapshot = snapshot.expect("config snapshot frame");
+    let local_provider = snapshot
+        .providers
+        .iter()
+        .find(|provider| provider.id == "local")
+        .expect("local provider summary");
+
+    assert_eq!(snapshot.selected_provider, "local");
+    assert!(local_provider.capabilities.streaming);
+    assert!(local_provider.capabilities.tool_calls);
+    assert!(!local_provider.capabilities.structured_outputs);
+    assert!(!local_provider.capabilities.image_input);
+    assert_eq!(local_provider.capabilities.max_context_tokens, Some(8192));
+    assert_eq!(local_provider.capabilities.max_output_tokens, Some(2048));
+    assert!(local_provider.capabilities.cost.is_none());
+    assert!(!output.stdout.contains("localhost:11434"));
 }
 
 #[test]

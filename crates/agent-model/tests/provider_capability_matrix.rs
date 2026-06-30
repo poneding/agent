@@ -85,11 +85,13 @@ fn provider_capability_matrix_default_profiles_are_deterministic() {
     let openai = ModelCapabilities::default_for_provider_kind(ModelProviderKind::OpenAiCompatible);
     let anthropic = ModelCapabilities::default_for_provider_kind(ModelProviderKind::Anthropic);
     let gemini = ModelCapabilities::default_for_provider_kind(ModelProviderKind::Gemini);
+    let local = ModelCapabilities::default_for_provider_kind(ModelProviderKind::Local);
 
     assert_eq!(fake, ModelCapabilities::fake_default());
     assert_eq!(openai, ModelCapabilities::openai_compatible_default());
     assert_eq!(anthropic, ModelCapabilities::anthropic_default());
     assert_eq!(gemini, ModelCapabilities::gemini_default());
+    assert_eq!(local, ModelCapabilities::local_default());
     assert_eq!(fake.max_context_tokens, Some(4096));
     assert_eq!(fake.max_output_tokens, Some(1024));
     assert!(!fake.image_input);
@@ -106,6 +108,11 @@ fn provider_capability_matrix_default_profiles_are_deterministic() {
     assert_eq!(gemini.max_context_tokens, Some(1_000_000));
     assert_eq!(gemini.max_output_tokens, Some(8192));
     assert!(!gemini.image_input);
+    assert!(local.streaming);
+    assert!(local.tool_calls);
+    assert_eq!(local.max_context_tokens, Some(8192));
+    assert_eq!(local.max_output_tokens, Some(2048));
+    assert!(!local.image_input);
 }
 
 #[test]

@@ -65,6 +65,18 @@ fn gemini_provider(id: &str, secret_name: &str, enabled: bool) -> ModelProviderC
     .expect("valid Gemini provider")
 }
 
+fn local_provider(id: &str, enabled: bool) -> ModelProviderConfig {
+    ModelProviderConfig::new(
+        id,
+        ModelProviderKind::Local,
+        "llama3.1",
+        ModelEndpointConfig::new(Some("http://localhost:11434"), 30_000).expect("valid endpoint"),
+        None,
+        enabled,
+    )
+    .expect("valid local provider")
+}
+
 fn invocation_policy() -> ModelInvocationPolicy {
     ModelInvocationPolicy::new(
         30_000,
@@ -127,13 +139,14 @@ fn live_provider_registration_registers_enabled_config_providers() {
             openai_provider("openai", "AGENT_TEST_OPENAI_API_KEY", true),
             anthropic_provider("anthropic", "AGENT_TEST_ANTHROPIC_API_KEY", true),
             gemini_provider("gemini", "AGENT_TEST_GEMINI_API_KEY", true),
+            local_provider("local", true),
         ],
     );
 
     let registry = build_model_provider_registry(&effective, "hello", Arc::new(resolver))
         .expect("registry builds");
 
-    assert_eq!(registry.len(), 4);
+    assert_eq!(registry.len(), 5);
     assert_eq!(
         registry.get("fake").expect("fake provider").config.id,
         "fake"
@@ -161,6 +174,14 @@ fn live_provider_registration_registers_enabled_config_providers() {
             .config
             .id,
         "gemini"
+    );
+    assert_eq!(
+        registry
+            .require_capabilities("local", &prompt_requirements())
+            .expect("local provider")
+            .config
+            .id,
+        "local"
     );
 }
 

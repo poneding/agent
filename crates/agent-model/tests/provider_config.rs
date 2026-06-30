@@ -176,6 +176,68 @@ fn provider_config_requires_secret_ref_for_gemini() {
 }
 
 #[test]
+fn provider_config_serializes_local_kind_without_secret() {
+    let config = ModelProviderConfig::new(
+        "local",
+        ModelProviderKind::Local,
+        "llama3.1",
+        ModelEndpointConfig::new(Some("http://localhost:11434"), 30_000).expect("valid endpoint"),
+        None,
+        true,
+    )
+    .expect("valid provider config");
+
+    assert_eq!(
+        serde_json::to_value(config).expect("serialize provider config"),
+        json!({
+            "id": "local",
+            "kind": "local",
+            "default_model": "llama3.1",
+            "endpoint": {
+                "base_url": "http://localhost:11434",
+                "timeout_ms": 30000
+            },
+            "api_key": null,
+            "enabled": true
+        })
+    );
+}
+
+#[test]
+fn provider_config_requires_local_base_url_for_local_provider() {
+    let err = ModelProviderConfig::new(
+        "local",
+        ModelProviderKind::Local,
+        "llama3.1",
+        ModelEndpointConfig::new(None, 30_000).expect("valid endpoint"),
+        None,
+        true,
+    )
+    .expect_err("missing local endpoint rejected");
+
+    assert!(matches!(
+        err,
+        ModelConfigError::MissingEndpoint { provider_id } if provider_id == "local"
+    ));
+}
+
+#[test]
+fn provider_config_rejects_remote_endpoint_for_local_provider() {
+    let err = ModelProviderConfig::new(
+        "local",
+        ModelProviderKind::Local,
+        "llama3.1",
+        ModelEndpointConfig::new(Some("https://api.example.test"), 30_000)
+            .expect("generic https endpoint is syntactically valid"),
+        None,
+        true,
+    )
+    .expect_err("remote local endpoint rejected");
+
+    assert!(matches!(err, ModelConfigError::UnsafeEndpointUrl { .. }));
+}
+
+#[test]
 fn provider_config_rejects_invalid_ids_models_and_timeouts() {
     let invalid_id = ModelProviderConfig::new(
         "OpenAI",

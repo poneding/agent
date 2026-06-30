@@ -6,6 +6,7 @@ pub mod config;
 pub mod fake;
 pub mod gemini;
 pub mod invocation_policy;
+pub mod local;
 pub mod openai_compatible;
 pub mod provider;
 pub mod registry;
@@ -31,6 +32,11 @@ pub use gemini::{
 pub use invocation_policy::{
     ModelFailureKind, ModelFallbackChain, ModelInvocationPolicy, ModelInvocationPolicyError,
     ModelRetryPolicy,
+};
+pub use local::{
+    FixtureLocalTransport, LocalError, LocalHttpRequest, LocalHttpResponse, LocalProvider,
+    LocalTransport, ReqwestLocalTransport, build_local_request_body, local_chat_url,
+    parse_local_jsonl,
 };
 pub use openai_compatible::{
     FixtureOpenAiCompatibleTransport, OpenAiCompatibleError, OpenAiCompatibleHttpRequest,

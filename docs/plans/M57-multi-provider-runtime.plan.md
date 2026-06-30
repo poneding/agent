@@ -56,7 +56,7 @@ Implement fixture-backed Claude streaming/tool-use mapping with safe diagnostics
 
 Implement fixture-backed Gemini streaming/tool-use mapping with safe diagnostics.
 
-- [ ] **Step 3: Add local/Ollama-compatible provider**
+- [x] **Step 3: Add local/Ollama-compatible provider**
 
 Implement local endpoint profile, local HTTP safety checks, and diagnostics.
 
@@ -100,7 +100,7 @@ Run exact-path staging and commit the final docs/status updates.
 - [x] Provider capability matrix is typed, serde-friendly, and tested.
 - [x] Anthropic adapter is implemented with fixture-backed tests.
 - [x] Gemini adapter is implemented with fixture-backed tests.
-- [ ] Local/Ollama-compatible provider is implemented with local endpoint safety.
+- [x] Local/Ollama-compatible provider is implemented with local endpoint safety.
 - [ ] CLI/JSON provider diagnostics and fallback behavior are tested.
 - [ ] M56 golden path remains green under `cargo xtask eval`.
 - [ ] Final workspace fmt/clippy/tests pass.

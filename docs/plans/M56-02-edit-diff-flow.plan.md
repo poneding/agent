@@ -171,7 +171,7 @@ cargo test -p agent-tui diff_panel
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for M56-02 source, tests, and docs, then:
 

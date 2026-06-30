@@ -24,7 +24,7 @@ use agent_core::{
     ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, RepoGitState,
     RepoSessionBootstrapError, RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds,
     RuntimeModelConfig, SettingsError, SettingsProfile, StartupMigrationRunner,
-    bootstrap_repo_session, run_command_test_loop, run_edit_diff_flow,
+    bootstrap_repo_session, replay_final_review, run_command_test_loop, run_edit_diff_flow,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -75,11 +75,11 @@ use agent_types::{
 use agent_ui_bridge::{
     UiBridgeError, UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity,
     UiConfigSnapshot, UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic,
-    UiExtensionSnapshot, UiExtensionSummary, UiJsonFrame, UiModelProviderSummary,
-    UiPlatformPathsSummary, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
-    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
-    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
-    normalize_runtime_event,
+    UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame,
+    UiModelProviderSummary, UiPlatformPathsSummary, UiPromptDiagnosticSummary,
+    UiPromptLayerSummary, UiPromptSummary, UiRepoSessionSnapshot, UiSettingsProfileSummary,
+    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
+    UiTaskSummary, encode_json_frame, normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -124,6 +124,9 @@ pub enum CliCommand {
         program: String,
         args: Vec<String>,
         classify_as_test: bool,
+    },
+    RepoFinalReview {
+        fixture: FinalReviewFixture,
     },
     Plugin(PluginCommand),
     SkillRoot(SkillRootCommand),
@@ -299,6 +302,11 @@ pub enum EvalSuiteCliCommand {
         suite: PathBuf,
         dry_run: bool,
     },
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum FinalReviewFixture {
+    LocalCoding,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -550,6 +558,7 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             args,
             classify_as_test,
         ),
+        CliCommand::RepoFinalReview { fixture } => render_text_final_review(fixture),
         CliCommand::Plugin(command) => {
             let mut runtime = PluginCommandRuntime::default();
             render_plugin_command(&mut runtime, command, OutputMode::Text)
@@ -632,6 +641,7 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 args,
                 classify_as_test,
             ),
+            CliCommand::RepoFinalReview { fixture } => render_text_final_review(fixture),
             CliCommand::BatchPrompt { prompt } => {
                 render_prompt_runtime(prompt, invocation.config_path, invocation.config_override)
             }
@@ -729,6 +739,9 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
             args,
             classify_as_test,
         );
+    }
+    if let CliCommand::RepoFinalReview { fixture } = invocation.command {
+        return render_json_final_review(fixture);
     }
     if matches!(
         invocation.command,
@@ -859,6 +872,7 @@ where
         "edit" => parse_repo_edit_args(args),
         "command" => parse_repo_command_args(args, false),
         "test" => parse_repo_command_args(args, true),
+        "final-review" => parse_repo_final_review_args(args),
         _ => Err(CliError::UnknownArgument(format!("repo {subcommand}"))),
     }
 }
@@ -1010,6 +1024,38 @@ where
         program,
         args: command_args,
         classify_as_test,
+    })
+}
+
+fn parse_repo_final_review_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut fixture = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--fixture" => {
+                let value = take_flag_value(args, &arg)?;
+                fixture = Some(match value.as_str() {
+                    "local-coding" => FinalReviewFixture::LocalCoding,
+                    _ => {
+                        return Err(CliError::UnknownArgument(format!(
+                            "repo final-review --fixture {value}"
+                        )));
+                    }
+                });
+            }
+            _ => {
+                return Err(CliError::UnknownArgument(format!(
+                    "repo final-review {arg}"
+                )));
+            }
+        }
+    }
+
+    Ok(CliCommand::RepoFinalReview {
+        fixture: fixture
+            .ok_or_else(|| CliError::MissingValue("repo final-review --fixture".to_string()))?,
     })
 }
 
@@ -5360,6 +5406,121 @@ fn command_test_diagnostic_severity_label(severity: CommandTestDiagnosticSeverit
         CommandTestDiagnosticSeverity::Warning => "warning",
         CommandTestDiagnosticSeverity::Error => "error",
     }
+}
+
+fn render_text_final_review(fixture: FinalReviewFixture) -> CliOutput {
+    match evaluate_final_review(fixture) {
+        Ok(review) => CliOutput::exit(render_final_review_text(&review)),
+        Err(error) => CliOutput::failure(format!("final review failed: {error}\n"), 2),
+    }
+}
+
+fn render_json_final_review(fixture: FinalReviewFixture) -> CliOutput {
+    match evaluate_final_review(fixture) {
+        Ok(review) => {
+            let snapshot = match UiFinalReviewSnapshot::from_review(&review) {
+                Ok(snapshot) => snapshot,
+                Err(error) => {
+                    let mut stdout = json_frame_line(UiJsonFrame::Error {
+                        code: "final_review_snapshot_failed".to_string(),
+                        message: redact_secret_like_text(&error.to_string()),
+                        recoverable: false,
+                    });
+                    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                    return CliOutput::failure(stdout, 2);
+                }
+            };
+            let mut stdout = json_frame_line(UiJsonFrame::FinalReviewSnapshot(snapshot));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::exit(stdout)
+        }
+        Err(error) => {
+            let mut stdout = json_frame_line(UiJsonFrame::Error {
+                code: "final_review_failed".to_string(),
+                message: redact_secret_like_text(&error),
+                recoverable: false,
+            });
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::failure(stdout, 2)
+        }
+    }
+}
+
+fn evaluate_final_review(
+    fixture: FinalReviewFixture,
+) -> Result<agent_core::CodingFinalReview, String> {
+    match fixture {
+        FinalReviewFixture::LocalCoding => {
+            let run = agent_core::run_local_coding_fixture().map_err(|error| error.to_string())?;
+            replay_final_review(&run.events, Some("local-coding-fixture".to_string()))
+                .map_err(|error| error.to_string())
+        }
+    }
+}
+
+fn render_final_review_text(review: &agent_core::CodingFinalReview) -> String {
+    let changed_files = if review.changed_files.is_empty() {
+        "none".to_string()
+    } else {
+        review
+            .changed_files
+            .iter()
+            .map(|file| redact_secret_like_text(file))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    let trace = review
+        .trace_id
+        .as_ref()
+        .map(|trace_id| redact_secret_like_text(trace_id))
+        .unwrap_or_else(|| "none".to_string());
+    let replay = if review.replay_reconstructed {
+        "yes"
+    } else {
+        "no"
+    };
+    let mut output = String::new();
+    output.push_str("Final review\n");
+    output.push_str(&format!(
+        "Summary: {}\n",
+        redact_secret_like_text(&review.summary)
+    ));
+    output.push_str(&format!("Changed files: {changed_files}\n"));
+    output.push_str("Command results:\n");
+    if review.command_results.is_empty() {
+        output.push_str("- none\n");
+    } else {
+        for result in &review.command_results {
+            output.push_str(&format!(
+                "- {} [{}:{}]\n",
+                redact_secret_like_text(&result.summary),
+                redact_secret_like_text(&result.status),
+                redact_secret_like_text(&result.classification)
+            ));
+        }
+    }
+    output.push_str(&format!("Trace: {trace}\n"));
+    output.push_str(&format!("Trace events: {}\n", review.trace_event_count));
+    output.push_str(&format!("Audit events: {}\n", review.audit_event_count));
+    output.push_str(&format!("Replay reconstructed: {replay}\n"));
+    output.push_str("Unresolved risks:\n");
+    if review.unresolved_risks.is_empty() {
+        output.push_str("- none\n");
+    } else {
+        for risk in &review.unresolved_risks {
+            output.push_str(&format!("- {}\n", redact_secret_like_text(risk)));
+        }
+    }
+    output.push_str("Next actions:\n");
+    if review.next_actions.is_empty() {
+        output.push_str("- none\n");
+    } else {
+        for action in &review.next_actions {
+            output.push_str(&format!("- {}\n", redact_secret_like_text(action)));
+        }
+    }
+    output.push_str(&format!("Diagnostics: {}\n", review.diagnostics.len()));
+    output
 }
 
 fn edit_diff_state_label(state: agent_core::DiffEvidenceState) -> &'static str {

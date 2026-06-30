@@ -10,6 +10,7 @@ pub mod config;
 pub mod context;
 pub mod edit_diff;
 pub mod extension;
+pub mod final_review;
 pub mod idempotency;
 pub mod local_coding;
 pub mod mcp_sampling;
@@ -66,6 +67,11 @@ pub use extension::{
     ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord,
     ExtensionRegistry, ExtensionRegistryError, ExtensionRegistrySnapshot, ExtensionSource,
     ExtensionSourceKind,
+};
+pub use final_review::{
+    CodingFinalReview, FinalReviewCommandResult, FinalReviewDiagnostic,
+    FinalReviewDiagnosticSeverity, FinalReviewError, FinalReviewInput, build_final_review,
+    replay_final_review,
 };
 pub use idempotency::{IdempotentToolError, IdempotentToolExecutor, IdempotentToolOutcome};
 pub use local_coding::{

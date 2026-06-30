@@ -168,6 +168,19 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::FinalReviewSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "final-review",
+                format!(
+                    "files={} commands={} risks={} next={} replay={}",
+                    snapshot.changed_files.len(),
+                    snapshot.command_results.len(),
+                    snapshot.unresolved_risks.len(),
+                    snapshot.next_actions.len(),
+                    snapshot.replay_reconstructed
+                ),
+                false,
+            )),
             UiJsonFrame::PromptSummary(summary) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "prompt",

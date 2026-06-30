@@ -151,6 +151,18 @@ impl TracePanelState {
                         .map_or_else(|| "none".to_string(), |code| code.to_string())
                 ),
             )),
+            UiJsonFrame::FinalReviewSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "final-review",
+                format!(
+                    "files={} commands={} risks={} next={} replay={}",
+                    snapshot.changed_files.len(),
+                    snapshot.command_results.len(),
+                    snapshot.unresolved_risks.len(),
+                    snapshot.next_actions.len(),
+                    snapshot.replay_reconstructed
+                ),
+            )),
             UiJsonFrame::PromptSummary(summary) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "prompt",

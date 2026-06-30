@@ -1,7 +1,8 @@
 use agent_core::{
-    CommandExecutionStatus, CommandFailureClassification, CommandTestLoopReport, DiffEvidenceState,
-    EditDiffFlowReport, ObservabilityEvidenceBundle, RepoGitState, RepoSessionBootstrapReport,
-    RepoSessionDiagnosticSeverity, StartupMigrationOutcome, TaskArtifact, TaskReviewSummary,
+    CodingFinalReview, CommandExecutionStatus, CommandFailureClassification, CommandTestLoopReport,
+    DiffEvidenceState, EditDiffFlowReport, ObservabilityEvidenceBundle, RepoGitState,
+    RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity, StartupMigrationOutcome,
+    TaskArtifact, TaskReviewSummary,
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{CheckpointId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
@@ -358,6 +359,99 @@ impl UiCommandTestSnapshot {
             diagnostic_count: report.diagnostics.len().try_into().map_err(|_| {
                 UiBridgeError::Validation("too many command test diagnostics".to_string())
             })?,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiFinalReviewSnapshot {
+    pub workspace_id: WorkspaceId,
+    pub conversation_id: ConversationId,
+    pub summary: String,
+    pub changed_files: Vec<String>,
+    pub command_results: Vec<UiFinalReviewCommandResult>,
+    pub trace_id: Option<String>,
+    pub trace_event_count: u64,
+    pub audit_event_count: u64,
+    pub replay_reconstructed: bool,
+    pub unresolved_risks: Vec<String>,
+    pub next_actions: Vec<String>,
+    pub diagnostics: Vec<String>,
+    pub diagnostic_count: u32,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiFinalReviewCommandResult {
+    pub command: String,
+    pub status: String,
+    pub classification: String,
+    pub exit_code: Option<i32>,
+    pub timed_out: bool,
+    pub summary: String,
+}
+
+impl UiFinalReviewSnapshot {
+    pub fn from_review(review: &CodingFinalReview) -> Result<Self, UiBridgeError> {
+        let summary = bounded_diff_text(&review.summary);
+        validate_non_empty("final review summary", &summary)?;
+        let changed_files = review
+            .changed_files
+            .iter()
+            .map(|file| bounded_task_text(file))
+            .collect::<Vec<_>>();
+        let command_results = review
+            .command_results
+            .iter()
+            .map(|result| {
+                Ok(UiFinalReviewCommandResult {
+                    command: bounded_task_text(&result.command),
+                    status: bounded_task_text(&result.status),
+                    classification: bounded_task_text(&result.classification),
+                    exit_code: result.exit_code,
+                    timed_out: result.timed_out,
+                    summary: bounded_diff_text(&result.summary),
+                })
+            })
+            .collect::<Result<Vec<_>, UiBridgeError>>()?;
+        let unresolved_risks = review
+            .unresolved_risks
+            .iter()
+            .map(|risk| bounded_diff_text(risk))
+            .collect::<Vec<_>>();
+        let next_actions = review
+            .next_actions
+            .iter()
+            .map(|action| bounded_diff_text(action))
+            .collect::<Vec<_>>();
+        let diagnostics = review
+            .diagnostics
+            .iter()
+            .map(|diagnostic| bounded_diff_text(&diagnostic.message))
+            .collect::<Vec<_>>();
+
+        Ok(Self {
+            workspace_id: review.workspace_id,
+            conversation_id: review.conversation_id,
+            summary,
+            changed_files,
+            command_results,
+            trace_id: normalize_optional_string(review.trace_id.clone())
+                .map(|value| bounded_task_text(&value)),
+            trace_event_count: review
+                .trace_event_count
+                .try_into()
+                .map_err(|_| UiBridgeError::Validation("too many trace events".to_string()))?,
+            audit_event_count: review
+                .audit_event_count
+                .try_into()
+                .map_err(|_| UiBridgeError::Validation("too many audit events".to_string()))?,
+            replay_reconstructed: review.replay_reconstructed,
+            unresolved_risks,
+            next_actions,
+            diagnostic_count: diagnostics.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many final review diagnostics".to_string())
+            })?,
+            diagnostics,
         })
     }
 }
@@ -1112,6 +1206,7 @@ pub enum UiJsonFrame {
     RepoSessionSnapshot(UiRepoSessionSnapshot),
     EditDiffSnapshot(UiEditDiffSnapshot),
     CommandTestSnapshot(UiCommandTestSnapshot),
+    FinalReviewSnapshot(UiFinalReviewSnapshot),
     PromptSummary(UiPromptSummary),
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),

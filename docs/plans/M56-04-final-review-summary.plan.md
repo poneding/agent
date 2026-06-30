@@ -23,7 +23,7 @@
 - Read: `crates/agent-cli/src/command.rs`
 - Read: `crates/agent-ui-bridge/src/frame.rs`
 
-- [ ] **Step 1: Review final review boundaries**
+- [x] **Step 1: Review final review boundaries**
 
 Run:
 
@@ -38,7 +38,7 @@ Expected: scope is limited to final review construction and presentation. Full g
 **Files:**
 - Create: `crates/agent-core/tests/final_review.rs`
 
-- [ ] **Step 1: Add core tests**
+- [x] **Step 1: Add core tests**
 
 Cover:
 
@@ -50,7 +50,7 @@ Cover:
 - failed command/test evidence produces an unresolved risk and next action
 - secret-like summaries, diagnostics, risks, and next actions are redacted
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -67,19 +67,19 @@ Expected: tests fail before the core final review module exists.
 - Modify: `crates/agent-core/src/lib.rs`
 - Modify if needed: `crates/agent-core/src/local_coding.rs`
 
-- [ ] **Step 1: Add typed contracts**
+- [x] **Step 1: Add typed contracts**
 
 Implement `CodingFinalReview`, `FinalReviewInput`, `FinalReviewCommandResult`, diagnostics, risks, next actions, and errors.
 
-- [ ] **Step 2: Compose from reports**
+- [x] **Step 2: Compose from reports**
 
 Accept optional M56-02 edit report and M56-03 command/test report and produce a review without executing tools.
 
-- [ ] **Step 3: Reconstruct from events**
+- [x] **Step 3: Reconstruct from events**
 
 Use local coding event patterns, trace/audit counts, and replay reconstruction evidence to build or diagnose a final review from persisted events.
 
-- [ ] **Step 4: Run core checks**
+- [x] **Step 4: Run core checks**
 
 Run:
 
@@ -97,15 +97,15 @@ Expected: core final review and existing local coding tests pass.
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Modify: `crates/agent-ui-bridge/src/lib.rs`
 
-- [ ] **Step 1: Add bridge snapshot tests**
+- [x] **Step 1: Add bridge snapshot tests**
 
 Cover safe serialization, redaction, bounded lists, risk/next-action fields, replay status, and frame encoding.
 
-- [ ] **Step 2: Implement bridge snapshot**
+- [x] **Step 2: Implement bridge snapshot**
 
 Expose a UI-safe final review snapshot derived from `CodingFinalReview`.
 
-- [ ] **Step 3: Run bridge checks**
+- [x] **Step 3: Run bridge checks**
 
 Run:
 
@@ -122,7 +122,7 @@ Expected: UI final review snapshot tests pass.
 - Modify: `crates/agent-cli/src/command.rs`
 - Modify if needed: `crates/agent-cli/tests/local_coding.rs`
 
-- [ ] **Step 1: Add CLI tests**
+- [x] **Step 1: Add CLI tests**
 
 Cover:
 
@@ -131,11 +131,11 @@ Cover:
 - `--local-summary` remains stable or is intentionally updated with final review-backed output
 - secret-like review content is redacted
 
-- [ ] **Step 2: Implement CLI command**
+- [x] **Step 2: Implement CLI command**
 
 Add parser and renderer using the core final review contract. Keep fixture mode deterministic and side-effect-free beyond the existing local coding fixture setup.
 
-- [ ] **Step 3: Run CLI checks**
+- [x] **Step 3: Run CLI checks**
 
 Run:
 
@@ -152,7 +152,7 @@ Expected: final review CLI tests and existing local coding summary tests pass.
 - Modify: `docs/plans/M56-04-final-review-summary.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -168,7 +168,7 @@ cargo test -p agent-ui-bridge final_review_snapshot
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for M56-04 source, tests, and docs, then:
 
@@ -180,10 +180,10 @@ Expected: commit contains only M56-04 source, tests, and documentation/status up
 
 ### Completion Checklist
 
-- [ ] Core final review contract exists.
-- [ ] Review summarizes changed files, command/test evidence, trace/audit evidence, risks, next actions, diagnostics, and replay status.
-- [ ] Review can reconstruct from local coding events or report missing evidence.
-- [ ] CLI text and JSON surfaces exist.
-- [ ] UI bridge final review snapshot is safe and serializable.
-- [ ] Existing local coding summary remains stable or is deliberately migrated.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Core final review contract exists.
+- [x] Review summarizes changed files, command/test evidence, trace/audit evidence, risks, next actions, diagnostics, and replay status.
+- [x] Review can reconstruct from local coding events or report missing evidence.
+- [x] CLI text and JSON surfaces exist.
+- [x] UI bridge final review snapshot is safe and serializable.
+- [x] Existing local coding summary remains stable or is deliberately migrated.
+- [x] Focused fmt/clippy/tests pass.

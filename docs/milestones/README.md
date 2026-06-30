@@ -513,7 +513,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M56-03 implementation | Complete |
 | M56-04 slice spec | Complete |
 | M56-04 slice plan | Complete |
-| M56-04 implementation | Planned |
+| M56-04 implementation | Complete |
 | M56 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1203,7 +1203,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M56-04 Final Review Summary planning and implementation.
+Current implementation focus: M56-05 Golden Path E2E planning and implementation.
 
 Most recent completed implementation documents:
 
@@ -1658,10 +1658,10 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Implement M56-04 Final Review Summary from its committed spec/plan.
+- Create M56-05 Golden Path E2E spec/plan before implementation.
 
 Next implementation direction:
 
-- M56-04 Final Review Summary
+- M56-05 Golden Path E2E
 - M56 Coding Agent Golden Path v1
 - M57 Multi-Provider Runtime

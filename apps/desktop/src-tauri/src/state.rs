@@ -6,7 +6,7 @@ use std::{
 use crate::bridge::DesktopRuntimeSession;
 use agent_core::TraceEntry;
 use agent_desktop::{DesktopConfigSnapshot, DesktopSettings};
-use agent_ui_bridge::{UiConfigSnapshot, UiModelProviderSummary};
+use agent_ui_bridge::{UiConfigSnapshot, UiModelProviderCapabilities, UiModelProviderSummary};
 
 #[derive(Clone, Debug)]
 pub struct DesktopAppState {
@@ -39,7 +39,9 @@ impl Default for DesktopAppState {
 }
 
 fn default_config_snapshot() -> DesktopConfigSnapshot {
-    let provider = UiModelProviderSummary::new("fake", "fake", "fake-scripted", true)
+    let capabilities =
+        UiModelProviderCapabilities::new(true, false, false, false, Some(4096), Some(1024), None);
+    let provider = UiModelProviderSummary::new("fake", "fake", "fake-scripted", true, capabilities)
         .expect("default provider summary is valid");
     let snapshot = UiConfigSnapshot::new("fake", "fake-scripted", vec![provider], Vec::new())
         .expect("default config snapshot is valid");

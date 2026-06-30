@@ -76,6 +76,7 @@ fn config_snapshot_serializes_stable_shape() {
                     }
                 }
             ],
+            "provider_support": [],
             "diagnostics": [
                 {
                     "severity": "warning",

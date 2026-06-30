@@ -2,7 +2,8 @@ use agent_core::TraceEntry;
 use agent_desktop::DesktopSettings;
 use agent_types::ConversationId;
 use agent_ui_bridge::{
-    UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiModelProviderSummary,
+    UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiModelProviderCapabilities,
+    UiModelProviderSummary,
 };
 
 fn conversation_id() -> ConversationId {
@@ -20,7 +21,14 @@ fn entry(seq: u64, kind: &str, summary: &str) -> TraceEntry {
 }
 
 fn provider() -> UiModelProviderSummary {
-    UiModelProviderSummary::new("fake", "fake", "fake-scripted", true).expect("valid provider")
+    UiModelProviderSummary::new(
+        "fake",
+        "fake",
+        "fake-scripted",
+        true,
+        UiModelProviderCapabilities::new(true, false, false, false, Some(4096), Some(1024), None),
+    )
+    .expect("valid provider")
 }
 
 fn config_snapshot(message: &str) -> UiConfigSnapshot {

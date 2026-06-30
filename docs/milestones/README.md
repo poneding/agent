@@ -12,12 +12,10 @@ M30-M54 delivered a deep MCP extension track. That work remains valuable, but MC
 
 Current focus:
 
-- M55 Product Baseline and Roadmap Reset
-- M56 Coding Agent Golden Path v1
-- M57 Multi-Provider Runtime
 - M58 Project Context Intelligence
 - M59 CLI/TUI Daily Driver
 - M60 Desktop Daily Driver
+- M61 Plan, Todo, and Task UX
 
 ## Document Layout
 
@@ -538,7 +536,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57-05 slice spec | Complete |
 | M57-05 slice plan | Complete |
 | M57-05 implementation | Complete |
-| M57 implementation | Planned |
+| M57 implementation | Complete |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -1239,10 +1237,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M57 final verification and closeout.
+Current implementation focus: M58 Project Context Intelligence spec/plan bootstrap.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M57-multi-provider-runtime.spec.md`
+- `docs/plans/M57-multi-provider-runtime.plan.md`
 - `docs/specs/M57-05-provider-ux-fallback.spec.md`
 - `docs/plans/M57-05-provider-ux-fallback.plan.md`
 - `docs/specs/M57-04-local-provider-adapter.spec.md`
@@ -1698,8 +1698,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Complete M57 closeout docs and verification planning.
+- Create the M58 milestone spec/plan and first implementation slice for project context intelligence.
 
 Next implementation direction:
 
-- Run final M57 gates and close out the multi-provider runtime milestone.
+- Start M58 with repo map, file tree summary, and bounded context assembly once the spec/plan is in place.

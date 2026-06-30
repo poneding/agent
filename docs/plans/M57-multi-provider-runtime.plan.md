@@ -21,7 +21,7 @@
 - Read: `crates/agent-model/src/invocation_policy.rs`
 - Read: `crates/agent-cli/tests/live_provider_registration.rs`
 
-- [ ] **Step 1: Review provider baseline**
+- [x] **Step 1: Review provider baseline**
 
 Run:
 
@@ -78,7 +78,7 @@ Expose provider capability diagnostics through CLI/JSON, ensure fallback only se
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M57-multi-provider-runtime.plan.md`
 
-- [ ] **Step 1: Run final M57 gates**
+- [x] **Step 1: Run final M57 gates**
 
 Run:
 
@@ -91,9 +91,18 @@ cargo xtask eval
 
 Expected: all gates pass with provider diagnostics redacted.
 
-- [ ] **Step 2: Commit M57 closeout**
+- [x] **Step 2: Commit M57 closeout**
 
 Run exact-path staging and commit the final docs/status updates.
+
+Closeout verification on 2026-06-30:
+
+- `cargo test -p agent-model provider_registry`
+- `cargo test -p agent-cli --test live_provider_registration`
+- `cargo fmt --all -- --check`
+- `cargo clippy --workspace --all-targets -- -D warnings`
+- `cargo test --workspace`
+- `cargo xtask eval`
 
 ### Completion Checklist
 
@@ -102,5 +111,5 @@ Run exact-path staging and commit the final docs/status updates.
 - [x] Gemini adapter is implemented with fixture-backed tests.
 - [x] Local/Ollama-compatible provider is implemented with local endpoint safety.
 - [x] CLI/JSON provider diagnostics and fallback behavior are tested.
-- [ ] M56 golden path remains green under `cargo xtask eval`.
-- [ ] Final workspace fmt/clippy/tests pass.
+- [x] M56 golden path remains green under `cargo xtask eval`.
+- [x] Final workspace fmt/clippy/tests pass.

@@ -12,7 +12,7 @@ The percentages below are directional planning estimates based on the current re
 |---|---:|---|---|
 | Runtime spine, typed events, replay, checkpoints | 80% | `agent-core`, `agent-types`, `agent-storage`, M01-M04, M26-M29 | Needs product-level recovery UX and larger replay scenarios. |
 | Tool, policy, audit, sandbox foundations | 75% | M02, M03, M18, M19, `agent-tool`, `agent-policy`, `agent-sandbox` | Needs polished coding workflow defaults, stronger command streaming, and approval ergonomics. |
-| Model provider abstraction | 45% | M13-M17, fake provider, OpenAI-compatible adapter, config and secrets | Needs Anthropic, OpenAI, Gemini, local/Ollama, capability registry, routing, fallback, and account diagnostics. |
+| Model provider abstraction | 70% | M13-M17, M57, fake provider, OpenAI-compatible, Anthropic, Gemini, local/Ollama-style providers, typed capabilities, fallback, config, and secrets | Needs broader live-provider smoke evidence, account setup UX, and Desktop provider onboarding. |
 | Local coding agent golden path | 60% | M56 repo/session, edit/diff, command/test, final review, and default local-coding eval scenario | Needs daily-driver behavior beyond the deterministic fixture: richer tasks, multi-file edits, retry/recovery UX, and real-provider parity. |
 | Context and memory | 50% | M05, M16, M23, prompt profiles, memory stores, retrieval design | Needs repo-aware context, semantic project indexing, memory review UX, and compaction quality gates. |
 | CLI and TUI product UX | 50% | M06, M20, `agent-cli`, `agent-tui`, JSON mode | Needs session switching, diff viewer, approval queue, slash command completeness, command cancellation, and stable batch recipes. |
@@ -105,11 +105,11 @@ Acceptance:
 
 - A developer can run one command to verify the deterministic local coding path and inspect redacted eval artifacts.
 - The fixture-driven turn is event-sourced, permissioned, auditable, replayable, and summarized.
-- Real-provider parity, capability diagnostics, and fallback behavior move to M57.
+- Provider capability diagnostics and fallback behavior are implemented in M57; broader live-provider smoke coverage remains future product hardening.
 
 ### M57 Multi-Provider Runtime
 
-Status: Next active implementation target.
+Status: Complete. Final closeout gates passed with provider diagnostics redacted, including `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, and `cargo xtask eval`.
 
 Purpose: make provider choice a product feature.
 
@@ -128,6 +128,28 @@ Acceptance:
 - Users can configure and switch providers without runtime changes.
 - Provider capability mismatches are diagnosed before a turn fails.
 - Tool-calling models can run the same coding golden path where supported.
+
+### M58 Project Context Intelligence
+
+Status: Next planning target.
+
+Purpose: build repo-aware context assembly for coding tasks.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M58-01 Repo Map and File Tree Summaries | Build typed project structure summaries that are bounded, redacted, and usable by CLI/Desktop. |
+| M58-02 Relevant File Retrieval | Select likely relevant files for a task using lexical signals and workspace metadata. |
+| M58-03 Semantic and Hybrid Search | Add embedding-backed retrieval where configured, with deterministic fixture coverage. |
+| M58-04 Pinned Context and Budget Planning | Let users pin context and fit selected material into prompt budgets with diagnostics. |
+| M58-05 Context Quality Traces and Eval | Add context assembly traces and product eval coverage for coding tasks. |
+
+Acceptance:
+
+- File tree summaries and relevant-file retrieval improve coding prompts without exposing raw secrets.
+- Pinned context and budget planning are typed and visible through CLI/JSON and bridge contracts.
+- Context quality is covered by deterministic tests and at least one eval scenario.
 
 ## Capability Gates
 

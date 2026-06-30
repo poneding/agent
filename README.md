@@ -6,7 +6,7 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M56 and the MX01 MCP epilogue are implemented. M55 is complete as the product-baseline reset that re-centers the repository on the main coding-agent roadmap, and M56 proves a deterministic local coding-agent golden path through repo/session diagnostics, edit/diff, command/test evidence, final review, trace/audit, replay, and eval artifacts. The repository has strong foundations for event-sourced runtime execution, typed storage and replay, tool policy and audit, model streaming, prompt/context management, memory, scheduler tasks, worktree/subagent foundations, plugins, Desktop bridge contracts, observability, evaluations, CI evidence, and a mature MCP extension layer including HTTP OAuth authorization-code token exchange plus P1-P3 MCP hardening for callbacks, protocol event summaries, sampling review contracts, management snapshots, and server export guardrails.
+M01-M57 and the MX01 MCP epilogue are implemented. M55 is complete as the product-baseline reset that re-centers the repository on the main coding-agent roadmap, M56 proves a deterministic local coding-agent golden path through repo/session diagnostics, edit/diff, command/test evidence, final review, trace/audit, replay, and eval artifacts, and M57 adds first-class multi-provider runtime support across OpenAI-compatible, Anthropic, Gemini, and local/Ollama-style providers with typed capability diagnostics and compatible fallback. The repository has strong foundations for event-sourced runtime execution, typed storage and replay, tool policy and audit, model streaming, prompt/context management, memory, scheduler tasks, worktree/subagent foundations, plugins, Desktop bridge contracts, observability, evaluations, CI evidence, and a mature MCP extension layer including HTTP OAuth authorization-code token exchange plus P1-P3 MCP hardening for callbacks, protocol event summaries, sampling review contracts, management snapshots, and server export guardrails.
 
 The product roadmap is now re-centered on the user-facing goal: a Claude Code / Codex Desktop-class local coding agent with excellent CLI/TUI and Desktop workflows plus first-class multi-provider support. MCP expansion remains parked as a primary track after M54; MX01 is an epilogue track and does not change the M55+ product roadmap priority.
 
@@ -139,7 +139,7 @@ For the local final-review fixture alone:
 cargo run -p agent-cli --bin agent-cli -- repo final-review --fixture local-coding
 ```
 
-The default M56 path is intentionally deterministic and credential-free. Real-provider parity and provider capability diagnostics move to M57.
+The default M56 path is intentionally deterministic and credential-free. M57 extends the runtime with provider capability diagnostics, native Anthropic and Gemini adapters, local/Ollama-style endpoint support, and compatible-only fallback while preserving that credential-free eval path.
 
 ## Quality Gate
 

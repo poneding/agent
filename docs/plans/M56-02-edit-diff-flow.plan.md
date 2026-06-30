@@ -22,7 +22,7 @@
 - Read: `crates/agent-core/src/tool_loop.rs`
 - Read: `crates/agent-tui/src/diff_panel.rs`
 
-- [ ] **Step 1: Review edit/diff boundaries**
+- [x] **Step 1: Review edit/diff boundaries**
 
 Run:
 
@@ -37,7 +37,7 @@ Expected: scope is limited to edit preview/apply and diff evidence, not command/
 **Files:**
 - Create: `crates/agent-core/tests/edit_diff_flow.rs`
 
-- [ ] **Step 1: Add core tests**
+- [x] **Step 1: Add core tests**
 
 Cover:
 
@@ -48,7 +48,7 @@ Cover:
 - traversal is rejected before mutation
 - returned events include proposed, permission decision, execution, completion/failure, and observation evidence
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -64,19 +64,19 @@ Expected: tests fail before the core flow exists.
 - Create: `crates/agent-core/src/edit_diff.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add typed contracts**
+- [x] **Step 1: Add typed contracts**
 
 Implement `EditDiffFlowInput`, `EditDiffFlowReport`, `EditPreviewSummary`, `DiffSummary`, diagnostics, and errors.
 
-- [ ] **Step 2: Orchestrate existing tools**
+- [x] **Step 2: Orchestrate existing tools**
 
 Use existing `FileEditTool`, `GitStatusTool`, and `GitDiffTool` through `ToolLoop` and policy. Do not hand-edit files directly from the flow.
 
-- [ ] **Step 3: Extract safe evidence**
+- [x] **Step 3: Extract safe evidence**
 
 Parse tool outputs into changed files, bounded diff preview, line counts, content hash/truncation flags, and diagnostics.
 
-- [ ] **Step 4: Run core tests**
+- [x] **Step 4: Run core tests**
 
 Run:
 
@@ -95,19 +95,19 @@ Expected: core edit/diff tests pass.
 - Modify if needed: `crates/agent-tui/src/diff_panel.rs`
 - Modify if needed: `crates/agent-tui/tests/diff_panel.rs`
 
-- [ ] **Step 1: Add bridge snapshot tests**
+- [x] **Step 1: Add bridge snapshot tests**
 
 Cover safe serialization, truncation, redaction, and frame encoding.
 
-- [ ] **Step 2: Implement bridge snapshot**
+- [x] **Step 2: Implement bridge snapshot**
 
 Expose a UI-safe diff snapshot derived from `EditDiffFlowReport`.
 
-- [ ] **Step 3: Ensure TUI can consume evidence**
+- [x] **Step 3: Ensure TUI can consume evidence**
 
 Prefer extending `DiffPanelState` from bridge snapshot while preserving existing approval-preview behavior.
 
-- [ ] **Step 4: Run bridge/TUI tests**
+- [x] **Step 4: Run bridge/TUI tests**
 
 Run:
 
@@ -124,7 +124,7 @@ Expected: UI evidence tests pass.
 - Create: `crates/agent-cli/tests/edit_diff_flow.rs`
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Add CLI tests**
+- [x] **Step 1: Add CLI tests**
 
 Cover:
 
@@ -134,11 +134,11 @@ Cover:
 - invalid workspace/path exits with code `2`
 - secret-like diff or diagnostics are redacted/bounded
 
-- [ ] **Step 2: Implement CLI command**
+- [x] **Step 2: Implement CLI command**
 
 Add parser and renderer using core edit/diff flow. Prefer `--replacement-file` and `--expected-file`; literal flags may exist only for tests or small content.
 
-- [ ] **Step 3: Run CLI tests**
+- [x] **Step 3: Run CLI tests**
 
 Run:
 
@@ -154,7 +154,7 @@ Expected: CLI tests pass.
 - Modify: `docs/plans/M56-02-edit-diff-flow.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -183,10 +183,10 @@ Expected: commit contains only M56-02 source, tests, and documentation/status up
 
 ### Completion Checklist
 
-- [ ] Core edit/diff flow exists and uses tool-loop/tool-policy boundaries.
-- [ ] Preview mode does not mutate files.
-- [ ] Apply mode reports changed files and diff evidence.
-- [ ] CLI text and JSON surfaces exist.
-- [ ] UI bridge/TUI diff evidence is safe and serializable.
-- [ ] Redaction/truncation/security cases are tested.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Core edit/diff flow exists and uses tool-loop/tool-policy boundaries.
+- [x] Preview mode does not mutate files.
+- [x] Apply mode reports changed files and diff evidence.
+- [x] CLI text and JSON surfaces exist.
+- [x] UI bridge/TUI diff evidence is safe and serializable.
+- [x] Redaction/truncation/security cases are tested.
+- [x] Focused fmt/clippy/tests pass.

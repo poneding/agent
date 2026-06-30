@@ -16,9 +16,9 @@ pub use event::{
     UiEventPayload, UiTaskNotification, normalize_runtime_event,
 };
 pub use frame::{
-    UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiExtensionCapabilityReview,
-    UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary, UiJsonFrame,
-    UiMcpManagementDiagnostic, UiMcpManagementSnapshot, UiMcpServerManagementSummary,
+    UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiEditDiffSnapshot,
+    UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
+    UiJsonFrame, UiMcpManagementDiagnostic, UiMcpManagementSnapshot, UiMcpServerManagementSummary,
     UiModelProviderSummary, UiObservabilitySnapshot, UiPlatformPathsSummary,
     UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary, UiRepoSessionDiagnostic,
     UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,

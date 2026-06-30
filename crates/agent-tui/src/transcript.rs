@@ -141,6 +141,19 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::EditDiffSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "edit-diff",
+                format!(
+                    "{} state={} +{} -{} files={}",
+                    snapshot.path,
+                    snapshot.diff_state,
+                    snapshot.added_line_count,
+                    snapshot.removed_line_count,
+                    snapshot.changed_file_count
+                ),
+                false,
+            )),
             UiJsonFrame::PromptSummary(summary) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "prompt",

@@ -15,13 +15,14 @@ use agent_context::{
 use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
     ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigOverride, ConfiguredTurnError,
-    ConfiguredTurnInput, ConfiguredTurnRunner, EffectiveRuntimeConfig, ExtensionCapabilitySummary,
+    ConfiguredTurnInput, ConfiguredTurnRunner, EditDiffDiagnosticSeverity, EditDiffFlowError,
+    EditDiffFlowInput, EditDiffFlowReport, EffectiveRuntimeConfig, ExtensionCapabilitySummary,
     ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind,
     ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
     ExtensionSource, ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, RepoGitState,
     RepoSessionBootstrapError, RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds,
     RuntimeModelConfig, SettingsError, SettingsProfile, StartupMigrationRunner,
-    bootstrap_repo_session,
+    bootstrap_repo_session, run_edit_diff_flow,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -71,11 +72,11 @@ use agent_types::{
 };
 use agent_ui_bridge::{
     UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
-    UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
-    UiJsonFrame, UiModelProviderSummary, UiPlatformPathsSummary, UiPromptDiagnosticSummary,
-    UiPromptLayerSummary, UiPromptSummary, UiRepoSessionSnapshot, UiSettingsProfileSummary,
-    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
-    UiTaskSummary, encode_json_frame, normalize_runtime_event,
+    UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot,
+    UiExtensionSummary, UiJsonFrame, UiModelProviderSummary, UiPlatformPathsSummary,
+    UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary, UiRepoSessionSnapshot,
+    UiSettingsProfileSummary, UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary,
+    UiTaskSnapshot, UiTaskSummary, encode_json_frame, normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -89,7 +90,9 @@ const DEFAULT_MODEL_NAME: &str = "fake-scripted";
 pub enum CliCommand {
     Version,
     RuntimeBanner,
-    BatchPrompt { prompt: String },
+    BatchPrompt {
+        prompt: String,
+    },
     PromptProfiles,
     PromptInspect,
     TuiShell,
@@ -101,7 +104,16 @@ pub enum CliCommand {
     ObservabilityJson,
     ConfigCheck,
     StartupCheck,
-    RepoSession { workspace_root: PathBuf },
+    RepoSession {
+        workspace_root: PathBuf,
+    },
+    RepoEdit {
+        workspace_root: PathBuf,
+        path: String,
+        expected_file: Option<PathBuf>,
+        replacement_file: PathBuf,
+        apply: bool,
+    },
     Plugin(PluginCommand),
     SkillRoot(SkillRootCommand),
     Extension(ExtensionCommand),
@@ -505,6 +517,13 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
         CliCommand::RepoSession { workspace_root } => {
             render_text_repo_session(workspace_root, None, ConfigOverride::default())
         }
+        CliCommand::RepoEdit {
+            workspace_root,
+            path,
+            expected_file,
+            replacement_file,
+            apply,
+        } => render_text_repo_edit(workspace_root, path, expected_file, replacement_file, apply),
         CliCommand::Plugin(command) => {
             let mut runtime = PluginCommandRuntime::default();
             render_plugin_command(&mut runtime, command, OutputMode::Text)
@@ -563,6 +582,15 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 invocation.config_path,
                 invocation.config_override,
             ),
+            CliCommand::RepoEdit {
+                workspace_root,
+                path,
+                expected_file,
+                replacement_file,
+                apply,
+            } => {
+                render_text_repo_edit(workspace_root, path, expected_file, replacement_file, apply)
+            }
             CliCommand::BatchPrompt { prompt } => {
                 render_prompt_runtime(prompt, invocation.config_path, invocation.config_override)
             }
@@ -632,6 +660,16 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
             invocation.config_override,
             invocation.model_selection,
         );
+    }
+    if let CliCommand::RepoEdit {
+        workspace_root,
+        path,
+        expected_file,
+        replacement_file,
+        apply,
+    } = invocation.command
+    {
+        return render_json_repo_edit(workspace_root, path, expected_file, replacement_file, apply);
     }
     if matches!(
         invocation.command,
@@ -759,6 +797,7 @@ where
     };
     match subcommand.as_str() {
         "session" => parse_repo_session_args(args),
+        "edit" => parse_repo_edit_args(args),
         _ => Err(CliError::UnknownArgument(format!("repo {subcommand}"))),
     }
 }
@@ -783,6 +822,76 @@ where
 
     Ok(CliCommand::RepoSession {
         workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
+    })
+}
+
+fn parse_repo_edit_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut workspace_root = None;
+    let mut path = None;
+    let mut expected_file = None;
+    let mut replacement_file = None;
+    let mut apply = None;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--workspace" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                workspace_root = Some(PathBuf::from(value));
+            }
+            "--path" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                path = Some(value);
+            }
+            "--expected-file" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                expected_file = Some(PathBuf::from(value));
+            }
+            "--replacement-file" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                replacement_file = Some(PathBuf::from(value));
+            }
+            "--preview" => match apply {
+                Some(true) => {
+                    return Err(CliError::UnknownArgument(
+                        "repo edit --preview conflicts with --apply".to_string(),
+                    ));
+                }
+                Some(false) | None => apply = Some(false),
+            },
+            "--apply" => match apply {
+                Some(false) => {
+                    return Err(CliError::UnknownArgument(
+                        "repo edit --apply conflicts with --preview".to_string(),
+                    ));
+                }
+                Some(true) | None => apply = Some(true),
+            },
+            _ => return Err(CliError::UnknownArgument(format!("repo edit {arg}"))),
+        }
+    }
+
+    Ok(CliCommand::RepoEdit {
+        workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
+        path: path.ok_or_else(|| CliError::MissingValue("repo edit --path".to_string()))?,
+        expected_file,
+        replacement_file: replacement_file
+            .ok_or_else(|| CliError::MissingValue("repo edit --replacement-file".to_string()))?,
+        apply: apply.unwrap_or(false),
     })
 }
 
@@ -4751,6 +4860,192 @@ fn repo_git_state_label(state: RepoGitState) -> &'static str {
         RepoGitState::Dirty => "dirty",
         RepoGitState::NotRepository => "not_repository",
         RepoGitState::Unavailable => "unavailable",
+    }
+}
+
+fn render_text_repo_edit(
+    workspace_root: PathBuf,
+    path: String,
+    expected_file: Option<PathBuf>,
+    replacement_file: PathBuf,
+    apply: bool,
+) -> CliOutput {
+    match evaluate_repo_edit(workspace_root, path, expected_file, replacement_file, apply) {
+        Ok(report) => CliOutput::exit(render_repo_edit_summary_text(&report)),
+        Err(error) => CliOutput::failure(render_repo_edit_error_text(&error), 2),
+    }
+}
+
+fn render_json_repo_edit(
+    workspace_root: PathBuf,
+    path: String,
+    expected_file: Option<PathBuf>,
+    replacement_file: PathBuf,
+    apply: bool,
+) -> CliOutput {
+    match evaluate_repo_edit(workspace_root, path, expected_file, replacement_file, apply) {
+        Ok(report) => {
+            let snapshot = match UiEditDiffSnapshot::from_report(&report) {
+                Ok(snapshot) => snapshot,
+                Err(error) => {
+                    let mut stdout = json_frame_line(UiJsonFrame::Error {
+                        code: "edit_diff_snapshot_failed".to_string(),
+                        message: redact_secret_like_text(&error.to_string()),
+                        recoverable: false,
+                    });
+                    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                    return CliOutput::failure(stdout, 2);
+                }
+            };
+            let mut stdout = json_frame_line(UiJsonFrame::EditDiffSnapshot(snapshot));
+            let mut event_count = 0;
+            for event in &report.events {
+                stdout.push_str(&json_frame_line(UiJsonFrame::Event(
+                    normalize_runtime_event(event),
+                )));
+                event_count += 1;
+            }
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count }));
+            CliOutput::exit(stdout)
+        }
+        Err(error) => {
+            let mut stdout = String::new();
+            for diagnostic in error.diagnostics() {
+                stdout.push_str(&json_frame_line(UiJsonFrame::ConfigDiagnostic {
+                    severity: edit_diff_diagnostic_severity_label(diagnostic.severity).to_string(),
+                    code: redact_secret_like_text(&diagnostic.code),
+                    message: redact_secret_like_text(&diagnostic.message),
+                    field_path: None,
+                    source: None,
+                }));
+            }
+            for event in error.events() {
+                stdout.push_str(&json_frame_line(UiJsonFrame::Event(
+                    normalize_runtime_event(event),
+                )));
+            }
+            stdout.push_str(&json_frame_line(UiJsonFrame::Error {
+                code: error.code().to_string(),
+                message: repo_edit_error_message(&error),
+                recoverable: false,
+            }));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done {
+                event_count: error.events().len().try_into().unwrap_or(u64::MAX),
+            }));
+            CliOutput::failure(stdout, 2)
+        }
+    }
+}
+
+fn evaluate_repo_edit(
+    workspace_root: PathBuf,
+    path: String,
+    expected_file: Option<PathBuf>,
+    replacement_file: PathBuf,
+    apply: bool,
+) -> Result<EditDiffFlowReport, EditDiffFlowError> {
+    let expected = match expected_file {
+        Some(path) => Some(read_repo_edit_file(&path)?),
+        None => None,
+    };
+    let replacement = read_repo_edit_file(&replacement_file)?;
+
+    run_edit_diff_flow(EditDiffFlowInput {
+        workspace_root,
+        path,
+        expected,
+        replacement,
+        apply,
+        ids: RuntimeIds {
+            workspace_id: WorkspaceId::new(),
+            conversation_id: ConversationId::new(),
+            turn_id: TurnId::new(),
+            correlation_id: CorrelationId::new(),
+        },
+    })
+}
+
+fn read_repo_edit_file(path: &Path) -> Result<String, EditDiffFlowError> {
+    fs::read_to_string(path).map_err(|error| EditDiffFlowError::InvalidWorkspace {
+        diagnostics: vec![agent_core::EditDiffDiagnostic::error(
+            "edit_diff.input_file.unreadable",
+            format!("could not read edit input file: {error}"),
+            false,
+        )],
+    })
+}
+
+fn render_repo_edit_summary_text(report: &EditDiffFlowReport) -> String {
+    let changed_files = if report.changed_files.is_empty() {
+        "none".to_string()
+    } else {
+        report
+            .changed_files
+            .iter()
+            .map(|file| redact_secret_like_text(file))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    let diagnostics = if report.diagnostics.is_empty() {
+        "none".to_string()
+    } else {
+        report
+            .diagnostics
+            .iter()
+            .map(|diagnostic| {
+                format!(
+                    "{}:{}",
+                    edit_diff_diagnostic_severity_label(diagnostic.severity),
+                    redact_secret_like_text(&diagnostic.code)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    format!(
+        "Repo edit: {}\nPath: {}\nPreview: {}\nDiff: {}\nChanged files: {}\nLines: +{} -{}\nDiagnostics: {}\nWorkspace ID: {}\nConversation ID: {}\n",
+        if report.applied { "applied" } else { "preview" },
+        redact_secret_like_text(&report.path),
+        redact_secret_like_text(&report.preview.summary),
+        edit_diff_state_label(report.diff.state),
+        changed_files,
+        report.diff.added_line_count,
+        report.diff.removed_line_count,
+        diagnostics,
+        report.workspace_id,
+        report.conversation_id
+    )
+}
+
+fn render_repo_edit_error_text(error: &EditDiffFlowError) -> String {
+    format!(
+        "repo edit failed: {} ({})\n",
+        repo_edit_error_message(error),
+        error.code()
+    )
+}
+
+fn repo_edit_error_message(error: &EditDiffFlowError) -> String {
+    match error {
+        EditDiffFlowError::InvalidWorkspace { .. } => {
+            "workspace or edit input is invalid".to_string()
+        }
+        EditDiffFlowError::ToolFailed { .. } => "edit/diff tool flow failed".to_string(),
+    }
+}
+
+fn edit_diff_state_label(state: agent_core::DiffEvidenceState) -> &'static str {
+    match state {
+        agent_core::DiffEvidenceState::Preview => "preview",
+        agent_core::DiffEvidenceState::Applied => "applied",
+        agent_core::DiffEvidenceState::Unavailable => "unavailable",
+    }
+}
+
+fn edit_diff_diagnostic_severity_label(severity: EditDiffDiagnosticSeverity) -> &'static str {
+    match severity {
+        EditDiffDiagnosticSeverity::Warning => "warning",
+        EditDiffDiagnosticSeverity::Error => "error",
     }
 }
 

@@ -1,6 +1,7 @@
 use agent_core::{
-    ObservabilityEvidenceBundle, RepoGitState, RepoSessionBootstrapReport,
-    RepoSessionDiagnosticSeverity, StartupMigrationOutcome, TaskArtifact, TaskReviewSummary,
+    DiffEvidenceState, EditDiffFlowReport, ObservabilityEvidenceBundle, RepoGitState,
+    RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity, StartupMigrationOutcome,
+    TaskArtifact, TaskReviewSummary,
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{CheckpointId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
@@ -230,6 +231,70 @@ pub struct UiRepoSessionDiagnostic {
     pub code: String,
     pub message: String,
     pub recoverable: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiEditDiffSnapshot {
+    pub workspace_id: WorkspaceId,
+    pub conversation_id: ConversationId,
+    pub path: String,
+    pub applied: bool,
+    pub diff_state: String,
+    pub changed_files: Vec<String>,
+    pub changed_file_count: u32,
+    pub diff_line_count: u32,
+    pub added_line_count: u32,
+    pub removed_line_count: u32,
+    pub resource: String,
+    pub summary: String,
+    pub content_hash: Option<String>,
+    pub diff_preview: String,
+    pub truncated: bool,
+    pub redacted: bool,
+    pub diagnostic_count: u32,
+}
+
+impl UiEditDiffSnapshot {
+    pub fn from_report(report: &EditDiffFlowReport) -> Result<Self, UiBridgeError> {
+        let path = bounded_task_text(&report.path);
+        let resource = bounded_task_text(&report.preview.resource);
+        let summary = bounded_task_text(&report.preview.summary);
+        validate_non_empty("edit diff path", &path)?;
+        validate_non_empty("edit diff resource", &resource)?;
+        validate_non_empty("edit diff summary", &summary)?;
+        let changed_files = report
+            .changed_files
+            .iter()
+            .map(|file| bounded_task_text(file))
+            .collect::<Vec<_>>();
+        let diff_preview = bounded_diff_text(&report.diff.preview);
+
+        Ok(Self {
+            workspace_id: report.workspace_id,
+            conversation_id: report.conversation_id,
+            path,
+            applied: report.applied,
+            diff_state: diff_state_label(report.diff.state).to_string(),
+            changed_files,
+            changed_file_count: report.diff.changed_file_count,
+            diff_line_count: report.diff.diff_line_count,
+            added_line_count: report.diff.added_line_count,
+            removed_line_count: report.diff.removed_line_count,
+            resource,
+            summary,
+            content_hash: report
+                .preview
+                .content_hash
+                .clone()
+                .map(|hash| bounded_task_text(&hash)),
+            diff_preview,
+            truncated: report.preview.truncated || report.diff.truncated,
+            redacted: report.preview.redacted || report.diff.redacted,
+            diagnostic_count: report.diagnostics.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many edit diff diagnostics".to_string())
+            })?,
+        })
+    }
 }
 
 impl UiRepoSessionDiagnostic {
@@ -980,6 +1045,7 @@ pub enum UiJsonFrame {
     Event(UiEventEnvelope),
     ConfigSnapshot(UiConfigSnapshot),
     RepoSessionSnapshot(UiRepoSessionSnapshot),
+    EditDiffSnapshot(UiEditDiffSnapshot),
     PromptSummary(UiPromptSummary),
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),
@@ -1020,6 +1086,14 @@ fn git_state_label(state: RepoGitState) -> &'static str {
         RepoGitState::Dirty => "dirty",
         RepoGitState::NotRepository => "not_repository",
         RepoGitState::Unavailable => "unavailable",
+    }
+}
+
+fn diff_state_label(state: DiffEvidenceState) -> &'static str {
+    match state {
+        DiffEvidenceState::Preview => "preview",
+        DiffEvidenceState::Applied => "applied",
+        DiffEvidenceState::Unavailable => "unavailable",
     }
 }
 
@@ -1065,6 +1139,16 @@ fn bounded_task_text(value: &str) -> String {
     let redacted = redacted.trim();
     if redacted.chars().count() > 120 {
         redacted.chars().take(120).collect()
+    } else {
+        redacted.to_string()
+    }
+}
+
+fn bounded_diff_text(value: &str) -> String {
+    let redacted = redact_secret_like_text(value);
+    let redacted = redacted.trim();
+    if redacted.chars().count() > 4_000 {
+        redacted.chars().take(4_000).collect()
     } else {
         redacted.to_string()
     }

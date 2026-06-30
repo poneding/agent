@@ -7,6 +7,7 @@ pub mod background;
 pub mod benchmark;
 pub mod config;
 pub mod context;
+pub mod edit_diff;
 pub mod extension;
 pub mod idempotency;
 pub mod local_coding;
@@ -48,6 +49,11 @@ pub use config::{
     load_agent_config_file, load_agent_config_toml,
 };
 pub use context::ContextAssembler;
+pub use edit_diff::{
+    DiffEvidenceState, DiffSummary, EditDiffDiagnostic, EditDiffDiagnosticSeverity,
+    EditDiffFlowError, EditDiffFlowInput, EditDiffFlowReport, EditPreviewSummary,
+    run_edit_diff_flow,
+};
 pub use extension::{
     ExtensionCapabilityLease, ExtensionCapabilitySummary, ExtensionCompatibility, ExtensionHealth,
     ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord,

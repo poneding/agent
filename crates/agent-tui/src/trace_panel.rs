@@ -126,6 +126,18 @@ impl TracePanelState {
                     snapshot.diagnostic_count
                 ),
             )),
+            UiJsonFrame::EditDiffSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "edit-diff",
+                format!(
+                    "{} state={} +{} -{} files={}",
+                    snapshot.path,
+                    snapshot.diff_state,
+                    snapshot.added_line_count,
+                    snapshot.removed_line_count,
+                    snapshot.changed_file_count
+                ),
+            )),
             UiJsonFrame::PromptSummary(summary) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "prompt",

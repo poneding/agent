@@ -1,4 +1,4 @@
-use agent_ui_bridge::UiApprovalRequest;
+use agent_ui_bridge::{UiApprovalRequest, UiEditDiffSnapshot};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DiffPanelState {
@@ -37,6 +37,31 @@ impl DiffPanelState {
             content_hash: request.preview.content_hash.clone(),
             truncated: request.preview.truncated || over_limit,
             redacted: request.preview.redacted,
+        }
+    }
+
+    #[must_use]
+    pub fn from_edit_diff_snapshot(
+        snapshot: &UiEditDiffSnapshot,
+        max_summary_chars: usize,
+    ) -> Self {
+        let max_summary_chars = max_summary_chars.max(1);
+        let mut summary = if snapshot.diff_preview.is_empty() {
+            snapshot.summary.clone()
+        } else {
+            snapshot.diff_preview.clone()
+        };
+        let over_limit = summary.chars().count() > max_summary_chars;
+        if over_limit {
+            summary = summary.chars().take(max_summary_chars).collect();
+        }
+
+        Self {
+            resource: snapshot.resource.clone(),
+            summary,
+            content_hash: snapshot.content_hash.clone(),
+            truncated: snapshot.truncated || over_limit,
+            redacted: snapshot.redacted,
         }
     }
 

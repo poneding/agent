@@ -1,5 +1,5 @@
 use agent_tui::{DiffPanelState, TuiApp, render_app_to_string};
-use agent_ui_bridge::{UiApprovalPreviewSummary, UiApprovalRequest};
+use agent_ui_bridge::{UiApprovalPreviewSummary, UiApprovalRequest, UiEditDiffSnapshot};
 
 fn file_edit_request(truncated: bool) -> UiApprovalRequest {
     UiApprovalRequest {
@@ -50,6 +50,36 @@ fn diff_panel_ignores_non_file_edit_previews() {
     request.preview.kind = "command".to_string();
 
     assert!(DiffPanelState::maybe_from_approval(&request, 200).is_none());
+}
+
+#[test]
+fn diff_panel_builds_from_edit_diff_snapshot() {
+    let snapshot = UiEditDiffSnapshot {
+        workspace_id: agent_types::WorkspaceId::new(),
+        conversation_id: agent_types::ConversationId::new(),
+        path: "README.md".to_string(),
+        applied: true,
+        diff_state: "applied".to_string(),
+        changed_files: vec!["README.md".to_string()],
+        changed_file_count: 1,
+        diff_line_count: 5,
+        added_line_count: 1,
+        removed_line_count: 1,
+        resource: "README.md".to_string(),
+        summary: "Edit README.md: +1 -1 lines".to_string(),
+        content_hash: Some("fnv1a64:edit".to_string()),
+        diff_preview: "--- README.md\n+++ README.md\n@@\n-old\n+new".to_string(),
+        truncated: false,
+        redacted: false,
+        diagnostic_count: 0,
+    };
+
+    let diff = DiffPanelState::from_edit_diff_snapshot(&snapshot, 200);
+
+    assert_eq!(diff.resource, "README.md");
+    assert!(diff.summary.contains("-old"));
+    assert!(diff.summary.contains("+new"));
+    assert_eq!(diff.content_hash.as_deref(), Some("fnv1a64:edit"));
 }
 
 #[test]

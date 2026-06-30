@@ -34,8 +34,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Architecture guidance | Complete for crate boundaries, event sourcing, async, errors, config, storage, security, plugins, extensibility, and testing |
 | Templates | Complete for specs, plans, ADRs, and plugin manifests |
 | ADRs | Initial decisions recorded for Rust workspace, event sourcing, SQLite-first storage, and Tokio |
-| Milestone-level specs | Complete for M01-M46 |
-| Milestone-level plans | Complete for M01-M46 |
+| Milestone-level specs | Complete for M01-M47 |
+| Milestone-level plans | Complete for M01-M47 |
 | M01 slice specs | Complete for M01-01 through M01-06 |
 | M01 slice plans | Complete for M01-01 through M01-06 |
 | M01 implementation | Complete |
@@ -401,6 +401,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M46-04 implementation | Complete |
 | M46-05 implementation | Complete |
 | M46 implementation | Complete |
+| M47 technical design | Complete |
+| M47 slice specs | Complete for M47-01 through M47-05 |
+| M47 slice plans | Complete for M47-01 through M47-05 |
+| M47-01 implementation | In progress |
+| M47 implementation | In progress |
 
 ## Milestone Spec and Plan Index
 
@@ -452,6 +457,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M44 MCP Client Stdio Tool Call Runtime | `docs/specs/M44-mcp-client-stdio-tool-call.spec.md` | `docs/plans/M44-mcp-client-stdio-tool-call.plan.md` | Execute live MCP stdio tools through typed gateway contracts with local policy boundaries and safe diagnostics. |
 | M45 MCP Client Streamable HTTP Runtime | `docs/specs/M45-mcp-client-streamable-http.spec.md` | `docs/plans/M45-mcp-client-streamable-http.plan.md` | Drive external MCP streamable HTTP servers through typed client and gateway contracts for initialize, tools/list, and tools/call. |
 | M46 MCP HTTP SSE Response Runtime | `docs/specs/M46-mcp-http-sse-response-runtime.spec.md` | `docs/plans/M46-mcp-http-sse-response-runtime.plan.md` | Parse bounded streamable HTTP SSE response frames through typed MCP client contracts. |
+| M47 MCP HTTP Session Resume Runtime | `docs/specs/M47-mcp-http-session-resume-runtime.spec.md` | `docs/plans/M47-mcp-http-session-resume-runtime.plan.md` | Persist safe streamable HTTP session metadata and SSE checkpoints before reconnect/runtime stream ownership. |
 
 ## M01 Slice Index
 
@@ -949,9 +955,20 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M46-04 HTTP Client SSE Dispatch | `docs/specs/M46-04-http-client-sse-dispatch.spec.md` | `docs/plans/M46-04-http-client-sse-dispatch.plan.md` | HTTP client initialize, tools/list, and tools/call consume matching SSE response frames. |
 | M46-05 Hardening Docs | `docs/specs/M46-05-hardening-docs.spec.md` | `docs/plans/M46-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M46 quality gate evidence. |
 
+## M47 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M47-00 MCP HTTP Session Resume Technical Design | `docs/specs/M47-00-mcp-http-session-resume-technical-design.spec.md` | `docs/plans/M47-00-mcp-http-session-resume-technical-design.plan.md` | Architecture baseline for session metadata, response envelopes, header propagation, checkpoints, redaction, and verification. |
+| M47-01 HTTP Session Metadata Contracts | `docs/specs/M47-01-http-session-metadata-contracts.spec.md` | `docs/plans/M47-01-http-session-metadata-contracts.plan.md` | Pure contracts for safe MCP streamable HTTP session metadata and SSE event id extraction. |
+| M47-02 HTTP Response Envelope | `docs/specs/M47-02-http-response-envelope.spec.md` | `docs/plans/M47-02-http-response-envelope.plan.md` | Typed response envelopes that preserve JSON/SSE body modes plus safe session metadata. |
+| M47-03 Session Header Propagation | `docs/specs/M47-03-session-header-propagation.spec.md` | `docs/plans/M47-03-session-header-propagation.plan.md` | HTTP client state records session metadata after initialize and sends safe session headers later. |
+| M47-04 SSE Checkpoint Tracking | `docs/specs/M47-04-sse-checkpoint-tracking.spec.md` | `docs/plans/M47-04-sse-checkpoint-tracking.plan.md` | Accepted bounded SSE responses update a local last-event checkpoint safely. |
+| M47-05 Hardening Docs | `docs/specs/M47-05-hardening-docs.spec.md` | `docs/plans/M47-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M47 quality gate evidence. |
+
 ## Active Work
 
-Current implementation focus: M46 is complete. Next implementation slice will be selected separately.
+Current implementation focus: M47-01 HTTP session metadata contracts.
 
 Most recent completed implementation documents:
 
@@ -1258,4 +1275,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- To be selected after M46 completion.
+- `docs/specs/M47-01-http-session-metadata-contracts.spec.md`
+- `docs/plans/M47-01-http-session-metadata-contracts.plan.md`

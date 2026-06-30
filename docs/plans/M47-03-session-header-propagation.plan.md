@@ -17,27 +17,27 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/tests/mcp_client_http_mcp_client.rs`
 
-- [ ] **Step 1: Review client session state**
+- [x] **Step 1: Review client session state**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_session_headers.rs`
 
-- [ ] **Step 1: Add session header propagation tests**
+- [x] **Step 1: Add session header propagation tests**
 
 ### Task 3: Implement Session State
 
 **Files:**
 - Modify: `crates/agent-mcp/src/client_http.rs`
 
-- [ ] **Step 1: Store metadata after successful initialize**
-- [ ] **Step 2: Add session-aware request construction**
-- [ ] **Step 3: Reject conflicting headers safely**
+- [x] **Step 1: Store metadata after successful initialize**
+- [x] **Step 2: Add session-aware request construction**
+- [x] **Step 3: Reject conflicting headers safely**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused tests and fmt**
+- [x] **Step 1: Run focused tests and fmt**
 
 Run:
 
@@ -49,7 +49,7 @@ CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M47-03**
+- [x] **Step 1: Update status and commit M47-03**
 
 Run:
 
@@ -57,3 +57,12 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: propagate mcp http session headers"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_session_headers` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_mcp_client` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

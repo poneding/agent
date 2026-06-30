@@ -48,7 +48,7 @@ Define crate ownership, metadata contracts, header propagation, checkpoint state
 
 - [x] **Step 1: Add HTTP session metadata contracts**
 - [x] **Step 2: Add HTTP response envelope metadata capture**
-- [ ] **Step 3: Propagate session headers after initialize**
+- [x] **Step 3: Propagate session headers after initialize**
 - [ ] **Step 4: Track SSE last-event checkpoints**
 - [ ] **Step 5: Add hardening docs and final verification**
 

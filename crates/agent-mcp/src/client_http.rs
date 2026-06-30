@@ -20,6 +20,8 @@ const MAX_CLIENT_HTTP_MESSAGE_CHARS: usize = 256;
 const MAX_CLIENT_HTTP_METADATA_VALUE_CHARS: usize = 256;
 const MAX_CLIENT_HTTP_SSE_EVENT_DATA_BYTES: usize = 64 * 1024;
 
+const MCP_CLIENT_HTTP_SESSION_ID_HEADER_CANONICAL: &str = "Mcp-Session-Id";
+const MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER_CANONICAL: &str = "MCP-Protocol-Version";
 const MCP_CLIENT_HTTP_SESSION_ID_HEADER: &str = "mcp-session-id";
 const MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER: &str = "mcp-protocol-version";
 
@@ -116,6 +118,14 @@ impl McpClientHttpRequest {
     }
 
     pub fn from_config(config: &McpServerConfig, body_json: Value) -> Result<Self, McpError> {
+        Self::from_config_with_session_metadata(config, body_json, None)
+    }
+
+    pub fn from_config_with_session_metadata(
+        config: &McpServerConfig,
+        body_json: Value,
+        session_metadata: Option<&McpClientHttpSessionMetadata>,
+    ) -> Result<Self, McpError> {
         if !config.enabled {
             return Err(McpError::InvalidConfig(
                 "MCP client HTTP server is disabled".to_string(),
@@ -140,6 +150,18 @@ impl McpClientHttpRequest {
                     ));
                 }
             }
+        }
+        if let Some(metadata) = session_metadata {
+            insert_mcp_client_http_metadata_header(
+                &mut resolved_headers,
+                MCP_CLIENT_HTTP_SESSION_ID_HEADER_CANONICAL,
+                metadata.session_id.as_deref(),
+            )?;
+            insert_mcp_client_http_metadata_header(
+                &mut resolved_headers,
+                MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER_CANONICAL,
+                metadata.protocol_version.as_deref(),
+            )?;
         }
 
         Self::new(url.clone(), resolved_headers, body_json, config.timeout_ms)
@@ -348,6 +370,7 @@ struct McpHttpClientState<T> {
     server_id: Option<McpServerId>,
     config: Option<McpServerConfig>,
     next_request_id: i64,
+    session_metadata: McpClientHttpSessionMetadata,
 }
 
 impl<T> McpHttpClient<T> {
@@ -359,6 +382,7 @@ impl<T> McpHttpClient<T> {
                 server_id: None,
                 config: None,
                 next_request_id: 1,
+                session_metadata: McpClientHttpSessionMetadata::default(),
             }),
         }
     }
@@ -380,12 +404,20 @@ where
         config: &McpServerConfig,
         method: &str,
         params: Value,
-    ) -> Result<McpClientHttpResponseFrame, McpError> {
+    ) -> Result<McpClientHttpDispatchResult, McpError> {
         let id = self.allocate_request_id()?;
         let body = render_mcp_client_http_request_body(id.clone(), method, params)?;
-        let request = McpClientHttpRequest::from_config(config, body)?;
+        let request = McpClientHttpRequest::from_config_with_session_metadata(
+            config,
+            body,
+            Some(&self.session_metadata),
+        )?;
         let envelope = self.transport.send_request(request).await?;
-        find_mcp_client_http_response_frame(&envelope.mode, &id)
+        let frame = find_mcp_client_http_response_frame(&envelope.mode, &id)?;
+        Ok(McpClientHttpDispatchResult {
+            frame,
+            metadata: envelope.metadata,
+        })
     }
 
     fn allocate_request_id(&mut self) -> Result<McpJsonRpcId, McpError> {
@@ -404,7 +436,7 @@ where
 {
     async fn initialize(&self, config: &McpServerConfig) -> Result<McpInitializeResult, McpError> {
         let mut state = self.state.lock().await;
-        let response = state
+        let dispatch = state
             .send_request(
                 config,
                 McpServerMethod::Initialize.as_str(),
@@ -418,10 +450,11 @@ where
                 }),
             )
             .await?;
-        let result = mcp_client_http_success_result(response, "initialize")?;
+        let result = mcp_client_http_success_result(dispatch.frame, "initialize")?;
         let initialize = map_mcp_client_http_initialize_result(config.id.clone(), &result)?;
         state.server_id = Some(config.id.clone());
         state.config = Some(config.clone());
+        state.session_metadata = dispatch.metadata;
         Ok(initialize)
     }
 
@@ -436,10 +469,10 @@ where
             McpError::Client("MCP client HTTP session is not initialized".to_string())
         })?;
 
-        let response = state
+        let dispatch = state
             .send_request(&config, McpServerMethod::ToolsList.as_str(), json!({}))
             .await?;
-        let result = mcp_client_http_success_result(response, "tools/list")?;
+        let result = mcp_client_http_success_result(dispatch.frame, "tools/list")?;
         map_mcp_client_http_tool_list_result(server_id.clone(), &result)
     }
 }
@@ -476,7 +509,7 @@ where
             McpError::Client("MCP client HTTP session is not initialized".to_string())
         })?;
 
-        let response = state
+        let dispatch = state
             .send_request(
                 &config,
                 McpServerMethod::ToolsCall.as_str(),
@@ -486,7 +519,7 @@ where
                 }),
             )
             .await?;
-        let result = mcp_client_http_success_result(response, "tools/call")?;
+        let result = mcp_client_http_success_result(dispatch.frame, "tools/call")?;
         map_mcp_client_http_tool_call_result(&result)
     }
 }
@@ -844,6 +877,11 @@ fn public_http_message(value: &str) -> String {
     )
 }
 
+struct McpClientHttpDispatchResult {
+    frame: McpClientHttpResponseFrame,
+    metadata: McpClientHttpSessionMetadata,
+}
+
 fn is_mcp_client_http_sse_content_type(content_type: &str) -> bool {
     content_type
         .split(';')
@@ -905,6 +943,26 @@ fn mcp_client_http_metadata_headers(
             .map(|value| (name.to_string(), value.to_string()))
     })
     .collect()
+}
+
+fn insert_mcp_client_http_metadata_header(
+    headers: &mut BTreeMap<String, String>,
+    name: &str,
+    value: Option<&str>,
+) -> Result<(), McpError> {
+    let Some(value) = value else {
+        return Ok(());
+    };
+    if headers.keys().any(|key| key.eq_ignore_ascii_case(name)) {
+        return Err(McpError::InvalidConfig(
+            "MCP client HTTP session header conflicts with configured header".to_string(),
+        ));
+    }
+    headers.insert(
+        name.to_string(),
+        validate_mcp_client_http_metadata_value(value)?,
+    );
+    Ok(())
 }
 
 fn parse_mcp_client_http_metadata_header(

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "default-m56-golden-path",
+  "name": "Default M56 golden path",
+  "kind": "local_coding",
+  "fixtures": {
+    "workspace": "fixtures/m56-golden-path-workspace"
+  },
+  "permissions": {},
+  "expectations": {
+    "expected_status": "passed",
+    "required_events": [
+      "tool_call_proposed",
+      "permission_decision_recorded",
+      "tool_execution_completed",
+      "tool_observation_recorded",
+      "final_response_produced"
+    ],
+    "golden": "goldens/default-m56-golden-path.golden.json"
+  },
+  "metadata": {
+    "corpus": "default",
+    "milestone": "m56"
+  }
+}

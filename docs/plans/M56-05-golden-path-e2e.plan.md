@@ -23,7 +23,7 @@
 - Read: `crates/agent-core/src/final_review.rs`
 - Read: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Review current eval behavior**
+- [x] **Step 1: Review current eval behavior**
 
 Run:
 
@@ -42,7 +42,7 @@ Expected: current replay/evidence eval paths pass, while local-coding strict sup
 - Create: `crates/agent-cli/tests/golden_path_e2e.rs`
 - Modify if needed: `crates/agent-cli/tests/eval_suite_commands.rs`
 
-- [ ] **Step 1: Add eval tests**
+- [x] **Step 1: Add eval tests**
 
 Cover:
 
@@ -50,7 +50,7 @@ Cover:
 - missing required local-coding evidence fails or becomes invalid in strict mode
 - generated report is redacted and stable
 
-- [ ] **Step 2: Add CLI smoke tests**
+- [x] **Step 2: Add CLI smoke tests**
 
 Cover:
 
@@ -58,7 +58,7 @@ Cover:
 - `cargo xtask eval` equivalent command path reports the M56 scenario as passed
 - JSON output includes parseable report/golden evidence without secrets
 
-- [ ] **Step 3: Run focused tests and verify failure**
+- [x] **Step 3: Run focused tests and verify failure**
 
 Run:
 
@@ -76,15 +76,15 @@ Expected: tests fail before local-coding eval support and scenario files are imp
 - Modify if needed: `crates/agent-eval/src/report.rs`
 - Modify if needed: `crates/agent-eval/src/manifest.rs`
 
-- [ ] **Step 1: Add local-coding runner path**
+- [x] **Step 1: Add local-coding runner path**
 
 Use existing `agent-core` local coding/final review contracts to produce deterministic eval evidence.
 
-- [ ] **Step 2: Validate expectations**
+- [x] **Step 2: Validate expectations**
 
 Check required events/evidence, final review fields, trace/audit/replay status, and strict failure behavior.
 
-- [ ] **Step 3: Ensure redaction/stability**
+- [x] **Step 3: Ensure redaction/stability**
 
 Normalize temp paths, timestamps, IDs, and secret-like strings before golden comparison.
 
@@ -95,15 +95,15 @@ Normalize temp paths, timestamps, IDs, and secret-like strings before golden com
 - Create: `docs/eval/goldens/default-m56-golden-path.golden.json`
 - Modify: `docs/eval/default.suite.json`
 
-- [ ] **Step 1: Add scenario manifest**
+- [x] **Step 1: Add scenario manifest**
 
 Create the M56 local-coding scenario with strict expectations.
 
-- [ ] **Step 2: Generate or hand-author stable golden**
+- [x] **Step 2: Generate or hand-author stable golden**
 
 Use the existing golden format and ensure evidence is bounded/redacted.
 
-- [ ] **Step 3: Add scenario to default suite**
+- [x] **Step 3: Add scenario to default suite**
 
 Update default suite and CLI tests to expect three scenarios.
 
@@ -114,7 +114,7 @@ Update default suite and CLI tests to expect three scenarios.
 - Modify: `docs/milestones/README.md`
 - Modify if needed: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -129,7 +129,7 @@ cargo xtask eval
 
 Expected: focused checks and default eval suite pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for M56-05 source, tests, eval artifacts, and docs, then:
 
@@ -141,9 +141,9 @@ Expected: commit contains only M56-05 source, tests, eval scenario/golden, and d
 
 ### Completion Checklist
 
-- [ ] Default eval suite includes M56 golden path.
-- [ ] Local-coding eval scenario passes strict mode.
-- [ ] CLI/JSON evidence is parseable and redacted.
-- [ ] Golden evidence is deterministic.
-- [ ] Trace/audit/replay/final review evidence is present.
-- [ ] Focused fmt/clippy/tests and `cargo xtask eval` pass.
+- [x] Default eval suite includes M56 golden path.
+- [x] Local-coding eval scenario passes strict mode.
+- [x] CLI/JSON evidence is parseable and redacted.
+- [x] Golden evidence is deterministic.
+- [x] Trace/audit/replay/final review evidence is present.
+- [x] Focused fmt/clippy/tests and `cargo xtask eval` pass.

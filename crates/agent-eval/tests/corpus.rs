@@ -25,9 +25,13 @@ fn builtin_corpus_loads_default_suite() {
     let suite = load_default_suite();
 
     assert_eq!(suite.manifest.id, "default-regression");
-    assert_eq!(suite.scenario_refs.len(), 2);
-    assert_eq!(suite.scenarios.len(), 2);
+    assert_eq!(suite.scenario_refs.len(), 3);
+    assert_eq!(suite.scenarios.len(), 3);
     assert_eq!(suite.scenario_refs[0].alias.as_deref(), Some("m04-replay"));
+    assert_eq!(
+        suite.scenario_refs[2].alias.as_deref(),
+        Some("m56-golden-path")
+    );
     assert_eq!(
         suite.scenarios[0].normalized_fixture_root,
         suite.normalized_suite_root
@@ -46,8 +50,8 @@ fn builtin_corpus_runs_and_matches_goldens() {
         },
     );
 
-    assert_eq!(report.summary.total, 2);
-    assert_eq!(report.summary.passed, 2);
+    assert_eq!(report.summary.total, 3);
+    assert_eq!(report.summary.passed, 3);
     assert!(report.scenarios.iter().all(|scenario| {
         scenario.status == EvalScenarioStatus::Passed && scenario.diagnostics.is_empty()
     }));

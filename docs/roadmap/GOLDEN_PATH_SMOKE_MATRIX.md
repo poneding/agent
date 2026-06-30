@@ -25,7 +25,7 @@ M55 defines the smoke coverage needed to prove that `agent` is becoming a daily 
 | GP-08 | Permission ask/allow/deny | Policy/core/CLI/TUI | `cargo test -p agent-policy`; `cargo test -p agent-core approval_resume_recovery`; `cargo test -p agent-cli approval_prompt`; `cargo test -p agent-tui approval_panel` | Approval request fixtures | Safe approval prompts, bridge commands, checkpointed wait, single execution after approval | Pass | M56, M59 |
 | GP-09 | Audit and trace summary | CLI/core | `cargo test -p agent-cli trace_commands`; `cargo test -p agent-core audit_export` | Local coding trace fixture | Ordered tool/permission/final trace and redacted audit export | Pass | M56, M62 |
 | GP-10 | Checkpoint resume | Core/storage | `cargo test -p agent-core recovery_flow`; `cargo test -p agent-storage checkpoint_store` | In-memory/SQLite stores | Recovery plan from latest checkpoint and replay tail | Pass | M62 |
-| GP-11 | Replay compatibility | Storage/eval | `cargo test -p agent-storage replay_compatibility`; `cargo xtask eval` | `docs/eval/default.suite.json`, M04 fixtures | Replay fixture parses, validates, and regenerates expected evidence | Documented | M56, M62, M65 |
+| GP-11 | Replay compatibility | Storage/eval | `cargo test -p agent-storage replay_compatibility`; `cargo xtask eval` | `docs/eval/default.suite.json`, M04 replay/evidence fixtures, M56 local-coding fixture | Replay fixtures parse, local-coding eval runs, and trace/audit/replay evidence matches goldens | Pass | M56, M62, M65 |
 | GP-12 | CLI TTY and batch modes | CLI | `cargo test -p agent-cli cli_modes`; `cargo test -p agent-cli plain_repl` | CLI parser/render fixtures | Prompt, batch, and plain REPL behavior remain stable | Pass | M59 |
 | GP-13 | CLI JSON event stream | CLI/UI bridge | `cargo test -p agent-cli json_mode`; `cargo test -p agent-ui-bridge json_frame` | UI bridge frame fixtures | Parseable NDJSON frames with redacted secrets and done count | Pass | M59 |
 | GP-14 | TUI daily-driver panels | TUI | `cargo test -p agent-tui` | Panel state/render fixtures | Transcript, composer, approvals, diffs, shell, task, trace, extension panels render from bridge frames | Pass | M59 |
@@ -44,12 +44,12 @@ M55 defines the smoke coverage needed to prove that `agent` is becoming a daily 
 
 - Real provider smokes must be opt-in and must never require secrets for default CI.
 - `cargo xtask ci` remains the broad quality gate, but it is not sufficient by itself to prove the M56 product golden path.
-- `cargo xtask eval` currently validates replay/evidence fixtures; M56 should add coding-agent scenarios before treating eval as a product acceptance gate.
+- `cargo xtask eval` validates replay/evidence fixtures and the M56 local-coding golden path.
 - Desktop product smoke is intentionally marked `Blocked` until a user-facing app path is wired over the shared runtime bridge.
 
 ## Immediate M56-M60 Implications
 
-- M56 should convert GP-01 through GP-11 into one cohesive coding workflow demo and E2E fixture.
+- M56 now has the GP-01 through GP-11 workflow covered by the deterministic local-coding eval fixture; final milestone closeout should keep that gate green.
 - M57 should close GP-18 with provider capability diagnostics and native adapters.
 - M58 should close GP-20 with repo-aware context selection and quality traces.
 - M59 should make GP-12 through GP-14 feel like one terminal workflow, not separate panels/tests.

@@ -43,23 +43,23 @@ Expected: M56-GP-01 through M56-GP-05 are the P0 implementation queue.
 - Create later: `docs/specs/M56-05-golden-path-e2e.spec.md`
 - Create later: `docs/plans/M56-05-golden-path-e2e.plan.md`
 
-- [ ] **Step 1: Complete M56-01 repo session bootstrap**
+- [x] **Step 1: Complete M56-01 repo session bootstrap**
 
 Open a workspace, load effective config, detect Git state, produce safe provider diagnostics, create durable ids, and expose CLI/JSON output.
 
-- [ ] **Step 2: Create and complete M56-02 edit/diff flow**
+- [x] **Step 2: Create and complete M56-02 edit/diff flow**
 
 Strengthen edit preview/apply, diff summary, approval payloads, and changed-file evidence.
 
-- [ ] **Step 3: Create and complete M56-03 command/test loop**
+- [x] **Step 3: Create and complete M56-03 command/test loop**
 
 Stream or bound command output, support cancellation-ready state, classify failures, and feed observations back to the model loop.
 
-- [ ] **Step 4: Create and complete M56-04 final review summary**
+- [x] **Step 4: Create and complete M56-04 final review summary**
 
 Produce a final review contract with changed files, commands/tests, trace/audit evidence, unresolved risks, and next actions.
 
-- [ ] **Step 5: Create and complete M56-05 golden path E2E**
+- [x] **Step 5: Create and complete M56-05 golden path E2E**
 
 Add deterministic fake-provider E2E/eval evidence and document real-provider opt-in behavior.
 
@@ -70,7 +70,7 @@ Add deterministic fake-provider E2E/eval evidence and document real-provider opt
 - Read: `xtask/src/lib.rs`
 - Read: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
 
-- [ ] **Step 1: Run focused tests after each slice**
+- [x] **Step 1: Run focused tests after each slice**
 
 Use the focused commands named by each slice plan.
 
@@ -112,8 +112,8 @@ Expected: commit contains implementation, tests, and docs for M56 completion.
 
 ### Completion Checklist
 
-- [ ] M56-01 through M56-05 are implemented and committed in focused stages.
-- [ ] CLI/JSON can run the deterministic local coding golden path.
-- [ ] Trace, permission, audit, replay, and final review evidence are present.
+- [x] M56-01 through M56-05 are implemented and committed in focused stages.
+- [x] CLI/JSON can run the deterministic local coding golden path.
+- [x] Trace, permission, audit, replay, and final review evidence are present.
 - [ ] TUI/Desktop bridge contracts remain shared-runtime based.
 - [ ] Final M56 verification gates pass.

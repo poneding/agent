@@ -1,0 +1,14 @@
+{
+  "scenario_id": "default-m56-golden-path",
+  "status": "passed",
+  "evidence_summary": {
+    "source": "local_coding",
+    "event_count": 31,
+    "checkpoint_count": 0,
+    "trace_entries": 31,
+    "audit_records": 30,
+    "telemetry_records": 0,
+    "replayable": true,
+    "diagnostics": 0
+  }
+}

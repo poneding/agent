@@ -223,4 +223,5 @@ pub struct EvalEvidenceSummary {
 pub enum EvalEvidenceSource {
     ReplayTrace,
     EvidenceBundle,
+    LocalCoding,
 }

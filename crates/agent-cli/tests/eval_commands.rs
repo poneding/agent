@@ -229,7 +229,7 @@ fn eval_invalid_manifest_fails_without_secret_value() {
 }
 
 #[test]
-fn eval_warn_skipped_exits_success_but_strict_invalid_fails() {
+fn eval_local_coding_manifest_passes_warn_and_strict() {
     let tempdir = tempfile::tempdir().expect("tempdir");
     let manifest = local_coding_manifest(tempdir.path());
 
@@ -240,7 +240,9 @@ fn eval_warn_skipped_exits_success_but_strict_invalid_fails() {
         .output()
         .expect("agent-cli should run");
     assert!(warn.status.success());
-    assert!(String::from_utf8_lossy(&warn.stdout).contains("skipped=1"));
+    let warn_stdout = String::from_utf8_lossy(&warn.stdout);
+    assert!(warn_stdout.contains("passed=1"));
+    assert!(warn_stdout.contains("local-coding-hook status=passed"));
 
     let strict = Command::new(env!("CARGO_BIN_EXE_agent-cli"))
         .args(["eval", "run", "--manifest"])
@@ -248,7 +250,9 @@ fn eval_warn_skipped_exits_success_but_strict_invalid_fails() {
         .arg("--strict")
         .output()
         .expect("agent-cli should run");
-    assert!(!strict.status.success());
-    assert_eq!(strict.status.code(), Some(1));
-    assert!(String::from_utf8_lossy(&strict.stdout).contains("invalid=1"));
+    assert!(strict.status.success());
+    let strict_stdout = String::from_utf8_lossy(&strict.stdout);
+    assert!(strict_stdout.contains("passed=1"));
+    assert!(strict_stdout.contains("audit=30"));
+    assert!(strict_stdout.contains("replayable=yes"));
 }

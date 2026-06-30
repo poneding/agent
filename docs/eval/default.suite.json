@@ -13,6 +13,11 @@
       "path": "scenarios/m04-evidence.eval.json",
       "alias": "m04-evidence",
       "labels": ["default", "evidence", "smoke"]
+    },
+    {
+      "path": "scenarios/m56-golden-path.eval.json",
+      "alias": "m56-golden-path",
+      "labels": ["default", "coding", "m56", "smoke"]
     }
   ]
 }

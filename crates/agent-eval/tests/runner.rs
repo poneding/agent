@@ -3,10 +3,10 @@ use std::fs;
 
 use agent_core::{ObservabilityEvidenceOptions, build_observability_evidence};
 use agent_eval::{
-    EVAL_SCENARIO_SCHEMA_VERSION, EvalExpectations, EvalExpectedStatus, EvalFixtures,
-    EvalPermissionProfile, EvalRunSummary, EvalRunnerOptions, EvalScenarioKind,
-    EvalScenarioManifest, EvalScenarioStatus, EvalStrictness, run_eval_scenario,
-    run_eval_scenarios, validate_eval_scenario,
+    EVAL_SCENARIO_SCHEMA_VERSION, EvalEvidenceSource, EvalExpectations, EvalExpectedStatus,
+    EvalFixtures, EvalPermissionProfile, EvalRunSummary, EvalRunnerOptions, EvalScenarioKind,
+    EvalScenarioManifest, EvalScenarioStatus, EvalStrictness, normalized_report_golden,
+    run_eval_scenario, run_eval_scenarios, validate_eval_scenario,
 };
 use agent_storage::load_replay_fixture_json;
 use camino::{Utf8Path, Utf8PathBuf};
@@ -125,6 +125,101 @@ fn runner_passes_evidence_only_fixture() {
 }
 
 #[test]
+fn runner_passes_local_coding_fixture() {
+    let tempdir = tempfile::tempdir().expect("tempdir");
+    let root = fixture_root(&tempdir);
+    write_fixture(&root, "workspace/README.md", "# fixture\n");
+
+    let mut manifest = manifest(
+        EvalScenarioKind::LocalCoding,
+        EvalFixtures {
+            workspace: Some(Utf8PathBuf::from("workspace")),
+            ..EvalFixtures::default()
+        },
+    );
+    manifest.expectations.required_events = vec![
+        "tool_call_proposed".to_string(),
+        "permission_decision_recorded".to_string(),
+        "tool_execution_completed".to_string(),
+        "tool_observation_recorded".to_string(),
+        "final_response_produced".to_string(),
+    ];
+    let scenario = validate_eval_scenario(manifest, &root).expect("valid scenario");
+
+    let report = run_eval_scenario(&scenario, EvalRunnerOptions::default());
+
+    assert_eq!(report.status, EvalScenarioStatus::Passed);
+    assert!(report.diagnostics.is_empty());
+    let summary = report.evidence_summary.as_ref().expect("evidence summary");
+    assert_eq!(summary.source, EvalEvidenceSource::LocalCoding);
+    assert!(summary.event_count > 0);
+    assert!(summary.trace_entries > 0);
+    assert_eq!(summary.audit_records, 30);
+    assert!(summary.replayable);
+    assert_eq!(summary.diagnostics, 0);
+
+    let value = serde_json::to_value(&report).expect("serialize report");
+    assert_eq!(value["status"], "passed");
+    assert_eq!(value["evidence_summary"]["source"], "local_coding");
+}
+
+#[test]
+fn runner_fails_local_coding_when_required_event_is_missing() {
+    let tempdir = tempfile::tempdir().expect("tempdir");
+    let root = fixture_root(&tempdir);
+    write_fixture(&root, "workspace/README.md", "# fixture\n");
+
+    let mut manifest = manifest(
+        EvalScenarioKind::LocalCoding,
+        EvalFixtures {
+            workspace: Some(Utf8PathBuf::from("workspace")),
+            ..EvalFixtures::default()
+        },
+    );
+    manifest.expectations.required_events = vec!["turn_completed".to_string()];
+    let scenario = validate_eval_scenario(manifest, &root).expect("valid scenario");
+
+    let report = run_eval_scenario(&scenario, EvalRunnerOptions::default());
+
+    assert_eq!(report.status, EvalScenarioStatus::Failed);
+    assert!(
+        report
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "required_event_missing")
+    );
+    let summary = report.evidence_summary.as_ref().expect("evidence summary");
+    assert_eq!(summary.source, EvalEvidenceSource::LocalCoding);
+    assert_eq!(summary.diagnostics, 1);
+}
+
+#[test]
+fn runner_local_coding_golden_summary_is_stable_and_redacted() {
+    let tempdir = tempfile::tempdir().expect("tempdir");
+    let root = fixture_root(&tempdir);
+    write_fixture(&root, "workspace/README.md", "# fixture\n");
+    let scenario = validate_eval_scenario(
+        manifest(
+            EvalScenarioKind::LocalCoding,
+            EvalFixtures {
+                workspace: Some(Utf8PathBuf::from("workspace")),
+                ..EvalFixtures::default()
+            },
+        ),
+        &root,
+    )
+    .expect("valid scenario");
+
+    let report = run_eval_scenario(&scenario, EvalRunnerOptions::default());
+    let normalized = normalized_report_golden(&report).expect("normalized report");
+    let rendered = serde_json::to_string(&normalized).expect("render normalized");
+
+    assert!(rendered.contains("local_coding"));
+    assert!(!rendered.contains(tempdir.path().to_string_lossy().as_ref()));
+    assert!(!rendered.contains("sk-live-secret"));
+}
+
+#[test]
 fn strict_runner_marks_unimplemented_known_kind_invalid() {
     let tempdir = tempfile::tempdir().expect("tempdir");
     let root = fixture_root(&tempdir);
@@ -162,12 +257,12 @@ fn strict_runner_marks_unimplemented_known_kind_invalid() {
 fn warn_runner_skips_unimplemented_known_kind() {
     let tempdir = tempfile::tempdir().expect("tempdir");
     let root = fixture_root(&tempdir);
-    write_fixture(&root, "workspace/README.md", "# fixture\n");
+    write_fixture(&root, "scripts/fake.json", "{}");
     let scenario = validate_eval_scenario(
         manifest(
-            EvalScenarioKind::LocalCoding,
+            EvalScenarioKind::FakeModelTurn,
             EvalFixtures {
-                workspace: Some(Utf8PathBuf::from("workspace")),
+                model_script: Some(Utf8PathBuf::from("scripts/fake.json")),
                 ..EvalFixtures::default()
             },
         ),

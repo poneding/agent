@@ -1,7 +1,10 @@
 use std::collections::BTreeSet;
 use std::fs;
 
-use agent_core::{ObservabilityEvidenceBundle, verify_observability_replay_fixture};
+use agent_core::{
+    ObservabilityEvidenceBundle, ObservabilityEvidenceOptions, build_observability_evidence,
+    replay_final_review, run_local_coding_fixture, verify_observability_replay_fixture,
+};
 use agent_storage::{check_replay_compatibility, load_replay_fixture_json};
 use serde::{Deserialize, Serialize};
 
@@ -45,9 +48,8 @@ pub fn run_eval_scenario(
     match scenario.manifest.kind {
         EvalScenarioKind::ReplayTrace => run_replay_trace_scenario(scenario),
         EvalScenarioKind::EvidenceOnly => run_evidence_only_scenario(scenario),
-        EvalScenarioKind::FakeModelTurn | EvalScenarioKind::LocalCoding => {
-            run_unimplemented_scenario(scenario, options.strictness)
-        }
+        EvalScenarioKind::LocalCoding => run_local_coding_scenario(scenario),
+        EvalScenarioKind::FakeModelTurn => run_unimplemented_scenario(scenario, options.strictness),
     }
 }
 
@@ -275,6 +277,201 @@ fn run_evidence_only_scenario(scenario: &ValidatedEvalScenario) -> EvalScenarioR
     }
 }
 
+fn run_local_coding_scenario(scenario: &ValidatedEvalScenario) -> EvalScenarioReport {
+    let Some(path) = scenario.normalized_fixtures.workspace.as_ref() else {
+        return failed_report(
+            scenario,
+            diagnostic(
+                EvalDiagnosticSeverity::Error,
+                "fixture_missing",
+                "validated scenario has no workspace fixture",
+                Some("fixtures.workspace"),
+            ),
+            None,
+        );
+    };
+
+    match fs::metadata(path.as_std_path()) {
+        Ok(metadata) if metadata.is_dir() => {}
+        Ok(_) => {
+            return failed_report(
+                scenario,
+                diagnostic(
+                    EvalDiagnosticSeverity::Error,
+                    "fixture_invalid",
+                    "workspace fixture must be a directory",
+                    Some("fixtures.workspace"),
+                ),
+                None,
+            );
+        }
+        Err(error) => {
+            return failed_report(
+                scenario,
+                diagnostic(
+                    EvalDiagnosticSeverity::Error,
+                    "fixture_read_failed",
+                    format!("failed to read workspace fixture: {error}"),
+                    Some("fixtures.workspace"),
+                ),
+                None,
+            );
+        }
+    }
+
+    let run = match run_local_coding_fixture() {
+        Ok(run) => run,
+        Err(error) => {
+            return failed_report(
+                scenario,
+                diagnostic(
+                    EvalDiagnosticSeverity::Error,
+                    "local_coding_fixture_failed",
+                    format!("local coding fixture failed: {error}"),
+                    Some("kind"),
+                ),
+                None,
+            );
+        }
+    };
+
+    let review = match replay_final_review(
+        &run.events,
+        Some(format!("eval-local-coding-{}", scenario.manifest.id)),
+    ) {
+        Ok(review) => review,
+        Err(error) => {
+            return failed_report(
+                scenario,
+                diagnostic(
+                    EvalDiagnosticSeverity::Error,
+                    "local_coding_replay_failed",
+                    format!("local coding final review replay failed: {error}"),
+                    Some("kind"),
+                ),
+                Some(EvalEvidenceSummary {
+                    source: EvalEvidenceSource::LocalCoding,
+                    event_count: run.events.len(),
+                    checkpoint_count: 0,
+                    trace_entries: 0,
+                    audit_records: 0,
+                    telemetry_records: 0,
+                    replayable: false,
+                    diagnostics: 1,
+                }),
+            );
+        }
+    };
+
+    let evidence = match build_observability_evidence(
+        &run.events,
+        &[],
+        ObservabilityEvidenceOptions {
+            include_telemetry: false,
+            ..ObservabilityEvidenceOptions::default()
+        },
+    ) {
+        Ok(evidence) => evidence,
+        Err(error) => {
+            return failed_report(
+                scenario,
+                diagnostic(
+                    EvalDiagnosticSeverity::Error,
+                    "local_coding_evidence_failed",
+                    format!("local coding evidence build failed: {error}"),
+                    Some("kind"),
+                ),
+                Some(EvalEvidenceSummary {
+                    source: EvalEvidenceSource::LocalCoding,
+                    event_count: run.events.len(),
+                    checkpoint_count: 0,
+                    trace_entries: review.trace_event_count,
+                    audit_records: review.audit_event_count,
+                    telemetry_records: 0,
+                    replayable: review.replay_reconstructed,
+                    diagnostics: 1,
+                }),
+            );
+        }
+    };
+
+    let mut diagnostics = Vec::new();
+    diagnostics.extend(required_event_diagnostics(scenario, &run.events));
+
+    if review.changed_files.is_empty() {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            "local_coding_changed_files_missing",
+            "local coding final review had no changed-file evidence",
+            Some("final_review.changed_files"),
+        ));
+    }
+    if review.command_results.is_empty() {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            "local_coding_command_evidence_missing",
+            "local coding final review had no command/test evidence",
+            Some("final_review.command_results"),
+        ));
+    }
+    if review.trace_event_count == 0 || evidence.summary.trace_entries == 0 {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            "local_coding_trace_missing",
+            "local coding evidence had no trace entries",
+            Some("evidence.trace"),
+        ));
+    }
+    if review.audit_event_count == 0 {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            "local_coding_audit_missing",
+            "local coding final review had no audit evidence",
+            Some("final_review.audit_event_count"),
+        ));
+    }
+    if !review.replay_reconstructed || !evidence.summary.replayable {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            "local_coding_replay_not_reconstructed",
+            "local coding evidence was not replayable",
+            Some("evidence.replay"),
+        ));
+    }
+    diagnostics.extend(review.diagnostics.iter().map(|diagnostic| {
+        crate::manifest::EvalDiagnostic {
+            severity: EvalDiagnosticSeverity::Error,
+            code: diagnostic.code.clone(),
+            message: bounded(diagnostic.message.clone()),
+            field: Some("final_review.diagnostics".to_string()),
+        }
+    }));
+
+    let replayable = review.replay_reconstructed && evidence.summary.replayable;
+    let summary = EvalEvidenceSummary {
+        source: EvalEvidenceSource::LocalCoding,
+        event_count: evidence.summary.total_events,
+        checkpoint_count: evidence.replay.checkpoint_count,
+        trace_entries: evidence.summary.trace_entries,
+        audit_records: review.audit_event_count,
+        telemetry_records: evidence.summary.telemetry_records,
+        replayable,
+        diagnostics: diagnostics.len(),
+    };
+    let status = if replayable && diagnostics.is_empty() {
+        EvalScenarioStatus::Passed
+    } else {
+        EvalScenarioStatus::Failed
+    };
+
+    EvalScenarioReport {
+        scenario_id: scenario.manifest.id.clone(),
+        status,
+        diagnostics,
+        evidence_summary: Some(summary),
+    }
+}
+
 fn run_unimplemented_scenario(
     scenario: &ValidatedEvalScenario,
     strictness: EvalStrictness,
@@ -353,7 +550,7 @@ fn required_event_diagnostics(
             diagnostic(
                 EvalDiagnosticSeverity::Error,
                 "required_event_missing",
-                format!("required event '{required}' was not present in replay fixture"),
+                format!("required event '{required}' was not present in scenario events"),
                 Some("expectations.required_events"),
             )
         })

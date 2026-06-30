@@ -17,7 +17,11 @@ use crate::{
 
 const MAX_CLIENT_HTTP_BODY_BYTES: usize = 256 * 1024;
 const MAX_CLIENT_HTTP_MESSAGE_CHARS: usize = 256;
+const MAX_CLIENT_HTTP_METADATA_VALUE_CHARS: usize = 256;
 const MAX_CLIENT_HTTP_SSE_EVENT_DATA_BYTES: usize = 64 * 1024;
+
+const MCP_CLIENT_HTTP_SESSION_ID_HEADER: &str = "mcp-session-id";
+const MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER: &str = "mcp-protocol-version";
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -44,6 +48,13 @@ impl McpClientHttpSseResponse {
     pub const fn new(events: Vec<McpClientHttpSseEvent>) -> Self {
         Self { events }
     }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpSessionMetadata {
+    pub session_id: Option<String>,
+    pub protocol_version: Option<String>,
+    pub last_event_id: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -614,6 +625,23 @@ pub fn find_mcp_client_http_response_frame(
         })
 }
 
+pub fn parse_mcp_client_http_session_metadata(
+    headers: &BTreeMap<String, String>,
+    response: &McpClientHttpResponseMode,
+) -> Result<McpClientHttpSessionMetadata, McpError> {
+    Ok(McpClientHttpSessionMetadata {
+        session_id: parse_mcp_client_http_metadata_header(
+            headers,
+            MCP_CLIENT_HTTP_SESSION_ID_HEADER,
+        )?,
+        protocol_version: parse_mcp_client_http_metadata_header(
+            headers,
+            MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER,
+        )?,
+        last_event_id: parse_mcp_client_http_last_sse_event_id(response)?,
+    })
+}
+
 fn mcp_client_http_success_result(
     response: McpClientHttpResponseFrame,
     operation: &str,
@@ -825,6 +853,53 @@ fn is_secret_like(value: &str) -> bool {
         || normalized.contains("api_key")
         || normalized.contains("apikey")
         || normalized.contains("sk_")
+}
+
+fn parse_mcp_client_http_metadata_header(
+    headers: &BTreeMap<String, String>,
+    expected_name: &str,
+) -> Result<Option<String>, McpError> {
+    headers
+        .iter()
+        .find(|(name, _)| name.eq_ignore_ascii_case(expected_name))
+        .map(|(_, value)| validate_mcp_client_http_metadata_value(value))
+        .transpose()
+}
+
+fn parse_mcp_client_http_last_sse_event_id(
+    response: &McpClientHttpResponseMode,
+) -> Result<Option<String>, McpError> {
+    let McpClientHttpResponseMode::Sse(response) = response else {
+        return Ok(None);
+    };
+
+    response
+        .events
+        .iter()
+        .rev()
+        .find_map(|event| event.id.as_deref())
+        .map(validate_mcp_client_http_metadata_value)
+        .transpose()
+}
+
+fn validate_mcp_client_http_metadata_value(value: &str) -> Result<String, McpError> {
+    if value.chars().any(char::is_control) {
+        return Err(invalid_mcp_client_http_session_metadata());
+    }
+
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+    {
+        return Err(invalid_mcp_client_http_session_metadata());
+    }
+
+    Ok(value.to_string())
+}
+
+fn invalid_mcp_client_http_session_metadata() -> McpError {
+    McpError::InvalidServerRequest("invalid MCP client HTTP session metadata".to_string())
 }
 
 #[derive(Default)]

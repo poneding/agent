@@ -46,7 +46,7 @@ Define crate ownership, metadata contracts, header propagation, checkpoint state
 - Execute: `docs/plans/M47-04-sse-checkpoint-tracking.plan.md`
 - Execute: `docs/plans/M47-05-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add HTTP session metadata contracts**
+- [x] **Step 1: Add HTTP session metadata contracts**
 - [ ] **Step 2: Add HTTP response envelope metadata capture**
 - [ ] **Step 3: Propagate session headers after initialize**
 - [ ] **Step 4: Track SSE last-event checkpoints**

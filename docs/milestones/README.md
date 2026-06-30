@@ -404,7 +404,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M47 technical design | Complete |
 | M47 slice specs | Complete for M47-01 through M47-05 |
 | M47 slice plans | Complete for M47-01 through M47-05 |
-| M47-01 implementation | In progress |
+| M47-01 implementation | Complete |
+| M47-02 implementation | In progress |
 | M47 implementation | In progress |
 
 ## Milestone Spec and Plan Index
@@ -968,10 +969,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M47-01 HTTP session metadata contracts.
+Current implementation focus: M47-02 HTTP response envelope.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M47-01-http-session-metadata-contracts.spec.md`
+- `docs/plans/M47-01-http-session-metadata-contracts.plan.md`
 - `docs/specs/M46-mcp-http-sse-response-runtime.spec.md`
 - `docs/plans/M46-mcp-http-sse-response-runtime.plan.md`
 - `docs/specs/M46-00-mcp-http-sse-response-technical-design.spec.md`
@@ -1275,5 +1278,5 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M47-01-http-session-metadata-contracts.spec.md`
-- `docs/plans/M47-01-http-session-metadata-contracts.plan.md`
+- `docs/specs/M47-02-http-response-envelope.spec.md`
+- `docs/plans/M47-02-http-response-envelope.plan.md`

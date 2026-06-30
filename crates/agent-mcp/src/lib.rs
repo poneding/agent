@@ -33,9 +33,10 @@ pub use client::{
 pub use client_http::{
     FixtureMcpClientHttpTransport, McpClientHttpRequest, McpClientHttpReqwestTransport,
     McpClientHttpResponse, McpClientHttpResponseFrame, McpClientHttpResponseMode,
-    McpClientHttpSseEvent, McpClientHttpSseResponse, McpClientHttpTransport, McpHttpClient,
-    find_mcp_client_http_response_frame, parse_mcp_client_http_response_body,
-    parse_mcp_client_http_response_mode_frames, parse_mcp_client_http_response_text,
+    McpClientHttpSessionMetadata, McpClientHttpSseEvent, McpClientHttpSseResponse,
+    McpClientHttpTransport, McpHttpClient, find_mcp_client_http_response_frame,
+    parse_mcp_client_http_response_body, parse_mcp_client_http_response_mode_frames,
+    parse_mcp_client_http_response_text, parse_mcp_client_http_session_metadata,
     parse_mcp_client_http_sse_events, render_mcp_client_http_request_body,
     validate_mcp_client_http_status,
 };

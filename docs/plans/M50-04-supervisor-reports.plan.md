@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Review report spec and existing reconnect report helpers**
+- [x] **Step 1: Review report spec and existing reconnect report helpers**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_stream_supervisor_reports.rs`
 
-- [ ] **Step 1: Add supervisor report tests**
+- [x] **Step 1: Add supervisor report tests**
 
 Run:
 
@@ -40,15 +40,15 @@ Expected: tests fail before supervisor reports exist.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add supervisor report contract**
-- [ ] **Step 2: Add redacted terminal summaries**
-- [ ] **Step 3: Add stable serde shape**
-- [ ] **Step 4: Integrate reports with runner outcomes**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add supervisor report contract**
+- [x] **Step 2: Add redacted terminal summaries**
+- [x] **Step 3: Add stable serde shape**
+- [x] **Step 4: Integrate reports with runner outcomes**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -59,7 +59,7 @@ CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D 
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M50-04**
+- [x] **Step 1: Update status and commit M50-04**
 
 Run:
 
@@ -67,3 +67,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http stream supervisor reports"
 ```
+
+### Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_reports` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

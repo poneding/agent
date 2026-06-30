@@ -559,6 +559,29 @@ impl McpClientHttpStreamSupervisorTick {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamSupervisorReport {
+    pub status: McpClientHttpStreamSupervisorStatus,
+    pub ticks_completed: u32,
+    pub terminal_summary: Option<String>,
+    pub reconnect: Option<McpClientHttpReconnectReport>,
+}
+
+impl McpClientHttpStreamSupervisorReport {
+    #[must_use]
+    pub fn from_tick(tick: &McpClientHttpStreamSupervisorTick) -> Self {
+        Self {
+            status: tick.status,
+            ticks_completed: tick.ticks_completed,
+            terminal_summary: tick.stop_reason.as_deref().map(public_http_message),
+            reconnect: tick
+                .reconnect_report
+                .as_ref()
+                .map(|report| report.reconnect_report.clone()),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpReconnectPolicy {
     pub max_attempts: u32,

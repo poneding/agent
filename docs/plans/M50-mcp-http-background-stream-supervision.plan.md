@@ -49,7 +49,7 @@ Define crate ownership, supervisor lifecycle, reconnect composition, cancellatio
 - [x] **Step 1: Add stream supervisor contracts**
 - [x] **Step 2: Add bounded supervisor runner**
 - [x] **Step 3: Add cancellation and lease boundary**
-- [ ] **Step 4: Add redacted supervisor reports**
+- [x] **Step 4: Add redacted supervisor reports**
 - [ ] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M50

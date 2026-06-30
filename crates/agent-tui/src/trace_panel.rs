@@ -114,6 +114,18 @@ impl TracePanelState {
                 "config",
                 format!("{}/{}", snapshot.selected_provider, snapshot.selected_model),
             )),
+            UiJsonFrame::RepoSessionSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "repo-session",
+                format!(
+                    "{} git={} provider={}/{} diagnostics={}",
+                    snapshot.workspace_root_display,
+                    snapshot.git_state,
+                    snapshot.selected_provider,
+                    snapshot.selected_model,
+                    snapshot.diagnostic_count
+                ),
+            )),
             UiJsonFrame::PromptSummary(summary) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "prompt",

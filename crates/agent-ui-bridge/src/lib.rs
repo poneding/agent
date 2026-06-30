@@ -20,8 +20,8 @@ pub use frame::{
     UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary, UiJsonFrame,
     UiMcpManagementDiagnostic, UiMcpManagementSnapshot, UiMcpServerManagementSummary,
     UiModelProviderSummary, UiObservabilitySnapshot, UiPlatformPathsSummary,
-    UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary, UiSettingsProfileSummary,
-    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary,
-    UiTaskReviewSummaryArtifact, UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary,
-    encode_json_frame,
+    UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary, UiRepoSessionDiagnostic,
+    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
+    UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary, UiTaskReviewSummaryArtifact,
+    UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
 };

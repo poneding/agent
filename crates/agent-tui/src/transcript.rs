@@ -128,6 +128,19 @@ impl TranscriptState {
                 format!("{}/{}", snapshot.selected_provider, snapshot.selected_model),
                 false,
             )),
+            UiJsonFrame::RepoSessionSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "repo-session",
+                format!(
+                    "{} git={} provider={}/{} diagnostics={}",
+                    snapshot.workspace_root_display,
+                    snapshot.git_state,
+                    snapshot.selected_provider,
+                    snapshot.selected_model,
+                    snapshot.diagnostic_count
+                ),
+                false,
+            )),
             UiJsonFrame::PromptSummary(summary) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "prompt",

@@ -18,8 +18,10 @@ use agent_core::{
     ConfiguredTurnInput, ConfiguredTurnRunner, EffectiveRuntimeConfig, ExtensionCapabilitySummary,
     ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind,
     ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
-    ExtensionSource, ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, RuntimeIds,
+    ExtensionSource, ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, RepoGitState,
+    RepoSessionBootstrapError, RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds,
     RuntimeModelConfig, SettingsError, SettingsProfile, StartupMigrationRunner,
+    bootstrap_repo_session,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -71,9 +73,9 @@ use agent_ui_bridge::{
     UiBridgeError, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
     UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
     UiJsonFrame, UiModelProviderSummary, UiPlatformPathsSummary, UiPromptDiagnosticSummary,
-    UiPromptLayerSummary, UiPromptSummary, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
-    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
-    normalize_runtime_event,
+    UiPromptLayerSummary, UiPromptSummary, UiRepoSessionSnapshot, UiSettingsProfileSummary,
+    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
+    UiTaskSummary, encode_json_frame, normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -99,6 +101,7 @@ pub enum CliCommand {
     ObservabilityJson,
     ConfigCheck,
     StartupCheck,
+    RepoSession { workspace_root: PathBuf },
     Plugin(PluginCommand),
     SkillRoot(SkillRootCommand),
     Extension(ExtensionCommand),
@@ -409,6 +412,7 @@ where
         "--observability-json" => Ok(CliCommand::ObservabilityJson),
         "--config-check" => Ok(CliCommand::ConfigCheck),
         "startup-check" | "--startup-check" => Ok(CliCommand::StartupCheck),
+        "repo" => parse_repo_command(&mut args),
         "prompt" => parse_prompt_command(&mut args),
         "repl" => parse_repl_command(&mut args),
         "plugin" => parse_plugin_command(&mut args),
@@ -498,6 +502,9 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
         CliCommand::ObservabilityJson => render_observability_json_command(),
         CliCommand::ConfigCheck => render_text_config_check(None, ConfigOverride::default()),
         CliCommand::StartupCheck => render_text_startup_check(),
+        CliCommand::RepoSession { workspace_root } => {
+            render_text_repo_session(workspace_root, None, ConfigOverride::default())
+        }
         CliCommand::Plugin(command) => {
             let mut runtime = PluginCommandRuntime::default();
             render_plugin_command(&mut runtime, command, OutputMode::Text)
@@ -551,6 +558,11 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 render_text_config_check(invocation.config_path, invocation.config_override)
             }
             CliCommand::StartupCheck => render_text_startup_check(),
+            CliCommand::RepoSession { workspace_root } => render_text_repo_session(
+                workspace_root,
+                invocation.config_path,
+                invocation.config_override,
+            ),
             CliCommand::BatchPrompt { prompt } => {
                 render_prompt_runtime(prompt, invocation.config_path, invocation.config_override)
             }
@@ -612,6 +624,14 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     }
     if invocation.command == CliCommand::StartupCheck {
         return render_json_startup_check();
+    }
+    if let CliCommand::RepoSession { workspace_root } = invocation.command {
+        return render_json_repo_session(
+            workspace_root,
+            invocation.config_path,
+            invocation.config_override,
+            invocation.model_selection,
+        );
     }
     if matches!(
         invocation.command,
@@ -728,6 +748,42 @@ where
         return Err(CliError::UnknownArgument(extra));
     }
     Ok(command)
+}
+
+fn parse_repo_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("repo".to_string()));
+    };
+    match subcommand.as_str() {
+        "session" => parse_repo_session_args(args),
+        _ => Err(CliError::UnknownArgument(format!("repo {subcommand}"))),
+    }
+}
+
+fn parse_repo_session_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut workspace_root = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--workspace" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                workspace_root = Some(PathBuf::from(value));
+            }
+            _ => return Err(CliError::UnknownArgument(format!("repo session {arg}"))),
+        }
+    }
+
+    Ok(CliCommand::RepoSession {
+        workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
+    })
 }
 
 fn parse_plugin_command<I>(args: &mut I) -> Result<CliCommand, CliError>
@@ -4559,6 +4615,143 @@ fn render_text_startup_check() -> CliOutput {
 
 fn yes_no_label(value: bool) -> &'static str {
     if value { "yes" } else { "no" }
+}
+
+fn render_text_repo_session(
+    workspace_root: PathBuf,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> CliOutput {
+    match evaluate_repo_session(workspace_root, config_path, config_override) {
+        Ok(report) => CliOutput::exit(render_repo_session_summary_text(&report)),
+        Err(error) => CliOutput::failure(render_repo_session_error_text(&error), 2),
+    }
+}
+
+fn render_json_repo_session(
+    workspace_root: PathBuf,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    _model_selection: ModelSelection,
+) -> CliOutput {
+    match evaluate_repo_session(workspace_root, config_path, config_override) {
+        Ok(report) => {
+            let snapshot = match UiRepoSessionSnapshot::from_report(&report) {
+                Ok(snapshot) => snapshot,
+                Err(error) => {
+                    let mut stdout = json_frame_line(UiJsonFrame::Error {
+                        code: "repo_session_snapshot_failed".to_string(),
+                        message: redact_secret_like_text(&error.to_string()),
+                        recoverable: false,
+                    });
+                    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                    return CliOutput::failure(stdout, 2);
+                }
+            };
+            let mut stdout = json_frame_line(UiJsonFrame::RepoSessionSnapshot(snapshot));
+            let mut event_count = 0;
+            for event in &report.events {
+                stdout.push_str(&json_frame_line(UiJsonFrame::Event(
+                    normalize_runtime_event(event),
+                )));
+                event_count += 1;
+            }
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count }));
+            CliOutput::exit(stdout)
+        }
+        Err(error) => {
+            let mut stdout = String::new();
+            for diagnostic in error.diagnostics() {
+                stdout.push_str(&json_frame_line(UiJsonFrame::ConfigDiagnostic {
+                    severity: format!("{:?}", diagnostic.severity).to_ascii_lowercase(),
+                    code: redact_secret_like_text(&diagnostic.code),
+                    message: redact_secret_like_text(&diagnostic.message),
+                    field_path: None,
+                    source: None,
+                }));
+            }
+            stdout.push_str(&json_frame_line(UiJsonFrame::Error {
+                code: error.code().to_string(),
+                message: repo_session_error_message(&error),
+                recoverable: false,
+            }));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::failure(stdout, 2)
+        }
+    }
+}
+
+fn evaluate_repo_session(
+    workspace_root: PathBuf,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> Result<RepoSessionBootstrapReport, RepoSessionBootstrapError> {
+    bootstrap_repo_session(RepoSessionBootstrapInput {
+        workspace_root,
+        config_path,
+        provider_override: config_override.provider,
+        model_override: config_override.model,
+        client_kind: agent_types::ClientKind::Cli,
+        client_version: env!("CARGO_PKG_VERSION").to_string(),
+    })
+}
+
+fn render_repo_session_summary_text(report: &RepoSessionBootstrapReport) -> String {
+    let diagnostics = if report.diagnostics.is_empty() {
+        "none".to_string()
+    } else {
+        report
+            .diagnostics
+            .iter()
+            .map(|diagnostic| {
+                format!(
+                    "{}:{}",
+                    format!("{:?}", diagnostic.severity).to_ascii_lowercase(),
+                    redact_secret_like_text(&diagnostic.code)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    format!(
+        "Repo session: ready\nWorkspace: {}\nTrust: {}\nGit: {}\nChanged files: {}\nProvider: {} / {}\nConfig layers: {}\nDiagnostics: {}\nWorkspace ID: {}\nConversation ID: {}\n",
+        redact_secret_like_text(&report.workspace_root_display),
+        format!("{:?}", report.trust_level).to_ascii_lowercase(),
+        repo_git_state_label(report.git.state),
+        report.git.changed_file_count,
+        redact_secret_like_text(&report.provider.selected_provider),
+        redact_secret_like_text(&report.provider.selected_model),
+        report.config.layer_count,
+        diagnostics,
+        report.workspace_id,
+        report.conversation_id
+    )
+}
+
+fn render_repo_session_error_text(error: &RepoSessionBootstrapError) -> String {
+    format!(
+        "repo session failed: {} ({})\n",
+        repo_session_error_message(error),
+        error.code()
+    )
+}
+
+fn repo_session_error_message(error: &RepoSessionBootstrapError) -> String {
+    match error {
+        RepoSessionBootstrapError::InvalidWorkspace { .. } => {
+            "workspace root is invalid".to_string()
+        }
+        RepoSessionBootstrapError::Config { .. } => "runtime config is invalid".to_string(),
+    }
+}
+
+fn repo_git_state_label(state: RepoGitState) -> &'static str {
+    match state {
+        RepoGitState::Clean => "clean",
+        RepoGitState::Dirty => "dirty",
+        RepoGitState::NotRepository => "not_repository",
+        RepoGitState::Unavailable => "unavailable",
+    }
 }
 
 fn render_json_startup_check() -> CliOutput {

@@ -1,5 +1,6 @@
 use agent_core::{
-    ObservabilityEvidenceBundle, StartupMigrationOutcome, TaskArtifact, TaskReviewSummary,
+    ObservabilityEvidenceBundle, RepoGitState, RepoSessionBootstrapReport,
+    RepoSessionDiagnosticSeverity, StartupMigrationOutcome, TaskArtifact, TaskReviewSummary,
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{CheckpointId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
@@ -156,6 +157,101 @@ pub struct UiObservabilitySnapshot {
     pub telemetry_count: usize,
     pub replayable: bool,
     pub diagnostics: Vec<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiRepoSessionSnapshot {
+    pub workspace_id: WorkspaceId,
+    pub conversation_id: ConversationId,
+    pub workspace_root_display: String,
+    pub trust_level: String,
+    pub git_state: String,
+    pub git_branch: Option<String>,
+    pub changed_file_count: u32,
+    pub git_summary: String,
+    pub selected_provider: String,
+    pub selected_model: String,
+    pub provider_kind: String,
+    pub provider_count: u32,
+    pub enabled_provider_count: u32,
+    pub config_layer_count: u32,
+    pub config_diagnostic_count: u32,
+    pub diagnostic_count: u32,
+    pub diagnostics: Vec<UiRepoSessionDiagnostic>,
+}
+
+impl UiRepoSessionSnapshot {
+    pub fn from_report(report: &RepoSessionBootstrapReport) -> Result<Self, UiBridgeError> {
+        let workspace_root_display = bounded_task_text(&report.workspace_root_display);
+        validate_non_empty("workspace root", &workspace_root_display)?;
+        let selected_provider = bounded_task_text(&report.provider.selected_provider);
+        let selected_model = bounded_task_text(&report.provider.selected_model);
+        let provider_kind = bounded_task_text(&report.provider.provider_kind);
+        validate_non_empty("selected provider", &selected_provider)?;
+        validate_non_empty("selected model", &selected_model)?;
+        validate_non_empty("provider kind", &provider_kind)?;
+        let diagnostics = report
+            .diagnostics
+            .iter()
+            .map(UiRepoSessionDiagnostic::from_diagnostic)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Self {
+            workspace_id: report.workspace_id,
+            conversation_id: report.conversation_id,
+            workspace_root_display,
+            trust_level: format!("{:?}", report.trust_level).to_ascii_lowercase(),
+            git_state: git_state_label(report.git.state).to_string(),
+            git_branch: report
+                .git
+                .branch
+                .clone()
+                .map(|branch| bounded_task_text(&branch)),
+            changed_file_count: report.git.changed_file_count,
+            git_summary: bounded_task_text(&report.git.summary),
+            selected_provider,
+            selected_model,
+            provider_kind,
+            provider_count: report.provider.provider_count,
+            enabled_provider_count: report.provider.enabled_provider_count,
+            config_layer_count: report.config.layer_count,
+            config_diagnostic_count: report.config.diagnostic_count,
+            diagnostic_count: report.diagnostics.len().try_into().map_err(|_| {
+                UiBridgeError::Validation("too many repo session diagnostics".to_string())
+            })?,
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiRepoSessionDiagnostic {
+    pub severity: String,
+    pub code: String,
+    pub message: String,
+    pub recoverable: bool,
+}
+
+impl UiRepoSessionDiagnostic {
+    pub fn from_diagnostic(
+        diagnostic: &agent_core::RepoSessionDiagnostic,
+    ) -> Result<Self, UiBridgeError> {
+        let code = bounded_task_text(&diagnostic.code);
+        let message = bounded_task_text(&diagnostic.message);
+        validate_non_empty("repo session diagnostic code", &code)?;
+        validate_non_empty("repo session diagnostic message", &message)?;
+        Ok(Self {
+            severity: match diagnostic.severity {
+                RepoSessionDiagnosticSeverity::Info => "info",
+                RepoSessionDiagnosticSeverity::Warning => "warning",
+                RepoSessionDiagnosticSeverity::Error => "error",
+            }
+            .to_string(),
+            code,
+            message,
+            recoverable: diagnostic.recoverable,
+        })
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -883,6 +979,7 @@ impl UiTaskReviewSummaryArtifact {
 pub enum UiJsonFrame {
     Event(UiEventEnvelope),
     ConfigSnapshot(UiConfigSnapshot),
+    RepoSessionSnapshot(UiRepoSessionSnapshot),
     PromptSummary(UiPromptSummary),
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),
@@ -915,6 +1012,15 @@ pub enum UiJsonFrame {
         message: String,
         recoverable: bool,
     },
+}
+
+fn git_state_label(state: RepoGitState) -> &'static str {
+    match state {
+        RepoGitState::Clean => "clean",
+        RepoGitState::Dirty => "dirty",
+        RepoGitState::NotRepository => "not_repository",
+        RepoGitState::Unavailable => "unavailable",
+    }
 }
 
 pub fn encode_json_frame(frame: &UiJsonFrame) -> Result<String, UiBridgeError> {

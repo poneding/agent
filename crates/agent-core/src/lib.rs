@@ -14,6 +14,7 @@ pub mod mcp_sampling;
 pub mod model_runtime;
 pub mod observability;
 pub mod recovery;
+pub mod repo_session;
 pub mod runtime;
 pub mod settings;
 pub mod startup_migration;
@@ -80,6 +81,11 @@ pub use observability::{
     verify_observability_evidence_replay, verify_observability_replay_fixture,
 };
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
+pub use repo_session::{
+    RepoConfigSummary, RepoGitState, RepoGitSummary, RepoProviderSummary,
+    RepoSessionBootstrapError, RepoSessionBootstrapInput, RepoSessionBootstrapReport,
+    RepoSessionDiagnostic, RepoSessionDiagnosticSeverity, bootstrap_repo_session,
+};
 pub use runtime::RuntimeIds;
 pub use settings::{
     PlatformKind, PlatformPathKey, PlatformPathOverrides, PlatformPaths, ReleaseChannel,

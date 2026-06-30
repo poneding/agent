@@ -21,7 +21,7 @@
 - Read: `crates/agent-cli/src/command.rs`
 - Read: `crates/agent-ui-bridge/src/event.rs`
 
-- [ ] **Step 1: Review contracts and existing boundaries**
+- [x] **Step 1: Review contracts and existing boundaries**
 
 Run:
 
@@ -36,7 +36,7 @@ Expected: bootstrap scope is limited to workspace/config/Git/provider/session ev
 **Files:**
 - Create: `crates/agent-core/tests/repo_session_bootstrap.rs`
 
-- [ ] **Step 1: Add core bootstrap tests**
+- [x] **Step 1: Add core bootstrap tests**
 
 Cover:
 
@@ -46,7 +46,7 @@ Cover:
 - invalid workspace root fails without events
 - config/provider diagnostics are redacted
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -62,15 +62,15 @@ Expected: tests fail before implementation exists.
 - Create: `crates/agent-core/src/repo_session.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add typed contracts**
+- [x] **Step 1: Add typed contracts**
 
 Implement input, report, Git summary, provider summary, config summary, diagnostics, and error types.
 
-- [ ] **Step 2: Add bootstrap function**
+- [x] **Step 2: Add bootstrap function**
 
 Implement read-only workspace validation, Git status detection, config/provider summary, runtime ids, and workspace/session/conversation events.
 
-- [ ] **Step 3: Run core tests**
+- [x] **Step 3: Run core tests**
 
 Run:
 
@@ -87,7 +87,7 @@ Expected: core tests pass.
 - Modify: `crates/agent-cli/src/command.rs`
 - Modify if needed: `crates/agent-cli/src/output.rs`
 
-- [ ] **Step 1: Add CLI tests**
+- [x] **Step 1: Add CLI tests**
 
 Cover:
 
@@ -96,11 +96,11 @@ Cover:
 - invalid workspace exits with code `2`
 - provider/config diagnostics do not expose secrets
 
-- [ ] **Step 2: Implement CLI command**
+- [x] **Step 2: Implement CLI command**
 
 Add parser and renderer that call `agent-core` bootstrap and use existing `CliOutput` patterns.
 
-- [ ] **Step 3: Run CLI tests**
+- [x] **Step 3: Run CLI tests**
 
 Run:
 
@@ -117,15 +117,15 @@ Expected: CLI tests pass.
 - Modify if needed: `crates/agent-ui-bridge/src/event.rs`
 - Modify if needed: `crates/agent-ui-bridge/src/frame.rs`
 
-- [ ] **Step 1: Add bridge tests**
+- [x] **Step 1: Add bridge tests**
 
 Cover UI-safe session/bootstrap serialization and redaction.
 
-- [ ] **Step 2: Implement bridge mapping only if existing events are insufficient**
+- [x] **Step 2: Implement bridge mapping only if existing events are insufficient**
 
 Prefer existing `Workspace`, `Session`, `Progress`, `ConfigSnapshot`, or safe frame types before adding new wire shapes.
 
-- [ ] **Step 3: Run bridge tests**
+- [x] **Step 3: Run bridge tests**
 
 Run:
 
@@ -141,7 +141,7 @@ Expected: bridge tests pass.
 - Modify: `docs/plans/M56-01-repo-session-bootstrap.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -155,7 +155,7 @@ cargo test -p agent-ui-bridge repo_session_snapshot
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for the M56-01 source, tests, and docs, then:
 
@@ -167,9 +167,9 @@ Expected: commit contains only M56-01 source, tests, and documentation/status up
 
 ### Completion Checklist
 
-- [ ] Core bootstrap contracts and diagnostics exist.
-- [ ] CLI text and JSON command exists.
-- [ ] UI bridge evidence is safe and serializable.
-- [ ] Git clean/dirty/non-Git/invalid root cases are tested.
-- [ ] Config/provider diagnostics are redacted.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Core bootstrap contracts and diagnostics exist.
+- [x] CLI text and JSON command exists.
+- [x] UI bridge evidence is safe and serializable.
+- [x] Git clean/dirty/non-Git/invalid root cases are tested.
+- [x] Config/provider diagnostics are redacted.
+- [x] Focused fmt/clippy/tests pass.

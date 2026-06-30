@@ -504,6 +504,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M56 milestone plan | Complete |
 | M56-01 slice spec | Complete |
 | M56-01 slice plan | Complete |
+| M56-01 implementation | Complete |
 | M56 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1193,7 +1194,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M56-01 Repo Session Bootstrap.
+Current implementation focus: M56-02 Edit and Diff Flow planning and implementation.
 
 Most recent completed implementation documents:
 
@@ -1649,10 +1650,10 @@ Most recent completed technical design documents:
 Next planning action:
 
 - Create later M56 slice specs/plans only when the active slice needs them; do not force a fixed slice count beyond the product complexity.
-- Start M56-01 Repo Session Bootstrap implementation from `docs/plans/M56-01-repo-session-bootstrap.plan.md`
+- Create M56-02 Edit and Diff Flow spec/plan when starting the next implementation slice.
 
 Next implementation direction:
 
-- M56-01 Repo Session Bootstrap
+- M56-02 Edit and Diff Flow
 - M56 Coding Agent Golden Path v1
 - M57 Multi-Provider Runtime

@@ -183,6 +183,21 @@ impl TracePanelState {
                     snapshot.diagnostic_count
                 ),
             )),
+            UiJsonFrame::ProjectContextRetrievalSnapshot(snapshot) => {
+                self.push(TracePanelEntry::new(
+                    TraceEntryKind::Runtime,
+                    "project-context-retrieval",
+                    format!(
+                        "{} selected={} omitted={} diagnostics={} tokens={}/{}",
+                        snapshot.workspace_root_display,
+                        snapshot.selected_count,
+                        snapshot.omitted_count,
+                        snapshot.diagnostic_count,
+                        snapshot.used_tokens,
+                        snapshot.budget_tokens
+                    ),
+                ));
+            }
             UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "extensions",

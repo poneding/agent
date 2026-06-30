@@ -20,7 +20,7 @@
 - Read: `crates/agent-cli/tests/project_context_commands.rs`
 - Read: `crates/agent-ui-bridge/tests/project_context_snapshot.rs`
 
-- [ ] **Step 1: Review M58-01 baseline**
+- [x] **Step 1: Review M58-01 baseline**
 
 Run:
 
@@ -38,7 +38,7 @@ Expected: M58-01 project summaries and context command surfaces pass before retr
 **Files:**
 - Create: `crates/agent-context/tests/context_retrieval.rs`
 
-- [ ] **Step 1: Add retrieval contract tests**
+- [x] **Step 1: Add retrieval contract tests**
 
 Cover:
 
@@ -49,7 +49,7 @@ Cover:
 - budget-limited candidates are omitted with `budget_exceeded`
 - selected candidates convert into safe project prompt layers
 
-- [ ] **Step 2: Run context tests and verify failure**
+- [x] **Step 2: Run context tests and verify failure**
 
 Run:
 
@@ -66,19 +66,19 @@ Expected: tests fail before retrieval contracts exist.
 - Modify: `crates/agent-context/src/lib.rs`
 - Modify if needed: `crates/agent-context/src/error.rs`
 
-- [ ] **Step 1: Add typed retrieval contracts**
+- [x] **Step 1: Add typed retrieval contracts**
 
 Implement query, report, candidate, omission, diagnostic, and reason types with validation constructors and stable serde names.
 
-- [ ] **Step 2: Add lexical scoring**
+- [x] **Step 2: Add lexical scoring**
 
 Tokenize task text and compare against project summary path components, filenames, directory names, language, and file kind. Keep scoring deterministic and bounded.
 
-- [ ] **Step 3: Add selection and prompt-layer conversion**
+- [x] **Step 3: Add selection and prompt-layer conversion**
 
 Select candidates under budget, omit over-budget candidates with reasons, and produce summary-only project prompt layers from selected metadata.
 
-- [ ] **Step 4: Run context retrieval tests**
+- [x] **Step 4: Run context retrieval tests**
 
 Run:
 
@@ -95,15 +95,15 @@ Expected: context retrieval tests pass.
 - Modify: `crates/agent-core/src/project_context.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add core orchestration tests**
+- [x] **Step 1: Add core orchestration tests**
 
 Cover scanning a temp workspace, retrieving relevant files for a task, preserving safe paths, returning unknown-pin diagnostics, and keeping secret-like files metadata-only.
 
-- [ ] **Step 2: Implement core helper**
+- [x] **Step 2: Implement core helper**
 
 Add a typed input/report that composes `scan_project_context` with `agent-context` retrieval.
 
-- [ ] **Step 3: Run core tests**
+- [x] **Step 3: Run core tests**
 
 Run:
 
@@ -119,7 +119,7 @@ Expected: core retrieval tests pass.
 - Create: `crates/agent-cli/tests/project_context_retrieval_commands.rs`
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Add CLI tests**
+- [x] **Step 1: Add CLI tests**
 
 Cover:
 
@@ -129,11 +129,11 @@ Cover:
 - invalid workspace and empty task exit with code `2`
 - task text and diagnostics are bounded and redacted
 
-- [ ] **Step 2: Implement CLI command**
+- [x] **Step 2: Implement CLI command**
 
 Extend the `repo context` namespace with a retrieval subcommand that calls shared core retrieval.
 
-- [ ] **Step 3: Run CLI tests**
+- [x] **Step 3: Run CLI tests**
 
 Run:
 
@@ -152,15 +152,15 @@ Expected: CLI retrieval tests pass.
 - Modify if needed: `crates/agent-tui/src/trace_panel.rs`
 - Modify if needed: `crates/agent-tui/src/transcript.rs`
 
-- [ ] **Step 1: Add bridge tests**
+- [x] **Step 1: Add bridge tests**
 
 Cover stable JSON shape, single-line frame encoding, selected/omitted candidate summaries, diagnostics, and redaction.
 
-- [ ] **Step 2: Implement bridge mapping**
+- [x] **Step 2: Implement bridge mapping**
 
 Add a retrieval snapshot frame derived from the typed retrieval report.
 
-- [ ] **Step 3: Run bridge tests**
+- [x] **Step 3: Run bridge tests**
 
 Run:
 
@@ -177,7 +177,7 @@ Expected: bridge retrieval tests pass.
 - Modify: `docs/plans/M58-project-context-intelligence.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -192,7 +192,7 @@ cargo test -p agent-ui-bridge --test project_context_retrieval_snapshot
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for the M58-02 source, tests, and docs, then:
 
@@ -204,10 +204,10 @@ Expected: commit contains only M58-02 source, tests, and documentation/status up
 
 ### Completion Checklist
 
-- [ ] Retrieval query/report contracts are typed and serde-tested.
-- [ ] Lexical scoring is deterministic and reasoned.
-- [ ] Budgeted selected/omitted candidate behavior is tested.
-- [ ] Core scan-plus-retrieve orchestration exists.
-- [ ] CLI text/JSON output exposes safe retrieval evidence.
-- [ ] UI bridge retrieval snapshot shape is stable and safe.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Retrieval query/report contracts are typed and serde-tested.
+- [x] Lexical scoring is deterministic and reasoned.
+- [x] Budgeted selected/omitted candidate behavior is tested.
+- [x] Core scan-plus-retrieve orchestration exists.
+- [x] CLI text/JSON output exposes safe retrieval evidence.
+- [x] UI bridge retrieval snapshot shape is stable and safe.
+- [x] Focused fmt/clippy/tests pass.

@@ -59,7 +59,7 @@ Add typed project file/directory summaries, bounded workspace scanning in shared
 - Execute: `docs/specs/M58-02-relevant-file-retrieval.spec.md`
 - Execute: `docs/plans/M58-02-relevant-file-retrieval.plan.md`
 
-- [ ] **Step 1: Complete lexical retrieval slice**
+- [x] **Step 1: Complete lexical retrieval slice**
 
 Rank relevant files from task text, paths, symbols, file metadata, and existing project summaries with deterministic scoring reasons and budget-aware candidate limits.
 
@@ -121,7 +121,7 @@ Run exact-path staging and commit the final docs/status updates.
 ### Completion Checklist
 
 - [x] Project file tree summaries are typed, bounded, serde-friendly, and tested.
-- [ ] Relevant-file retrieval is deterministic and budget-aware.
+- [x] Relevant-file retrieval is deterministic and budget-aware.
 - [ ] Semantic/hybrid retrieval is optional and fixture-tested.
 - [ ] Pinned context participates in prompt budget planning with diagnostics.
 - [ ] CLI/JSON and bridge surfaces expose safe context evidence.

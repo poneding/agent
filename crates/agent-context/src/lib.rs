@@ -7,6 +7,7 @@ pub mod error;
 pub mod memory_layers;
 pub mod project;
 pub mod prompt;
+pub mod retrieval;
 
 pub use budget::{
     BudgetClass, BudgetDecision, BudgetItem, BudgetPlan, ContextBudget, plan_context_budget,
@@ -27,6 +28,11 @@ pub use prompt::{
     PromptLayerKind, PromptLayerPolicy, PromptLayerSensitivity, PromptLayerSource,
     PromptLayerVisibility, PromptMessage, PromptOverlay, PromptOverlayAction, PromptProfile,
     PromptProfileId, PromptRuntime, PromptSnapshot, assemble_prompt_bundle,
+};
+pub use retrieval::{
+    ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
+    ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery,
+    ContextRetrievalReport, ContextSelectionReason, retrieve_relevant_context,
 };
 
 /// Returns a smoke-test string proving the context crate links shared types.

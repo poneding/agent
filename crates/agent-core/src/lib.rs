@@ -102,13 +102,17 @@ pub use observability::{
     verify_observability_evidence_replay, verify_observability_replay_fixture,
 };
 pub use project_context::{
-    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity, ProjectContextLimits,
-    ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,
-    ProjectDirectorySummary, ProjectFileKind, ProjectFileSummary,
+    ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
+    ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery,
+    ContextRetrievalReport, ContextSelectionReason, ProjectContextDiagnostic,
+    ProjectContextDiagnosticSeverity, ProjectContextLimits, ProjectContextOmission,
+    ProjectContextSummary, ProjectContextVisibility, ProjectDirectorySummary, ProjectFileKind,
+    ProjectFileSummary,
 };
 pub use project_context::{
+    ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
     ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
-    scan_project_context,
+    retrieve_project_context, scan_project_context,
 };
 pub use provider_support::{
     ProviderSupportReport, ProviderSupportRole, ProviderSupportSummary,

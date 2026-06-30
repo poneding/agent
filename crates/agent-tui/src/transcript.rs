@@ -203,6 +203,22 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::ProjectContextRetrievalSnapshot(snapshot) => {
+                self.push(TranscriptItem::new(
+                    TranscriptItemKind::Progress,
+                    "project-context-retrieval",
+                    format!(
+                        "{} selected={} omitted={} diagnostics={} tokens={}/{}",
+                        snapshot.workspace_root_display,
+                        snapshot.selected_count,
+                        snapshot.omitted_count,
+                        snapshot.diagnostic_count,
+                        snapshot.used_tokens,
+                        snapshot.budget_tokens
+                    ),
+                    false,
+                ))
+            }
             UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "extensions",

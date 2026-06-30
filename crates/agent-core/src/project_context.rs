@@ -2,10 +2,14 @@ use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use agent_context::retrieve_relevant_context;
 pub use agent_context::{
-    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity, ProjectContextLimits,
-    ProjectContextOmission, ProjectContextSummary, ProjectContextVisibility,
-    ProjectDirectorySummary, ProjectFileKind, ProjectFileSummary,
+    ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
+    ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery,
+    ContextRetrievalReport, ContextSelectionReason, ProjectContextDiagnostic,
+    ProjectContextDiagnosticSeverity, ProjectContextLimits, ProjectContextOmission,
+    ProjectContextSummary, ProjectContextVisibility, ProjectDirectorySummary, ProjectFileKind,
+    ProjectFileSummary,
 };
 use thiserror::Error;
 
@@ -20,6 +24,19 @@ pub struct ProjectContextScanReport {
     pub summary: ProjectContextSummary,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProjectContextRetrievalInput {
+    pub workspace_root: PathBuf,
+    pub limits: ProjectContextLimits,
+    pub query: ContextRetrievalQuery,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct ProjectContextRetrievalReport {
+    pub summary: ProjectContextSummary,
+    pub retrieval: ContextRetrievalReport,
+}
+
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
 pub enum ProjectContextScanError {
     #[error("workspace root is invalid")]
@@ -28,6 +45,22 @@ pub enum ProjectContextScanError {
     },
     #[error("project context scan failed")]
     Scan {
+        diagnostics: Vec<ProjectContextDiagnostic>,
+    },
+}
+
+#[derive(Clone, Debug, Error, Eq, PartialEq)]
+pub enum ProjectContextRetrievalError {
+    #[error("workspace root is invalid")]
+    InvalidWorkspace {
+        diagnostics: Vec<ProjectContextDiagnostic>,
+    },
+    #[error("project context scan failed")]
+    Scan {
+        diagnostics: Vec<ProjectContextDiagnostic>,
+    },
+    #[error("project context retrieval failed")]
+    Retrieval {
         diagnostics: Vec<ProjectContextDiagnostic>,
     },
 }
@@ -45,6 +78,26 @@ impl ProjectContextScanError {
     pub fn diagnostics(&self) -> &[ProjectContextDiagnostic] {
         match self {
             Self::InvalidWorkspace { diagnostics } | Self::Scan { diagnostics } => diagnostics,
+        }
+    }
+}
+
+impl ProjectContextRetrievalError {
+    #[must_use]
+    pub const fn code(&self) -> &'static str {
+        match self {
+            Self::InvalidWorkspace { .. } => "project_context.workspace.invalid",
+            Self::Scan { .. } => "project_context.scan.failed",
+            Self::Retrieval { .. } => "project_context.retrieval.failed",
+        }
+    }
+
+    #[must_use]
+    pub fn diagnostics(&self) -> &[ProjectContextDiagnostic] {
+        match self {
+            Self::InvalidWorkspace { diagnostics }
+            | Self::Scan { diagnostics }
+            | Self::Retrieval { diagnostics } => diagnostics,
         }
     }
 }
@@ -84,6 +137,23 @@ pub fn scan_project_context(
     .map_err(scan_error_from_context)?;
 
     Ok(ProjectContextScanReport { summary })
+}
+
+pub fn retrieve_project_context(
+    input: ProjectContextRetrievalInput,
+) -> Result<ProjectContextRetrievalReport, ProjectContextRetrievalError> {
+    let scan_report = scan_project_context(ProjectContextScanInput {
+        workspace_root: input.workspace_root,
+        limits: input.limits,
+    })
+    .map_err(retrieval_error_from_scan)?;
+    let retrieval = retrieve_relevant_context(&scan_report.summary, input.query)
+        .map_err(retrieval_error_from_context)?;
+
+    Ok(ProjectContextRetrievalReport {
+        summary: scan_report.summary,
+        retrieval,
+    })
 }
 
 fn validate_workspace_root(path: &Path) -> Result<PathBuf, ProjectContextScanError> {
@@ -471,6 +541,30 @@ fn scan_error_from_context(error: agent_context::ContextError) -> ProjectContext
         diagnostics: vec![diagnostic(
             ProjectContextDiagnosticSeverity::Error,
             "project_context.summary.invalid",
+            &error.to_string(),
+            None,
+        )],
+    }
+}
+
+fn retrieval_error_from_scan(error: ProjectContextScanError) -> ProjectContextRetrievalError {
+    match error {
+        ProjectContextScanError::InvalidWorkspace { diagnostics } => {
+            ProjectContextRetrievalError::InvalidWorkspace { diagnostics }
+        }
+        ProjectContextScanError::Scan { diagnostics } => {
+            ProjectContextRetrievalError::Scan { diagnostics }
+        }
+    }
+}
+
+fn retrieval_error_from_context(
+    error: agent_context::ContextError,
+) -> ProjectContextRetrievalError {
+    ProjectContextRetrievalError::Retrieval {
+        diagnostics: vec![diagnostic(
+            ProjectContextDiagnosticSeverity::Error,
+            "project_context.retrieval.invalid",
             &error.to_string(),
             None,
         )],

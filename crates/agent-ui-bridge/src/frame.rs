@@ -1,9 +1,10 @@
 use agent_core::{
     CodingFinalReview, CommandExecutionStatus, CommandFailureClassification, CommandTestLoopReport,
+    ContextCandidate, ContextCandidateOmission, ContextRetrievalDiagnosticSeverity,
     DiffEvidenceState, EditDiffFlowReport, ObservabilityEvidenceBundle,
-    ProjectContextDiagnosticSeverity, ProjectContextSummary, ProjectFileSummary, RepoGitState,
-    RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity, StartupMigrationOutcome,
-    TaskArtifact, TaskReviewSummary,
+    ProjectContextDiagnosticSeverity, ProjectContextRetrievalReport, ProjectContextSummary,
+    ProjectFileSummary, RepoGitState, RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity,
+    StartupMigrationOutcome, TaskArtifact, TaskReviewSummary,
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{CheckpointId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
@@ -1071,6 +1072,175 @@ pub struct UiProjectContextDiagnosticSummary {
     pub path: Option<String>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextRetrievalSnapshot {
+    pub workspace_root_display: String,
+    pub task: String,
+    pub max_candidates: u32,
+    pub budget_tokens: u32,
+    pub used_tokens: u32,
+    pub selected_count: u32,
+    pub omitted_count: u32,
+    pub diagnostic_count: u32,
+    pub selected: Vec<UiProjectContextRetrievalCandidateSummary>,
+    pub omitted: Vec<UiProjectContextRetrievalOmissionSummary>,
+    pub diagnostics: Vec<UiProjectContextRetrievalDiagnosticSummary>,
+}
+
+impl UiProjectContextRetrievalSnapshot {
+    pub fn from_report(report: &ProjectContextRetrievalReport) -> Result<Self, UiBridgeError> {
+        let workspace_root_display = bounded_task_text(&report.summary.workspace_root_display);
+        validate_non_empty(
+            "project context retrieval workspace root",
+            &workspace_root_display,
+        )?;
+        let task = bounded_task_text(&report.retrieval.query.task);
+        validate_non_empty("project context retrieval task", &task)?;
+        let selected = report
+            .retrieval
+            .selected
+            .iter()
+            .map(UiProjectContextRetrievalCandidateSummary::from_candidate)
+            .collect::<Result<Vec<_>, _>>()?;
+        let omitted = report
+            .retrieval
+            .omitted
+            .iter()
+            .map(UiProjectContextRetrievalOmissionSummary::from_omission)
+            .collect::<Result<Vec<_>, _>>()?;
+        let diagnostics = report
+            .retrieval
+            .diagnostics
+            .iter()
+            .map(|diagnostic| {
+                let severity =
+                    context_retrieval_diagnostic_severity_label(diagnostic.severity).to_string();
+                let code = bounded_task_text(&diagnostic.code);
+                let message = bounded_task_text(&diagnostic.message);
+                validate_non_empty("project context retrieval diagnostic code", &code)?;
+                validate_non_empty("project context retrieval diagnostic message", &message)?;
+                Ok(UiProjectContextRetrievalDiagnosticSummary {
+                    severity,
+                    code,
+                    message,
+                    path: diagnostic.path.clone().map(|path| bounded_task_text(&path)),
+                })
+            })
+            .collect::<Result<Vec<_>, UiBridgeError>>()?;
+
+        Ok(Self {
+            workspace_root_display,
+            task,
+            max_candidates: report.retrieval.query.max_candidates,
+            budget_tokens: report.retrieval.query.budget_tokens,
+            used_tokens: report.retrieval.used_tokens,
+            selected_count: report.retrieval.selected.len().try_into().map_err(|_| {
+                UiBridgeError::Validation(
+                    "too many project context retrieval selections".to_string(),
+                )
+            })?,
+            omitted_count: report.retrieval.omitted.len().try_into().map_err(|_| {
+                UiBridgeError::Validation(
+                    "too many project context retrieval omissions".to_string(),
+                )
+            })?,
+            diagnostic_count: report.retrieval.diagnostics.len().try_into().map_err(|_| {
+                UiBridgeError::Validation(
+                    "too many project context retrieval diagnostics".to_string(),
+                )
+            })?,
+            selected,
+            omitted,
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextRetrievalCandidateSummary {
+    pub path: String,
+    pub kind: String,
+    pub language: Option<String>,
+    pub size_bytes: u64,
+    pub line_count: Option<u32>,
+    pub token_estimate: u32,
+    pub visibility: String,
+    pub score: u32,
+    pub reasons: Vec<String>,
+}
+
+impl UiProjectContextRetrievalCandidateSummary {
+    fn from_candidate(candidate: &ContextCandidate) -> Result<Self, UiBridgeError> {
+        let path = bounded_task_text(&candidate.path);
+        validate_non_empty("project context retrieval candidate path", &path)?;
+        let reasons = candidate
+            .reasons
+            .iter()
+            .map(|reason| reason.as_str().to_string())
+            .collect::<Vec<_>>();
+        if reasons.is_empty() {
+            return Err(UiBridgeError::Validation(
+                "project context retrieval candidate reasons cannot be empty".to_string(),
+            ));
+        }
+        Ok(Self {
+            path,
+            kind: candidate.kind.as_str().to_string(),
+            language: candidate
+                .language
+                .clone()
+                .map(|language| bounded_task_text(&language)),
+            size_bytes: candidate.size_bytes,
+            line_count: candidate.line_count,
+            token_estimate: candidate.token_estimate,
+            visibility: candidate.visibility.as_str().to_string(),
+            score: candidate.score,
+            reasons,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextRetrievalOmissionSummary {
+    pub path: String,
+    pub kind: String,
+    pub language: Option<String>,
+    pub size_bytes: u64,
+    pub line_count: Option<u32>,
+    pub token_estimate: u32,
+    pub visibility: String,
+    pub score: u32,
+    pub reasons: Vec<String>,
+    pub reason: String,
+}
+
+impl UiProjectContextRetrievalOmissionSummary {
+    fn from_omission(omission: &ContextCandidateOmission) -> Result<Self, UiBridgeError> {
+        let candidate =
+            UiProjectContextRetrievalCandidateSummary::from_candidate(&omission.candidate)?;
+        Ok(Self {
+            path: candidate.path,
+            kind: candidate.kind,
+            language: candidate.language,
+            size_bytes: candidate.size_bytes,
+            line_count: candidate.line_count,
+            token_estimate: candidate.token_estimate,
+            visibility: candidate.visibility,
+            score: candidate.score,
+            reasons: candidate.reasons,
+            reason: omission.reason.as_str().to_string(),
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiProjectContextRetrievalDiagnosticSummary {
+    pub severity: String,
+    pub code: String,
+    pub message: String,
+    pub path: Option<String>,
+}
+
 impl UiPromptDiagnosticSummary {
     pub fn new(
         severity: impl Into<String>,
@@ -1466,6 +1636,7 @@ pub enum UiJsonFrame {
     FinalReviewSnapshot(UiFinalReviewSnapshot),
     PromptSummary(UiPromptSummary),
     ProjectContextSnapshot(UiProjectContextSnapshot),
+    ProjectContextRetrievalSnapshot(UiProjectContextRetrievalSnapshot),
     ExtensionSnapshot(UiExtensionSnapshot),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
@@ -1547,6 +1718,16 @@ fn project_context_diagnostic_severity_label(
         ProjectContextDiagnosticSeverity::Info => "info",
         ProjectContextDiagnosticSeverity::Warning => "warning",
         ProjectContextDiagnosticSeverity::Error => "error",
+    }
+}
+
+fn context_retrieval_diagnostic_severity_label(
+    severity: ContextRetrievalDiagnosticSeverity,
+) -> &'static str {
+    match severity {
+        ContextRetrievalDiagnosticSeverity::Info => "info",
+        ContextRetrievalDiagnosticSeverity::Warning => "warning",
+        ContextRetrievalDiagnosticSeverity::Error => "error",
     }
 }
 

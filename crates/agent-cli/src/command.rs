@@ -17,17 +17,19 @@ use agent_core::{
     CommandFailureClassification, CommandTestDiagnosticSeverity, CommandTestLoopError,
     CommandTestLoopInput, CommandTestLoopReport, ConfigDiagnostic, ConfigDiagnosticSeverity,
     ConfigLayer, ConfigLayerKind, ConfigOverride, ConfiguredTurnError, ConfiguredTurnInput,
-    ConfiguredTurnRunner, EditDiffDiagnosticSeverity, EditDiffFlowError, EditDiffFlowInput,
-    EditDiffFlowReport, EffectiveRuntimeConfig, ExtensionCapabilitySummary, ExtensionCompatibility,
-    ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary,
-    ExtensionRecord, ExtensionRegistry, ExtensionRegistryError, ExtensionSource,
-    ExtensionSourceKind, PlatformPathOverrides, PlatformPaths, ProjectContextLimits,
+    ConfiguredTurnRunner, ContextRetrievalQuery, EditDiffDiagnosticSeverity, EditDiffFlowError,
+    EditDiffFlowInput, EditDiffFlowReport, EffectiveRuntimeConfig, ExtensionCapabilitySummary,
+    ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind,
+    ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
+    ExtensionSource, ExtensionSourceKind, PlatformPathOverrides, PlatformPaths,
+    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity, ProjectContextLimits,
+    ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
     ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
     ProviderSupportReport, ProviderSupportRole, RepoGitState, RepoSessionBootstrapError,
     RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds, RuntimeModelConfig,
     SettingsError, SettingsProfile, StartupMigrationRunner, bootstrap_repo_session,
-    coding_agent_model_requirements, replay_final_review, run_command_test_loop,
-    run_edit_diff_flow, scan_project_context,
+    coding_agent_model_requirements, replay_final_review, retrieve_project_context,
+    run_command_test_loop, run_edit_diff_flow, scan_project_context,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -80,11 +82,11 @@ use agent_ui_bridge::{
     UiConfigSnapshot, UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic,
     UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame,
     UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
-    UiPlatformPathsSummary, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
-    UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
-    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
-    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
-    normalize_runtime_event,
+    UiPlatformPathsSummary, UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot,
+    UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole,
+    UiProviderSupportSummary, UiRepoSessionSnapshot, UiSettingsProfileSummary,
+    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
+    UiTaskSummary, encode_json_frame, normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -97,6 +99,8 @@ const DEFAULT_PROJECT_CONTEXT_MAX_FILES: u32 = 512;
 const DEFAULT_PROJECT_CONTEXT_MAX_DEPTH: u32 = 8;
 const DEFAULT_PROJECT_CONTEXT_MAX_FILE_BYTES: u64 = 64 * 1024;
 const DEFAULT_PROJECT_CONTEXT_MAX_TOTAL_BYTES: u64 = 2 * 1024 * 1024;
+const DEFAULT_CONTEXT_RETRIEVAL_MAX_CANDIDATES: u32 = 8;
+const DEFAULT_CONTEXT_RETRIEVAL_BUDGET_TOKENS: u32 = 1_200;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CliCommand {
@@ -121,6 +125,13 @@ pub enum CliCommand {
     },
     RepoContext {
         workspace_root: PathBuf,
+    },
+    RepoContextSelect {
+        workspace_root: PathBuf,
+        task: String,
+        max_candidates: u32,
+        budget_tokens: u32,
+        pinned_paths: Vec<String>,
     },
     RepoEdit {
         workspace_root: PathBuf,
@@ -549,6 +560,19 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             render_text_repo_session(workspace_root, None, ConfigOverride::default())
         }
         CliCommand::RepoContext { workspace_root } => render_text_project_context(workspace_root),
+        CliCommand::RepoContextSelect {
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+        } => render_text_project_context_select(
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+        ),
         CliCommand::RepoEdit {
             workspace_root,
             path,
@@ -633,6 +657,19 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             CliCommand::RepoContext { workspace_root } => {
                 render_text_project_context(workspace_root)
             }
+            CliCommand::RepoContextSelect {
+                workspace_root,
+                task,
+                max_candidates,
+                budget_tokens,
+                pinned_paths,
+            } => render_text_project_context_select(
+                workspace_root,
+                task,
+                max_candidates,
+                budget_tokens,
+                pinned_paths,
+            ),
             CliCommand::RepoEdit {
                 workspace_root,
                 path,
@@ -730,6 +767,22 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     }
     if let CliCommand::RepoContext { workspace_root } = invocation.command {
         return render_json_project_context(workspace_root);
+    }
+    if let CliCommand::RepoContextSelect {
+        workspace_root,
+        task,
+        max_candidates,
+        budget_tokens,
+        pinned_paths,
+    } = invocation.command
+    {
+        return render_json_project_context_select(
+            workspace_root,
+            task,
+            max_candidates,
+            budget_tokens,
+            pinned_paths,
+        );
     }
     if let CliCommand::RepoEdit {
         workspace_root,
@@ -927,6 +980,7 @@ where
     let mut workspace_root = None;
     while let Some(arg) = args.next() {
         match arg.as_str() {
+            "select" if workspace_root.is_none() => return parse_repo_context_select_args(args),
             "--workspace" => {
                 let value = take_flag_value(args, &arg)?;
                 if value.trim().is_empty() {
@@ -940,6 +994,73 @@ where
 
     Ok(CliCommand::RepoContext {
         workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
+    })
+}
+
+fn parse_repo_context_select_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut workspace_root = None;
+    let mut task = None;
+    let mut max_candidates = DEFAULT_CONTEXT_RETRIEVAL_MAX_CANDIDATES;
+    let mut budget_tokens = DEFAULT_CONTEXT_RETRIEVAL_BUDGET_TOKENS;
+    let mut pinned_paths = Vec::new();
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--workspace" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                workspace_root = Some(PathBuf::from(value));
+            }
+            "--task" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                task = Some(value);
+            }
+            "--pin" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                pinned_paths.push(value);
+            }
+            "--max-candidates" => {
+                let value = take_flag_value(args, &arg)?;
+                max_candidates = value.parse::<u32>().map_err(|_| {
+                    CliError::UnknownArgument(format!(
+                        "repo context select --max-candidates {value}"
+                    ))
+                })?;
+            }
+            "--budget-tokens" => {
+                let value = take_flag_value(args, &arg)?;
+                budget_tokens = value.parse::<u32>().map_err(|_| {
+                    CliError::UnknownArgument(format!(
+                        "repo context select --budget-tokens {value}"
+                    ))
+                })?;
+            }
+            _ => {
+                return Err(CliError::UnknownArgument(format!(
+                    "repo context select {arg}"
+                )));
+            }
+        }
+    }
+
+    Ok(CliCommand::RepoContextSelect {
+        workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
+        task: task
+            .ok_or_else(|| CliError::MissingValue("repo context select --task".to_string()))?,
+        max_candidates,
+        budget_tokens,
+        pinned_paths,
     })
 }
 
@@ -5123,12 +5244,104 @@ fn render_json_project_context(workspace_root: PathBuf) -> CliOutput {
     }
 }
 
+fn render_text_project_context_select(
+    workspace_root: PathBuf,
+    task: String,
+    max_candidates: u32,
+    budget_tokens: u32,
+    pinned_paths: Vec<String>,
+) -> CliOutput {
+    match evaluate_project_context_retrieval(
+        workspace_root,
+        task,
+        max_candidates,
+        budget_tokens,
+        pinned_paths,
+    ) {
+        Ok(report) => CliOutput::exit(render_project_context_retrieval_text(&report)),
+        Err(error) => CliOutput::failure(render_project_context_retrieval_error_text(&error), 2),
+    }
+}
+
+fn render_json_project_context_select(
+    workspace_root: PathBuf,
+    task: String,
+    max_candidates: u32,
+    budget_tokens: u32,
+    pinned_paths: Vec<String>,
+) -> CliOutput {
+    match evaluate_project_context_retrieval(
+        workspace_root,
+        task,
+        max_candidates,
+        budget_tokens,
+        pinned_paths,
+    ) {
+        Ok(report) => {
+            let snapshot = match UiProjectContextRetrievalSnapshot::from_report(&report) {
+                Ok(snapshot) => snapshot,
+                Err(error) => {
+                    let mut stdout = json_frame_line(UiJsonFrame::Error {
+                        code: "project_context_retrieval_snapshot_failed".to_string(),
+                        message: redact_secret_like_text(&error.to_string()),
+                        recoverable: false,
+                    });
+                    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                    return CliOutput::failure(stdout, 2);
+                }
+            };
+            let mut stdout =
+                json_frame_line(UiJsonFrame::ProjectContextRetrievalSnapshot(snapshot));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::exit(stdout)
+        }
+        Err(error) => {
+            let mut stdout = String::new();
+            for diagnostic in error.diagnostics() {
+                stdout.push_str(&json_frame_line(UiJsonFrame::ConfigDiagnostic {
+                    severity: format!("{:?}", diagnostic.severity).to_ascii_lowercase(),
+                    code: redact_secret_like_text(&diagnostic.code),
+                    message: redact_secret_like_text(&diagnostic.message),
+                    field_path: diagnostic
+                        .path
+                        .clone()
+                        .map(|path| redact_secret_like_text(&path)),
+                    source: None,
+                }));
+            }
+            stdout.push_str(&json_frame_line(UiJsonFrame::Error {
+                code: error.code().to_string(),
+                message: project_context_retrieval_error_message(&error),
+                recoverable: false,
+            }));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::failure(stdout, 2)
+        }
+    }
+}
+
 fn evaluate_project_context(
     workspace_root: PathBuf,
 ) -> Result<ProjectContextScanReport, ProjectContextScanError> {
     scan_project_context(ProjectContextScanInput {
         workspace_root,
         limits: default_project_context_limits(),
+    })
+}
+
+fn evaluate_project_context_retrieval(
+    workspace_root: PathBuf,
+    task: String,
+    max_candidates: u32,
+    budget_tokens: u32,
+    pinned_paths: Vec<String>,
+) -> Result<ProjectContextRetrievalReport, ProjectContextRetrievalError> {
+    let query = ContextRetrievalQuery::new(task, max_candidates, budget_tokens, pinned_paths)
+        .map_err(project_context_retrieval_error_from_context)?;
+    retrieve_project_context(ProjectContextRetrievalInput {
+        workspace_root,
+        limits: default_project_context_limits(),
+        query,
     })
 }
 
@@ -5140,6 +5353,71 @@ fn default_project_context_limits() -> ProjectContextLimits {
         DEFAULT_PROJECT_CONTEXT_MAX_TOTAL_BYTES,
     )
     .expect("default project context limits are valid")
+}
+
+fn render_project_context_retrieval_text(report: &ProjectContextRetrievalReport) -> String {
+    let retrieval = &report.retrieval;
+    let diagnostics = if retrieval.diagnostics.is_empty() {
+        "none".to_string()
+    } else {
+        retrieval
+            .diagnostics
+            .iter()
+            .map(|diagnostic| {
+                format!(
+                    "{}:{}",
+                    diagnostic.severity.as_str(),
+                    redact_secret_like_text(&diagnostic.code)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    let selected = retrieval
+        .selected
+        .iter()
+        .take(8)
+        .map(|candidate| {
+            let reasons = candidate
+                .reasons
+                .iter()
+                .map(|reason| reason.as_str())
+                .collect::<Vec<_>>()
+                .join(",");
+            format!(
+                "- {} [{}; {}; score={}; tokens={}; reasons={}]",
+                redact_secret_like_text(&candidate.path),
+                candidate.kind.as_str(),
+                candidate.visibility.as_str(),
+                candidate.score,
+                candidate.token_estimate,
+                reasons
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let selected = if selected.is_empty() {
+        "Selected: none\n".to_string()
+    } else {
+        format!("Selected:\n{selected}\n")
+    };
+    let omitted = if retrieval.omitted.is_empty() {
+        "Omitted candidates: none".to_string()
+    } else {
+        format!("Omitted candidates: {}", retrieval.omitted.len())
+    };
+
+    format!(
+        "Project context selection: ready\nWorkspace: {}\nTask: {}\nSelected count: {}\nUsed tokens: {}/{}\nDiagnostics: {}\n{}{}\n",
+        redact_secret_like_text(&report.summary.workspace_root_display),
+        bounded_cli_text(&retrieval.query.task, 160),
+        retrieval.selected.len(),
+        retrieval.used_tokens,
+        retrieval.query.budget_tokens,
+        diagnostics,
+        selected,
+        omitted
+    )
 }
 
 fn render_project_context_summary_text(report: &ProjectContextScanReport) -> String {
@@ -5199,10 +5477,55 @@ fn render_project_context_error_text(error: &ProjectContextScanError) -> String 
     )
 }
 
+fn render_project_context_retrieval_error_text(error: &ProjectContextRetrievalError) -> String {
+    format!(
+        "project context retrieval failed: {} ({})\n",
+        project_context_retrieval_error_message(error),
+        error.code()
+    )
+}
+
 fn project_context_error_message(error: &ProjectContextScanError) -> String {
     match error {
         ProjectContextScanError::InvalidWorkspace { .. } => "workspace root is invalid".to_string(),
         ProjectContextScanError::Scan { .. } => "project context scan failed".to_string(),
+    }
+}
+
+fn project_context_retrieval_error_message(error: &ProjectContextRetrievalError) -> String {
+    match error {
+        ProjectContextRetrievalError::InvalidWorkspace { .. } => {
+            "workspace root is invalid".to_string()
+        }
+        ProjectContextRetrievalError::Scan { .. } => "project context scan failed".to_string(),
+        ProjectContextRetrievalError::Retrieval { .. } => {
+            "project context retrieval failed".to_string()
+        }
+    }
+}
+
+fn project_context_retrieval_error_from_context(
+    error: agent_context::ContextError,
+) -> ProjectContextRetrievalError {
+    ProjectContextRetrievalError::Retrieval {
+        diagnostics: vec![
+            ProjectContextDiagnostic::new(
+                ProjectContextDiagnosticSeverity::Error,
+                "project_context.retrieval.invalid",
+                redact_secret_like_text(&error.to_string()),
+                None,
+            )
+            .expect("valid retrieval diagnostic"),
+        ],
+    }
+}
+
+fn bounded_cli_text(value: &str, max_chars: usize) -> String {
+    let redacted = redact_secret_like_text(value);
+    if redacted.chars().count() > max_chars {
+        redacted.chars().take(max_chars).collect()
+    } else {
+        redacted
     }
 }
 

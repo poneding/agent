@@ -14,4 +14,6 @@ pub enum ContextError {
     InvalidCompaction(String),
     #[error("project context is invalid: {0}")]
     InvalidProjectContext(String),
+    #[error("context retrieval is invalid: {0}")]
+    InvalidRetrieval(String),
 }

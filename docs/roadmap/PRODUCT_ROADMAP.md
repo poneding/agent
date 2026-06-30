@@ -131,7 +131,7 @@ Acceptance:
 
 ### M58 Project Context Intelligence
 
-Status: M58-01 complete and M58-02 planning complete; M58-02 implementation is next.
+Status: M58-01 and M58-02 complete; M58-03 semantic and hybrid search planning is next.
 
 Purpose: build repo-aware context assembly for coding tasks.
 

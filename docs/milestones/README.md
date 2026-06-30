@@ -408,8 +408,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M47-02 implementation | Complete |
 | M47-03 implementation | Complete |
 | M47-04 implementation | Complete |
-| M47-05 implementation | In progress |
-| M47 implementation | In progress |
+| M47-05 implementation | Complete |
+| M47 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -972,10 +972,14 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M47-05 hardening docs.
+Current implementation focus: M47 is complete. Next implementation slice will be selected separately.
 
 Most recent completed implementation documents:
 
+- `docs/specs/M47-mcp-http-session-resume-runtime.spec.md`
+- `docs/plans/M47-mcp-http-session-resume-runtime.plan.md`
+- `docs/specs/M47-00-mcp-http-session-resume-technical-design.spec.md`
+- `docs/plans/M47-00-mcp-http-session-resume-technical-design.plan.md`
 - `docs/specs/M47-04-sse-checkpoint-tracking.spec.md`
 - `docs/plans/M47-04-sse-checkpoint-tracking.plan.md`
 - `docs/specs/M47-03-session-header-propagation.spec.md`
@@ -1282,10 +1286,9 @@ Most recent completed planning documents:
 
 Most recent completed technical design documents:
 
-- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M46-00-mcp-http-sse-response-technical-design.spec.md`
-- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M46-00-mcp-http-sse-response-technical-design.plan.md`
+- `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M47-00-mcp-http-session-resume-technical-design.spec.md`
+- `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M47-00-mcp-http-session-resume-technical-design.plan.md`
 
 Next implementation slice:
 
-- `docs/specs/M47-05-hardening-docs.spec.md`
-- `docs/plans/M47-05-hardening-docs.plan.md`
+- To be selected after M47 completion.

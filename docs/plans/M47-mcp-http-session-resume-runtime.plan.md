@@ -50,7 +50,7 @@ Define crate ownership, metadata contracts, header propagation, checkpoint state
 - [x] **Step 2: Add HTTP response envelope metadata capture**
 - [x] **Step 3: Propagate session headers after initialize**
 - [x] **Step 4: Track SSE last-event checkpoints**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M47
 
@@ -59,7 +59,7 @@ Define crate ownership, metadata contracts, header propagation, checkpoint state
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M47-mcp-http-session-resume-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,7 @@ CARGO_TARGET_DIR=target/codex-m47 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M47 complete and commit**
+- [x] **Step 2: Mark M47 complete and commit**
 
 Run:
 
@@ -77,3 +77,15 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m47 mcp http session resume runtime"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_session_metadata` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_response_envelope` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_session_headers` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_checkpoints` passed.
+- `git diff --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo xtask ci` passed. The `definitely-not-a-real-rustc-flag` output is expected from an existing quality-gate fixture.

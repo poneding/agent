@@ -47,7 +47,7 @@ Define crate ownership, supervisor lifecycle, reconnect composition, cancellatio
 - Execute: `docs/plans/M50-05-hardening-docs.plan.md`
 
 - [x] **Step 1: Add stream supervisor contracts**
-- [ ] **Step 2: Add bounded supervisor runner**
+- [x] **Step 2: Add bounded supervisor runner**
 - [ ] **Step 3: Add cancellation and lease boundary**
 - [ ] **Step 4: Add redacted supervisor reports**
 - [ ] **Step 5: Add hardening docs and final verification**

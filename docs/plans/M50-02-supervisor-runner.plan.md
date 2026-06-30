@@ -18,14 +18,14 @@
 - Read: `crates/agent-mcp/tests/mcp_client_http_stream_reconnect_runner.rs`
 - Read: `crates/agent-mcp/tests/mcp_client_http_reconnect_trace.rs`
 
-- [ ] **Step 1: Review runner spec and M49 reconnect tests**
+- [x] **Step 1: Review runner spec and M49 reconnect tests**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_stream_supervisor_runner.rs`
 
-- [ ] **Step 1: Add supervisor runner tests**
+- [x] **Step 1: Add supervisor runner tests**
 
 Run:
 
@@ -41,15 +41,15 @@ Expected: tests fail before supervisor runner exists.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add supervisor tick API**
-- [ ] **Step 2: Compose M49 reconnect report**
-- [ ] **Step 3: Enforce tick budget**
-- [ ] **Step 4: Return typed status**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add supervisor tick API**
+- [x] **Step 2: Compose M49 reconnect report**
+- [x] **Step 3: Enforce tick budget**
+- [x] **Step 4: Return typed status**
+- [x] **Step 5: Run focused tests**
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -60,7 +60,7 @@ CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D 
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M50-02**
+- [x] **Step 1: Update status and commit M50-02**
 
 Run:
 
@@ -68,3 +68,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http stream supervisor runner"
 ```
+
+### Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

@@ -506,6 +506,28 @@ pub enum McpClientHttpStreamSupervisorStatus {
     Completed,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamSupervisorTick {
+    pub status: McpClientHttpStreamSupervisorStatus,
+    pub ticks_completed: u32,
+    pub reconnect_report: Option<McpClientHttpStreamReconnectReport>,
+}
+
+impl McpClientHttpStreamSupervisorTick {
+    #[must_use]
+    pub const fn new(
+        status: McpClientHttpStreamSupervisorStatus,
+        ticks_completed: u32,
+        reconnect_report: Option<McpClientHttpStreamReconnectReport>,
+    ) -> Self {
+        Self {
+            status,
+            ticks_completed,
+            reconnect_report,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct McpClientHttpReconnectPolicy {
     pub max_attempts: u32,
@@ -1055,6 +1077,45 @@ impl<T> McpHttpClient<T> {
                 }
             }
         }
+    }
+
+    pub async fn supervise_stream_tick<S>(
+        &self,
+        supervisor: &McpClientHttpStreamSupervisorConfig,
+        stream_transport: &mut S,
+        ticks_completed: u32,
+    ) -> Result<McpClientHttpStreamSupervisorTick, McpError>
+    where
+        S: McpClientHttpStreamTransport,
+    {
+        supervisor.validate()?;
+        if ticks_completed >= supervisor.max_ticks {
+            return Ok(McpClientHttpStreamSupervisorTick::new(
+                McpClientHttpStreamSupervisorStatus::Completed,
+                supervisor.max_ticks,
+                None,
+            ));
+        }
+
+        let reconnect_report = self
+            .reconnect_stream_with_replay_diagnostic(
+                &supervisor.server_id,
+                stream_transport,
+                supervisor.reconnect_policy,
+            )
+            .await?;
+        let ticks_completed = ticks_completed + 1;
+        let status = if ticks_completed >= supervisor.max_ticks {
+            McpClientHttpStreamSupervisorStatus::Completed
+        } else {
+            McpClientHttpStreamSupervisorStatus::Running
+        };
+
+        Ok(McpClientHttpStreamSupervisorTick::new(
+            status,
+            ticks_completed,
+            Some(reconnect_report),
+        ))
     }
 }
 

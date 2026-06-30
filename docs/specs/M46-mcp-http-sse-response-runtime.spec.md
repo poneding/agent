@@ -92,7 +92,7 @@ Names may evolve during implementation, but response-mode behavior must remain t
 
 - `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts`
 - `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode`
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_transport`
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_transport`
 - `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_dispatch`
 - `CARGO_TARGET_DIR=target/codex-m46 cargo xtask ci`
 

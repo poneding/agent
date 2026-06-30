@@ -18,7 +18,7 @@
 - Read: `README.md`
 - Read: `docs/milestones/README.md`
 
-- [ ] **Step 1: Read M46 specs and completed implementation slices**
+- [x] **Step 1: Read M46 specs and completed implementation slices**
 
 ### Task 2: Update Docs
 
@@ -27,23 +27,23 @@
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M46-mcp-http-sse-response-runtime.plan.md`
 
-- [ ] **Step 1: Update README SSE response usage**
-- [ ] **Step 2: Update milestone status and latest docs links**
+- [x] **Step 1: Update README SSE response usage**
+- [x] **Step 2: Update milestone status and latest docs links**
 
 ### Task 3: Verify
 
-- [ ] **Step 1: Run final M46 focused tests**
+- [x] **Step 1: Run final M46 focused tests**
 
 Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts
 CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode
-CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_transport
+CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_transport
 CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_dispatch
 ```
 
-- [ ] **Step 2: Run final workspace gate**
+- [x] **Step 2: Run final workspace gate**
 
 Run:
 
@@ -55,7 +55,7 @@ CARGO_TARGET_DIR=target/codex-m46 cargo xtask ci
 
 ### Task 4: Commit
 
-- [ ] **Step 1: Commit M46-05**
+- [x] **Step 1: Commit M46-05**
 
 Run:
 
@@ -63,3 +63,15 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m46 mcp http sse response runtime"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_dispatch` passed.
+- `git diff --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo xtask ci` passed.

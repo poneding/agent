@@ -50,7 +50,7 @@ Define crate ownership, SSE event contracts, response-mode boundaries, stream bo
 - [x] **Step 2: Add HTTP response-mode contracts**
 - [x] **Step 3: Add reqwest `text/event-stream` response handling**
 - [x] **Step 4: Dispatch HTTP client calls from SSE response frames**
-- [ ] **Step 5: Add hardening docs and final verification**
+- [x] **Step 5: Add hardening docs and final verification**
 
 ### Task 4: Complete M46
 
@@ -59,7 +59,7 @@ Define crate ownership, SSE event contracts, response-mode boundaries, stream bo
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M46-mcp-http-sse-response-runtime.plan.md`
 
-- [ ] **Step 1: Run final workspace gates**
+- [x] **Step 1: Run final workspace gates**
 
 Run:
 
@@ -69,7 +69,7 @@ CARGO_TARGET_DIR=target/codex-m46 cargo xtask ci
 
 Expected: all checks pass.
 
-- [ ] **Step 2: Mark M46 complete and commit**
+- [x] **Step 2: Mark M46 complete and commit**
 
 Run:
 
@@ -77,3 +77,15 @@ Run:
 git add README.md docs crates
 git commit -m "feat: complete m46 mcp http sse response runtime"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_dispatch` passed.
+- `git diff --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo xtask ci` passed.

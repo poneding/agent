@@ -399,8 +399,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M46-02 implementation | Complete |
 | M46-03 implementation | Complete |
 | M46-04 implementation | Complete |
-| M46-05 implementation | In progress |
-| M46 implementation | In progress |
+| M46-05 implementation | Complete |
+| M46 implementation | Complete |
 
 ## Milestone Spec and Plan Index
 
@@ -951,7 +951,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M46-05 hardening docs.
+Current implementation focus: M46 is complete. Next implementation slice will be selected separately.
 
 Most recent completed implementation documents:
 
@@ -1258,5 +1258,4 @@ Most recent completed technical design documents:
 
 Next implementation slice:
 
-- `docs/specs/M46-05-hardening-docs.spec.md`
-- `docs/plans/M46-05-hardening-docs.plan.md`
+- To be selected after M46 completion.

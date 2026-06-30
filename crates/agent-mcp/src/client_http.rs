@@ -737,6 +737,136 @@ pub fn build_mcp_client_http_oauth_token_exchange_request(
 }
 
 #[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenResponse {
+    pub access_token: String,
+    pub token_type: String,
+    pub expires_in_seconds: Option<u64>,
+    pub refresh_token: Option<String>,
+    pub scope: Vec<String>,
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthTokenResponse")
+            .field("access_token", &"[redacted]")
+            .field("token_type", &self.token_type)
+            .field("expires_in_seconds", &self.expires_in_seconds)
+            .field(
+                "refresh_token",
+                &redacted_optional_value(self.refresh_token.as_ref()),
+            )
+            .field("scope", &self.scope)
+            .finish()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenErrorResponse {
+    pub error: String,
+    pub error_description: Option<String>,
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenErrorResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthTokenErrorResponse")
+            .field("error", &self.error)
+            .field(
+                "error_description",
+                &redacted_optional_value(self.error_description.as_ref()),
+            )
+            .finish()
+    }
+}
+
+pub fn parse_mcp_client_http_oauth_token_response_json(
+    json_text: &str,
+) -> Result<McpClientHttpOAuthTokenResponse, McpError> {
+    let value = serde_json::from_str::<Value>(json_text)
+        .map_err(|_| invalid_mcp_client_http_oauth_token_response())?;
+    let value = value
+        .as_object()
+        .ok_or_else(invalid_mcp_client_http_oauth_token_response)?;
+
+    let access_token = required_mcp_client_http_oauth_token_response_string_field(
+        value,
+        "access_token",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+    if access_token.chars().any(char::is_control) {
+        return Err(invalid_mcp_client_http_oauth_token_response());
+    }
+
+    let token_type = required_mcp_client_http_oauth_token_response_string_field(
+        value,
+        "token_type",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+    validate_mcp_client_http_oauth_token_response_public_token(&token_type)?;
+
+    let expires_in_seconds = optional_mcp_client_http_oauth_token_response_u64_field(
+        value,
+        "expires_in",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+
+    let refresh_token = optional_mcp_client_http_oauth_string_field(
+        value,
+        "refresh_token",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+    if refresh_token
+        .as_deref()
+        .is_some_and(|token| token.chars().any(char::is_control))
+    {
+        return Err(invalid_mcp_client_http_oauth_token_response());
+    }
+
+    let scope = optional_mcp_client_http_oauth_scope_string_field(value, "scope")?;
+
+    Ok(McpClientHttpOAuthTokenResponse {
+        access_token,
+        token_type,
+        expires_in_seconds,
+        refresh_token,
+        scope,
+    })
+}
+
+pub fn parse_mcp_client_http_oauth_token_error_response_json(
+    json_text: &str,
+) -> Result<McpClientHttpOAuthTokenErrorResponse, McpError> {
+    let value = serde_json::from_str::<Value>(json_text)
+        .map_err(|_| invalid_mcp_client_http_oauth_token_response())?;
+    let value = value
+        .as_object()
+        .ok_or_else(invalid_mcp_client_http_oauth_token_response)?;
+
+    let error = required_mcp_client_http_oauth_token_response_string_field(
+        value,
+        "error",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+    validate_mcp_client_http_oauth_token_response_public_token(&error)?;
+
+    let error_description = optional_mcp_client_http_oauth_string_field(
+        value,
+        "error_description",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+    if error_description.as_deref().is_some_and(|description| {
+        description.chars().any(char::is_control)
+            || description.chars().count() > MAX_CLIENT_HTTP_MESSAGE_CHARS
+    }) {
+        return Err(invalid_mcp_client_http_oauth_token_response());
+    }
+
+    Ok(McpClientHttpOAuthTokenErrorResponse {
+        error,
+        error_description,
+    })
+}
+
+#[derive(Clone, Eq, PartialEq)]
 pub struct McpClientHttpOAuthTokenLease {
     pub access_token: String,
     pub expires_at_unix_ms: Option<u64>,
@@ -2828,6 +2958,61 @@ fn optional_mcp_client_http_oauth_string_array_field(
     }
 }
 
+fn required_mcp_client_http_oauth_token_response_string_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    invalid: fn() -> McpError,
+) -> Result<String, McpError> {
+    match value.get(field) {
+        Some(Value::String(text)) if !text.trim().is_empty() => Ok(text.trim().to_string()),
+        _ => Err(invalid()),
+    }
+}
+
+fn optional_mcp_client_http_oauth_token_response_u64_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    invalid: fn() -> McpError,
+) -> Result<Option<u64>, McpError> {
+    match value.get(field) {
+        Some(Value::Number(number)) => number.as_u64().map(Some).ok_or_else(invalid),
+        Some(Value::Null) | None => Ok(None),
+        Some(_) => Err(invalid()),
+    }
+}
+
+fn optional_mcp_client_http_oauth_scope_string_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+) -> Result<Vec<String>, McpError> {
+    match value.get(field) {
+        Some(Value::String(text)) if !text.trim().is_empty() => {
+            let scopes = text
+                .split_whitespace()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>();
+            validate_mcp_client_http_oauth_tokens(&scopes)
+                .map_err(|_| invalid_mcp_client_http_oauth_token_response())?;
+            Ok(scopes)
+        }
+        Some(Value::String(_)) | Some(Value::Null) | None => Ok(Vec::new()),
+        Some(_) => Err(invalid_mcp_client_http_oauth_token_response()),
+    }
+}
+
+fn validate_mcp_client_http_oauth_token_response_public_token(value: &str) -> Result<(), McpError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+        || value.chars().any(char::is_whitespace)
+        || is_secret_like(value)
+    {
+        return Err(invalid_mcp_client_http_oauth_token_response());
+    }
+    Ok(())
+}
+
 fn has_mcp_client_http_authorization_header(headers: &BTreeMap<String, McpEnvValue>) -> bool {
     headers
         .keys()
@@ -3182,6 +3367,10 @@ fn invalid_mcp_client_http_oauth_token_source() -> McpError {
 
 fn invalid_mcp_client_http_oauth_flow() -> McpError {
     McpError::InvalidConfig("invalid MCP client HTTP OAuth flow".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_token_response() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth token response".to_string())
 }
 
 fn mcp_client_http_oauth_token_expired() -> McpError {

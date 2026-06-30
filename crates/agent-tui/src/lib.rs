@@ -8,6 +8,7 @@ pub mod composer;
 pub mod diff_panel;
 pub mod extension_panel;
 pub mod render;
+pub mod session_panel;
 pub mod slash;
 pub mod task_panel;
 pub mod terminal;
@@ -21,6 +22,7 @@ pub use composer::{ComposerAction, ComposerState, TuiBridgeContext, TuiEffect};
 pub use diff_panel::DiffPanelState;
 pub use extension_panel::ExtensionPanelState;
 pub use render::{render_app, render_app_to_string};
+pub use session_panel::{SessionPanelAction, SessionPanelState};
 pub use slash::{SlashCommand, SlashCommandError};
 pub use task_panel::{TaskPanelNotification, TaskPanelState};
 pub use terminal::{

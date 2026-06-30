@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::UiBridgeError;
 
+const NIL_UUID: &str = "00000000-0000-0000-0000-000000000000";
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct UiCommandEnvelope {
@@ -56,6 +58,10 @@ pub enum UiCommand {
         include_final: bool,
     },
     Task(TaskCommand),
+    SwitchSession {
+        workspace_id: WorkspaceId,
+        conversation_id: ConversationId,
+    },
     Ping,
 }
 
@@ -127,6 +133,22 @@ pub fn validate_ui_command(envelope: &UiCommandEnvelope) -> Result<(), UiBridgeE
         UiCommand::ResolveApproval { reason, .. } if reason.trim().is_empty() => Err(
             UiBridgeError::Validation("resolve_approval reason cannot be empty".to_string()),
         ),
+        UiCommand::SwitchSession { workspace_id, .. } if is_nil_workspace_id(*workspace_id) => Err(
+            UiBridgeError::Validation("switch_session workspace_id cannot be nil".to_string()),
+        ),
+        UiCommand::SwitchSession {
+            conversation_id, ..
+        } if is_nil_conversation_id(*conversation_id) => Err(UiBridgeError::Validation(
+            "switch_session conversation_id cannot be nil".to_string(),
+        )),
         _ => Ok(()),
     }
+}
+
+fn is_nil_workspace_id(workspace_id: WorkspaceId) -> bool {
+    workspace_id.to_string() == NIL_UUID
+}
+
+fn is_nil_conversation_id(conversation_id: ConversationId) -> bool {
+    conversation_id.to_string() == NIL_UUID
 }

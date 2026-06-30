@@ -2,7 +2,8 @@ use agent_ui_bridge::UiJsonFrame;
 
 use crate::{
     ApprovalPanelState, CommandPanelState, ComposerAction, ComposerState, DiffPanelState,
-    SlashCommand, TaskPanelState, TracePanelState, TranscriptState, TuiEffect,
+    SessionPanelAction, SessionPanelState, SlashCommand, TaskPanelState, TracePanelState,
+    TranscriptState, TuiEffect,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -17,6 +18,7 @@ pub enum TuiSidePanel {
     Auto,
     Trace,
     Tasks,
+    Sessions,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -86,6 +88,7 @@ pub enum TuiAction {
     OpenHelp,
     OpenChat,
     Composer(ComposerAction),
+    SessionPanel(SessionPanelAction),
     BridgeFrame(Box<UiJsonFrame>),
 }
 
@@ -101,6 +104,7 @@ pub struct TuiApp {
     pub command_panel: Option<CommandPanelState>,
     pub trace_panel: TracePanelState,
     pub task_panel: TaskPanelState,
+    pub session_panel: SessionPanelState,
     pub side_panel: TuiSidePanel,
     pub should_quit: bool,
 }
@@ -137,10 +141,12 @@ impl TuiApp {
                 let effect = self.composer.reduce(action);
                 self.apply_effect(effect)
             }
+            TuiAction::SessionPanel(action) => self.session_panel.reduce(action),
             TuiAction::BridgeFrame(frame) => {
                 self.approval_panel.reduce_frame(&frame);
                 self.trace_panel.reduce_frame(&frame);
                 self.task_panel.reduce_frame(&frame);
+                self.session_panel.reduce_frame(&frame);
                 if let UiJsonFrame::CommandTestSnapshot(snapshot) = frame.as_ref() {
                     self.command_panel = Some(CommandPanelState::from_snapshot(snapshot, 800));
                 }
@@ -181,6 +187,11 @@ impl TuiApp {
                 self.side_panel = TuiSidePanel::Tasks;
                 TuiEffect::None
             }
+            SlashCommand::Sessions => {
+                self.screen = TuiScreen::Chat;
+                self.side_panel = TuiSidePanel::Sessions;
+                TuiEffect::None
+            }
             SlashCommand::Settings => TuiEffect::LocalDiagnostic(
                 "settings panel is not available in this milestone".to_string(),
             ),
@@ -215,6 +226,7 @@ impl Default for TuiApp {
             command_panel: None,
             trace_panel: TracePanelState::default(),
             task_panel: TaskPanelState::default(),
+            session_panel: SessionPanelState::default(),
             side_panel: TuiSidePanel::default(),
             should_quit: false,
         }

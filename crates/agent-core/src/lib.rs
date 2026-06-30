@@ -24,6 +24,7 @@ pub mod runtime;
 pub mod settings;
 pub mod startup_migration;
 pub mod task_review;
+pub mod terminal_session;
 pub mod tool_loop;
 pub mod trace;
 pub mod turn;
@@ -155,6 +156,12 @@ pub use startup_migration::{
     startup_migration_status_json,
 };
 pub use task_review::{TaskArtifact, TaskArtifactKind, TaskReviewError, TaskReviewSummary};
+pub use terminal_session::{
+    TerminalSessionDiagnostic, TerminalSessionDiagnosticSeverity, TerminalSessionDirectoryError,
+    TerminalSessionDirectoryReport, TerminalSessionRecord, TerminalSessionRestoreError,
+    TerminalSessionStatus, TerminalSessionSummary, build_terminal_session_directory,
+    terminal_session_status, validate_terminal_session_restore,
+};
 pub use tool_loop::{
     AccumulatedToolCall, ToolCallAccumulator, ToolCallRequest, ToolLoop, ToolLoopError,
     ToolLoopOutcome, ToolLoopStatus, ToolObservationMessage,

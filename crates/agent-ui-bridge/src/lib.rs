@@ -34,5 +34,6 @@ pub use frame::{
     UiProviderSupportRole, UiProviderSupportSummary, UiRepoSessionDiagnostic,
     UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
     UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary, UiTaskReviewSummaryArtifact,
-    UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
+    UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary, UiTerminalSessionDiagnostic,
+    UiTerminalSessionSnapshot, UiTerminalSessionSummary, encode_json_frame,
 };

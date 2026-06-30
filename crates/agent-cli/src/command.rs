@@ -35,13 +35,15 @@ use agent_core::{
     ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
     ProviderSupportReport, ProviderSupportRole, RepoGitState, RepoSessionBootstrapError,
     RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds, RuntimeModelConfig,
-    SettingsError, SettingsProfile, StartupMigrationRunner, bootstrap_repo_session,
+    SettingsError, SettingsProfile, StartupMigrationRunner, TerminalSessionDirectoryReport,
+    TerminalSessionRecord, TerminalSessionRestoreError, TerminalSessionStatus,
+    TerminalSessionSummary, bootstrap_repo_session, build_terminal_session_directory,
     coding_agent_model_requirements, replay_final_review, retrieve_project_context,
     retrieve_project_context_hybrid, retrieve_project_context_hybrid_pinned,
     retrieve_project_context_hybrid_pinned_quality, retrieve_project_context_hybrid_quality,
     retrieve_project_context_pinned, retrieve_project_context_pinned_quality,
     retrieve_project_context_quality, run_command_test_loop, run_edit_diff_flow,
-    scan_project_context,
+    scan_project_context, validate_terminal_session_restore,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -87,8 +89,8 @@ use agent_skill::{
 };
 use agent_storage::EventStore;
 use agent_types::{
-    ConversationId, CorrelationId, EventId, RuntimeEventPayload, TaskId, Timestamp, TurnId,
-    WorkspaceId,
+    ClientKind, ConversationId, CorrelationId, EventId, RuntimeEventPayload, TaskId, Timestamp,
+    TurnId, WorkspaceId,
 };
 use agent_ui_bridge::{
     UiBridgeError, UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity,
@@ -100,8 +102,8 @@ use agent_ui_bridge::{
     UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
     UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
     UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
-    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, encode_json_frame,
-    normalize_runtime_event,
+    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary,
+    UiTerminalSessionSnapshot, encode_json_frame, normalize_runtime_event,
 };
 use futures_util::StreamExt;
 
@@ -214,9 +216,7 @@ pub enum CliCommand {
     ObservabilityJson,
     ConfigCheck,
     StartupCheck,
-    RepoSession {
-        workspace_root: PathBuf,
-    },
+    RepoSession(RepoSessionCommand),
     RepoContext {
         workspace_root: PathBuf,
     },
@@ -255,6 +255,28 @@ pub enum CliCommand {
     Memory(MemoryCommand),
     Task(TaskCliCommand),
     Eval(EvalCliCommand),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum RepoSessionCommand {
+    Bootstrap {
+        workspace_root: PathBuf,
+    },
+    List {
+        workspace_root: PathBuf,
+        fixture: Option<TerminalSessionFixture>,
+    },
+    Resume {
+        workspace_root: PathBuf,
+        conversation_id: ConversationId,
+        fixture: Option<TerminalSessionFixture>,
+    },
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum TerminalSessionFixture {
+    Empty,
+    Sample,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -534,6 +556,8 @@ pub enum CliError {
     InvalidModelProvider(String),
     #[error("invalid model selection: {0}")]
     InvalidModelSelection(String),
+    #[error("invalid conversation id: {0}")]
+    InvalidConversationId(String),
     #[error("config check failed: {message}")]
     ConfigCheckFailed {
         message: String,
@@ -653,8 +677,8 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
         CliCommand::ObservabilityJson => render_observability_json_command(),
         CliCommand::ConfigCheck => render_text_config_check(None, ConfigOverride::default()),
         CliCommand::StartupCheck => render_text_startup_check(),
-        CliCommand::RepoSession { workspace_root } => {
-            render_text_repo_session(workspace_root, None, ConfigOverride::default())
+        CliCommand::RepoSession(command) => {
+            render_text_repo_session_command(command, None, ConfigOverride::default())
         }
         CliCommand::RepoContext { workspace_root } => render_text_project_context(workspace_root),
         CliCommand::RepoContextSelect {
@@ -752,8 +776,8 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 render_text_config_check(invocation.config_path, invocation.config_override)
             }
             CliCommand::StartupCheck => render_text_startup_check(),
-            CliCommand::RepoSession { workspace_root } => render_text_repo_session(
-                workspace_root,
+            CliCommand::RepoSession(command) => render_text_repo_session_command(
+                command,
                 invocation.config_path,
                 invocation.config_override,
             ),
@@ -866,9 +890,9 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if invocation.command == CliCommand::StartupCheck {
         return render_json_startup_check();
     }
-    if let CliCommand::RepoSession { workspace_root } = invocation.command {
-        return render_json_repo_session(
-            workspace_root,
+    if let CliCommand::RepoSession(command) = invocation.command {
+        return render_json_repo_session_command(
+            command,
             invocation.config_path,
             invocation.config_override,
             invocation.model_selection,
@@ -1069,6 +1093,18 @@ fn parse_repo_session_args<I>(args: &mut I) -> Result<CliCommand, CliError>
 where
     I: Iterator<Item = String>,
 {
+    let remaining = args.by_ref().collect::<Vec<_>>();
+    match remaining.first().map(String::as_str) {
+        Some("list") => parse_repo_session_list_args(&mut remaining.into_iter().skip(1)),
+        Some("resume") => parse_repo_session_resume_args(&mut remaining.into_iter().skip(1)),
+        _ => parse_repo_session_bootstrap_args(&mut remaining.into_iter()),
+    }
+}
+
+fn parse_repo_session_bootstrap_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
     let mut workspace_root = None;
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -1083,9 +1119,115 @@ where
         }
     }
 
-    Ok(CliCommand::RepoSession {
+    Ok(CliCommand::RepoSession(RepoSessionCommand::Bootstrap {
         workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
-    })
+    }))
+}
+
+fn parse_repo_session_list_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let (workspace_root, fixture) =
+        parse_terminal_session_directory_args(args, "repo session list")?;
+    Ok(CliCommand::RepoSession(RepoSessionCommand::List {
+        workspace_root,
+        fixture,
+    }))
+}
+
+fn parse_repo_session_resume_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut conversation_id = None;
+    let mut workspace_root = None;
+    let mut fixture = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--conversation-id" => {
+                let value = take_flag_value(args, &arg)?;
+                conversation_id = Some(parse_conversation_id(&value)?);
+            }
+            "--workspace" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                workspace_root = Some(PathBuf::from(value));
+            }
+            "--fixture" => {
+                let value = take_flag_value(args, &arg)?;
+                fixture = Some(parse_terminal_session_fixture(
+                    &value,
+                    "repo session resume",
+                )?);
+            }
+            _ => {
+                return Err(CliError::UnknownArgument(format!(
+                    "repo session resume {arg}"
+                )));
+            }
+        }
+    }
+
+    Ok(CliCommand::RepoSession(RepoSessionCommand::Resume {
+        workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
+        conversation_id: conversation_id.ok_or_else(|| {
+            CliError::MissingValue("repo session resume --conversation-id".to_string())
+        })?,
+        fixture,
+    }))
+}
+
+fn parse_terminal_session_directory_args<I>(
+    args: &mut I,
+    command_label: &str,
+) -> Result<(PathBuf, Option<TerminalSessionFixture>), CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut workspace_root = None;
+    let mut fixture = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--workspace" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(arg));
+                }
+                workspace_root = Some(PathBuf::from(value));
+            }
+            "--fixture" => {
+                let value = take_flag_value(args, &arg)?;
+                fixture = Some(parse_terminal_session_fixture(&value, command_label)?);
+            }
+            _ => return Err(CliError::UnknownArgument(format!("{command_label} {arg}"))),
+        }
+    }
+    Ok((
+        workspace_root.unwrap_or_else(|| PathBuf::from(".")),
+        fixture,
+    ))
+}
+
+fn parse_terminal_session_fixture(
+    value: &str,
+    command_label: &str,
+) -> Result<TerminalSessionFixture, CliError> {
+    match value {
+        "empty" => Ok(TerminalSessionFixture::Empty),
+        "sample" => Ok(TerminalSessionFixture::Sample),
+        _ => Err(CliError::UnknownArgument(format!(
+            "{command_label} --fixture {value}"
+        ))),
+    }
+}
+
+fn parse_conversation_id(value: &str) -> Result<ConversationId, CliError> {
+    value
+        .parse()
+        .map_err(|_| CliError::InvalidConversationId(value.to_string()))
 }
 
 fn parse_repo_context_args<I>(args: &mut I) -> Result<CliCommand, CliError>
@@ -5307,6 +5449,361 @@ fn render_text_startup_check() -> CliOutput {
 
 fn yes_no_label(value: bool) -> &'static str {
     if value { "yes" } else { "no" }
+}
+
+fn render_text_repo_session_command(
+    command: RepoSessionCommand,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> CliOutput {
+    match command {
+        RepoSessionCommand::Bootstrap { workspace_root } => {
+            render_text_repo_session(workspace_root, config_path, config_override)
+        }
+        RepoSessionCommand::List {
+            workspace_root,
+            fixture,
+        } => {
+            render_text_terminal_session_list(workspace_root, config_path, config_override, fixture)
+        }
+        RepoSessionCommand::Resume {
+            workspace_root,
+            conversation_id,
+            fixture,
+        } => render_text_terminal_session_resume(
+            workspace_root,
+            config_path,
+            config_override,
+            conversation_id,
+            fixture,
+        ),
+    }
+}
+
+fn render_json_repo_session_command(
+    command: RepoSessionCommand,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    model_selection: ModelSelection,
+) -> CliOutput {
+    match command {
+        RepoSessionCommand::Bootstrap { workspace_root } => render_json_repo_session(
+            workspace_root,
+            config_path,
+            config_override,
+            model_selection,
+        ),
+        RepoSessionCommand::List {
+            workspace_root,
+            fixture,
+        } => {
+            render_json_terminal_session_list(workspace_root, config_path, config_override, fixture)
+        }
+        RepoSessionCommand::Resume {
+            workspace_root,
+            conversation_id,
+            fixture,
+        } => render_json_terminal_session_resume(
+            workspace_root,
+            config_path,
+            config_override,
+            conversation_id,
+            fixture,
+        ),
+    }
+}
+
+fn render_text_terminal_session_list(
+    workspace_root: PathBuf,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    fixture: Option<TerminalSessionFixture>,
+) -> CliOutput {
+    match evaluate_terminal_session_directory(workspace_root, config_path, config_override, fixture)
+    {
+        Ok(report) => CliOutput::exit(render_terminal_session_list_text(&report)),
+        Err(error) => CliOutput::failure(render_terminal_session_error_text("list", &error), 2),
+    }
+}
+
+fn render_json_terminal_session_list(
+    workspace_root: PathBuf,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    fixture: Option<TerminalSessionFixture>,
+) -> CliOutput {
+    match evaluate_terminal_session_directory(workspace_root, config_path, config_override, fixture)
+    {
+        Ok(report) => render_terminal_session_report_json(report),
+        Err(error) => render_terminal_session_cli_error_json(error),
+    }
+}
+
+fn render_text_terminal_session_resume(
+    workspace_root: PathBuf,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    conversation_id: ConversationId,
+    fixture: Option<TerminalSessionFixture>,
+) -> CliOutput {
+    match evaluate_terminal_session_directory(workspace_root, config_path, config_override, fixture)
+    {
+        Ok(report) => match validate_terminal_session_restore(&report, conversation_id) {
+            Ok(summary) => CliOutput::exit(render_terminal_session_resume_text(&summary)),
+            Err(error) => CliOutput::failure(render_terminal_session_restore_error_text(&error), 2),
+        },
+        Err(error) => CliOutput::failure(render_terminal_session_error_text("resume", &error), 2),
+    }
+}
+
+fn render_json_terminal_session_resume(
+    workspace_root: PathBuf,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    conversation_id: ConversationId,
+    fixture: Option<TerminalSessionFixture>,
+) -> CliOutput {
+    match evaluate_terminal_session_directory(workspace_root, config_path, config_override, fixture)
+    {
+        Ok(report) => match validate_terminal_session_restore(&report, conversation_id) {
+            Ok(summary) => render_terminal_session_report_json(TerminalSessionDirectoryReport {
+                sessions: vec![summary],
+                diagnostics: report.diagnostics,
+            }),
+            Err(error) => render_terminal_session_restore_error_json(&error),
+        },
+        Err(error) => render_terminal_session_cli_error_json(error),
+    }
+}
+
+fn render_terminal_session_report_json(report: TerminalSessionDirectoryReport) -> CliOutput {
+    match UiTerminalSessionSnapshot::from_report(&report) {
+        Ok(snapshot) => {
+            let mut stdout = json_frame_line(UiJsonFrame::TerminalSessionSnapshot(snapshot));
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::exit(stdout)
+        }
+        Err(error) => {
+            let mut stdout = json_frame_line(UiJsonFrame::Error {
+                code: "terminal_session_snapshot_failed".to_string(),
+                message: redact_secret_like_text(&error.to_string()),
+                recoverable: false,
+            });
+            stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+            CliOutput::failure(stdout, 2)
+        }
+    }
+}
+
+fn evaluate_terminal_session_directory(
+    workspace_root: PathBuf,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    fixture: Option<TerminalSessionFixture>,
+) -> Result<TerminalSessionDirectoryReport, TerminalSessionCliError> {
+    let records = match fixture {
+        Some(TerminalSessionFixture::Empty) => Vec::new(),
+        Some(TerminalSessionFixture::Sample) => sample_terminal_session_records(),
+        None => {
+            let report = evaluate_repo_session(workspace_root, config_path, config_override)?;
+            vec![terminal_session_record_from_repo_report(&report)]
+        }
+    };
+    build_terminal_session_directory(records).map_err(TerminalSessionCliError::Directory)
+}
+
+#[derive(Debug, Error)]
+enum TerminalSessionCliError {
+    #[error(transparent)]
+    Bootstrap(#[from] RepoSessionBootstrapError),
+    #[error(transparent)]
+    Directory(#[from] agent_core::TerminalSessionDirectoryError),
+}
+
+fn terminal_session_record_from_repo_report(
+    report: &RepoSessionBootstrapReport,
+) -> TerminalSessionRecord {
+    TerminalSessionRecord {
+        workspace_id: report.workspace_id,
+        conversation_id: report.conversation_id,
+        workspace_root_display: report.workspace_root_display.clone(),
+        title: "Repo session".to_string(),
+        client_kind: ClientKind::Cli,
+        client_version: env!("CARGO_PKG_VERSION").to_string(),
+        provider_id: report.provider.selected_provider.clone(),
+        model_id: report.provider.selected_model.clone(),
+        git_state: report.git.state,
+        last_event_at: report
+            .events
+            .last()
+            .map(|event| event.occurred_at)
+            .unwrap_or_else(Timestamp::now_utc),
+        pending_approval_count: 0,
+        running_command_count: 0,
+        task_count: 0,
+        failed: false,
+    }
+}
+
+fn sample_terminal_session_records() -> Vec<TerminalSessionRecord> {
+    vec![
+        TerminalSessionRecord {
+            workspace_id: parse_workspace_id("00000000-0000-0000-0000-000000000591"),
+            conversation_id: parse_fixture_conversation_id("00000000-0000-0000-0000-000000000592"),
+            workspace_root_display: "/tmp/api_key/project".to_string(),
+            title: "sk-test-secret daily driver".to_string(),
+            client_kind: ClientKind::Cli,
+            client_version: "client-secret-version".to_string(),
+            provider_id: "provider-secret".to_string(),
+            model_id: "model-token".to_string(),
+            git_state: RepoGitState::Dirty,
+            last_event_at: parse_terminal_session_timestamp("2026-07-03T00:00:00Z"),
+            pending_approval_count: 0,
+            running_command_count: 1,
+            task_count: 0,
+            failed: false,
+        },
+        TerminalSessionRecord {
+            workspace_id: parse_workspace_id("00000000-0000-0000-0000-000000000593"),
+            conversation_id: parse_fixture_conversation_id("00000000-0000-0000-0000-000000000594"),
+            workspace_root_display: "workspace-secondary".to_string(),
+            title: "planning".to_string(),
+            client_kind: ClientKind::Tui,
+            client_version: "0.1.0".to_string(),
+            provider_id: "fake".to_string(),
+            model_id: "fake-scripted".to_string(),
+            git_state: RepoGitState::Clean,
+            last_event_at: parse_terminal_session_timestamp("2026-07-02T00:00:00Z"),
+            pending_approval_count: 0,
+            running_command_count: 0,
+            task_count: 2,
+            failed: false,
+        },
+    ]
+}
+
+fn parse_workspace_id(value: &str) -> WorkspaceId {
+    value.parse().expect("fixture workspace id is valid")
+}
+
+fn parse_fixture_conversation_id(value: &str) -> ConversationId {
+    value.parse().expect("fixture conversation id is valid")
+}
+
+fn parse_terminal_session_timestamp(value: &str) -> Timestamp {
+    serde_json::from_str(&format!("\"{value}\"")).expect("fixture timestamp is valid")
+}
+
+fn render_terminal_session_list_text(report: &TerminalSessionDirectoryReport) -> String {
+    if report.sessions.is_empty() {
+        return "Terminal sessions: none\n".to_string();
+    }
+
+    let mut output = format!("Terminal sessions: {}\n", report.sessions.len());
+    for session in &report.sessions {
+        output.push_str(&format!(
+            "- {} status={} title={} workspace={} provider={}/{} git={} updated={}\n",
+            session.conversation_id,
+            terminal_session_status_label(session.status),
+            redact_secret_like_text(&session.title),
+            redact_secret_like_text(&session.workspace_root_display),
+            redact_secret_like_text(&session.provider_id),
+            redact_secret_like_text(&session.model_id),
+            repo_git_state_label(session.git_state),
+            timestamp_label(session.last_event_at)
+        ));
+    }
+    output
+}
+
+fn render_terminal_session_resume_text(summary: &TerminalSessionSummary) -> String {
+    format!(
+        "Terminal session: ready\nConversation ID: {}\nWorkspace ID: {}\nWorkspace: {}\nStatus: {}\nProvider: {} / {}\nGit: {}\nUpdated: {}\n",
+        summary.conversation_id,
+        summary.workspace_id,
+        redact_secret_like_text(&summary.workspace_root_display),
+        terminal_session_status_label(summary.status),
+        redact_secret_like_text(&summary.provider_id),
+        redact_secret_like_text(&summary.model_id),
+        repo_git_state_label(summary.git_state),
+        timestamp_label(summary.last_event_at)
+    )
+}
+
+fn render_terminal_session_error_text(action: &str, error: &TerminalSessionCliError) -> String {
+    format!(
+        "terminal session {action} failed: {} ({})\n",
+        terminal_session_cli_error_message(error),
+        terminal_session_cli_error_code(error)
+    )
+}
+
+fn render_terminal_session_restore_error_text(error: &TerminalSessionRestoreError) -> String {
+    format!(
+        "terminal session resume failed: {} ({})\n",
+        terminal_session_restore_error_message(error),
+        error.code()
+    )
+}
+
+fn render_terminal_session_cli_error_json(error: TerminalSessionCliError) -> CliOutput {
+    let mut stdout = json_frame_line(UiJsonFrame::Error {
+        code: terminal_session_cli_error_code(&error),
+        message: terminal_session_cli_error_message(&error),
+        recoverable: false,
+    });
+    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+    CliOutput::failure(stdout, 2)
+}
+
+fn render_terminal_session_restore_error_json(error: &TerminalSessionRestoreError) -> CliOutput {
+    let mut stdout = json_frame_line(UiJsonFrame::Error {
+        code: error.code().to_string(),
+        message: terminal_session_restore_error_message(error),
+        recoverable: false,
+    });
+    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+    CliOutput::failure(stdout, 2)
+}
+
+fn terminal_session_cli_error_code(error: &TerminalSessionCliError) -> String {
+    match error {
+        TerminalSessionCliError::Bootstrap(error) => error.code().to_string(),
+        TerminalSessionCliError::Directory(_) => "terminal_session.directory.invalid".to_string(),
+    }
+}
+
+fn terminal_session_cli_error_message(error: &TerminalSessionCliError) -> String {
+    match error {
+        TerminalSessionCliError::Bootstrap(error) => repo_session_error_message(error),
+        TerminalSessionCliError::Directory(_) => {
+            "terminal session directory is invalid".to_string()
+        }
+    }
+}
+
+fn terminal_session_restore_error_message(error: &TerminalSessionRestoreError) -> String {
+    match error {
+        TerminalSessionRestoreError::NotFound { .. } => {
+            "terminal session conversation was not found".to_string()
+        }
+    }
+}
+
+fn terminal_session_status_label(status: TerminalSessionStatus) -> &'static str {
+    match status {
+        TerminalSessionStatus::Idle => "idle",
+        TerminalSessionStatus::HasTasks => "has_tasks",
+        TerminalSessionStatus::RunningCommand => "running_command",
+        TerminalSessionStatus::WaitingApproval => "waiting_approval",
+        TerminalSessionStatus::Failed => "failed",
+    }
+}
+
+fn timestamp_label(timestamp: Timestamp) -> String {
+    serde_json::to_string(&timestamp)
+        .map(|value| value.trim_matches('"').to_string())
+        .unwrap_or_else(|_| "unknown".to_string())
 }
 
 fn render_text_repo_session(

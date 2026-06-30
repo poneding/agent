@@ -1,7 +1,9 @@
 use std::fs;
 use std::process::Command;
 
-use agent_cli::{CliCommand, OutputMode, parse_cli_invocation, render_cli_invocation};
+use agent_cli::{
+    CliCommand, OutputMode, RepoSessionCommand, parse_cli_invocation, render_cli_invocation,
+};
 use agent_ui_bridge::UiJsonFrame;
 
 fn parse_frames(output: &str) -> Vec<UiJsonFrame> {
@@ -16,12 +18,18 @@ fn repo_session_bootstrap_parses_text_and_json_forms() {
     let text =
         parse_cli_invocation(["repo", "session", "--workspace", "."]).expect("parse repo session");
     assert_eq!(text.output_mode, OutputMode::Text);
-    assert!(matches!(text.command, CliCommand::RepoSession { .. }));
+    assert!(matches!(
+        text.command,
+        CliCommand::RepoSession(RepoSessionCommand::Bootstrap { .. })
+    ));
 
     let json = parse_cli_invocation(["--json", "repo", "session", "--workspace", "."])
         .expect("parse json repo session");
     assert_eq!(json.output_mode, OutputMode::Json);
-    assert!(matches!(json.command, CliCommand::RepoSession { .. }));
+    assert!(matches!(
+        json.command,
+        CliCommand::RepoSession(RepoSessionCommand::Bootstrap { .. })
+    ));
 }
 
 #[test]

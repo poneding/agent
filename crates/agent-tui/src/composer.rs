@@ -146,6 +146,10 @@ pub enum TuiEffect {
         lease_duration_seconds: Option<u64>,
     },
     ApprovalAborted(String),
+    SwitchSession {
+        workspace_id: WorkspaceId,
+        conversation_id: ConversationId,
+    },
 }
 
 impl TuiEffect {
@@ -179,6 +183,13 @@ impl TuiEffect {
                 decision: *decision,
                 reason: reason.clone(),
                 lease_duration_seconds: *lease_duration_seconds,
+            },
+            Self::SwitchSession {
+                workspace_id,
+                conversation_id,
+            } => UiCommand::SwitchSession {
+                workspace_id: *workspace_id,
+                conversation_id: *conversation_id,
             },
             _ => return Ok(None),
         };

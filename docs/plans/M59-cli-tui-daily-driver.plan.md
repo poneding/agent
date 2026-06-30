@@ -54,9 +54,9 @@ Baseline verification on 2026-07-01:
 - Execute: `docs/specs/M59-01-session-restore-switch.spec.md`
 - Execute: `docs/plans/M59-01-session-restore-switch.plan.md`
 
-- [ ] **Step 1: Complete terminal session directory slice**
+- [x] **Step 1: Complete terminal session directory slice**
 
-Add typed session summaries, restore/switch validation, CLI/JSON commands, bridge snapshot support, and TUI session panel state.
+Added typed session summaries, restore/switch validation, CLI/JSON commands, bridge snapshot support, and TUI session panel state in M59-01.
 
 ### Task 3: M59-02 Slash Command Catalog and Status Hub
 
@@ -126,7 +126,7 @@ Run exact-path staging and commit the final docs/status updates.
 
 ### Completion Checklist
 
-- [ ] Terminal sessions can be listed, restored, and switched through typed contracts.
+- [x] Terminal sessions can be listed, restored, and switched through typed contracts.
 - [ ] Slash command catalog is discoverable and tested.
 - [ ] Approval queue and permission review workflows are actionable and safe.
 - [ ] Diff and command/test panels support repeated coding-loop use.

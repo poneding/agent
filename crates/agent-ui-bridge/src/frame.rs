@@ -9,10 +9,13 @@ use agent_core::{
     ProjectContextHybridRetrievalReport, ProjectContextPinnedRetrievalReport,
     ProjectContextRetrievalReport, ProjectContextSummary, ProjectFileSummary, RepoGitState,
     RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity, StartupMigrationOutcome,
-    TaskArtifact, TaskReviewSummary,
+    TaskArtifact, TaskReviewSummary, TerminalSessionDiagnosticSeverity,
+    TerminalSessionDirectoryReport, TerminalSessionStatus, TerminalSessionSummary,
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
-use agent_types::{CheckpointId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
+use agent_types::{
+    CheckpointId, ClientKind, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{UiBridgeError, UiEventEnvelope};
@@ -259,6 +262,82 @@ pub struct UiRepoSessionDiagnostic {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTerminalSessionSnapshot {
+    pub sessions: Vec<UiTerminalSessionSummary>,
+    pub diagnostics: Vec<UiTerminalSessionDiagnostic>,
+}
+
+impl UiTerminalSessionSnapshot {
+    pub fn from_report(report: &TerminalSessionDirectoryReport) -> Result<Self, UiBridgeError> {
+        let sessions = report
+            .sessions
+            .iter()
+            .map(UiTerminalSessionSummary::from_summary)
+            .collect::<Result<Vec<_>, _>>()?;
+        let diagnostics = report
+            .diagnostics
+            .iter()
+            .map(UiTerminalSessionDiagnostic::from_diagnostic)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Self {
+            sessions,
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTerminalSessionSummary {
+    pub workspace_id: WorkspaceId,
+    pub conversation_id: ConversationId,
+    pub workspace_root_display: String,
+    pub title: String,
+    pub client_kind: String,
+    pub client_version: String,
+    pub provider_id: String,
+    pub model_id: String,
+    pub git_state: String,
+    pub last_event_at: Timestamp,
+    pub status: String,
+    pub pending_approval_count: u32,
+    pub running_command_count: u32,
+    pub task_count: u32,
+}
+
+impl UiTerminalSessionSummary {
+    pub fn from_summary(summary: &TerminalSessionSummary) -> Result<Self, UiBridgeError> {
+        Ok(Self {
+            workspace_id: summary.workspace_id,
+            conversation_id: summary.conversation_id,
+            workspace_root_display: bounded_non_empty(
+                &summary.workspace_root_display,
+                "(unknown workspace)",
+            ),
+            title: bounded_non_empty(&summary.title, "(untitled session)"),
+            client_kind: client_kind_label(&summary.client_kind).to_string(),
+            client_version: bounded_non_empty(&summary.client_version, "unknown"),
+            provider_id: bounded_non_empty(&summary.provider_id, "unknown"),
+            model_id: bounded_non_empty(&summary.model_id, "unknown"),
+            git_state: git_state_label(summary.git_state).to_string(),
+            last_event_at: summary.last_event_at,
+            status: terminal_session_status_label(summary.status).to_string(),
+            pending_approval_count: summary.pending_approval_count,
+            running_command_count: summary.running_command_count,
+            task_count: summary.task_count,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTerminalSessionDiagnostic {
+    pub severity: String,
+    pub code: String,
+    pub message: String,
+    pub recoverable: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UiEditDiffSnapshot {
     pub workspace_id: WorkspaceId,
     pub conversation_id: ConversationId,
@@ -495,6 +574,23 @@ impl UiRepoSessionDiagnostic {
                 RepoSessionDiagnosticSeverity::Error => "error",
             }
             .to_string(),
+            code,
+            message,
+            recoverable: diagnostic.recoverable,
+        })
+    }
+}
+
+impl UiTerminalSessionDiagnostic {
+    pub fn from_diagnostic(
+        diagnostic: &agent_core::TerminalSessionDiagnostic,
+    ) -> Result<Self, UiBridgeError> {
+        let code = bounded_task_text(&diagnostic.code);
+        let message = bounded_task_text(&diagnostic.message);
+        validate_non_empty("terminal session diagnostic code", &code)?;
+        validate_non_empty("terminal session diagnostic message", &message)?;
+        Ok(Self {
+            severity: terminal_session_diagnostic_severity_label(diagnostic.severity).to_string(),
             code,
             message,
             recoverable: diagnostic.recoverable,
@@ -2125,6 +2221,7 @@ pub enum UiJsonFrame {
     Event(UiEventEnvelope),
     ConfigSnapshot(UiConfigSnapshot),
     RepoSessionSnapshot(UiRepoSessionSnapshot),
+    TerminalSessionSnapshot(UiTerminalSessionSnapshot),
     EditDiffSnapshot(UiEditDiffSnapshot),
     CommandTestSnapshot(UiCommandTestSnapshot),
     FinalReviewSnapshot(UiFinalReviewSnapshot),
@@ -2173,6 +2270,36 @@ fn git_state_label(state: RepoGitState) -> &'static str {
         RepoGitState::Dirty => "dirty",
         RepoGitState::NotRepository => "not_repository",
         RepoGitState::Unavailable => "unavailable",
+    }
+}
+
+fn client_kind_label(kind: &ClientKind) -> &'static str {
+    match kind {
+        ClientKind::Cli => "cli",
+        ClientKind::Tui => "tui",
+        ClientKind::Desktop => "desktop",
+        ClientKind::Api => "api",
+        ClientKind::Test => "test",
+    }
+}
+
+fn terminal_session_status_label(status: TerminalSessionStatus) -> &'static str {
+    match status {
+        TerminalSessionStatus::Idle => "idle",
+        TerminalSessionStatus::HasTasks => "has_tasks",
+        TerminalSessionStatus::RunningCommand => "running_command",
+        TerminalSessionStatus::WaitingApproval => "waiting_approval",
+        TerminalSessionStatus::Failed => "failed",
+    }
+}
+
+fn terminal_session_diagnostic_severity_label(
+    severity: TerminalSessionDiagnosticSeverity,
+) -> &'static str {
+    match severity {
+        TerminalSessionDiagnosticSeverity::Info => "info",
+        TerminalSessionDiagnosticSeverity::Warning => "warning",
+        TerminalSessionDiagnosticSeverity::Error => "error",
     }
 }
 
@@ -2241,6 +2368,15 @@ fn validate_non_empty(label: &str, value: &str) -> Result<(), UiBridgeError> {
         )));
     }
     Ok(())
+}
+
+fn bounded_non_empty(value: &str, fallback: &str) -> String {
+    let bounded = bounded_task_text(value);
+    if bounded.trim().is_empty() {
+        fallback.to_string()
+    } else {
+        bounded
+    }
 }
 
 fn should_hide_prompt_preview(visibility: &str, sensitivity: &str) -> bool {

@@ -141,6 +141,16 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::TerminalSessionSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "terminal-sessions",
+                format!(
+                    "{} sessions diagnostics={}",
+                    snapshot.sessions.len(),
+                    snapshot.diagnostics.len()
+                ),
+                false,
+            )),
             UiJsonFrame::EditDiffSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "edit-diff",

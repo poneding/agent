@@ -126,6 +126,15 @@ impl TracePanelState {
                     snapshot.diagnostic_count
                 ),
             )),
+            UiJsonFrame::TerminalSessionSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "terminal-sessions",
+                format!(
+                    "{} sessions diagnostics={}",
+                    snapshot.sessions.len(),
+                    snapshot.diagnostics.len()
+                ),
+            )),
             UiJsonFrame::EditDiffSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "edit-diff",

@@ -49,7 +49,7 @@ Baseline verification on 2026-07-01:
 **Files:**
 - Create: `crates/agent-core/tests/terminal_session_directory.rs`
 
-- [ ] **Step 1: Add failing core tests**
+- [x] **Step 1: Add failing core tests**
 
 Cover:
 
@@ -60,7 +60,7 @@ Cover:
 - invalid restore requests fail before UI focus changes
 - workspace display, title, provider/model ids, and diagnostics are bounded and redacted
 
-- [ ] **Step 2: Run core tests and verify failure**
+- [x] **Step 2: Run core tests and verify failure**
 
 Run:
 
@@ -76,15 +76,15 @@ Expected: tests fail before terminal session contracts exist.
 - Create: `crates/agent-core/src/terminal_session.rs`
 - Modify: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add typed contracts**
+- [x] **Step 1: Add typed contracts**
 
 Implement terminal session record, summary, status, diagnostics, directory report, and restore validation contracts with serde-friendly public shapes where durable or UI-facing.
 
-- [ ] **Step 2: Add deterministic directory derivation**
+- [x] **Step 2: Add deterministic directory derivation**
 
 Derive summaries from typed records or existing repo session reports/events. Keep sorting, duplicate collapse, status classification, and redaction in shared runtime code.
 
-- [ ] **Step 3: Run core tests**
+- [x] **Step 3: Run core tests**
 
 Run:
 
@@ -102,15 +102,15 @@ Expected: core session directory tests pass.
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Modify: `crates/agent-ui-bridge/src/lib.rs`
 
-- [ ] **Step 1: Add bridge tests**
+- [x] **Step 1: Add bridge tests**
 
 Cover stable JSON snapshot shape, command validation for switch requests, bounded diagnostics, redaction, and single-line JSON frame encoding.
 
-- [ ] **Step 2: Implement bridge mapping**
+- [x] **Step 2: Implement bridge mapping**
 
 Add `UiTerminalSessionSnapshot`, summaries, diagnostics, `UiJsonFrame` variant, and switch command validation. Reuse core reports; do not derive session status in the bridge.
 
-- [ ] **Step 3: Run bridge tests**
+- [x] **Step 3: Run bridge tests**
 
 Run:
 
@@ -126,7 +126,7 @@ Expected: bridge session snapshot tests pass.
 - Create: `crates/agent-cli/tests/terminal_session_commands.rs`
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Add CLI tests**
+- [x] **Step 1: Add CLI tests**
 
 Cover:
 
@@ -137,11 +137,11 @@ Cover:
 - default `repo session` bootstrap behavior remains unchanged
 - output is bounded and redacted
 
-- [ ] **Step 2: Implement CLI routing and rendering**
+- [x] **Step 2: Implement CLI routing and rendering**
 
 Extend existing repo session commands without breaking `repo session --workspace`. Use core session helpers and bridge snapshots for JSON.
 
-- [ ] **Step 3: Run CLI tests**
+- [x] **Step 3: Run CLI tests**
 
 Run:
 
@@ -162,15 +162,15 @@ Expected: session command tests and existing repo session bootstrap tests pass.
 - Modify: `crates/agent-tui/src/slash.rs`
 - Modify: `crates/agent-tui/tests/slash_commands.rs`
 
-- [ ] **Step 1: Add TUI state tests**
+- [x] **Step 1: Add TUI state tests**
 
 Cover snapshot reduction, focus next/previous, empty state rendering, switch effect emission, and `/sessions` slash command parsing.
 
-- [ ] **Step 2: Implement session panel state**
+- [x] **Step 2: Implement session panel state**
 
 Add panel state derived from bridge snapshots and a typed effect for switch requests. Keep rendering bounded and side-effect free.
 
-- [ ] **Step 3: Run TUI tests**
+- [x] **Step 3: Run TUI tests**
 
 Run:
 
@@ -189,7 +189,7 @@ Expected: TUI session panel and slash command tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify if needed: `README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -205,7 +205,7 @@ cargo test -p agent-tui --test slash_commands
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for the M59-01 source, tests, and docs, then:
 
@@ -217,10 +217,10 @@ Expected: commit contains only M59-01 source, tests, and documentation/status up
 
 ### Completion Checklist
 
-- [ ] Core terminal session contracts are typed, serde-friendly, and tested.
-- [ ] Session directory sorting, duplicate collapse, status classification, and restore validation are deterministic.
-- [ ] CLI text/JSON list and resume commands are stable and redacted.
-- [ ] UI bridge session snapshot and switch command are stable and safe.
-- [ ] TUI session panel can display sessions and emit switch effects.
-- [ ] Existing repo session bootstrap behavior remains unchanged.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Core terminal session contracts are typed, serde-friendly, and tested.
+- [x] Session directory sorting, duplicate collapse, status classification, and restore validation are deterministic.
+- [x] CLI text/JSON list and resume commands are stable and redacted.
+- [x] UI bridge session snapshot and switch command are stable and safe.
+- [x] TUI session panel can display sessions and emit switch effects.
+- [x] Existing repo session bootstrap behavior remains unchanged.
+- [x] Focused fmt/clippy/tests pass.

@@ -1,4 +1,4 @@
-use agent_tui::{SlashCommand, SlashCommandError, TuiEffect};
+use agent_tui::{ComposerAction, SlashCommand, SlashCommandError, TuiApp, TuiEffect, TuiSidePanel};
 
 #[test]
 fn slash_parser_accepts_known_commands() {
@@ -17,6 +17,10 @@ fn slash_parser_accepts_known_commands() {
     assert_eq!(
         SlashCommand::parse("/tasks").expect("tasks"),
         SlashCommand::Tasks
+    );
+    assert_eq!(
+        SlashCommand::parse("/sessions").expect("sessions"),
+        SlashCommand::Sessions
     );
     assert_eq!(
         SlashCommand::parse("/settings").expect("settings"),
@@ -70,4 +74,15 @@ fn slash_commands_map_to_tui_effects() {
         TuiEffect::from_slash_command(SlashCommand::Quit),
         TuiEffect::RunSlashCommand(SlashCommand::Quit)
     );
+}
+
+#[test]
+fn sessions_slash_command_opens_session_panel() {
+    let mut app = TuiApp::default();
+
+    app.reduce(ComposerAction::InsertText("/sessions".to_string()).into());
+    let effect = app.reduce(ComposerAction::Submit.into());
+
+    assert_eq!(effect, TuiEffect::None);
+    assert_eq!(app.side_panel, TuiSidePanel::Sessions);
 }

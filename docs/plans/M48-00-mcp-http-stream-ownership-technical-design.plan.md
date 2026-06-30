@@ -46,7 +46,7 @@
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Commit M48 planning**
+- [x] **Step 1: Commit M48 planning**
 
 Run:
 

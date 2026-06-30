@@ -34,7 +34,7 @@ pub use client_http::{
     FixtureMcpClientHttpTransport, McpClientHttpRequest, McpClientHttpReqwestTransport,
     McpClientHttpResponse, McpClientHttpResponseEnvelope, McpClientHttpResponseFrame,
     McpClientHttpResponseMode, McpClientHttpSessionMetadata, McpClientHttpSseEvent,
-    McpClientHttpSseResponse, McpClientHttpTransport, McpHttpClient,
+    McpClientHttpSseResponse, McpClientHttpStreamRequest, McpClientHttpTransport, McpHttpClient,
     find_mcp_client_http_response_frame, parse_mcp_client_http_response_body,
     parse_mcp_client_http_response_mode_frames, parse_mcp_client_http_response_text,
     parse_mcp_client_http_session_metadata, parse_mcp_client_http_sse_events,

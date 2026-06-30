@@ -22,6 +22,7 @@ const MAX_CLIENT_HTTP_SSE_EVENT_DATA_BYTES: usize = 64 * 1024;
 
 const MCP_CLIENT_HTTP_SESSION_ID_HEADER_CANONICAL: &str = "Mcp-Session-Id";
 const MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER_CANONICAL: &str = "MCP-Protocol-Version";
+const MCP_CLIENT_HTTP_LAST_EVENT_ID_HEADER_CANONICAL: &str = "Last-Event-ID";
 const MCP_CLIENT_HTTP_SESSION_ID_HEADER: &str = "mcp-session-id";
 const MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER: &str = "mcp-protocol-version";
 
@@ -165,6 +166,92 @@ impl McpClientHttpRequest {
         }
 
         Self::new(url.clone(), resolved_headers, body_json, config.timeout_ms)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamRequest {
+    pub url: String,
+    pub headers: BTreeMap<String, String>,
+    pub timeout_ms: u64,
+}
+
+impl McpClientHttpStreamRequest {
+    pub fn new(
+        url: impl Into<String>,
+        headers: BTreeMap<String, String>,
+        timeout_ms: u64,
+    ) -> Result<Self, McpError> {
+        let url = url.into();
+        if !(url.starts_with("http://") || url.starts_with("https://")) {
+            return Err(McpError::InvalidConfig(
+                "streamable http url must start with http:// or https://".to_string(),
+            ));
+        }
+        if timeout_ms == 0 {
+            return Err(McpError::InvalidConfig(
+                "timeout_ms must be greater than zero".to_string(),
+            ));
+        }
+
+        Ok(Self {
+            url,
+            headers,
+            timeout_ms,
+        })
+    }
+
+    pub fn from_config(config: &McpServerConfig) -> Result<Self, McpError> {
+        Self::from_config_with_session_metadata(config, &McpClientHttpSessionMetadata::default())
+    }
+
+    pub fn from_config_with_session_metadata(
+        config: &McpServerConfig,
+        session_metadata: &McpClientHttpSessionMetadata,
+    ) -> Result<Self, McpError> {
+        if !config.enabled {
+            return Err(McpError::InvalidConfig(
+                "MCP client HTTP server is disabled".to_string(),
+            ));
+        }
+
+        let McpTransportConfig::StreamableHttp { url, headers } = &config.transport else {
+            return Err(McpError::InvalidConfig(
+                "MCP client HTTP transport requires streamable http config".to_string(),
+            ));
+        };
+
+        let mut resolved_headers = BTreeMap::new();
+        for (key, value) in headers {
+            match value {
+                McpEnvValue::Literal(value) => {
+                    resolved_headers.insert(key.clone(), value.clone());
+                }
+                McpEnvValue::SecretRef(_) => {
+                    return Err(McpError::InvalidConfig(
+                        "MCP client HTTP headers contain unresolved secret ref".to_string(),
+                    ));
+                }
+            }
+        }
+
+        insert_mcp_client_http_metadata_header(
+            &mut resolved_headers,
+            MCP_CLIENT_HTTP_SESSION_ID_HEADER_CANONICAL,
+            session_metadata.session_id.as_deref(),
+        )?;
+        insert_mcp_client_http_metadata_header(
+            &mut resolved_headers,
+            MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER_CANONICAL,
+            session_metadata.protocol_version.as_deref(),
+        )?;
+        insert_mcp_client_http_metadata_header(
+            &mut resolved_headers,
+            MCP_CLIENT_HTTP_LAST_EVENT_ID_HEADER_CANONICAL,
+            session_metadata.last_event_id.as_deref(),
+        )?;
+
+        Self::new(url.clone(), resolved_headers, config.timeout_ms)
     }
 }
 

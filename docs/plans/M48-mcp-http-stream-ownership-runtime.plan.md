@@ -46,7 +46,7 @@ Define crate ownership, stream request contracts, stream transport boundary, res
 - Execute: `docs/plans/M48-04-bounded-stream-event-drain.plan.md`
 - Execute: `docs/plans/M48-05-hardening-docs.plan.md`
 
-- [ ] **Step 1: Add GET stream request contracts**
+- [x] **Step 1: Add GET stream request contracts**
 - [ ] **Step 2: Add reqwest GET SSE stream open**
 - [ ] **Step 3: Add initialized stream resume snapshots**
 - [ ] **Step 4: Add bounded stream event drain**

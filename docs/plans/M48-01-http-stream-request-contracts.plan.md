@@ -17,14 +17,14 @@
 - Read: `crates/agent-mcp/src/client_http.rs`
 - Read: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Review the spec and existing HTTP request contracts**
+- [x] **Step 1: Review the spec and existing HTTP request contracts**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
 - Create: `crates/agent-mcp/tests/mcp_client_http_stream_request.rs`
 
-- [ ] **Step 1: Add focused stream request tests**
+- [x] **Step 1: Add focused stream request tests**
 
 Run:
 
@@ -40,11 +40,11 @@ Expected: tests fail before stream request contracts exist.
 - Modify: `crates/agent-mcp/src/client_http.rs`
 - Modify: `crates/agent-mcp/src/lib.rs`
 
-- [ ] **Step 1: Add `McpClientHttpStreamRequest`**
-- [ ] **Step 2: Add stream request construction from config and session metadata**
-- [ ] **Step 3: Add `Last-Event-ID` conflict handling**
-- [ ] **Step 4: Export public contracts**
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 1: Add `McpClientHttpStreamRequest`**
+- [x] **Step 2: Add stream request construction from config and session metadata**
+- [x] **Step 3: Add `Last-Event-ID` conflict handling**
+- [x] **Step 4: Export public contracts**
+- [x] **Step 5: Run focused tests**
 
 Run:
 
@@ -56,7 +56,7 @@ Expected: focused tests pass.
 
 ### Task 4: Verify
 
-- [ ] **Step 1: Run focused quality checks**
+- [x] **Step 1: Run focused quality checks**
 
 Run:
 
@@ -69,7 +69,7 @@ Expected: checks pass.
 
 ### Task 5: Commit
 
-- [ ] **Step 1: Update status and commit M48-01**
+- [x] **Step 1: Update status and commit M48-01**
 
 Run:
 
@@ -77,3 +77,11 @@ Run:
 git add crates/agent-mcp docs
 git commit -m "feat: add mcp http stream request contracts"
 ```
+
+## Verification Evidence
+
+2026-06-30:
+
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_request` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo fmt --all -- --check` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.

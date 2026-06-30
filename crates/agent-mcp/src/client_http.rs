@@ -806,6 +806,177 @@ impl fmt::Debug for McpClientHttpOAuthTokenExchangeHttpResponse {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthTokenExchangeDiagnosticSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthTokenExchangeDiagnosticCode {
+    TokenExchangeSucceeded,
+    ProviderError,
+    InvalidResponse,
+    TransportFailed,
+    RetryableStatus,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthTokenExchangeDiagnostic {
+    pub severity: McpClientHttpOAuthTokenExchangeDiagnosticSeverity,
+    pub code: McpClientHttpOAuthTokenExchangeDiagnosticCode,
+    pub message: String,
+}
+
+impl McpClientHttpOAuthTokenExchangeDiagnostic {
+    #[must_use]
+    pub fn new(
+        severity: McpClientHttpOAuthTokenExchangeDiagnosticSeverity,
+        code: McpClientHttpOAuthTokenExchangeDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            severity,
+            code,
+            message: message.into(),
+        }
+    }
+
+    #[must_use]
+    pub fn info(
+        code: McpClientHttpOAuthTokenExchangeDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenExchangeDiagnosticSeverity::Info,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn warning(
+        code: McpClientHttpOAuthTokenExchangeDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenExchangeDiagnosticSeverity::Warning,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn error(
+        code: McpClientHttpOAuthTokenExchangeDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenExchangeDiagnosticSeverity::Error,
+            code,
+            message,
+        )
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthTokenExchangeReport {
+    pub exchanged: bool,
+    pub diagnostics: Vec<McpClientHttpOAuthTokenExchangeDiagnostic>,
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenExchangeOutcome {
+    pub report: McpClientHttpOAuthTokenExchangeReport,
+    pub response: Option<McpClientHttpOAuthTokenResponse>,
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenExchangeOutcome {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthTokenExchangeOutcome")
+            .field("report", &self.report)
+            .field("response", &self.response.as_ref().map(|_| "[redacted]"))
+            .finish()
+    }
+}
+
+pub async fn exchange_mcp_client_http_oauth_token<T>(
+    transport: &mut T,
+    request: &McpClientHttpOAuthTokenExchangeRequest,
+) -> Result<McpClientHttpOAuthTokenExchangeOutcome, McpError>
+where
+    T: McpClientHttpOAuthTokenExchangeTransport,
+{
+    let http_request = McpClientHttpOAuthTokenExchangeHttpRequest::from_exchange_request(request)?;
+    let http_response = match transport.exchange_token(http_request).await {
+        Ok(response) => response,
+        Err(_) => {
+            return Ok(McpClientHttpOAuthTokenExchangeOutcome {
+                report: McpClientHttpOAuthTokenExchangeReport {
+                    exchanged: false,
+                    diagnostics: vec![McpClientHttpOAuthTokenExchangeDiagnostic::warning(
+                        McpClientHttpOAuthTokenExchangeDiagnosticCode::TransportFailed,
+                        "MCP HTTP OAuth token exchange transport failed",
+                    )],
+                },
+                response: None,
+            });
+        }
+    };
+
+    if (200..300).contains(&http_response.status) {
+        return match parse_mcp_client_http_oauth_token_response_json(&http_response.body) {
+            Ok(response) => Ok(McpClientHttpOAuthTokenExchangeOutcome {
+                report: McpClientHttpOAuthTokenExchangeReport {
+                    exchanged: true,
+                    diagnostics: vec![McpClientHttpOAuthTokenExchangeDiagnostic::info(
+                        McpClientHttpOAuthTokenExchangeDiagnosticCode::TokenExchangeSucceeded,
+                        "MCP HTTP OAuth token exchange succeeded",
+                    )],
+                },
+                response: Some(response),
+            }),
+            Err(_) => Ok(invalid_mcp_client_http_oauth_token_exchange_outcome()),
+        };
+    }
+
+    if (400..500).contains(&http_response.status) {
+        return if parse_mcp_client_http_oauth_token_error_response_json(&http_response.body).is_ok()
+        {
+            Ok(McpClientHttpOAuthTokenExchangeOutcome {
+                report: McpClientHttpOAuthTokenExchangeReport {
+                    exchanged: false,
+                    diagnostics: vec![McpClientHttpOAuthTokenExchangeDiagnostic::error(
+                        McpClientHttpOAuthTokenExchangeDiagnosticCode::ProviderError,
+                        "MCP HTTP OAuth token endpoint returned an OAuth error",
+                    )],
+                },
+                response: None,
+            })
+        } else {
+            Ok(invalid_mcp_client_http_oauth_token_exchange_outcome())
+        };
+    }
+
+    if (500..600).contains(&http_response.status) {
+        return Ok(McpClientHttpOAuthTokenExchangeOutcome {
+            report: McpClientHttpOAuthTokenExchangeReport {
+                exchanged: false,
+                diagnostics: vec![McpClientHttpOAuthTokenExchangeDiagnostic::warning(
+                    McpClientHttpOAuthTokenExchangeDiagnosticCode::RetryableStatus,
+                    "MCP HTTP OAuth token endpoint returned a retryable status",
+                )],
+            },
+            response: None,
+        });
+    }
+
+    Ok(invalid_mcp_client_http_oauth_token_exchange_outcome())
+}
+
 #[derive(Clone, Eq, PartialEq)]
 pub struct McpClientHttpOAuthTokenResponse {
     pub access_token: String,
@@ -3201,6 +3372,20 @@ fn validate_mcp_client_http_oauth_token_exchange_status(status: u16) -> Result<(
         return Ok(());
     }
     Err(invalid_mcp_client_http_oauth_token_exchange())
+}
+
+fn invalid_mcp_client_http_oauth_token_exchange_outcome() -> McpClientHttpOAuthTokenExchangeOutcome
+{
+    McpClientHttpOAuthTokenExchangeOutcome {
+        report: McpClientHttpOAuthTokenExchangeReport {
+            exchanged: false,
+            diagnostics: vec![McpClientHttpOAuthTokenExchangeDiagnostic::error(
+                McpClientHttpOAuthTokenExchangeDiagnosticCode::InvalidResponse,
+                "MCP HTTP OAuth token endpoint returned an invalid response",
+            )],
+        },
+        response: None,
+    }
 }
 
 fn has_mcp_client_http_authorization_header(headers: &BTreeMap<String, McpEnvValue>) -> bool {

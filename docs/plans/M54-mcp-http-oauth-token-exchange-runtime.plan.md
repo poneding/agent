@@ -48,7 +48,7 @@ Define crate ownership, exchange transport boundary, token response parsing, red
 
 - [x] **Step 1: Add token response contracts**
 - [x] **Step 2: Add token exchange transport boundary**
-- [ ] **Step 3: Add exchange runner diagnostics**
+- [x] **Step 3: Add exchange runner diagnostics**
 - [ ] **Step 4: Add lease conversion and redaction hardening**
 - [ ] **Step 5: Add docs and final verification**
 

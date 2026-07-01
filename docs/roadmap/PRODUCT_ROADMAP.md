@@ -175,7 +175,7 @@ Acceptance:
 
 ### M60 Desktop Daily Driver
 
-Status: Complete. M60-01 workspace dashboard/session readiness, M60-02 conversation/composer/transcript flow, M60-03 approval popup/visual diff review, M60-04 provider settings/task/log surfaces, and M60-05 Desktop golden path smoke and closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`.
+Status: Complete. M60-01 workspace dashboard/session readiness, M60-02 conversation/composer/transcript flow, M60-03 approval popup/visual diff review, M60-04 provider settings/task/log surfaces, and M60-05 Desktop golden path smoke and closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M61 Plan, Todo, and Task UX planning is ready.
 
 Purpose: make Desktop a usable product surface over the shared runtime rather than a separate presentation demo.
 
@@ -195,6 +195,29 @@ Acceptance:
 - Conversation, composer, transcript, approvals, diffs, provider settings, task monitor, logs, and trace evidence are visible through shared bridge/runtime contracts.
 - Approval and diff decisions remain explicit, typed, bounded, redacted, and policy-backed.
 - A deterministic Desktop smoke path proves the M56 golden-path shape or an equivalent UI-safe bridge simulation.
+
+### M61 Plan, Todo, and Task UX
+
+Status: Planned. Milestone-level spec/plan and M61-01 shared plan/todo state spec/plan are ready.
+
+Purpose: make plan, todo, and task state one first-class product surface across interactive and background work.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M61-01 Shared Plan/Todo State Contracts | Add TodoWrite-compatible typed state, progress counts, revision checks, evidence links, redaction, and runtime validation in shared crates. |
+| M61-02 CLI and JSON Plan/Todo Commands | Expose stable text and JSON commands for viewing and updating shared plan/todo state. |
+| M61-03 TUI and Desktop Plan/Task Surfaces | Render plan progress, active todo, waiting approval, notifications, and artifact evidence from shared snapshots. |
+| M61-04 Background Wait Controls and Notifications | Connect approval waits, pause/resume/cancel, and latest notifications to task and plan evidence without bypassing scheduler or policy paths. |
+| M61-05 Artifacts, Smoke, Docs, and Closeout | Link task reviews/artifacts to plan evidence, document workflows, run credential-free smoke coverage, and close the milestone. |
+
+Acceptance:
+
+- CLI/JSON can show and update shared plan/todo state with stable bounded output.
+- TUI and Desktop render the same plan/todo/task truth from bridge snapshots.
+- Background tasks expose waiting approval, pause/resume/cancel state, notifications, and artifact evidence.
+- TodoWrite-compatible state is typed, serializable, validated, redacted, and covered by tests.
 
 ## Capability Gates
 

@@ -590,6 +590,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60-05 slice plan | Complete |
 | M60-05 implementation | Complete |
 | M60 implementation | Complete |
+| M61 milestone spec | Complete |
+| M61 milestone plan | Complete |
+| M61-01 slice spec | Complete |
+| M61-01 slice plan | Complete |
+| M61-01 implementation | Planned |
+| M61 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -664,6 +670,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M58 Project Context Intelligence | `docs/specs/M58-project-context-intelligence.spec.md` | `docs/plans/M58-project-context-intelligence.plan.md` | Build repo-aware context assembly with file tree summaries, relevant-file retrieval, pinned context, budget planning, and context quality traces. |
 | M59 CLI/TUI Daily Driver | `docs/specs/M59-cli-tui-daily-driver.spec.md` | `docs/plans/M59-cli-tui-daily-driver.plan.md` | Turn terminal usage into a polished developer workflow with session restore/switch, slash commands, approvals, diffs, command controls, task status, and stable JSON/batch recipes. |
 | M60 Desktop Daily Driver | `docs/specs/M60-desktop-daily-driver.spec.md` | `docs/plans/M60-desktop-daily-driver.plan.md` | Turn Desktop into a daily-driver interface over the shared runtime with workspace dashboard, conversation, approvals, diff review, provider settings, task monitor, logs, and deterministic smoke coverage. |
+| M61 Plan, Todo, and Task UX | `docs/specs/M61-plan-todo-task-ux.spec.md` | `docs/plans/M61-plan-todo-task-ux.plan.md` | Make plan/todo/task state first-class across interactive and background work with TodoWrite-compatible state, task controls, approval waits, artifacts, and notifications. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1310,6 +1317,16 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60-04 Provider Settings, Task Monitor, and Logs | `docs/specs/M60-04-provider-task-log-surfaces.spec.md` | `docs/plans/M60-04-provider-task-log-surfaces.plan.md` | Complete: provider/model diagnostics, settings validation, task monitor summaries, bounded runtime logs, and redacted trace evidence. |
 | M60-05 Desktop Golden Path Smoke and Closeout | `docs/specs/M60-05-desktop-golden-path-smoke.spec.md` | `docs/plans/M60-05-desktop-golden-path-smoke.plan.md` | Complete: credential-free M56-equivalent Desktop smoke fixture, `cargo xtask desktop-test` product gate, daily-driver smoke docs, final gates, and M60 closeout status updates. |
 
+## M61 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M61-01 Shared Plan/Todo State Contracts | `docs/specs/M61-01-plan-todo-state.spec.md` | `docs/plans/M61-01-plan-todo-state.plan.md` | Planned: TodoWrite-compatible typed state, progress counts, revision checks, evidence links, redaction, and runtime validation in shared crates. |
+| M61-02 CLI and JSON Plan/Todo Commands | To create | To create | Planned: stable CLI/JSON commands and bridge frames for viewing and updating plan/todo state. |
+| M61-03 TUI and Desktop Plan/Task Surfaces | To create | To create | Planned: TUI and Desktop rendering for plan progress, active todo, waits, notifications, and artifacts from shared snapshots. |
+| M61-04 Background Wait Controls and Notifications | To create | To create | Planned: approval-wait, pause/resume/cancel, latest notification, and control-result evidence through scheduler/core/bridge paths. |
+| M61-05 Artifacts, Smoke, Docs, and Closeout | To create | To create | Planned: artifact evidence, credential-free CLI/Desktop smoke coverage, docs, final gates, and milestone status updates. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1327,6 +1344,10 @@ Current implementation focus: M61 Plan, Todo, and Task UX.
 
 Most recent completed or active planning documents:
 
+- `docs/specs/M61-plan-todo-task-ux.spec.md`
+- `docs/plans/M61-plan-todo-task-ux.plan.md`
+- `docs/specs/M61-01-plan-todo-state.spec.md`
+- `docs/plans/M61-01-plan-todo-state.plan.md`
 - `docs/specs/M60-desktop-daily-driver.spec.md`
 - `docs/plans/M60-desktop-daily-driver.plan.md`
 - `docs/specs/M60-01-workspace-dashboard-session.spec.md`
@@ -1812,4 +1833,4 @@ Most recent completed technical design documents:
 
 Next implementation direction:
 
-- Create M61 Plan, Todo, and Task UX milestone spec/plan and first implementation slice spec/plan.
+- Implement M61-01 Shared Plan/Todo State Contracts from `docs/specs/M61-01-plan-todo-state.spec.md` and `docs/plans/M61-01-plan-todo-state.plan.md`.

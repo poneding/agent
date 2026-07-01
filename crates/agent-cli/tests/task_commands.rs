@@ -90,6 +90,8 @@ fn task_commands_render_text_lifecycle_against_fixture_runtime() {
     );
     assert_eq!(paused.status_code, 0);
     assert!(paused.stdout.contains("Paused task"));
+    assert!(paused.stdout.contains("notification=paused"));
+    assert!(paused.stdout.contains("notification_summary=hold for user"));
 
     let resumed = render_task_command(
         &mut runtime,
@@ -101,6 +103,7 @@ fn task_commands_render_text_lifecycle_against_fixture_runtime() {
     );
     assert_eq!(resumed.status_code, 0);
     assert!(resumed.stdout.contains("Resumed task"));
+    assert!(resumed.stdout.contains("notification=resumed"));
 
     let cancelled = render_task_command(
         &mut runtime,
@@ -112,6 +115,7 @@ fn task_commands_render_text_lifecycle_against_fixture_runtime() {
     );
     assert_eq!(cancelled.status_code, 0);
     assert!(cancelled.stdout.contains("Cancelled task"));
+    assert!(cancelled.stdout.contains("notification=cancelled"));
 }
 
 #[test]
@@ -140,6 +144,11 @@ fn task_commands_render_json_snapshot() {
     assert_eq!(output.status_code, 0);
     assert!(output.stdout.contains("\"type\":\"task_snapshot\""));
     assert!(output.stdout.contains("\"state\":\"queued\""));
+    assert!(
+        output
+            .stdout
+            .contains("\"latest_notification_kind\":\"queued\"")
+    );
     assert!(output.stdout.contains("index workspace"));
 }
 

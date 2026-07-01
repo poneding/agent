@@ -2,7 +2,7 @@ use agent_desktop::{
     DesktopConversationItem, DesktopError, DesktopTaskItem, DesktopTaskReviewItem,
     build_task_monitor, build_workspace_snapshot,
 };
-use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
+use agent_types::{ApprovalRequestId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
 use agent_ui_bridge::{
     UiTaskCommandError, UiTaskReviewSummary, UiTaskReviewSummaryArtifact, UiTaskScheduleSummary,
     UiTaskSnapshot, UiTaskSummary,
@@ -29,6 +29,12 @@ fn task_id(value: u32) -> TaskId {
     format!("00000000-0000-0000-0000-{value:012}")
         .parse()
         .expect("valid task id")
+}
+
+fn approval_id() -> ApprovalRequestId {
+    "00000000-0000-0000-0000-000000000099"
+        .parse()
+        .expect("valid approval id")
 }
 
 fn conversation(value: u32, title: &str, second: u8) -> DesktopConversationItem {
@@ -67,6 +73,31 @@ fn ui_task(value: u32, state: TaskState, summary: &str, second: u8) -> UiTaskSum
     .expect("valid ui task summary")
 }
 
+fn ui_waiting_task_with_evidence() -> UiTaskSummary {
+    serde_json::from_value(serde_json::json!({
+        "task_id": task_id(99),
+        "workspace_id": workspace_id(),
+        "conversation_id": conversation_id(1),
+        "state": "waiting_approval",
+        "priority": "normal",
+        "schedule": UiTaskScheduleSummary {
+            kind: "one_shot".to_string(),
+            label: "run once".to_string(),
+        },
+        "prompt_summary": "approval task",
+        "latest_run_summary": "latest approval task",
+        "waiting_approval": true,
+        "waiting_approval_id": approval_id(),
+        "latest_notification": "needs approval",
+        "latest_notification_kind": "waiting_approval",
+        "latest_notification_at": ts(9),
+        "latest_notification_approval_id": approval_id(),
+        "created_at": ts(9),
+        "updated_at": ts(9),
+    }))
+    .expect("valid ui task summary")
+}
+
 #[test]
 fn conversation_tasks_serializes_snapshot_shape() {
     let snapshot = build_workspace_snapshot(
@@ -91,6 +122,26 @@ fn conversation_tasks_serializes_snapshot_shape() {
     assert_eq!(value["conversations"][0]["unread_count"], 1);
     assert_eq!(value["tasks"][0]["state"], "running");
     assert_eq!(value["tasks"][0]["summary"], "Run verification");
+}
+
+#[test]
+fn conversation_tasks_preserve_wait_control_evidence() {
+    let snapshot = UiTaskSnapshot::new(vec![ui_waiting_task_with_evidence()], Vec::new())
+        .expect("task snapshot");
+
+    let monitor = build_task_monitor(&snapshot).expect("task monitor");
+    let task = DesktopTaskItem::try_from(&snapshot.tasks[0]).expect("desktop task");
+    let item = &monitor.tasks[0];
+
+    assert!(task.waiting_approval);
+    assert_eq!(task.waiting_approval_id, Some(approval_id()));
+    assert_eq!(
+        task.latest_notification_kind.as_deref(),
+        Some("waiting_approval")
+    );
+    assert_eq!(task.latest_notification_approval_id, Some(approval_id()));
+    assert_eq!(item.waiting_approval_id, Some(approval_id()));
+    assert_eq!(item.latest_notification_at, Some(ts(9)));
 }
 
 #[test]

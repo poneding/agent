@@ -1,6 +1,6 @@
 use agent_types::{
-    ConversationId, PlanTodoItemId, PlanTodoProgress, TaskId, TaskState, Timestamp, TodoPriority,
-    WorkspaceId,
+    ApprovalRequestId, ConversationId, PlanTodoItemId, PlanTodoProgress, TaskId, TaskState,
+    Timestamp, TodoPriority, WorkspaceId,
 };
 use agent_ui_bridge::{
     UiTaskActiveTodoSummary, UiTaskCommandError, UiTaskReviewSummary, UiTaskReviewSummaryArtifact,
@@ -28,7 +28,15 @@ pub struct DesktopTaskItem {
     #[serde(default)]
     pub waiting_approval: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub waiting_approval_id: Option<ApprovalRequestId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub latest_notification: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_notification_kind: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_notification_at: Option<Timestamp>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_notification_approval_id: Option<ApprovalRequestId>,
     #[serde(default)]
     pub artifact_count: u32,
 }
@@ -52,7 +60,11 @@ impl DesktopTaskItem {
             plan_progress: None,
             active_todo: None,
             waiting_approval: state == TaskState::WaitingApproval,
+            waiting_approval_id: None,
             latest_notification: None,
+            latest_notification_kind: None,
+            latest_notification_at: None,
+            latest_notification_approval_id: None,
             artifact_count: 0,
         })
     }
@@ -83,8 +95,10 @@ impl TryFrom<&UiTaskSummary> for DesktopTaskItem {
             .as_ref()
             .map(DesktopTaskActiveTodo::try_from)
             .transpose()?;
-        item.waiting_approval =
-            summary.waiting_approval || summary.state == TaskState::WaitingApproval;
+        item.waiting_approval = summary.waiting_approval
+            || summary.state == TaskState::WaitingApproval
+            || summary.waiting_approval_id.is_some();
+        item.waiting_approval_id = summary.waiting_approval_id;
         item.latest_notification = summary
             .latest_notification
             .clone()
@@ -92,6 +106,15 @@ impl TryFrom<&UiTaskSummary> for DesktopTaskItem {
             .transpose()?
             .flatten()
             .map(|item| item.0);
+        item.latest_notification_kind = summary
+            .latest_notification_kind
+            .clone()
+            .map(bounded_optional_task_text)
+            .transpose()?
+            .flatten()
+            .map(|item| item.0);
+        item.latest_notification_at = summary.latest_notification_at;
+        item.latest_notification_approval_id = summary.latest_notification_approval_id;
         item.artifact_count = summary.artifact_count;
         Ok(item)
     }
@@ -156,7 +179,11 @@ pub struct DesktopTaskMonitorItem {
     pub plan_progress: Option<PlanTodoProgress>,
     pub active_todo: Option<DesktopTaskActiveTodo>,
     pub waiting_approval: bool,
+    pub waiting_approval_id: Option<ApprovalRequestId>,
     pub latest_notification: Option<String>,
+    pub latest_notification_kind: Option<String>,
+    pub latest_notification_at: Option<Timestamp>,
+    pub latest_notification_approval_id: Option<ApprovalRequestId>,
     pub artifact_count: u32,
     pub updated_at: Timestamp,
 }
@@ -219,7 +246,9 @@ impl TryFrom<&UiTaskSummary> for DesktopTaskMonitorItem {
                 .map(DesktopTaskActiveTodo::try_from)
                 .transpose()?,
             waiting_approval: summary.waiting_approval
-                || summary.state == TaskState::WaitingApproval,
+                || summary.state == TaskState::WaitingApproval
+                || summary.waiting_approval_id.is_some(),
+            waiting_approval_id: summary.waiting_approval_id,
             latest_notification: summary
                 .latest_notification
                 .clone()
@@ -227,6 +256,15 @@ impl TryFrom<&UiTaskSummary> for DesktopTaskMonitorItem {
                 .transpose()?
                 .flatten()
                 .map(|item| item.0),
+            latest_notification_kind: summary
+                .latest_notification_kind
+                .clone()
+                .map(bounded_optional_task_text)
+                .transpose()?
+                .flatten()
+                .map(|item| item.0),
+            latest_notification_at: summary.latest_notification_at,
+            latest_notification_approval_id: summary.latest_notification_approval_id,
             artifact_count: summary.artifact_count,
             updated_at: summary.updated_at,
         })

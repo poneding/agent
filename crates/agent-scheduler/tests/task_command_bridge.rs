@@ -1,6 +1,6 @@
 use agent_scheduler::{
-    InMemoryTaskCommandService, TaskCommand, TaskCommandResponse, TaskCreateRequest, TaskPriority,
-    TaskSchedule, TaskScheduleUpdate,
+    InMemoryTaskCommandService, TaskCommand, TaskCommandResponse, TaskCreateRequest,
+    TaskNotificationKind, TaskPriority, TaskSchedule, TaskScheduleUpdate,
 };
 use agent_types::{ConversationId, TaskState, Timestamp, WorkspaceId};
 use time::macros::datetime;
@@ -53,6 +53,13 @@ fn task_command_bridge_creates_lists_and_inspects_tasks() {
     assert_eq!(created.state, TaskState::Queued);
     assert_eq!(created.created_at, ts(1));
     assert_eq!(created.updated_at, ts(1));
+    assert_eq!(
+        created
+            .latest_notification
+            .as_ref()
+            .map(|notification| notification.kind),
+        Some(TaskNotificationKind::Queued)
+    );
 
     let listed = service
         .handle(TaskCommand::List, ts(2))
@@ -125,6 +132,20 @@ fn task_command_bridge_updates_pause_resume_and_cancel_state() {
         panic!("expected paused");
     };
     assert_eq!(paused.state, TaskState::Paused);
+    assert_eq!(
+        paused
+            .latest_notification
+            .as_ref()
+            .map(|notification| notification.kind),
+        Some(TaskNotificationKind::Paused)
+    );
+    assert_eq!(
+        paused
+            .latest_notification
+            .as_ref()
+            .map(|notification| notification.summary.as_str()),
+        Some("hold for review")
+    );
 
     let TaskCommandResponse::Resumed(resumed) = service
         .handle(
@@ -139,6 +160,13 @@ fn task_command_bridge_updates_pause_resume_and_cancel_state() {
         panic!("expected resumed");
     };
     assert_eq!(resumed.state, TaskState::Queued);
+    assert_eq!(
+        resumed
+            .latest_notification
+            .as_ref()
+            .map(|notification| notification.kind),
+        Some(TaskNotificationKind::Resumed)
+    );
 
     let TaskCommandResponse::Cancelled(cancelled) = service
         .handle(
@@ -153,6 +181,48 @@ fn task_command_bridge_updates_pause_resume_and_cancel_state() {
         panic!("expected cancelled");
     };
     assert_eq!(cancelled.state, TaskState::Cancelled);
+    assert_eq!(
+        cancelled
+            .latest_notification
+            .as_ref()
+            .map(|notification| notification.kind),
+        Some(TaskNotificationKind::Cancelled)
+    );
+}
+
+#[test]
+fn task_command_bridge_records_control_evidence_redacted() {
+    let mut service = InMemoryTaskCommandService::default();
+    let TaskCommandResponse::Created(task) = service
+        .handle(
+            TaskCommand::Create(create_request("Run nightly checks")),
+            ts(1),
+        )
+        .expect("create")
+    else {
+        panic!("expected created response");
+    };
+
+    let TaskCommandResponse::Paused(paused) = service
+        .handle(
+            TaskCommand::Pause {
+                task_id: task.task_id,
+                reason: "hold because api_key leaked".to_string(),
+            },
+            ts(2),
+        )
+        .expect("pause")
+    else {
+        panic!("expected paused");
+    };
+
+    let notification = paused
+        .latest_notification
+        .as_ref()
+        .expect("latest notification");
+    assert_eq!(notification.kind, TaskNotificationKind::Paused);
+    assert_eq!(notification.summary, "hold because [redacted] leaked");
+    assert!(!notification.summary.contains("api_key"));
 }
 
 #[test]

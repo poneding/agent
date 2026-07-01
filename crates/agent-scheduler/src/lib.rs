@@ -19,6 +19,7 @@ pub use error::SchedulerError;
 pub use lease::{LeaseStatus, TaskLease, TaskLeaseId};
 pub use notification::{
     InMemoryTaskNotificationSink, TaskNotification, TaskNotificationKind, TaskNotificationSink,
+    TaskNotificationSummary,
 };
 pub use queue::{InMemoryTaskQueue, TaskQueue};
 pub use quota::{

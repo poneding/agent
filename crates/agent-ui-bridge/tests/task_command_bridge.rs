@@ -1,10 +1,10 @@
 use agent_scheduler::{
-    BackgroundAgentTask, TaskCommand, TaskCreateRequest, TaskPriority, TaskSchedule,
-    TaskScheduleUpdate, redact_task_text,
+    BackgroundAgentTask, TaskCommand, TaskCreateRequest, TaskNotificationKind,
+    TaskNotificationSummary, TaskPriority, TaskSchedule, TaskScheduleUpdate, redact_task_text,
 };
 use agent_types::{
-    ClientKind, ConversationId, CorrelationId, PlanTodoItemId, PlanTodoProgress, SchemaVersion,
-    TaskId, TaskState, Timestamp, TodoPriority, WorkspaceId,
+    ApprovalRequestId, ClientKind, ConversationId, CorrelationId, PlanTodoItemId, PlanTodoProgress,
+    SchemaVersion, TaskId, TaskState, Timestamp, TodoPriority, WorkspaceId,
 };
 use agent_ui_bridge::{
     UiClientInfo, UiCommand, UiCommandEnvelope, UiJsonFrame, UiTaskActiveTodoSummary,
@@ -34,6 +34,12 @@ fn task_id() -> TaskId {
         .expect("task id")
 }
 
+fn approval_id() -> ApprovalRequestId {
+    "00000000-0000-0000-0000-000000002422"
+        .parse()
+        .expect("approval id")
+}
+
 fn task(prompt: &str) -> BackgroundAgentTask {
     BackgroundAgentTask {
         task_id: task_id(),
@@ -48,6 +54,8 @@ fn task(prompt: &str) -> BackgroundAgentTask {
         created_at: ts(1),
         updated_at: ts(2),
         latest_run_summary: Some("waiting for next lease".to_string()),
+        waiting_approval_id: None,
+        latest_notification: None,
     }
 }
 
@@ -167,7 +175,48 @@ fn task_command_bridge_deserializes_task_summaries_without_plan_fields() {
     assert_eq!(snapshot.tasks[0].plan_progress, None);
     assert_eq!(snapshot.tasks[0].active_todo, None);
     assert!(!snapshot.tasks[0].waiting_approval);
+    assert_eq!(snapshot.tasks[0].waiting_approval_id, None);
+    assert_eq!(snapshot.tasks[0].latest_notification_kind, None);
     assert_eq!(snapshot.tasks[0].artifact_count, 0);
+}
+
+#[test]
+fn task_command_bridge_serializes_wait_control_evidence() {
+    let mut task = task("review approval token sk-secret");
+    task.state = TaskState::WaitingApproval;
+    task.waiting_approval_id = Some(approval_id());
+    task.latest_notification = Some(
+        TaskNotificationSummary::new(
+            TaskNotificationKind::WaitingApproval,
+            "needs approval for api_key",
+            ts(4),
+            Some(approval_id()),
+        )
+        .expect("notification summary"),
+    );
+
+    let summary = UiTaskSummary::from_task(&task).expect("summary");
+
+    assert!(summary.waiting_approval);
+    assert_eq!(summary.waiting_approval_id, Some(approval_id()));
+    assert_eq!(
+        summary.latest_notification_kind.as_deref(),
+        Some("waiting_approval")
+    );
+    assert_eq!(summary.latest_notification_approval_id, Some(approval_id()));
+    assert_eq!(summary.latest_notification_at, Some(ts(4)));
+    assert_eq!(
+        summary.latest_notification.as_deref(),
+        Some("needs approval for [redacted]")
+    );
+
+    let serialized = serde_json::to_string(&UiJsonFrame::TaskSnapshot(
+        UiTaskSnapshot::new(vec![summary], Vec::new()).expect("snapshot"),
+    ))
+    .expect("serialize");
+    assert!(serialized.contains("\"waiting_approval_id\""));
+    assert!(serialized.contains("\"latest_notification_kind\":\"waiting_approval\""));
+    assert!(!serialized.contains("api_key"));
 }
 
 #[test]

@@ -3116,13 +3116,14 @@ fn render_task_text_response(response: TaskCommandResponse) -> CliOutput {
                 + "\n",
         ),
         TaskCommandResponse::Inspected(task) => CliOutput::exit(format!(
-            "Task {}\nworkspace={}\nstate={}\npriority={}\nschedule={}\nprompt={}\n",
+            "Task {}\nworkspace={}\nstate={}\npriority={}\nschedule={}\nprompt={}\n{}",
             task.task_id,
             task.workspace_id,
             task_state_label(task.state),
             task_priority_label(task.priority),
             task.schedule.label(),
-            agent_scheduler::redact_task_text(&task.prompt)
+            agent_scheduler::redact_task_text(&task.prompt),
+            format_task_evidence(&task)
         )),
         TaskCommandResponse::Paused(task) => {
             CliOutput::exit(format_task_action("Paused task", &task))
@@ -3220,14 +3221,47 @@ pub fn render_task_review_summary(review: &UiTaskReviewSummary) -> String {
 }
 
 fn format_task_line(task: &agent_scheduler::BackgroundAgentTask) -> String {
-    format!(
+    let mut line = format!(
         "{} state={} priority={} schedule={} prompt={}",
         task.task_id,
         task_state_label(task.state),
         task_priority_label(task.priority),
         task.schedule.label(),
         agent_scheduler::redact_task_text(&task.prompt)
-    )
+    );
+    if let Some(approval_id) = task.waiting_approval_id {
+        line.push_str(&format!(" approval_id={approval_id}"));
+    }
+    if let Some(notification) = &task.latest_notification {
+        line.push_str(&format!(
+            " notification={} notification_summary={}",
+            notification.kind.as_str(),
+            notification.summary
+        ));
+        if let Some(approval_id) = notification.approval_id {
+            line.push_str(&format!(" notification_approval_id={approval_id}"));
+        }
+    }
+    line
+}
+
+fn format_task_evidence(task: &agent_scheduler::BackgroundAgentTask) -> String {
+    let mut output = String::new();
+    if let Some(approval_id) = task.waiting_approval_id {
+        output.push_str(&format!("approval_id={approval_id}\n"));
+    }
+    if let Some(notification) = &task.latest_notification {
+        output.push_str(&format!(
+            "notification_kind={}\nnotification_summary={}\nnotification_at={:?}\n",
+            notification.kind.as_str(),
+            notification.summary,
+            notification.occurred_at
+        ));
+        if let Some(approval_id) = notification.approval_id {
+            output.push_str(&format!("notification_approval_id={approval_id}\n"));
+        }
+    }
+    output
 }
 
 fn task_state_label(state: agent_types::TaskState) -> &'static str {

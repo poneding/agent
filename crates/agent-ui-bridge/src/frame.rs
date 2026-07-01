@@ -15,8 +15,8 @@ use agent_core::{
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{
-    CheckpointId, ClientKind, ConversationId, PlanTodoItemId, PlanTodoProgress, PlanTodoSnapshot,
-    TaskId, TaskState, Timestamp, TodoPriority, WorkspaceId,
+    ApprovalRequestId, CheckpointId, ClientKind, ConversationId, PlanTodoItemId, PlanTodoProgress,
+    PlanTodoSnapshot, TaskId, TaskState, Timestamp, TodoPriority, WorkspaceId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -2090,7 +2090,15 @@ pub struct UiTaskSummary {
     #[serde(default)]
     pub waiting_approval: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub waiting_approval_id: Option<ApprovalRequestId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub latest_notification: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_notification_kind: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_notification_at: Option<Timestamp>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_notification_approval_id: Option<ApprovalRequestId>,
     #[serde(default)]
     pub artifact_count: u32,
     pub created_at: Timestamp,
@@ -2116,8 +2124,25 @@ impl UiTaskSummary {
                 .map(|summary| bounded_task_text(&summary)),
             plan_progress: None,
             active_todo: None,
-            waiting_approval: task.state == TaskState::WaitingApproval,
-            latest_notification: None,
+            waiting_approval: task.state == TaskState::WaitingApproval
+                || task.waiting_approval_id.is_some(),
+            waiting_approval_id: task.waiting_approval_id,
+            latest_notification: task
+                .latest_notification
+                .as_ref()
+                .map(|notification| bounded_task_text(&notification.summary)),
+            latest_notification_kind: task
+                .latest_notification
+                .as_ref()
+                .map(|notification| notification.kind.as_str().to_string()),
+            latest_notification_at: task
+                .latest_notification
+                .as_ref()
+                .map(|notification| notification.occurred_at),
+            latest_notification_approval_id: task
+                .latest_notification
+                .as_ref()
+                .and_then(|notification| notification.approval_id),
             artifact_count: 0,
             created_at: task.created_at,
             updated_at: task.updated_at,

@@ -601,6 +601,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M61-03 slice spec | Complete |
 | M61-03 slice plan | Complete |
 | M61-03 implementation | Complete |
+| M61-04 slice spec | Complete |
+| M61-04 slice plan | Complete |
+| M61-04 implementation | Complete |
 | M61 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1330,7 +1333,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M61-01 Shared Plan/Todo State Contracts | `docs/specs/M61-01-plan-todo-state.spec.md` | `docs/plans/M61-01-plan-todo-state.plan.md` | Complete: TodoWrite-compatible typed state, progress counts, revision checks, evidence links, redaction, runtime event payloads, validation, and focused tests in shared crates. |
 | M61-02 CLI and JSON Plan/Todo Commands | `docs/specs/M61-02-cli-json-plan-todo.spec.md` | `docs/plans/M61-02-cli-json-plan-todo.plan.md` | Complete: stable CLI/JSON commands, typed bridge commands, plan/todo snapshot frames, revision-aware updates, replacement, redaction, and focused tests. |
 | M61-03 TUI and Desktop Plan/Task Surfaces | `docs/specs/M61-03-tui-desktop-plan-task-surfaces.spec.md` | `docs/plans/M61-03-tui-desktop-plan-task-surfaces.plan.md` | Complete: TUI and Desktop render plan progress, active todo, waiting state, latest notification, and artifact counts from shared snapshots. |
-| M61-04 Background Wait Controls and Notifications | To create | To create | Planned: approval-wait, pause/resume/cancel, latest notification, and control-result evidence through scheduler/core/bridge paths. |
+| M61-04 Background Wait Controls and Notifications | `docs/specs/M61-04-background-waits-controls-notifications.spec.md` | `docs/plans/M61-04-background-waits-controls-notifications.plan.md` | Complete: approval-wait ids, pause/resume/cancel and schedule control evidence, latest notification metadata, CLI/JSON output, Desktop task models, redaction, and focused tests. |
 | M61-05 Artifacts, Smoke, Docs, and Closeout | To create | To create | Planned: artifact evidence, credential-free CLI/Desktop smoke coverage, docs, final gates, and milestone status updates. |
 
 ## MX01 Slice Index
@@ -1356,6 +1359,8 @@ Most recent completed or active planning documents:
 - `docs/plans/M61-02-cli-json-plan-todo.plan.md`
 - `docs/specs/M61-03-tui-desktop-plan-task-surfaces.spec.md`
 - `docs/plans/M61-03-tui-desktop-plan-task-surfaces.plan.md`
+- `docs/specs/M61-04-background-waits-controls-notifications.spec.md`
+- `docs/plans/M61-04-background-waits-controls-notifications.plan.md`
 - `docs/specs/M61-01-plan-todo-state.spec.md`
 - `docs/plans/M61-01-plan-todo-state.plan.md`
 - `docs/specs/M60-desktop-daily-driver.spec.md`
@@ -1843,4 +1848,4 @@ Most recent completed technical design documents:
 
 Next implementation direction:
 
-- Create M61-04 Background Wait Controls and Notifications spec/plan, then connect approval waits, pause/resume/cancel, latest notifications, and control-result evidence through scheduler/core/bridge paths.
+- Create M61-05 Artifacts, Smoke, Docs, and Closeout spec/plan, then link task review/artifact evidence into plan/task workflows and run final M61 gates.

@@ -222,15 +222,26 @@ Verification passed:
 - Modify: `crates/agent-cli/tests/task_commands.rs`
 - Modify: `crates/agent-desktop/tests/conversation_tasks.rs`
 
-- [ ] **Step 1: Plan wait/control slice**
+- [x] **Step 1: Plan wait/control slice**
 
 Define the evidence linking approval waits, pause/resume/cancel, task notifications, and plan/todo progress.
 
-- [ ] **Step 2: Implement wait/control evidence**
+M61-04 planning is captured in:
+
+- `docs/specs/M61-04-background-waits-controls-notifications.spec.md`
+- `docs/plans/M61-04-background-waits-controls-notifications.plan.md`
+
+- [x] **Step 2: Implement wait/control evidence**
 
 Thread approval ids, latest notifications, and control results through existing scheduler/core/bridge surfaces.
 
-- [ ] **Step 3: Verify wait/control behavior**
+Implemented scheduler-owned wait/control evidence:
+
+- `TaskNotificationSummary`, waiting approval ids, latest notification metadata, and command-service control evidence in scheduler task contracts.
+- Queue approval waits retain approval ids and latest notification summaries; resume/cancel clear waits and record control evidence.
+- UI bridge, CLI, Desktop Rust, and Desktop TypeScript task surfaces expose approval ids and latest notification metadata as additive fields.
+
+- [x] **Step 3: Verify wait/control behavior**
 
 Run:
 
@@ -244,6 +255,18 @@ cargo test -p agent-desktop --test conversation_tasks
 ```
 
 Expected: background waits and controls are visible, typed, redacted, and still scheduler/policy backed.
+
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-scheduler -p agent-core -p agent-ui-bridge -p agent-cli -p agent-desktop --all-targets -- -D warnings`
+- `cargo test -p agent-scheduler`
+- `cargo test -p agent-core --test background_task_approvals --test background_task_cancellation --test background_turn_runner`
+- `cargo test -p agent-ui-bridge --test task_command_bridge`
+- `cargo test -p agent-cli --test task_commands`
+- `cargo test -p agent-desktop --test conversation_tasks`
+- `npm --prefix apps/desktop test -- conversation-task-ui trace-settings-ui desktop-smoke`
+- `npm --prefix apps/desktop run build`
 
 ### Task 6: M61-05 Artifacts, Smoke, Docs, and Closeout
 

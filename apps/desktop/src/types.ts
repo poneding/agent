@@ -183,7 +183,11 @@ export interface DesktopTaskItem {
   plan_progress?: PlanTodoProgress | null;
   active_todo?: DesktopTaskActiveTodo | null;
   waiting_approval?: boolean;
+  waiting_approval_id?: string | null;
   latest_notification?: string | null;
+  latest_notification_kind?: string | null;
+  latest_notification_at?: Timestamp | null;
+  latest_notification_approval_id?: string | null;
   artifact_count?: number;
 }
 

@@ -12,11 +12,13 @@ pub enum TaskNotificationKind {
     Leased,
     WaitingApproval,
     Resumed,
+    Paused,
     Completed,
     Failed,
     Cancelled,
     Expired,
     QuotaRejected,
+    ScheduleUpdated,
 }
 
 impl TaskNotificationKind {
@@ -27,11 +29,55 @@ impl TaskNotificationKind {
             Self::Leased => "leased",
             Self::WaitingApproval => "waiting_approval",
             Self::Resumed => "resumed",
+            Self::Paused => "paused",
             Self::Completed => "completed",
             Self::Failed => "failed",
             Self::Cancelled => "cancelled",
             Self::Expired => "expired",
             Self::QuotaRejected => "quota_rejected",
+            Self::ScheduleUpdated => "schedule_updated",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct TaskNotificationSummary {
+    pub kind: TaskNotificationKind,
+    pub summary: String,
+    pub occurred_at: Timestamp,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approval_id: Option<ApprovalRequestId>,
+}
+
+impl TaskNotificationSummary {
+    pub fn new(
+        kind: TaskNotificationKind,
+        summary: impl Into<String>,
+        occurred_at: Timestamp,
+        approval_id: Option<ApprovalRequestId>,
+    ) -> Result<Self, SchedulerError> {
+        let summary = normalize_notification_summary(summary);
+        if summary.is_empty() {
+            return Err(SchedulerError::InvalidTask(
+                "task notification summary cannot be empty".to_string(),
+            ));
+        }
+
+        Ok(Self {
+            kind,
+            summary,
+            occurred_at,
+            approval_id,
+        })
+    }
+
+    #[must_use]
+    pub fn from_notification(notification: &TaskNotification) -> Self {
+        Self {
+            kind: notification.kind,
+            summary: notification.summary.clone(),
+            occurred_at: notification.occurred_at,
+            approval_id: notification.approval_id,
         }
     }
 }

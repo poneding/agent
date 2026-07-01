@@ -1,7 +1,7 @@
-use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
+use agent_types::{ApprovalRequestId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
 use serde::{Deserialize, Serialize};
 
-use crate::SchedulerError;
+use crate::{SchedulerError, TaskNotificationSummary};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -32,6 +32,10 @@ pub struct TaskRun {
     pub attempt: u32,
     pub max_attempts: u32,
     pub summary: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub waiting_approval_id: Option<ApprovalRequestId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_notification: Option<TaskNotificationSummary>,
 }
 
 impl TaskRun {
@@ -62,6 +66,8 @@ impl TaskRun {
             attempt: 0,
             max_attempts: 1,
             summary,
+            waiting_approval_id: None,
+            latest_notification: None,
         })
     }
 }

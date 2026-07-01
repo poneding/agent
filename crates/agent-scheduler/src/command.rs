@@ -1,10 +1,11 @@
 use std::collections::BTreeMap;
 
-use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
+use agent_types::{ApprovalRequestId, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    SchedulerError, TaskKind, TaskPriority, TaskRun, TaskTransition, transition_task_state,
+    SchedulerError, TaskKind, TaskNotificationKind, TaskNotificationSummary, TaskPriority, TaskRun,
+    TaskTransition, transition_task_state,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -19,6 +20,10 @@ pub struct BackgroundAgentTask {
     pub created_at: Timestamp,
     pub updated_at: Timestamp,
     pub latest_run_summary: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub waiting_approval_id: Option<ApprovalRequestId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_notification: Option<TaskNotificationSummary>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -187,8 +192,17 @@ impl InMemoryTaskCommandService {
             created_at: now,
             updated_at: now,
             latest_run_summary: None,
+            waiting_approval_id: None,
+            latest_notification: None,
         };
-        let queued = transition_task(&created, TaskState::Queued, "enqueue", now)?;
+        let mut queued = transition_task(&created, TaskState::Queued, "enqueue", now)?;
+        record_task_notification(
+            &mut queued,
+            TaskNotificationKind::Queued,
+            "task queued",
+            now,
+            None,
+        )?;
         self.tasks.insert(queued.task_id, queued.clone());
         Ok(queued)
     }
@@ -204,12 +218,20 @@ impl InMemoryTaskCommandService {
         &mut self,
         task_id: TaskId,
         to: TaskState,
+        notification_kind: TaskNotificationKind,
         reason: impl Into<String>,
         now: Timestamp,
     ) -> Result<BackgroundAgentTask, SchedulerError> {
         let task = self.inspect(task_id)?;
         let reason = normalize_reason(reason)?;
-        let next = transition_task(&task, to, reason, now)?;
+        let mut next = transition_task(&task, to, reason.clone(), now)?;
+        if matches!(
+            to,
+            TaskState::Queued | TaskState::Cancelled | TaskState::Paused
+        ) {
+            next.waiting_approval_id = None;
+        }
+        record_task_notification(&mut next, notification_kind, reason, now, None)?;
         self.tasks.insert(task_id, next.clone());
         Ok(next)
     }
@@ -228,6 +250,13 @@ impl InMemoryTaskCommandService {
         }
         task.schedule = update.schedule;
         task.updated_at = now;
+        record_task_notification(
+            &mut task,
+            TaskNotificationKind::ScheduleUpdated,
+            update.reason,
+            now,
+            None,
+        )?;
         self.tasks.insert(task.task_id, task.clone());
         Ok(task)
     }
@@ -248,13 +277,31 @@ impl TaskCommandService for InMemoryTaskCommandService {
                 self.inspect(task_id).map(TaskCommandResponse::Inspected)
             }
             TaskCommand::Pause { task_id, reason } => self
-                .update_task_state(task_id, TaskState::Paused, reason, now)
+                .update_task_state(
+                    task_id,
+                    TaskState::Paused,
+                    TaskNotificationKind::Paused,
+                    reason,
+                    now,
+                )
                 .map(TaskCommandResponse::Paused),
             TaskCommand::Resume { task_id, reason } => self
-                .update_task_state(task_id, TaskState::Queued, reason, now)
+                .update_task_state(
+                    task_id,
+                    TaskState::Queued,
+                    TaskNotificationKind::Resumed,
+                    reason,
+                    now,
+                )
                 .map(TaskCommandResponse::Resumed),
             TaskCommand::Cancel { task_id, reason } => self
-                .update_task_state(task_id, TaskState::Cancelled, reason, now)
+                .update_task_state(
+                    task_id,
+                    TaskState::Cancelled,
+                    TaskNotificationKind::Cancelled,
+                    reason,
+                    now,
+                )
                 .map(TaskCommandResponse::Cancelled),
             TaskCommand::UpdateSchedule(update) => self
                 .update_schedule(update, now)
@@ -281,6 +328,8 @@ fn transition_task(
         attempt: 0,
         max_attempts: 1,
         summary: task_summary(task),
+        waiting_approval_id: task.waiting_approval_id,
+        latest_notification: task.latest_notification.clone(),
     };
     let transitioned = transition_task_state(
         &run,
@@ -295,6 +344,22 @@ fn transition_task(
     next.state = transitioned.state;
     next.updated_at = transitioned.updated_at;
     Ok(next)
+}
+
+fn record_task_notification(
+    task: &mut BackgroundAgentTask,
+    kind: TaskNotificationKind,
+    summary: impl Into<String>,
+    occurred_at: Timestamp,
+    approval_id: Option<ApprovalRequestId>,
+) -> Result<(), SchedulerError> {
+    task.latest_notification = Some(TaskNotificationSummary::new(
+        kind,
+        summary,
+        occurred_at,
+        approval_id,
+    )?);
+    Ok(())
 }
 
 fn task_summary(task: &BackgroundAgentTask) -> String {

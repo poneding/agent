@@ -23,8 +23,12 @@ export function TaskDetail({ task }: { task: DesktopTaskItem | null }) {
         <dd>{task.active_todo?.content ?? 'none'}</dd>
         <dt>Waiting</dt>
         <dd>{isWaitingApproval(task) ? 'yes' : 'no'}</dd>
+        <dt>Approval</dt>
+        <dd>{task.waiting_approval_id ?? task.latest_notification_approval_id ?? 'none'}</dd>
         <dt>Notification</dt>
         <dd>{task.latest_notification ?? 'none'}</dd>
+        <dt>Notification Kind</dt>
+        <dd>{task.latest_notification_kind ?? 'none'}</dd>
         <dt>Artifacts</dt>
         <dd>{task.artifact_count ?? 0}</dd>
       </dl>

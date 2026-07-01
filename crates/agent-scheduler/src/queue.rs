@@ -4,8 +4,8 @@ use time::Duration;
 use crate::{
     LeaseStatus, QuotaDecision, QuotaPolicy, QuotaSnapshot, RetryDecision, RetryPolicy,
     SchedulerError, StaleLeaseDisposition, StaleLeaseRecoveryPolicy, TaskLease, TaskLeaseId,
-    TaskPriority, TaskRecoveryReport, TaskRun, TaskTransition, evaluate_task_quota,
-    transition_task_state,
+    TaskNotificationKind, TaskNotificationSummary, TaskPriority, TaskRecoveryReport, TaskRun,
+    TaskTransition, evaluate_task_quota, transition_task_state,
 };
 
 pub trait TaskQueue {
@@ -398,6 +398,15 @@ impl TaskQueue for InMemoryTaskQueue {
                 at: now,
             },
         )?;
+        let mut next = next;
+        next.waiting_approval_id = None;
+        record_latest_notification(
+            &mut next,
+            TaskNotificationKind::Completed,
+            "completed",
+            now,
+            None,
+        )?;
         self.tasks[task_index].run = next.clone();
         self.tasks[task_index].active_lease = None;
         self.leases[lease_index].status = LeaseStatus::Completed;
@@ -441,6 +450,8 @@ impl TaskQueue for InMemoryTaskQueue {
                     at: now,
                 },
             )?;
+            let mut sleeping = sleeping;
+            sleeping.latest_notification = None;
             let run_at = add_millis(now, self.retry_policy.delay_ms_for_attempt(next_attempt))?;
             self.tasks[task_index].available_at = run_at;
             self.tasks[task_index].run = sleeping.clone();
@@ -459,6 +470,15 @@ impl TaskQueue for InMemoryTaskQueue {
                     at: now,
                 },
             )?;
+            let mut failed = failed;
+            failed.waiting_approval_id = None;
+            record_latest_notification(
+                &mut failed,
+                TaskNotificationKind::Failed,
+                error.clone(),
+                now,
+                None,
+            )?;
             self.tasks[task_index].available_at = now;
             self.tasks[task_index].run = failed.clone();
             Ok(RetryDecision::Exhausted {
@@ -471,7 +491,7 @@ impl TaskQueue for InMemoryTaskQueue {
     fn wait_for_approval(
         &mut self,
         lease_id: &TaskLeaseId,
-        _approval_id: ApprovalRequestId,
+        approval_id: ApprovalRequestId,
         reason: impl Into<String>,
         now: Timestamp,
     ) -> Result<TaskRun, SchedulerError> {
@@ -496,9 +516,18 @@ impl TaskQueue for InMemoryTaskQueue {
             TaskTransition {
                 from: TaskState::Running,
                 to: TaskState::WaitingApproval,
-                reason,
+                reason: reason.clone(),
                 at: now,
             },
+        )?;
+        let mut next = next;
+        next.waiting_approval_id = Some(approval_id);
+        record_latest_notification(
+            &mut next,
+            TaskNotificationKind::WaitingApproval,
+            reason,
+            now,
+            Some(approval_id),
         )?;
         self.tasks[task_index].run = next.clone();
         self.tasks[task_index].active_lease = None;
@@ -519,9 +548,18 @@ impl TaskQueue for InMemoryTaskQueue {
             TaskTransition {
                 from: self.tasks[task_index].run.state,
                 to: TaskState::Cancelled,
-                reason,
+                reason: reason.clone(),
                 at: now,
             },
+        )?;
+        let mut next = next;
+        next.waiting_approval_id = None;
+        record_latest_notification(
+            &mut next,
+            TaskNotificationKind::Cancelled,
+            reason,
+            now,
+            None,
         )?;
 
         if let Some(lease_id) = self.tasks[task_index].active_lease.clone() {
@@ -545,10 +583,13 @@ impl TaskQueue for InMemoryTaskQueue {
             TaskTransition {
                 from: TaskState::Running,
                 to: TaskState::Paused,
-                reason,
+                reason: reason.clone(),
                 at: now,
             },
         )?;
+        let mut next = next;
+        next.waiting_approval_id = None;
+        record_latest_notification(&mut next, TaskNotificationKind::Paused, reason, now, None)?;
         if let Some(lease_id) = self.tasks[task_index].active_lease.clone() {
             self.mark_active_lease(&lease_id, LeaseStatus::Cancelled);
         }
@@ -576,10 +617,13 @@ impl TaskQueue for InMemoryTaskQueue {
             TaskTransition {
                 from,
                 to: TaskState::Queued,
-                reason,
+                reason: reason.clone(),
                 at: now,
             },
         )?;
+        let mut next = next;
+        next.waiting_approval_id = None;
+        record_latest_notification(&mut next, TaskNotificationKind::Resumed, reason, now, None)?;
         self.tasks[task_index].active_lease = None;
         self.tasks[task_index].available_at = now;
         self.tasks[task_index].run = next.clone();
@@ -614,4 +658,20 @@ fn add_millis(timestamp: Timestamp, millis: u64) -> Result<Timestamp, SchedulerE
     Ok(Timestamp::from_utc(
         timestamp.as_offset_date_time() + Duration::milliseconds(millis),
     ))
+}
+
+fn record_latest_notification(
+    run: &mut TaskRun,
+    kind: TaskNotificationKind,
+    summary: impl Into<String>,
+    occurred_at: Timestamp,
+    approval_id: Option<ApprovalRequestId>,
+) -> Result<(), SchedulerError> {
+    run.latest_notification = Some(TaskNotificationSummary::new(
+        kind,
+        summary,
+        occurred_at,
+        approval_id,
+    )?);
+    Ok(())
 }

@@ -64,6 +64,16 @@ async fn background_task_approvals_waiting_releases_lease_and_notifies() {
         queue.get_task(task_id).expect("task").state,
         TaskState::WaitingApproval
     );
+    let task = queue.get_task(task_id).expect("task");
+    assert_eq!(task.waiting_approval_id, Some(approval_id()));
+    let latest = task
+        .latest_notification
+        .as_ref()
+        .expect("latest notification");
+    assert_eq!(latest.kind, TaskNotificationKind::WaitingApproval);
+    assert_eq!(latest.approval_id, Some(approval_id()));
+    assert!(latest.summary.contains("[redacted]"));
+    assert!(!latest.summary.contains("sk-secret-token"));
     assert!(notifications.notifications().iter().any(|notification| {
         notification.task_id == task_id
             && notification.kind == TaskNotificationKind::WaitingApproval
@@ -107,6 +117,14 @@ fn background_task_approvals_allow_resumes_queued_continuation() {
         queue.get_task(task_id).expect("task").state,
         TaskState::Queued
     );
+    let task = queue.get_task(task_id).expect("task");
+    assert_eq!(task.waiting_approval_id, None);
+    assert_eq!(
+        task.latest_notification
+            .as_ref()
+            .map(|notification| notification.kind),
+        Some(TaskNotificationKind::Resumed)
+    );
     assert!(notifications.notifications().iter().any(|notification| {
         notification.kind == TaskNotificationKind::Resumed
             && notification.approval_id == Some(approval_id())
@@ -147,6 +165,14 @@ fn background_task_approvals_deny_cancels_without_execution() {
     assert_eq!(
         queue.get_task(task_id).expect("task").state,
         TaskState::Cancelled
+    );
+    let task = queue.get_task(task_id).expect("task");
+    assert_eq!(task.waiting_approval_id, None);
+    assert_eq!(
+        task.latest_notification
+            .as_ref()
+            .map(|notification| notification.kind),
+        Some(TaskNotificationKind::Cancelled)
     );
     assert!(notifications.notifications().iter().any(|notification| {
         notification.kind == TaskNotificationKind::Cancelled

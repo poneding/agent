@@ -7677,14 +7677,18 @@ fn render_repo_edit_summary_text(report: &EditDiffFlowReport) -> String {
             .join(", ")
     };
     format!(
-        "Repo edit: {}\nPath: {}\nPreview: {}\nDiff: {}\nChanged files: {}\nLines: +{} -{}\nDiagnostics: {}\nWorkspace ID: {}\nConversation ID: {}\n",
+        "Repo edit: {}\nPath: {}\nPreview: {}\nDiff: {}\nChanged files: {}\nChanged file count: {}\nDiff lines: {}\nLines: +{} -{}\nTruncated: {}\nRedacted: {}\nDiagnostics: {}\nWorkspace ID: {}\nConversation ID: {}\n",
         if report.applied { "applied" } else { "preview" },
         redact_secret_like_text(&report.path),
         redact_secret_like_text(&report.preview.summary),
         edit_diff_state_label(report.diff.state),
         changed_files,
+        report.diff.changed_file_count,
+        report.diff.diff_line_count,
         report.diff.added_line_count,
         report.diff.removed_line_count,
+        report.preview.truncated || report.diff.truncated,
+        report.preview.redacted || report.diff.redacted,
         diagnostics,
         report.workspace_id,
         report.conversation_id
@@ -7853,15 +7857,31 @@ fn render_repo_command_summary_text(report: &CommandTestLoopReport) -> String {
     } else {
         redact_secret_like_text(&report.stderr.text)
     };
+    let mode = if report.command.classify_as_test {
+        "test"
+    } else {
+        "command"
+    };
+    let cancellable = if report.cancellation.cancellable {
+        "yes"
+    } else {
+        "no"
+    };
     format!(
-        "Repo command: {}\nCommand: {}\nCwd: {}\nClassification: {}\nExit: {}\nTimed out: {}\nCancellation: {}\nStdout:\n{}\nStderr:\n{}\nDiagnostics: {}\nWorkspace ID: {}\nConversation ID: {}\n",
+        "Repo command: {}\nMode: {}\nCommand: {}\nCwd: {}\nClassification: {}\nExit: {}\nTimed out: {}\nCancellable: {}\nCancellation: {}\nStdout bytes: {}\nStderr bytes: {}\nTruncated: {}\nRedacted: {}\nStdout:\n{}\nStderr:\n{}\nDiagnostics: {}\nWorkspace ID: {}\nConversation ID: {}\n",
         command_status_label(report.status),
+        mode,
         redact_secret_like_text(&report.command.display),
         redact_secret_like_text(&report.command.cwd),
         command_classification_label(report.classification),
         exit,
         report.timed_out,
+        cancellable,
         redact_secret_like_text(&report.cancellation.reason),
+        report.stdout.byte_count,
+        report.stderr.byte_count,
+        report.stdout.truncated || report.stderr.truncated || report.observation.truncated,
+        report.stdout.redacted || report.stderr.redacted || report.observation.redacted,
         stdout,
         stderr,
         diagnostics,

@@ -1,4 +1,7 @@
-use agent_tui::{CommandPanelState, TuiAction, TuiApp, render_app_to_string};
+use agent_tui::{
+    CommandPanelAction, CommandPanelOutput, CommandPanelState, TuiAction, TuiApp,
+    render_app_to_string,
+};
 use agent_ui_bridge::{UiCommandTestSnapshot, UiJsonFrame};
 
 fn snapshot() -> UiCommandTestSnapshot {
@@ -33,8 +36,17 @@ fn command_panel_builds_from_command_test_snapshot() {
     assert_eq!(panel.status, "failed");
     assert_eq!(panel.classification, "test_failure");
     assert_eq!(panel.exit_code, Some(101));
+    assert_eq!(panel.cwd, ".");
+    assert!(panel.classify_as_test);
     assert!(panel.stdout.contains("running tests"));
     assert!(panel.stderr.contains("test failed"));
+    assert_eq!(panel.stdout_byte_count, 13);
+    assert_eq!(panel.stderr_byte_count, 11);
+    assert_eq!(
+        panel.cancellation_reason,
+        "command can be cancelled before completion"
+    );
+    assert_eq!(panel.active_output, CommandPanelOutput::Stdout);
     assert!(panel.cancellable);
     assert!(!panel.truncated);
 }
@@ -51,6 +63,22 @@ fn command_panel_truncates_large_output() {
 }
 
 #[test]
+fn command_panel_switches_between_stdout_and_stderr_views() {
+    let mut panel = CommandPanelState::from_snapshot(&snapshot(), 200);
+
+    assert!(panel.render_text().contains("stdout:"));
+    assert!(!panel.render_text().contains("stderr:"));
+
+    panel.reduce(CommandPanelAction::ShowStderr);
+    assert_eq!(panel.active_output, CommandPanelOutput::Stderr);
+    assert!(panel.render_text().contains("stderr:"));
+    assert!(!panel.render_text().contains("stdout:"));
+
+    panel.reduce(CommandPanelAction::ToggleOutput);
+    assert_eq!(panel.active_output, CommandPanelOutput::Stdout);
+}
+
+#[test]
 fn command_panel_renders_command_snapshot_in_side_panel() {
     let mut app = TuiApp::default();
     app.reduce(TuiAction::BridgeFrame(Box::new(
@@ -61,7 +89,10 @@ fn command_panel_renders_command_snapshot_in_side_panel() {
 
     assert!(rendered.contains("Command"));
     assert!(rendered.contains("cargo test"));
+    assert!(rendered.contains("cwd: ."));
     assert!(rendered.contains("test_failure"));
     assert!(rendered.contains("exit: 101"));
+    assert!(rendered.contains("cancellable: yes"));
+    assert!(rendered.contains("stdout bytes: 13"));
     assert!(rendered.contains("running tests"));
 }

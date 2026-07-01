@@ -1,9 +1,9 @@
 use agent_ui_bridge::UiJsonFrame;
 
 use crate::{
-    ApprovalPanelState, CommandPanelState, ComposerAction, ComposerState, DiffPanelState,
-    SessionPanelAction, SessionPanelState, SlashCommand, StatusPanelState, TaskPanelState,
-    TracePanelState, TranscriptState, TuiEffect,
+    ApprovalPanelState, CommandPanelAction, CommandPanelState, ComposerAction, ComposerState,
+    DiffPanelAction, DiffPanelState, SessionPanelAction, SessionPanelState, SlashCommand,
+    StatusPanelState, TaskPanelState, TracePanelState, TranscriptState, TuiEffect,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -90,6 +90,8 @@ pub enum TuiAction {
     OpenChat,
     Composer(ComposerAction),
     SessionPanel(SessionPanelAction),
+    DiffPanel(DiffPanelAction),
+    CommandPanel(CommandPanelAction),
     BridgeFrame(Box<UiJsonFrame>),
 }
 
@@ -144,6 +146,18 @@ impl TuiApp {
                 self.apply_effect(effect)
             }
             TuiAction::SessionPanel(action) => self.session_panel.reduce(action),
+            TuiAction::DiffPanel(action) => {
+                if let Some(panel) = &mut self.diff_panel {
+                    panel.reduce(action);
+                }
+                TuiEffect::None
+            }
+            TuiAction::CommandPanel(action) => {
+                if let Some(panel) = &mut self.command_panel {
+                    panel.reduce(action);
+                }
+                TuiEffect::None
+            }
             TuiAction::BridgeFrame(frame) => {
                 self.approval_panel.reduce_frame(&frame);
                 self.trace_panel.reduce_frame(&frame);
@@ -153,10 +167,14 @@ impl TuiApp {
                 if let UiJsonFrame::CommandTestSnapshot(snapshot) = frame.as_ref() {
                     self.command_panel = Some(CommandPanelState::from_snapshot(snapshot, 800));
                 }
-                self.diff_panel = self
-                    .approval_panel
-                    .focused_request()
-                    .and_then(|request| DiffPanelState::maybe_from_approval(request, 800));
+                if let UiJsonFrame::EditDiffSnapshot(snapshot) = frame.as_ref() {
+                    self.diff_panel = Some(DiffPanelState::from_edit_diff_snapshot(snapshot, 800));
+                } else {
+                    self.diff_panel = self
+                        .approval_panel
+                        .focused_request()
+                        .and_then(|request| DiffPanelState::maybe_from_approval(request, 800));
+                }
                 self.transcript.reduce_frame(*frame);
                 TuiEffect::None
             }

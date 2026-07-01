@@ -18,9 +18,9 @@ pub mod transcript;
 
 pub use app::{StatusBarState, TerminalSize, TuiAction, TuiApp, TuiScreen, TuiSidePanel};
 pub use approval_panel::{ApprovalPanelAction, ApprovalPanelState};
-pub use command_panel::CommandPanelState;
+pub use command_panel::{CommandPanelAction, CommandPanelOutput, CommandPanelState};
 pub use composer::{ComposerAction, ComposerState, TuiBridgeContext, TuiEffect};
-pub use diff_panel::DiffPanelState;
+pub use diff_panel::{DiffPanelAction, DiffPanelState};
 pub use extension_panel::ExtensionPanelState;
 pub use render::{render_app, render_app_to_string};
 pub use session_panel::{SessionPanelAction, SessionPanelState};

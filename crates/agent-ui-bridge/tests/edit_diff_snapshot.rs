@@ -62,6 +62,31 @@ fn edit_diff_snapshot_redacts_secret_like_preview() {
 }
 
 #[test]
+fn edit_diff_snapshot_preserves_no_change_metadata() {
+    let mut report = report();
+    report.applied = false;
+    report.changed_files = Vec::new();
+    report.diff = DiffSummary {
+        state: DiffEvidenceState::Unavailable,
+        changed_file_count: 0,
+        diff_line_count: 0,
+        added_line_count: 0,
+        removed_line_count: 0,
+        preview: String::new(),
+        truncated: false,
+        redacted: false,
+    };
+
+    let snapshot = UiEditDiffSnapshot::from_report(&report).expect("snapshot");
+
+    assert_eq!(snapshot.diff_state, "unavailable");
+    assert_eq!(snapshot.changed_file_count, 0);
+    assert!(snapshot.changed_files.is_empty());
+    assert_eq!(snapshot.diff_line_count, 0);
+    assert!(!snapshot.applied);
+}
+
+#[test]
 fn edit_diff_snapshot_json_frame_is_single_line() {
     let snapshot = UiEditDiffSnapshot::from_report(&report()).expect("snapshot");
 

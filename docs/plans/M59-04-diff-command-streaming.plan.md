@@ -27,7 +27,7 @@
 - Read: `crates/agent-tui/src/app.rs`
 - Read: `crates/agent-tui/src/render.rs`
 
-- [ ] **Step 1: Review current diff and command baselines**
+- [x] **Step 1: Review current diff and command baselines**
 
 Run:
 
@@ -48,7 +48,7 @@ Expected: existing snapshots, CLI repo edit/command flows, and TUI panels pass b
 - Modify: `crates/agent-ui-bridge/tests/edit_diff_snapshot.rs`
 - Modify: `crates/agent-ui-bridge/tests/command_test_snapshot.rs`
 
-- [ ] **Step 1: Add diff snapshot expectations**
+- [x] **Step 1: Add diff snapshot expectations**
 
 Cover:
 
@@ -59,7 +59,7 @@ Cover:
 - secret-like diff text is redacted
 - JSON frame remains single-line
 
-- [ ] **Step 2: Add command snapshot expectations**
+- [x] **Step 2: Add command snapshot expectations**
 
 Cover:
 
@@ -75,15 +75,15 @@ Cover:
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Modify if needed: `crates/agent-ui-bridge/src/lib.rs`
 
-- [ ] **Step 1: Add typed display metadata only where needed**
+- [x] **Step 1: Add typed display metadata only where needed**
 
 Extend `UiEditDiffSnapshot` and `UiCommandTestSnapshot` with serde-friendly fields for daily-driver rendering only if existing fields are insufficient. Keep additions backward-compatible when possible through serde defaults.
 
-- [ ] **Step 2: Preserve bounding and redaction**
+- [x] **Step 2: Preserve bounding and redaction**
 
 Use existing bridge helpers for public text, diff text, stdout/stderr, cancellation reasons, and diagnostics. Do not move runtime classification logic into the bridge.
 
-- [ ] **Step 3: Run bridge tests**
+- [x] **Step 3: Run bridge tests**
 
 Run:
 
@@ -101,7 +101,7 @@ Expected: bridge snapshot tests pass.
 - Modify: `crates/agent-cli/tests/edit_diff_flow.rs`
 - Modify: `crates/agent-cli/tests/command_test_loop.rs`
 
-- [ ] **Step 1: Add CLI text expectations**
+- [x] **Step 1: Add CLI text expectations**
 
 Cover:
 
@@ -109,7 +109,7 @@ Cover:
 - repo command text includes status, classification, exit/timed-out state, cancellation readiness, stdout/stderr byte counts, and redaction/truncation indicators
 - no-change and failure cases remain stable and bounded
 
-- [ ] **Step 2: Add CLI JSON expectations**
+- [x] **Step 2: Add CLI JSON expectations**
 
 Cover:
 
@@ -117,11 +117,11 @@ Cover:
 - `--json repo command ...` emits `CommandTestSnapshot` with cancellation readiness before events and `Done`
 - JSON output excludes secret-like values
 
-- [ ] **Step 3: Implement rendering changes**
+- [x] **Step 3: Implement rendering changes**
 
 Update text renderers to use existing reports or bridge snapshots consistently. Keep exit codes and error frame behavior unchanged.
 
-- [ ] **Step 4: Run CLI tests**
+- [x] **Step 4: Run CLI tests**
 
 Run:
 
@@ -142,19 +142,19 @@ Expected: CLI tests pass.
 - Modify: `crates/agent-tui/tests/diff_panel.rs`
 - Modify: `crates/agent-tui/tests/command_panel.rs`
 
-- [ ] **Step 1: Add TUI diff tests**
+- [x] **Step 1: Add TUI diff tests**
 
 Cover snapshot reduction, changed-file metadata, applied/preview/no-change state, line-count rendering, next/previous navigation if added, truncation, redaction, and stable empty-state behavior.
 
-- [ ] **Step 2: Add TUI command tests**
+- [x] **Step 2: Add TUI command tests**
 
 Cover snapshot reduction, waiting/running/succeeded/failed/timed-out rendering where fixtures support it, cancellation readiness/reason display, stdout/stderr truncation, redaction, and stable empty-state behavior.
 
-- [ ] **Step 3: Implement panel updates**
+- [x] **Step 3: Implement panel updates**
 
 Derive panel state from `UiJsonFrame::EditDiffSnapshot` and `UiJsonFrame::CommandTestSnapshot`, keep navigation local to TUI state, and keep side effects behind typed `TuiEffect`/`UiCommand` boundaries.
 
-- [ ] **Step 4: Run TUI tests**
+- [x] **Step 4: Run TUI tests**
 
 Run:
 
@@ -173,7 +173,7 @@ Expected: TUI diff and command panel tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -190,7 +190,7 @@ cargo test -p agent-tui --test command_panel
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Run standard checks**
+- [x] **Step 2: Run standard checks**
 
 Run:
 
@@ -201,7 +201,7 @@ cargo test --workspace
 
 Expected: workspace checks pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run exact-path staging for M59-04 source, tests, and docs, then:
 
@@ -213,9 +213,9 @@ Expected: commit contains only M59-04 source, tests, and documentation/status up
 
 ### Completion Checklist
 
-- [ ] Diff viewer exposes stable changed-file, line-count, state, preview, truncation, and redaction evidence.
-- [ ] Command panel exposes stable status, classification, output, timed-out, cancellation readiness, truncation, and redaction evidence.
-- [ ] CLI text/JSON repo edit and command outputs are stable, bounded, and redacted.
-- [ ] TUI diff and command panels reduce bridge snapshots and support repeated coding-loop review.
-- [ ] Presentation crates do not own runtime policy, command execution, diff application, or cancellation semantics.
-- [ ] Focused and standard checks pass.
+- [x] Diff viewer exposes stable changed-file, line-count, state, preview, truncation, and redaction evidence.
+- [x] Command panel exposes stable status, classification, output, timed-out, cancellation readiness, truncation, and redaction evidence.
+- [x] CLI text/JSON repo edit and command outputs are stable, bounded, and redacted.
+- [x] TUI diff and command panels reduce bridge snapshots and support repeated coding-loop review.
+- [x] Presentation crates do not own runtime policy, command execution, diff application, or cancellation semantics.
+- [x] Focused and standard checks pass.

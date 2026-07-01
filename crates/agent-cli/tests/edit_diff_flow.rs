@@ -71,7 +71,11 @@ fn edit_diff_flow_text_preview_does_not_mutate_file() {
     assert!(output.stdout.contains("Repo edit: preview"));
     assert!(output.stdout.contains("Path: README.md"));
     assert!(output.stdout.contains("Diff: preview"));
+    assert!(output.stdout.contains("Changed file count: 1"));
+    assert!(output.stdout.contains("Diff lines:"));
     assert!(output.stdout.contains("+1 -1"));
+    assert!(output.stdout.contains("Truncated: false"));
+    assert!(output.stdout.contains("Redacted: false"));
     assert_eq!(
         fs::read_to_string(temp.path().join("README.md")).expect("read file"),
         "old text\n"
@@ -107,6 +111,8 @@ fn edit_diff_flow_text_apply_mutates_file() {
     assert_eq!(output.status_code, 0);
     assert!(output.stdout.contains("Repo edit: applied"));
     assert!(output.stdout.contains("Changed files: README.md"));
+    assert!(output.stdout.contains("Changed file count:"));
+    assert!(output.stdout.contains("Diff lines:"));
     assert_eq!(
         fs::read_to_string(temp.path().join("README.md")).expect("read file"),
         "new text\n"
@@ -211,4 +217,32 @@ fn edit_diff_flow_json_redacts_secret_like_diff() {
     assert!(!output.stdout.contains("api_key"));
     assert!(!output.stdout.contains("secret"));
     assert!(output.stdout.contains("[redacted]"));
+}
+
+#[test]
+fn edit_diff_flow_text_redacts_secret_like_diff_state() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    fs::write(temp.path().join("README.md"), "old text\n").expect("write readme");
+    let replacement = temp.path().join("after.txt");
+    fs::write(&replacement, "api_key = \"sk-test-secret\"\n").expect("write replacement");
+
+    let output = render_cli_invocation(
+        parse_cli_invocation([
+            "repo",
+            "edit",
+            "--workspace",
+            temp.path().to_str().expect("utf8 path"),
+            "--path",
+            "README.md",
+            "--replacement-file",
+            replacement.to_str().expect("utf8 path"),
+            "--preview",
+        ])
+        .expect("parse repo edit"),
+    );
+
+    assert_eq!(output.status_code, 0);
+    assert!(output.stdout.contains("Redacted: true"));
+    assert!(!output.stdout.contains("sk-test-secret"));
+    assert!(!output.stdout.contains("api_key"));
 }

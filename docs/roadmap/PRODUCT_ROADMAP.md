@@ -153,7 +153,7 @@ Acceptance:
 
 ### M59 CLI/TUI Daily Driver
 
-Status: In progress. M59-01 session restore/switch, M59-02 slash command/status hub, and M59-03 approval queue and permission review are complete; M59-04 diff viewer and command streaming controls is planned and ready for implementation.
+Status: In progress. M59-01 session restore/switch, M59-02 slash command/status hub, M59-03 approval queue and permission review, and M59-04 diff viewer and command streaming controls are complete; M59-05 task status and JSON/batch recipes is next.
 
 Purpose: make terminal use feel like a coherent daily coding workflow instead of separate command demos.
 
@@ -164,7 +164,7 @@ Initial slices:
 | M59-01 Session Restore and Switch | Complete: typed terminal session directory, CLI/JSON list/resume commands, bridge switch command, and TUI session panel state. |
 | M59-02 Slash Command Catalog and Status Hub | Complete: common terminal actions are discoverable and consistent through typed slash command descriptors and status output. |
 | M59-03 Approval Queue and Permission Review | Complete: typed approval queue snapshots, safe CLI/JSON inspection, TUI queue rendering, focus movement, lease display, and typed decisions. |
-| M59-04 Diff Viewer and Command Streaming Controls | Planned: add typed diff review, command/test panel state, cancellation readiness, and stable CLI/JSON/TUI rendering. |
+| M59-04 Diff Viewer and Command Streaming Controls | Complete: typed diff review evidence, command/test panel state, cancellation readiness, TUI navigation/output controls, and stable CLI/JSON/TUI rendering. |
 | M59-05 Task Status and JSON/Batch Recipes | Polish task status visibility and document/test stable JSON and batch workflows. |
 
 Acceptance:

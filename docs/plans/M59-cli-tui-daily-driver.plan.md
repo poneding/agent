@@ -92,6 +92,10 @@ Completed typed approval queue snapshots, CLI text/JSON inspection, TUI queue me
 
 Defined typed diff and command/test daily-driver rendering, cancellation readiness, TUI navigation/state, CLI/JSON stability, and focused verification in M59-04.
 
+- [x] **Step 2: Implement diff and command panel slice**
+
+Completed CLI text/JSON diff and command evidence, bridge snapshot regression coverage, TUI diff navigation, TUI command output controls, cancellation readiness rendering, and focused/standard verification.
+
 ### Task 6: M59-05 Task Status and JSON/Batch Recipes
 
 **Files:**
@@ -133,7 +137,7 @@ Run exact-path staging and commit the final docs/status updates.
 - [x] Terminal sessions can be listed, restored, and switched through typed contracts.
 - [x] Slash command catalog is discoverable and tested.
 - [x] Approval queue and permission review workflows are actionable and safe.
-- [ ] Diff and command/test panels support repeated coding-loop use.
+- [x] Diff and command/test panels support repeated coding-loop use.
 - [ ] Task status is visible and bounded in CLI/JSON/TUI paths.
 - [ ] JSON/batch recipes are documented and covered by tests.
 - [ ] Final workspace fmt/clippy/tests and `cargo xtask eval` pass.

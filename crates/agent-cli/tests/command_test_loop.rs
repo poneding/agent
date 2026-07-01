@@ -107,8 +107,14 @@ fn command_test_loop_text_command_success() {
 
     assert_eq!(output.status_code, 0);
     assert!(output.stdout.contains("Repo command: succeeded"));
+    assert!(output.stdout.contains("Mode: command"));
     assert!(output.stdout.contains("Classification: none"));
     assert!(output.stdout.contains("Exit: 0"));
+    assert!(output.stdout.contains("Cancellable: yes"));
+    assert!(output.stdout.contains("Stdout bytes: 11"));
+    assert!(output.stdout.contains("Stderr bytes: 0"));
+    assert!(output.stdout.contains("Truncated: false"));
+    assert!(output.stdout.contains("Redacted: false"));
     assert!(output.stdout.contains("cli stdout"));
 }
 
@@ -130,8 +136,10 @@ fn command_test_loop_text_test_failure_classifies_non_zero() {
 
     assert_eq!(output.status_code, 0);
     assert!(output.stdout.contains("Repo command: failed"));
+    assert!(output.stdout.contains("Mode: test"));
     assert!(output.stdout.contains("Classification: test_failure"));
     assert!(output.stdout.contains("Exit: 7"));
+    assert!(output.stdout.contains("Cancellable: yes"));
     assert!(output.stdout.contains("cli stderr"));
 }
 
@@ -216,4 +224,27 @@ fn command_test_loop_json_redacts_secret_like_output() {
     assert!(!output.stdout.contains("api_key"));
     assert!(!output.stdout.contains("password"));
     assert!(output.stdout.contains("[redacted]"));
+}
+
+#[test]
+fn command_test_loop_text_redacts_secret_like_output_state() {
+    let (temp, helper) = workspace();
+    let output = render_cli_invocation(
+        parse_cli_invocation([
+            "repo",
+            "command",
+            "--workspace",
+            temp.path().to_str().expect("utf8 path"),
+            "--",
+            helper.to_str().expect("utf8 path"),
+            "secret",
+        ])
+        .expect("parse repo command"),
+    );
+
+    assert_eq!(output.status_code, 0);
+    assert!(output.stdout.contains("Redacted: true"));
+    assert!(!output.stdout.contains("sk-test-secret"));
+    assert!(!output.stdout.contains("api_key"));
+    assert!(!output.stdout.contains("password"));
 }

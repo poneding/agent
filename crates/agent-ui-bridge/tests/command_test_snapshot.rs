@@ -98,6 +98,31 @@ fn command_test_snapshot_marks_truncation() {
 }
 
 #[test]
+fn command_test_snapshot_preserves_timeout_and_cancellation_readiness() {
+    let mut report = report();
+    report.status = CommandExecutionStatus::TimedOut;
+    report.classification = CommandFailureClassification::Timeout;
+    report.exit_code = None;
+    report.timed_out = true;
+    report.cancellation = CommandCancellationState {
+        cancellable: false,
+        reason: "command timed out and process was stopped".to_string(),
+    };
+
+    let snapshot = UiCommandTestSnapshot::from_report(&report).expect("snapshot");
+
+    assert_eq!(snapshot.status, "timed_out");
+    assert_eq!(snapshot.classification, "timeout");
+    assert_eq!(snapshot.exit_code, None);
+    assert!(snapshot.timed_out);
+    assert!(!snapshot.cancellable);
+    assert_eq!(
+        snapshot.cancellation_reason,
+        "command timed out and process was stopped"
+    );
+}
+
+#[test]
 fn command_test_snapshot_json_frame_is_single_line() {
     let snapshot = UiCommandTestSnapshot::from_report(&report()).expect("snapshot");
 

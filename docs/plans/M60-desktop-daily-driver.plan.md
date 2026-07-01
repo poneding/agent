@@ -150,9 +150,14 @@ Verification passed:
 - Modify: `apps/desktop/src-tauri/src/tests/approval_commands.rs`
 - Modify: `apps/desktop/src/__tests__/approval-diff-ui.test.tsx`
 
-- [ ] **Step 1: Plan approval/diff slice**
+- [x] **Step 1: Plan approval/diff slice**
 
 Define explicit decision controls, lease display, request identity, policy rationale, diff file/hunk summaries, redaction, and expired/resolved disabled states.
+
+M60-03 planning is captured in:
+
+- `docs/specs/M60-03-approval-diff-review.spec.md`
+- `docs/plans/M60-03-approval-diff-review.plan.md`
 
 - [ ] **Step 2: Implement approval/diff slice**
 

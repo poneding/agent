@@ -96,6 +96,13 @@ export function SettingsView({
                   {provider.kind} / {provider.default_model} /{' '}
                   {provider.enabled ? 'enabled' : 'disabled'}
                 </small>
+                {provider.capabilities ? (
+                  <small>
+                    streaming {provider.capabilities.streaming ? 'yes' : 'no'} / tools{' '}
+                    {provider.capabilities.tool_calls ? 'yes' : 'no'} / context{' '}
+                    {provider.capabilities.max_context_tokens ?? 'unknown'}
+                  </small>
+                ) : null}
               </li>
             ))}
           </ul>

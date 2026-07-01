@@ -90,6 +90,15 @@ const traceTimeline: TraceTimeline = {
       severity: 'info',
     },
   ],
+  logs: [
+    {
+      sequence: 1,
+      severity: 'info',
+      source: 'final',
+      message: 'final response recorded',
+      truncated: false,
+    },
+  ],
 };
 
 const configSnapshot: DesktopConfigSnapshot = {

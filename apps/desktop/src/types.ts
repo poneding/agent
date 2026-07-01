@@ -24,9 +24,18 @@ export interface TraceTimelineItem {
   severity: TraceTimelineSeverity;
 }
 
+export interface DesktopRuntimeLogEntry {
+  sequence: number;
+  severity: TraceTimelineSeverity;
+  source: string;
+  message: string;
+  truncated: boolean;
+}
+
 export interface TraceTimeline {
   conversation_id: string;
   items: TraceTimelineItem[];
+  logs: DesktopRuntimeLogEntry[];
 }
 
 export interface TraceUiState {
@@ -41,6 +50,14 @@ export interface UiModelProviderSummary {
   kind: string;
   default_model: string;
   enabled: boolean;
+  capabilities?: {
+    streaming: boolean;
+    tool_calls: boolean;
+    structured_outputs: boolean;
+    image_input: boolean;
+    max_context_tokens?: number | null;
+    max_output_tokens?: number | null;
+  };
 }
 
 export interface UiConfigDiagnostic {
@@ -162,6 +179,21 @@ export interface DesktopTaskItem {
   state: DesktopTaskState;
   summary: string;
   updated_at: Timestamp;
+  latest_run_summary?: string | null;
+  artifact_count?: number;
+}
+
+export interface DesktopTaskMonitorCounts {
+  total: number;
+  active: number;
+  waiting_approval: number;
+  failed: number;
+  terminal: number;
+}
+
+export interface DesktopTaskMonitor {
+  counts: DesktopTaskMonitorCounts;
+  tasks: DesktopTaskItem[];
 }
 
 export interface DesktopWorkspaceSnapshot {

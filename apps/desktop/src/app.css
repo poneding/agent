@@ -409,6 +409,31 @@ textarea {
   font-size: 14px;
 }
 
+.task-monitor {
+  display: grid;
+  gap: 10px;
+}
+
+.task-counts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.task-counts dt,
+.task-counts dd {
+  border: 1px solid #d6dbe1;
+  margin: 0;
+  min-width: 0;
+  padding: 6px;
+}
+
+.task-counts dt {
+  background: #eef1f5;
+  color: #697386;
+}
+
 .approval-detail {
   margin-top: 12px;
 }
@@ -530,6 +555,29 @@ textarea {
 }
 
 .trace-timeline {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trace-log-surface {
+  display: grid;
+  gap: 14px;
+}
+
+.runtime-log {
+  display: grid;
+  gap: 10px;
+}
+
+.runtime-log h2 {
+  font-size: 14px;
+  margin: 0;
+}
+
+.runtime-log ol {
   display: grid;
   gap: 10px;
   list-style: none;

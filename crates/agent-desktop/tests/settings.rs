@@ -2,9 +2,44 @@ use std::path::PathBuf;
 
 use agent_core::ReleaseChannel;
 use agent_desktop::{
-    DesktopError, DesktopSettings, DesktopTheme, build_desktop_release_smoke_snapshot,
+    DesktopError, DesktopSettings, DesktopSettingsDiagnosticSeverity, DesktopTheme,
+    build_desktop_release_smoke_snapshot, build_provider_settings_summary,
     validate_desktop_settings,
 };
+use agent_ui_bridge::{
+    UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiModelProviderCapabilities,
+    UiModelProviderSummary,
+};
+
+fn provider(enabled: bool) -> UiModelProviderSummary {
+    UiModelProviderSummary::new(
+        "fake",
+        "fake",
+        "fake-scripted",
+        enabled,
+        UiModelProviderCapabilities::new(true, true, false, false, Some(4096), Some(1024), None),
+    )
+    .expect("valid provider")
+}
+
+fn config_snapshot(message: &str) -> UiConfigSnapshot {
+    UiConfigSnapshot::new(
+        "fake",
+        "fake-scripted",
+        vec![provider(true)],
+        vec![
+            UiConfigDiagnostic::new(
+                UiConfigDiagnosticSeverity::Warning,
+                "config.fixture",
+                message,
+                Some("model.provider".to_string()),
+                Some("test".to_string()),
+            )
+            .expect("valid diagnostic"),
+        ],
+    )
+    .expect("valid config snapshot")
+}
 
 #[test]
 fn settings_serializes_stable_shape() {
@@ -101,4 +136,53 @@ fn settings_release_smoke_snapshot_rejects_relative_root_without_side_effects() 
     .expect_err("relative root rejected");
 
     assert!(matches!(error, DesktopError::InvalidSettings(_)));
+}
+
+#[test]
+fn settings_builds_provider_summary_with_capabilities() {
+    let config = agent_desktop::DesktopConfigSnapshot::new(config_snapshot("using fake provider"))
+        .expect("desktop config");
+    let mut settings = DesktopSettings::default();
+    settings.model.provider = "fake".to_string();
+    settings.model.model = "fake-scripted".to_string();
+
+    let summary = build_provider_settings_summary(&config, &settings).expect("provider summary");
+
+    assert_eq!(summary.selected_provider, "fake");
+    assert_eq!(summary.selected_model, "fake-scripted");
+    assert_eq!(summary.providers[0].id, "fake");
+    assert!(summary.providers[0].enabled);
+    assert!(summary.providers[0].supports_tools);
+    assert!(summary.providers[0].supports_streaming);
+    assert_eq!(summary.providers[0].context_window, Some(4096));
+    assert_eq!(summary.providers[0].output_limit, Some(1024));
+    assert!(summary.validation.valid);
+    assert_eq!(summary.validation.diagnostic_count, 1);
+}
+
+#[test]
+fn settings_provider_summary_redacts_diagnostics_and_validation_errors() {
+    let config = agent_desktop::DesktopConfigSnapshot::new(config_snapshot(
+        "api_key sk-secret token password should not leak",
+    ))
+    .expect("desktop config");
+    let mut settings = DesktopSettings::default();
+    settings.model.provider = " ".to_string();
+
+    let summary = build_provider_settings_summary(&config, &settings).expect("provider summary");
+    let serialized = serde_json::to_string(&summary).expect("serialize provider summary");
+
+    assert!(!summary.validation.valid);
+    assert!(summary.validation.diagnostic_count >= 2);
+    assert!(
+        summary
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.severity == DesktopSettingsDiagnosticSeverity::Error)
+    );
+    assert!(serialized.contains("[redacted]"));
+    assert!(!serialized.contains("sk-secret"));
+    assert!(!serialized.contains("api_key"));
+    assert!(!serialized.contains("token"));
+    assert!(!serialized.contains("password"));
 }

@@ -1,9 +1,12 @@
 use agent_desktop::{
     DesktopConversationItem, DesktopError, DesktopTaskItem, DesktopTaskReviewItem,
-    build_workspace_snapshot,
+    build_task_monitor, build_workspace_snapshot,
 };
 use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
-use agent_ui_bridge::{UiTaskReviewSummary, UiTaskReviewSummaryArtifact};
+use agent_ui_bridge::{
+    UiTaskCommandError, UiTaskReviewSummary, UiTaskReviewSummaryArtifact, UiTaskScheduleSummary,
+    UiTaskSnapshot, UiTaskSummary,
+};
 
 fn ts(second: u8) -> Timestamp {
     serde_json::from_str(&format!("\"2026-06-25T00:00:{second:02}Z\""))
@@ -43,6 +46,25 @@ fn task(value: u32, state: TaskState, summary: &str, second: u8) -> DesktopTaskI
         ts(second),
     )
     .expect("valid task item")
+}
+
+fn ui_task(value: u32, state: TaskState, summary: &str, second: u8) -> UiTaskSummary {
+    serde_json::from_value(serde_json::json!({
+        "task_id": task_id(value),
+        "workspace_id": workspace_id(),
+        "conversation_id": conversation_id(1),
+        "state": state,
+        "priority": "normal",
+        "schedule": UiTaskScheduleSummary {
+            kind: "one_shot".to_string(),
+            label: "run once".to_string(),
+        },
+        "prompt_summary": summary,
+        "latest_run_summary": format!("latest {summary}"),
+        "created_at": ts(second),
+        "updated_at": ts(second),
+    }))
+    .expect("valid ui task summary")
 }
 
 #[test]
@@ -187,4 +209,56 @@ fn conversation_tasks_convert_task_review_items() {
         item.artifacts[0].path.as_deref(),
         Some("artifacts/report.md")
     );
+}
+
+#[test]
+fn conversation_tasks_build_task_monitor_counts_and_details() {
+    let snapshot = UiTaskSnapshot::new(
+        vec![
+            ui_task(1, TaskState::Succeeded, "finished", 1),
+            ui_task(2, TaskState::Running, "running", 2),
+            ui_task(3, TaskState::WaitingApproval, "approval", 3),
+            ui_task(4, TaskState::Failed, "failed", 4),
+        ],
+        Vec::new(),
+    )
+    .expect("task snapshot");
+
+    let monitor = build_task_monitor(&snapshot).expect("task monitor");
+
+    assert_eq!(monitor.counts.total, 4);
+    assert_eq!(monitor.counts.active, 1);
+    assert_eq!(monitor.counts.waiting_approval, 1);
+    assert_eq!(monitor.counts.failed, 1);
+    assert_eq!(monitor.counts.terminal, 2);
+    assert_eq!(monitor.tasks[0].summary, "approval");
+    assert_eq!(
+        monitor.tasks[0].latest_run_summary.as_deref(),
+        Some("latest approval")
+    );
+}
+
+#[test]
+fn conversation_tasks_task_monitor_errors_are_redacted() {
+    let snapshot = UiTaskSnapshot::new(
+        vec![ui_task(1, TaskState::Running, "running", 1)],
+        vec![
+            UiTaskCommandError::recoverable(
+                "task.error",
+                "token sk-secret password should not leak",
+            )
+            .expect("task error"),
+        ],
+    )
+    .expect("task snapshot");
+
+    let monitor = build_task_monitor(&snapshot).expect("task monitor");
+    let serialized = serde_json::to_string(&monitor).expect("serialize monitor");
+
+    assert_eq!(monitor.errors.len(), 1);
+    assert!(monitor.errors[0].recoverable);
+    assert!(monitor.errors[0].message.contains("[redacted]"));
+    assert!(!serialized.contains("sk-secret"));
+    assert!(!serialized.contains("token"));
+    assert!(!serialized.contains("password"));
 }

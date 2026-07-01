@@ -13,6 +13,10 @@ export function TaskDetail({ task }: { task: DesktopTaskItem | null }) {
         <dd>{task.state}</dd>
         <dt>Updated</dt>
         <dd>{task.updated_at}</dd>
+        <dt>Latest</dt>
+        <dd>{task.latest_run_summary ?? 'not run'}</dd>
+        <dt>Artifacts</dt>
+        <dd>{task.artifact_count ?? 0}</dd>
       </dl>
     </section>
   );

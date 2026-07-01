@@ -175,7 +175,7 @@ Acceptance:
 
 ### M60 Desktop Daily Driver
 
-Status: In progress. M60-01 workspace dashboard/session readiness, M60-02 conversation/composer/transcript flow, and M60-03 approval popup/visual diff review are complete; M60-04 provider settings, task monitor, and logs is planned and ready for implementation.
+Status: In progress. M60-01 workspace dashboard/session readiness, M60-02 conversation/composer/transcript flow, M60-03 approval popup/visual diff review, and M60-04 provider settings/task/log surfaces are complete; M60-05 Desktop golden path smoke and closeout is next.
 
 Purpose: make Desktop a usable product surface over the shared runtime rather than a separate presentation demo.
 
@@ -186,7 +186,7 @@ Initial slices:
 | M60-01 Workspace Dashboard and Session Readiness | Complete: workspace/session dashboard, runtime status, provider readiness, task counts, pending approvals, and safe diagnostics. |
 | M60-02 Conversation, Composer, and Transcript Flow | Complete: typed Desktop turn submission, bridge frame draining, transcript updates, command acknowledgements, and recoverable bridge errors. |
 | M60-03 Approval Popup and Visual Diff Review | Complete: explicit approval decisions, lease display, policy rationale, redacted preview text, file summaries, hunks, and diff review state. |
-| M60-04 Provider Settings, Task Monitor, and Logs | Provider/model diagnostics, settings validation, task monitor summaries, bounded runtime logs, and redacted trace evidence. |
+| M60-04 Provider Settings, Task Monitor, and Logs | Complete: provider/model diagnostics, settings validation, task monitor summaries, bounded runtime logs, and redacted trace evidence. |
 | M60-05 Desktop Golden Path Smoke and Closeout | Credential-free M56-equivalent Desktop bridge simulation or UI-safe fixture, Desktop docs, final gates, and milestone status updates. |
 
 Acceptance:

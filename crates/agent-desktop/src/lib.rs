@@ -42,13 +42,22 @@ pub use session::{
     start_desktop_session, switch_desktop_route,
 };
 pub use settings::{
-    DesktopConfigSnapshot, DesktopReleaseSmokeSnapshot, DesktopSettings, DesktopTheme, McpSettings,
+    DesktopConfigSnapshot, DesktopProviderSettingsSummary, DesktopProviderSummary,
+    DesktopReleaseSmokeSnapshot, DesktopSettings, DesktopSettingsDiagnostic,
+    DesktopSettingsDiagnosticSeverity, DesktopSettingsValidationSummary, DesktopTheme, McpSettings,
     MemorySettings, ModelSettings, PolicySettings, UiSettings,
-    build_desktop_release_smoke_snapshot, validate_desktop_settings,
+    build_desktop_release_smoke_snapshot, build_provider_settings_summary,
+    validate_desktop_settings,
 };
 pub use snapshot::{DesktopWorkspaceSnapshot, build_workspace_snapshot};
-pub use task::{DesktopTaskArtifactItem, DesktopTaskItem, DesktopTaskReviewItem};
-pub use trace::{TraceTimeline, TraceTimelineItem, TraceTimelineSeverity, build_trace_timeline};
+pub use task::{
+    DesktopTaskArtifactItem, DesktopTaskItem, DesktopTaskMonitor, DesktopTaskMonitorCounts,
+    DesktopTaskMonitorError, DesktopTaskMonitorItem, DesktopTaskReviewItem, build_task_monitor,
+};
+pub use trace::{
+    DesktopRuntimeLogEntry, DesktopRuntimeLogSeverity, TraceTimeline, TraceTimelineItem,
+    TraceTimelineSeverity, build_trace_timeline,
+};
 pub use update::{
     DesktopUpdateArtifact, DesktopUpdateDecision, UpdateManifest, parse_update_manifest_json,
     validate_update_manifest, validate_update_manifest_for_current,

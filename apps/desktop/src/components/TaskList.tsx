@@ -1,3 +1,4 @@
+import { buildTaskMonitor } from '../state/tasks';
 import type { DesktopTaskItem } from '../types';
 
 export function TaskList({
@@ -12,21 +13,34 @@ export function TaskList({
   if (tasks.length === 0) {
     return <div className="empty-list">No tasks yet</div>;
   }
+  const monitor = buildTaskMonitor(tasks);
 
   return (
-    <ul className="task-list" aria-label="Tasks">
-      {tasks.map((task) => (
-        <li key={task.task_id}>
-          <button
-            className={task.task_id === activeTaskId ? 'selected' : ''}
-            type="button"
-            onClick={() => onSelect(task.task_id)}
-          >
-            <span>{task.summary}</span>
-            <small>{task.state}</small>
-          </button>
-        </li>
-      ))}
-    </ul>
+    <div className="task-monitor">
+      <dl className="task-counts" aria-label="Task monitor counts">
+        <dt>Total</dt>
+        <dd>{monitor.counts.total}</dd>
+        <dt>Active</dt>
+        <dd>{monitor.counts.active}</dd>
+        <dt>Waiting</dt>
+        <dd>{monitor.counts.waiting_approval}</dd>
+        <dt>Failed</dt>
+        <dd>{monitor.counts.failed}</dd>
+      </dl>
+      <ul className="task-list" aria-label="Tasks">
+        {tasks.map((task) => (
+          <li key={task.task_id}>
+            <button
+              className={task.task_id === activeTaskId ? 'selected' : ''}
+              type="button"
+              onClick={() => onSelect(task.task_id)}
+            >
+              <span>{task.summary}</span>
+              <small>{task.state}</small>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

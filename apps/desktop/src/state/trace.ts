@@ -9,6 +9,7 @@ export function createTraceState(conversationId: string | null): TraceUiState {
         : {
             conversation_id: conversationId,
             items: [],
+            logs: [],
           },
     loading: false,
     error: null,

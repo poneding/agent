@@ -213,13 +213,29 @@ M60-04 planning is captured in:
 - `docs/specs/M60-04-provider-task-log-surfaces.spec.md`
 - `docs/plans/M60-04-provider-task-log-surfaces.plan.md`
 
-- [ ] **Step 2: Implement provider/task/log slice**
+- [x] **Step 2: Implement provider/task/log slice**
 
 Polish provider/settings, task monitor, and logs around typed view models and deterministic fixtures.
 
-- [ ] **Step 3: Verify provider/task/log slice**
+- Implemented provider settings summary contracts in `agent-desktop`.
+- Added task monitor counts, selected details, and task error redaction.
+- Added runtime log entries derived from trace evidence with severity/source labels and truncation.
+- Updated React settings, task monitor, and trace/log rendering from typed state.
+
+- [x] **Step 3: Verify provider/task/log slice**
 
 Run focused settings/task/log Rust tests and Vitest coverage named in the slice plan.
+
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
+- `cargo test -p agent-desktop --test settings`
+- `cargo test -p agent-desktop --test trace_timeline`
+- `cargo test -p agent-desktop --test conversation_tasks`
+- `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml trace_settings_commands`
+- `npm --prefix apps/desktop test -- trace-settings-ui`
+- `npm --prefix apps/desktop run build`
 
 ### Task 6: M60-05 Desktop Golden Path Smoke and Closeout
 
@@ -269,8 +285,8 @@ Run exact-path staging and commit the final docs/status updates.
 - [x] Workspace dashboard/session readiness is visible and tested.
 - [x] Conversation, composer, and transcript flow through shared bridge commands/frames.
 - [x] Approval popup and visual diff review are explicit, bounded, redacted, and policy-backed.
-- [ ] Provider/settings diagnostics expose useful status without secrets.
-- [ ] Task monitor and logs show bounded runtime evidence.
+- [x] Provider/settings diagnostics expose useful status without secrets.
+- [x] Task monitor and logs show bounded runtime evidence.
 - [ ] Desktop smoke fixture proves the M56 golden-path shape or a UI-safe bridge simulation.
 - [ ] Desktop frontend tests and build are part of the milestone verification path.
 - [ ] Final workspace fmt/clippy/tests, frontend checks, and `cargo xtask eval` pass.

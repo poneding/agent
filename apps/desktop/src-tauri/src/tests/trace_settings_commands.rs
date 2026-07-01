@@ -76,6 +76,12 @@ fn trace_command_returns_populated_redacted_timeline() {
         timeline.items[1].severity,
         agent_desktop::TraceTimelineSeverity::Error
     );
+    assert_eq!(timeline.logs[0].sequence, 1);
+    assert_eq!(timeline.logs[1].source, "tool_error");
+    assert_eq!(
+        timeline.logs[1].severity,
+        agent_desktop::DesktopRuntimeLogSeverity::Error
+    );
     let serialized = serde_json::to_string(&timeline).expect("serialize trace");
     assert!(serialized.contains("[redacted]"));
     assert!(!serialized.contains("sk-live"));

@@ -1,5 +1,7 @@
 use agent_core::TraceEntry;
-use agent_desktop::{DesktopError, TraceTimelineSeverity, build_trace_timeline};
+use agent_desktop::{
+    DesktopError, DesktopRuntimeLogSeverity, TraceTimelineSeverity, build_trace_timeline,
+};
 use agent_types::ConversationId;
 
 fn conversation_id() -> ConversationId {
@@ -38,6 +40,9 @@ fn trace_timeline_serializes_timeline_shape() {
         "failed shell recoverable=true"
     );
     assert_eq!(value["items"][0]["severity"], "error");
+    assert_eq!(value["logs"][0]["sequence"], 7);
+    assert_eq!(value["logs"][0]["severity"], "error");
+    assert_eq!(value["logs"][0]["source"], "tool_error");
 }
 
 #[test]
@@ -60,6 +65,7 @@ fn trace_timeline_sorts_by_sequence() {
 
     assert_eq!(seqs, vec![1, 2, 3]);
     assert_eq!(timeline.items[0].severity, TraceTimelineSeverity::Info);
+    assert_eq!(timeline.logs[0].sequence, 1);
 }
 
 #[test]
@@ -101,4 +107,32 @@ fn trace_timeline_does_not_expose_secret_like_fields() {
     assert!(!serialized.contains("sk-test"));
     assert!(!serialized.contains("token"));
     assert!(!serialized.contains("abc"));
+}
+
+#[test]
+fn trace_timeline_builds_bounded_runtime_logs() {
+    let timeline = build_trace_timeline(
+        conversation_id(),
+        vec![
+            entry(2, "runtime_warning", "warning happened"),
+            entry(
+                1,
+                "tool_error",
+                &format!("token sk-secret {}", "x".repeat(400)),
+            ),
+        ],
+    )
+    .unwrap();
+    let serialized = serde_json::to_string(&timeline.logs).expect("serialize logs");
+
+    assert_eq!(timeline.logs[0].sequence, 1);
+    assert_eq!(timeline.logs[0].severity, DesktopRuntimeLogSeverity::Error);
+    assert_eq!(
+        timeline.logs[1].severity,
+        DesktopRuntimeLogSeverity::Warning
+    );
+    assert!(timeline.logs[0].truncated);
+    assert!(timeline.logs[0].message.contains("[redacted]"));
+    assert!(!serialized.contains("sk-secret"));
+    assert!(!serialized.contains("token"));
 }

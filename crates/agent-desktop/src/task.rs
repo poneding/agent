@@ -1,9 +1,14 @@
 use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
-use agent_ui_bridge::{UiTaskReviewSummary, UiTaskReviewSummaryArtifact, UiTaskSummary};
+use agent_ui_bridge::{
+    UiTaskCommandError, UiTaskReviewSummary, UiTaskReviewSummaryArtifact, UiTaskSnapshot,
+    UiTaskSummary,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::DesktopError;
 use crate::conversation::validate_non_empty;
+
+const MAX_TASK_TEXT_CHARS: usize = 240;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DesktopTaskItem {
@@ -53,6 +58,133 @@ impl TryFrom<&UiTaskSummary> for DesktopTaskItem {
             summary.updated_at,
         )
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DesktopTaskMonitor {
+    pub counts: DesktopTaskMonitorCounts,
+    pub tasks: Vec<DesktopTaskMonitorItem>,
+    pub errors: Vec<DesktopTaskMonitorError>,
+}
+
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DesktopTaskMonitorCounts {
+    pub total: u32,
+    pub active: u32,
+    pub waiting_approval: u32,
+    pub failed: u32,
+    pub terminal: u32,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DesktopTaskMonitorItem {
+    pub task_id: TaskId,
+    pub workspace_id: WorkspaceId,
+    pub conversation_id: Option<ConversationId>,
+    pub state: TaskState,
+    pub summary: String,
+    pub latest_run_summary: Option<String>,
+    pub artifact_count: u32,
+    pub updated_at: Timestamp,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DesktopTaskMonitorError {
+    pub code: String,
+    pub message: String,
+    pub recoverable: bool,
+    pub truncated: bool,
+}
+
+pub fn build_task_monitor(snapshot: &UiTaskSnapshot) -> Result<DesktopTaskMonitor, DesktopError> {
+    let mut tasks = snapshot
+        .tasks
+        .iter()
+        .map(DesktopTaskMonitorItem::try_from)
+        .collect::<Result<Vec<_>, _>>()?;
+    tasks.sort_by(|left, right| {
+        left.state
+            .is_terminal()
+            .cmp(&right.state.is_terminal())
+            .then_with(|| right.updated_at.cmp(&left.updated_at))
+            .then_with(|| left.task_id.cmp(&right.task_id))
+    });
+    let errors = snapshot
+        .errors
+        .iter()
+        .map(DesktopTaskMonitorError::try_from)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(DesktopTaskMonitor {
+        counts: build_task_monitor_counts(&tasks),
+        tasks,
+        errors,
+    })
+}
+
+impl TryFrom<&UiTaskSummary> for DesktopTaskMonitorItem {
+    type Error = DesktopError;
+
+    fn try_from(summary: &UiTaskSummary) -> Result<Self, Self::Error> {
+        Ok(Self {
+            task_id: summary.task_id,
+            workspace_id: summary.workspace_id,
+            conversation_id: summary.conversation_id,
+            state: summary.state,
+            summary: bounded_required_task_text("task summary", summary.prompt_summary.clone())?.0,
+            latest_run_summary: summary
+                .latest_run_summary
+                .clone()
+                .map(bounded_optional_task_text)
+                .transpose()?
+                .flatten()
+                .map(|item| item.0),
+            artifact_count: 0,
+            updated_at: summary.updated_at,
+        })
+    }
+}
+
+impl TryFrom<&UiTaskCommandError> for DesktopTaskMonitorError {
+    type Error = DesktopError;
+
+    fn try_from(error: &UiTaskCommandError) -> Result<Self, Self::Error> {
+        let (code, code_truncated) =
+            bounded_required_task_text("task monitor error code", error.code.clone())?;
+        let (message, message_truncated) =
+            bounded_required_task_text("task monitor error message", error.message.clone())?;
+        Ok(Self {
+            code,
+            message,
+            recoverable: error.recoverable,
+            truncated: code_truncated || message_truncated,
+        })
+    }
+}
+
+fn build_task_monitor_counts(tasks: &[DesktopTaskMonitorItem]) -> DesktopTaskMonitorCounts {
+    let mut counts = DesktopTaskMonitorCounts {
+        total: usize_to_u32(tasks.len()),
+        ..DesktopTaskMonitorCounts::default()
+    };
+    for task in tasks {
+        if task.state.is_terminal() {
+            counts.terminal = counts.terminal.saturating_add(1);
+        }
+        match task.state {
+            TaskState::WaitingApproval => {
+                counts.waiting_approval = counts.waiting_approval.saturating_add(1);
+            }
+            TaskState::Failed => {
+                counts.failed = counts.failed.saturating_add(1);
+            }
+            state if !state.is_terminal() => {
+                counts.active = counts.active.saturating_add(1);
+            }
+            _ => {}
+        }
+    }
+    counts
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -134,4 +266,58 @@ impl TryFrom<&UiTaskReviewSummaryArtifact> for DesktopTaskArtifactItem {
         item.validate()?;
         Ok(item)
     }
+}
+
+fn bounded_required_task_text(
+    label: &str,
+    value: impl Into<String>,
+) -> Result<(String, bool), DesktopError> {
+    let value = value.into();
+    let value = validate_non_empty(label, value)?;
+    Ok(bound_task_text(&value))
+}
+
+fn bounded_optional_task_text(value: String) -> Result<Option<(String, bool)>, DesktopError> {
+    let value = value.trim();
+    if value.is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(bound_task_text(value)))
+}
+
+fn bound_task_text(value: &str) -> (String, bool) {
+    let redacted = redact_secret_like_text(value);
+    if redacted.chars().count() > MAX_TASK_TEXT_CHARS {
+        (redacted.chars().take(MAX_TASK_TEXT_CHARS).collect(), true)
+    } else {
+        (redacted, false)
+    }
+}
+
+fn redact_secret_like_text(value: &str) -> String {
+    value
+        .split_whitespace()
+        .map(|token| {
+            if is_secret_like(token) {
+                "[redacted]"
+            } else {
+                token
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn is_secret_like(value: &str) -> bool {
+    let value = value.to_ascii_lowercase();
+    value.contains("secret")
+        || value.contains("token")
+        || value.contains("password")
+        || value.contains("api_key")
+        || value.contains("apikey")
+        || value.starts_with("sk-")
+}
+
+fn usize_to_u32(value: usize) -> u32 {
+    u32::try_from(value).unwrap_or(u32::MAX)
 }

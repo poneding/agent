@@ -568,6 +568,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M59-04 slice spec | Complete |
 | M59-04 slice plan | Complete |
 | M59-04 implementation | Complete |
+| M59-05 slice spec | Complete |
+| M59-05 slice plan | Complete |
+| M59-05 implementation | Planned |
 | M59 implementation | In Progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1276,7 +1279,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M59-02 Slash Command Catalog and Status Hub | `docs/specs/M59-02-slash-command-status-hub.spec.md` | `docs/plans/M59-02-slash-command-status-hub.plan.md` | Completed typed slash command catalog, aliases, status hub, and plain/TUI discoverability. |
 | M59-03 Approval Queue and Permission Review | `docs/specs/M59-03-approval-queue-permission-review.spec.md` | `docs/plans/M59-03-approval-queue-permission-review.plan.md` | Completed typed approval queue snapshots, CLI/JSON inspection, TUI queue rendering, focus movement, lease display, and typed decisions. |
 | M59-04 Diff Viewer and Command Streaming Controls | `docs/specs/M59-04-diff-command-streaming.spec.md` | `docs/plans/M59-04-diff-command-streaming.plan.md` | Completed typed diff review evidence, command/test panel state, cancellation readiness, TUI navigation/output controls, and stable CLI/JSON/TUI rendering. |
-| M59-05 Task Status and JSON/Batch Recipes | TBD | TBD | Planned task status panel polish and documented stable terminal recipes. |
+| M59-05 Task Status and JSON/Batch Recipes | `docs/specs/M59-05-task-status-json-recipes.spec.md` | `docs/plans/M59-05-task-status-json-recipes.plan.md` | Planned task status panel polish, documented stable terminal recipes, deterministic recipe tests, and final M59 closeout. |
 
 ## MX01 Slice Index
 
@@ -1768,8 +1771,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create M59-05 task status and JSON/batch recipes spec and plan.
+- Execute M59-05 task status and JSON/batch recipes implementation plan.
 
 Next implementation direction:
 
-- Plan M59-05 task status and JSON/batch recipes.
+- Execute `docs/plans/M59-05-task-status-json-recipes.plan.md` to add task status recipes and close M59.

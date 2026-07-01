@@ -103,9 +103,9 @@ Completed CLI text/JSON diff and command evidence, bridge snapshot regression co
 - Create: `docs/plans/M59-05-task-status-json-recipes.plan.md`
 - Create: `docs/cli/daily-driver-recipes.md`
 
-- [ ] **Step 1: Plan task status and recipe slice**
+- [x] **Step 1: Plan task status and recipe slice**
 
-Define task panel improvements, CLI/JSON recipe commands, documented smoke scripts, and deterministic tests for batch-safe daily-driver workflows.
+Defined task status polish, CLI/JSON recipe tests, deterministic docs, and final M59 verification/closeout gates in M59-05.
 
 ### Task 7: Final Verification and Closeout
 

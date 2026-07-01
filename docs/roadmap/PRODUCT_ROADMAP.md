@@ -175,7 +175,7 @@ Acceptance:
 
 ### M60 Desktop Daily Driver
 
-Status: In progress. M60-01 workspace dashboard/session readiness, M60-02 conversation/composer/transcript flow, and M60-03 approval popup/visual diff review are complete; M60-04 provider settings, task monitor, and logs is next.
+Status: In progress. M60-01 workspace dashboard/session readiness, M60-02 conversation/composer/transcript flow, and M60-03 approval popup/visual diff review are complete; M60-04 provider settings, task monitor, and logs is planned and ready for implementation.
 
 Purpose: make Desktop a usable product surface over the shared runtime rather than a separate presentation demo.
 

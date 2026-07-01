@@ -204,9 +204,14 @@ Verification passed:
 - Modify: `apps/desktop/src-tauri/src/tests/trace_settings_commands.rs`
 - Modify: `apps/desktop/src/__tests__/trace-settings-ui.test.tsx`
 
-- [ ] **Step 1: Plan provider/task/log slice**
+- [x] **Step 1: Plan provider/task/log slice**
 
 Define provider/model diagnostics, settings validation, task monitor summaries, bounded runtime log entries, and redacted trace/log rendering.
+
+M60-04 planning is captured in:
+
+- `docs/specs/M60-04-provider-task-log-surfaces.spec.md`
+- `docs/plans/M60-04-provider-task-log-surfaces.plan.md`
 
 - [ ] **Step 2: Implement provider/task/log slice**
 

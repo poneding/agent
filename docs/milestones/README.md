@@ -583,6 +583,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60-03 slice spec | Complete |
 | M60-03 slice plan | Complete |
 | M60-03 implementation | Complete |
+| M60-04 slice spec | Complete |
+| M60-04 slice plan | Complete |
 | M60 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1301,6 +1303,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60-01 Workspace Dashboard and Session Readiness | `docs/specs/M60-01-workspace-dashboard-session.spec.md` | `docs/plans/M60-01-workspace-dashboard-session.plan.md` | Complete: typed Desktop dashboard/readiness model, Tauri dashboard snapshot boundary, Dashboard route, provider readiness, task counts, pending approvals, diagnostics, and focused Rust/frontend coverage. |
 | M60-02 Conversation, Composer, and Transcript Flow | `docs/specs/M60-02-conversation-composer-transcript.spec.md` | `docs/plans/M60-02-conversation-composer-transcript.plan.md` | Complete: typed Desktop conversation view models, start-turn submission, bounded bridge frame draining, transcript/task updates, command acknowledgements, recoverable bridge errors, and focused Rust/frontend coverage. |
 | M60-03 Approval Popup and Visual Diff Review | `docs/specs/M60-03-approval-diff-review.spec.md` | `docs/plans/M60-03-approval-diff-review.plan.md` | Complete: explicit Desktop approval decisions, lease/expiry state, policy rationale, redacted previews, file summaries, bounded diff hunks, and focused Rust/frontend coverage. |
+| M60-04 Provider Settings, Task Monitor, and Logs | `docs/specs/M60-04-provider-task-log-surfaces.spec.md` | `docs/plans/M60-04-provider-task-log-surfaces.plan.md` | Planned: provider/model diagnostics, settings validation, task monitor summaries, bounded runtime logs, and redacted trace evidence. |
 
 ## MX01 Slice Index
 
@@ -1327,6 +1330,8 @@ Most recent completed or active planning documents:
 - `docs/plans/M60-02-conversation-composer-transcript.plan.md`
 - `docs/specs/M60-03-approval-diff-review.spec.md`
 - `docs/plans/M60-03-approval-diff-review.plan.md`
+- `docs/specs/M60-04-provider-task-log-surfaces.spec.md`
+- `docs/plans/M60-04-provider-task-log-surfaces.plan.md`
 - `docs/specs/M59-cli-tui-daily-driver.spec.md`
 - `docs/plans/M59-cli-tui-daily-driver.plan.md`
 - `docs/specs/M59-01-session-restore-switch.spec.md`
@@ -1798,10 +1803,6 @@ Most recent completed technical design documents:
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M54-00-mcp-http-oauth-token-exchange-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M54-00-mcp-http-oauth-token-exchange-technical-design.plan.md`
 
-Next planning action:
-
-- Create M60-04 Provider Settings, Task Monitor, and Logs slice spec and plan.
-
 Next implementation direction:
 
-- Plan M60-04, then implement Desktop provider settings, task monitor, and logs.
+- Implement M60-04 Desktop provider settings, task monitor, and logs.

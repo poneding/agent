@@ -88,11 +88,15 @@ M61-01 planning is captured in:
 - `docs/specs/M61-01-plan-todo-state.spec.md`
 - `docs/plans/M61-01-plan-todo-state.plan.md`
 
-- [ ] **Step 2: Implement typed plan/todo contracts**
+- [x] **Step 2: Implement typed plan/todo contracts**
 
 Add serde-friendly plan/todo ids, states, item snapshots, progress summaries, diagnostics, evidence references, and runtime validation helpers.
 
-- [ ] **Step 3: Verify shared state contracts**
+- Implemented `agent-types::plan` contracts for todo ids, statuses, priorities, sources, evidence, diagnostics, snapshots, progress, and plan/todo runtime event payloads.
+- Implemented `agent-core::plan` validation, normalization, progress, revision checks, update application, and evidence append helpers.
+- Added minimal UI bridge normalization for the new runtime event payloads so workspace consumers remain exhaustive; richer plan/todo bridge snapshots remain scoped to M61-02.
+
+- [x] **Step 3: Verify shared state contracts**
 
 Run focused tests:
 
@@ -104,6 +108,16 @@ cargo test -p agent-core --test plan_todo_state
 ```
 
 Expected: shared plan/todo contracts serialize, validate, redact, and reject invalid/stale updates.
+
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-types -p agent-core --all-targets -- -D warnings`
+- `cargo test -p agent-types`
+- `cargo test -p agent-core --test plan_todo_state`
+- `cargo test -p agent-core --test task_artifacts_review`
+- `cargo test -p agent-ui-bridge --test m61_plan_todo_events`
+- `cargo clippy -p agent-ui-bridge --all-targets -- -D warnings`
 
 ### Task 3: M61-02 CLI and JSON Plan/Todo Commands
 

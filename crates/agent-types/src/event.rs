@@ -71,6 +71,8 @@ pub enum RuntimeEventPayload {
     FinalResponseProduced(FinalResponseProduced),
     TurnCompleted(TurnCompleted),
     TurnFailed(TurnFailed),
+    PlanTodoSnapshotRecorded(crate::plan::PlanTodoSnapshotRecorded),
+    PlanTodoUpdated(crate::plan::PlanTodoUpdated),
     TaskStateChanged(TaskStateChanged),
     TaskNotificationRecorded(crate::task::TaskNotificationRecorded),
     ToolCallProposed(crate::tool::ToolCallProposed),

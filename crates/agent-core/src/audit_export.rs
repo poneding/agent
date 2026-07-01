@@ -333,6 +333,8 @@ fn export_payload(payload: &RuntimeEventPayload) -> PayloadExport {
         | RuntimeEventPayload::FinalResponseProduced(_)
         | RuntimeEventPayload::TurnCompleted(_)
         | RuntimeEventPayload::TurnFailed(_)
+        | RuntimeEventPayload::PlanTodoSnapshotRecorded(_)
+        | RuntimeEventPayload::PlanTodoUpdated(_)
         | RuntimeEventPayload::TaskStateChanged(_)
         | RuntimeEventPayload::TaskNotificationRecorded(_)
         | RuntimeEventPayload::CheckpointRecorded(_)

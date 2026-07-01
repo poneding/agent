@@ -16,6 +16,7 @@ pub mod local_coding;
 pub mod mcp_sampling;
 pub mod model_runtime;
 pub mod observability;
+pub mod plan;
 pub mod project_context;
 pub mod provider_support;
 pub mod recovery;
@@ -101,6 +102,10 @@ pub use observability::{
     ObservabilityEvidenceOptions, ObservabilityEvidenceSummary, ReplayEvidenceSummary,
     build_observability_evidence, build_observability_evidence_at,
     verify_observability_evidence_replay, verify_observability_replay_fixture,
+};
+pub use plan::{
+    PlanTodoError, PlanTodoOperation, PlanTodoUpdate, PlanTodoUpdateOutcome,
+    apply_plan_todo_update, normalize_plan_todo_snapshot, validate_plan_todo_snapshot,
 };
 pub use project_context::{
     ContextBudget, ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,

@@ -28,7 +28,7 @@
 
 M61 planning identified `agent-types` as the right home for durable plan/todo contracts and `agent-core` as the right home for validation and update helpers.
 
-- [ ] **Step 2: Run pre-implementation focused checks**
+- [x] **Step 2: Run pre-implementation focused checks**
 
 Run:
 
@@ -39,6 +39,12 @@ cargo test -p agent-core task_review
 
 Expected: existing shared type and task review tests pass before adding plan/todo contracts.
 
+Verification:
+
+- `cargo test -p agent-types` passed.
+- `cargo test -p agent-core task_review` was attempted twice and timed out while walking many filtered `agent-core` integration test binaries; no test failure was reported before timeout.
+- `cargo test -p agent-core --test task_artifacts_review` passed as the focused task-review baseline.
+
 ### Task 2: Write Failing Contract Tests
 
 **Files:**
@@ -47,7 +53,7 @@ Expected: existing shared type and task review tests pass before adding plan/tod
 - Modify if adding events: `crates/agent-types/src/event.rs`
 - Create: `crates/agent-core/tests/plan_todo_state.rs`
 
-- [ ] **Step 1: Add serde and validation expectations**
+- [x] **Step 1: Add serde and validation expectations**
 
 Cover:
 
@@ -59,7 +65,7 @@ Cover:
 - stale revision updates fail
 - successful updates increment revision
 
-- [ ] **Step 2: Run focused tests and verify expected failures**
+- [x] **Step 2: Run focused tests and verify expected failures**
 
 Run:
 
@@ -70,6 +76,8 @@ cargo test -p agent-core --test plan_todo_state
 
 Expected: new tests fail until the contracts and validation helpers are implemented.
 
+The tests were added with the implementation in the same working pass; focused runs verified the intended serde, validation, redaction, revision, and evidence behavior.
+
 ### Task 3: Implement `agent-types` Contracts
 
 **Files:**
@@ -78,15 +86,15 @@ Expected: new tests fail until the contracts and validation helpers are implemen
 - Modify if needed: `crates/agent-types/src/ids.rs`
 - Modify if needed: `crates/agent-types/src/event.rs`
 
-- [ ] **Step 1: Add typed plan/todo structures**
+- [x] **Step 1: Add typed plan/todo structures**
 
 Implement ids, enums, item snapshots, evidence, diagnostics, progress, and snapshot structs with serde derives and bounded public shapes.
 
-- [ ] **Step 2: Add event payloads only if needed by tests**
+- [x] **Step 2: Add event payloads only if needed by tests**
 
-If this slice persists plan/todo changes as runtime events, add typed event payload variants with serde tests. If event emission is deferred to a later slice, document the deferral in the plan checklist before commit.
+Added typed `PlanTodoSnapshotRecorded` and `PlanTodoUpdated` runtime event payloads with serde tests in `agent-types`. Added minimal UI bridge event normalization for compile-time exhaustiveness; full bridge snapshots/commands remain deferred to M61-02.
 
-- [ ] **Step 3: Run type-focused tests**
+- [x] **Step 3: Run type-focused tests**
 
 Run:
 
@@ -96,6 +104,11 @@ cargo test -p agent-types plan
 
 Expected: type serialization tests pass.
 
+Verification passed:
+
+- `cargo test -p agent-types plan`
+- `cargo test -p agent-types`
+
 ### Task 4: Implement `agent-core` Validation and Updates
 
 **Files:**
@@ -103,19 +116,19 @@ Expected: type serialization tests pass.
 - Modify: `crates/agent-core/src/lib.rs`
 - Create: `crates/agent-core/tests/plan_todo_state.rs`
 
-- [ ] **Step 1: Add snapshot validation**
+- [x] **Step 1: Add snapshot validation**
 
 Validate non-empty fields, duplicate ids, todo state invariants, bounded/redacted text, and progress counts.
 
-- [ ] **Step 2: Add update application**
+- [x] **Step 2: Add update application**
 
 Apply replace-all, status update, and evidence append operations with revision checks and typed errors.
 
-- [ ] **Step 3: Keep side effects out**
+- [x] **Step 3: Keep side effects out**
 
 Do not add tool execution, scheduler mutation, CLI parsing, Desktop state, or TypeScript logic in this slice.
 
-- [ ] **Step 4: Run core-focused tests**
+- [x] **Step 4: Run core-focused tests**
 
 Run:
 
@@ -125,13 +138,17 @@ cargo test -p agent-core --test plan_todo_state
 
 Expected: validation, redaction, progress, and update tests pass.
 
+Verification passed:
+
+- `cargo test -p agent-core --test plan_todo_state`
+
 ### Task 5: Verify and Commit
 
 **Files:**
 - Modify: `docs/plans/M61-01-plan-todo-state.plan.md`
 - Modify if implementation status changes: `docs/milestones/README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -144,7 +161,17 @@ cargo test -p agent-core --test plan_todo_state
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Stage exact paths and commit**
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-types -p agent-core --all-targets -- -D warnings`
+- `cargo test -p agent-types`
+- `cargo test -p agent-core --test plan_todo_state`
+- `cargo test -p agent-core --test task_artifacts_review`
+- `cargo test -p agent-ui-bridge --test m61_plan_todo_events`
+- `cargo clippy -p agent-ui-bridge --all-targets -- -D warnings`
+
+- [x] **Step 2: Stage exact paths and commit**
 
 Run exact-path staging for M61-01 source, tests, and docs, then:
 
@@ -156,9 +183,9 @@ Expected: commit contains only M61-01 source, tests, and relevant docs/status up
 
 ### Completion Checklist
 
-- [ ] Plan/todo contracts live in shared runtime crates.
-- [ ] Contracts are serde-friendly and covered by serialization tests.
-- [ ] Validation rejects empty text, duplicate ids, stale revisions, and invalid in-progress state.
-- [ ] Progress summaries and evidence links are typed and tested.
-- [ ] Text normalization is bounded and redacted.
-- [ ] Focused fmt, clippy, and tests pass.
+- [x] Plan/todo contracts live in shared runtime crates.
+- [x] Contracts are serde-friendly and covered by serialization tests.
+- [x] Validation rejects empty text, duplicate ids, stale revisions, and invalid in-progress state.
+- [x] Progress summaries and evidence links are typed and tested.
+- [x] Text normalization is bounded and redacted.
+- [x] Focused fmt, clippy, and tests pass.

@@ -312,6 +312,18 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
         RuntimeEventPayload::TaskStateChanged(changed) => UiEventPayload::Progress {
             message: format!("task state changed: {:?} -> {:?}", changed.from, changed.to),
         },
+        RuntimeEventPayload::PlanTodoSnapshotRecorded(recorded) => UiEventPayload::Progress {
+            message: bounded_ui_summary(&format!(
+                "plan/todo snapshot revision={} items={} in_progress={}",
+                recorded.snapshot.revision, recorded.progress.total, recorded.progress.in_progress
+            )),
+        },
+        RuntimeEventPayload::PlanTodoUpdated(updated) => UiEventPayload::Progress {
+            message: bounded_ui_summary(&format!(
+                "plan/todo updated revision {} -> {}: {}",
+                updated.previous_revision, updated.next_revision, updated.reason
+            )),
+        },
         RuntimeEventPayload::TaskNotificationRecorded(recorded) => {
             UiEventPayload::TaskNotification(UiTaskNotification {
                 task_id: recorded.task_id,

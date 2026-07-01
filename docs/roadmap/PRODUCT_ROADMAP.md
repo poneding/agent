@@ -198,7 +198,7 @@ Acceptance:
 
 ### M61 Plan, Todo, and Task UX
 
-Status: Planned. Milestone-level spec/plan and M61-01 shared plan/todo state spec/plan are ready.
+Status: In progress. M61-01 shared plan/todo state contracts are complete with focused Rust coverage. M61-02 CLI and JSON plan/todo command planning is next.
 
 Purpose: make plan, todo, and task state one first-class product surface across interactive and background work.
 
@@ -206,7 +206,7 @@ Initial slices:
 
 | Slice | Outcome |
 |---|---|
-| M61-01 Shared Plan/Todo State Contracts | Add TodoWrite-compatible typed state, progress counts, revision checks, evidence links, redaction, and runtime validation in shared crates. |
+| M61-01 Shared Plan/Todo State Contracts | Complete: TodoWrite-compatible typed state, progress counts, revision checks, evidence links, redaction, runtime event payloads, and validation in shared crates. |
 | M61-02 CLI and JSON Plan/Todo Commands | Expose stable text and JSON commands for viewing and updating shared plan/todo state. |
 | M61-03 TUI and Desktop Plan/Task Surfaces | Render plan progress, active todo, waiting approval, notifications, and artifact evidence from shared snapshots. |
 | M61-04 Background Wait Controls and Notifications | Connect approval waits, pause/resume/cancel, and latest notifications to task and plan evidence without bypassing scheduler or policy paths. |

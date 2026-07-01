@@ -59,8 +59,8 @@ fn task_review_snapshot_reports_missing_artifact_metadata() {
         TaskState::Failed,
         Some("trace-456"),
         None,
-        vec!["artifact-missing".to_string()],
-        "failed after tool error",
+        vec!["artifact-token-missing".to_string()],
+        "failed after tool error with sk-secret-token",
     )
     .expect("review");
 
@@ -72,6 +72,7 @@ fn task_review_snapshot_reports_missing_artifact_metadata() {
     );
     assert_eq!(
         ui_review.diagnostics,
-        vec!["missing artifact metadata: artifact-missing".to_string()]
+        vec!["missing artifact metadata: [redacted]".to_string()]
     );
+    assert!(ui_review.summary.contains("[redacted]"));
 }

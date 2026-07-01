@@ -198,7 +198,7 @@ Acceptance:
 
 ### M61 Plan, Todo, and Task UX
 
-Status: In progress. M61-01 shared plan/todo state contracts, M61-02 CLI/JSON plan/todo commands, M61-03 TUI/Desktop plan/task surfaces, and M61-04 background wait controls and notifications are complete with focused Rust and frontend coverage. M61-05 artifacts, smoke, docs, and closeout is next.
+Status: Complete. M61-01 shared plan/todo state contracts, M61-02 CLI/JSON plan/todo commands, M61-03 TUI/Desktop plan/task surfaces, M61-04 background wait controls and notifications, and M61-05 artifacts, smoke, docs, and closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M62 Reliability and Recovery Productization is next.
 
 Purpose: make plan, todo, and task state one first-class product surface across interactive and background work.
 
@@ -210,7 +210,7 @@ Initial slices:
 | M61-02 CLI and JSON Plan/Todo Commands | Complete: stable text/JSON commands, typed bridge commands, plan/todo snapshot frames, revision-aware updates, replacement, redaction, and focused tests. |
 | M61-03 TUI and Desktop Plan/Task Surfaces | Complete: TUI and Desktop render plan progress, active todo, waiting state, latest notification, and artifact counts from shared snapshots. |
 | M61-04 Background Wait Controls and Notifications | Complete: approval-wait ids, pause/resume/cancel and schedule control evidence, latest notification metadata, CLI/JSON output, Desktop task models, redaction, and focused tests. |
-| M61-05 Artifacts, Smoke, Docs, and Closeout | Link task reviews/artifacts to plan evidence, document workflows, run credential-free smoke coverage, and close the milestone. |
+| M61-05 Artifacts, Smoke, Docs, and Closeout | Complete: task review/artifact evidence links into plan/todo state, CLI/Desktop smoke docs, credential-free smoke coverage, final gates, and milestone closeout status updates. |
 
 Acceptance:
 

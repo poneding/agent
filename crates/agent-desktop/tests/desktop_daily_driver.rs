@@ -5,18 +5,19 @@ use agent_desktop::{
     DesktopDiffFileReview, DesktopDiffHunkPreview, DesktopDiffLineKind, DesktopDiffLinePreview,
     DesktopDiffReview, DesktopProviderSettingsSummary, DesktopSessionReadiness,
     DesktopSessionReadinessState, DesktopSettings, DesktopTaskItem, DesktopTaskMonitor,
-    DesktopTurnCommandAck, DesktopTurnSubmission, DiffReviewStatus, TraceTimeline,
-    build_dashboard_snapshot, build_provider_settings_summary, build_task_monitor,
+    DesktopTaskReviewItem, DesktopTurnCommandAck, DesktopTurnSubmission, DiffReviewStatus,
+    TraceTimeline, build_dashboard_snapshot, build_provider_settings_summary, build_task_monitor,
     build_trace_timeline, build_workspace_snapshot,
 };
 use agent_types::{
-    ConversationId, CorrelationId, EventId, EventSeq, SchemaVersion, SessionId, TaskId, TaskState,
-    Timestamp, WorkspaceId,
+    ConversationId, CorrelationId, EventId, EventSeq, PlanTodoItemId, PlanTodoProgress,
+    SchemaVersion, SessionId, TaskId, TaskState, Timestamp, TodoPriority, WorkspaceId,
 };
 use agent_ui_bridge::{
     UiApprovalPreviewSummary, UiApprovalRequest, UiConfigDiagnostic, UiConfigDiagnosticSeverity,
     UiConfigSnapshot, UiEventEnvelope, UiEventPayload, UiJsonFrame, UiModelProviderCapabilities,
-    UiModelProviderSummary, UiTaskSnapshot, UiTaskSummary,
+    UiModelProviderSummary, UiTaskActiveTodoSummary, UiTaskReviewSummary,
+    UiTaskReviewSummaryArtifact, UiTaskSnapshot, UiTaskSummary,
 };
 use serde::Serialize;
 
@@ -28,6 +29,7 @@ struct DesktopDailyDriverSmokeFixture {
     diff: DesktopDiffReview,
     provider: DesktopProviderSettingsSummary,
     tasks: DesktopTaskMonitor,
+    task_reviews: Vec<DesktopTaskReviewItem>,
     trace: TraceTimeline,
 }
 
@@ -125,7 +127,7 @@ fn workspace_task(value: u32, state: TaskState, summary: &str, second: u8) -> De
 }
 
 fn task_summary(value: u32, state: TaskState, summary: &str, second: u8) -> UiTaskSummary {
-    serde_json::from_value(serde_json::json!({
+    let mut task: UiTaskSummary = serde_json::from_value(serde_json::json!({
         "task_id": task_id(value),
         "workspace_id": workspace_id(),
         "conversation_id": conversation_id(),
@@ -140,7 +142,53 @@ fn task_summary(value: u32, state: TaskState, summary: &str, second: u8) -> UiTa
         "created_at": ts(second),
         "updated_at": ts(second),
     }))
-    .expect("task summary")
+    .expect("task summary");
+    if value == 64 {
+        task.plan_progress = Some(PlanTodoProgress {
+            total: 4,
+            pending: 1,
+            in_progress: 1,
+            completed: 2,
+            cancelled: 0,
+        });
+        task.active_todo = Some(
+            UiTaskActiveTodoSummary::new(
+                PlanTodoItemId::from_string_unchecked("todo-desktop-smoke"),
+                "Review approval evidence",
+                TodoPriority::High,
+                2,
+            )
+            .expect("active todo"),
+        );
+        task.waiting_approval = true;
+        task.latest_notification = Some("approval requested".to_string());
+        task.artifact_count = 1;
+    } else if value == 65 {
+        task.artifact_count = 1;
+    }
+    task
+}
+
+fn task_review_summary() -> UiTaskReviewSummary {
+    UiTaskReviewSummary {
+        task_id: task_id(65),
+        final_state: TaskState::Succeeded,
+        trace_id: Some("desktop-smoke-trace".to_string()),
+        checkpoint_id: None,
+        artifact_ids: vec!["artifact-desktop-smoke".to_string()],
+        artifact_count: 1,
+        summary: "Desktop smoke task review completed".to_string(),
+        artifacts: vec![UiTaskReviewSummaryArtifact {
+            artifact_id: "artifact-desktop-smoke".to_string(),
+            kind: "report".to_string(),
+            path: Some("target/agent-desktop/smoke-report.json".to_string()),
+            content_hash: Some("sha256:desktop-smoke-report".to_string()),
+            summary: "plan todo task smoke report".to_string(),
+            missing: false,
+            diagnostics: Vec::new(),
+        }],
+        diagnostics: Vec::new(),
+    }
 }
 
 fn build_smoke_fixture() -> DesktopDailyDriverSmokeFixture {
@@ -318,6 +366,8 @@ fn build_smoke_fixture() -> DesktopDailyDriverSmokeFixture {
         .expect("task snapshot"),
     )
     .expect("task monitor");
+    let task_reviews =
+        vec![DesktopTaskReviewItem::try_from(&task_review_summary()).expect("task review item")];
     let trace = build_trace_timeline(
         conversation_id(),
         vec![
@@ -362,6 +412,7 @@ fn build_smoke_fixture() -> DesktopDailyDriverSmokeFixture {
         diff,
         provider,
         tasks,
+        task_reviews,
         trace,
     }
 }
@@ -423,6 +474,21 @@ fn desktop_daily_driver_fixture_covers_m56_shaped_desktop_flow() {
     assert_eq!(fixture.tasks.counts.waiting_approval, 1);
     assert_eq!(fixture.tasks.counts.failed, 1);
     assert_eq!(fixture.tasks.counts.terminal, 2);
+    assert_eq!(
+        fixture.tasks.tasks[0]
+            .active_todo
+            .as_ref()
+            .expect("active todo")
+            .evidence_count,
+        2
+    );
+    assert_eq!(fixture.tasks.tasks[0].artifact_count, 1);
+    assert_eq!(fixture.task_reviews.len(), 1);
+    assert_eq!(fixture.task_reviews[0].artifact_count, 1);
+    assert_eq!(
+        fixture.task_reviews[0].artifacts[0].path.as_deref(),
+        Some("target/agent-desktop/smoke-report.json")
+    );
 
     assert_eq!(fixture.trace.items.len(), 6);
     assert_eq!(fixture.trace.logs.len(), 6);

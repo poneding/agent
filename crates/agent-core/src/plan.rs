@@ -2,9 +2,12 @@ use std::collections::BTreeSet;
 
 use agent_scheduler::redact_task_text;
 use agent_types::{
-    PlanTodoEvidence, PlanTodoItem, PlanTodoItemId, PlanTodoProgress, PlanTodoSnapshot, TodoStatus,
+    PlanTodoEvidence, PlanTodoEvidenceKind, PlanTodoItem, PlanTodoItemId, PlanTodoProgress,
+    PlanTodoSnapshot, TodoStatus,
 };
 use thiserror::Error;
+
+use crate::{TaskArtifact, TaskReviewSummary};
 
 const TODO_CONTENT_LIMIT: usize = 240;
 const TODO_REASON_LIMIT: usize = 240;
@@ -152,6 +155,56 @@ pub fn apply_plan_todo_update(
     })
 }
 
+pub fn append_task_review_evidence(
+    snapshot: &PlanTodoSnapshot,
+    item_id: PlanTodoItemId,
+    expected_revision: u64,
+    review: &TaskReviewSummary,
+    artifacts: &[TaskArtifact],
+    reason: impl Into<String>,
+) -> Result<PlanTodoUpdateOutcome, PlanTodoError> {
+    if expected_revision != snapshot.revision {
+        return Err(PlanTodoError::StaleRevision {
+            expected: expected_revision,
+            actual: snapshot.revision,
+        });
+    }
+    let reason = normalize_required("update reason", &reason.into(), TODO_REASON_LIMIT)?;
+
+    let mut next = snapshot.clone();
+    let updated_at = next.updated_at;
+    let item = next
+        .items
+        .iter_mut()
+        .find(|item| item.item_id == item_id)
+        .ok_or_else(|| PlanTodoError::MissingItem(item_id.to_string()))?;
+
+    if item.task_id.is_none() {
+        item.task_id = Some(review.task_id);
+    } else if item.task_id != Some(review.task_id) {
+        item.evidence.push(PlanTodoEvidence {
+            kind: PlanTodoEvidenceKind::Diagnostic,
+            reference: review.task_id.to_string(),
+            summary: "task review belongs to a different task".to_string(),
+        });
+    }
+
+    for evidence in task_review_plan_evidence(review, artifacts) {
+        item.evidence.push(evidence);
+    }
+    item.updated_at = updated_at;
+
+    next.revision = snapshot.revision.saturating_add(1);
+    let (next, progress) = normalize_plan_todo_snapshot(next)?;
+
+    Ok(PlanTodoUpdateOutcome {
+        snapshot: next,
+        previous_revision: snapshot.revision,
+        progress,
+        reason,
+    })
+}
+
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
 pub enum PlanTodoError {
     #[error("invalid plan/todo state: {0}")]
@@ -162,6 +215,68 @@ pub enum PlanTodoError {
     MissingItem(String),
     #[error("terminal todo item {item_id} cannot change status from {status:?}")]
     TerminalItemStatus { item_id: String, status: TodoStatus },
+}
+
+fn task_review_plan_evidence(
+    review: &TaskReviewSummary,
+    artifacts: &[TaskArtifact],
+) -> Vec<PlanTodoEvidence> {
+    let mut evidence = vec![PlanTodoEvidence {
+        kind: PlanTodoEvidenceKind::Task,
+        reference: review.task_id.to_string(),
+        summary: format!("task review final_state={:?}", review.final_state),
+    }];
+
+    if let Some(trace_id) = &review.trace_id {
+        evidence.push(PlanTodoEvidence {
+            kind: PlanTodoEvidenceKind::Trace,
+            reference: trace_id.clone(),
+            summary: "task trace evidence".to_string(),
+        });
+    }
+    if let Some(checkpoint_id) = review.checkpoint_id {
+        evidence.push(PlanTodoEvidence {
+            kind: PlanTodoEvidenceKind::Checkpoint,
+            reference: checkpoint_id.to_string(),
+            summary: "task checkpoint evidence".to_string(),
+        });
+    }
+
+    for artifact_id in &review.artifact_ids {
+        if let Some(artifact) = artifacts
+            .iter()
+            .find(|artifact| artifact.artifact_id == *artifact_id)
+        {
+            evidence.push(PlanTodoEvidence {
+                kind: PlanTodoEvidenceKind::Artifact,
+                reference: artifact.artifact_id.clone(),
+                summary: format!("{} artifact: {}", artifact.kind.as_str(), artifact.summary),
+            });
+            for diagnostic in &artifact.diagnostics {
+                evidence.push(PlanTodoEvidence {
+                    kind: PlanTodoEvidenceKind::Diagnostic,
+                    reference: artifact.artifact_id.clone(),
+                    summary: diagnostic.clone(),
+                });
+            }
+        } else {
+            evidence.push(PlanTodoEvidence {
+                kind: PlanTodoEvidenceKind::Diagnostic,
+                reference: artifact_id.clone(),
+                summary: format!("missing artifact metadata: {artifact_id}"),
+            });
+        }
+    }
+
+    for diagnostic in &review.diagnostics {
+        evidence.push(PlanTodoEvidence {
+            kind: PlanTodoEvidenceKind::Diagnostic,
+            reference: review.task_id.to_string(),
+            summary: diagnostic.clone(),
+        });
+    }
+
+    evidence
 }
 
 fn validate_item(item: &PlanTodoItem) -> Result<(), PlanTodoError> {

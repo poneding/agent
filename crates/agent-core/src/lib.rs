@@ -105,7 +105,8 @@ pub use observability::{
 };
 pub use plan::{
     PlanTodoError, PlanTodoOperation, PlanTodoUpdate, PlanTodoUpdateOutcome,
-    apply_plan_todo_update, normalize_plan_todo_snapshot, validate_plan_todo_snapshot,
+    append_task_review_evidence, apply_plan_todo_update, normalize_plan_todo_snapshot,
+    validate_plan_todo_snapshot,
 };
 pub use project_context::{
     ContextBudget, ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,

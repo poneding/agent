@@ -78,7 +78,10 @@ const workspaceSnapshot: DesktopWorkspaceSnapshot = {
         evidence_count: 1,
       },
       waiting_approval: true,
+      waiting_approval_id: 'approval-64',
       latest_notification: 'approval requested',
+      latest_notification_kind: 'waiting_approval',
+      latest_notification_approval_id: 'approval-64',
       artifact_count: 1,
     },
     {
@@ -415,6 +418,8 @@ describe('desktop MVP smoke navigation', () => {
     expect(within(tasksWorkspace).getAllByText('plan 2/1/4').length).toBeGreaterThan(0);
     expect(within(tasksWorkspace).getAllByText('Review approval evidence').length).toBeGreaterThan(0);
     expect(within(tasksWorkspace).getByText('approval requested')).toBeInTheDocument();
+    expect(within(tasksWorkspace).getAllByText('waiting_approval').length).toBeGreaterThan(0);
+    expect(within(tasksWorkspace).getByText('approval-64')).toBeInTheDocument();
     expect(within(tasksWorkspace).getByText('Run cargo xtask desktop-test')).toBeInTheDocument();
     expect(within(tasksWorkspace).getByText('succeeded')).toBeInTheDocument();
 

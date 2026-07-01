@@ -46,10 +46,21 @@ agent-cli task resume 00000000-0000-0000-0000-000000002401 --reason continue
 agent-cli task cancel 00000000-0000-0000-0000-000000002401 --reason stop
 ```
 
+## Plan And Todo Evidence
+
+```bash
+agent-cli plan show
+agent-cli --json plan show
+agent-cli todo list
+agent-cli --json todo list
+agent-cli todo update --todo todo-1 --status in_progress --revision 1 --reason begin
+agent-cli todo update --todo todo-1 --status completed --revision 1 --reason done
+```
+
 ## Full Fixture Gate
 
 ```bash
 cargo xtask eval
 ```
 
-The eval gate runs credential-free fixture scenarios and writes redacted evidence under `target/agent-eval/`.
+The eval gate runs credential-free fixture scenarios and writes redacted evidence under `target/agent-eval/`. Task review artifacts, trace ids, checkpoint ids, and diagnostics should be attached to plan/todo evidence through shared runtime contracts before a slice is marked complete.

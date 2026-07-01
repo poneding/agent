@@ -283,15 +283,24 @@ Verification passed:
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Plan smoke and closeout slice**
+- [x] **Step 1: Plan smoke and closeout slice**
 
 Define the final credential-free acceptance path for CLI/JSON and Desktop plan/todo/task UX.
 
-- [ ] **Step 2: Implement artifact evidence and docs**
+M61-05 planning is captured in:
+
+- `docs/specs/M61-05-artifacts-smoke-closeout.spec.md`
+- `docs/plans/M61-05-artifacts-smoke-closeout.plan.md`
+
+- [x] **Step 2: Implement artifact evidence and docs**
 
 Link task reviews/artifacts into plan/todo evidence and document the product workflow.
 
-- [ ] **Step 3: Run final M61 gates**
+- Implemented `append_task_review_evidence` in `agent-core` to attach task, trace, checkpoint, artifact, and diagnostic evidence to a todo item in one revision-safe update.
+- Extended CLI daily-driver recipes and Desktop plan/todo/task smoke docs.
+- Extended Desktop Rust and React smoke fixtures with plan/todo evidence counts, waiting approval evidence, artifact counts, and task review artifact metadata.
+
+- [x] **Step 3: Run final M61 gates**
 
 Run:
 
@@ -306,16 +315,25 @@ cargo xtask eval
 
 Expected: workspace, Desktop, and eval gates pass before M61 status is marked complete.
 
-- [ ] **Step 4: Commit M61 closeout**
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy --workspace --all-targets -- -D warnings`
+- `cargo test --workspace`
+- `npm --prefix apps/desktop test`
+- `npm --prefix apps/desktop run build`
+- `cargo xtask eval`
+
+- [x] **Step 4: Commit M61 closeout**
 
 Use exact-path staging for M61 source, tests, docs, and status updates, then commit.
 
 ### Completion Checklist
 
-- [ ] M61 milestone spec/plan and slice specs/plans are complete.
-- [ ] TodoWrite-compatible state is typed, serializable, validated, bounded, and redacted.
-- [ ] CLI/JSON can view and update plan/todo state.
-- [ ] TUI and Desktop render plan progress, active todo, approval waits, notifications, and artifact evidence from shared snapshots.
-- [ ] Background pause/resume/cancel and approval waits remain scheduler/policy backed.
-- [ ] Deterministic smoke coverage proves the product workflow without live provider credentials.
-- [ ] Final M61 fmt, clippy, workspace tests, frontend tests/build, and eval gates pass.
+- [x] M61 milestone spec/plan and slice specs/plans are complete.
+- [x] TodoWrite-compatible state is typed, serializable, validated, bounded, and redacted.
+- [x] CLI/JSON can view and update plan/todo state.
+- [x] TUI and Desktop render plan progress, active todo, approval waits, notifications, and artifact evidence from shared snapshots.
+- [x] Background pause/resume/cancel and approval waits remain scheduler/policy backed.
+- [x] Deterministic smoke coverage proves the product workflow without live provider credentials.
+- [x] Final M61 fmt, clippy, workspace tests, frontend tests/build, and eval gates pass.

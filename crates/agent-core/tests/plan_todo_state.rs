@@ -1,10 +1,12 @@
 use agent_core::{
-    PlanTodoError, PlanTodoOperation, PlanTodoUpdate, apply_plan_todo_update,
+    PlanTodoError, PlanTodoOperation, PlanTodoUpdate, TaskArtifact, TaskArtifactKind,
+    TaskReviewSummary, append_task_review_evidence, apply_plan_todo_update,
     normalize_plan_todo_snapshot, validate_plan_todo_snapshot,
 };
 use agent_types::{
-    ConversationId, PlanTodoDiagnostic, PlanTodoEvidence, PlanTodoEvidenceKind, PlanTodoItem,
-    PlanTodoItemId, PlanTodoSnapshot, Timestamp, TodoPriority, TodoSource, TodoStatus, TurnId,
+    CheckpointId, ConversationId, PlanTodoDiagnostic, PlanTodoEvidence, PlanTodoEvidenceKind,
+    PlanTodoItem, PlanTodoItemId, PlanTodoSnapshot, TaskId, TaskState, Timestamp, TodoPriority,
+    TodoSource, TodoStatus, TurnId,
 };
 
 fn ts(second: u8) -> Timestamp {
@@ -35,6 +37,18 @@ fn snapshot(items: Vec<PlanTodoItem>) -> PlanTodoSnapshot {
         updated_at: ts(9),
         diagnostics: Vec::new(),
     }
+}
+
+fn task_id() -> TaskId {
+    "00000000-0000-0000-0000-000000006105"
+        .parse()
+        .expect("task id")
+}
+
+fn checkpoint_id() -> CheckpointId {
+    "00000000-0000-0000-0000-000000006115"
+        .parse()
+        .expect("checkpoint id")
 }
 
 #[test]
@@ -229,4 +243,120 @@ fn plan_todo_append_evidence_preserves_terminal_status() {
         reopen,
         PlanTodoError::TerminalItemStatus { item_id, .. } if item_id == "todo-1"
     ));
+}
+
+#[test]
+fn plan_todo_appends_task_review_artifact_evidence() {
+    let mut item = todo("todo-1", "Finish task", TodoStatus::Completed, 1);
+    item.task_id = None;
+    let snapshot = snapshot(vec![item]);
+    let artifact = TaskArtifact::new(
+        "artifact-report",
+        task_id(),
+        TaskArtifactKind::Report,
+        Some("artifacts/report.md"),
+        Some("sha256:abc123"),
+        "summary with sk-secret-token",
+    )
+    .expect("artifact");
+    let missing = TaskArtifact::missing(
+        "artifact-log",
+        task_id(),
+        TaskArtifactKind::Log,
+        "missing log",
+        "log had password secret",
+    )
+    .expect("missing");
+    let review = TaskReviewSummary::from_artifacts(
+        task_id(),
+        TaskState::Succeeded,
+        Some("trace-token-secret"),
+        Some(checkpoint_id()),
+        &[artifact.clone(), missing],
+        "completed with api_key hidden",
+    )
+    .expect("review");
+
+    let outcome = append_task_review_evidence(
+        &snapshot,
+        PlanTodoItemId::from_string_unchecked("todo-1"),
+        3,
+        &review,
+        std::slice::from_ref(&artifact),
+        "attach review token",
+    )
+    .expect("append review evidence");
+
+    let item = &outcome.snapshot.items[0];
+    assert_eq!(outcome.previous_revision, 3);
+    assert_eq!(outcome.snapshot.revision, 4);
+    assert_eq!(item.status, TodoStatus::Completed);
+    assert_eq!(item.task_id, Some(task_id()));
+    assert_eq!(outcome.reason, "attach review [redacted]");
+    assert!(item.evidence.iter().any(|evidence| {
+        evidence.kind == PlanTodoEvidenceKind::Task && evidence.reference == task_id().to_string()
+    }));
+    assert!(item.evidence.iter().any(|evidence| {
+        evidence.kind == PlanTodoEvidenceKind::Trace && evidence.reference.contains("[redacted]")
+    }));
+    assert!(item.evidence.iter().any(|evidence| {
+        evidence.kind == PlanTodoEvidenceKind::Checkpoint
+            && evidence.reference == checkpoint_id().to_string()
+    }));
+    assert!(item.evidence.iter().any(|evidence| {
+        evidence.kind == PlanTodoEvidenceKind::Artifact
+            && evidence.reference == "artifact-report"
+            && evidence.summary.contains("[redacted]")
+    }));
+    assert!(item.evidence.iter().any(|evidence| {
+        evidence.kind == PlanTodoEvidenceKind::Diagnostic
+            && evidence.summary == "missing artifact metadata: artifact-log"
+    }));
+    assert!(
+        !serde_json::to_string(item)
+            .expect("serialize")
+            .contains("sk-secret-token")
+    );
+}
+
+#[test]
+fn plan_todo_task_review_evidence_checks_revision_and_item() {
+    let snapshot = snapshot(vec![todo("todo-1", "Finish task", TodoStatus::Pending, 1)]);
+    let review = TaskReviewSummary::new(
+        task_id(),
+        TaskState::Succeeded,
+        None,
+        None,
+        Vec::new(),
+        "done",
+    )
+    .expect("review");
+
+    let stale = append_task_review_evidence(
+        &snapshot,
+        PlanTodoItemId::from_string_unchecked("todo-1"),
+        2,
+        &review,
+        &[],
+        "attach review",
+    )
+    .expect_err("stale revision");
+    assert_eq!(
+        stale,
+        PlanTodoError::StaleRevision {
+            expected: 2,
+            actual: 3
+        }
+    );
+
+    let missing = append_task_review_evidence(
+        &snapshot,
+        PlanTodoItemId::from_string_unchecked("missing"),
+        3,
+        &review,
+        &[],
+        "attach review",
+    )
+    .expect_err("missing item");
+    assert!(matches!(missing, PlanTodoError::MissingItem(item) if item == "missing"));
 }

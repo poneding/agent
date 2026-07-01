@@ -5,6 +5,7 @@ pub mod command;
 pub mod error;
 pub mod event;
 pub mod frame;
+pub mod slash;
 
 pub use command::{
     UiApprovalDecision, UiClientInfo, UiCommand, UiCommandEnvelope, UiPermissionDecision,
@@ -36,4 +37,10 @@ pub use frame::{
     UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary, UiTaskReviewSummaryArtifact,
     UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary, UiTerminalSessionDiagnostic,
     UiTerminalSessionSnapshot, UiTerminalSessionSummary, encode_json_frame,
+};
+pub use slash::{
+    UiSlashCommandCatalogSnapshot, UiSlashCommandCategory, UiSlashCommandDescriptor,
+    UiSlashCommandEffect, UiSlashCommandParseError, UiSlashCommandSurface,
+    UiTerminalStatusSnapshot, default_slash_command_catalog, resolve_slash_command,
+    resolve_slash_command_in_catalog,
 };

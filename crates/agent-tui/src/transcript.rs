@@ -151,6 +151,26 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::SlashCommandCatalogSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "slash",
+                format!("{} commands", snapshot.commands.len()),
+                false,
+            )),
+            UiJsonFrame::TerminalStatusSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "status",
+                format!(
+                    "{}/{} workspace={} mode={} connection={} panel={}",
+                    snapshot.provider,
+                    snapshot.model,
+                    snapshot.workspace,
+                    snapshot.mode,
+                    snapshot.connection,
+                    snapshot.focused_panel
+                ),
+                false,
+            )),
             UiJsonFrame::EditDiffSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "edit-diff",

@@ -10,6 +10,7 @@ pub mod extension_panel;
 pub mod render;
 pub mod session_panel;
 pub mod slash;
+pub mod status_panel;
 pub mod task_panel;
 pub mod terminal;
 pub mod trace_panel;
@@ -24,6 +25,7 @@ pub use extension_panel::ExtensionPanelState;
 pub use render::{render_app, render_app_to_string};
 pub use session_panel::{SessionPanelAction, SessionPanelState};
 pub use slash::{SlashCommand, SlashCommandError};
+pub use status_panel::StatusPanelState;
 pub use task_panel::{TaskPanelNotification, TaskPanelState};
 pub use terminal::{
     CrosstermTerminalBackend, FixtureTerminalBackend, TerminalModeBackend, TerminalModeError,

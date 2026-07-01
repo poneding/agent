@@ -101,9 +101,11 @@ use agent_ui_bridge::{
     UiProjectContextPinnedRetrievalSnapshot, UiProjectContextQualityTraceSnapshot,
     UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
     UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
-    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
-    UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary,
-    UiTerminalSessionSnapshot, encode_json_frame, normalize_runtime_event,
+    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiSlashCommandEffect, UiSlashCommandSurface,
+    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
+    UiTaskSummary, UiTerminalSessionSnapshot, UiTerminalStatusSnapshot,
+    default_slash_command_catalog, encode_json_frame, normalize_runtime_event,
+    resolve_slash_command,
 };
 use futures_util::StreamExt;
 
@@ -8510,16 +8512,30 @@ pub fn render_local_coding_summary(outcome: &agent_core::LocalCodingOutcome) -> 
 pub enum SlashCommand {
     Help,
     Status,
-    Exit,
+    Sessions,
+    Trace,
+    Tasks,
+    Clear,
+    Quit,
+    Settings,
 }
 
 impl SlashCommand {
     pub fn parse(input: &str) -> Option<Self> {
-        match input.trim() {
-            "/help" => Some(Self::Help),
-            "/status" => Some(Self::Status),
-            "/exit" => Some(Self::Exit),
-            _ => None,
+        let descriptor = resolve_slash_command(input).ok()?;
+        Self::from_effect(descriptor.effect)
+    }
+
+    fn from_effect(effect: UiSlashCommandEffect) -> Option<Self> {
+        match effect {
+            UiSlashCommandEffect::OpenHelp => Some(Self::Help),
+            UiSlashCommandEffect::ShowStatus => Some(Self::Status),
+            UiSlashCommandEffect::OpenSessions => Some(Self::Sessions),
+            UiSlashCommandEffect::OpenTrace => Some(Self::Trace),
+            UiSlashCommandEffect::OpenTasks => Some(Self::Tasks),
+            UiSlashCommandEffect::ClearTranscript => Some(Self::Clear),
+            UiSlashCommandEffect::Quit => Some(Self::Quit),
+            UiSlashCommandEffect::OpenSettings => Some(Self::Settings),
         }
     }
 }
@@ -8527,9 +8543,85 @@ impl SlashCommand {
 #[must_use]
 pub fn handle_slash_command(input: &str) -> CliOutput {
     match SlashCommand::parse(input) {
-        Some(SlashCommand::Help) => CliOutput::keep_running("Commands: /help, /status, /exit\n"),
-        Some(SlashCommand::Status) => CliOutput::keep_running("Runtime: ready\n"),
-        Some(SlashCommand::Exit) => CliOutput::exit("Bye\n"),
-        None => CliOutput::keep_running(format!("Unknown command: {}\n", input.trim())),
+        Some(SlashCommand::Help) => CliOutput::keep_running(render_slash_catalog_help_text()),
+        Some(SlashCommand::Status) => CliOutput::keep_running(render_slash_status_text(
+            &default_cli_terminal_status_snapshot(),
+        )),
+        Some(SlashCommand::Sessions) => {
+            CliOutput::keep_running("Sessions: run `repo session list` or open TUI /sessions\n")
+        }
+        Some(SlashCommand::Trace) => {
+            CliOutput::keep_running("Trace: run `--trace-summary` or open TUI /trace\n")
+        }
+        Some(SlashCommand::Tasks) => {
+            CliOutput::keep_running("Tasks: run `task list` or open TUI /tasks\n")
+        }
+        Some(SlashCommand::Clear) => {
+            CliOutput::keep_running("Clear: no plain REPL transcript state to clear\n")
+        }
+        Some(SlashCommand::Settings) => {
+            CliOutput::keep_running("Settings: use `--config-check` for CLI settings status\n")
+        }
+        Some(SlashCommand::Quit) => CliOutput::exit("Bye\n"),
+        None => CliOutput::keep_running(format!(
+            "Unknown command: {}\n",
+            bounded_cli_text(input.trim(), 80)
+        )),
     }
+}
+
+fn render_slash_catalog_help_text() -> String {
+    let catalog = default_slash_command_catalog();
+    let mut output = "Commands:\n".to_string();
+    for command in catalog.commands.iter().filter(|command| {
+        command
+            .available_in
+            .contains(&UiSlashCommandSurface::PlainRepl)
+    }) {
+        let aliases = if command.aliases.is_empty() {
+            String::new()
+        } else {
+            format!(
+                " (alias: {})",
+                command
+                    .aliases
+                    .iter()
+                    .map(|alias| format!("/{alias}"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        };
+        output.push_str(&format!(
+            "/{}{} - {}\n",
+            command.name, aliases, command.summary
+        ));
+    }
+    output
+}
+
+fn default_cli_terminal_status_snapshot() -> UiTerminalStatusSnapshot {
+    UiTerminalStatusSnapshot::new(
+        DEFAULT_MODEL_PROVIDER,
+        DEFAULT_MODEL_NAME,
+        ".",
+        "plain_repl",
+        "ready",
+        "none",
+        0,
+        0,
+    )
+}
+
+fn render_slash_status_text(snapshot: &UiTerminalStatusSnapshot) -> String {
+    format!(
+        "Status: {}\nProvider: {} / {}\nWorkspace: {}\nMode: {}\nFocused panel: {}\nSessions: {}\nDiagnostics: {}\n",
+        snapshot.connection,
+        snapshot.provider,
+        snapshot.model,
+        snapshot.workspace,
+        snapshot.mode,
+        snapshot.focused_panel,
+        snapshot.session_count,
+        snapshot.diagnostic_count
+    )
 }

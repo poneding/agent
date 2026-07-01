@@ -2,8 +2,8 @@ use agent_ui_bridge::UiJsonFrame;
 
 use crate::{
     ApprovalPanelState, CommandPanelState, ComposerAction, ComposerState, DiffPanelState,
-    SessionPanelAction, SessionPanelState, SlashCommand, TaskPanelState, TracePanelState,
-    TranscriptState, TuiEffect,
+    SessionPanelAction, SessionPanelState, SlashCommand, StatusPanelState, TaskPanelState,
+    TracePanelState, TranscriptState, TuiEffect,
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -19,6 +19,7 @@ pub enum TuiSidePanel {
     Trace,
     Tasks,
     Sessions,
+    Status,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -105,6 +106,7 @@ pub struct TuiApp {
     pub trace_panel: TracePanelState,
     pub task_panel: TaskPanelState,
     pub session_panel: SessionPanelState,
+    pub status_panel: StatusPanelState,
     pub side_panel: TuiSidePanel,
     pub should_quit: bool,
 }
@@ -147,6 +149,7 @@ impl TuiApp {
                 self.trace_panel.reduce_frame(&frame);
                 self.task_panel.reduce_frame(&frame);
                 self.session_panel.reduce_frame(&frame);
+                self.status_panel.reduce_frame(&frame);
                 if let UiJsonFrame::CommandTestSnapshot(snapshot) = frame.as_ref() {
                     self.command_panel = Some(CommandPanelState::from_snapshot(snapshot, 800));
                 }
@@ -174,9 +177,17 @@ impl TuiApp {
                 self.screen = TuiScreen::Help;
                 TuiEffect::None
             }
-            SlashCommand::Status => TuiEffect::LocalDiagnostic(
-                "status panel is not available in this milestone".to_string(),
-            ),
+            SlashCommand::Status => {
+                self.screen = TuiScreen::Chat;
+                self.side_panel = TuiSidePanel::Status;
+                self.status_panel = StatusPanelState::from_status_bar(
+                    &self.status,
+                    "status",
+                    self.session_panel.sessions.len(),
+                    self.session_panel.diagnostics.len(),
+                );
+                TuiEffect::None
+            }
             SlashCommand::Trace => {
                 self.screen = TuiScreen::Chat;
                 self.side_panel = TuiSidePanel::Trace;
@@ -227,6 +238,7 @@ impl Default for TuiApp {
             trace_panel: TracePanelState::default(),
             task_panel: TaskPanelState::default(),
             session_panel: SessionPanelState::default(),
+            status_panel: StatusPanelState::default(),
             side_panel: TuiSidePanel::default(),
             should_quit: false,
         }

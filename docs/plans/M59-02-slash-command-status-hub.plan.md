@@ -22,7 +22,7 @@
 - Read: `crates/agent-tui/src/slash.rs`
 - Read: `crates/agent-tui/src/app.rs`
 
-- [ ] **Step 1: Review slash/status baseline**
+- [x] **Step 1: Review slash/status baseline**
 
 Run:
 
@@ -39,7 +39,7 @@ Expected: existing slash and plain REPL behavior passes before catalog changes.
 **Files:**
 - Create: `crates/agent-ui-bridge/tests/slash_catalog.rs`
 
-- [ ] **Step 1: Add bridge tests**
+- [x] **Step 1: Add bridge tests**
 
 Cover:
 
@@ -49,7 +49,7 @@ Cover:
 - status snapshots bound and redact public text
 - JSON frames encode catalog/status snapshots on one line
 
-- [ ] **Step 2: Verify bridge tests fail before implementation**
+- [x] **Step 2: Verify bridge tests fail before implementation**
 
 Run:
 
@@ -66,15 +66,15 @@ Expected: tests fail before slash catalog contracts exist.
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Modify: `crates/agent-ui-bridge/src/lib.rs`
 
-- [ ] **Step 1: Add typed catalog contracts**
+- [x] **Step 1: Add typed catalog contracts**
 
 Implement descriptor, category, effect, surface, catalog snapshot, alias lookup, and deterministic default catalog helpers.
 
-- [ ] **Step 2: Add terminal status snapshot**
+- [x] **Step 2: Add terminal status snapshot**
 
 Implement bounded/redacted terminal status summary and JSON frame variants.
 
-- [ ] **Step 3: Run bridge tests**
+- [x] **Step 3: Run bridge tests**
 
 Run:
 
@@ -92,7 +92,7 @@ Expected: bridge catalog/status tests pass.
 - Modify: `crates/agent-cli/tests/slash_commands.rs`
 - Modify: `crates/agent-cli/tests/plain_repl.rs`
 
-- [ ] **Step 1: Add CLI/plain REPL tests**
+- [x] **Step 1: Add CLI/plain REPL tests**
 
 Cover:
 
@@ -102,11 +102,11 @@ Cover:
 - `/quit` and `/exit` share the same exit behavior
 - unknown slash commands are bounded and do not submit prompts
 
-- [ ] **Step 2: Implement CLI rendering**
+- [x] **Step 2: Implement CLI rendering**
 
 Use bridge catalog/status helpers in `handle_slash_command`; keep prompt execution and runtime side effects unchanged.
 
-- [ ] **Step 3: Run CLI tests**
+- [x] **Step 3: Run CLI tests**
 
 Run:
 
@@ -128,15 +128,15 @@ Expected: CLI and plain REPL slash tests pass.
 - Modify: `crates/agent-tui/tests/slash_commands.rs`
 - Create if needed: `crates/agent-tui/tests/status_panel.rs`
 
-- [ ] **Step 1: Add TUI tests**
+- [x] **Step 1: Add TUI tests**
 
 Cover catalog-backed parsing, aliases, `/help`, `/status`, `/sessions`, `/trace`, `/tasks`, `/clear`, `/quit`, status panel rendering, and unknown command errors.
 
-- [ ] **Step 2: Implement TUI status hub**
+- [x] **Step 2: Implement TUI status hub**
 
 Add status panel state derived from app status and bridge status snapshots. Route `/status` to visible status output instead of a placeholder diagnostic.
 
-- [ ] **Step 3: Run TUI tests**
+- [x] **Step 3: Run TUI tests**
 
 Run:
 
@@ -155,7 +155,7 @@ Expected: TUI slash/status tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -171,7 +171,7 @@ cargo test -p agent-tui --test status_panel
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Run exact-path staging for M59-02 source, tests, and docs, then:
 
@@ -183,10 +183,10 @@ Expected: commit contains only M59-02 source, tests, and documentation/status up
 
 ### Completion Checklist
 
-- [ ] Slash command catalog contracts are typed, serde-friendly, deterministic, and tested.
-- [ ] CLI/plain REPL help and status output are catalog/status backed.
-- [ ] TUI slash parsing and status routing are catalog/status backed.
-- [ ] Aliases resolve consistently across CLI/plain REPL and TUI.
-- [ ] Unknown slash commands are bounded, safe, and do not submit prompts.
-- [ ] Existing M59-01 session slash behavior remains intact.
-- [ ] Focused fmt/clippy/tests pass.
+- [x] Slash command catalog contracts are typed, serde-friendly, deterministic, and tested.
+- [x] CLI/plain REPL help and status output are catalog/status backed.
+- [x] TUI slash parsing and status routing are catalog/status backed.
+- [x] Aliases resolve consistently across CLI/plain REPL and TUI.
+- [x] Unknown slash commands are bounded, safe, and do not submit prompts.
+- [x] Existing M59-01 session slash behavior remains intact.
+- [x] Focused fmt/clippy/tests pass.

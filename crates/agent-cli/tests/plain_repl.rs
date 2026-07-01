@@ -83,7 +83,8 @@ fn plain_repl_fixture_handles_slash_commands_without_prompt_submission() {
     });
 
     assert_eq!(seen_prompts.into_inner(), Vec::<String>::new());
-    assert!(output.stdout.contains("Runtime: ready"));
+    assert!(output.stdout.contains("Status: ready"));
+    assert!(output.stdout.contains("Provider: fake / fake-scripted"));
     assert!(output.stdout.contains("Bye"));
 }
 

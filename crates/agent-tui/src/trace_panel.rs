@@ -135,6 +135,24 @@ impl TracePanelState {
                     snapshot.diagnostics.len()
                 ),
             )),
+            UiJsonFrame::SlashCommandCatalogSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "slash",
+                format!("{} commands", snapshot.commands.len()),
+            )),
+            UiJsonFrame::TerminalStatusSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "status",
+                format!(
+                    "{}/{} workspace={} mode={} connection={} panel={}",
+                    snapshot.provider,
+                    snapshot.model,
+                    snapshot.workspace,
+                    snapshot.mode,
+                    snapshot.connection,
+                    snapshot.focused_panel
+                ),
+            )),
             UiJsonFrame::EditDiffSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "edit-diff",

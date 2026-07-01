@@ -6,7 +6,8 @@ use ratatui::{Frame, Terminal};
 
 use crate::{
     ApprovalPanelState, CommandPanelState, ComposerState, DiffPanelState, SessionPanelState,
-    TaskPanelState, TracePanelState, TranscriptState, TuiApp, TuiScreen, TuiSidePanel,
+    StatusPanelState, TaskPanelState, TracePanelState, TranscriptState, TuiApp, TuiScreen,
+    TuiSidePanel,
 };
 
 pub fn render_app(frame: &mut Frame<'_>, app: &TuiApp) {
@@ -82,6 +83,7 @@ fn render_panel(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
         TuiSidePanel::Trace => ("Trace", render_trace_panel(&app.trace_panel)),
         TuiSidePanel::Tasks => ("Tasks", render_task_panel(&app.task_panel)),
         TuiSidePanel::Sessions => ("Sessions", render_session_panel(&app.session_panel)),
+        TuiSidePanel::Status => ("Status", render_status_panel(&app.status_panel)),
         TuiSidePanel::Auto => {
             if let Some(diff) = &app.diff_panel {
                 ("Diff", render_diff_panel(diff))
@@ -140,6 +142,10 @@ fn render_task_panel(panel: &TaskPanelState) -> String {
 }
 
 fn render_session_panel(panel: &SessionPanelState) -> String {
+    panel.render_text()
+}
+
+fn render_status_panel(panel: &StatusPanelState) -> String {
     panel.render_text()
 }
 

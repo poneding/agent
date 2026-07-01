@@ -1,3 +1,4 @@
+use agent_ui_bridge::{UiSlashCommandEffect, UiSlashCommandParseError, resolve_slash_command};
 use thiserror::Error;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -22,23 +23,33 @@ pub enum SlashCommandError {
 
 impl SlashCommand {
     pub fn parse(input: &str) -> Result<Self, SlashCommandError> {
-        let trimmed = input.trim();
-        if !trimmed.starts_with('/') {
-            return Err(SlashCommandError::MissingSlash);
-        }
+        let descriptor = resolve_slash_command(input).map_err(SlashCommandError::from)?;
+        Self::from_effect(descriptor.effect).ok_or(SlashCommandError::UnknownCommand {
+            command: format!("/{}", descriptor.name),
+        })
+    }
 
-        match trimmed.split_whitespace().next().unwrap_or(trimmed) {
-            "/help" => Ok(Self::Help),
-            "/status" => Ok(Self::Status),
-            "/trace" => Ok(Self::Trace),
-            "/tasks" => Ok(Self::Tasks),
-            "/sessions" => Ok(Self::Sessions),
-            "/settings" => Ok(Self::Settings),
-            "/clear" => Ok(Self::Clear),
-            "/quit" | "/exit" => Ok(Self::Quit),
-            command => Err(SlashCommandError::UnknownCommand {
-                command: command.to_string(),
-            }),
+    fn from_effect(effect: UiSlashCommandEffect) -> Option<Self> {
+        match effect {
+            UiSlashCommandEffect::OpenHelp => Some(Self::Help),
+            UiSlashCommandEffect::ShowStatus => Some(Self::Status),
+            UiSlashCommandEffect::OpenTrace => Some(Self::Trace),
+            UiSlashCommandEffect::OpenTasks => Some(Self::Tasks),
+            UiSlashCommandEffect::OpenSessions => Some(Self::Sessions),
+            UiSlashCommandEffect::OpenSettings => Some(Self::Settings),
+            UiSlashCommandEffect::ClearTranscript => Some(Self::Clear),
+            UiSlashCommandEffect::Quit => Some(Self::Quit),
+        }
+    }
+}
+
+impl From<UiSlashCommandParseError> for SlashCommandError {
+    fn from(value: UiSlashCommandParseError) -> Self {
+        match value {
+            UiSlashCommandParseError::MissingSlash => Self::MissingSlash,
+            UiSlashCommandParseError::UnknownCommand { command } => {
+                Self::UnknownCommand { command }
+            }
         }
     }
 }

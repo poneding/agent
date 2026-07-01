@@ -127,7 +127,7 @@ Run exact-path staging and commit the final docs/status updates.
 ### Completion Checklist
 
 - [x] Terminal sessions can be listed, restored, and switched through typed contracts.
-- [ ] Slash command catalog is discoverable and tested.
+- [x] Slash command catalog is discoverable and tested.
 - [ ] Approval queue and permission review workflows are actionable and safe.
 - [ ] Diff and command/test panels support repeated coding-loop use.
 - [ ] Task status is visible and bounded in CLI/JSON/TUI paths.

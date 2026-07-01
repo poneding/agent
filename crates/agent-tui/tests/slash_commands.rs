@@ -34,6 +34,10 @@ fn slash_parser_accepts_known_commands() {
         SlashCommand::parse("/quit").expect("quit"),
         SlashCommand::Quit
     );
+    assert_eq!(
+        SlashCommand::parse("/exit").expect("exit"),
+        SlashCommand::Quit
+    );
 }
 
 #[test]
@@ -85,4 +89,16 @@ fn sessions_slash_command_opens_session_panel() {
 
     assert_eq!(effect, TuiEffect::None);
     assert_eq!(app.side_panel, TuiSidePanel::Sessions);
+}
+
+#[test]
+fn status_slash_command_opens_status_panel() {
+    let mut app = TuiApp::default();
+
+    app.reduce(ComposerAction::InsertText("/status".to_string()).into());
+    let effect = app.reduce(ComposerAction::Submit.into());
+
+    assert_eq!(effect, TuiEffect::None);
+    assert_eq!(app.side_panel, TuiSidePanel::Status);
+    assert_eq!(app.status_panel.snapshot.provider, "fake");
 }

@@ -77,13 +77,13 @@ Expected: existing Desktop Rust contracts, bridge contracts, Tauri command tests
 
 Defined typed dashboard state for workspace identity, runtime status, provider readiness, task counts, pending approvals, recent trace/log summaries, and bridge/session diagnostics in M60-01.
 
-- [ ] **Step 2: Implement dashboard/session slice**
+- [x] **Step 2: Implement dashboard/session slice**
 
-Build dashboard view models and frontend dashboard rendering from existing workspace/session snapshots. Keep path display safe and session start idempotent.
+Built dashboard view models, Tauri dashboard snapshot boundary, Dashboard route, frontend rendering, route defaults, and focused regression tests.
 
-- [ ] **Step 3: Verify dashboard/session slice**
+- [x] **Step 3: Verify dashboard/session slice**
 
-Run focused Rust and frontend tests named in the slice plan.
+Focused Rust, Tauri, frontend, and build checks passed for M60-01.
 
 ### Task 3: M60-02 Conversation, Composer, and Transcript Flow
 
@@ -221,7 +221,7 @@ Run exact-path staging and commit the final docs/status updates.
 
 ### Completion Checklist
 
-- [ ] Workspace dashboard/session readiness is visible and tested.
+- [x] Workspace dashboard/session readiness is visible and tested.
 - [ ] Conversation, composer, and transcript flow through shared bridge commands/frames.
 - [ ] Approval popup and visual diff review are explicit, bounded, redacted, and policy-backed.
 - [ ] Provider/settings diagnostics expose useful status without secrets.

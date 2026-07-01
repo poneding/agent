@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import {
   desktopBootstrap,
+  loadDashboardSnapshot,
   loadConfigSnapshot,
   loadTrace,
   loadWorkspaceSnapshot,
@@ -18,6 +19,7 @@ import { TaskDetail } from './components/TaskDetail';
 import { TaskList } from './components/TaskList';
 import { TraceTimeline } from './components/TraceTimeline';
 import { TranscriptView } from './components/TranscriptView';
+import { WorkspaceDashboard } from './components/WorkspaceDashboard';
 import { sendUiCommand, startSession } from './bridge';
 import {
   createConversationTaskState,
@@ -37,6 +39,7 @@ import type {
   DesktopBootstrap,
   DesktopBootstrapDiagnostic,
   DesktopConfigSnapshot,
+  DesktopDashboardSnapshot,
   DesktopSettings,
   DesktopShellRoute,
   DesktopSessionSnapshot,
@@ -59,6 +62,7 @@ export function BootstrapError({ message }: { message: string }) {
 export function AppShell({
   bootstrap,
   bootstrapError,
+  dashboardSnapshot = null,
   workspaceSnapshot,
   sessionSnapshot,
   onSubmitPrompt = () => undefined,
@@ -75,6 +79,7 @@ export function AppShell({
 }: {
   bootstrap: DesktopBootstrap | null;
   bootstrapError: string | null;
+  dashboardSnapshot?: DesktopDashboardSnapshot | null;
   workspaceSnapshot?: DesktopWorkspaceSnapshot | null;
   sessionSnapshot?: DesktopSessionSnapshot | null;
   onSubmitPrompt?: (prompt: string) => void;
@@ -89,7 +94,7 @@ export function AppShell({
   settingsError?: string | null;
   extensionSnapshot?: UiExtensionSnapshot | null;
 }) {
-  const [route, setRoute] = useState<DesktopShellRoute>(bootstrap?.route ?? 'conversation');
+  const [route, setRoute] = useState<DesktopShellRoute>(bootstrap?.route ?? 'dashboard');
   const diagnostics = bootstrap?.diagnostics ?? [];
   const conversationTaskState = useMemo(
     () =>
@@ -122,6 +127,13 @@ export function AppShell({
           <span className="brand-name">{bootstrap?.app_name ?? 'agent'}</span>
           <span className="brand-version">{bootstrap?.app_version ?? 'starting'}</span>
         </div>
+        <button
+          className={route === 'dashboard' ? 'rail-item active' : 'rail-item'}
+          type="button"
+          onClick={() => setRoute('dashboard')}
+        >
+          Dashboard
+        </button>
         <button
           className={route === 'conversation' ? 'rail-item active' : 'rail-item'}
           type="button"
@@ -160,6 +172,13 @@ export function AppShell({
       </nav>
 
       <main className="workspace" aria-label={`${routeLabel} workspace`}>
+        {route === 'dashboard' ? (
+          <WorkspaceDashboard
+            snapshot={dashboardSnapshot}
+            onOpenConversation={() => setRoute('conversation')}
+            onOpenApprovals={() => setRoute('approvals')}
+          />
+        ) : null}
         {route === 'conversation' ? (
           <>
             <section className="transcript-band">
@@ -291,6 +310,8 @@ export function AppShell({
 
 function routeLabelFor(route: DesktopShellRoute): string {
   switch (route) {
+    case 'dashboard':
+      return 'Dashboard';
     case 'conversation':
       return 'Conversation';
     case 'tasks':
@@ -307,6 +328,7 @@ function routeLabelFor(route: DesktopShellRoute): string {
 export default function App() {
   const [bootstrap, setBootstrap] = useState<DesktopBootstrap | null>(null);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
+  const [dashboardSnapshot, setDashboardSnapshot] = useState<DesktopDashboardSnapshot | null>(null);
   const [sessionSnapshot, setSessionSnapshot] = useState<DesktopSessionSnapshot | null>(null);
   const [workspaceSnapshot, setWorkspaceSnapshot] = useState<DesktopWorkspaceSnapshot | null>(null);
   const [approvalState] = useState<ApprovalUiState>(() => createApprovalState());
@@ -321,6 +343,7 @@ export default function App() {
           workspace_path: null,
           client_version: nextBootstrap.app_version,
         });
+        const nextDashboardSnapshot = await loadDashboardSnapshot();
         const nextWorkspaceSnapshot = await loadWorkspaceSnapshot();
         const nextConfigSnapshot = await loadConfigSnapshot();
         const nextSettingsState = reduceSettingsSnapshotLoaded(
@@ -335,6 +358,7 @@ export default function App() {
             : await loadTrace(nextWorkspaceSnapshot.active_conversation_id);
         if (mounted) {
           setBootstrap(nextBootstrap);
+          setDashboardSnapshot(nextDashboardSnapshot);
           setSessionSnapshot(nextSession);
           setWorkspaceSnapshot(nextWorkspaceSnapshot);
           setSettingsState(
@@ -423,6 +447,7 @@ export default function App() {
     <AppShell
       bootstrap={bootstrap}
       bootstrapError={bootstrapError}
+      dashboardSnapshot={dashboardSnapshot}
       sessionSnapshot={sessionSnapshot}
       workspaceSnapshot={workspaceSnapshot}
       approvalState={approvalState}

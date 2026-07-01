@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use agent_desktop::{DesktopSessionReadiness, DesktopSessionReadinessState};
 use agent_types::{ConversationId, SessionId, WorkspaceId};
 use agent_ui_bridge::{UiCommandEnvelope, UiJsonFrame, validate_ui_command};
 use serde::{Deserialize, Serialize};
@@ -159,6 +160,31 @@ impl DesktopRuntimeSession {
         Ok(drained)
     }
 
+    #[must_use]
+    pub fn readiness(&self) -> DesktopSessionReadiness {
+        let identity = self.identity.as_ref();
+        DesktopSessionReadiness {
+            state: match self.state {
+                DesktopRuntimeState::NotStarted => DesktopSessionReadinessState::NotStarted,
+                DesktopRuntimeState::Connecting => DesktopSessionReadinessState::Connecting,
+                DesktopRuntimeState::Connected => DesktopSessionReadinessState::Connected,
+                DesktopRuntimeState::Disconnected => DesktopSessionReadinessState::Disconnected,
+                DesktopRuntimeState::Blocked => DesktopSessionReadinessState::Blocked,
+            },
+            session_id: identity.map(|identity| identity.session_id),
+            conversation_id: identity.map(|identity| identity.conversation_id),
+            pending_frame_count: usize_to_u32(self.frames.len()),
+        }
+    }
+
+    #[must_use]
+    pub fn workspace_snapshot_identity(&self) -> (WorkspaceId, Option<ConversationId>) {
+        self.identity.as_ref().map_or_else(
+            || (nil_workspace_id(), None),
+            |identity| (identity.workspace_id, Some(identity.conversation_id)),
+        )
+    }
+
     pub(crate) fn ensure_workspace_snapshot_ids(&mut self) -> (WorkspaceId, ConversationId) {
         let identity = self.identity.get_or_insert_with(SessionIdentity::new);
         (identity.workspace_id, identity.conversation_id)
@@ -223,4 +249,14 @@ fn normalize_optional_string(value: String) -> Option<String> {
     } else {
         Some(value.to_string())
     }
+}
+
+fn nil_workspace_id() -> WorkspaceId {
+    "00000000-0000-0000-0000-000000000000"
+        .parse()
+        .expect("nil workspace id is valid")
+}
+
+fn usize_to_u32(value: usize) -> u32 {
+    u32::try_from(value).unwrap_or(u32::MAX)
 }

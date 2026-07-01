@@ -13,6 +13,7 @@ pub enum DesktopSessionState {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DesktopRoute {
+    Dashboard,
     Conversation,
     Tasks,
     Trace,
@@ -40,7 +41,7 @@ pub fn start_desktop_session(
         session_id: SessionId::new(),
         workspace_id,
         client_version,
-        route: DesktopRoute::Conversation,
+        route: DesktopRoute::Dashboard,
         state: DesktopSessionState::Connected,
         connected_at: now,
         updated_at: now,

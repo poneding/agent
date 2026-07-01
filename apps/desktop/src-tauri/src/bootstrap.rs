@@ -60,7 +60,7 @@ pub fn build_desktop_bootstrap(
         app_name: validate_non_empty("app name", app_name.into())?,
         app_version: validate_non_empty("app version", app_version.into())?,
         runtime_state: DesktopRuntimeState::NotStarted,
-        route: DesktopRoute::Conversation,
+        route: DesktopRoute::Dashboard,
         diagnostics,
     })
 }

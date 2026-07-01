@@ -5,6 +5,7 @@ pub mod approval_commands;
 pub mod bootstrap;
 pub mod bridge;
 pub mod commands;
+pub mod dashboard;
 pub mod settings_commands;
 pub mod state;
 pub mod trace_commands;
@@ -18,9 +19,10 @@ pub use bridge::{
     DesktopCommandAck, DesktopRuntimeSession, DesktopSessionSnapshot, DesktopStartSessionRequest,
 };
 pub use commands::{
-    DesktopCommandError, desktop_bootstrap, drain_ui_frames, load_workspace_snapshot,
-    resolve_approval, send_ui_command, start_session, stop_session,
+    DesktopCommandError, desktop_bootstrap, drain_ui_frames, load_dashboard_snapshot,
+    load_workspace_snapshot, resolve_approval, send_ui_command, start_session, stop_session,
 };
+pub use dashboard::build_dashboard_snapshot_for_session;
 pub use settings_commands::{load_config_snapshot, validate_settings};
 pub use state::DesktopAppState;
 pub use trace_commands::load_trace;
@@ -36,6 +38,7 @@ pub fn run() {
             commands::send_ui_command,
             commands::drain_ui_frames,
             commands::load_workspace_snapshot,
+            commands::load_dashboard_snapshot,
             commands::resolve_approval,
             trace_commands::load_trace,
             settings_commands::load_config_snapshot,
@@ -50,6 +53,7 @@ mod tests {
     mod approval_commands;
     mod bootstrap;
     mod bridge_session;
+    mod dashboard;
     mod trace_settings_commands;
     mod workspace_snapshot;
 }

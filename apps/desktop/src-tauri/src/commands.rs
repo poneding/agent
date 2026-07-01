@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::approval_commands::{DesktopResolveApprovalRequest, resolve_approval_in_session};
 use crate::bootstrap::{DesktopBootstrap, DesktopBootstrapError, build_desktop_bootstrap};
 use crate::bridge::{DesktopCommandAck, DesktopSessionSnapshot, DesktopStartSessionRequest};
+use crate::dashboard::build_dashboard_snapshot_for_session;
 use crate::state::DesktopAppState;
 use crate::workspace_snapshot::build_empty_workspace_snapshot_for_session;
 
@@ -86,6 +87,22 @@ pub async fn load_workspace_snapshot(
         DesktopCommandError::new("desktop.bridge.lock_failed", "runtime session lock failed")
     })?;
     build_empty_workspace_snapshot_for_session(&mut session)
+}
+
+#[tauri::command]
+pub async fn load_dashboard_snapshot(
+    state: tauri::State<'_, DesktopAppState>,
+) -> Result<agent_desktop::DesktopDashboardSnapshot, DesktopCommandError> {
+    let session = state.runtime_session.lock().map_err(|_| {
+        DesktopCommandError::new("desktop.bridge.lock_failed", "runtime session lock failed")
+    })?;
+    let config = state.config_snapshot.lock().map_err(|_| {
+        DesktopCommandError::new(
+            "desktop.settings.lock_failed",
+            "config snapshot lock failed",
+        )
+    })?;
+    build_dashboard_snapshot_for_session(&session, &config, Vec::new())
 }
 
 #[tauri::command]

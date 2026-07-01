@@ -5,7 +5,7 @@ export type DesktopRuntimeState =
   | 'disconnected'
   | 'blocked';
 
-export type DesktopRoute = 'conversation' | 'tasks' | 'trace' | 'settings';
+export type DesktopRoute = 'dashboard' | 'conversation' | 'tasks' | 'trace' | 'settings';
 export type DesktopShellRoute = DesktopRoute | 'approvals';
 
 export interface DesktopBootstrapDiagnostic {
@@ -169,6 +169,54 @@ export interface DesktopWorkspaceSnapshot {
   active_conversation_id?: string | null;
   conversations: DesktopConversationItem[];
   tasks: DesktopTaskItem[];
+}
+
+export type DesktopSessionReadinessState =
+  | 'not_started'
+  | 'connecting'
+  | 'connected'
+  | 'disconnected'
+  | 'blocked';
+
+export interface DesktopSessionReadiness {
+  state: DesktopSessionReadinessState;
+  session_id?: string | null;
+  conversation_id?: string | null;
+  pending_frame_count: number;
+}
+
+export interface DesktopProviderReadiness {
+  provider_id: string;
+  model_id: string;
+  enabled: boolean;
+  diagnostic_count: number;
+}
+
+export interface DesktopTaskCounts {
+  total: number;
+  active: number;
+  waiting_approval: number;
+  failed: number;
+  terminal: number;
+}
+
+export type DesktopDashboardDiagnosticSeverity = 'info' | 'warning' | 'error';
+
+export interface DesktopDashboardDiagnostic {
+  severity: DesktopDashboardDiagnosticSeverity;
+  code: string;
+  message: string;
+  truncated: boolean;
+}
+
+export interface DesktopDashboardSnapshot {
+  workspace_id: string;
+  workspace_root_display?: string | null;
+  session: DesktopSessionReadiness;
+  provider: DesktopProviderReadiness;
+  task_counts: DesktopTaskCounts;
+  pending_approval_count: number;
+  diagnostics: DesktopDashboardDiagnostic[];
 }
 
 export interface DesktopStartSessionRequest {

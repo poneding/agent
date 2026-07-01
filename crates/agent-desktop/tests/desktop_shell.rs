@@ -26,17 +26,17 @@ fn desktop_shell_serializes_session_shape() {
         "00000000-0000-0000-0000-000000000001"
     );
     assert_eq!(value["client_version"], "0.1.0");
-    assert_eq!(value["route"], "conversation");
+    assert_eq!(value["route"], "dashboard");
     assert_eq!(value["state"], "connected");
     assert_eq!(value["connected_at"], "2026-06-25T00:00:01Z");
     assert_eq!(value["updated_at"], "2026-06-25T00:00:01Z");
 }
 
 #[test]
-fn desktop_shell_starts_on_conversation_route() {
+fn desktop_shell_starts_on_dashboard_route() {
     let session = start_desktop_session(workspace_id(), "0.1.0", ts(1)).unwrap();
 
-    assert_eq!(session.route, DesktopRoute::Conversation);
+    assert_eq!(session.route, DesktopRoute::Dashboard);
     assert_eq!(session.state, DesktopSessionState::Connected);
     assert_eq!(session.connected_at, ts(1));
     assert_eq!(session.updated_at, ts(1));

@@ -7,6 +7,7 @@ import { createApprovalState } from '../state/approvals';
 import type {
   DesktopBootstrap,
   DesktopConfigSnapshot,
+  DesktopDashboardSnapshot,
   DesktopSessionSnapshot,
   DesktopSettings,
   DesktopWorkspaceSnapshot,
@@ -17,7 +18,7 @@ const bootstrap: DesktopBootstrap = {
   app_name: 'agent',
   app_version: '0.1.0',
   runtime_state: 'connected',
-  route: 'conversation',
+  route: 'dashboard',
   diagnostics: [],
 };
 
@@ -50,6 +51,32 @@ const workspaceSnapshot: DesktopWorkspaceSnapshot = {
       updated_at: '2026-06-27T00:00:00Z',
     },
   ],
+};
+
+const dashboardSnapshot: DesktopDashboardSnapshot = {
+  workspace_id: 'workspace-1',
+  workspace_root_display: '/workspace/agent',
+  session: {
+    state: 'connected',
+    session_id: 'session-1',
+    conversation_id: 'conversation-1',
+    pending_frame_count: 0,
+  },
+  provider: {
+    provider_id: 'fake',
+    model_id: 'fake-scripted',
+    enabled: true,
+    diagnostic_count: 0,
+  },
+  task_counts: {
+    total: 1,
+    active: 1,
+    waiting_approval: 0,
+    failed: 0,
+    terminal: 0,
+  },
+  pending_approval_count: 0,
+  diagnostics: [],
 };
 
 const traceTimeline: TraceTimeline = {
@@ -112,6 +139,7 @@ describe('desktop MVP smoke navigation', () => {
       <AppShell
         bootstrap={bootstrap}
         bootstrapError={null}
+        dashboardSnapshot={dashboardSnapshot}
         workspaceSnapshot={workspaceSnapshot}
         sessionSnapshot={sessionSnapshot}
         approvalState={createApprovalState()}
@@ -121,6 +149,10 @@ describe('desktop MVP smoke navigation', () => {
       />,
     );
 
+    expect(screen.getByRole('main', { name: 'Dashboard workspace' })).toBeInTheDocument();
+    expect(screen.getByText('/workspace/agent')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open conversation' }));
     expect(screen.getByRole('main', { name: 'Conversation workspace' })).toBeInTheDocument();
     expect(screen.getByText('Main thread')).toBeInTheDocument();
 

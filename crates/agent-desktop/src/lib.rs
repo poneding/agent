@@ -2,6 +2,7 @@
 //! Desktop presentation contracts for agent.
 
 pub mod conversation;
+pub mod dashboard;
 pub mod diff;
 pub mod error;
 pub mod extension;
@@ -14,6 +15,11 @@ pub mod trace;
 pub mod update;
 
 pub use conversation::DesktopConversationItem;
+pub use dashboard::{
+    DesktopDashboardDiagnostic, DesktopDashboardDiagnosticSeverity, DesktopDashboardInput,
+    DesktopDashboardSnapshot, DesktopProviderReadiness, DesktopSessionReadiness,
+    DesktopSessionReadinessState, DesktopTaskCounts, build_dashboard_snapshot,
+};
 pub use diff::{
     DiffFileSummary, DiffReview, DiffReviewStatus, approve_diff_review, reject_diff_review,
 };

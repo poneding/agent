@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 
 import type {
   DesktopBootstrap,
+  DesktopDashboardSnapshot,
   DesktopCommandAck,
   DesktopBootstrapDiagnostic,
   DesktopConfigSnapshot,
@@ -17,6 +18,10 @@ export async function desktopBootstrap(): Promise<DesktopBootstrap> {
 
 export async function loadWorkspaceSnapshot(): Promise<DesktopWorkspaceSnapshot> {
   return invoke<DesktopWorkspaceSnapshot>('load_workspace_snapshot');
+}
+
+export async function loadDashboardSnapshot(): Promise<DesktopDashboardSnapshot> {
+  return invoke<DesktopDashboardSnapshot>('load_dashboard_snapshot');
 }
 
 export async function loadTrace(conversationId: string): Promise<TraceTimeline> {

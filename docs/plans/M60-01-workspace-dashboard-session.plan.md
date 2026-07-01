@@ -29,7 +29,7 @@
 - Read: `apps/desktop/src-tauri/src/workspace_snapshot.rs`
 - Read: `apps/desktop/src-tauri/src/bridge.rs`
 
-- [ ] **Step 1: Review current Desktop dashboard/session baseline**
+- [x] **Step 1: Review current Desktop dashboard/session baseline**
 
 Run:
 
@@ -41,12 +41,18 @@ npm --prefix apps/desktop test -- app-shell
 
 Expected: current Desktop session, workspace snapshot, and shell tests pass before dashboard changes.
 
+Baseline verification passed during M60-01:
+
+- `cargo test -p agent-desktop desktop_shell`
+- `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml workspace_snapshot`
+- `npm --prefix apps/desktop test -- app-shell`
+
 ### Task 2: Add Failing Dashboard Contract Tests
 
 **Files:**
 - Create: `crates/agent-desktop/tests/desktop_dashboard.rs`
 
-- [ ] **Step 1: Add serialization and aggregation tests**
+- [x] **Step 1: Add serialization and aggregation tests**
 
 Cover:
 
@@ -57,7 +63,7 @@ Cover:
 - diagnostics are bounded/redacted and reject empty code/message fields
 - serialized dashboard excludes raw prompt, tool input, command output, and secret-like values
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run:
 
@@ -66,6 +72,8 @@ cargo test -p agent-desktop --test desktop_dashboard
 ```
 
 Expected: tests fail before the dashboard contract exists.
+
+Confirmed failing before implementation because the dashboard exports did not exist.
 
 ### Task 3: Implement `agent-desktop` Dashboard Model
 
@@ -76,15 +84,15 @@ Expected: tests fail before the dashboard contract exists.
 - Modify: `crates/agent-desktop/src/settings.rs`
 - Modify: `crates/agent-desktop/tests/desktop_dashboard.rs`
 
-- [ ] **Step 1: Add dashboard contracts**
+- [x] **Step 1: Add dashboard contracts**
 
 Implement typed structs/enums for dashboard snapshot, session readiness, provider readiness, task counts, diagnostics, and severity.
 
-- [ ] **Step 2: Add pure builders**
+- [x] **Step 2: Add pure builders**
 
 Implement helpers that derive dashboard state from workspace snapshot, session readiness inputs, provider/settings snapshot, pending approval count, and diagnostics.
 
-- [ ] **Step 3: Run focused contract tests**
+- [x] **Step 3: Run focused contract tests**
 
 Run:
 
@@ -93,6 +101,8 @@ cargo test -p agent-desktop --test desktop_dashboard
 ```
 
 Expected: dashboard contract tests pass.
+
+Passed with six dashboard contract tests.
 
 ### Task 4: Add Tauri Dashboard Boundary
 
@@ -104,15 +114,15 @@ Expected: dashboard contract tests pass.
 - Modify: `apps/desktop/src-tauri/src/state.rs`
 - Modify: `apps/desktop/src-tauri/src/workspace_snapshot.rs`
 
-- [ ] **Step 1: Add dashboard helper/command**
+- [x] **Step 1: Add dashboard helper/command**
 
 Expose a typed read-only dashboard snapshot helper or command that adapts the active bridge session, workspace snapshot, config snapshot, settings, and diagnostics into `agent-desktop` dashboard contracts.
 
-- [ ] **Step 2: Add Tauri tests**
+- [x] **Step 2: Add Tauri tests**
 
 Cover not-started, connected, disconnected, and invalid snapshot diagnostics.
 
-- [ ] **Step 3: Run focused Tauri tests**
+- [x] **Step 3: Run focused Tauri tests**
 
 Run:
 
@@ -121,6 +131,8 @@ cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml dashboard
 ```
 
 Expected: dashboard Tauri tests pass.
+
+Passed with dashboard and bootstrap Tauri coverage.
 
 ### Task 5: Add React Dashboard Route
 
@@ -132,19 +144,19 @@ Expected: dashboard Tauri tests pass.
 - Modify: `apps/desktop/src/types.ts`
 - Modify: `apps/desktop/src/app.css`
 
-- [ ] **Step 1: Add TypeScript dashboard types/API**
+- [x] **Step 1: Add TypeScript dashboard types/API**
 
 Mirror the Rust/Tauri dashboard response shape in `types.ts` and expose a typed API call in `api.ts`.
 
-- [ ] **Step 2: Render dashboard route**
+- [x] **Step 2: Render dashboard route**
 
 Add a dashboard navigation route with readiness summary, provider status, task counts, pending approvals, diagnostics, and disabled action states when no session is connected.
 
-- [ ] **Step 3: Add frontend tests**
+- [x] **Step 3: Add frontend tests**
 
 Cover route rendering, counts, provider status, diagnostics, empty state, and disconnected/blocked disabled states.
 
-- [ ] **Step 4: Run focused frontend tests**
+- [x] **Step 4: Run focused frontend tests**
 
 Run:
 
@@ -154,6 +166,8 @@ npm --prefix apps/desktop test -- workspace-dashboard
 
 Expected: dashboard Vitest coverage passes.
 
+Passed with workspace dashboard, app shell, desktop smoke, full frontend test, and frontend build coverage.
+
 ### Task 6: Verify Slice and Commit
 
 **Files:**
@@ -161,7 +175,7 @@ Expected: dashboard Vitest coverage passes.
 - Modify: `docs/plans/M60-desktop-daily-driver.plan.md`
 - Modify: `docs/plans/M60-01-workspace-dashboard-session.plan.md`
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -175,7 +189,17 @@ npm --prefix apps/desktop test -- workspace-dashboard
 
 Expected: all focused M60-01 checks pass.
 
-- [ ] **Step 2: Run status and exact-path commit**
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `CARGO_TARGET_DIR=target/codex-m60 cargo clippy -p agent-desktop --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m60 cargo test -p agent-desktop desktop_shell`
+- `CARGO_TARGET_DIR=target/codex-m60 cargo test -p agent-desktop --test desktop_dashboard`
+- `CARGO_TARGET_DIR=target/codex-m60-tauri cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml dashboard`
+- `npm --prefix apps/desktop test`
+- `npm --prefix apps/desktop run build`
+
+- [x] **Step 2: Run status and exact-path commit**
 
 Run:
 
@@ -209,10 +233,10 @@ Expected: commit includes only M60-01 docs, source, tests, and status updates.
 
 ### Completion Checklist
 
-- [ ] Dashboard view models are typed, serde-friendly, bounded, and redacted.
-- [ ] Session readiness covers not-started, connecting, connected, disconnected, and blocked.
-- [ ] Task counts derive from typed `TaskState` values.
-- [ ] Provider readiness exposes selected provider/model without secrets.
-- [ ] Tauri dashboard boundary is read-only and typed.
-- [ ] React dashboard route renders readiness, counts, provider status, pending approvals, and diagnostics.
-- [ ] Focused Rust, Tauri, and frontend tests pass.
+- [x] Dashboard view models are typed, serde-friendly, bounded, and redacted.
+- [x] Session readiness covers not-started, connecting, connected, disconnected, and blocked.
+- [x] Task counts derive from typed `TaskState` values.
+- [x] Provider readiness exposes selected provider/model without secrets.
+- [x] Tauri dashboard boundary is read-only and typed.
+- [x] React dashboard route renders readiness, counts, provider status, pending approvals, and diagnostics.
+- [x] Focused Rust, Tauri, and frontend tests pass.

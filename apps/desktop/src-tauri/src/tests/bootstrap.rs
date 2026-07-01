@@ -2,13 +2,13 @@ use crate::bootstrap::{DesktopBootstrapDiagnostic, DesktopRuntimeState, build_de
 use agent_desktop::DesktopRoute;
 
 #[test]
-fn bootstrap_starts_in_not_started_conversation_route() {
+fn bootstrap_starts_in_not_started_dashboard_route() {
     let bootstrap = build_desktop_bootstrap("agent", "0.1.0", Vec::new()).expect("valid bootstrap");
 
     assert_eq!(bootstrap.app_name, "agent");
     assert_eq!(bootstrap.app_version, "0.1.0");
     assert_eq!(bootstrap.runtime_state, DesktopRuntimeState::NotStarted);
-    assert_eq!(bootstrap.route, DesktopRoute::Conversation);
+    assert_eq!(bootstrap.route, DesktopRoute::Dashboard);
     assert!(bootstrap.diagnostics.is_empty());
 }
 

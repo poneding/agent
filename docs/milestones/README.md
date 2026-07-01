@@ -574,6 +574,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M59 implementation | Complete |
 | M60 milestone spec | Complete |
 | M60 milestone plan | Complete |
+| M60-01 slice spec | Complete |
+| M60-01 slice plan | Complete |
+| M60-01 implementation | Planned |
 | M60 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1285,6 +1288,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M59-04 Diff Viewer and Command Streaming Controls | `docs/specs/M59-04-diff-command-streaming.spec.md` | `docs/plans/M59-04-diff-command-streaming.plan.md` | Completed typed diff review evidence, command/test panel state, cancellation readiness, TUI navigation/output controls, and stable CLI/JSON/TUI rendering. |
 | M59-05 Task Status and JSON/Batch Recipes | `docs/specs/M59-05-task-status-json-recipes.spec.md` | `docs/plans/M59-05-task-status-json-recipes.plan.md` | Completed task status panel polish, documented stable terminal recipes, deterministic recipe tests, and final M59 closeout. |
 
+## M60 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M60-01 Workspace Dashboard and Session Readiness | `docs/specs/M60-01-workspace-dashboard-session.spec.md` | `docs/plans/M60-01-workspace-dashboard-session.plan.md` | Planned typed Desktop dashboard/readiness state, provider readiness, task counts, pending approvals, diagnostics, Tauri boundary, and React route. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1304,6 +1313,8 @@ Most recent completed or active planning documents:
 
 - `docs/specs/M60-desktop-daily-driver.spec.md`
 - `docs/plans/M60-desktop-daily-driver.plan.md`
+- `docs/specs/M60-01-workspace-dashboard-session.spec.md`
+- `docs/plans/M60-01-workspace-dashboard-session.plan.md`
 - `docs/specs/M59-cli-tui-daily-driver.spec.md`
 - `docs/plans/M59-cli-tui-daily-driver.plan.md`
 - `docs/specs/M59-01-session-restore-switch.spec.md`
@@ -1777,8 +1788,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create M60-01 Workspace Dashboard and Session Readiness slice spec and plan.
+- Prepare M60-02 Conversation, Composer, and Transcript Flow after M60-01 implementation lands.
 
 Next implementation direction:
 
-- Implement M60 Desktop Daily Driver slices in order, starting with workspace dashboard and session readiness.
+- Run M60-01 baseline checks, then implement workspace dashboard and session readiness.

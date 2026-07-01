@@ -73,9 +73,9 @@ Expected: existing Desktop Rust contracts, bridge contracts, Tauri command tests
 - Modify: `apps/desktop/src-tauri/src/tests/workspace_snapshot.rs`
 - Modify: `apps/desktop/src/__tests__/*`
 
-- [ ] **Step 1: Plan dashboard/session slice**
+- [x] **Step 1: Plan dashboard/session slice**
 
-Define typed dashboard state for workspace identity, runtime status, provider readiness, task counts, pending approvals, recent trace/log summaries, and bridge/session diagnostics.
+Defined typed dashboard state for workspace identity, runtime status, provider readiness, task counts, pending approvals, recent trace/log summaries, and bridge/session diagnostics in M60-01.
 
 - [ ] **Step 2: Implement dashboard/session slice**
 

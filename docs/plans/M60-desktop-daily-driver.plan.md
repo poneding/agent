@@ -101,9 +101,14 @@ Focused Rust, Tauri, frontend, and build checks passed for M60-01.
 - Modify: `apps/desktop/src/App.tsx`
 - Modify: `apps/desktop/src/__tests__/conversation-task-ui.test.tsx`
 
-- [ ] **Step 1: Plan conversation/composer slice**
+- [x] **Step 1: Plan conversation/composer slice**
 
 Define how Desktop starts a turn, drains bridge frames, updates transcript state, reports command acknowledgements, and handles recoverable bridge errors.
+
+M60-02 planning is captured in:
+
+- `docs/specs/M60-02-conversation-composer-transcript.spec.md`
+- `docs/plans/M60-02-conversation-composer-transcript.plan.md`
 
 - [ ] **Step 2: Implement conversation/composer slice**
 

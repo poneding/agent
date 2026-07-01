@@ -577,6 +577,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60-01 slice spec | Complete |
 | M60-01 slice plan | Complete |
 | M60-01 implementation | Complete |
+| M60-02 slice spec | Complete |
+| M60-02 slice plan | Complete |
 | M60 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1293,6 +1295,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M60-01 Workspace Dashboard and Session Readiness | `docs/specs/M60-01-workspace-dashboard-session.spec.md` | `docs/plans/M60-01-workspace-dashboard-session.plan.md` | Complete: typed Desktop dashboard/readiness model, Tauri dashboard snapshot boundary, Dashboard route, provider readiness, task counts, pending approvals, diagnostics, and focused Rust/frontend coverage. |
+| M60-02 Conversation, Composer, and Transcript Flow | `docs/specs/M60-02-conversation-composer-transcript.spec.md` | `docs/plans/M60-02-conversation-composer-transcript.plan.md` | Planned: typed Desktop turn submission, bounded bridge frame draining, transcript updates, command acknowledgements, recoverable bridge errors, and focused Rust/frontend coverage. |
 
 ## MX01 Slice Index
 
@@ -1315,6 +1318,8 @@ Most recent completed or active planning documents:
 - `docs/plans/M60-desktop-daily-driver.plan.md`
 - `docs/specs/M60-01-workspace-dashboard-session.spec.md`
 - `docs/plans/M60-01-workspace-dashboard-session.plan.md`
+- `docs/specs/M60-02-conversation-composer-transcript.spec.md`
+- `docs/plans/M60-02-conversation-composer-transcript.plan.md`
 - `docs/specs/M59-cli-tui-daily-driver.spec.md`
 - `docs/plans/M59-cli-tui-daily-driver.plan.md`
 - `docs/specs/M59-01-session-restore-switch.spec.md`
@@ -1786,10 +1791,6 @@ Most recent completed technical design documents:
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M54-00-mcp-http-oauth-token-exchange-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M54-00-mcp-http-oauth-token-exchange-technical-design.plan.md`
 
-Next planning action:
-
-- Create M60-02 Conversation, Composer, and Transcript Flow slice spec and plan.
-
 Next implementation direction:
 
-- Plan M60-02, then implement Desktop conversation, composer, and transcript flow.
+- Implement M60-02 Desktop conversation, composer, and transcript flow.

@@ -15,7 +15,7 @@ pub use approval_queue::{
 };
 pub use command::{
     UiApprovalDecision, UiClientInfo, UiCommand, UiCommandEnvelope, UiPermissionDecision,
-    validate_ui_command,
+    UiPlanTodoCommand, validate_ui_command,
 };
 pub use error::UiBridgeError;
 pub use event::{
@@ -29,20 +29,21 @@ pub use frame::{
     UiFinalReviewCommandResult, UiFinalReviewSnapshot, UiJsonFrame, UiMcpManagementDiagnostic,
     UiMcpManagementSnapshot, UiMcpServerManagementSummary, UiModelCostProfile,
     UiModelProviderCapabilities, UiModelProviderSummary, UiObservabilitySnapshot,
-    UiPinnedContextItemSummary, UiPinnedContextOmissionSummary, UiPlatformPathsSummary,
-    UiProjectContextDiagnosticSummary, UiProjectContextFileSummary,
-    UiProjectContextHybridCandidateSummary, UiProjectContextHybridOmissionSummary,
-    UiProjectContextHybridRetrievalSnapshot, UiProjectContextOmissionSummary,
-    UiProjectContextPinnedRetrievalSnapshot, UiProjectContextQualityTraceSnapshot,
-    UiProjectContextRetrievalCandidateSummary, UiProjectContextRetrievalDiagnosticSummary,
-    UiProjectContextRetrievalOmissionSummary, UiProjectContextRetrievalScore,
-    UiProjectContextRetrievalSnapshot, UiProjectContextSemanticRetrievalSummary,
-    UiProjectContextSnapshot, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
-    UiProviderSupportRole, UiProviderSupportSummary, UiRepoSessionDiagnostic,
-    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiStartupMigrationSnapshot,
-    UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary, UiTaskReviewSummaryArtifact,
-    UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary, UiTerminalSessionDiagnostic,
-    UiTerminalSessionSnapshot, UiTerminalSessionSummary, encode_json_frame,
+    UiPinnedContextItemSummary, UiPinnedContextOmissionSummary, UiPlanTodoCommandError,
+    UiPlanTodoSnapshot, UiPlatformPathsSummary, UiProjectContextDiagnosticSummary,
+    UiProjectContextFileSummary, UiProjectContextHybridCandidateSummary,
+    UiProjectContextHybridOmissionSummary, UiProjectContextHybridRetrievalSnapshot,
+    UiProjectContextOmissionSummary, UiProjectContextPinnedRetrievalSnapshot,
+    UiProjectContextQualityTraceSnapshot, UiProjectContextRetrievalCandidateSummary,
+    UiProjectContextRetrievalDiagnosticSummary, UiProjectContextRetrievalOmissionSummary,
+    UiProjectContextRetrievalScore, UiProjectContextRetrievalSnapshot,
+    UiProjectContextSemanticRetrievalSummary, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
+    UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
+    UiRepoSessionDiagnostic, UiRepoSessionSnapshot, UiSettingsProfileSummary,
+    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary,
+    UiTaskReviewSummaryArtifact, UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary,
+    UiTerminalSessionDiagnostic, UiTerminalSessionSnapshot, UiTerminalSessionSummary,
+    encode_json_frame,
 };
 pub use slash::{
     UiSlashCommandCatalogSnapshot, UiSlashCommandCategory, UiSlashCommandDescriptor,

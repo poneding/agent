@@ -24,11 +24,12 @@ use agent_core::{
     ExtensionCapabilitySummary, ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus,
     ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry,
     ExtensionRegistryError, ExtensionSource, ExtensionSourceKind, PinnedProjectContextBudgetReport,
-    PinnedProjectContextPin, PinnedProjectContextRequest, PlatformPathOverrides, PlatformPaths,
-    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
-    ProjectContextHybridPinnedQualityRetrievalReport, ProjectContextHybridPinnedRetrievalInput,
-    ProjectContextHybridPinnedRetrievalReport, ProjectContextHybridQualityRetrievalReport,
-    ProjectContextHybridRetrievalInput, ProjectContextHybridRetrievalReport, ProjectContextLimits,
+    PinnedProjectContextPin, PinnedProjectContextRequest, PlanTodoOperation, PlanTodoUpdate,
+    PlanTodoUpdateOutcome, PlatformPathOverrides, PlatformPaths, ProjectContextDiagnostic,
+    ProjectContextDiagnosticSeverity, ProjectContextHybridPinnedQualityRetrievalReport,
+    ProjectContextHybridPinnedRetrievalInput, ProjectContextHybridPinnedRetrievalReport,
+    ProjectContextHybridQualityRetrievalReport, ProjectContextHybridRetrievalInput,
+    ProjectContextHybridRetrievalReport, ProjectContextLimits,
     ProjectContextPinnedQualityRetrievalReport, ProjectContextPinnedRetrievalInput,
     ProjectContextPinnedRetrievalReport, ProjectContextQualityRetrievalReport,
     ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
@@ -37,13 +38,14 @@ use agent_core::{
     RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds, RuntimeModelConfig,
     SettingsError, SettingsProfile, StartupMigrationRunner, TerminalSessionDirectoryReport,
     TerminalSessionRecord, TerminalSessionRestoreError, TerminalSessionStatus,
-    TerminalSessionSummary, bootstrap_repo_session, build_terminal_session_directory,
-    coding_agent_model_requirements, replay_final_review, retrieve_project_context,
-    retrieve_project_context_hybrid, retrieve_project_context_hybrid_pinned,
-    retrieve_project_context_hybrid_pinned_quality, retrieve_project_context_hybrid_quality,
-    retrieve_project_context_pinned, retrieve_project_context_pinned_quality,
-    retrieve_project_context_quality, run_command_test_loop, run_edit_diff_flow,
-    scan_project_context, validate_terminal_session_restore,
+    TerminalSessionSummary, apply_plan_todo_update, bootstrap_repo_session,
+    build_terminal_session_directory, coding_agent_model_requirements, replay_final_review,
+    retrieve_project_context, retrieve_project_context_hybrid,
+    retrieve_project_context_hybrid_pinned, retrieve_project_context_hybrid_pinned_quality,
+    retrieve_project_context_hybrid_quality, retrieve_project_context_pinned,
+    retrieve_project_context_pinned_quality, retrieve_project_context_quality,
+    run_command_test_loop, run_edit_diff_flow, scan_project_context,
+    validate_terminal_session_restore,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -89,20 +91,21 @@ use agent_skill::{
 };
 use agent_storage::EventStore;
 use agent_types::{
-    ClientKind, ConversationId, CorrelationId, EventId, RuntimeEventPayload, TaskId, Timestamp,
-    TurnId, WorkspaceId,
+    ClientKind, ConversationId, CorrelationId, EventId, PlanTodoDiagnostic, PlanTodoEvidenceKind,
+    PlanTodoItem, PlanTodoItemId, PlanTodoSnapshot, RuntimeEventPayload, TaskId, Timestamp,
+    TodoPriority, TodoSource, TodoStatus, TurnId, WorkspaceId,
 };
 use agent_ui_bridge::{
     UiApprovalPreviewSummary, UiApprovalQueueSnapshot, UiApprovalRequest, UiBridgeError,
     UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
     UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot,
     UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame, UiModelCostProfile,
-    UiModelProviderCapabilities, UiModelProviderSummary, UiPlatformPathsSummary,
-    UiProjectContextHybridRetrievalSnapshot, UiProjectContextPinnedRetrievalSnapshot,
-    UiProjectContextQualityTraceSnapshot, UiProjectContextRetrievalSnapshot,
-    UiProjectContextSnapshot, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
-    UiProviderSupportRole, UiProviderSupportSummary, UiRepoSessionSnapshot,
-    UiSettingsProfileSummary, UiSlashCommandEffect, UiSlashCommandSurface,
+    UiModelProviderCapabilities, UiModelProviderSummary, UiPlanTodoCommandError,
+    UiPlanTodoSnapshot, UiPlatformPathsSummary, UiProjectContextHybridRetrievalSnapshot,
+    UiProjectContextPinnedRetrievalSnapshot, UiProjectContextQualityTraceSnapshot,
+    UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
+    UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
+    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiSlashCommandEffect, UiSlashCommandSurface,
     UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
     UiTaskSummary, UiTerminalSessionSnapshot, UiTerminalStatusSnapshot,
     approval_queue_snapshot_from_requests, default_slash_command_catalog, encode_json_frame,
@@ -256,6 +259,8 @@ pub enum CliCommand {
     Extension(ExtensionCommand),
     McpServer(McpServerCommand),
     Memory(MemoryCommand),
+    Plan(PlanTodoCliCommand),
+    Todo(PlanTodoCliCommand),
     Task(TaskCliCommand),
     Approval(ApprovalCliCommand),
     Eval(EvalCliCommand),
@@ -424,6 +429,23 @@ pub enum TaskCliCommand {
     Schedule {
         id: String,
         schedule: TaskSchedule,
+        reason: String,
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PlanTodoCliCommand {
+    Show,
+    List,
+    UpdateStatus {
+        item_id: String,
+        status: TodoStatus,
+        expected_revision: u64,
+        reason: String,
+    },
+    ReplaceSnapshot {
+        snapshot_json: String,
+        expected_revision: u64,
         reason: String,
     },
 }
@@ -611,6 +633,8 @@ where
         "extension" => parse_extension_command(&mut args),
         "mcp" => parse_mcp_command(&mut args),
         "memory" => parse_memory_command(&mut args),
+        "plan" => parse_plan_command(&mut args),
+        "todo" => parse_todo_command(&mut args),
         "task" => parse_task_command(&mut args),
         "approval" => parse_approval_command(&mut args),
         "eval" => parse_eval_command(&mut args),
@@ -760,6 +784,10 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             let mut runtime = MemoryCommandRuntime::default();
             render_memory_command(&mut runtime, command, OutputMode::Text)
         }
+        CliCommand::Plan(command) | CliCommand::Todo(command) => {
+            let mut runtime = PlanTodoCommandRuntime::fixture();
+            render_plan_todo_command(&mut runtime, command, OutputMode::Text)
+        }
         CliCommand::Task(command) => {
             let mut runtime = TaskCommandRuntime::fixture();
             render_task_command(&mut runtime, command, OutputMode::Text)
@@ -870,6 +898,10 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             CliCommand::Memory(command) => {
                 let mut runtime = MemoryCommandRuntime::default();
                 render_memory_command(&mut runtime, command, OutputMode::Text)
+            }
+            CliCommand::Plan(command) | CliCommand::Todo(command) => {
+                let mut runtime = PlanTodoCommandRuntime::fixture();
+                render_plan_todo_command(&mut runtime, command, OutputMode::Text)
             }
             CliCommand::Task(command) => {
                 let mut runtime = TaskCommandRuntime::fixture();
@@ -1004,6 +1036,10 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if let CliCommand::Memory(command) = invocation.command {
         let mut runtime = MemoryCommandRuntime::default();
         return render_memory_command(&mut runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::Plan(command) | CliCommand::Todo(command) = invocation.command {
+        let mut runtime = PlanTodoCommandRuntime::fixture();
+        return render_plan_todo_command(&mut runtime, command, OutputMode::Json);
     }
     if let CliCommand::Task(command) = invocation.command {
         let mut runtime = TaskCommandRuntime::fixture();
@@ -1977,6 +2013,44 @@ where
     Ok(CliCommand::Memory(command))
 }
 
+fn parse_plan_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("plan".to_string()));
+    };
+
+    match subcommand.as_str() {
+        "show" => {
+            no_plugin_extra_args(args, "plan show")?;
+            Ok(CliCommand::Plan(PlanTodoCliCommand::Show))
+        }
+        _ => Err(CliError::UnknownArgument(format!("plan {subcommand}"))),
+    }
+}
+
+fn parse_todo_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("todo".to_string()));
+    };
+
+    let command = match subcommand.as_str() {
+        "list" => {
+            no_plugin_extra_args(args, "todo list")?;
+            PlanTodoCliCommand::List
+        }
+        "update" => parse_todo_update(args)?,
+        "set" => parse_todo_set(args)?,
+        _ => return Err(CliError::UnknownArgument(format!("todo {subcommand}"))),
+    };
+
+    Ok(CliCommand::Todo(command))
+}
+
 fn parse_task_command<I>(args: &mut I) -> Result<CliCommand, CliError>
 where
     I: Iterator<Item = String>,
@@ -2294,6 +2368,80 @@ fn parse_task_priority(value: &str) -> Result<TaskPriority, CliError> {
     }
 }
 
+fn parse_todo_update<I>(args: &mut I) -> Result<PlanTodoCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut item_id = None;
+    let mut status = None;
+    let mut expected_revision = None;
+    let mut reason = None;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--todo" => item_id = Some(take_flag_value(args, &arg)?),
+            "--status" => status = Some(parse_todo_status(&take_flag_value(args, &arg)?)?),
+            "--revision" => {
+                expected_revision = Some(parse_revision(&take_flag_value(args, &arg)?)?)
+            }
+            "--reason" => reason = Some(take_flag_value(args, &arg)?),
+            _ => return Err(CliError::UnknownArgument(format!("todo update {arg}"))),
+        }
+    }
+
+    Ok(PlanTodoCliCommand::UpdateStatus {
+        item_id: item_id.ok_or_else(|| CliError::MissingValue("todo update --todo".to_string()))?,
+        status: status.ok_or_else(|| CliError::MissingValue("todo update --status".to_string()))?,
+        expected_revision: expected_revision
+            .ok_or_else(|| CliError::MissingValue("todo update --revision".to_string()))?,
+        reason: reason.ok_or_else(|| CliError::MissingValue("todo update --reason".to_string()))?,
+    })
+}
+
+fn parse_todo_set<I>(args: &mut I) -> Result<PlanTodoCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut snapshot_json = None;
+    let mut expected_revision = None;
+    let mut reason = None;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--snapshot-json" => snapshot_json = Some(take_flag_value(args, &arg)?),
+            "--revision" => {
+                expected_revision = Some(parse_revision(&take_flag_value(args, &arg)?)?)
+            }
+            "--reason" => reason = Some(take_flag_value(args, &arg)?),
+            _ => return Err(CliError::UnknownArgument(format!("todo set {arg}"))),
+        }
+    }
+
+    Ok(PlanTodoCliCommand::ReplaceSnapshot {
+        snapshot_json: snapshot_json
+            .ok_or_else(|| CliError::MissingValue("todo set --snapshot-json".to_string()))?,
+        expected_revision: expected_revision
+            .ok_or_else(|| CliError::MissingValue("todo set --revision".to_string()))?,
+        reason: reason.ok_or_else(|| CliError::MissingValue("todo set --reason".to_string()))?,
+    })
+}
+
+fn parse_todo_status(value: &str) -> Result<TodoStatus, CliError> {
+    match value {
+        "pending" => Ok(TodoStatus::Pending),
+        "in_progress" => Ok(TodoStatus::InProgress),
+        "completed" => Ok(TodoStatus::Completed),
+        "cancelled" => Ok(TodoStatus::Cancelled),
+        other => Err(CliError::UnknownArgument(format!("todo status {other}"))),
+    }
+}
+
+fn parse_revision(value: &str) -> Result<u64, CliError> {
+    value
+        .parse()
+        .map_err(|_| CliError::UnknownArgument(format!("revision {value}")))
+}
+
 fn parse_memory_delete<I>(args: &mut I) -> Result<MemoryCommand, CliError>
 where
     I: Iterator<Item = String>,
@@ -2514,6 +2662,349 @@ fn render_approval_queue_text(snapshot: &UiApprovalQueueSnapshot) -> String {
         ));
     }
     output
+}
+
+#[derive(Clone, Debug)]
+pub struct PlanTodoCommandRuntime {
+    snapshot: PlanTodoSnapshot,
+}
+
+impl PlanTodoCommandRuntime {
+    #[must_use]
+    pub fn fixture() -> Self {
+        let conversation_id = "00000000-0000-0000-0000-000000006102"
+            .parse()
+            .expect("fixture conversation id is valid");
+        let updated_at = Timestamp::now_utc();
+        Self {
+            snapshot: PlanTodoSnapshot {
+                conversation_id,
+                turn_id: None,
+                task_id: None,
+                revision: 3,
+                items: vec![
+                    fixture_plan_todo_item(
+                        "todo-1",
+                        "Inspect project structure",
+                        TodoStatus::Pending,
+                        TodoPriority::High,
+                        TodoSource::User,
+                        updated_at,
+                    ),
+                    fixture_plan_todo_item(
+                        "todo-2",
+                        "Implement plan/todo CLI",
+                        TodoStatus::InProgress,
+                        TodoPriority::Normal,
+                        TodoSource::Model,
+                        updated_at,
+                    ),
+                    fixture_plan_todo_item(
+                        "todo-3",
+                        "Verify checks without sk-secret-token",
+                        TodoStatus::Completed,
+                        TodoPriority::Normal,
+                        TodoSource::Runtime,
+                        updated_at,
+                    ),
+                ],
+                updated_at,
+                diagnostics: vec![PlanTodoDiagnostic {
+                    code: "fixture".to_string(),
+                    message: "fixture plan/todo state".to_string(),
+                }],
+            },
+        }
+    }
+
+    #[must_use]
+    pub const fn snapshot(&self) -> &PlanTodoSnapshot {
+        &self.snapshot
+    }
+}
+
+fn fixture_plan_todo_item(
+    id: &str,
+    content: &str,
+    status: TodoStatus,
+    priority: TodoPriority,
+    source: TodoSource,
+    updated_at: Timestamp,
+) -> PlanTodoItem {
+    PlanTodoItem {
+        item_id: PlanTodoItemId::from_string_unchecked(id),
+        content: content.to_string(),
+        status,
+        priority,
+        source,
+        task_id: None,
+        evidence: Vec::new(),
+        updated_at,
+    }
+}
+
+#[must_use]
+pub fn render_plan_todo_command(
+    runtime: &mut PlanTodoCommandRuntime,
+    command: PlanTodoCliCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match run_plan_todo_command(runtime, command) {
+        Ok(response) => render_plan_todo_response(response, output_mode),
+        Err(error) => render_plan_todo_error(runtime, error, output_mode),
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+enum PlanTodoCommandResponse {
+    Snapshot(PlanTodoSnapshot),
+    Updated(PlanTodoUpdateOutcome),
+    Replaced(PlanTodoUpdateOutcome),
+}
+
+fn run_plan_todo_command(
+    runtime: &mut PlanTodoCommandRuntime,
+    command: PlanTodoCliCommand,
+) -> Result<PlanTodoCommandResponse, String> {
+    match command {
+        PlanTodoCliCommand::Show | PlanTodoCliCommand::List => {
+            Ok(PlanTodoCommandResponse::Snapshot(runtime.snapshot.clone()))
+        }
+        PlanTodoCliCommand::UpdateStatus {
+            item_id,
+            status,
+            expected_revision,
+            reason,
+        } => {
+            let outcome = apply_plan_todo_update(
+                &runtime.snapshot,
+                PlanTodoUpdate {
+                    expected_revision,
+                    reason,
+                    operation: PlanTodoOperation::UpdateStatus {
+                        item_id: PlanTodoItemId::from_string_unchecked(item_id),
+                        status,
+                    },
+                },
+            )
+            .map_err(|error| error.to_string())?;
+            runtime.snapshot = outcome.snapshot.clone();
+            Ok(PlanTodoCommandResponse::Updated(outcome))
+        }
+        PlanTodoCliCommand::ReplaceSnapshot {
+            snapshot_json,
+            expected_revision,
+            reason,
+        } => {
+            let replacement: PlanTodoSnapshot =
+                serde_json::from_str(&snapshot_json).map_err(|error| error.to_string())?;
+            let outcome = apply_plan_todo_update(
+                &runtime.snapshot,
+                PlanTodoUpdate {
+                    expected_revision,
+                    reason,
+                    operation: PlanTodoOperation::ReplaceAll {
+                        items: replacement.items,
+                    },
+                },
+            )
+            .map_err(|error| error.to_string())?;
+            runtime.snapshot = outcome.snapshot.clone();
+            Ok(PlanTodoCommandResponse::Replaced(outcome))
+        }
+    }
+}
+
+fn render_plan_todo_response(
+    response: PlanTodoCommandResponse,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => render_plan_todo_text_response(response),
+        OutputMode::Json => render_plan_todo_json_response(response),
+    }
+}
+
+fn render_plan_todo_text_response(response: PlanTodoCommandResponse) -> CliOutput {
+    match response {
+        PlanTodoCommandResponse::Snapshot(snapshot) => {
+            match plan_todo_snapshot(snapshot, Vec::new()) {
+                Ok(snapshot) => CliOutput::exit(render_plan_todo_snapshot_text(&snapshot)),
+                Err(error) => CliOutput::failure(format!("plan/todo command failed: {error}\n"), 2),
+            }
+        }
+        PlanTodoCommandResponse::Updated(outcome) => {
+            match plan_todo_snapshot(outcome.snapshot, Vec::new()) {
+                Ok(snapshot) => {
+                    let mut stdout = format!(
+                        "Updated todo revision {} -> {}\nreason={}\n",
+                        outcome.previous_revision,
+                        snapshot.snapshot.revision,
+                        agent_scheduler::redact_task_text(&outcome.reason)
+                    );
+                    stdout.push_str(&render_plan_todo_snapshot_text(&snapshot));
+                    CliOutput::exit(stdout)
+                }
+                Err(error) => CliOutput::failure(format!("plan/todo command failed: {error}\n"), 2),
+            }
+        }
+        PlanTodoCommandResponse::Replaced(outcome) => {
+            match plan_todo_snapshot(outcome.snapshot, Vec::new()) {
+                Ok(snapshot) => {
+                    let mut stdout = format!(
+                        "Replaced todos revision {} -> {}\nreason={}\n",
+                        outcome.previous_revision,
+                        snapshot.snapshot.revision,
+                        agent_scheduler::redact_task_text(&outcome.reason)
+                    );
+                    stdout.push_str(&render_plan_todo_snapshot_text(&snapshot));
+                    CliOutput::exit(stdout)
+                }
+                Err(error) => CliOutput::failure(format!("plan/todo command failed: {error}\n"), 2),
+            }
+        }
+    }
+}
+
+fn render_plan_todo_json_response(response: PlanTodoCommandResponse) -> CliOutput {
+    let snapshot = match response {
+        PlanTodoCommandResponse::Snapshot(snapshot) => snapshot,
+        PlanTodoCommandResponse::Updated(outcome) | PlanTodoCommandResponse::Replaced(outcome) => {
+            outcome.snapshot
+        }
+    };
+
+    match plan_todo_snapshot(snapshot, Vec::new()) {
+        Ok(snapshot) => CliOutput::exit(json_frame_line(UiJsonFrame::PlanTodoSnapshot(snapshot))),
+        Err(error) => CliOutput::failure(format!("{error}\n"), 2),
+    }
+}
+
+fn render_plan_todo_error(
+    runtime: &PlanTodoCommandRuntime,
+    error: String,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match output_mode {
+        OutputMode::Text => CliOutput::failure(format!("plan/todo command failed: {error}\n"), 2),
+        OutputMode::Json => {
+            let ui_error = UiPlanTodoCommandError::recoverable("plan_todo_command_failed", error);
+            match ui_error.and_then(|error| {
+                UiPlanTodoSnapshot::from_snapshot(empty_plan_todo_snapshot(runtime), vec![error])
+            }) {
+                Ok(snapshot) => {
+                    CliOutput::failure(json_frame_line(UiJsonFrame::PlanTodoSnapshot(snapshot)), 2)
+                }
+                Err(error) => CliOutput::failure(format!("{error}\n"), 2),
+            }
+        }
+    }
+}
+
+fn empty_plan_todo_snapshot(runtime: &PlanTodoCommandRuntime) -> PlanTodoSnapshot {
+    let current = &runtime.snapshot;
+    PlanTodoSnapshot {
+        conversation_id: current.conversation_id,
+        turn_id: current.turn_id,
+        task_id: current.task_id,
+        revision: current.revision,
+        items: Vec::new(),
+        updated_at: current.updated_at,
+        diagnostics: Vec::new(),
+    }
+}
+
+fn plan_todo_snapshot(
+    snapshot: PlanTodoSnapshot,
+    errors: Vec<UiPlanTodoCommandError>,
+) -> Result<UiPlanTodoSnapshot, UiBridgeError> {
+    UiPlanTodoSnapshot::from_snapshot(snapshot, errors)
+}
+
+fn render_plan_todo_snapshot_text(snapshot: &UiPlanTodoSnapshot) -> String {
+    let plan = &snapshot.snapshot;
+    let progress = snapshot.progress;
+    let mut output = format!(
+        "Plan {}\nrevision={}\nprogress total={} pending={} in_progress={} completed={} cancelled={}\n",
+        plan.conversation_id,
+        plan.revision,
+        progress.total,
+        progress.pending,
+        progress.in_progress,
+        progress.completed,
+        progress.cancelled
+    );
+    if plan.items.is_empty() {
+        output.push_str("No todos\n");
+    }
+    for item in &plan.items {
+        output.push_str(&format!(
+            "- {} status={} priority={} source={} content={}\n",
+            item.item_id,
+            todo_status_label(item.status),
+            todo_priority_label(item.priority),
+            todo_source_label(item.source),
+            agent_scheduler::redact_task_text(&item.content)
+        ));
+        for evidence in &item.evidence {
+            output.push_str(&format!(
+                "  evidence {} {} {}\n",
+                todo_evidence_kind_label(evidence.kind),
+                agent_scheduler::redact_task_text(&evidence.reference),
+                agent_scheduler::redact_task_text(&evidence.summary)
+            ));
+        }
+    }
+    for diagnostic in &plan.diagnostics {
+        output.push_str(&format!(
+            "diagnostic {} {}\n",
+            agent_scheduler::redact_task_text(&diagnostic.code),
+            agent_scheduler::redact_task_text(&diagnostic.message)
+        ));
+    }
+    for error in &snapshot.errors {
+        output.push_str(&format!("error {} {}\n", error.code, error.message));
+    }
+    output
+}
+
+fn todo_status_label(status: TodoStatus) -> &'static str {
+    match status {
+        TodoStatus::Pending => "pending",
+        TodoStatus::InProgress => "in_progress",
+        TodoStatus::Completed => "completed",
+        TodoStatus::Cancelled => "cancelled",
+    }
+}
+
+fn todo_priority_label(priority: TodoPriority) -> &'static str {
+    match priority {
+        TodoPriority::Low => "low",
+        TodoPriority::Normal => "normal",
+        TodoPriority::High => "high",
+    }
+}
+
+fn todo_source_label(source: TodoSource) -> &'static str {
+    match source {
+        TodoSource::Model => "model",
+        TodoSource::User => "user",
+        TodoSource::Runtime => "runtime",
+        TodoSource::BackgroundTask => "background_task",
+    }
+}
+
+fn todo_evidence_kind_label(kind: PlanTodoEvidenceKind) -> &'static str {
+    match kind {
+        PlanTodoEvidenceKind::Approval => "approval",
+        PlanTodoEvidenceKind::Artifact => "artifact",
+        PlanTodoEvidenceKind::Checkpoint => "checkpoint",
+        PlanTodoEvidenceKind::Diagnostic => "diagnostic",
+        PlanTodoEvidenceKind::Notification => "notification",
+        PlanTodoEvidenceKind::Task => "task",
+        PlanTodoEvidenceKind::Trace => "trace",
+        PlanTodoEvidenceKind::Other => "other",
+    }
 }
 
 #[derive(Clone, Debug)]

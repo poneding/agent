@@ -301,6 +301,17 @@ impl TracePanelState {
                     snapshot.capability_reviews.len()
                 ),
             )),
+            UiJsonFrame::PlanTodoSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "plan-todo",
+                format!(
+                    "{} todos, {} in_progress, {} errors, revision {}",
+                    snapshot.progress.total,
+                    snapshot.progress.in_progress,
+                    snapshot.errors.len(),
+                    snapshot.snapshot.revision
+                ),
+            )),
             UiJsonFrame::TaskSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "tasks",

@@ -1,8 +1,8 @@
 use agent_policy::ApprovalResponse;
 use agent_scheduler::TaskCommand;
 use agent_types::{
-    ApprovalRequestId, ClientKind, ConversationId, CorrelationId, SchemaVersion, Timestamp, TurnId,
-    WorkspaceId,
+    ApprovalRequestId, ClientKind, ConversationId, CorrelationId, PlanTodoItemId, PlanTodoSnapshot,
+    SchemaVersion, Timestamp, TodoStatus, TurnId, WorkspaceId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -58,11 +58,35 @@ pub enum UiCommand {
         include_final: bool,
     },
     Task(TaskCommand),
+    PlanTodo(UiPlanTodoCommand),
     SwitchSession {
         workspace_id: WorkspaceId,
         conversation_id: ConversationId,
     },
     Ping,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", content = "data", rename_all = "snake_case")]
+pub enum UiPlanTodoCommand {
+    Show {
+        conversation_id: ConversationId,
+    },
+    List {
+        conversation_id: ConversationId,
+    },
+    UpdateStatus {
+        conversation_id: ConversationId,
+        item_id: PlanTodoItemId,
+        status: TodoStatus,
+        expected_revision: u64,
+        reason: String,
+    },
+    ReplaceSnapshot {
+        snapshot: PlanTodoSnapshot,
+        expected_revision: u64,
+        reason: String,
+    },
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -133,6 +157,7 @@ pub fn validate_ui_command(envelope: &UiCommandEnvelope) -> Result<(), UiBridgeE
         UiCommand::ResolveApproval { reason, .. } if reason.trim().is_empty() => Err(
             UiBridgeError::Validation("resolve_approval reason cannot be empty".to_string()),
         ),
+        UiCommand::PlanTodo(command) => validate_plan_todo_command(command),
         UiCommand::SwitchSession { workspace_id, .. } if is_nil_workspace_id(*workspace_id) => Err(
             UiBridgeError::Validation("switch_session workspace_id cannot be nil".to_string()),
         ),
@@ -141,6 +166,34 @@ pub fn validate_ui_command(envelope: &UiCommandEnvelope) -> Result<(), UiBridgeE
         } if is_nil_conversation_id(*conversation_id) => Err(UiBridgeError::Validation(
             "switch_session conversation_id cannot be nil".to_string(),
         )),
+        _ => Ok(()),
+    }
+}
+
+fn validate_plan_todo_command(command: &UiPlanTodoCommand) -> Result<(), UiBridgeError> {
+    match command {
+        UiPlanTodoCommand::Show { conversation_id }
+        | UiPlanTodoCommand::List { conversation_id }
+        | UiPlanTodoCommand::UpdateStatus {
+            conversation_id, ..
+        } if is_nil_conversation_id(*conversation_id) => Err(UiBridgeError::Validation(
+            "plan_todo conversation_id cannot be nil".to_string(),
+        )),
+        UiPlanTodoCommand::UpdateStatus { reason, .. }
+        | UiPlanTodoCommand::ReplaceSnapshot { reason, .. }
+            if reason.trim().is_empty() =>
+        {
+            Err(UiBridgeError::Validation(
+                "plan_todo reason cannot be empty".to_string(),
+            ))
+        }
+        UiPlanTodoCommand::ReplaceSnapshot { snapshot, .. }
+            if is_nil_conversation_id(snapshot.conversation_id) =>
+        {
+            Err(UiBridgeError::Validation(
+                "plan_todo snapshot conversation_id cannot be nil".to_string(),
+            ))
+        }
         _ => Ok(()),
     }
 }

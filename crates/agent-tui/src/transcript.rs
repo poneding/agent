@@ -326,6 +326,18 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::PlanTodoSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "plan-todo",
+                format!(
+                    "{} todos, {} in_progress, {} errors, revision {}",
+                    snapshot.progress.total,
+                    snapshot.progress.in_progress,
+                    snapshot.errors.len(),
+                    snapshot.snapshot.revision
+                ),
+                false,
+            )),
             UiJsonFrame::TaskSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "tasks",

@@ -11,10 +11,12 @@ use agent_core::{
     RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity, StartupMigrationOutcome,
     TaskArtifact, TaskReviewSummary, TerminalSessionDiagnosticSeverity,
     TerminalSessionDirectoryReport, TerminalSessionStatus, TerminalSessionSummary,
+    normalize_plan_todo_snapshot,
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{
-    CheckpointId, ClientKind, ConversationId, TaskId, TaskState, Timestamp, WorkspaceId,
+    CheckpointId, ClientKind, ConversationId, PlanTodoProgress, PlanTodoSnapshot, TaskId,
+    TaskState, Timestamp, WorkspaceId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -1991,6 +1993,70 @@ impl UiExtensionDiagnostic {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiPlanTodoSnapshot {
+    pub snapshot: PlanTodoSnapshot,
+    pub progress: PlanTodoProgress,
+    pub errors: Vec<UiPlanTodoCommandError>,
+}
+
+impl UiPlanTodoSnapshot {
+    pub fn from_snapshot(
+        snapshot: PlanTodoSnapshot,
+        errors: Vec<UiPlanTodoCommandError>,
+    ) -> Result<Self, UiBridgeError> {
+        let (mut snapshot, progress) = normalize_plan_todo_snapshot(snapshot)
+            .map_err(|error| UiBridgeError::Validation(error.to_string()))?;
+        snapshot.items.sort_by_key(|item| item.item_id.clone());
+
+        Ok(Self {
+            snapshot,
+            progress,
+            errors,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiPlanTodoCommandError {
+    pub code: String,
+    pub message: String,
+    pub recoverable: bool,
+}
+
+impl UiPlanTodoCommandError {
+    pub fn recoverable(
+        code: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        Self::new(code, message, true)
+    }
+
+    pub fn fatal(
+        code: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        Self::new(code, message, false)
+    }
+
+    fn new(
+        code: impl Into<String>,
+        message: impl Into<String>,
+        recoverable: bool,
+    ) -> Result<Self, UiBridgeError> {
+        let code = bounded_task_text(&code.into());
+        let message = bounded_task_text(&message.into());
+        validate_non_empty("plan/todo command error code", &code)?;
+        validate_non_empty("plan/todo command error message", &message)?;
+
+        Ok(Self {
+            code,
+            message,
+            recoverable,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UiTaskSnapshot {
     pub tasks: Vec<UiTaskSummary>,
     pub errors: Vec<UiTaskCommandError>,
@@ -2237,6 +2303,7 @@ pub enum UiJsonFrame {
     ProjectContextPinnedRetrievalSnapshot(UiProjectContextPinnedRetrievalSnapshot),
     ProjectContextQualityTraceSnapshot(UiProjectContextQualityTraceSnapshot),
     ExtensionSnapshot(UiExtensionSnapshot),
+    PlanTodoSnapshot(UiPlanTodoSnapshot),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
     StartupMigrationSnapshot(UiStartupMigrationSnapshot),

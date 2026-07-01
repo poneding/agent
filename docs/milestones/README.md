@@ -595,6 +595,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M61-01 slice spec | Complete |
 | M61-01 slice plan | Complete |
 | M61-01 implementation | Complete |
+| M61-02 slice spec | Complete |
+| M61-02 slice plan | Complete |
+| M61-02 implementation | Complete |
 | M61 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1322,7 +1325,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M61-01 Shared Plan/Todo State Contracts | `docs/specs/M61-01-plan-todo-state.spec.md` | `docs/plans/M61-01-plan-todo-state.plan.md` | Complete: TodoWrite-compatible typed state, progress counts, revision checks, evidence links, redaction, runtime event payloads, validation, and focused tests in shared crates. |
-| M61-02 CLI and JSON Plan/Todo Commands | To create | To create | Planned: stable CLI/JSON commands and bridge frames for viewing and updating plan/todo state. |
+| M61-02 CLI and JSON Plan/Todo Commands | `docs/specs/M61-02-cli-json-plan-todo.spec.md` | `docs/plans/M61-02-cli-json-plan-todo.plan.md` | Complete: stable CLI/JSON commands, typed bridge commands, plan/todo snapshot frames, revision-aware updates, replacement, redaction, and focused tests. |
 | M61-03 TUI and Desktop Plan/Task Surfaces | To create | To create | Planned: TUI and Desktop rendering for plan progress, active todo, waits, notifications, and artifacts from shared snapshots. |
 | M61-04 Background Wait Controls and Notifications | To create | To create | Planned: approval-wait, pause/resume/cancel, latest notification, and control-result evidence through scheduler/core/bridge paths. |
 | M61-05 Artifacts, Smoke, Docs, and Closeout | To create | To create | Planned: artifact evidence, credential-free CLI/Desktop smoke coverage, docs, final gates, and milestone status updates. |
@@ -1346,6 +1349,8 @@ Most recent completed or active planning documents:
 
 - `docs/specs/M61-plan-todo-task-ux.spec.md`
 - `docs/plans/M61-plan-todo-task-ux.plan.md`
+- `docs/specs/M61-02-cli-json-plan-todo.spec.md`
+- `docs/plans/M61-02-cli-json-plan-todo.plan.md`
 - `docs/specs/M61-01-plan-todo-state.spec.md`
 - `docs/plans/M61-01-plan-todo-state.plan.md`
 - `docs/specs/M60-desktop-daily-driver.spec.md`
@@ -1833,4 +1838,4 @@ Most recent completed technical design documents:
 
 Next implementation direction:
 
-- Create M61-02 CLI and JSON Plan/Todo Commands spec/plan, then expose stable text and JSON commands over the shared plan/todo state contracts.
+- Create M61-03 TUI and Desktop Plan/Task Surfaces spec/plan, then render plan progress, active todo, waiting approval, notifications, and artifact evidence from shared snapshots.

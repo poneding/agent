@@ -130,15 +130,15 @@ Verification passed:
 - Modify: `crates/agent-cli/src/command.rs`
 - Create: `crates/agent-cli/tests/plan_todo_commands.rs`
 
-- [ ] **Step 1: Plan CLI/JSON slice**
+- [x] **Step 1: Plan CLI/JSON slice**
 
 Define plan/todo command syntax, bridge command envelopes, JSON frame shapes, and stable text rendering.
 
-- [ ] **Step 2: Implement CLI/JSON commands**
+- [x] **Step 2: Implement CLI/JSON commands**
 
 Expose `plan show`, `todo list`, and typed todo update/set commands through shared bridge/runtime contracts.
 
-- [ ] **Step 3: Verify CLI/JSON behavior**
+- [x] **Step 3: Verify CLI/JSON behavior**
 
 Run:
 
@@ -149,6 +149,16 @@ cargo test -p agent-cli --test plan_todo_commands
 ```
 
 Expected: text and JSON plan/todo commands are stable, bounded, redacted, and revision-aware.
+
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-ui-bridge -p agent-cli --all-targets -- -D warnings`
+- `cargo test -p agent-ui-bridge --test plan_todo_bridge`
+- `cargo test -p agent-cli --test plan_todo_commands`
+- `cargo test -p agent-cli --test task_commands`
+- `cargo test -p agent-tui --test trace_panel`
+- `cargo test -p agent-tui --test transcript`
 
 ### Task 4: M61-03 TUI and Desktop Plan/Task Surfaces
 

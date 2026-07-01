@@ -40,10 +40,10 @@ pub use frame::{
     UiProjectContextSemanticRetrievalSummary, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
     UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
     UiRepoSessionDiagnostic, UiRepoSessionSnapshot, UiSettingsProfileSummary,
-    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary,
-    UiTaskReviewSummaryArtifact, UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary,
-    UiTerminalSessionDiagnostic, UiTerminalSessionSnapshot, UiTerminalSessionSummary,
-    encode_json_frame,
+    UiStartupMigrationSnapshot, UiTaskActiveTodoSummary, UiTaskCommandError, UiTaskReviewSnapshot,
+    UiTaskReviewSummary, UiTaskReviewSummaryArtifact, UiTaskScheduleSummary, UiTaskSnapshot,
+    UiTaskSummary, UiTerminalSessionDiagnostic, UiTerminalSessionSnapshot,
+    UiTerminalSessionSummary, encode_json_frame,
 };
 pub use slash::{
     UiSlashCommandCatalogSnapshot, UiSlashCommandCategory, UiSlashCommandDescriptor,

@@ -64,6 +64,21 @@ const workspaceSnapshot: DesktopWorkspaceSnapshot = {
       summary: 'Review file-edit approval',
       updated_at: '2026-06-27T00:00:01Z',
       latest_run_summary: 'waiting on Desktop approval',
+      plan_progress: {
+        total: 4,
+        pending: 1,
+        in_progress: 1,
+        completed: 2,
+        cancelled: 0,
+      },
+      active_todo: {
+        item_id: 'todo-64',
+        content: 'Review approval evidence',
+        priority: 'high',
+        evidence_count: 1,
+      },
+      waiting_approval: true,
+      latest_notification: 'approval requested',
       artifact_count: 1,
     },
     {
@@ -397,6 +412,9 @@ describe('desktop MVP smoke navigation', () => {
     expect(tasksWorkspace).toBeInTheDocument();
     expect(within(tasksWorkspace).getAllByText('Review file-edit approval').length).toBeGreaterThan(0);
     expect(within(tasksWorkspace).getAllByText('waiting_approval').length).toBeGreaterThan(0);
+    expect(within(tasksWorkspace).getAllByText('plan 2/1/4').length).toBeGreaterThan(0);
+    expect(within(tasksWorkspace).getAllByText('Review approval evidence').length).toBeGreaterThan(0);
+    expect(within(tasksWorkspace).getByText('approval requested')).toBeInTheDocument();
     expect(within(tasksWorkspace).getByText('Run cargo xtask desktop-test')).toBeInTheDocument();
     expect(within(tasksWorkspace).getByText('succeeded')).toBeInTheDocument();
 

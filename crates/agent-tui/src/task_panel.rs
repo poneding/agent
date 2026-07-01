@@ -1,5 +1,7 @@
-use agent_types::{ApprovalRequestId, TaskId, TaskState};
-use agent_ui_bridge::{UiEventPayload, UiJsonFrame, UiTaskReviewSummary, UiTaskSummary};
+use agent_types::{ApprovalRequestId, TaskId, TaskState, TodoStatus};
+use agent_ui_bridge::{
+    UiEventPayload, UiJsonFrame, UiPlanTodoSnapshot, UiTaskReviewSummary, UiTaskSummary,
+};
 
 const DEFAULT_TASK_NOTIFICATION_LIMIT: usize = 100;
 
@@ -43,6 +45,7 @@ impl TaskPanelNotification {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TaskPanelState {
     pub tasks: Vec<UiTaskSummary>,
+    pub plan: Option<UiPlanTodoSnapshot>,
     pub reviews: Vec<UiTaskReviewSummary>,
     pub notifications: Vec<TaskPanelNotification>,
     limit: usize,
@@ -53,6 +56,7 @@ impl TaskPanelState {
     pub fn with_limit(limit: usize) -> Self {
         Self {
             tasks: Vec::new(),
+            plan: None,
             reviews: Vec::new(),
             notifications: Vec::new(),
             limit: limit.max(1),
@@ -63,6 +67,9 @@ impl TaskPanelState {
         match frame {
             UiJsonFrame::TaskSnapshot(snapshot) => {
                 self.tasks = snapshot.tasks.clone();
+            }
+            UiJsonFrame::PlanTodoSnapshot(snapshot) => {
+                self.plan = Some(snapshot.clone());
             }
             UiJsonFrame::TaskReviewSnapshot(snapshot) => {
                 self.reviews = snapshot.reviews.clone();
@@ -85,11 +92,50 @@ impl TaskPanelState {
 
     #[must_use]
     pub fn render_text(&self) -> String {
-        if self.tasks.is_empty() && self.reviews.is_empty() && self.notifications.is_empty() {
+        if self.tasks.is_empty()
+            && self.plan.is_none()
+            && self.reviews.is_empty()
+            && self.notifications.is_empty()
+        {
             return "Tasks: empty".to_string();
         }
 
         let mut lines = Vec::new();
+        if let Some(plan) = &self.plan {
+            lines.push(format!(
+                "Plan: revision={} total={} pending={} in_progress={} completed={} cancelled={}",
+                plan.snapshot.revision,
+                plan.progress.total,
+                plan.progress.pending,
+                plan.progress.in_progress,
+                plan.progress.completed,
+                plan.progress.cancelled
+            ));
+            if let Some(active) = plan
+                .snapshot
+                .items
+                .iter()
+                .find(|item| item.status == TodoStatus::InProgress)
+            {
+                lines.push(format!(
+                    "active todo {} priority={} content={}",
+                    active.item_id,
+                    format!("{:?}", active.priority).to_ascii_lowercase(),
+                    active.content
+                ));
+            } else {
+                lines.push("active todo none".to_string());
+            }
+            for diagnostic in &plan.snapshot.diagnostics {
+                lines.push(format!(
+                    "plan diagnostic {} {}",
+                    diagnostic.code, diagnostic.message
+                ));
+            }
+            for error in &plan.errors {
+                lines.push(format!("plan error {} {}", error.code, error.message));
+            }
+        }
         if !self.tasks.is_empty() {
             lines.push(format!("Tasks: {}", self.tasks.len()));
             for (state, count) in self.state_counts() {
@@ -107,6 +153,24 @@ impl TaskPanelState {
             );
             if let Some(summary) = &task.latest_run_summary {
                 line.push_str(&format!(" latest={summary}"));
+            }
+            if let Some(progress) = task.plan_progress {
+                line.push_str(&format!(
+                    " plan={}/{}/{}",
+                    progress.completed, progress.in_progress, progress.total
+                ));
+            }
+            if let Some(active_todo) = &task.active_todo {
+                line.push_str(&format!(" active_todo={}", active_todo.content));
+            }
+            if task.waiting_approval {
+                line.push_str(" waiting_approval=yes");
+            }
+            if let Some(notification) = &task.latest_notification {
+                line.push_str(&format!(" notification={notification}"));
+            }
+            if task.artifact_count > 0 {
+                line.push_str(&format!(" artifacts={}", task.artifact_count));
             }
             line
         }));

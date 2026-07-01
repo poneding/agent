@@ -3,12 +3,12 @@ use agent_scheduler::{
     TaskScheduleUpdate, redact_task_text,
 };
 use agent_types::{
-    ClientKind, ConversationId, CorrelationId, SchemaVersion, TaskId, TaskState, Timestamp,
-    WorkspaceId,
+    ClientKind, ConversationId, CorrelationId, PlanTodoItemId, PlanTodoProgress, SchemaVersion,
+    TaskId, TaskState, Timestamp, TodoPriority, WorkspaceId,
 };
 use agent_ui_bridge::{
-    UiClientInfo, UiCommand, UiCommandEnvelope, UiJsonFrame, UiTaskCommandError, UiTaskSnapshot,
-    UiTaskSummary, validate_ui_command,
+    UiClientInfo, UiCommand, UiCommandEnvelope, UiJsonFrame, UiTaskActiveTodoSummary,
+    UiTaskCommandError, UiTaskSnapshot, UiTaskSummary, validate_ui_command,
 };
 use time::macros::datetime;
 
@@ -143,6 +143,66 @@ fn task_command_bridge_empty_snapshot_is_successful() {
 
     assert!(snapshot.tasks.is_empty());
     assert!(snapshot.errors.is_empty());
+}
+
+#[test]
+fn task_command_bridge_deserializes_task_summaries_without_plan_fields() {
+    let snapshot: UiTaskSnapshot = serde_json::from_value(serde_json::json!({
+        "tasks": [{
+            "task_id": task_id(),
+            "workspace_id": workspace_id(),
+            "conversation_id": conversation_id(),
+            "state": "waiting_approval",
+            "priority": "high",
+            "schedule": { "kind": "one_shot", "label": "once" },
+            "prompt_summary": "review workspace",
+            "latest_run_summary": "waiting for approval",
+            "created_at": "2026-06-27T00:00:00Z",
+            "updated_at": "2026-06-27T00:00:01Z"
+        }],
+        "errors": []
+    }))
+    .expect("snapshot");
+
+    assert_eq!(snapshot.tasks[0].plan_progress, None);
+    assert_eq!(snapshot.tasks[0].active_todo, None);
+    assert!(!snapshot.tasks[0].waiting_approval);
+    assert_eq!(snapshot.tasks[0].artifact_count, 0);
+}
+
+#[test]
+fn task_command_bridge_serializes_plan_fields_redacted() {
+    let mut summary = UiTaskSummary::from_task(&task("review task")).expect("summary");
+    summary.plan_progress = Some(PlanTodoProgress {
+        total: 3,
+        pending: 1,
+        in_progress: 1,
+        completed: 1,
+        cancelled: 0,
+    });
+    summary.active_todo = Some(
+        UiTaskActiveTodoSummary::new(
+            PlanTodoItemId::from_string_unchecked("todo-1"),
+            "inspect token sk-secret",
+            TodoPriority::High,
+            2,
+        )
+        .expect("active todo"),
+    );
+    summary.waiting_approval = true;
+    summary.latest_notification = Some("approval requested".to_string());
+    summary.artifact_count = 4;
+
+    let snapshot = UiTaskSnapshot::new(vec![summary], Vec::new()).expect("snapshot");
+    let serialized =
+        serde_json::to_string(&UiJsonFrame::TaskSnapshot(snapshot)).expect("serialize");
+
+    assert!(serialized.contains("\"plan_progress\""));
+    assert!(serialized.contains("\"active_todo\""));
+    assert!(serialized.contains("\"waiting_approval\":true"));
+    assert!(serialized.contains("\"artifact_count\":4"));
+    assert!(serialized.contains("[redacted]"));
+    assert!(!serialized.contains("sk-secret"));
 }
 
 #[test]

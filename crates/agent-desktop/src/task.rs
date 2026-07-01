@@ -1,7 +1,10 @@
-use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
+use agent_types::{
+    ConversationId, PlanTodoItemId, PlanTodoProgress, TaskId, TaskState, Timestamp, TodoPriority,
+    WorkspaceId,
+};
 use agent_ui_bridge::{
-    UiTaskCommandError, UiTaskReviewSummary, UiTaskReviewSummaryArtifact, UiTaskSnapshot,
-    UiTaskSummary,
+    UiTaskActiveTodoSummary, UiTaskCommandError, UiTaskReviewSummary, UiTaskReviewSummaryArtifact,
+    UiTaskSnapshot, UiTaskSummary,
 };
 use serde::{Deserialize, Serialize};
 
@@ -18,6 +21,16 @@ pub struct DesktopTaskItem {
     pub state: TaskState,
     pub summary: String,
     pub updated_at: Timestamp,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub plan_progress: Option<PlanTodoProgress>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub active_todo: Option<DesktopTaskActiveTodo>,
+    #[serde(default)]
+    pub waiting_approval: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_notification: Option<String>,
+    #[serde(default)]
+    pub artifact_count: u32,
 }
 
 impl DesktopTaskItem {
@@ -36,6 +49,11 @@ impl DesktopTaskItem {
             state,
             summary: validate_non_empty("task summary", summary.into())?,
             updated_at,
+            plan_progress: None,
+            active_todo: None,
+            waiting_approval: state == TaskState::WaitingApproval,
+            latest_notification: None,
+            artifact_count: 0,
         })
     }
 
@@ -49,14 +67,65 @@ impl TryFrom<&UiTaskSummary> for DesktopTaskItem {
     type Error = DesktopError;
 
     fn try_from(summary: &UiTaskSummary) -> Result<Self, Self::Error> {
-        Self::new(
+        let (task_summary, _) =
+            bounded_required_task_text("task summary", summary.prompt_summary.clone())?;
+        let mut item = Self::new(
             summary.task_id,
             summary.workspace_id,
             summary.conversation_id,
             summary.state,
-            summary.prompt_summary.clone(),
+            task_summary,
             summary.updated_at,
-        )
+        )?;
+        item.plan_progress = summary.plan_progress;
+        item.active_todo = summary
+            .active_todo
+            .as_ref()
+            .map(DesktopTaskActiveTodo::try_from)
+            .transpose()?;
+        item.waiting_approval =
+            summary.waiting_approval || summary.state == TaskState::WaitingApproval;
+        item.latest_notification = summary
+            .latest_notification
+            .clone()
+            .map(bounded_optional_task_text)
+            .transpose()?
+            .flatten()
+            .map(|item| item.0);
+        item.artifact_count = summary.artifact_count;
+        Ok(item)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DesktopTaskActiveTodo {
+    pub item_id: PlanTodoItemId,
+    pub content: String,
+    pub priority: TodoPriority,
+    pub evidence_count: u32,
+}
+
+impl DesktopTaskActiveTodo {
+    pub(crate) fn validate(&self) -> Result<(), DesktopError> {
+        validate_non_empty("active todo content", self.content.clone())?;
+        Ok(())
+    }
+}
+
+impl TryFrom<&UiTaskActiveTodoSummary> for DesktopTaskActiveTodo {
+    type Error = DesktopError;
+
+    fn try_from(summary: &UiTaskActiveTodoSummary) -> Result<Self, Self::Error> {
+        let (content, _) =
+            bounded_required_task_text("active todo content", summary.content.clone())?;
+        let item = Self {
+            item_id: summary.item_id.clone(),
+            content,
+            priority: summary.priority,
+            evidence_count: summary.evidence_count,
+        };
+        item.validate()?;
+        Ok(item)
     }
 }
 
@@ -84,6 +153,10 @@ pub struct DesktopTaskMonitorItem {
     pub state: TaskState,
     pub summary: String,
     pub latest_run_summary: Option<String>,
+    pub plan_progress: Option<PlanTodoProgress>,
+    pub active_todo: Option<DesktopTaskActiveTodo>,
+    pub waiting_approval: bool,
+    pub latest_notification: Option<String>,
     pub artifact_count: u32,
     pub updated_at: Timestamp,
 }
@@ -139,7 +212,22 @@ impl TryFrom<&UiTaskSummary> for DesktopTaskMonitorItem {
                 .transpose()?
                 .flatten()
                 .map(|item| item.0),
-            artifact_count: 0,
+            plan_progress: summary.plan_progress,
+            active_todo: summary
+                .active_todo
+                .as_ref()
+                .map(DesktopTaskActiveTodo::try_from)
+                .transpose()?,
+            waiting_approval: summary.waiting_approval
+                || summary.state == TaskState::WaitingApproval,
+            latest_notification: summary
+                .latest_notification
+                .clone()
+                .map(bounded_optional_task_text)
+                .transpose()?
+                .flatten()
+                .map(|item| item.0),
+            artifact_count: summary.artifact_count,
             updated_at: summary.updated_at,
         })
     }

@@ -1,10 +1,12 @@
 use agent_tui::{ComposerAction, TaskPanelState, TuiAction, TuiApp, render_app_to_string};
 use agent_types::{
-    ConversationId, CorrelationId, EventId, SchemaVersion, TaskId, TaskState, Timestamp,
+    ConversationId, CorrelationId, EventId, PlanTodoDiagnostic, PlanTodoItem, PlanTodoItemId,
+    PlanTodoProgress, PlanTodoSnapshot, SchemaVersion, TaskId, TaskState, Timestamp, TodoPriority,
+    TodoSource, TodoStatus,
 };
 use agent_ui_bridge::{
-    UiEventEnvelope, UiEventPayload, UiJsonFrame, UiTaskNotification, UiTaskReviewSnapshot,
-    UiTaskReviewSummary, UiTaskSnapshot,
+    UiEventEnvelope, UiEventPayload, UiJsonFrame, UiPlanTodoSnapshot, UiTaskActiveTodoSummary,
+    UiTaskNotification, UiTaskReviewSnapshot, UiTaskReviewSummary, UiTaskSnapshot,
 };
 
 fn event(payload: UiEventPayload) -> UiJsonFrame {
@@ -28,6 +30,43 @@ fn task_notification(task_id: TaskId, kind: &str, summary: &str) -> UiJsonFrame 
         summary: summary.to_string(),
         approval_id: None,
     }))
+}
+
+fn plan_snapshot() -> UiPlanTodoSnapshot {
+    let snapshot = PlanTodoSnapshot {
+        conversation_id: ConversationId::new(),
+        turn_id: None,
+        task_id: Some(TaskId::new()),
+        revision: 9,
+        items: vec![
+            PlanTodoItem {
+                item_id: PlanTodoItemId::from_string_unchecked("todo-active"),
+                content: "Run cargo test with [redacted]".to_string(),
+                status: TodoStatus::InProgress,
+                priority: TodoPriority::High,
+                source: TodoSource::Model,
+                task_id: None,
+                evidence: Vec::new(),
+                updated_at: Timestamp::now_utc(),
+            },
+            PlanTodoItem {
+                item_id: PlanTodoItemId::from_string_unchecked("todo-done"),
+                content: "Inspect task panel".to_string(),
+                status: TodoStatus::Completed,
+                priority: TodoPriority::Normal,
+                source: TodoSource::Runtime,
+                task_id: None,
+                evidence: Vec::new(),
+                updated_at: Timestamp::now_utc(),
+            },
+        ],
+        updated_at: Timestamp::now_utc(),
+        diagnostics: vec![PlanTodoDiagnostic {
+            code: "plan.note".to_string(),
+            message: "plan is fixture-backed".to_string(),
+        }],
+    };
+    UiPlanTodoSnapshot::from_snapshot(snapshot, Vec::new()).expect("plan snapshot")
 }
 
 #[test]
@@ -71,6 +110,22 @@ fn tasks_slash_command_opens_empty_task_panel() {
 }
 
 #[test]
+fn task_panel_renders_plan_todo_snapshot_progress() {
+    let mut panel = TaskPanelState::default();
+
+    panel.reduce_frame(&UiJsonFrame::PlanTodoSnapshot(plan_snapshot()));
+
+    let rendered = panel.render_text();
+    assert!(
+        rendered
+            .contains("Plan: revision=9 total=2 pending=0 in_progress=1 completed=1 cancelled=0")
+    );
+    assert!(rendered.contains("active todo todo-active priority=high"));
+    assert!(rendered.contains("Run cargo test with [redacted]"));
+    assert!(rendered.contains("plan diagnostic plan.note plan is fixture-backed"));
+}
+
+#[test]
 fn task_panel_renders_task_snapshot_status_metadata() {
     let mut panel = TaskPanelState::default();
     let snapshot: UiTaskSnapshot = serde_json::from_value(serde_json::json!({
@@ -98,6 +153,52 @@ fn task_panel_renders_task_snapshot_status_metadata() {
     assert!(rendered.contains("priority=high"));
     assert!(rendered.contains("schedule=once"));
     assert!(rendered.contains("latest=waiting for approval"));
+}
+
+#[test]
+fn task_panel_renders_task_summary_plan_fields() {
+    let mut panel = TaskPanelState::default();
+    let snapshot: UiTaskSnapshot = serde_json::from_value(serde_json::json!({
+        "tasks": [{
+            "task_id": TaskId::new(),
+            "workspace_id": agent_types::WorkspaceId::new(),
+            "conversation_id": ConversationId::new(),
+            "state": "waiting_approval",
+            "priority": "high",
+            "schedule": { "kind": "one_shot", "label": "once" },
+            "prompt_summary": "review workspace",
+            "latest_run_summary": "waiting for approval",
+            "plan_progress": PlanTodoProgress {
+                total: 4,
+                pending: 1,
+                in_progress: 1,
+                completed: 2,
+                cancelled: 0,
+            },
+            "active_todo": UiTaskActiveTodoSummary::new(
+                PlanTodoItemId::from_string_unchecked("todo-7"),
+                "Apply patch",
+                TodoPriority::High,
+                1,
+            ).expect("active todo"),
+            "waiting_approval": true,
+            "latest_notification": "needs approval",
+            "artifact_count": 3,
+            "created_at": "2026-07-01T00:00:00Z",
+            "updated_at": "2026-07-01T00:00:01Z"
+        }],
+        "errors": []
+    }))
+    .expect("task snapshot");
+
+    panel.reduce_frame(&UiJsonFrame::TaskSnapshot(snapshot));
+
+    let rendered = panel.render_text();
+    assert!(rendered.contains("plan=2/1/4"));
+    assert!(rendered.contains("active_todo=Apply patch"));
+    assert!(rendered.contains("waiting_approval=yes"));
+    assert!(rendered.contains("notification=needs approval"));
+    assert!(rendered.contains("artifacts=3"));
 }
 
 #[test]

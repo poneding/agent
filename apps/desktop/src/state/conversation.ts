@@ -4,6 +4,7 @@ import type {
   ConversationTaskState,
   DesktopBridgeError,
   DesktopCommandAck,
+  DesktopTaskActiveTodo,
   DesktopTaskItem,
   DesktopTaskState,
   DesktopWorkspaceSnapshot,
@@ -12,6 +13,8 @@ import type {
   TurnSubmission,
   UiCommandEnvelope,
   UiJsonFrame,
+  UiPlanTodoItem,
+  UiPlanTodoSnapshot,
 } from '../types';
 
 const MAX_CONVERSATION_TEXT_CHARS = 240;
@@ -52,6 +55,10 @@ export function reduceConversationTaskState(
 
   if (frame.type === 'error' && isRecord(frame.data)) {
     return reduceBridgeError(state, bridgeErrorFromFrame(frame.data));
+  }
+
+  if (frame.type === 'plan_todo_snapshot' && isPlanTodoSnapshot(frame.data)) {
+    return reducePlanTodoSnapshot(state, frame.data);
   }
 
   if (frame.type !== 'event' || !isRecord(frame.data)) {
@@ -221,6 +228,34 @@ function reduceTaskNotification(
   };
 }
 
+function reducePlanTodoSnapshot(
+  state: ConversationTaskState,
+  snapshot: UiPlanTodoSnapshot,
+): ConversationTaskState {
+  const taskId = snapshot.snapshot.task_id ?? taskIdFromPlanItems(snapshot.snapshot.items);
+  if (taskId === null) {
+    return state;
+  }
+
+  const activeTodo = activeTodoFromItems(snapshot.snapshot.items);
+  const tasks = state.tasks.map((task) =>
+    task.task_id === taskId
+      ? {
+          ...task,
+          plan_progress: snapshot.progress,
+          active_todo: activeTodo,
+          artifact_count: Math.max(task.artifact_count ?? 0, activeTodo?.evidence_count ?? 0),
+        }
+      : task,
+  );
+
+  return {
+    ...state,
+    tasks,
+    activeTaskId: state.activeTaskId ?? taskId,
+  };
+}
+
 function transcriptEntryFromPayload(
   type: string,
   data: unknown,
@@ -304,6 +339,44 @@ function taskStateFromKind(kind: string): DesktopTaskState {
     return normalized;
   }
   return 'running';
+}
+
+function isPlanTodoSnapshot(value: unknown): value is UiPlanTodoSnapshot {
+  if (!isRecord(value) || !isRecord(value.snapshot) || !isRecord(value.progress)) {
+    return false;
+  }
+  return (
+    typeof value.snapshot.conversation_id === 'string' &&
+    typeof value.snapshot.revision === 'number' &&
+    Array.isArray(value.snapshot.items) &&
+    typeof value.progress.total === 'number' &&
+    typeof value.progress.pending === 'number' &&
+    typeof value.progress.in_progress === 'number' &&
+    typeof value.progress.completed === 'number' &&
+    typeof value.progress.cancelled === 'number'
+  );
+}
+
+function taskIdFromPlanItems(items: UiPlanTodoItem[]): string | null {
+  for (const item of items) {
+    if (typeof item.task_id === 'string' && item.task_id.length > 0) {
+      return item.task_id;
+    }
+  }
+  return null;
+}
+
+function activeTodoFromItems(items: UiPlanTodoItem[]): DesktopTaskActiveTodo | null {
+  const item = items.find((candidate) => candidate.status === 'in_progress');
+  if (item === undefined) {
+    return null;
+  }
+  return {
+    item_id: item.item_id,
+    content: boundConversationText(item.content).text,
+    priority: item.priority,
+    evidence_count: Array.isArray(item.evidence) ? item.evidence.length : 0,
+  };
 }
 
 function createCommandId(): string {

@@ -51,8 +51,9 @@ pub use settings::{
 };
 pub use snapshot::{DesktopWorkspaceSnapshot, build_workspace_snapshot};
 pub use task::{
-    DesktopTaskArtifactItem, DesktopTaskItem, DesktopTaskMonitor, DesktopTaskMonitorCounts,
-    DesktopTaskMonitorError, DesktopTaskMonitorItem, DesktopTaskReviewItem, build_task_monitor,
+    DesktopTaskActiveTodo, DesktopTaskArtifactItem, DesktopTaskItem, DesktopTaskMonitor,
+    DesktopTaskMonitorCounts, DesktopTaskMonitorError, DesktopTaskMonitorItem,
+    DesktopTaskReviewItem, build_task_monitor,
 };
 pub use trace::{
     DesktopRuntimeLogEntry, DesktopRuntimeLogSeverity, TraceTimeline, TraceTimelineItem,

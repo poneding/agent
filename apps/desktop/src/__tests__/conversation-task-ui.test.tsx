@@ -102,6 +102,44 @@ describe('conversation task UI state', () => {
     expect(state.tasks.map((task) => task.task_id)).toContain('task-2');
   });
 
+  it('reduces plan todo snapshots into matching tasks', () => {
+    let state = createConversationTaskState(snapshot);
+
+    state = reduceConversationTaskState(state, {
+      type: 'plan_todo_snapshot',
+      data: {
+        snapshot: {
+          conversation_id: 'conversation-1',
+          task_id: 'task-1',
+          revision: 4,
+          items: [
+            {
+              item_id: 'todo-1',
+              content: 'Apply UI patch',
+              status: 'in_progress',
+              priority: 'high',
+              task_id: 'task-1',
+              evidence: [{ kind: 'artifact', reference: 'artifact-1' }],
+            },
+          ],
+          updated_at: '2026-06-27T00:00:02Z',
+        },
+        progress: {
+          total: 3,
+          pending: 1,
+          in_progress: 1,
+          completed: 1,
+          cancelled: 0,
+        },
+        errors: [],
+      },
+    });
+
+    expect(state.tasks[0].plan_progress?.total).toBe(3);
+    expect(state.tasks[0].active_todo?.content).toBe('Apply UI patch');
+    expect(state.tasks[0].active_todo?.evidence_count).toBe(1);
+  });
+
   it('tracks submitted prompts, command acknowledgements, and done frames', () => {
     const envelope = createStartTurnEnvelope({
       workspaceId: 'workspace-1',

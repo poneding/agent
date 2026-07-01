@@ -17,6 +17,18 @@ export function buildTaskMonitor(tasks: DesktopTaskItem[]): DesktopTaskMonitor {
   };
 }
 
+export function planProgressText(task: DesktopTaskItem): string | null {
+  const progress = task.plan_progress;
+  if (progress === undefined || progress === null) {
+    return null;
+  }
+  return `${progress.completed}/${progress.in_progress}/${progress.total}`;
+}
+
+export function isWaitingApproval(task: DesktopTaskItem): boolean {
+  return task.waiting_approval === true || task.state === 'waiting_approval';
+}
+
 function countTasks(tasks: DesktopTaskItem[]): DesktopTaskMonitorCounts {
   const counts: DesktopTaskMonitorCounts = {
     total: tasks.length,

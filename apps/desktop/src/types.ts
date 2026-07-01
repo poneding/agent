@@ -180,7 +180,50 @@ export interface DesktopTaskItem {
   summary: string;
   updated_at: Timestamp;
   latest_run_summary?: string | null;
+  plan_progress?: PlanTodoProgress | null;
+  active_todo?: DesktopTaskActiveTodo | null;
+  waiting_approval?: boolean;
+  latest_notification?: string | null;
   artifact_count?: number;
+}
+
+export interface PlanTodoProgress {
+  total: number;
+  pending: number;
+  in_progress: number;
+  completed: number;
+  cancelled: number;
+}
+
+export interface DesktopTaskActiveTodo {
+  item_id: string;
+  content: string;
+  priority: 'low' | 'normal' | 'high';
+  evidence_count: number;
+}
+
+export type TodoStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+
+export interface UiPlanTodoItem {
+  item_id: string;
+  content: string;
+  status: TodoStatus;
+  priority: 'low' | 'normal' | 'high';
+  task_id?: string | null;
+  evidence?: unknown[];
+}
+
+export interface UiPlanTodoSnapshot {
+  snapshot: {
+    conversation_id: string;
+    turn_id?: string | null;
+    task_id?: string | null;
+    revision: number;
+    items: UiPlanTodoItem[];
+    updated_at: Timestamp;
+  };
+  progress: PlanTodoProgress;
+  errors: unknown[];
 }
 
 export interface DesktopTaskMonitorCounts {
@@ -401,6 +444,10 @@ export type UiJsonFrame =
   | {
       type: 'extension_snapshot';
       data: UiExtensionSnapshot;
+    }
+  | {
+      type: 'plan_todo_snapshot';
+      data: UiPlanTodoSnapshot;
     }
   | {
       type: string;

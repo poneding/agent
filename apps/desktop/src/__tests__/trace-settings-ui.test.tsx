@@ -124,6 +124,21 @@ const tasks: DesktopTaskItem[] = [
     summary: 'Run verification',
     updated_at: '2026-06-27T00:00:00Z',
     latest_run_summary: 'cargo test running',
+    plan_progress: {
+      total: 4,
+      pending: 1,
+      in_progress: 1,
+      completed: 2,
+      cancelled: 0,
+    },
+    active_todo: {
+      item_id: 'todo-1',
+      content: 'Apply task monitor patch',
+      priority: 'high',
+      evidence_count: 2,
+    },
+    waiting_approval: false,
+    latest_notification: 'verification running',
     artifact_count: 2,
   },
   {
@@ -134,6 +149,7 @@ const tasks: DesktopTaskItem[] = [
     summary: 'Approve command',
     updated_at: '2026-06-27T00:01:00Z',
     latest_run_summary: null,
+    waiting_approval: true,
     artifact_count: 0,
   },
   {
@@ -194,6 +210,10 @@ describe('trace and settings UI', () => {
 
     expect(within(screen.getByLabelText('Task monitor counts')).getByText('3')).toBeInTheDocument();
     expect(screen.getByText('Approve command')).toBeInTheDocument();
+    expect(screen.getAllByText('plan 2/1/4').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Apply task monitor patch').length).toBeGreaterThan(0);
+    expect(screen.getByText('verification running')).toBeInTheDocument();
+    expect(screen.getAllByText('waiting approval').length).toBeGreaterThan(0);
     expect(screen.getByText('cargo test running')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
     expect(monitor.counts.active).toBe(1);

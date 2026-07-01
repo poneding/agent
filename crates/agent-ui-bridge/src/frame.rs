@@ -15,8 +15,8 @@ use agent_core::{
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{
-    CheckpointId, ClientKind, ConversationId, PlanTodoProgress, PlanTodoSnapshot, TaskId,
-    TaskState, Timestamp, WorkspaceId,
+    CheckpointId, ClientKind, ConversationId, PlanTodoItemId, PlanTodoProgress, PlanTodoSnapshot,
+    TaskId, TaskState, Timestamp, TodoPriority, WorkspaceId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -2083,6 +2083,16 @@ pub struct UiTaskSummary {
     pub schedule: UiTaskScheduleSummary,
     pub prompt_summary: String,
     pub latest_run_summary: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub plan_progress: Option<PlanTodoProgress>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub active_todo: Option<UiTaskActiveTodoSummary>,
+    #[serde(default)]
+    pub waiting_approval: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_notification: Option<String>,
+    #[serde(default)]
+    pub artifact_count: u32,
     pub created_at: Timestamp,
     pub updated_at: Timestamp,
 }
@@ -2104,8 +2114,39 @@ impl UiTaskSummary {
                 .latest_run_summary
                 .clone()
                 .map(|summary| bounded_task_text(&summary)),
+            plan_progress: None,
+            active_todo: None,
+            waiting_approval: task.state == TaskState::WaitingApproval,
+            latest_notification: None,
+            artifact_count: 0,
             created_at: task.created_at,
             updated_at: task.updated_at,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTaskActiveTodoSummary {
+    pub item_id: PlanTodoItemId,
+    pub content: String,
+    pub priority: TodoPriority,
+    pub evidence_count: u32,
+}
+
+impl UiTaskActiveTodoSummary {
+    pub fn new(
+        item_id: PlanTodoItemId,
+        content: impl Into<String>,
+        priority: TodoPriority,
+        evidence_count: u32,
+    ) -> Result<Self, UiBridgeError> {
+        let content = bounded_task_text(&content.into());
+        validate_non_empty("active todo content", &content)?;
+        Ok(Self {
+            item_id,
+            content,
+            priority,
+            evidence_count,
         })
     }
 }

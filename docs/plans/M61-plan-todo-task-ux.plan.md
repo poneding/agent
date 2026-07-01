@@ -176,15 +176,15 @@ Verification passed:
 - Modify: `apps/desktop/src/components/TaskDetail.tsx`
 - Modify: `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
 
-- [ ] **Step 1: Plan UI surface slice**
+- [x] **Step 1: Plan UI surface slice**
 
 Define how TUI and Desktop render plan progress, active todo, waiting approval, latest notification, and artifact evidence from bridge snapshots.
 
-- [ ] **Step 2: Implement shared UI rendering**
+- [x] **Step 2: Implement shared UI rendering**
 
 Update TUI panel, Desktop view models, React task list/detail state, and fixture tests without moving runtime state into presentation layers.
 
-- [ ] **Step 3: Verify UI surfaces**
+- [x] **Step 3: Verify UI surfaces**
 
 Run:
 
@@ -197,6 +197,17 @@ npm --prefix apps/desktop run build
 ```
 
 Expected: TUI and Desktop show plan/todo/task truth from typed snapshots.
+
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-tui -p agent-desktop --all-targets -- -D warnings`
+- `cargo test -p agent-tui --test task_panel`
+- `cargo test -p agent-desktop --test plan_todo_tasks`
+- `cargo test -p agent-desktop --test conversation_tasks`
+- `cargo test -p agent-ui-bridge --test task_command_bridge`
+- `npm --prefix apps/desktop test -- conversation-task-ui trace-settings-ui desktop-smoke`
+- `npm --prefix apps/desktop run build`
 
 ### Task 5: M61-04 Background Wait Controls and Notifications
 

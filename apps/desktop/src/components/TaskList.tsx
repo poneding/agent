@@ -1,4 +1,4 @@
-import { buildTaskMonitor } from '../state/tasks';
+import { buildTaskMonitor, isWaitingApproval, planProgressText } from '../state/tasks';
 import type { DesktopTaskItem } from '../types';
 
 export function TaskList({
@@ -28,18 +28,26 @@ export function TaskList({
         <dd>{monitor.counts.failed}</dd>
       </dl>
       <ul className="task-list" aria-label="Tasks">
-        {tasks.map((task) => (
-          <li key={task.task_id}>
-            <button
-              className={task.task_id === activeTaskId ? 'selected' : ''}
-              type="button"
-              onClick={() => onSelect(task.task_id)}
-            >
-              <span>{task.summary}</span>
-              <small>{task.state}</small>
-            </button>
-          </li>
-        ))}
+        {tasks.map((task) => {
+          const progress = planProgressText(task);
+          return (
+            <li key={task.task_id}>
+              <button
+                className={task.task_id === activeTaskId ? 'selected' : ''}
+                type="button"
+                onClick={() => onSelect(task.task_id)}
+              >
+                <span>{task.summary}</span>
+                <small>{task.state}</small>
+                {progress !== null ? <small>plan {progress}</small> : null}
+                {task.active_todo !== undefined && task.active_todo !== null ? (
+                  <small>{task.active_todo.content}</small>
+                ) : null}
+                {isWaitingApproval(task) ? <small>waiting approval</small> : null}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

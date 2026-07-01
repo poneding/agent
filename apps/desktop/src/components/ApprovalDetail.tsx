@@ -1,19 +1,26 @@
 import { FormEvent, useState } from 'react';
 
 import { approvalDecisionDisabledReason } from '../state/approvals';
-import type { BridgeErrorNotice, DesktopCommandAck, UiApprovalRequest } from '../types';
+import type {
+  BridgeErrorNotice,
+  DesktopCommandAck,
+  DesktopDiffReview,
+  UiApprovalRequest,
+} from '../types';
 import { DiffPreview } from './DiffPreview';
 
 export function ApprovalDetail({
   approval,
   decisionAck = null,
   decisionError = null,
+  diffReview = null,
   onAllow,
   onDeny,
 }: {
   approval: UiApprovalRequest | null;
   decisionAck?: DesktopCommandAck | null;
   decisionError?: BridgeErrorNotice | null;
+  diffReview?: DesktopDiffReview | null;
   onAllow: (requestId: string) => void;
   onDeny: (requestId: string, reason: string) => void;
 }) {
@@ -66,7 +73,7 @@ export function ApprovalDetail({
       {disabledReason === null ? null : (
         <p className="approval-disabled">{disabledReason}</p>
       )}
-      <DiffPreview preview={currentApproval.preview} />
+      <DiffPreview preview={currentApproval.preview} review={diffReview} />
       <div className="approval-actions">
         <button
           disabled={decisionDisabled}

@@ -5,11 +5,19 @@ use xtask::{
     command_plan_for, help_text, parse_args,
 };
 
-fn cargo(args: &[&str]) -> CargoCommand {
+fn cmd(program: &str, args: &[&str]) -> CargoCommand {
     CargoCommand {
-        program: "cargo".to_string(),
+        program: program.to_string(),
         args: args.iter().map(|arg| (*arg).to_string()).collect(),
     }
+}
+
+fn cargo(args: &[&str]) -> CargoCommand {
+    cmd("cargo", args)
+}
+
+fn npm(args: &[&str]) -> CargoCommand {
+    cmd("npm", args)
 }
 
 #[test]
@@ -77,7 +85,23 @@ fn standard_tasks_map_to_single_cargo_commands() {
     );
     assert_eq!(
         command_plan_for(&Task::DesktopTest),
-        vec![cargo(&["test", "-p", "agent-desktop"])]
+        vec![
+            cargo(&["test", "-p", "agent-desktop"]),
+            cargo(&[
+                "test",
+                "-p",
+                "agent-ui-bridge",
+                "--test",
+                "desktop_daily_driver",
+            ]),
+            cargo(&[
+                "test",
+                "--manifest-path",
+                "apps/desktop/src-tauri/Cargo.toml",
+            ]),
+            npm(&["--prefix", "apps/desktop", "test"]),
+            npm(&["--prefix", "apps/desktop", "run", "build"]),
+        ]
     );
     assert_eq!(parse_args(["eval"]), Ok(Task::Eval));
     assert_eq!(

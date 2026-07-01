@@ -467,6 +467,16 @@ impl CargoCommand {
         }
     }
 
+    fn new_for_program(
+        program: impl Into<String>,
+        args: impl IntoIterator<Item = &'static str>,
+    ) -> Self {
+        Self {
+            program: program.into(),
+            args: args.into_iter().map(str::to_string).collect(),
+        }
+    }
+
     fn with_prompt(args: &[&str], prompt: &str) -> Self {
         let mut command = Self {
             program: "cargo".to_string(),
@@ -750,7 +760,23 @@ pub fn command_plan_for(task: &Task) -> Vec<CargoCommand> {
                 "update_manifest",
             ])]
         }
-        Task::DesktopTest => vec![CargoCommand::new(["test", "-p", "agent-desktop"])],
+        Task::DesktopTest => vec![
+            CargoCommand::new(["test", "-p", "agent-desktop"]),
+            CargoCommand::new([
+                "test",
+                "-p",
+                "agent-ui-bridge",
+                "--test",
+                "desktop_daily_driver",
+            ]),
+            CargoCommand::new([
+                "test",
+                "--manifest-path",
+                "apps/desktop/src-tauri/Cargo.toml",
+            ]),
+            CargoCommand::new_for_program("npm", ["--prefix", "apps/desktop", "test"]),
+            CargoCommand::new_for_program("npm", ["--prefix", "apps/desktop", "run", "build"]),
+        ],
         Task::Eval => vec![CargoCommand::new([
             "run",
             "-p",
@@ -785,7 +811,7 @@ Commands:
   cli-json -- <text>    Run agent-cli with --json --prompt <text>
   package-cli           Build and smoke-test a local CLI release artifact
   package-desktop       Plan or build and smoke-test a local Desktop release
-  desktop-test          Run cargo test -p agent-desktop
+  desktop-test          Run the Desktop Rust, Tauri, frontend test, and build gate
   help                  Print this help
 "#
 }

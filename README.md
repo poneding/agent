@@ -114,6 +114,8 @@ agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/a
 
 Run `cargo xtask help` for the full command list.
 
+`cargo xtask desktop-test` is the Desktop product gate. It runs the Desktop Rust contracts, UI bridge Desktop smoke, Tauri command tests, frontend Vitest suite, and frontend production build.
+
 ## M56 Golden Path
 
 Run the deterministic M56 coding-agent acceptance path with:

@@ -16,12 +16,12 @@ The percentages below are directional planning estimates based on the current re
 | Local coding agent golden path | 60% | M56 repo/session, edit/diff, command/test, final review, and default local-coding eval scenario | Needs daily-driver behavior beyond the deterministic fixture: richer tasks, multi-file edits, retry/recovery UX, and real-provider parity. |
 | Context and memory | 50% | M05, M16, M23, prompt profiles, memory stores, retrieval design | Needs repo-aware context, semantic project indexing, memory review UX, and compaction quality gates. |
 | CLI and TUI product UX | 70% | M06, M20, M59, `agent-cli`, `agent-tui`, JSON mode | Needs deeper live coding-loop soak, retry/recovery polish, and parity with upcoming Desktop flows. |
-| Desktop product UX | 35% | M10, M21, `agent-desktop`, UI bridge contracts | Needs a real daily-use app: workspace dashboard, chat, diff review, permissions, provider settings, task monitor, logs, and recovery surfaces. |
+| Desktop product UX | 60% | M10, M21, M60, `agent-desktop`, UI bridge contracts, Desktop smoke fixture | Needs live-provider Desktop soak, recovery surfaces, installer/onboarding polish, and beta packaging. |
 | Background tasks and autonomy | 45% | M08, M24, scheduler/task contracts | Needs long-running task UX, notifications, quota visibility, resume controls, and failure recovery. |
 | Worktree, subagents, teams | 40% | M09, `agent-worktree`, `agent-team` | Needs product workflows for parallel implementation, review, merge, and conflict resolution. |
 | Plugins and skills | 55% | M11, M22, `agent-plugin`, `agent-skill` | Needs marketplace-like management, compatibility checks in UI, and real plugin developer loop. |
 | MCP extension layer | 85% | M07, M22, M30-M54, `agent-mcp` | Sufficient for now. Remaining OAuth/token polish should be backlog unless unblocking product scenarios. |
-| Observability, evals, CI gates | 75% | M26-M29, `agent-eval`, `xtask`, M56 local-coding golden path | Needs broader coding eval corpus and Desktop product smoke evidence. |
+| Observability, evals, CI gates | 80% | M26-M29, `agent-eval`, `xtask`, M56 local-coding golden path, M60 Desktop product smoke gate | Needs broader coding eval corpus, recovery/crash smoke evidence, and beta release smoke artifacts. |
 | Packaging, settings, updates | 50% | M25, settings/update crates and tests | Needs beta-grade install, upgrade, config migration, secrets setup, and provider onboarding. |
 
 Overall status: the runtime platform is ahead of the product. The next milestones should deliver vertical product value, not more extension protocol depth.
@@ -175,7 +175,7 @@ Acceptance:
 
 ### M60 Desktop Daily Driver
 
-Status: In progress. M60-01 workspace dashboard/session readiness, M60-02 conversation/composer/transcript flow, M60-03 approval popup/visual diff review, and M60-04 provider settings/task/log surfaces are complete; M60-05 Desktop golden path smoke and closeout is planned and implementation is next.
+Status: Complete. M60-01 workspace dashboard/session readiness, M60-02 conversation/composer/transcript flow, M60-03 approval popup/visual diff review, M60-04 provider settings/task/log surfaces, and M60-05 Desktop golden path smoke and closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`.
 
 Purpose: make Desktop a usable product surface over the shared runtime rather than a separate presentation demo.
 
@@ -187,7 +187,7 @@ Initial slices:
 | M60-02 Conversation, Composer, and Transcript Flow | Complete: typed Desktop turn submission, bridge frame draining, transcript updates, command acknowledgements, and recoverable bridge errors. |
 | M60-03 Approval Popup and Visual Diff Review | Complete: explicit approval decisions, lease display, policy rationale, redacted preview text, file summaries, hunks, and diff review state. |
 | M60-04 Provider Settings, Task Monitor, and Logs | Complete: provider/model diagnostics, settings validation, task monitor summaries, bounded runtime logs, and redacted trace evidence. |
-| M60-05 Desktop Golden Path Smoke and Closeout | Planned: credential-free M56-equivalent Desktop bridge simulation or UI-safe fixture, Desktop docs, final gates, and milestone status updates. |
+| M60-05 Desktop Golden Path Smoke and Closeout | Complete: credential-free M56-equivalent Desktop bridge simulation/UI-safe fixture, Desktop docs, final gates, and milestone status updates. |
 
 Acceptance:
 

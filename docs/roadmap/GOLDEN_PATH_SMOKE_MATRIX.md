@@ -29,8 +29,8 @@ M55 defines the smoke coverage needed to prove that `agent` is becoming a daily 
 | GP-12 | CLI TTY and batch modes | CLI | `cargo test -p agent-cli cli_modes`; `cargo test -p agent-cli plain_repl` | CLI parser/render fixtures | Prompt, batch, and plain REPL behavior remain stable | Pass | M59 |
 | GP-13 | CLI JSON event stream | CLI/UI bridge | `cargo test -p agent-cli json_mode`; `cargo test -p agent-ui-bridge json_frame` | UI bridge frame fixtures | Parseable NDJSON frames with redacted secrets and done count | Pass | M59 |
 | GP-14 | TUI daily-driver panels | TUI | `cargo test -p agent-tui` | Panel state/render fixtures | Transcript, composer, approvals, diffs, shell, task, trace, extension panels render from bridge frames | Pass | M59 |
-| GP-15 | Desktop bridge and snapshots | Desktop/UI bridge | `cargo xtask desktop-test`; `cargo test -p agent-ui-bridge` | Snapshot fixtures; no real app interaction | Workspace snapshot, conversation/task lists, permissions/diffs, settings, trace timeline | Documented | M60 |
-| GP-16 | Real Desktop golden path | Desktop app | None yet | Requires runnable app flow over shared runtime | User can perform M56-equivalent coding path with visual approvals and diffs | Blocked | M60 |
+| GP-15 | Desktop bridge and snapshots | Desktop/UI bridge | `cargo xtask desktop-test`; `cargo test -p agent-ui-bridge --test desktop_daily_driver` | Desktop snapshot, bridge frame, Tauri command, and React fixtures; no provider credentials | Workspace dashboard, conversation/task lists, permissions/diffs, provider/settings, trace timeline, runtime logs, and frontend build evidence | Pass | M60 |
+| GP-16 | Desktop golden path simulation | Desktop app | `cargo xtask desktop-test`; `npm --prefix apps/desktop test -- desktop-smoke` | Credential-free M56-equivalent Desktop fixture over shared bridge/Desktop contracts | User-facing Desktop shell navigates dashboard, conversation, tasks, approvals, visual diff, trace/logs, and settings with redacted evidence | Pass | M60 |
 | GP-17 | Provider capability diagnostics | Model/CLI | `cargo test -p agent-model provider_registry`; `cargo test -p agent-cli live_provider_registration` | Fake/OpenAI-compatible config fixtures | Provider config, registry, secret-safe diagnostics | Pass | M57 |
 | GP-18 | Native Anthropic/Gemini/local provider smoke | Model/CLI | None yet | Requires provider adapters and opt-in credentials or local endpoint | Tool-capable providers run the same M56 golden path or fail before turn with clear diagnostics | Missing | M57 |
 | GP-19 | Context and memory contribution visibility | Context/memory/CLI | `cargo test -p agent-context`; `cargo test -p agent-memory`; `cargo test -p agent-cli memory_commands` | Prompt/memory fixtures | Prompt layers, budget planner, memory retrieval, memory command output | Pass | M58, M64 |
@@ -45,7 +45,7 @@ M55 defines the smoke coverage needed to prove that `agent` is becoming a daily 
 - Real provider smokes must be opt-in and must never require secrets for default CI.
 - `cargo xtask ci` remains the broad quality gate, but it is not sufficient by itself to prove the M56 product golden path.
 - `cargo xtask eval` validates replay/evidence fixtures and the M56 local-coding golden path.
-- Desktop product smoke is intentionally marked `Blocked` until a user-facing app path is wired over the shared runtime bridge.
+- Desktop product smoke is covered by `cargo xtask desktop-test`; live-provider packaged Desktop smoke remains future M65 hardening.
 
 ## Immediate M56-M60 Implications
 
@@ -53,4 +53,4 @@ M55 defines the smoke coverage needed to prove that `agent` is becoming a daily 
 - M57 should close GP-18 with provider capability diagnostics and native adapters.
 - M58 should close GP-20 with repo-aware context selection and quality traces.
 - M59 should make GP-12 through GP-14 feel like one terminal workflow, not separate panels/tests.
-- M60 should turn GP-15/GP-16 into a real Desktop flow with visual approvals and diffs.
+- M60 turned GP-15/GP-16 into a credential-free Desktop flow with visual approvals and diffs.

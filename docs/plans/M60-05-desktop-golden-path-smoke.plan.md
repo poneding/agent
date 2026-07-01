@@ -44,11 +44,11 @@ Current baseline before implementation:
 **Files:**
 - Create: `crates/agent-desktop/tests/desktop_daily_driver.rs`
 
-- [ ] **Step 1: Build the Rust fixture**
+- [x] **Step 1: Build the Rust fixture**
 
 Create stable workspace, session, dashboard, conversation, approval, diff, provider/settings, task monitor, and trace/log fixture values using existing typed contracts.
 
-- [ ] **Step 2: Assert M56-shaped evidence**
+- [x] **Step 2: Assert M56-shaped evidence**
 
 Verify the fixture contains:
 
@@ -61,43 +61,49 @@ Verify the fixture contains:
 - task monitor counts for active, waiting approval, failed, and terminal tasks
 - trace timeline and runtime logs for edit, command/test, permission, and final evidence
 
-- [ ] **Step 3: Assert redaction and serialization**
+- [x] **Step 3: Assert redaction and serialization**
 
 Serialize the complete fixture and verify secret-like tokens, raw API keys, passwords, and hidden tool input names do not leak.
+
+Implemented in `crates/agent-desktop/tests/desktop_daily_driver.rs` with a full dashboard, conversation, approval, diff, provider/settings, task monitor, and trace/log aggregate fixture.
 
 ### Task 3: Strengthen UI Bridge Smoke Frames
 
 **Files:**
 - Modify: `crates/agent-ui-bridge/tests/desktop_daily_driver.rs`
 
-- [ ] **Step 1: Add approval resolution command coverage**
+- [x] **Step 1: Add approval resolution command coverage**
 
 Verify Desktop approval resolution commands serialize and validate through typed UI bridge contracts.
 
-- [ ] **Step 2: Add M56-shaped frame sequence**
+- [x] **Step 2: Add M56-shaped frame sequence**
 
 Build a deterministic frame sequence for user message, model delta, task notification, approval requested, approval resolved, final response, and done frames. Verify JSON frames remain one-line and parseable.
 
-- [ ] **Step 3: Assert bridge redaction boundaries**
+- [x] **Step 3: Assert bridge redaction boundaries**
 
 Ensure fixture frames do not expose secret-like values or unbounded raw payloads.
+
+Implemented in `crates/agent-ui-bridge/tests/desktop_daily_driver.rs` with Desktop start-turn, approval resolution, task notification, approval requested/resolved, final response, and done-frame coverage.
 
 ### Task 4: Strengthen Frontend Smoke Fixture
 
 **Files:**
 - Modify: `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
 
-- [ ] **Step 1: Expand the AppShell fixture**
+- [x] **Step 1: Expand the AppShell fixture**
 
 Add realistic dashboard counts, conversation state, pending approval, task states, provider capabilities, settings diagnostics, trace items, and runtime logs.
 
-- [ ] **Step 2: Assert each Desktop route shows golden-path evidence**
+- [x] **Step 2: Assert each Desktop route shows golden-path evidence**
 
 Navigate dashboard, conversation, tasks, approvals, trace, and settings. Assert the UI exposes the expected evidence and does not render secret-like values.
 
-- [ ] **Step 3: Assert composer and approval controls**
+- [x] **Step 3: Assert composer and approval controls**
 
 Verify prompt submission and approval controls call their typed handlers with stable values.
+
+Implemented in `apps/desktop/src/__tests__/desktop-smoke.test.tsx`; `ApprovalDetail` and `AppShell` now accept an optional visual diff review for smoke and review rendering.
 
 ### Task 5: Make `cargo xtask desktop-test` the Product Gate
 
@@ -106,7 +112,7 @@ Verify prompt submission and approval controls call their typed handlers with st
 - Modify: `xtask/tests/xtask_plan.rs`
 - Modify: `README.md`
 
-- [ ] **Step 1: Update command planning**
+- [x] **Step 1: Update command planning**
 
 Expand `Task::DesktopTest` to run:
 
@@ -118,9 +124,11 @@ npm --prefix apps/desktop test
 npm --prefix apps/desktop run build
 ```
 
-- [ ] **Step 2: Update parser/help/readme expectations**
+- [x] **Step 2: Update parser/help/readme expectations**
 
 Update `xtask` tests and README wording so `desktop-test` is documented as the Desktop product gate.
+
+Implemented in `xtask/src/lib.rs`, `xtask/tests/xtask_plan.rs`, and `README.md`.
 
 ### Task 6: Add Desktop Smoke Documentation
 
@@ -132,11 +140,11 @@ Update `xtask` tests and README wording so `desktop-test` is documented as the D
 - Modify: `docs/plans/M60-desktop-daily-driver.plan.md`
 - Modify: `docs/plans/M60-05-desktop-golden-path-smoke.plan.md`
 
-- [ ] **Step 1: Document the daily-driver smoke path**
+- [x] **Step 1: Document the daily-driver smoke path**
 
 Describe what `cargo xtask desktop-test` runs, what evidence the fixture covers, where live provider coverage remains out of scope, and how the smoke path maps to M56.
 
-- [ ] **Step 2: Update roadmap and milestone status**
+- [x] **Step 2: Update roadmap and milestone status**
 
 Mark GP-15/GP-16 and M60 status according to implementation results. Update the M60 slice index and active work handoff.
 
@@ -145,7 +153,7 @@ Mark GP-15/GP-16 and M60 status according to implementation results. Update the 
 **Files:**
 - Modify: `docs/plans/M60-05-desktop-golden-path-smoke.plan.md`
 
-- [ ] **Step 1: Run focused Desktop smoke checks**
+- [x] **Step 1: Run focused Desktop smoke checks**
 
 Run:
 
@@ -162,7 +170,13 @@ cargo xtask desktop-test
 
 Expected: all focused Desktop smoke checks pass.
 
-- [ ] **Step 2: Run final M60 gates**
+Verification passed:
+
+- `cargo fmt --all`
+- `cargo test -p xtask --test xtask_plan`
+- `cargo xtask desktop-test`
+
+- [x] **Step 2: Run final M60 gates**
 
 Run:
 
@@ -177,6 +191,15 @@ cargo xtask eval
 
 Expected: all workspace, Desktop, frontend, and eval gates pass.
 
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy --workspace --all-targets -- -D warnings`
+- `cargo test --workspace`
+- `npm --prefix apps/desktop test`
+- `npm --prefix apps/desktop run build`
+- `cargo xtask eval`
+
 - [ ] **Step 3: Commit closeout**
 
 Run exact-path staging for M60-05 files and commit:
@@ -188,10 +211,10 @@ git commit -m "feat: add m60 desktop golden path smoke"
 ### Completion Checklist
 
 - [x] M60-05 spec and plan are written.
-- [ ] `agent-desktop` has a full daily-driver contract smoke fixture.
-- [ ] `agent-ui-bridge` has M56-shaped Desktop command/frame smoke coverage.
-- [ ] Frontend Desktop smoke asserts dashboard, conversation, tasks, approvals, trace, settings, and redaction evidence.
-- [ ] `cargo xtask desktop-test` runs the Desktop product gate.
-- [ ] Desktop daily-driver smoke docs are written.
-- [ ] Final M60 workspace, frontend, and eval gates pass.
-- [ ] M60 roadmap, milestone, and plan statuses are closed out.
+- [x] `agent-desktop` has a full daily-driver contract smoke fixture.
+- [x] `agent-ui-bridge` has M56-shaped Desktop command/frame smoke coverage.
+- [x] Frontend Desktop smoke asserts dashboard, conversation, tasks, approvals, trace, settings, and redaction evidence.
+- [x] `cargo xtask desktop-test` runs the Desktop product gate.
+- [x] Desktop daily-driver smoke docs are written.
+- [x] Final M60 workspace, frontend, and eval gates pass.
+- [x] M60 roadmap, milestone, and plan statuses are closed out.

@@ -262,11 +262,19 @@ M60-05 planning is captured in:
 - `docs/specs/M60-05-desktop-golden-path-smoke.spec.md`
 - `docs/plans/M60-05-desktop-golden-path-smoke.plan.md`
 
-- [ ] **Step 2: Implement Desktop smoke slice**
+- [x] **Step 2: Implement Desktop smoke slice**
 
 Add deterministic Rust and frontend smoke coverage, document the daily-driver Desktop path, and extend `cargo xtask desktop-test` if needed so it represents the Desktop product gate.
 
-- [ ] **Step 3: Run final M60 gates**
+Implemented with:
+
+- `crates/agent-desktop/tests/desktop_daily_driver.rs`
+- `crates/agent-ui-bridge/tests/desktop_daily_driver.rs`
+- `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
+- `docs/desktop/daily-driver-smoke.md`
+- expanded `cargo xtask desktop-test`
+
+- [x] **Step 3: Run final M60 gates**
 
 Run:
 
@@ -281,6 +289,15 @@ cargo xtask eval
 
 Expected: all workspace, Desktop, frontend, and eval gates pass.
 
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy --workspace --all-targets -- -D warnings`
+- `cargo test --workspace`
+- `npm --prefix apps/desktop test`
+- `npm --prefix apps/desktop run build`
+- `cargo xtask eval`
+
 - [ ] **Step 4: Commit M60 closeout**
 
 Run exact-path staging and commit the final docs/status updates.
@@ -292,6 +309,6 @@ Run exact-path staging and commit the final docs/status updates.
 - [x] Approval popup and visual diff review are explicit, bounded, redacted, and policy-backed.
 - [x] Provider/settings diagnostics expose useful status without secrets.
 - [x] Task monitor and logs show bounded runtime evidence.
-- [ ] Desktop smoke fixture proves the M56 golden-path shape or a UI-safe bridge simulation.
-- [ ] Desktop frontend tests and build are part of the milestone verification path.
-- [ ] Final workspace fmt/clippy/tests, frontend checks, and `cargo xtask eval` pass.
+- [x] Desktop smoke fixture proves the M56 golden-path shape or a UI-safe bridge simulation.
+- [x] Desktop frontend tests and build are part of the milestone verification path.
+- [x] Final workspace fmt/clippy/tests, frontend checks, and `cargo xtask eval` pass.

@@ -50,6 +50,7 @@ import type {
   DesktopBootstrapDiagnostic,
   DesktopConfigSnapshot,
   DesktopDashboardSnapshot,
+  DesktopDiffReview,
   DesktopSettings,
   DesktopShellRoute,
   DesktopSessionSnapshot,
@@ -89,6 +90,7 @@ export function AppShell({
   settingsDiagnostics = [],
   settingsError = null,
   extensionSnapshot = null,
+  diffReview = null,
 }: {
   bootstrap: DesktopBootstrap | null;
   bootstrapError: string | null;
@@ -108,6 +110,7 @@ export function AppShell({
   settingsDiagnostics?: DesktopBootstrapDiagnostic[];
   settingsError?: string | null;
   extensionSnapshot?: UiExtensionSnapshot | null;
+  diffReview?: DesktopDiffReview | null;
 }) {
   const [route, setRoute] = useState<DesktopShellRoute>(bootstrap?.route ?? 'dashboard');
   const diagnostics = bootstrap?.diagnostics ?? [];
@@ -253,6 +256,7 @@ export function AppShell({
                 approval={selectedApproval}
                 decisionAck={approvalState.lastDecisionAck}
                 decisionError={approvalState.lastDecisionError}
+                diffReview={diffReview}
                 onAllow={onAllowApproval}
                 onDeny={onDenyApproval}
               />
@@ -312,6 +316,7 @@ export function AppShell({
             approval={selectedApproval}
             decisionAck={approvalState.lastDecisionAck}
             decisionError={approvalState.lastDecisionError}
+            diffReview={diffReview}
             onAllow={onAllowApproval}
             onDeny={onDenyApproval}
           />

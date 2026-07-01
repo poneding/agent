@@ -12,9 +12,9 @@ M30-M54 delivered a deep MCP extension track. That work remains valuable, but MC
 
 Current focus:
 
-- M60 Desktop Daily Driver
 - M61 Plan, Todo, and Task UX
 - M62 Reliability and Recovery Productization
+- M63 Worktree and Agent Team Workflows
 
 ## Document Layout
 
@@ -588,8 +588,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60-04 implementation | Complete |
 | M60-05 slice spec | Complete |
 | M60-05 slice plan | Complete |
-| M60-05 implementation | Planned |
-| M60 implementation | In progress |
+| M60-05 implementation | Complete |
+| M60 implementation | Complete |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -1308,7 +1308,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60-02 Conversation, Composer, and Transcript Flow | `docs/specs/M60-02-conversation-composer-transcript.spec.md` | `docs/plans/M60-02-conversation-composer-transcript.plan.md` | Complete: typed Desktop conversation view models, start-turn submission, bounded bridge frame draining, transcript/task updates, command acknowledgements, recoverable bridge errors, and focused Rust/frontend coverage. |
 | M60-03 Approval Popup and Visual Diff Review | `docs/specs/M60-03-approval-diff-review.spec.md` | `docs/plans/M60-03-approval-diff-review.plan.md` | Complete: explicit Desktop approval decisions, lease/expiry state, policy rationale, redacted previews, file summaries, bounded diff hunks, and focused Rust/frontend coverage. |
 | M60-04 Provider Settings, Task Monitor, and Logs | `docs/specs/M60-04-provider-task-log-surfaces.spec.md` | `docs/plans/M60-04-provider-task-log-surfaces.plan.md` | Complete: provider/model diagnostics, settings validation, task monitor summaries, bounded runtime logs, and redacted trace evidence. |
-| M60-05 Desktop Golden Path Smoke and Closeout | `docs/specs/M60-05-desktop-golden-path-smoke.spec.md` | `docs/plans/M60-05-desktop-golden-path-smoke.plan.md` | Planned: credential-free M56-equivalent Desktop smoke fixture, `cargo xtask desktop-test` product gate, daily-driver smoke docs, final gates, and M60 closeout status updates. |
+| M60-05 Desktop Golden Path Smoke and Closeout | `docs/specs/M60-05-desktop-golden-path-smoke.spec.md` | `docs/plans/M60-05-desktop-golden-path-smoke.plan.md` | Complete: credential-free M56-equivalent Desktop smoke fixture, `cargo xtask desktop-test` product gate, daily-driver smoke docs, final gates, and M60 closeout status updates. |
 
 ## MX01 Slice Index
 
@@ -1323,7 +1323,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M60 Desktop Daily Driver.
+Current implementation focus: M61 Plan, Todo, and Task UX.
 
 Most recent completed or active planning documents:
 
@@ -1812,4 +1812,4 @@ Most recent completed technical design documents:
 
 Next implementation direction:
 
-- Implement the M60-05 Desktop golden-path smoke fixture, `cargo xtask desktop-test` product gate, and closeout docs/gates.
+- Create M61 Plan, Todo, and Task UX milestone spec/plan and first implementation slice spec/plan.

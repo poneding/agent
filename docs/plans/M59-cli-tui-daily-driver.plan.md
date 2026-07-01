@@ -74,9 +74,9 @@ Defined a typed slash command catalog, help/status rendering, aliases, argument 
 - Create: `docs/specs/M59-03-approval-queue-permission-review.spec.md`
 - Create: `docs/plans/M59-03-approval-queue-permission-review.plan.md`
 
-- [ ] **Step 1: Plan approval queue slice**
+- [x] **Step 1: Plan approval queue slice**
 
-Define queue grouping, focus movement, batch-safe decisions, lease display, preview redaction, CLI/JSON inspection, and TUI actions.
+Defined queue grouping, focus movement, batch-safe decisions, lease display, preview redaction, CLI/JSON inspection, and TUI actions in M59-03.
 
 ### Task 5: M59-04 Diff Viewer and Command Streaming Controls
 

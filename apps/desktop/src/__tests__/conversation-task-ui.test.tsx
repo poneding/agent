@@ -10,6 +10,10 @@ import { TranscriptView } from '../components/TranscriptView';
 import {
   createConversationTaskState,
   createStartTurnEnvelope,
+  recordTurnSubmission,
+  reduceBridgeError,
+  reduceCommandAck,
+  reduceConversationTaskFrames,
   reduceConversationTaskState,
 } from '../state/conversation';
 import type { DesktopWorkspaceSnapshot, UiJsonFrame } from '../types';
@@ -71,6 +75,8 @@ describe('conversation task UI state', () => {
     expect(state.tasks).toHaveLength(0);
     expect(state.transcript).toHaveLength(0);
     expect(state.composerText).toBe('');
+    expect(state.currentSubmission).toBeNull();
+    expect(state.diagnostics).toHaveLength(0);
   });
 
   it('reduces transcript and task notification frames', () => {
@@ -96,6 +102,65 @@ describe('conversation task UI state', () => {
     expect(state.tasks.map((task) => task.task_id)).toContain('task-2');
   });
 
+  it('tracks submitted prompts, command acknowledgements, and done frames', () => {
+    const envelope = createStartTurnEnvelope({
+      workspaceId: 'workspace-1',
+      conversationId: 'conversation-1',
+      prompt: 'inspect token sk-test-secret and report',
+      clientVersion: '0.1.0',
+    });
+    let state = recordTurnSubmission(createConversationTaskState(snapshot), envelope);
+
+    expect(state.currentSubmission?.status).toBe('submitting');
+    expect(state.currentSubmission?.prompt_preview).toContain('[redacted]');
+    expect(state.currentSubmission?.prompt_preview).not.toContain('sk-test');
+
+    state = reduceCommandAck(state, {
+      command_id: envelope.command_id,
+      accepted: true,
+      state: 'connected',
+      pending_frame_count: 2,
+    });
+    expect(state.currentSubmission?.status).toBe('accepted');
+    expect(state.pendingFrameCount).toBe(2);
+
+    state = reduceConversationTaskFrames(state, [
+      eventFrame({ type: 'final_response', data: { message: 'done' } }),
+      { type: 'done', data: { event_count: 1 } },
+    ]);
+
+    expect(state.currentSubmission?.status).toBe('completed');
+    expect(state.pendingFrameCount).toBe(0);
+    expect(state.transcript.map((entry) => entry.content)).toEqual([
+      'done',
+      '1 frame events processed',
+    ]);
+  });
+
+  it('turns bridge errors into recoverable diagnostics', () => {
+    const envelope = createStartTurnEnvelope({
+      workspaceId: 'workspace-1',
+      conversationId: 'conversation-1',
+      prompt: 'hello',
+      clientVersion: '0.1.0',
+    });
+    let state = recordTurnSubmission(createConversationTaskState(snapshot), envelope);
+
+    state = reduceBridgeError(state, {
+      code: 'desktop.bridge.disconnected',
+      message: 'token sk-test-secret is hidden',
+      recoverable: true,
+    });
+
+    expect(state.currentSubmission?.status).toBe('rejected');
+    expect(state.currentSubmission?.error?.message).toContain('[redacted]');
+    expect(state.currentSubmission?.error?.message).not.toContain('sk-test');
+    expect(state.diagnostics[0]).toMatchObject({
+      severity: 'warning',
+      code: 'desktop.bridge.disconnected',
+    });
+  });
+
   it('renders conversation list, transcript, composer, task list, and detail', () => {
     const state = reduceConversationTaskState(
       createConversationTaskState(snapshot),
@@ -111,7 +176,23 @@ describe('conversation task UI state', () => {
           onSelect={() => undefined}
         />
         <TranscriptView entries={state.transcript} />
-        <Composer disabled={false} onSubmitPrompt={submit} />
+        <Composer
+          disabled={false}
+          onSubmitPrompt={submit}
+          submission={{
+            command_id: 'command-1',
+            conversation_id: 'conversation-1',
+            prompt_preview: 'Ship it',
+            status: 'accepted',
+            ack: {
+              command_id: 'command-1',
+              accepted: true,
+              pending_frame_count: 1,
+            },
+            error: null,
+            truncated: false,
+          }}
+        />
         <TaskList tasks={state.tasks} activeTaskId={state.activeTaskId} onSelect={() => undefined} />
         <TaskDetail task={state.tasks[0]} />
       </>,
@@ -119,6 +200,8 @@ describe('conversation task UI state', () => {
 
     expect(screen.getByText('Main thread')).toBeInTheDocument();
     expect(screen.getByText('done')).toBeInTheDocument();
+    expect(screen.getByText('accepted')).toBeInTheDocument();
+    expect(screen.getByText('1 pending frames')).toBeInTheDocument();
     expect(within(screen.getByLabelText('Tasks')).getByText('Implement desktop UI')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Message composer'), {

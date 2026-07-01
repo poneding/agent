@@ -373,8 +373,47 @@ export type UiJsonFrame =
 
 export interface TranscriptEntry {
   id: string;
-  kind: 'user' | 'assistant' | 'diagnostic' | 'progress';
+  kind: 'user' | 'assistant' | 'diagnostic' | 'progress' | 'system';
   content: string;
+  truncated?: boolean;
+}
+
+export type TurnSubmissionStatus =
+  | 'draft'
+  | 'submitting'
+  | 'accepted'
+  | 'rejected'
+  | 'draining_frames'
+  | 'completed';
+
+export interface TurnCommandAck {
+  command_id: string;
+  accepted: boolean;
+  pending_frame_count: number;
+}
+
+export interface BridgeErrorNotice {
+  code: string;
+  message: string;
+  recoverable: boolean;
+  truncated: boolean;
+}
+
+export interface TurnSubmission {
+  command_id: string;
+  conversation_id: string;
+  prompt_preview: string;
+  status: TurnSubmissionStatus;
+  ack: TurnCommandAck | null;
+  error: BridgeErrorNotice | null;
+  truncated: boolean;
+}
+
+export interface ConversationDiagnostic {
+  severity: 'info' | 'warning' | 'error';
+  code: string;
+  message: string;
+  truncated: boolean;
 }
 
 export interface ConversationTaskState {
@@ -385,4 +424,7 @@ export interface ConversationTaskState {
   activeConversationId: string | null;
   activeTaskId: string | null;
   composerText: string;
+  currentSubmission: TurnSubmission | null;
+  diagnostics: ConversationDiagnostic[];
+  pendingFrameCount: number;
 }

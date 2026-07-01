@@ -1,12 +1,20 @@
 import type {
+  BridgeErrorNotice,
+  ConversationDiagnostic,
   ConversationTaskState,
+  DesktopBridgeError,
+  DesktopCommandAck,
   DesktopTaskItem,
   DesktopTaskState,
   DesktopWorkspaceSnapshot,
   TranscriptEntry,
+  TurnCommandAck,
+  TurnSubmission,
   UiCommandEnvelope,
   UiJsonFrame,
 } from '../types';
+
+const MAX_CONVERSATION_TEXT_CHARS = 240;
 
 interface StartTurnInput {
   workspaceId: string;
@@ -26,6 +34,9 @@ export function createConversationTaskState(
     activeConversationId: snapshot.active_conversation_id ?? null,
     activeTaskId: snapshot.tasks[0]?.task_id ?? null,
     composerText: '',
+    currentSubmission: null,
+    diagnostics: [],
+    pendingFrameCount: 0,
   };
 }
 
@@ -33,6 +44,16 @@ export function reduceConversationTaskState(
   state: ConversationTaskState,
   frame: UiJsonFrame,
 ): ConversationTaskState {
+  if (frame.type === 'done' && isRecord(frame.data)) {
+    const eventCount =
+      typeof frame.data.event_count === 'number' ? frame.data.event_count : 0;
+    return markSubmissionCompleted(state, eventCount);
+  }
+
+  if (frame.type === 'error' && isRecord(frame.data)) {
+    return reduceBridgeError(state, bridgeErrorFromFrame(frame.data));
+  }
+
   if (frame.type !== 'event' || !isRecord(frame.data)) {
     return state;
   }
@@ -57,6 +78,13 @@ export function reduceConversationTaskState(
   };
 }
 
+export function reduceConversationTaskFrames(
+  state: ConversationTaskState,
+  frames: UiJsonFrame[],
+): ConversationTaskState {
+  return frames.reduce(reduceConversationTaskState, state);
+}
+
 export function createStartTurnEnvelope(input: StartTurnInput): UiCommandEnvelope {
   return {
     schema_version: 1,
@@ -73,6 +101,89 @@ export function createStartTurnEnvelope(input: StartTurnInput): UiCommandEnvelop
         prompt: input.prompt,
       },
     },
+  };
+}
+
+export function recordTurnSubmission(
+  state: ConversationTaskState,
+  envelope: UiCommandEnvelope,
+): ConversationTaskState {
+  if (envelope.command.type !== 'start_turn') {
+    return state;
+  }
+
+  const { prompt, conversation_id: conversationId } = envelope.command.data;
+  const preview = boundConversationText(prompt);
+  const submission: TurnSubmission = {
+    command_id: envelope.command_id,
+    conversation_id: conversationId,
+    prompt_preview: preview.text,
+    status: 'submitting',
+    ack: null,
+    error: null,
+    truncated: preview.truncated,
+  };
+
+  return {
+    ...state,
+    activeConversationId: conversationId,
+    currentSubmission: submission,
+  };
+}
+
+export function reduceCommandAck(
+  state: ConversationTaskState,
+  ack: DesktopCommandAck,
+): ConversationTaskState {
+  const turnAck: TurnCommandAck = {
+    command_id: ack.command_id,
+    accepted: ack.accepted,
+    pending_frame_count: ack.pending_frame_count,
+  };
+
+  if (state.currentSubmission === null || state.currentSubmission.command_id !== ack.command_id) {
+    return {
+      ...state,
+      pendingFrameCount: ack.pending_frame_count,
+    };
+  }
+
+  return {
+    ...state,
+    pendingFrameCount: ack.pending_frame_count,
+    currentSubmission: {
+      ...state.currentSubmission,
+      status: ack.accepted ? 'accepted' : 'rejected',
+      ack: turnAck,
+      error: ack.accepted ? null : state.currentSubmission.error,
+    },
+  };
+}
+
+export function reduceBridgeError(
+  state: ConversationTaskState,
+  error: DesktopBridgeError | BridgeErrorNotice,
+): ConversationTaskState {
+  const notice = bridgeErrorNotice(error);
+  return {
+    ...state,
+    currentSubmission:
+      state.currentSubmission === null
+        ? null
+        : {
+            ...state.currentSubmission,
+            status: 'rejected',
+            error: notice,
+          },
+    diagnostics: [
+      ...state.diagnostics,
+      {
+        severity: notice.recoverable ? 'warning' : 'error',
+        code: notice.code,
+        message: notice.message,
+        truncated: notice.truncated,
+      },
+    ],
   };
 }
 
@@ -138,15 +249,41 @@ function transcriptEntryFromPayload(
   return null;
 }
 
+function markSubmissionCompleted(
+  state: ConversationTaskState,
+  eventCount: number,
+): ConversationTaskState {
+  const completionEntry =
+    eventCount > 0
+      ? transcriptEntry(state.transcript, 'system', `${eventCount} frame events processed`)
+      : null;
+
+  return {
+    ...state,
+    pendingFrameCount: 0,
+    currentSubmission:
+      state.currentSubmission === null
+        ? null
+        : {
+            ...state.currentSubmission,
+            status: 'completed',
+          },
+    transcript:
+      completionEntry === null ? state.transcript : [...state.transcript, completionEntry],
+  };
+}
+
 function transcriptEntry(
   transcript: TranscriptEntry[],
   kind: TranscriptEntry['kind'],
   content: string,
 ): TranscriptEntry {
+  const bounded = boundConversationText(content);
   return {
     id: `entry-${transcript.length + 1}`,
     kind,
-    content,
+    content: bounded.text,
+    truncated: bounded.truncated,
   };
 }
 
@@ -174,6 +311,56 @@ function createCommandId(): string {
     return crypto.randomUUID();
   }
   return `desktop-command-${Date.now()}`;
+}
+
+function bridgeErrorFromFrame(data: Record<string, unknown>): BridgeErrorNotice {
+  return bridgeErrorNotice({
+    code: typeof data.code === 'string' ? data.code : 'desktop.bridge.error',
+    message: typeof data.message === 'string' ? data.message : 'desktop bridge error',
+    recoverable: typeof data.recoverable === 'boolean' ? data.recoverable : true,
+  });
+}
+
+function bridgeErrorNotice(error: DesktopBridgeError | BridgeErrorNotice): BridgeErrorNotice {
+  const code = boundConversationText(error.code);
+  const message = boundConversationText(error.message);
+  return {
+    code: code.text || 'desktop.bridge.error',
+    message: message.text || 'desktop bridge error',
+    recoverable: error.recoverable,
+    truncated: code.truncated || message.truncated || ('truncated' in error && error.truncated),
+  };
+}
+
+function boundConversationText(value: string): { text: string; truncated: boolean } {
+  const redacted = redactSecretLikeText(value).trim();
+  if (redacted.length === 0) {
+    return { text: '', truncated: false };
+  }
+  const chars = Array.from(redacted);
+  if (chars.length > MAX_CONVERSATION_TEXT_CHARS) {
+    return { text: chars.slice(0, MAX_CONVERSATION_TEXT_CHARS).join(''), truncated: true };
+  }
+  return { text: redacted, truncated: false };
+}
+
+function redactSecretLikeText(value: string): string {
+  return value
+    .split(/\s+/)
+    .map((token) => (isSecretLike(token) ? '[redacted]' : token))
+    .join(' ');
+}
+
+function isSecretLike(value: string): boolean {
+  const normalized = value.toLowerCase();
+  return (
+    normalized.includes('secret') ||
+    normalized.includes('token') ||
+    normalized.includes('password') ||
+    normalized.includes('api_key') ||
+    normalized.includes('apikey') ||
+    normalized.startsWith('sk-')
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

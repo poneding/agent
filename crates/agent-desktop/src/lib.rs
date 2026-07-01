@@ -14,7 +14,12 @@ pub mod task;
 pub mod trace;
 pub mod update;
 
-pub use conversation::DesktopConversationItem;
+pub use conversation::{
+    DesktopBridgeErrorNotice, DesktopConversationDiagnostic, DesktopConversationDiagnosticSeverity,
+    DesktopConversationFrameUpdate, DesktopConversationItem, DesktopConversationPanel,
+    DesktopTranscriptEntry, DesktopTranscriptRole, DesktopTurnCommandAck, DesktopTurnSubmission,
+    DesktopTurnSubmissionStatus, conversation_update_from_frame,
+};
 pub use dashboard::{
     DesktopDashboardDiagnostic, DesktopDashboardDiagnosticSeverity, DesktopDashboardInput,
     DesktopDashboardSnapshot, DesktopProviderReadiness, DesktopSessionReadiness,

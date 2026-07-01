@@ -46,7 +46,7 @@ Baseline reviewed before planning:
 - Create: `crates/agent-ui-bridge/tests/desktop_daily_driver.rs`
 - Modify: `apps/desktop/src/__tests__/conversation-task-ui.test.tsx`
 
-- [ ] **Step 1: Add `agent-desktop` conversation view-model tests**
+- [x] **Step 1: Add `agent-desktop` conversation view-model tests**
 
 Cover:
 
@@ -56,7 +56,7 @@ Cover:
 - done frames mark the current submission complete
 - error frames become bounded recoverable bridge notices
 
-- [ ] **Step 2: Add bridge command/frame tests**
+- [x] **Step 2: Add bridge command/frame tests**
 
 Cover:
 
@@ -64,7 +64,7 @@ Cover:
 - empty prompt is rejected before acknowledgement
 - done and recoverable error frames serialize as single-line JSON
 
-- [ ] **Step 3: Extend Vitest coverage**
+- [x] **Step 3: Extend Vitest coverage**
 
 Cover:
 
@@ -73,7 +73,7 @@ Cover:
 - drained frames update transcript/task state
 - bridge errors render as recoverable diagnostics
 
-- [ ] **Step 4: Run focused tests and verify expected failures**
+- [x] **Step 4: Run focused tests and verify coverage**
 
 Run:
 
@@ -83,7 +83,7 @@ cargo test -p agent-ui-bridge desktop_daily_driver
 npm --prefix apps/desktop test -- conversation-task-ui
 ```
 
-Expected: new tests fail before the implementation exists.
+Expected: focused tests cover the new contracts. Implementation landed with the tests in this slice; final focused verification passed after the contracts were implemented.
 
 ### Task 3: Implement `agent-desktop` Conversation Model
 
@@ -92,15 +92,15 @@ Expected: new tests fail before the implementation exists.
 - Modify: `crates/agent-desktop/src/lib.rs`
 - Modify: `crates/agent-desktop/tests/desktop_conversation.rs`
 
-- [ ] **Step 1: Add conversation contracts**
+- [x] **Step 1: Add conversation contracts**
 
 Implement typed structs/enums for transcript entries, transcript roles, turn submission state, command acknowledgements, bridge error notices, and conversation diagnostics.
 
-- [ ] **Step 2: Add pure helpers**
+- [x] **Step 2: Add pure helpers**
 
 Implement bounded/redacted prompt preview creation and helper methods for applying accepted acknowledgements, done frames, and error frames to Desktop conversation state.
 
-- [ ] **Step 3: Run focused Desktop contract tests**
+- [x] **Step 3: Run focused Desktop contract tests**
 
 Run:
 
@@ -109,6 +109,8 @@ cargo test -p agent-desktop --test desktop_conversation
 ```
 
 Expected: Desktop conversation contract tests pass.
+
+Passed with four focused Desktop conversation contract tests.
 
 ### Task 4: Strengthen Bridge and Tauri Boundaries
 
@@ -119,15 +121,17 @@ Expected: Desktop conversation contract tests pass.
 - Modify: `apps/desktop/src-tauri/src/bridge.rs`
 - Modify: `apps/desktop/src-tauri/src/tests/bridge_session.rs`
 
-- [ ] **Step 1: Add bridge command/frame coverage**
+- [x] **Step 1: Add bridge command/frame coverage**
 
 Keep `StartTurn` validation in `agent-ui-bridge` and add focused Desktop daily-driver tests for command serialization, validation, done frames, and recoverable error frames.
 
-- [ ] **Step 2: Add deterministic Tauri frame fixtures if needed**
+- [x] **Step 2: Add deterministic Tauri frame fixtures if needed**
 
 If the frontend needs testable frame drain behavior beyond existing helpers, add narrow test-only frame enqueue helpers that preserve bounded queue and redaction behavior.
 
-- [ ] **Step 3: Run focused bridge/Tauri tests**
+No new Tauri frame fixture helper was required; existing bridge-session helpers covered acknowledgement, frame drain, disconnected, and redaction behavior.
+
+- [x] **Step 3: Run focused bridge/Tauri tests**
 
 Run:
 
@@ -137,6 +141,8 @@ cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml bridge_session
 ```
 
 Expected: bridge and Tauri command/frame tests pass.
+
+Passed with the `agent-ui-bridge` Desktop daily-driver integration test and Tauri bridge-session test.
 
 ### Task 5: Connect React Composer, Transcript, and Frame Drain
 
@@ -150,23 +156,23 @@ Expected: bridge and Tauri command/frame tests pass.
 - Modify: `apps/desktop/src/app.css`
 - Modify: `apps/desktop/src/__tests__/conversation-task-ui.test.tsx`
 
-- [ ] **Step 1: Add TypeScript conversation state types**
+- [x] **Step 1: Add TypeScript conversation state types**
 
 Mirror the Rust/Tauri conversation response shape in `types.ts`, including submission status, command ack, pending frame count, and recoverable error notices.
 
-- [ ] **Step 2: Apply command acknowledgement state**
+- [x] **Step 2: Apply command acknowledgement state**
 
 Update composer submission flow so accepted acknowledgements update conversation state and rejected/disconnected errors become recoverable diagnostics.
 
-- [ ] **Step 3: Drain frames into conversation/task state**
+- [x] **Step 3: Drain frames into conversation/task state**
 
 Call `drainUiFrames` after accepted submission and on a bounded polling interval while connected. Reduce event, done, and error frames into transcript, task, submission, and diagnostic state.
 
-- [ ] **Step 4: Render acknowledgement and recoverable errors**
+- [x] **Step 4: Render acknowledgement and recoverable errors**
 
 Display current submission status, pending frame count, recoverable bridge errors, and transcript entries without exposing raw secrets or hidden runtime data.
 
-- [ ] **Step 5: Run focused frontend tests**
+- [x] **Step 5: Run focused frontend tests**
 
 Run:
 
@@ -176,6 +182,8 @@ npm --prefix apps/desktop test -- conversation-task-ui
 
 Expected: conversation/composer/transcript Vitest coverage passes.
 
+Passed with six focused conversation-task UI tests and the frontend production build.
+
 ### Task 6: Verify Slice and Commit
 
 **Files:**
@@ -183,7 +191,7 @@ Expected: conversation/composer/transcript Vitest coverage passes.
 - Modify: `docs/plans/M60-desktop-daily-driver.plan.md`
 - Modify: `docs/plans/M60-02-conversation-composer-transcript.plan.md`
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -199,7 +207,17 @@ npm --prefix apps/desktop run build
 
 Expected: all focused M60-02 checks pass.
 
-- [ ] **Step 2: Run status and exact-path commit**
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
+- `cargo test -p agent-desktop --test desktop_conversation`
+- `cargo test -p agent-ui-bridge --test desktop_daily_driver`
+- `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml bridge_session`
+- `npm --prefix apps/desktop test -- conversation-task-ui`
+- `npm --prefix apps/desktop run build`
+
+- [x] **Step 2: Run status and exact-path commit**
 
 Run:
 
@@ -233,9 +251,9 @@ Expected: commit includes only M60-02 docs, source, tests, and status updates.
 ### Completion Checklist
 
 - [x] M60-02 spec and plan are written.
-- [ ] Conversation view models are typed, serde-friendly, bounded, and redacted.
-- [ ] Start-turn submission uses typed bridge commands and validation.
-- [ ] Command acknowledgements are visible in Desktop state.
-- [ ] Bounded frame drains update transcript and task state.
-- [ ] Recoverable bridge errors render without crashing the shell.
-- [ ] Focused Rust, Tauri, frontend, and build checks pass.
+- [x] Conversation view models are typed, serde-friendly, bounded, and redacted.
+- [x] Start-turn submission uses typed bridge commands and validation.
+- [x] Command acknowledgements are visible in Desktop state.
+- [x] Bounded frame drains update transcript and task state.
+- [x] Recoverable bridge errors render without crashing the shell.
+- [x] Focused Rust, Tauri, frontend, and build checks pass.

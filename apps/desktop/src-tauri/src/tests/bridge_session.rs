@@ -82,12 +82,27 @@ fn send_ui_command_validates_before_acknowledging() {
     assert!(ack.accepted);
     assert_eq!(ack.state, DesktopRuntimeState::Connected);
     assert_eq!(ack.command_id, "00000000-0000-0000-0000-000000000100");
+    assert_eq!(ack.pending_frame_count, 2);
 
     let error = session
         .send_ui_command(start_turn_command("   "))
         .expect_err("empty prompt is rejected");
     assert_eq!(error.code, "desktop.bridge.command_invalid");
     assert!(error.message.contains("start_turn prompt cannot be empty"));
+}
+
+#[test]
+fn send_ui_command_rejects_disconnected_session_without_acknowledgement() {
+    let mut session = DesktopRuntimeSession::new_for_tests(8);
+    session.start(start_request()).expect("session starts");
+    session.stop().expect("session stops");
+
+    let error = session
+        .send_ui_command(start_turn_command("Summarize this workspace"))
+        .expect_err("disconnected command is rejected");
+
+    assert_eq!(error.code, "desktop.bridge.disconnected");
+    assert!(error.message.contains("not connected"));
 }
 
 #[test]

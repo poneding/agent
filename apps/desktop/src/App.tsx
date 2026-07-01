@@ -20,10 +20,14 @@ import { TaskList } from './components/TaskList';
 import { TraceTimeline } from './components/TraceTimeline';
 import { TranscriptView } from './components/TranscriptView';
 import { WorkspaceDashboard } from './components/WorkspaceDashboard';
-import { sendUiCommand, startSession } from './bridge';
+import { drainUiFrames, normalizeBridgeError, sendUiCommand, startSession } from './bridge';
 import {
   createConversationTaskState,
   createStartTurnEnvelope,
+  recordTurnSubmission,
+  reduceBridgeError,
+  reduceCommandAck,
+  reduceConversationTaskFrames,
 } from './state/conversation';
 import { createApprovalState } from './state/approvals';
 import {
@@ -44,6 +48,7 @@ import type {
   DesktopShellRoute,
   DesktopSessionSnapshot,
   DesktopWorkspaceSnapshot,
+  ConversationTaskState,
   SettingsUiState,
   TraceTimeline as TraceTimelineModel,
   TraceUiState,
@@ -64,6 +69,7 @@ export function AppShell({
   bootstrapError,
   dashboardSnapshot = null,
   workspaceSnapshot,
+  conversationState = null,
   sessionSnapshot,
   onSubmitPrompt = () => undefined,
   approvalState = createApprovalState(),
@@ -81,6 +87,7 @@ export function AppShell({
   bootstrapError: string | null;
   dashboardSnapshot?: DesktopDashboardSnapshot | null;
   workspaceSnapshot?: DesktopWorkspaceSnapshot | null;
+  conversationState?: ConversationTaskState | null;
   sessionSnapshot?: DesktopSessionSnapshot | null;
   onSubmitPrompt?: (prompt: string) => void;
   approvalState?: ApprovalUiState;
@@ -96,7 +103,7 @@ export function AppShell({
 }) {
   const [route, setRoute] = useState<DesktopShellRoute>(bootstrap?.route ?? 'dashboard');
   const diagnostics = bootstrap?.diagnostics ?? [];
-  const conversationTaskState = useMemo(
+  const fallbackConversationTaskState = useMemo(
     () =>
       createConversationTaskState(
         workspaceSnapshot ?? {
@@ -108,6 +115,7 @@ export function AppShell({
       ),
     [workspaceSnapshot],
   );
+  const conversationTaskState = conversationState ?? fallbackConversationTaskState;
   const selectedTask = selectTask(
     conversationTaskState.tasks,
     conversationTaskState.activeTaskId,
@@ -191,8 +199,22 @@ export function AppShell({
                 />
                 <TranscriptView entries={conversationTaskState.transcript} />
               </div>
+              {conversationTaskState.diagnostics.length === 0 ? null : (
+                <ul className="conversation-diagnostics" aria-label="Conversation diagnostics">
+                  {conversationTaskState.diagnostics.map((diagnostic) => (
+                    <li key={`${diagnostic.code}-${diagnostic.message}`}>
+                      <strong>{diagnostic.code}</strong>
+                      <span>{diagnostic.message}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
-            <Composer disabled={composerDisabled} onSubmitPrompt={onSubmitPrompt} />
+            <Composer
+              disabled={composerDisabled}
+              onSubmitPrompt={onSubmitPrompt}
+              submission={conversationTaskState.currentSubmission}
+            />
           </>
         ) : null}
         {route === 'tasks' ? (
@@ -331,6 +353,14 @@ export default function App() {
   const [dashboardSnapshot, setDashboardSnapshot] = useState<DesktopDashboardSnapshot | null>(null);
   const [sessionSnapshot, setSessionSnapshot] = useState<DesktopSessionSnapshot | null>(null);
   const [workspaceSnapshot, setWorkspaceSnapshot] = useState<DesktopWorkspaceSnapshot | null>(null);
+  const [conversationState, setConversationState] = useState<ConversationTaskState>(() =>
+    createConversationTaskState({
+      workspace_id: 'loading',
+      active_conversation_id: null,
+      conversations: [],
+      tasks: [],
+    }),
+  );
   const [approvalState] = useState<ApprovalUiState>(() => createApprovalState());
   const [traceState, setTraceState] = useState<TraceUiState>(() => createTraceState(null));
   const [settingsState, setSettingsState] = useState<SettingsUiState>(() => createSettingsState());
@@ -361,6 +391,7 @@ export default function App() {
           setDashboardSnapshot(nextDashboardSnapshot);
           setSessionSnapshot(nextSession);
           setWorkspaceSnapshot(nextWorkspaceSnapshot);
+          setConversationState(createConversationTaskState(nextWorkspaceSnapshot));
           setSettingsState(
             reduceSettingsValidation(nextSettingsState, nextSettingsDiagnostics),
           );
@@ -396,19 +427,57 @@ export default function App() {
     }
 
     try {
-      await sendUiCommand(
-        createStartTurnEnvelope({
-          workspaceId: workspaceSnapshot.workspace_id,
-          conversationId: workspaceSnapshot.active_conversation_id,
-          prompt,
-          clientVersion: bootstrap.app_version,
-        }),
+      const envelope = createStartTurnEnvelope({
+        workspaceId: workspaceSnapshot.workspace_id,
+        conversationId: workspaceSnapshot.active_conversation_id,
+        prompt,
+        clientVersion: bootstrap.app_version,
+      });
+      setConversationState((state) => recordTurnSubmission(state, envelope));
+      const ack = await sendUiCommand(envelope);
+      setConversationState((state) => reduceCommandAck(state, ack));
+      setSessionSnapshot((snapshot) =>
+        snapshot === null
+          ? snapshot
+          : {
+              ...snapshot,
+              state: ack.state,
+              pending_frame_count: ack.pending_frame_count,
+            },
       );
+      await drainBridgeFrames(32);
       setBootstrapError(null);
     } catch (error) {
-      setBootstrapError(error instanceof Error ? error.message : String(error));
+      const normalized = normalizeBridgeError(error);
+      setConversationState((state) => reduceBridgeError(state, normalized));
+      setBootstrapError(normalized.message);
     }
   }
+
+  async function drainBridgeFrames(maxCount: number) {
+    try {
+      const frames = await drainUiFrames(maxCount);
+      if (frames.length > 0) {
+        setConversationState((state) => reduceConversationTaskFrames(state, frames));
+      }
+    } catch (error) {
+      const normalized = normalizeBridgeError(error);
+      setConversationState((state) => reduceBridgeError(state, normalized));
+      setBootstrapError(normalized.message);
+    }
+  }
+
+  useEffect(() => {
+    if (sessionSnapshot?.state !== 'connected') {
+      return undefined;
+    }
+
+    const interval = window.setInterval(() => {
+      void drainBridgeFrames(32);
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [sessionSnapshot?.state]);
 
   async function handleAllowApproval(requestId: string) {
     await handleResolveApproval(requestId, 'allow', 'approved in desktop');
@@ -450,6 +519,7 @@ export default function App() {
       dashboardSnapshot={dashboardSnapshot}
       sessionSnapshot={sessionSnapshot}
       workspaceSnapshot={workspaceSnapshot}
+      conversationState={conversationState}
       approvalState={approvalState}
       traceTimeline={traceState.timeline}
       traceError={traceState.error}

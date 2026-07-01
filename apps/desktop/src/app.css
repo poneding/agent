@@ -308,6 +308,45 @@ textarea {
   padding: 12px;
 }
 
+.composer-status {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 3px;
+  border: 1px solid #d6dbe1;
+  border-radius: 6px;
+  background: #f9fafb;
+  padding: 8px 10px;
+}
+
+.composer-status span,
+.composer-status small,
+.composer-error,
+.conversation-diagnostics span {
+  overflow-wrap: anywhere;
+}
+
+.composer-error {
+  color: #8b2c2c;
+  margin: 0;
+}
+
+.conversation-diagnostics {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.conversation-diagnostics li {
+  display: grid;
+  gap: 2px;
+  border: 1px solid #e0c2c2;
+  border-radius: 6px;
+  background: #fff8f8;
+  padding: 8px 10px;
+}
+
 .composer textarea {
   min-width: 0;
   resize: vertical;

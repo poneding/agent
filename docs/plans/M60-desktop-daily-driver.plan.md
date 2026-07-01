@@ -110,13 +110,28 @@ M60-02 planning is captured in:
 - `docs/specs/M60-02-conversation-composer-transcript.spec.md`
 - `docs/plans/M60-02-conversation-composer-transcript.plan.md`
 
-- [ ] **Step 2: Implement conversation/composer slice**
+- [x] **Step 2: Implement conversation/composer slice**
 
 Connect composer submission to typed UI commands and render frame-driven transcript/task updates using deterministic fixtures.
 
-- [ ] **Step 3: Verify conversation/composer slice**
+- Implemented typed Desktop conversation contracts in `agent-desktop`.
+- Added `agent-ui-bridge` Desktop daily-driver command/frame coverage.
+- Extended Tauri bridge-session tests for acknowledgements and disconnected errors.
+- Connected React conversation state to start-turn submission, command acknowledgements, bounded frame drains, transcript/task updates, and recoverable bridge errors.
+
+- [x] **Step 3: Verify conversation/composer slice**
 
 Run focused bridge, Tauri, and Vitest tests named in the slice plan.
+
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
+- `cargo test -p agent-desktop --test desktop_conversation`
+- `cargo test -p agent-ui-bridge --test desktop_daily_driver`
+- `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml bridge_session`
+- `npm --prefix apps/desktop test -- conversation-task-ui`
+- `npm --prefix apps/desktop run build`
 
 ### Task 4: M60-03 Approval Popup and Visual Diff Review
 
@@ -227,7 +242,7 @@ Run exact-path staging and commit the final docs/status updates.
 ### Completion Checklist
 
 - [x] Workspace dashboard/session readiness is visible and tested.
-- [ ] Conversation, composer, and transcript flow through shared bridge commands/frames.
+- [x] Conversation, composer, and transcript flow through shared bridge commands/frames.
 - [ ] Approval popup and visual diff review are explicit, bounded, redacted, and policy-backed.
 - [ ] Provider/settings diagnostics expose useful status without secrets.
 - [ ] Task monitor and logs show bounded runtime evidence.

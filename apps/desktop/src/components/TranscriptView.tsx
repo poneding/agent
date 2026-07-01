@@ -11,6 +11,7 @@ export function TranscriptView({ entries }: { entries: TranscriptEntry[] }) {
         <li className={`transcript-entry transcript-entry-${entry.kind}`} key={entry.id}>
           <span>{entry.kind}</span>
           <p>{entry.content}</p>
+          {entry.truncated ? <small>truncated</small> : null}
         </li>
       ))}
     </ol>

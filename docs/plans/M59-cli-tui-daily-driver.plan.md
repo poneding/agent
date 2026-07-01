@@ -88,9 +88,9 @@ Completed typed approval queue snapshots, CLI text/JSON inspection, TUI queue me
 - Create: `docs/specs/M59-04-diff-command-streaming.spec.md`
 - Create: `docs/plans/M59-04-diff-command-streaming.plan.md`
 
-- [ ] **Step 1: Plan diff and command panel slice**
+- [x] **Step 1: Plan diff and command panel slice**
 
-Define diff navigation, command/test output chunks, waiting/running/completed states, cancellation readiness, and stable rendering across CLI/JSON/TUI.
+Defined typed diff and command/test daily-driver rendering, cancellation readiness, TUI navigation/state, CLI/JSON stability, and focused verification in M59-04.
 
 ### Task 6: M59-05 Task Status and JSON/Batch Recipes
 
@@ -132,7 +132,7 @@ Run exact-path staging and commit the final docs/status updates.
 
 - [x] Terminal sessions can be listed, restored, and switched through typed contracts.
 - [x] Slash command catalog is discoverable and tested.
-- [ ] Approval queue and permission review workflows are actionable and safe.
+- [x] Approval queue and permission review workflows are actionable and safe.
 - [ ] Diff and command/test panels support repeated coding-loop use.
 - [ ] Task status is visible and bounded in CLI/JSON/TUI paths.
 - [ ] JSON/batch recipes are documented and covered by tests.

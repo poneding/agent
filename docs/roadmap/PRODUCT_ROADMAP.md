@@ -198,7 +198,7 @@ Acceptance:
 
 ### M61 Plan, Todo, and Task UX
 
-Status: Complete. M61-01 shared plan/todo state contracts, M61-02 CLI/JSON plan/todo commands, M61-03 TUI/Desktop plan/task surfaces, M61-04 background wait controls and notifications, and M61-05 artifacts, smoke, docs, and closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M62 Reliability and Recovery Productization is next.
+Status: Complete. M61-01 shared plan/todo state contracts, M61-02 CLI/JSON plan/todo commands, M61-03 TUI/Desktop plan/task surfaces, M61-04 background wait controls and notifications, and M61-05 artifacts, smoke, docs, and closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M62 Reliability and Recovery Productization planning is ready.
 
 Purpose: make plan, todo, and task state one first-class product surface across interactive and background work.
 
@@ -218,6 +218,31 @@ Acceptance:
 - TUI and Desktop render the same plan/todo/task truth from bridge snapshots.
 - Background tasks expose waiting approval, pause/resume/cancel state, notifications, and artifact evidence.
 - TodoWrite-compatible state is typed, serializable, validated, redacted, and covered by tests.
+
+### M62 Reliability and Recovery Productization
+
+Status: Planned. The milestone spec and implementation plan define recovery snapshot/resume contracts, replay/fork commands, idempotent recovery visibility, failed-command retry UX, conflict diagnostics, and deterministic crash smoke coverage.
+
+Purpose: make real coding work recoverable after interruption, crashes, conflicts, and retryable failures.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M62-01 Recovery Snapshot and Resume Contracts | Add typed recovery snapshots, readiness, diagnostics, pending tool/idempotency/approval evidence, and resume dry-run behavior. |
+| M62-02 CLI/JSON Replay, Resume, and Fork Commands | Expose stable recovery status/resume and replay inspect/fork commands through CLI/JSON and bridge contracts. |
+| M62-03 Idempotent Recovery and Failed Command Retry UX | Show replayed/skipped side effects, classify retryable command/test failures, and link retry attempts to prior evidence. |
+| M62-04 Conflict Diagnostics and Recovery Surfacing | Surface typed conflict diagnostics through recovery snapshots and CLI/TUI/Desktop-safe views. |
+| M62-05 Crash Smoke, Docs, and Closeout | Add deterministic crash/restart smoke, recovery workflow docs, final gates, and status updates. |
+
+Acceptance:
+
+- CLI/JSON can inspect recovery readiness and resume from checkpoint/replay state with stable bounded output.
+- Replay/fork commands produce redacted trace/audit/replay evidence.
+- Idempotent tool recovery makes duplicated side-effect prevention visible.
+- Failed command/test retry is explicit, evidence-linked, and policy-backed.
+- Conflict diagnostics are typed, safe, actionable, and available to CLI/Desktop-facing consumers.
+- A deterministic crash smoke proves a coding workflow can recover after interruption without provider credentials.
 
 ## Capability Gates
 

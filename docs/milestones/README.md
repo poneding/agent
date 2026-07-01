@@ -608,6 +608,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M61-05 slice plan | Complete |
 | M61-05 implementation | Complete |
 | M61 implementation | Complete |
+| M62 milestone spec | Complete |
+| M62 milestone plan | Complete |
+| M62 slice specs | Planned for M62-01 through M62-05 |
+| M62 slice plans | Planned for M62-01 through M62-05 |
+| M62 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -683,6 +688,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M59 CLI/TUI Daily Driver | `docs/specs/M59-cli-tui-daily-driver.spec.md` | `docs/plans/M59-cli-tui-daily-driver.plan.md` | Turn terminal usage into a polished developer workflow with session restore/switch, slash commands, approvals, diffs, command controls, task status, and stable JSON/batch recipes. |
 | M60 Desktop Daily Driver | `docs/specs/M60-desktop-daily-driver.spec.md` | `docs/plans/M60-desktop-daily-driver.plan.md` | Turn Desktop into a daily-driver interface over the shared runtime with workspace dashboard, conversation, approvals, diff review, provider settings, task monitor, logs, and deterministic smoke coverage. |
 | M61 Plan, Todo, and Task UX | `docs/specs/M61-plan-todo-task-ux.spec.md` | `docs/plans/M61-plan-todo-task-ux.plan.md` | Make plan/todo/task state first-class across interactive and background work with TodoWrite-compatible state, task controls, approval waits, artifacts, and notifications. |
+| M62 Reliability and Recovery Productization | `docs/specs/M62-reliability-recovery-productization.spec.md` | `docs/plans/M62-reliability-recovery-productization.plan.md` | Productize checkpoint resume, replay/fork, idempotent recovery visibility, failed-command retry, conflict diagnostics, and crash smoke evidence. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1339,6 +1345,16 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M61-04 Background Wait Controls and Notifications | `docs/specs/M61-04-background-waits-controls-notifications.spec.md` | `docs/plans/M61-04-background-waits-controls-notifications.plan.md` | Complete: approval-wait ids, pause/resume/cancel and schedule control evidence, latest notification metadata, CLI/JSON output, Desktop task models, redaction, and focused tests. |
 | M61-05 Artifacts, Smoke, Docs, and Closeout | `docs/specs/M61-05-artifacts-smoke-closeout.spec.md` | `docs/plans/M61-05-artifacts-smoke-closeout.plan.md` | Complete: task review/artifact evidence links into plan/todo state, CLI/Desktop smoke docs, credential-free smoke coverage, final gates, and milestone closeout status updates. |
 
+## M62 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M62-01 Recovery Snapshot and Resume Contracts | `docs/specs/M62-01-recovery-snapshot-resume.spec.md` | `docs/plans/M62-01-recovery-snapshot-resume.plan.md` | Planned: typed recovery snapshots, readiness, diagnostics, pending tool/idempotency/approval evidence, and resume dry-run behavior. |
+| M62-02 CLI/JSON Replay, Resume, and Fork Commands | `docs/specs/M62-02-cli-json-replay-resume-fork.spec.md` | `docs/plans/M62-02-cli-json-replay-resume-fork.plan.md` | Planned: stable recovery status/resume and replay inspect/fork commands through CLI/JSON and bridge contracts. |
+| M62-03 Idempotent Recovery and Failed Command Retry UX | `docs/specs/M62-03-idempotent-retry-ux.spec.md` | `docs/plans/M62-03-idempotent-retry-ux.plan.md` | Planned: visible idempotent tool recovery, skipped/replayed side-effect summaries, retryable command/test classification, and retry attempt linkage. |
+| M62-04 Conflict Diagnostics and Recovery Surfacing | `docs/specs/M62-04-conflict-diagnostics.spec.md` | `docs/plans/M62-04-conflict-diagnostics.plan.md` | Planned: typed conflict diagnostics surfaced through recovery snapshots and CLI/TUI/Desktop-safe views. |
+| M62-05 Crash Smoke, Docs, and Closeout | `docs/specs/M62-05-crash-smoke-closeout.spec.md` | `docs/plans/M62-05-crash-smoke-closeout.plan.md` | Planned: deterministic crash/restart smoke, user workflow docs, final gates, and M62 closeout status updates. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1356,6 +1372,8 @@ Current implementation focus: M62 Reliability and Recovery Productization.
 
 Most recent completed or active planning documents:
 
+- `docs/specs/M62-reliability-recovery-productization.spec.md`
+- `docs/plans/M62-reliability-recovery-productization.plan.md`
 - `docs/specs/M61-plan-todo-task-ux.spec.md`
 - `docs/plans/M61-plan-todo-task-ux.plan.md`
 - `docs/specs/M61-02-cli-json-plan-todo.spec.md`
@@ -1853,4 +1871,4 @@ Most recent completed technical design documents:
 
 Next implementation direction:
 
-- Create or refresh M62 Reliability and Recovery Productization milestone spec/plan, then decompose the first recovery/resume UX slice.
+- Create M62-01 Recovery Snapshot and Resume Contracts slice spec/plan, then implement typed recovery snapshots and resume dry-run behavior.

@@ -341,10 +341,14 @@ export interface UiApprovalRequest {
   expires_at?: string | null;
 }
 
+export type ApprovalDecisionStatus = 'idle' | 'accepted' | 'rejected' | 'error';
+
 export interface ApprovalUiState {
   pending: UiApprovalRequest[];
   selectedRequestId: string | null;
   lastDecisionStatus: string | null;
+  lastDecisionAck: DesktopCommandAck | null;
+  lastDecisionError: BridgeErrorNotice | null;
 }
 
 export type UiJsonFrame =
@@ -414,6 +418,40 @@ export interface ConversationDiagnostic {
   code: string;
   message: string;
   truncated: boolean;
+}
+
+export type DesktopDiffLineKind = 'context' | 'addition' | 'removal';
+
+export interface DesktopDiffLinePreview {
+  kind: DesktopDiffLineKind;
+  old_line?: number | null;
+  new_line?: number | null;
+  content: string;
+  truncated: boolean;
+}
+
+export interface DesktopDiffHunkPreview {
+  old_start: number;
+  new_start: number;
+  lines: DesktopDiffLinePreview[];
+  truncated: boolean;
+}
+
+export interface DesktopDiffFileReview {
+  path: string;
+  added_lines: number;
+  removed_lines: number;
+  summary: string;
+  hunks: DesktopDiffHunkPreview[];
+}
+
+export interface DesktopDiffReview {
+  review_id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  files: DesktopDiffFileReview[];
+  selected_path?: string | null;
+  decision_enabled: boolean;
+  disabled_reason?: string | null;
 }
 
 export interface ConversationTaskState {

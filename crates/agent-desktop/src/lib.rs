@@ -26,11 +26,14 @@ pub use dashboard::{
     DesktopSessionReadinessState, DesktopTaskCounts, build_dashboard_snapshot,
 };
 pub use diff::{
-    DiffFileSummary, DiffReview, DiffReviewStatus, approve_diff_review, reject_diff_review,
+    DesktopDiffFileReview, DesktopDiffHunkPreview, DesktopDiffLineKind, DesktopDiffLinePreview,
+    DesktopDiffReview, DiffFileSummary, DiffReview, DiffReviewStatus, approve_diff_review,
+    reject_diff_review,
 };
 pub use error::DesktopError;
 pub use extension::{DesktopExtensionHealth, DesktopExtensionStatus};
 pub use permission::{
+    DesktopApprovalPreview, DesktopApprovalReview, DesktopApprovalReviewStatus,
     DesktopPermissionDecision, PermissionDialog, PermissionDialogStatus, expire_permission_dialog,
     resolve_permission_dialog,
 };

@@ -46,7 +46,7 @@ Baseline reviewed before planning:
 - Modify: `apps/desktop/src/__tests__/approval-diff-ui.test.tsx`
 - Modify: `apps/desktop/src-tauri/src/tests/approval_commands.rs`
 
-- [ ] **Step 1: Add `agent-desktop` review tests**
+- [x] **Step 1: Add `agent-desktop` review tests**
 
 Cover:
 
@@ -56,7 +56,7 @@ Cover:
 - diff file reviews reject unsafe paths and empty summaries
 - diff hunk previews bound/redact lines and expose truncation
 
-- [ ] **Step 2: Extend Tauri approval command tests**
+- [x] **Step 2: Extend Tauri approval command tests**
 
 Cover:
 
@@ -65,7 +65,7 @@ Cover:
 - invalid request ids are redacted
 - connected-session acknowledgements expose pending frame count
 
-- [ ] **Step 3: Extend frontend approval/diff tests**
+- [x] **Step 3: Extend frontend approval/diff tests**
 
 Cover:
 
@@ -75,7 +75,7 @@ Cover:
 - visual diff file summaries and hunk lines
 - redaction/truncation badges and no secret expansion
 
-- [ ] **Step 4: Run focused tests and verify expected failures**
+- [x] **Step 4: Run focused tests and verify coverage**
 
 Run:
 
@@ -85,7 +85,7 @@ cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml approval_commands
 npm --prefix apps/desktop test -- approval-diff-ui
 ```
 
-Expected: new tests fail before the implementation exists.
+Expected: focused tests cover the new contracts. Implementation landed with the tests in this slice; final focused verification passed after the contracts were implemented.
 
 ### Task 3: Implement `agent-desktop` Approval/Diff Review Models
 
@@ -95,15 +95,15 @@ Expected: new tests fail before the implementation exists.
 - Modify: `crates/agent-desktop/src/lib.rs`
 - Modify: `crates/agent-desktop/tests/permissions_diffs.rs`
 
-- [ ] **Step 1: Add approval review contracts**
+- [x] **Step 1: Add approval review contracts**
 
 Implement typed approval review structs/enums for status, action/resource labels, policy rationale, preview, lease/expiry display, decision-enabled state, and disabled reason.
 
-- [ ] **Step 2: Add visual diff contracts**
+- [x] **Step 2: Add visual diff contracts**
 
 Implement diff file review and hunk preview contracts with bounded/redacted lines, relative path validation, selected file state, and terminal status helpers.
 
-- [ ] **Step 3: Run focused Desktop contract tests**
+- [x] **Step 3: Run focused Desktop contract tests**
 
 Run:
 
@@ -113,21 +113,23 @@ cargo test -p agent-desktop --test permissions_diffs
 
 Expected: approval/diff contract tests pass.
 
+Passed with nine focused Desktop permission/diff contract tests.
+
 ### Task 4: Strengthen Tauri Approval Boundary
 
 **Files:**
 - Modify: `apps/desktop/src-tauri/src/approval_commands.rs`
 - Modify: `apps/desktop/src-tauri/src/tests/approval_commands.rs`
 
-- [ ] **Step 1: Preserve typed command conversion**
+- [x] **Step 1: Preserve typed command conversion**
 
 Keep approval decisions flowing through `UiCommand::ResolveApproval`, and add any narrow helper needed to expose command acknowledgement/error state safely.
 
-- [ ] **Step 2: Validate disabled/error inputs before bridge submission**
+- [x] **Step 2: Validate disabled/error inputs before bridge submission**
 
 Ensure empty reasons, invalid request ids, and secret-like invalid ids remain bounded and redacted before returning Tauri errors.
 
-- [ ] **Step 3: Run focused Tauri tests**
+- [x] **Step 3: Run focused Tauri tests**
 
 Run:
 
@@ -136,6 +138,8 @@ cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml approval_commands
 ```
 
 Expected: Tauri approval command tests pass.
+
+Passed with five focused Tauri approval command tests.
 
 ### Task 5: Connect React Approval Popup and Diff Review
 
@@ -149,23 +153,23 @@ Expected: Tauri approval command tests pass.
 - Modify: `apps/desktop/src/app.css`
 - Modify: `apps/desktop/src/__tests__/approval-diff-ui.test.tsx`
 
-- [ ] **Step 1: Add TypeScript review state types**
+- [x] **Step 1: Add TypeScript review state types**
 
 Mirror approval review, decision state, command acknowledgement, disabled reason, diff file, and diff hunk contracts in `types.ts`.
 
-- [ ] **Step 2: Reduce approval frames into review state**
+- [x] **Step 2: Reduce approval frames into review state**
 
 Update approval state helpers so pending, resolved, expired, and duplicated approval frames update typed review state and preserve last decision/ack status.
 
-- [ ] **Step 3: Render popup/detail disabled states**
+- [x] **Step 3: Render popup/detail disabled states**
 
 Render approval action/resource/rationale, preview, lease/expiry, disabled reason, allow/deny controls, command acknowledgement, and recoverable errors.
 
-- [ ] **Step 4: Render visual diff file/hunk review**
+- [x] **Step 4: Render visual diff file/hunk review**
 
 Render file summaries, selected file state, bounded hunk lines, redaction/truncation badges, and stable empty states.
 
-- [ ] **Step 5: Run focused frontend tests**
+- [x] **Step 5: Run focused frontend tests**
 
 Run:
 
@@ -175,6 +179,8 @@ npm --prefix apps/desktop test -- approval-diff-ui
 
 Expected: approval/diff Vitest coverage passes.
 
+Passed with seven focused approval/diff UI tests and the frontend production build.
+
 ### Task 6: Verify Slice and Commit
 
 **Files:**
@@ -182,7 +188,7 @@ Expected: approval/diff Vitest coverage passes.
 - Modify: `docs/plans/M60-desktop-daily-driver.plan.md`
 - Modify: `docs/plans/M60-03-approval-diff-review.plan.md`
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -198,7 +204,17 @@ npm --prefix apps/desktop run build
 
 Expected: all focused M60-03 checks pass.
 
-- [ ] **Step 2: Run status and exact-path commit**
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
+- `cargo test -p agent-desktop --test permissions_diffs`
+- `cargo test -p agent-ui-bridge --test approval_bridge`
+- `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml approval_commands`
+- `npm --prefix apps/desktop test -- approval-diff-ui`
+- `npm --prefix apps/desktop run build`
+
+- [x] **Step 2: Run status and exact-path commit**
 
 Run:
 
@@ -231,9 +247,9 @@ Expected: commit includes only M60-03 docs, source, tests, and status updates.
 ### Completion Checklist
 
 - [x] M60-03 spec and plan are written.
-- [ ] Approval review models are typed, serde-friendly, bounded, and redacted.
-- [ ] Allow/deny decisions use typed bridge commands and validation.
-- [ ] Expired/resolved/terminal approvals and diffs disable decisions.
-- [ ] Visual diff review renders file summaries and bounded hunk previews.
-- [ ] Recoverable approval command errors render without crashing the shell.
-- [ ] Focused Rust, Tauri, frontend, and build checks pass.
+- [x] Approval review models are typed, serde-friendly, bounded, and redacted.
+- [x] Allow/deny decisions use typed bridge commands and validation.
+- [x] Expired/resolved/terminal approvals and diffs disable decisions.
+- [x] Visual diff review renders file summaries and bounded hunk previews.
+- [x] Recoverable approval command errors render without crashing the shell.
+- [x] Focused Rust, Tauri, frontend, and build checks pass.

@@ -22,6 +22,13 @@ import { TranscriptView } from './components/TranscriptView';
 import { WorkspaceDashboard } from './components/WorkspaceDashboard';
 import { drainUiFrames, normalizeBridgeError, sendUiCommand, startSession } from './bridge';
 import {
+  createApprovalState,
+  reduceApprovalCommandAck,
+  reduceApprovalError,
+  reduceApprovalState,
+  selectApproval,
+} from './state/approvals';
+import {
   createConversationTaskState,
   createStartTurnEnvelope,
   recordTurnSubmission,
@@ -29,7 +36,6 @@ import {
   reduceCommandAck,
   reduceConversationTaskFrames,
 } from './state/conversation';
-import { createApprovalState } from './state/approvals';
 import {
   createSettingsState,
   defaultDesktopSettings,
@@ -73,6 +79,7 @@ export function AppShell({
   sessionSnapshot,
   onSubmitPrompt = () => undefined,
   approvalState = createApprovalState(),
+  onSelectApproval = () => undefined,
   onAllowApproval = () => undefined,
   onDenyApproval = () => undefined,
   traceTimeline = null,
@@ -91,6 +98,7 @@ export function AppShell({
   sessionSnapshot?: DesktopSessionSnapshot | null;
   onSubmitPrompt?: (prompt: string) => void;
   approvalState?: ApprovalUiState;
+  onSelectApproval?: (requestId: string) => void;
   onAllowApproval?: (requestId: string) => void;
   onDenyApproval?: (requestId: string, reason: string) => void;
   traceTimeline?: TraceTimelineModel | null;
@@ -238,11 +246,13 @@ export function AppShell({
                 <ApprovalQueue
                   approvals={approvalState.pending}
                   selectedRequestId={approvalState.selectedRequestId}
-                  onSelect={() => undefined}
+                  onSelect={onSelectApproval}
                 />
               </div>
               <ApprovalDetail
                 approval={selectedApproval}
+                decisionAck={approvalState.lastDecisionAck}
+                decisionError={approvalState.lastDecisionError}
                 onAllow={onAllowApproval}
                 onDeny={onDenyApproval}
               />
@@ -296,10 +306,12 @@ export function AppShell({
           <ApprovalQueue
             approvals={approvalState.pending}
             selectedRequestId={approvalState.selectedRequestId}
-            onSelect={() => undefined}
+            onSelect={onSelectApproval}
           />
           <ApprovalDetail
             approval={selectedApproval}
+            decisionAck={approvalState.lastDecisionAck}
+            decisionError={approvalState.lastDecisionError}
             onAllow={onAllowApproval}
             onDeny={onDenyApproval}
           />
@@ -361,7 +373,7 @@ export default function App() {
       tasks: [],
     }),
   );
-  const [approvalState] = useState<ApprovalUiState>(() => createApprovalState());
+  const [approvalState, setApprovalState] = useState<ApprovalUiState>(() => createApprovalState());
   const [traceState, setTraceState] = useState<TraceUiState>(() => createTraceState(null));
   const [settingsState, setSettingsState] = useState<SettingsUiState>(() => createSettingsState());
 
@@ -459,6 +471,9 @@ export default function App() {
       const frames = await drainUiFrames(maxCount);
       if (frames.length > 0) {
         setConversationState((state) => reduceConversationTaskFrames(state, frames));
+        setApprovalState((state) =>
+          frames.reduce((nextState, frame) => reduceApprovalState(nextState, frame), state),
+        );
       }
     } catch (error) {
       const normalized = normalizeBridgeError(error);
@@ -497,7 +512,7 @@ export default function App() {
     }
 
     try {
-      await resolveApproval(
+      const ack = await resolveApproval(
         {
           request_id: requestId,
           decision,
@@ -506,9 +521,12 @@ export default function App() {
         },
         bootstrap.app_version,
       );
+      setApprovalState((state) => reduceApprovalCommandAck(state, ack));
       setBootstrapError(null);
     } catch (error) {
-      setBootstrapError(error instanceof Error ? error.message : String(error));
+      const normalized = normalizeBridgeError(error);
+      setApprovalState((state) => reduceApprovalError(state, normalized));
+      setBootstrapError(normalized.message);
     }
   }
 
@@ -521,6 +539,9 @@ export default function App() {
       workspaceSnapshot={workspaceSnapshot}
       conversationState={conversationState}
       approvalState={approvalState}
+      onSelectApproval={(requestId) => {
+        setApprovalState((state) => selectApproval(state, requestId));
+      }}
       traceTimeline={traceState.timeline}
       traceError={traceState.error}
       configSnapshot={settingsState.snapshot}

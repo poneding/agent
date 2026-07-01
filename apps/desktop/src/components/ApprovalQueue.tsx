@@ -23,7 +23,9 @@ export function ApprovalQueue({
             onClick={() => onSelect(approval.request_id)}
           >
             <span>{approval.resource}</span>
-            <small>{approval.action}</small>
+            <small>
+              {approval.action} - {approval.status}
+            </small>
           </button>
         </li>
       ))}

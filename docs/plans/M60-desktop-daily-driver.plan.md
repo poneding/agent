@@ -159,13 +159,28 @@ M60-03 planning is captured in:
 - `docs/specs/M60-03-approval-diff-review.spec.md`
 - `docs/plans/M60-03-approval-diff-review.plan.md`
 
-- [ ] **Step 2: Implement approval/diff slice**
+- [x] **Step 2: Implement approval/diff slice**
 
 Add Desktop review view models and UI state for approval popups and visual diff review while preserving shared policy and bridge command paths.
 
-- [ ] **Step 3: Verify approval/diff slice**
+- Implemented typed approval review contracts in `agent-desktop`.
+- Added visual diff review file, hunk, and line preview contracts with bounded redaction.
+- Extended Tauri approval command acknowledgement coverage.
+- Connected React approval state to selected reviews, command acknowledgements, recoverable errors, disabled terminal controls, and visual diff hunk rendering.
+
+- [x] **Step 3: Verify approval/diff slice**
 
 Run focused Desktop contract, Tauri approval, and frontend approval/diff tests named in the slice plan.
+
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
+- `cargo test -p agent-desktop --test permissions_diffs`
+- `cargo test -p agent-ui-bridge --test approval_bridge`
+- `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml approval_commands`
+- `npm --prefix apps/desktop test -- approval-diff-ui`
+- `npm --prefix apps/desktop run build`
 
 ### Task 5: M60-04 Provider Settings, Task Monitor, and Logs
 
@@ -248,7 +263,7 @@ Run exact-path staging and commit the final docs/status updates.
 
 - [x] Workspace dashboard/session readiness is visible and tested.
 - [x] Conversation, composer, and transcript flow through shared bridge commands/frames.
-- [ ] Approval popup and visual diff review are explicit, bounded, redacted, and policy-backed.
+- [x] Approval popup and visual diff review are explicit, bounded, redacted, and policy-backed.
 - [ ] Provider/settings diagnostics expose useful status without secrets.
 - [ ] Task monitor and logs show bounded runtime evidence.
 - [ ] Desktop smoke fixture proves the M56 golden-path shape or a UI-safe bridge simulation.

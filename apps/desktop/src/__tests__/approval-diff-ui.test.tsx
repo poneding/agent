@@ -6,11 +6,14 @@ import { ApprovalDetail } from '../components/ApprovalDetail';
 import { ApprovalQueue } from '../components/ApprovalQueue';
 import { DiffPreview } from '../components/DiffPreview';
 import {
+  approvalDecisionDisabledReason,
   createApprovalState,
   createResolveApprovalEnvelope,
+  reduceApprovalCommandAck,
+  reduceApprovalError,
   reduceApprovalState,
 } from '../state/approvals';
-import type { UiApprovalRequest, UiJsonFrame } from '../types';
+import type { DesktopDiffReview, UiApprovalRequest, UiJsonFrame } from '../types';
 
 const approval: UiApprovalRequest = {
   request_id: 'approval-1',
@@ -29,6 +32,45 @@ const approval: UiApprovalRequest = {
   },
   max_duration_seconds: 120,
   expires_at: null,
+};
+
+const visualDiffReview: DesktopDiffReview = {
+  review_id: 'review-1',
+  status: 'pending',
+  selected_path: 'src/main.rs',
+  decision_enabled: true,
+  disabled_reason: null,
+  files: [
+    {
+      path: 'src/main.rs',
+      added_lines: 1,
+      removed_lines: 1,
+      summary: 'Update main entrypoint',
+      hunks: [
+        {
+          old_start: 3,
+          new_start: 3,
+          truncated: true,
+          lines: [
+            {
+              kind: 'removal',
+              old_line: 3,
+              new_line: null,
+              content: '-old line',
+              truncated: false,
+            },
+            {
+              kind: 'addition',
+              old_line: null,
+              new_line: 3,
+              content: '+new line [redacted]',
+              truncated: true,
+            },
+          ],
+        },
+      ],
+    },
+  ],
 };
 
 function approvalFrame(request: UiApprovalRequest): UiJsonFrame {
@@ -75,6 +117,30 @@ describe('approval diff UI', () => {
     expect(state.pending).toHaveLength(0);
     expect(state.selectedRequestId).toBeNull();
     expect(state.lastDecisionStatus).toBe('consumed');
+    expect(state.lastDecisionAck).toBeNull();
+  });
+
+  it('tracks approval command acknowledgements and recoverable errors', () => {
+    let state = createApprovalState();
+    state = reduceApprovalCommandAck(state, {
+      command_id: 'command-1',
+      accepted: true,
+      state: 'connected',
+      pending_frame_count: 2,
+    });
+
+    expect(state.lastDecisionStatus).toBe('accepted');
+    expect(state.lastDecisionAck?.pending_frame_count).toBe(2);
+
+    state = reduceApprovalError(state, {
+      code: 'desktop.approval.invalid',
+      message: 'token sk-secret password',
+      recoverable: true,
+    });
+
+    expect(state.lastDecisionStatus).toBe('error');
+    expect(state.lastDecisionError?.message).toContain('[redacted]');
+    expect(state.lastDecisionError?.message).not.toContain('sk-secret');
   });
 
   it('renders queue, detail, redaction, and truncated diff preview', () => {
@@ -88,13 +154,24 @@ describe('approval diff UI', () => {
           selectedRequestId="approval-1"
           onSelect={() => undefined}
         />
-        <ApprovalDetail approval={approval} onAllow={allow} onDeny={deny} />
+        <ApprovalDetail
+          approval={approval}
+          decisionAck={{
+            command_id: 'command-1',
+            accepted: true,
+            state: 'connected',
+            pending_frame_count: 1,
+          }}
+          onAllow={allow}
+          onDeny={deny}
+        />
       </>,
     );
 
     expect(within(screen.getByLabelText('Pending approvals')).getByText('src/main.rs')).toBeInTheDocument();
     expect(screen.getByText('redacted')).toBeInTheDocument();
     expect(screen.getByText('truncated')).toBeInTheDocument();
+    expect(screen.getByText('decision accepted - 1 pending frames')).toBeInTheDocument();
     expect(screen.getByText('+hello')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Allow' }));
@@ -105,6 +182,19 @@ describe('approval diff UI', () => {
 
     expect(allow).toHaveBeenCalledWith('approval-1');
     expect(deny).toHaveBeenCalledWith('approval-1', 'unsafe');
+  });
+
+  it('disables terminal approval decisions with a typed reason', () => {
+    const expired = { ...approval, status: 'expired' };
+    const allow = vi.fn();
+    const deny = vi.fn();
+
+    render(<ApprovalDetail approval={expired} onAllow={allow} onDeny={deny} />);
+
+    expect(approvalDecisionDisabledReason(expired)).toBe('approval expired');
+    expect(screen.getByText('approval expired')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Allow' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Deny' })).toBeDisabled();
   });
 
   it('requires deny reason before emitting denial', () => {
@@ -138,10 +228,14 @@ describe('approval diff UI', () => {
   });
 
   it('renders a diff preview safely without secret expansion', () => {
-    render(<DiffPreview preview={approval.preview} />);
+    render(<DiffPreview preview={approval.preview} review={visualDiffReview} />);
 
     expect(screen.getByText('file_edit')).toBeInTheDocument();
     expect(screen.getByText('redacted')).toBeInTheDocument();
+    expect(screen.getAllByText('src/main.rs')).toHaveLength(2);
+    expect(screen.getByText('Update main entrypoint')).toBeInTheDocument();
+    expect(screen.getByText('-old line')).toBeInTheDocument();
+    expect(screen.getByText('+new line [redacted] [truncated]')).toBeInTheDocument();
     expect(screen.queryByText('sk-secret')).not.toBeInTheDocument();
   });
 });

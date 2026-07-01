@@ -92,6 +92,7 @@ fn resolve_approval_submits_through_connected_session() {
     .expect("approval command accepted");
 
     assert!(ack.accepted);
+    assert_eq!(ack.pending_frame_count, 2);
 }
 
 #[test]

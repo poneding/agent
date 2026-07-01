@@ -586,6 +586,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60-04 slice spec | Complete |
 | M60-04 slice plan | Complete |
 | M60-04 implementation | Complete |
+| M60-05 slice spec | Complete |
+| M60-05 slice plan | Complete |
+| M60-05 implementation | Planned |
 | M60 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1305,6 +1308,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60-02 Conversation, Composer, and Transcript Flow | `docs/specs/M60-02-conversation-composer-transcript.spec.md` | `docs/plans/M60-02-conversation-composer-transcript.plan.md` | Complete: typed Desktop conversation view models, start-turn submission, bounded bridge frame draining, transcript/task updates, command acknowledgements, recoverable bridge errors, and focused Rust/frontend coverage. |
 | M60-03 Approval Popup and Visual Diff Review | `docs/specs/M60-03-approval-diff-review.spec.md` | `docs/plans/M60-03-approval-diff-review.plan.md` | Complete: explicit Desktop approval decisions, lease/expiry state, policy rationale, redacted previews, file summaries, bounded diff hunks, and focused Rust/frontend coverage. |
 | M60-04 Provider Settings, Task Monitor, and Logs | `docs/specs/M60-04-provider-task-log-surfaces.spec.md` | `docs/plans/M60-04-provider-task-log-surfaces.plan.md` | Complete: provider/model diagnostics, settings validation, task monitor summaries, bounded runtime logs, and redacted trace evidence. |
+| M60-05 Desktop Golden Path Smoke and Closeout | `docs/specs/M60-05-desktop-golden-path-smoke.spec.md` | `docs/plans/M60-05-desktop-golden-path-smoke.plan.md` | Planned: credential-free M56-equivalent Desktop smoke fixture, `cargo xtask desktop-test` product gate, daily-driver smoke docs, final gates, and M60 closeout status updates. |
 
 ## MX01 Slice Index
 
@@ -1333,6 +1337,8 @@ Most recent completed or active planning documents:
 - `docs/plans/M60-03-approval-diff-review.plan.md`
 - `docs/specs/M60-04-provider-task-log-surfaces.spec.md`
 - `docs/plans/M60-04-provider-task-log-surfaces.plan.md`
+- `docs/specs/M60-05-desktop-golden-path-smoke.spec.md`
+- `docs/plans/M60-05-desktop-golden-path-smoke.plan.md`
 - `docs/specs/M59-cli-tui-daily-driver.spec.md`
 - `docs/plans/M59-cli-tui-daily-driver.plan.md`
 - `docs/specs/M59-01-session-restore-switch.spec.md`
@@ -1804,10 +1810,6 @@ Most recent completed technical design documents:
 - `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` through `docs/specs/M54-00-mcp-http-oauth-token-exchange-technical-design.spec.md`
 - `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` through `docs/plans/M54-00-mcp-http-oauth-token-exchange-technical-design.plan.md`
 
-Next planning action:
-
-- Create M60-05 Desktop Golden Path Smoke and Closeout slice spec and plan.
-
 Next implementation direction:
 
-- Plan M60-05, then implement the Desktop golden-path smoke fixture and closeout docs/gates.
+- Implement the M60-05 Desktop golden-path smoke fixture, `cargo xtask desktop-test` product gate, and closeout docs/gates.

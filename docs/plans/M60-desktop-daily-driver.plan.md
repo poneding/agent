@@ -253,9 +253,14 @@ Verification passed:
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M60-desktop-daily-driver.plan.md`
 
-- [ ] **Step 1: Plan Desktop smoke slice**
+- [x] **Step 1: Plan Desktop smoke slice**
 
 Define the credential-free Desktop bridge simulation or M56-equivalent fixture, including workspace dashboard, composer, transcript, approval, diff, provider settings, task monitor, logs, and trace evidence.
+
+M60-05 planning is captured in:
+
+- `docs/specs/M60-05-desktop-golden-path-smoke.spec.md`
+- `docs/plans/M60-05-desktop-golden-path-smoke.plan.md`
 
 - [ ] **Step 2: Implement Desktop smoke slice**
 

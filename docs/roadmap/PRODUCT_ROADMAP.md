@@ -153,7 +153,7 @@ Acceptance:
 
 ### M59 CLI/TUI Daily Driver
 
-Status: Complete. M59-01 session restore/switch, M59-02 slash command/status hub, M59-03 approval queue and permission review, M59-04 diff viewer and command streaming controls, and M59-05 task status and JSON/batch recipes are complete. M60 Desktop Daily Driver is next.
+Status: Complete. M59-01 session restore/switch, M59-02 slash command/status hub, M59-03 approval queue and permission review, M59-04 diff viewer and command streaming controls, and M59-05 task status and JSON/batch recipes are complete. M60 Desktop Daily Driver milestone planning is ready.
 
 Purpose: make terminal use feel like a coherent daily coding workflow instead of separate command demos.
 
@@ -172,6 +172,29 @@ Acceptance:
 - A developer can restore or switch recent sessions from CLI/JSON and TUI.
 - Slash commands, approvals, diffs, command/test status, and tasks are visible and actionable in terminal workflows.
 - JSON and batch recipes are documented, deterministic, bounded, and redacted.
+
+### M60 Desktop Daily Driver
+
+Status: Planned. The M60 milestone spec and plan define the Desktop daily-driver scope and slice order.
+
+Purpose: make Desktop a usable product surface over the shared runtime rather than a separate presentation demo.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M60-01 Workspace Dashboard and Session Readiness | Workspace/session dashboard, runtime status, provider readiness, task counts, pending approvals, and safe diagnostics. |
+| M60-02 Conversation, Composer, and Transcript Flow | Typed Desktop turn submission, bridge frame draining, transcript updates, command acknowledgements, and recoverable bridge errors. |
+| M60-03 Approval Popup and Visual Diff Review | Explicit approval decisions, lease display, policy rationale, redacted preview text, file summaries, hunks, and diff review state. |
+| M60-04 Provider Settings, Task Monitor, and Logs | Provider/model diagnostics, settings validation, task monitor summaries, bounded runtime logs, and redacted trace evidence. |
+| M60-05 Desktop Golden Path Smoke and Closeout | Credential-free M56-equivalent Desktop bridge simulation or UI-safe fixture, Desktop docs, final gates, and milestone status updates. |
+
+Acceptance:
+
+- Desktop can start or resume a workspace session and show runtime readiness.
+- Conversation, composer, transcript, approvals, diffs, provider settings, task monitor, logs, and trace evidence are visible through shared bridge/runtime contracts.
+- Approval and diff decisions remain explicit, typed, bounded, redacted, and policy-backed.
+- A deterministic Desktop smoke path proves the M56 golden-path shape or an equivalent UI-safe bridge simulation.
 
 ## Capability Gates
 

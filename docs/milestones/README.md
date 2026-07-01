@@ -12,9 +12,9 @@ M30-M54 delivered a deep MCP extension track. That work remains valuable, but MC
 
 Current focus:
 
-- M59 CLI/TUI Daily Driver
 - M60 Desktop Daily Driver
 - M61 Plan, Todo, and Task UX
+- M62 Reliability and Recovery Productization
 
 ## Document Layout
 
@@ -572,6 +572,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M59-05 slice plan | Complete |
 | M59-05 implementation | Complete |
 | M59 implementation | Complete |
+| M60 milestone spec | Complete |
+| M60 milestone plan | Complete |
+| M60 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -645,6 +648,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M57 Multi-Provider Runtime | `docs/specs/M57-multi-provider-runtime.spec.md` | `docs/plans/M57-multi-provider-runtime.plan.md` | Make provider choice typed, diagnosable, and product-ready across OpenAI-compatible, Anthropic, Gemini, and local/Ollama-style providers. |
 | M58 Project Context Intelligence | `docs/specs/M58-project-context-intelligence.spec.md` | `docs/plans/M58-project-context-intelligence.plan.md` | Build repo-aware context assembly with file tree summaries, relevant-file retrieval, pinned context, budget planning, and context quality traces. |
 | M59 CLI/TUI Daily Driver | `docs/specs/M59-cli-tui-daily-driver.spec.md` | `docs/plans/M59-cli-tui-daily-driver.plan.md` | Turn terminal usage into a polished developer workflow with session restore/switch, slash commands, approvals, diffs, command controls, task status, and stable JSON/batch recipes. |
+| M60 Desktop Daily Driver | `docs/specs/M60-desktop-daily-driver.spec.md` | `docs/plans/M60-desktop-daily-driver.plan.md` | Turn Desktop into a daily-driver interface over the shared runtime with workspace dashboard, conversation, approvals, diff review, provider settings, task monitor, logs, and deterministic smoke coverage. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1294,10 +1298,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M59 CLI/TUI Daily Driver.
+Current implementation focus: M60 Desktop Daily Driver.
 
-Most recent completed implementation documents:
+Most recent completed or active planning documents:
 
+- `docs/specs/M60-desktop-daily-driver.spec.md`
+- `docs/plans/M60-desktop-daily-driver.plan.md`
 - `docs/specs/M59-cli-tui-daily-driver.spec.md`
 - `docs/plans/M59-cli-tui-daily-driver.plan.md`
 - `docs/specs/M59-01-session-restore-switch.spec.md`
@@ -1771,8 +1777,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create M60 Desktop Daily Driver milestone spec and plan.
+- Create M60-01 Workspace Dashboard and Session Readiness slice spec and plan.
 
 Next implementation direction:
 
-- Plan M60 Desktop Daily Driver.
+- Implement M60 Desktop Daily Driver slices in order, starting with workspace dashboard and session readiness.

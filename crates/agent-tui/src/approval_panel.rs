@@ -1,7 +1,11 @@
 use std::str::FromStr;
 
 use agent_types::ApprovalRequestId;
-use agent_ui_bridge::{UiApprovalDecision, UiApprovalRequest, UiEventPayload, UiJsonFrame};
+use agent_ui_bridge::{
+    UiApprovalDecision, UiApprovalPreviewSummary, UiApprovalQueueGroup, UiApprovalQueueItem,
+    UiApprovalQueueSnapshot, UiApprovalRequest, UiEventPayload, UiJsonFrame,
+    approval_queue_snapshot_from_requests,
+};
 
 use crate::TuiEffect;
 
@@ -10,18 +14,25 @@ const TUI_ALLOW_REASON: &str = "approved from TUI";
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ApprovalPanelState {
     pub pending: Vec<UiApprovalRequest>,
+    pub groups: Vec<UiApprovalQueueGroup>,
+    pub expired_count: u32,
+    pub diagnostic_count: u32,
     pub focused_index: Option<usize>,
 }
 
 impl ApprovalPanelState {
     pub fn reduce_frame(&mut self, frame: &UiJsonFrame) {
-        let UiJsonFrame::Event(event) = frame else {
-            return;
-        };
-
-        match &event.payload {
-            UiEventPayload::ApprovalRequested(request) => self.upsert_pending((**request).clone()),
-            UiEventPayload::ApprovalResolved { request_id, .. } => self.remove_pending(request_id),
+        match frame {
+            UiJsonFrame::ApprovalQueueSnapshot(snapshot) => self.apply_snapshot(snapshot),
+            UiJsonFrame::Event(event) => match &event.payload {
+                UiEventPayload::ApprovalRequested(request) => {
+                    self.upsert_pending((**request).clone());
+                }
+                UiEventPayload::ApprovalResolved { request_id, .. } => {
+                    self.remove_pending(request_id)
+                }
+                _ => {}
+            },
             _ => {}
         }
     }
@@ -62,7 +73,61 @@ impl ApprovalPanelState {
         self.focused_index.and_then(|index| self.pending.get(index))
     }
 
+    #[must_use]
+    pub fn is_active(&self) -> bool {
+        !self.pending.is_empty() || self.expired_count > 0 || self.diagnostic_count > 0
+    }
+
+    #[must_use]
+    pub fn render_text(&self) -> String {
+        let mut lines = Vec::new();
+        if self.pending.is_empty() {
+            lines.push("Approval queue: empty".to_string());
+        } else {
+            lines.push(format!("Approval queue: {} pending", self.pending.len()));
+        }
+        if self.expired_count > 0 {
+            lines.push(format!("Expired: {}", self.expired_count));
+        }
+        for group in &self.groups {
+            lines.push(format!(
+                "group {}/{}/{} count={}",
+                group.resource_kind, group.action, group.status, group.count
+            ));
+        }
+
+        let Some(request) = self.focused_request() else {
+            return lines.join("\n");
+        };
+
+        let focus = self.focused_index.unwrap_or(0) + 1;
+        lines.push(format!("focus {focus}/{}", self.pending.len()));
+        lines.push(format!("{} {}", request.action, request.resource_kind));
+        lines.push(request.resource.clone());
+        lines.push(request.reason.clone());
+        lines.push(request.preview.summary.clone());
+        if let Some(max_duration_seconds) = request.max_duration_seconds {
+            lines.push(format!("lease={max_duration_seconds}s"));
+        }
+        if let Some(expires_at) = request.expires_at {
+            lines.push(format!("expires_at={expires_at:?}"));
+        }
+        if let Some(content_hash) = &request.preview.content_hash {
+            lines.push(content_hash.clone());
+        }
+        if request.preview.truncated {
+            lines.push("truncated".to_string());
+        }
+        if request.preview.redacted {
+            lines.push("redacted".to_string());
+        }
+        lines.join("\n")
+    }
+
     fn upsert_pending(&mut self, request: UiApprovalRequest) {
+        let focused_request_id = self
+            .focused_request()
+            .map(|request| request.request_id.clone());
         if let Some(existing) = self
             .pending
             .iter_mut()
@@ -76,12 +141,54 @@ impl ApprovalPanelState {
         if self.focused_index.is_none() {
             self.focused_index = Some(0);
         }
+        self.refresh_snapshot(focused_request_id);
         self.clamp_focus();
     }
 
     fn remove_pending(&mut self, request_id: &str) {
+        let focused_request_id = self
+            .focused_request()
+            .map(|request| request.request_id.clone());
         self.pending
             .retain(|request| request.request_id != request_id);
+        self.refresh_snapshot(focused_request_id);
+        self.clamp_focus();
+    }
+
+    fn refresh_snapshot(&mut self, focused_request_id: Option<String>) {
+        if let Ok(snapshot) = approval_queue_snapshot_from_requests(self.pending.clone()) {
+            self.apply_snapshot_with_focus(&snapshot, focused_request_id);
+        }
+    }
+
+    fn apply_snapshot(&mut self, snapshot: &UiApprovalQueueSnapshot) {
+        let focused_request_id = self
+            .focused_request()
+            .map(|request| request.request_id.clone());
+        self.apply_snapshot_with_focus(snapshot, focused_request_id);
+    }
+
+    fn apply_snapshot_with_focus(
+        &mut self,
+        snapshot: &UiApprovalQueueSnapshot,
+        focused_request_id: Option<String>,
+    ) {
+        self.pending = snapshot
+            .pending
+            .iter()
+            .map(approval_request_from_queue_item)
+            .collect();
+        self.groups = snapshot.groups.clone();
+        self.expired_count = snapshot.expired_count;
+        self.diagnostic_count = snapshot.diagnostic_count;
+
+        self.focused_index = focused_request_id
+            .and_then(|request_id| {
+                self.pending
+                    .iter()
+                    .position(|request| request.request_id == request_id)
+            })
+            .or_else(|| (!self.pending.is_empty()).then_some(0));
         self.clamp_focus();
     }
 
@@ -147,4 +254,25 @@ pub enum ApprovalPanelAction {
     Allow,
     Deny { reason: String },
     Abort,
+}
+
+fn approval_request_from_queue_item(item: &UiApprovalQueueItem) -> UiApprovalRequest {
+    UiApprovalRequest {
+        request_id: item.request_id.clone(),
+        status: item.status.clone(),
+        action: item.action.clone(),
+        resource_kind: item.resource_kind.clone(),
+        resource: item.resource.clone(),
+        reason: item.reason.clone(),
+        preview: UiApprovalPreviewSummary {
+            kind: item.preview.kind.clone(),
+            resource: item.preview.resource.clone(),
+            summary: item.preview.summary.clone(),
+            content_hash: item.preview.content_hash.clone(),
+            truncated: item.preview.truncated,
+            redacted: item.preview.redacted,
+        },
+        max_duration_seconds: item.max_duration_seconds,
+        expires_at: item.expires_at,
+    }
 }

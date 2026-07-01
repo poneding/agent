@@ -564,7 +564,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M59-02 implementation | Complete |
 | M59-03 slice spec | Complete |
 | M59-03 slice plan | Complete |
-| M59-03 implementation | Planned |
+| M59-03 implementation | Complete |
 | M59 implementation | In Progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1271,7 +1271,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 |---|---|---|---|
 | M59-01 Session Restore and Switch | `docs/specs/M59-01-session-restore-switch.spec.md` | `docs/plans/M59-01-session-restore-switch.plan.md` | Completed typed terminal session directory, CLI/JSON list/resume commands, bridge switch command, and TUI session panel state. |
 | M59-02 Slash Command Catalog and Status Hub | `docs/specs/M59-02-slash-command-status-hub.spec.md` | `docs/plans/M59-02-slash-command-status-hub.plan.md` | Completed typed slash command catalog, aliases, status hub, and plain/TUI discoverability. |
-| M59-03 Approval Queue and Permission Review | `docs/specs/M59-03-approval-queue-permission-review.spec.md` | `docs/plans/M59-03-approval-queue-permission-review.plan.md` | Planned actionable approval queue with safe previews, focus movement, lease display, and batch-safe decisions. |
+| M59-03 Approval Queue and Permission Review | `docs/specs/M59-03-approval-queue-permission-review.spec.md` | `docs/plans/M59-03-approval-queue-permission-review.plan.md` | Completed typed approval queue snapshots, CLI/JSON inspection, TUI queue rendering, focus movement, lease display, and typed decisions. |
 | M59-04 Diff Viewer and Command Streaming Controls | TBD | TBD | Planned daily-driver diff navigation, command/test output state, and cancellation readiness. |
 | M59-05 Task Status and JSON/Batch Recipes | TBD | TBD | Planned task status panel polish and documented stable terminal recipes. |
 
@@ -1765,8 +1765,8 @@ Most recent completed technical design documents:
 
 Next planning action:
 
-- Create M59-04 diff viewer/command streaming controls spec and plan after M59-03 implementation.
+- Create M59-04 diff viewer/command streaming controls spec and plan.
 
 Next implementation direction:
 
-- Execute `docs/plans/M59-03-approval-queue-permission-review.plan.md` to add approval queue and permission review.
+- Plan M59-04 diff viewer and command streaming controls.

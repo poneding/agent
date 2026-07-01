@@ -135,6 +135,16 @@ impl TracePanelState {
                     snapshot.diagnostics.len()
                 ),
             )),
+            UiJsonFrame::ApprovalQueueSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "approvals",
+                format!(
+                    "{} pending groups={} diagnostics={}",
+                    snapshot.pending_count,
+                    snapshot.groups.len(),
+                    snapshot.diagnostic_count
+                ),
+            )),
             UiJsonFrame::SlashCommandCatalogSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "slash",

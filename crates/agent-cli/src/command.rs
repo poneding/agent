@@ -93,19 +93,20 @@ use agent_types::{
     TurnId, WorkspaceId,
 };
 use agent_ui_bridge::{
-    UiBridgeError, UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity,
-    UiConfigSnapshot, UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic,
-    UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame,
-    UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
-    UiPlatformPathsSummary, UiProjectContextHybridRetrievalSnapshot,
-    UiProjectContextPinnedRetrievalSnapshot, UiProjectContextQualityTraceSnapshot,
-    UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
-    UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
-    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiSlashCommandEffect, UiSlashCommandSurface,
+    UiApprovalPreviewSummary, UiApprovalQueueSnapshot, UiApprovalRequest, UiBridgeError,
+    UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
+    UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot,
+    UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame, UiModelCostProfile,
+    UiModelProviderCapabilities, UiModelProviderSummary, UiPlatformPathsSummary,
+    UiProjectContextHybridRetrievalSnapshot, UiProjectContextPinnedRetrievalSnapshot,
+    UiProjectContextQualityTraceSnapshot, UiProjectContextRetrievalSnapshot,
+    UiProjectContextSnapshot, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
+    UiProviderSupportRole, UiProviderSupportSummary, UiRepoSessionSnapshot,
+    UiSettingsProfileSummary, UiSlashCommandEffect, UiSlashCommandSurface,
     UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
     UiTaskSummary, UiTerminalSessionSnapshot, UiTerminalStatusSnapshot,
-    default_slash_command_catalog, encode_json_frame, normalize_runtime_event,
-    resolve_slash_command,
+    approval_queue_snapshot_from_requests, default_slash_command_catalog, encode_json_frame,
+    normalize_runtime_event, resolve_slash_command,
 };
 use futures_util::StreamExt;
 
@@ -256,7 +257,20 @@ pub enum CliCommand {
     McpServer(McpServerCommand),
     Memory(MemoryCommand),
     Task(TaskCliCommand),
+    Approval(ApprovalCliCommand),
     Eval(EvalCliCommand),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ApprovalCliCommand {
+    Queue { fixture: ApprovalQueueFixture },
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ApprovalQueueFixture {
+    Empty,
+    Sample,
+    Expired,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -598,6 +612,7 @@ where
         "mcp" => parse_mcp_command(&mut args),
         "memory" => parse_memory_command(&mut args),
         "task" => parse_task_command(&mut args),
+        "approval" => parse_approval_command(&mut args),
         "eval" => parse_eval_command(&mut args),
         "--prompt" | "-p" => {
             let prompt = args
@@ -749,6 +764,7 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             let mut runtime = TaskCommandRuntime::fixture();
             render_task_command(&mut runtime, command, OutputMode::Text)
         }
+        CliCommand::Approval(command) => render_approval_command(command, OutputMode::Text),
         CliCommand::Eval(command) => render_eval_command(command, OutputMode::Text),
     }
 }
@@ -859,6 +875,7 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 let mut runtime = TaskCommandRuntime::fixture();
                 render_task_command(&mut runtime, command, OutputMode::Text)
             }
+            CliCommand::Approval(command) => render_approval_command(command, OutputMode::Text),
             CliCommand::Eval(command) => render_eval_command(command, OutputMode::Text),
             command => render_cli_command(command),
         },
@@ -991,6 +1008,9 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if let CliCommand::Task(command) = invocation.command {
         let mut runtime = TaskCommandRuntime::fixture();
         return render_task_command(&mut runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::Approval(command) = invocation.command {
+        return render_approval_command(command, OutputMode::Json);
     }
     if let CliCommand::Eval(command) = invocation.command {
         return render_eval_command(command, OutputMode::Json);
@@ -1991,6 +2011,46 @@ where
     Ok(CliCommand::Task(command))
 }
 
+fn parse_approval_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("approval".to_string()));
+    };
+    match subcommand.as_str() {
+        "queue" => parse_approval_queue_args(args),
+        _ => Err(CliError::UnknownArgument(format!("approval {subcommand}"))),
+    }
+}
+
+fn parse_approval_queue_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut fixture = ApprovalQueueFixture::Sample;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--fixture" => {
+                let value = take_flag_value(args, &arg)?;
+                fixture = match value.as_str() {
+                    "empty" => ApprovalQueueFixture::Empty,
+                    "sample" => ApprovalQueueFixture::Sample,
+                    "expired" => ApprovalQueueFixture::Expired,
+                    _ => {
+                        return Err(CliError::UnknownArgument(format!(
+                            "approval queue --fixture {value}"
+                        )));
+                    }
+                };
+            }
+            _ => return Err(CliError::UnknownArgument(format!("approval queue {arg}"))),
+        }
+    }
+
+    Ok(CliCommand::Approval(ApprovalCliCommand::Queue { fixture }))
+}
+
 fn parse_eval_command<I>(args: &mut I) -> Result<CliCommand, CliError>
 where
     I: Iterator<Item = String>,
@@ -2333,6 +2393,127 @@ where
         return Err(CliError::UnknownArgument(format!("{command_name} {extra}")));
     }
     Ok(())
+}
+
+#[must_use]
+pub fn render_approval_command(command: ApprovalCliCommand, output_mode: OutputMode) -> CliOutput {
+    match command {
+        ApprovalCliCommand::Queue { fixture } => {
+            let snapshot = approval_queue_fixture_snapshot(fixture);
+            match output_mode {
+                OutputMode::Text => CliOutput::exit(render_approval_queue_text(&snapshot)),
+                OutputMode::Json => {
+                    let mut stdout = json_frame_line(UiJsonFrame::ApprovalQueueSnapshot(snapshot));
+                    stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
+                    CliOutput::exit(stdout)
+                }
+            }
+        }
+    }
+}
+
+fn approval_queue_fixture_snapshot(fixture: ApprovalQueueFixture) -> UiApprovalQueueSnapshot {
+    let requests = match fixture {
+        ApprovalQueueFixture::Empty => Vec::new(),
+        ApprovalQueueFixture::Sample => vec![
+            approval_queue_fixture_request(
+                "00000000-0000-0000-0000-000000000301",
+                "command",
+                "execute",
+                "cargo test",
+                "Run cargo test before completion",
+                Some(300),
+                true,
+            ),
+            approval_queue_fixture_request(
+                "00000000-0000-0000-0000-000000000302",
+                "file",
+                "write",
+                "src/lib.rs",
+                "Apply safe edit preview",
+                None,
+                false,
+            ),
+        ],
+        ApprovalQueueFixture::Expired => {
+            let mut request = approval_queue_fixture_request(
+                "00000000-0000-0000-0000-000000000303",
+                "command",
+                "execute",
+                "sk-test-secret /tmp/api_key/project",
+                "expired token-secret request",
+                Some(30),
+                true,
+            );
+            request.status = "expired".to_string();
+            vec![request]
+        }
+    };
+    approval_queue_snapshot_from_requests(requests).expect("fixture approval queue is valid")
+}
+
+#[allow(clippy::too_many_arguments)]
+fn approval_queue_fixture_request(
+    request_id: &str,
+    resource_kind: &str,
+    action: &str,
+    resource: &str,
+    reason: &str,
+    max_duration_seconds: Option<u64>,
+    redacted: bool,
+) -> UiApprovalRequest {
+    UiApprovalRequest {
+        request_id: request_id.to_string(),
+        status: "pending".to_string(),
+        action: action.to_string(),
+        resource_kind: resource_kind.to_string(),
+        resource: resource.to_string(),
+        reason: reason.to_string(),
+        preview: UiApprovalPreviewSummary {
+            kind: resource_kind.to_string(),
+            resource: resource.to_string(),
+            summary: format!("Review {resource}"),
+            content_hash: Some("sha256:redacted".to_string()),
+            truncated: false,
+            redacted,
+        },
+        max_duration_seconds,
+        expires_at: None,
+    }
+}
+
+fn render_approval_queue_text(snapshot: &UiApprovalQueueSnapshot) -> String {
+    let mut output = if snapshot.pending.is_empty() {
+        "Approval queue: empty\n".to_string()
+    } else {
+        format!("Approval queue: {} pending\n", snapshot.pending_count)
+    };
+    if snapshot.expired_count > 0 {
+        output.push_str(&format!("Expired: {}\n", snapshot.expired_count));
+    }
+    for group in &snapshot.groups {
+        output.push_str(&format!(
+            "group {}/{}/{} count={}\n",
+            group.resource_kind, group.action, group.status, group.count
+        ));
+    }
+    for item in &snapshot.pending {
+        let lease = item
+            .max_duration_seconds
+            .map(|duration| format!("{duration}s"))
+            .unwrap_or_else(|| "none".to_string());
+        output.push_str(&format!(
+            "- {} {} {} {} lease={} redacted={} preview={}\n",
+            item.request_id,
+            item.resource_kind,
+            item.action,
+            item.resource,
+            lease,
+            yes_no_label(item.preview.redacted),
+            item.preview.summary
+        ));
+    }
+    output
 }
 
 #[derive(Clone, Debug)]

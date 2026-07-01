@@ -22,7 +22,7 @@
 - Read: `crates/agent-cli/src/command.rs`
 - Read: `crates/agent-tui/src/approval_panel.rs`
 
-- [ ] **Step 1: Review approval baseline**
+- [x] **Step 1: Review approval baseline**
 
 Run:
 
@@ -39,7 +39,7 @@ Expected: existing approval bridge, CLI prompt, and TUI panel behavior pass befo
 **Files:**
 - Create: `crates/agent-ui-bridge/tests/approval_queue_snapshot.rs`
 
-- [ ] **Step 1: Add bridge tests**
+- [x] **Step 1: Add bridge tests**
 
 Cover:
 
@@ -51,7 +51,7 @@ Cover:
 - text fields are bounded and redacted
 - approval queue JSON frame encodes on one line
 
-- [ ] **Step 2: Verify bridge tests fail before implementation**
+- [x] **Step 2: Verify bridge tests fail before implementation**
 
 Run:
 
@@ -68,15 +68,15 @@ Expected: tests fail before approval queue contracts exist.
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Modify: `crates/agent-ui-bridge/src/lib.rs`
 
-- [ ] **Step 1: Add queue snapshot contracts**
+- [x] **Step 1: Add queue snapshot contracts**
 
 Implement queue item, group, diagnostic, snapshot, and queue reducer helpers using `UiApprovalRequest` and approval-resolved events.
 
-- [ ] **Step 2: Add deterministic derivation**
+- [x] **Step 2: Add deterministic derivation**
 
 Implement sorting, duplicate collapse, group counts, stale/resolved removal, count summaries, and redaction/bounding.
 
-- [ ] **Step 3: Run bridge tests**
+- [x] **Step 3: Run bridge tests**
 
 Run:
 
@@ -94,7 +94,7 @@ Expected: bridge approval queue tests pass.
 - Create: `crates/agent-cli/tests/approval_queue_commands.rs`
 - Modify if needed: `crates/agent-cli/tests/approval_prompt.rs`
 
-- [ ] **Step 1: Add CLI tests**
+- [x] **Step 1: Add CLI tests**
 
 Cover:
 
@@ -105,11 +105,11 @@ Cover:
 - output is bounded and redacted
 - existing approval prompt behavior remains unchanged
 
-- [ ] **Step 2: Implement CLI parsing and rendering**
+- [x] **Step 2: Implement CLI parsing and rendering**
 
 Add `approval queue` command routing, fixture-backed queue construction, text rendering, JSON frame rendering, and safe error handling.
 
-- [ ] **Step 3: Run CLI tests**
+- [x] **Step 3: Run CLI tests**
 
 Run:
 
@@ -128,15 +128,15 @@ Expected: approval queue CLI tests and existing prompt tests pass.
 - Modify: `crates/agent-tui/src/render.rs`
 - Modify: `crates/agent-tui/tests/approval_panel.rs`
 
-- [ ] **Step 1: Add TUI tests**
+- [x] **Step 1: Add TUI tests**
 
 Cover snapshot reduction, grouped metadata, queue count rendering, focus next/previous, allow/deny effects, empty state, resolved/expired removal, invalid id diagnostics, and lease display.
 
-- [ ] **Step 2: Implement panel updates**
+- [x] **Step 2: Implement panel updates**
 
 Reduce `UiJsonFrame::ApprovalQueueSnapshot`, preserve event reduction compatibility, render queue count/groups, and keep all side effects as existing `TuiEffect` values.
 
-- [ ] **Step 3: Run TUI tests**
+- [x] **Step 3: Run TUI tests**
 
 Run:
 
@@ -154,7 +154,7 @@ Expected: approval panel tests pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -169,7 +169,7 @@ cargo test -p agent-tui --test approval_panel
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Run standard checks**
+- [x] **Step 2: Run standard checks**
 
 Run:
 
@@ -180,7 +180,7 @@ cargo test --workspace
 
 Expected: workspace checks pass.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run exact-path staging for M59-03 source, tests, and docs, then:
 
@@ -192,10 +192,10 @@ Expected: commit contains only M59-03 source, tests, and documentation/status up
 
 ### Completion Checklist
 
-- [ ] Approval queue snapshot contracts are typed, serde-friendly, deterministic, and tested.
-- [ ] Queue sorting, grouping, duplicate collapse, and resolved/expired removal are deterministic.
-- [ ] CLI text/JSON approval queue inspection is stable and redacted.
-- [ ] TUI approval panel displays queue count, groups, preview, lease, and redaction state.
-- [ ] Allow/deny/abort effects remain typed and validated.
-- [ ] Existing approval bridge and prompt behavior remains unchanged.
-- [ ] Focused and standard checks pass.
+- [x] Approval queue snapshot contracts are typed, serde-friendly, deterministic, and tested.
+- [x] Queue sorting, grouping, duplicate collapse, and resolved/expired removal are deterministic.
+- [x] CLI text/JSON approval queue inspection is stable and redacted.
+- [x] TUI approval panel displays queue count, groups, preview, lease, and redaction state.
+- [x] Allow/deny/abort effects remain typed and validated.
+- [x] Existing approval bridge and prompt behavior remains unchanged.
+- [x] Focused and standard checks pass.

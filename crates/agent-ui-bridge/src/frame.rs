@@ -18,6 +18,7 @@ use agent_types::{
 };
 use serde::{Deserialize, Serialize};
 
+use crate::approval_queue::UiApprovalQueueSnapshot;
 use crate::slash::{UiSlashCommandCatalogSnapshot, UiTerminalStatusSnapshot};
 use crate::{UiBridgeError, UiEventEnvelope};
 
@@ -2223,6 +2224,7 @@ pub enum UiJsonFrame {
     ConfigSnapshot(UiConfigSnapshot),
     RepoSessionSnapshot(UiRepoSessionSnapshot),
     TerminalSessionSnapshot(UiTerminalSessionSnapshot),
+    ApprovalQueueSnapshot(UiApprovalQueueSnapshot),
     SlashCommandCatalogSnapshot(UiSlashCommandCatalogSnapshot),
     TerminalStatusSnapshot(UiTerminalStatusSnapshot),
     EditDiffSnapshot(UiEditDiffSnapshot),

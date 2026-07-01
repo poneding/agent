@@ -4,8 +4,8 @@ use agent_tui::{
 };
 use agent_types::{ClientKind, ConversationId, WorkspaceId};
 use agent_ui_bridge::{
-    UiApprovalDecision, UiApprovalPreviewSummary, UiApprovalRequest, UiCommand, UiEventEnvelope,
-    UiEventPayload, UiJsonFrame,
+    UiApprovalDecision, UiApprovalPreviewSummary, UiApprovalQueueSnapshot, UiApprovalRequest,
+    UiCommand, UiEventEnvelope, UiEventPayload, UiJsonFrame, approval_queue_snapshot_from_requests,
 };
 
 fn approval_request(id: &str, resource: &str) -> UiApprovalRequest {
@@ -62,6 +62,12 @@ fn resolved_frame(id: &str) -> UiJsonFrame {
     })
 }
 
+fn approval_queue_frame(requests: Vec<UiApprovalRequest>) -> UiJsonFrame {
+    UiJsonFrame::ApprovalQueueSnapshot(
+        approval_queue_snapshot_from_requests(requests).expect("approval queue snapshot"),
+    )
+}
+
 #[test]
 fn approval_panel_adds_pending_requests_and_moves_focus() {
     let mut panel = ApprovalPanelState::default();
@@ -75,18 +81,56 @@ fn approval_panel_adds_pending_requests_and_moves_focus() {
     )));
 
     assert_eq!(panel.pending.len(), 2);
-    assert_eq!(panel.focused_index, Some(0));
-
-    assert_eq!(
-        panel.reduce(ApprovalPanelAction::FocusNext),
-        TuiEffect::None
-    );
     assert_eq!(panel.focused_index, Some(1));
+
     assert_eq!(
         panel.reduce(ApprovalPanelAction::FocusPrevious),
         TuiEffect::None
     );
     assert_eq!(panel.focused_index, Some(0));
+    assert_eq!(
+        panel.reduce(ApprovalPanelAction::FocusNext),
+        TuiEffect::None
+    );
+    assert_eq!(panel.focused_index, Some(1));
+}
+
+#[test]
+fn approval_panel_reduces_queue_snapshot_and_renders_groups_and_lease() {
+    let mut panel = ApprovalPanelState::default();
+    panel.reduce_frame(&approval_queue_frame(vec![
+        approval_request("00000000-0000-0000-0000-000000000002", "cargo fmt"),
+        approval_request("00000000-0000-0000-0000-000000000001", "cargo test"),
+    ]));
+
+    assert_eq!(panel.pending.len(), 2);
+    assert_eq!(panel.groups.len(), 1);
+    assert_eq!(panel.groups[0].resource_kind, "command");
+    assert_eq!(panel.focused_index, Some(0));
+
+    let rendered = panel.render_text();
+    assert!(rendered.contains("Approval queue: 2 pending"));
+    assert!(rendered.contains("group command/execute/pending count=2"));
+    assert!(rendered.contains("focus 1/2"));
+    assert!(rendered.contains("lease=300s"));
+    assert!(rendered.contains("redacted"));
+}
+
+#[test]
+fn approval_panel_renders_empty_snapshot_with_expired_count() {
+    let mut panel = ApprovalPanelState::default();
+    panel.reduce_frame(&UiJsonFrame::ApprovalQueueSnapshot(
+        UiApprovalQueueSnapshot {
+            expired_count: 1,
+            ..UiApprovalQueueSnapshot::default()
+        },
+    ));
+
+    assert!(panel.pending.is_empty());
+    assert_eq!(panel.expired_count, 1);
+    assert_eq!(panel.focused_index, None);
+    assert!(panel.is_active());
+    assert_eq!(panel.render_text(), "Approval queue: empty\nExpired: 1");
 }
 
 #[test]

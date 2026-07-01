@@ -78,6 +78,10 @@ Defined a typed slash command catalog, help/status rendering, aliases, argument 
 
 Defined queue grouping, focus movement, batch-safe decisions, lease display, preview redaction, CLI/JSON inspection, and TUI actions in M59-03.
 
+- [x] **Step 2: Implement approval queue slice**
+
+Completed typed approval queue snapshots, CLI text/JSON inspection, TUI queue metadata rendering, focus-preserving approval actions, and focused/standard verification.
+
 ### Task 5: M59-04 Diff Viewer and Command Streaming Controls
 
 **Files:**

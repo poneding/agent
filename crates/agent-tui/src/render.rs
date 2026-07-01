@@ -89,7 +89,7 @@ fn render_panel(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
                 ("Diff", render_diff_panel(diff))
             } else if let Some(command) = &app.command_panel {
                 ("Command", render_command_panel(command))
-            } else if !app.approval_panel.pending.is_empty() {
+            } else if app.approval_panel.is_active() {
                 ("Approval", render_approval_panel(&app.approval_panel))
             } else {
                 ("Panel", "No active panel".to_string())
@@ -101,28 +101,7 @@ fn render_panel(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
 }
 
 fn render_approval_panel(panel: &ApprovalPanelState) -> String {
-    let Some(request) = panel.focused_request() else {
-        return "No focused approval".to_string();
-    };
-
-    let mut text = format!(
-        "{} {}\n{}\n{}\n{}",
-        request.action,
-        request.resource_kind,
-        request.resource,
-        request.reason,
-        request.preview.summary
-    );
-    if let Some(content_hash) = &request.preview.content_hash {
-        text.push_str(&format!("\n{content_hash}"));
-    }
-    if request.preview.truncated {
-        text.push_str("\ntruncated");
-    }
-    if request.preview.redacted {
-        text.push_str("\nredacted");
-    }
-    text
+    panel.render_text()
 }
 
 fn render_diff_panel(diff: &DiffPanelState) -> String {

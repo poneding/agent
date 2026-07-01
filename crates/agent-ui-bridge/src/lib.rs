@@ -1,12 +1,18 @@
 #![forbid(unsafe_code)]
 //! UI bridge contracts for CLI, Desktop, and API clients.
 
+pub mod approval_queue;
 pub mod command;
 pub mod error;
 pub mod event;
 pub mod frame;
 pub mod slash;
 
+pub use approval_queue::{
+    UiApprovalQueueDiagnostic, UiApprovalQueueDiagnosticSeverity, UiApprovalQueueError,
+    UiApprovalQueueGroup, UiApprovalQueueItem, UiApprovalQueueSnapshot,
+    approval_queue_snapshot_from_events, approval_queue_snapshot_from_requests,
+};
 pub use command::{
     UiApprovalDecision, UiClientInfo, UiCommand, UiCommandEnvelope, UiPermissionDecision,
     validate_ui_command,

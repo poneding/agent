@@ -151,6 +151,17 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::ApprovalQueueSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "approvals",
+                format!(
+                    "{} pending groups={} diagnostics={}",
+                    snapshot.pending_count,
+                    snapshot.groups.len(),
+                    snapshot.diagnostic_count
+                ),
+                false,
+            )),
             UiJsonFrame::SlashCommandCatalogSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "slash",

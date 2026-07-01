@@ -115,6 +115,20 @@ fn task_commands_render_text_lifecycle_against_fixture_runtime() {
 }
 
 #[test]
+fn task_commands_render_empty_list_states() {
+    let mut runtime = TaskCommandRuntime::fixture();
+
+    let text = render_task_command(&mut runtime, TaskCliCommand::List, OutputMode::Text);
+    assert_eq!(text.status_code, 0);
+    assert_eq!(text.stdout, "No tasks\n");
+
+    let json = render_task_command(&mut runtime, TaskCliCommand::List, OutputMode::Json);
+    assert_eq!(json.status_code, 0);
+    assert!(json.stdout.contains("\"type\":\"task_snapshot\""));
+    assert!(json.stdout.contains("\"tasks\":[]"));
+}
+
+#[test]
 fn task_commands_render_json_snapshot() {
     let invocation =
         parse_cli_invocation(["--json", "task", "create", "--prompt", "index workspace"])

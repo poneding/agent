@@ -15,7 +15,7 @@ The percentages below are directional planning estimates based on the current re
 | Model provider abstraction | 70% | M13-M17, M57, fake provider, OpenAI-compatible, Anthropic, Gemini, local/Ollama-style providers, typed capabilities, fallback, config, and secrets | Needs broader live-provider smoke evidence, account setup UX, and Desktop provider onboarding. |
 | Local coding agent golden path | 60% | M56 repo/session, edit/diff, command/test, final review, and default local-coding eval scenario | Needs daily-driver behavior beyond the deterministic fixture: richer tasks, multi-file edits, retry/recovery UX, and real-provider parity. |
 | Context and memory | 50% | M05, M16, M23, prompt profiles, memory stores, retrieval design | Needs repo-aware context, semantic project indexing, memory review UX, and compaction quality gates. |
-| CLI and TUI product UX | 50% | M06, M20, `agent-cli`, `agent-tui`, JSON mode | Needs session switching, diff viewer, approval queue, slash command completeness, command cancellation, and stable batch recipes. |
+| CLI and TUI product UX | 70% | M06, M20, M59, `agent-cli`, `agent-tui`, JSON mode | Needs deeper live coding-loop soak, retry/recovery polish, and parity with upcoming Desktop flows. |
 | Desktop product UX | 35% | M10, M21, `agent-desktop`, UI bridge contracts | Needs a real daily-use app: workspace dashboard, chat, diff review, permissions, provider settings, task monitor, logs, and recovery surfaces. |
 | Background tasks and autonomy | 45% | M08, M24, scheduler/task contracts | Needs long-running task UX, notifications, quota visibility, resume controls, and failure recovery. |
 | Worktree, subagents, teams | 40% | M09, `agent-worktree`, `agent-team` | Needs product workflows for parallel implementation, review, merge, and conflict resolution. |
@@ -153,7 +153,7 @@ Acceptance:
 
 ### M59 CLI/TUI Daily Driver
 
-Status: In progress. M59-01 session restore/switch, M59-02 slash command/status hub, M59-03 approval queue and permission review, and M59-04 diff viewer and command streaming controls are complete; M59-05 task status and JSON/batch recipes is planned and ready for implementation.
+Status: Complete. M59-01 session restore/switch, M59-02 slash command/status hub, M59-03 approval queue and permission review, M59-04 diff viewer and command streaming controls, and M59-05 task status and JSON/batch recipes are complete. M60 Desktop Daily Driver is next.
 
 Purpose: make terminal use feel like a coherent daily coding workflow instead of separate command demos.
 
@@ -165,7 +165,7 @@ Initial slices:
 | M59-02 Slash Command Catalog and Status Hub | Complete: common terminal actions are discoverable and consistent through typed slash command descriptors and status output. |
 | M59-03 Approval Queue and Permission Review | Complete: typed approval queue snapshots, safe CLI/JSON inspection, TUI queue rendering, focus movement, lease display, and typed decisions. |
 | M59-04 Diff Viewer and Command Streaming Controls | Complete: typed diff review evidence, command/test panel state, cancellation readiness, TUI navigation/output controls, and stable CLI/JSON/TUI rendering. |
-| M59-05 Task Status and JSON/Batch Recipes | Planned: polish task status visibility, document stable JSON/batch workflows, add deterministic recipe tests, and run final M59 closeout gates. |
+| M59-05 Task Status and JSON/Batch Recipes | Complete: polished task status visibility, documented stable JSON/batch workflows, deterministic recipe tests, and final M59 closeout gates. |
 
 Acceptance:
 

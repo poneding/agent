@@ -107,6 +107,10 @@ Completed CLI text/JSON diff and command evidence, bridge snapshot regression co
 
 Defined task status polish, CLI/JSON recipe tests, deterministic docs, and final M59 verification/closeout gates in M59-05.
 
+- [x] **Step 2: Implement task status and recipe slice**
+
+Completed task status panel polish, bridge/CLI task coverage, deterministic daily-driver recipes, recipe parseability tests, and final M59 verification.
+
 ### Task 7: Final Verification and Closeout
 
 **Files:**
@@ -115,7 +119,7 @@ Defined task status polish, CLI/JSON recipe tests, deterministic docs, and final
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/plans/M59-cli-tui-daily-driver.plan.md`
 
-- [ ] **Step 1: Run final M59 gates**
+- [x] **Step 1: Run final M59 gates**
 
 Run:
 
@@ -128,7 +132,7 @@ cargo xtask eval
 
 Expected: all gates pass with terminal daily-driver surfaces redacted and deterministic.
 
-- [ ] **Step 2: Commit M59 closeout**
+- [x] **Step 2: Commit M59 closeout**
 
 Run exact-path staging and commit the final docs/status updates.
 
@@ -138,6 +142,6 @@ Run exact-path staging and commit the final docs/status updates.
 - [x] Slash command catalog is discoverable and tested.
 - [x] Approval queue and permission review workflows are actionable and safe.
 - [x] Diff and command/test panels support repeated coding-loop use.
-- [ ] Task status is visible and bounded in CLI/JSON/TUI paths.
-- [ ] JSON/batch recipes are documented and covered by tests.
-- [ ] Final workspace fmt/clippy/tests and `cargo xtask eval` pass.
+- [x] Task status is visible and bounded in CLI/JSON/TUI paths.
+- [x] JSON/batch recipes are documented and covered by tests.
+- [x] Final workspace fmt/clippy/tests and `cargo xtask eval` pass.

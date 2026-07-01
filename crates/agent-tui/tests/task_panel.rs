@@ -4,7 +4,7 @@ use agent_types::{
 };
 use agent_ui_bridge::{
     UiEventEnvelope, UiEventPayload, UiJsonFrame, UiTaskNotification, UiTaskReviewSnapshot,
-    UiTaskReviewSummary,
+    UiTaskReviewSummary, UiTaskSnapshot,
 };
 
 fn event(payload: UiEventPayload) -> UiJsonFrame {
@@ -67,7 +67,37 @@ fn tasks_slash_command_opens_empty_task_panel() {
 
     let rendered = render_app_to_string(&app, 96, 18).expect("render tasks panel");
     assert!(rendered.contains("Tasks"));
-    assert!(rendered.contains("No task notifications"));
+    assert!(rendered.contains("Tasks: empty"));
+}
+
+#[test]
+fn task_panel_renders_task_snapshot_status_metadata() {
+    let mut panel = TaskPanelState::default();
+    let snapshot: UiTaskSnapshot = serde_json::from_value(serde_json::json!({
+        "tasks": [{
+            "task_id": TaskId::new(),
+            "workspace_id": agent_types::WorkspaceId::new(),
+            "conversation_id": ConversationId::new(),
+            "state": "waiting_approval",
+            "priority": "high",
+            "schedule": { "kind": "one_shot", "label": "once" },
+            "prompt_summary": "review workspace",
+            "latest_run_summary": "waiting for approval",
+            "created_at": "2026-07-01T00:00:00Z",
+            "updated_at": "2026-07-01T00:00:01Z"
+        }],
+        "errors": []
+    }))
+    .expect("task snapshot");
+
+    panel.reduce_frame(&UiJsonFrame::TaskSnapshot(snapshot));
+
+    let rendered = panel.render_text();
+    assert!(rendered.contains("Tasks: 1"));
+    assert!(rendered.contains("state waiting_approval count=1"));
+    assert!(rendered.contains("priority=high"));
+    assert!(rendered.contains("schedule=once"));
+    assert!(rendered.contains("latest=waiting for approval"));
 }
 
 #[test]
@@ -112,7 +142,7 @@ fn task_panel_renders_review_snapshots_from_bridge_frames() {
 
     let rendered = panel.render_text();
     assert!(rendered.contains("review"));
-    assert!(rendered.contains("Succeeded"));
+    assert!(rendered.contains("state=succeeded"));
     assert!(rendered.contains("completed background review"));
     assert!(rendered.contains("artifacts=1"));
     assert!(rendered.contains("trace=trace-123"));

@@ -26,7 +26,7 @@
 - Read: `crates/agent-tui/src/task_panel.rs`
 - Read: `crates/agent-tui/tests/task_panel.rs`
 
-- [ ] **Step 1: Review current task and recipe baseline**
+- [x] **Step 1: Review current task and recipe baseline**
 
 Run:
 
@@ -46,7 +46,7 @@ Expected: existing task snapshots, CLI task commands, task reviews, and TUI task
 - Modify if needed: `crates/agent-ui-bridge/tests/task_review.rs`
 - Modify if needed: `crates/agent-ui-bridge/src/frame.rs`
 
-- [ ] **Step 1: Add task snapshot expectations**
+- [x] **Step 1: Add task snapshot expectations**
 
 Cover:
 
@@ -56,11 +56,11 @@ Cover:
 - approval ids are preserved when present
 - task JSON frame shape is stable
 
-- [ ] **Step 2: Add task review expectations**
+- [x] **Step 2: Add task review expectations**
 
 Cover final state, trace id, checkpoint id, artifact count, missing artifacts, diagnostics, redaction, and JSON frame shape.
 
-- [ ] **Step 3: Implement bridge adjustments only if needed**
+- [x] **Step 3: Implement bridge adjustments only if needed**
 
 Keep existing task contracts if they already satisfy the spec; otherwise add serde-friendly, bounded, redacted metadata with defaults where compatibility requires.
 
@@ -71,7 +71,7 @@ Keep existing task contracts if they already satisfy the spec; otherwise add ser
 - Modify: `crates/agent-cli/tests/task_commands.rs`
 - Create: `crates/agent-cli/tests/daily_driver_recipes.rs`
 
-- [ ] **Step 1: Add CLI task output expectations**
+- [x] **Step 1: Add CLI task output expectations**
 
 Cover:
 
@@ -80,7 +80,7 @@ Cover:
 - JSON task create/list/inspect/error snapshots remain parseable and bounded
 - task review rendering includes final state, artifacts, trace/checkpoint ids, diagnostics, and redaction
 
-- [ ] **Step 2: Add recipe tests**
+- [x] **Step 2: Add recipe tests**
 
 Cover documented command lines for:
 
@@ -94,7 +94,7 @@ Cover documented command lines for:
 
 Recipe tests may parse commands, invoke renderer fixtures, or run small temp-workspace commands; they must not require provider credentials or network access.
 
-- [ ] **Step 3: Implement CLI rendering changes**
+- [x] **Step 3: Implement CLI rendering changes**
 
 Improve text output only where tests show daily-driver gaps. Keep JSON status codes and error shapes stable.
 
@@ -104,15 +104,15 @@ Improve text output only where tests show daily-driver gaps. Keep JSON status co
 - Modify: `crates/agent-tui/src/task_panel.rs`
 - Modify: `crates/agent-tui/tests/task_panel.rs`
 
-- [ ] **Step 1: Add task panel tests**
+- [x] **Step 1: Add task panel tests**
 
 Cover task snapshot reduction, grouped state/count metadata if added, waiting-approval approval id rendering, review rendering, notification bounds, empty state, and redaction.
 
-- [ ] **Step 2: Implement task panel updates**
+- [x] **Step 2: Implement task panel updates**
 
 Render task states, prompt summaries, priority/schedule, approval ids, review artifacts, trace/checkpoint ids, diagnostics, and notification history in a bounded deterministic layout.
 
-- [ ] **Step 3: Run TUI task tests**
+- [x] **Step 3: Run TUI task tests**
 
 Run:
 
@@ -129,11 +129,11 @@ Expected: TUI task panel tests pass.
 - Modify if needed: `README.md`
 - Modify if needed: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
 
-- [ ] **Step 1: Write recipes**
+- [x] **Step 1: Write recipes**
 
 Document credential-free command sequences for session/status, approval queue, edit preview, command/test evidence, task lifecycle, JSON forms, and final eval.
 
-- [ ] **Step 2: Keep examples stable and redacted**
+- [x] **Step 2: Keep examples stable and redacted**
 
 Use placeholders and temp-workspace-safe examples. Avoid raw secrets, live provider calls, and destructive operations outside temp/example workspaces.
 
@@ -146,7 +146,7 @@ Use placeholders and temp-workspace-safe examples. Avoid raw secrets, live provi
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Modify if needed: `README.md`
 
-- [ ] **Step 1: Run focused verification**
+- [x] **Step 1: Run focused verification**
 
 Run:
 
@@ -162,7 +162,7 @@ cargo test -p agent-tui --test task_panel
 
 Expected: focused checks pass.
 
-- [ ] **Step 2: Run final M59 gates**
+- [x] **Step 2: Run final M59 gates**
 
 Run:
 
@@ -175,7 +175,7 @@ cargo xtask eval
 
 Expected: workspace checks and default eval pass.
 
-- [ ] **Step 3: Commit M59-05 implementation**
+- [x] **Step 3: Commit M59-05 implementation**
 
 Run exact-path staging for M59-05 source, tests, and docs, then:
 
@@ -185,7 +185,7 @@ git commit -m "feat: add m59 task status recipes"
 
 Expected: commit contains only M59-05 source, tests, recipe docs, and documentation/status updates.
 
-- [ ] **Step 4: Commit M59 closeout if needed**
+- [x] **Step 4: Commit M59 closeout if needed**
 
 If final milestone status updates are separate from the implementation commit, exact-stage docs and commit:
 
@@ -197,9 +197,9 @@ Expected: M59 status is complete and next planning direction points to M60.
 
 ### Completion Checklist
 
-- [ ] Task status surfaces expose stable state, priority, schedule, prompt summary, approval, and review evidence.
-- [ ] CLI task text/JSON output is stable, bounded, and redacted.
-- [ ] TUI task panel renders snapshots, reviews, notifications, approval waits, and empty state clearly.
-- [ ] Daily-driver recipes are documented and covered by deterministic tests.
-- [ ] M59 final workspace fmt/clippy/tests and `cargo xtask eval` pass.
-- [ ] M59 status docs are updated for closeout and next milestone direction.
+- [x] Task status surfaces expose stable state, priority, schedule, prompt summary, approval, and review evidence.
+- [x] CLI task text/JSON output is stable, bounded, and redacted.
+- [x] TUI task panel renders snapshots, reviews, notifications, approval waits, and empty state clearly.
+- [x] Daily-driver recipes are documented and covered by deterministic tests.
+- [x] M59 final workspace fmt/clippy/tests and `cargo xtask eval` pass.
+- [x] M59 status docs are updated for closeout and next milestone direction.

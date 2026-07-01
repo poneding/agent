@@ -102,6 +102,50 @@ fn task_command_bridge_sorts_summaries_and_redacts_errors() {
 }
 
 #[test]
+fn task_command_bridge_preserves_daily_driver_task_states() {
+    let states = [
+        TaskState::Queued,
+        TaskState::Running,
+        TaskState::WaitingApproval,
+        TaskState::Paused,
+        TaskState::Succeeded,
+        TaskState::Failed,
+        TaskState::Cancelled,
+    ];
+    let summaries = states
+        .into_iter()
+        .enumerate()
+        .map(|(index, state)| {
+            let mut task = task(&format!("task state {state:?}"));
+            task.task_id = format!("00000000-0000-0000-0000-00000000243{index}")
+                .parse()
+                .expect("task id");
+            task.state = state;
+            UiTaskSummary::from_task(&task).expect("summary")
+        })
+        .collect::<Vec<_>>();
+
+    let snapshot = UiTaskSnapshot::new(summaries, Vec::new()).expect("snapshot");
+    let serialized = serde_json::to_string(&snapshot).expect("serialize");
+
+    assert!(serialized.contains("\"state\":\"queued\""));
+    assert!(serialized.contains("\"state\":\"running\""));
+    assert!(serialized.contains("\"state\":\"waiting_approval\""));
+    assert!(serialized.contains("\"state\":\"paused\""));
+    assert!(serialized.contains("\"state\":\"succeeded\""));
+    assert!(serialized.contains("\"state\":\"failed\""));
+    assert!(serialized.contains("\"state\":\"cancelled\""));
+}
+
+#[test]
+fn task_command_bridge_empty_snapshot_is_successful() {
+    let snapshot = UiTaskSnapshot::new(Vec::new(), Vec::new()).expect("snapshot");
+
+    assert!(snapshot.tasks.is_empty());
+    assert!(snapshot.errors.is_empty());
+}
+
+#[test]
 fn task_command_bridge_redaction_helper_is_shared_with_scheduler() {
     let update = TaskScheduleUpdate::new(
         task_id(),

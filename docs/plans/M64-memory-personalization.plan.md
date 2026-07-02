@@ -132,9 +132,21 @@ git diff --check
 
 Define memory panels for records, proposals, selected influence, privacy state, import/export state, and settings.
 
-- [ ] **Step 2: Implement TUI/Desktop rendering**
+- [x] **Step 2: Implement TUI/Desktop rendering**
 
 TUI and Desktop must render bridge snapshots only and must not implement privacy, proposal, retrieval, or retention decisions.
+
+Completed evidence:
+
+```bash
+CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-ui-bridge --test memory_snapshot
+CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-tui --test task_panel
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
+npm --prefix apps/desktop test -- --run src/__tests__/memory-ui.test.tsx
+npm --prefix apps/desktop run build
+cargo fmt --all -- --check
+git diff --check
+```
 
 ### Task 6: M64-05 Memory Smoke, Docs, and Closeout
 

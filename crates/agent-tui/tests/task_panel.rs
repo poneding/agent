@@ -118,6 +118,129 @@ fn team_workflow_frame() -> UiJsonFrame {
     .expect("valid team workflow frame")
 }
 
+fn memory_snapshot_frame() -> UiJsonFrame {
+    serde_json::from_value(serde_json::json!({
+        "type": "memory_snapshot",
+        "data": {
+            "scope_label": "runtime memory",
+            "enabled": true,
+            "layer_count": 1,
+            "record_count": 2,
+            "proposal_count": 1,
+            "selected_count": 1,
+            "rejected_count": 1,
+            "tombstone_count": 1,
+            "records_truncated": false,
+            "proposals_truncated": false,
+            "retrieval_candidates_truncated": false,
+            "influence_entries_truncated": false,
+            "diagnostics_truncated": false,
+            "records": [{
+                "id": "memory-public",
+                "scope": "project:00000000-0000-0000-0000-000000006443",
+                "sensitivity": "public",
+                "confidence": 91,
+                "source_description": "memory bridge fixture",
+                "text_preview": "prefer deterministic memory UI surfaces",
+                "preview_redacted": false,
+                "preview_truncated": false
+            }, {
+                "id": "memory-sensitive",
+                "scope": "project:00000000-0000-0000-0000-000000006443",
+                "sensitivity": "sensitive",
+                "confidence": 88,
+                "source_description": "memory bridge fixture",
+                "text_preview": "[redacted]",
+                "preview_redacted": true,
+                "preview_truncated": false
+            }],
+            "proposals": [{
+                "proposal_id": "proposal-review",
+                "proposed_record_id": "record-review",
+                "scope": "conversation:00000000-0000-0000-0000-000000006442",
+                "summary": "remember review preference for [redacted] values",
+                "confidence": 88,
+                "sensitivity": "sensitive",
+                "status": "pending",
+                "content_redacted": true,
+                "requires_explicit_approval": true,
+                "auto_approval_eligible": false,
+                "auto_approval_reason": "proposal requires explicit approval",
+                "source_event_count": 1
+            }],
+            "retrieval": {
+                "query_hash": "fnv1a64:memory",
+                "selected_count": 1,
+                "rejected_count": 1,
+                "candidates": [{
+                    "memory_id": "memory-public",
+                    "scope": "project:00000000-0000-0000-0000-000000006443",
+                    "sensitivity": "public",
+                    "selected": true,
+                    "rank": 0,
+                    "token_estimate": 12,
+                    "lexical_score": "0.800",
+                    "semantic_score": "0.400",
+                    "combined_score": "0.900",
+                    "matched_terms": ["memory"],
+                    "reasons": ["score"],
+                    "preview": "prefer deterministic memory UI surfaces",
+                    "preview_redacted": false,
+                    "preview_truncated": false
+                }, {
+                    "memory_id": "memory-sensitive",
+                    "scope": "project:00000000-0000-0000-0000-000000006443",
+                    "sensitivity": "sensitive",
+                    "selected": false,
+                    "rank": 1,
+                    "token_estimate": 16,
+                    "lexical_score": "0.400",
+                    "combined_score": "0.500",
+                    "matched_terms": ["[redacted]"],
+                    "reasons": ["budget"],
+                    "preview": "[redacted]",
+                    "preview_redacted": true,
+                    "preview_truncated": false
+                }],
+                "candidates_truncated": false
+            },
+            "influence": {
+                "query_hash": "fnv1a64:memory",
+                "selected_count": 1,
+                "rejected_count": 1,
+                "entries": [{
+                    "memory_id": "memory-public",
+                    "scope": "project:00000000-0000-0000-0000-000000006443",
+                    "sensitivity": "public",
+                    "selected": true,
+                    "rank": 0,
+                    "lexical_score": "0.800",
+                    "semantic_score": "0.400",
+                    "combined_score": "0.900",
+                    "matched_terms": ["memory"],
+                    "reasons": ["score"],
+                    "preview": "prefer deterministic memory UI surfaces",
+                    "preview_redacted": false,
+                    "preview_truncated": false
+                }],
+                "entries_truncated": false
+            },
+            "retention": {
+                "memory_enabled": true,
+                "export_includes_sensitive": false,
+                "tombstones_retained": true,
+                "sensitive_memory_requires_review": true
+            },
+            "diagnostics": [{
+                "severity": "warning",
+                "code": "memory.degraded",
+                "message": "memory index unavailable; showing stored summaries only"
+            }]
+        }
+    }))
+    .expect("valid memory snapshot frame")
+}
+
 fn plan_snapshot() -> UiPlanTodoSnapshot {
     let snapshot = PlanTodoSnapshot {
         conversation_id: ConversationId::new(),
@@ -256,6 +379,52 @@ fn task_panel_renders_team_workflow_snapshot() {
     assert!(rendered.contains("team handoff 00000000-0000-0000-0000-000000006405"));
     assert!(rendered.contains("team conflict crates/agent-team/src/workflow.rs"));
     assert!(rendered.contains("team diagnostic Warning team.ui.fixture team UI fixture"));
+}
+
+#[test]
+fn task_panel_renders_memory_snapshot() {
+    let mut panel = TaskPanelState::default();
+
+    panel.reduce_frame(&memory_snapshot_frame());
+
+    let rendered = panel.render_text();
+    assert!(rendered.contains("Memory: scope=runtime memory enabled=true layers=1 records=2 proposals=1 selected=1 rejected=1 tombstones=1 diagnostics=1"));
+    assert!(rendered.contains(
+        "memory retention export_sensitive=false tombstones_retained=true sensitive_review=true"
+    ));
+    assert!(rendered.contains("memory record memory-public"));
+    assert!(rendered.contains("memory record memory-sensitive"));
+    assert!(rendered.contains("preview=[redacted]"));
+    assert!(rendered.contains("memory proposal proposal-review status=pending"));
+    assert!(rendered.contains("redacted=true"));
+    assert!(
+        rendered
+            .contains("memory retrieval query=fnv1a64:memory selected=1 rejected=1 candidates=2")
+    );
+    assert!(rendered.contains("memory candidate memory-sensitive selected=false rank=1"));
+    assert!(
+        rendered.contains("memory influence query=fnv1a64:memory selected=1 rejected=1 entries=1")
+    );
+    assert!(
+        rendered.contains("memory diagnostic warning memory.degraded memory index unavailable")
+    );
+    assert!(!rendered.contains("sk-secret"));
+    assert!(!rendered.contains("password"));
+}
+
+#[test]
+fn app_reducer_routes_memory_snapshot_to_task_panel() {
+    let mut app = TuiApp::default();
+
+    app.reduce(TuiAction::BridgeFrame(Box::new(memory_snapshot_frame())));
+    app.reduce(TuiAction::Composer(ComposerAction::InsertText(
+        "/tasks".to_string(),
+    )));
+    app.reduce(TuiAction::Composer(ComposerAction::Submit));
+
+    let rendered = render_app_to_string(&app, 120, 40).expect("render tasks panel");
+    assert!(rendered.contains("Memory"));
+    assert!(rendered.contains("proposal"));
 }
 
 #[test]

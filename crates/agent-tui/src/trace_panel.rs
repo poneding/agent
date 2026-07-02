@@ -408,6 +408,19 @@ impl TracePanelState {
                     snapshot.errors.len()
                 ),
             )),
+            UiJsonFrame::MemorySnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "memory",
+                format!(
+                    "enabled={} records={} proposals={} selected={} rejected={} diagnostics={}",
+                    snapshot.enabled,
+                    snapshot.record_count,
+                    snapshot.proposal_count,
+                    snapshot.selected_count,
+                    snapshot.rejected_count,
+                    snapshot.diagnostics.len()
+                ),
+            )),
             UiJsonFrame::TaskSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "tasks",

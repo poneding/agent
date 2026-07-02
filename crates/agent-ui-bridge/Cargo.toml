@@ -8,6 +8,7 @@ authors.workspace = true
 
 [dependencies]
 agent-core = { path = "../agent-core" }
+agent-memory = { path = "../agent-memory" }
 agent-policy = { path = "../agent-policy" }
 agent-scheduler = { path = "../agent-scheduler" }
 agent-team = { path = "../agent-team" }

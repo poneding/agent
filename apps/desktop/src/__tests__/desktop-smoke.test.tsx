@@ -383,6 +383,7 @@ const conversationState: ConversationTaskState = {
   diagnostics: [],
   pendingFrameCount: 0,
   teamWorkflowSnapshot: null,
+  memorySnapshot: null,
 };
 
 describe('desktop MVP smoke navigation', () => {

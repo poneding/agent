@@ -661,6 +661,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M64-03 implementation | Complete |
 | M64-04 slice spec | Complete |
 | M64-04 slice plan | Complete |
+| M64-04 implementation | Complete |
 | M64 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1423,7 +1424,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M64-01 Memory Product Snapshot and Privacy Contracts | `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md` | `docs/plans/M64-01-memory-product-snapshot-privacy.plan.md` | Complete: typed, serializable, bounded, redacted memory product snapshots for records, proposals, retrieval previews, influence summaries, retention controls, tombstones, and privacy diagnostics. |
 | M64-02 CLI and JSON Memory Review Commands | `docs/specs/M64-02-cli-json-memory-review.spec.md` | `docs/plans/M64-02-cli-json-memory-review.plan.md` | Complete: stable text/JSON memory snapshot, retrieval preview, proposal review/decision, import/export, delete, and rebuild commands with redacted product contracts. |
 | M64-03 Runtime Memory Influence and Proposal Loop | `docs/specs/M64-03-runtime-memory-influence-proposals.spec.md` | `docs/plans/M64-03-runtime-memory-influence-proposals.plan.md` | Complete: runtime memory inputs, prompt-layer influence, safe turn evidence, and reviewable proposal summaries without automatic commits. |
-| M64-04 TUI/Desktop Memory Surfaces | `docs/specs/M64-04-tui-desktop-memory-surfaces.spec.md` | `docs/plans/M64-04-tui-desktop-memory-surfaces.plan.md` | In progress: memory review, proposal, influence trace, privacy, import/export, and settings surfaces over bridge snapshots. |
+| M64-04 TUI/Desktop Memory Surfaces | `docs/specs/M64-04-tui-desktop-memory-surfaces.spec.md` | `docs/plans/M64-04-tui-desktop-memory-surfaces.plan.md` | Complete: bridge, TUI, and Desktop render memory review, proposal, influence trace, privacy, retention, tombstone, and diagnostic state from shared snapshots. |
 | M64-05 Memory Smoke, Docs, and Closeout | Planned | Planned | Planned: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
 
 ## MX01 Slice Index
@@ -1439,7 +1440,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M64 Memory and Personalization, next slice M64-04 TUI/Desktop Memory Surfaces.
+Current implementation focus: M64 Memory and Personalization, next slice M64-05 Memory Smoke, Docs, and Closeout.
 
 Most recent completed or active planning documents:
 

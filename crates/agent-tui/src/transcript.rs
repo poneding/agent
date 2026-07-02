@@ -442,6 +442,20 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::MemorySnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "memory",
+                format!(
+                    "enabled={} records={} proposals={} selected={} rejected={} diagnostics={}",
+                    snapshot.enabled,
+                    snapshot.record_count,
+                    snapshot.proposal_count,
+                    snapshot.selected_count,
+                    snapshot.rejected_count,
+                    snapshot.diagnostics.len()
+                ),
+                false,
+            )),
             UiJsonFrame::TaskSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "tasks",

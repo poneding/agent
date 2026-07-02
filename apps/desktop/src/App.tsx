@@ -14,6 +14,7 @@ import { ApprovalQueue } from './components/ApprovalQueue';
 import { Composer } from './components/Composer';
 import { ConversationList } from './components/ConversationList';
 import { ExtensionHealthView } from './components/ExtensionHealthView';
+import { MemoryView } from './components/MemoryView';
 import { SettingsView } from './components/SettingsView';
 import { TaskDetail } from './components/TaskDetail';
 import { TaskList } from './components/TaskList';
@@ -61,6 +62,7 @@ import type {
   TraceTimeline as TraceTimelineModel,
   TraceUiState,
   UiExtensionSnapshot,
+  UiMemorySnapshot,
   UiTeamWorkflowSnapshot,
 } from './types';
 
@@ -94,6 +96,7 @@ export function AppShell({
   extensionSnapshot = null,
   diffReview = null,
   teamWorkflowSnapshot = null,
+  memorySnapshot = null,
 }: {
   bootstrap: DesktopBootstrap | null;
   bootstrapError: string | null;
@@ -115,6 +118,7 @@ export function AppShell({
   extensionSnapshot?: UiExtensionSnapshot | null;
   diffReview?: DesktopDiffReview | null;
   teamWorkflowSnapshot?: UiTeamWorkflowSnapshot | null;
+  memorySnapshot?: UiMemorySnapshot | null;
 }) {
   const [route, setRoute] = useState<DesktopShellRoute>(bootstrap?.route ?? 'dashboard');
   const diagnostics = bootstrap?.diagnostics ?? [];
@@ -133,6 +137,7 @@ export function AppShell({
   const conversationTaskState = conversationState ?? fallbackConversationTaskState;
   const effectiveTeamWorkflowSnapshot =
     teamWorkflowSnapshot ?? conversationTaskState.teamWorkflowSnapshot;
+  const effectiveMemorySnapshot = memorySnapshot ?? conversationTaskState.memorySnapshot;
   const selectedTask = selectTask(
     conversationTaskState.tasks,
     conversationTaskState.activeTaskId,
@@ -237,6 +242,9 @@ export function AppShell({
         {route === 'tasks' ? (
           <section className="workspace-band">
             <h1>Tasks</h1>
+            {effectiveMemorySnapshot === null ? null : (
+              <MemoryView snapshot={effectiveMemorySnapshot} />
+            )}
             {effectiveTeamWorkflowSnapshot === null ? null : (
               <TeamWorkflowView snapshot={effectiveTeamWorkflowSnapshot} />
             )}

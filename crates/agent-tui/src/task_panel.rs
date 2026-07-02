@@ -1,7 +1,7 @@
 use agent_types::{ApprovalRequestId, TaskId, TaskState, TodoStatus};
 use agent_ui_bridge::{
-    UiEventPayload, UiJsonFrame, UiPlanTodoSnapshot, UiTaskReviewSummary, UiTaskSummary,
-    UiTeamWorkflowSnapshot,
+    UiEventPayload, UiJsonFrame, UiMemorySnapshot, UiPlanTodoSnapshot, UiTaskReviewSummary,
+    UiTaskSummary, UiTeamWorkflowSnapshot,
 };
 
 const DEFAULT_TASK_NOTIFICATION_LIMIT: usize = 100;
@@ -49,6 +49,7 @@ pub struct TaskPanelState {
     pub plan: Option<UiPlanTodoSnapshot>,
     pub reviews: Vec<UiTaskReviewSummary>,
     pub team_workflows: Vec<UiTeamWorkflowSnapshot>,
+    pub memory: Option<UiMemorySnapshot>,
     pub notifications: Vec<TaskPanelNotification>,
     limit: usize,
 }
@@ -61,6 +62,7 @@ impl TaskPanelState {
             plan: None,
             reviews: Vec::new(),
             team_workflows: Vec::new(),
+            memory: None,
             notifications: Vec::new(),
             limit: limit.max(1),
         }
@@ -79,6 +81,9 @@ impl TaskPanelState {
             }
             UiJsonFrame::TeamWorkflowSnapshot(snapshot) => {
                 self.team_workflows = vec![snapshot.clone()];
+            }
+            UiJsonFrame::MemorySnapshot(snapshot) => {
+                self.memory = Some(snapshot.clone());
             }
             UiJsonFrame::Event(event) => {
                 let UiEventPayload::TaskNotification(notification) = &event.payload else {
@@ -102,6 +107,7 @@ impl TaskPanelState {
             && self.plan.is_none()
             && self.reviews.is_empty()
             && self.team_workflows.is_empty()
+            && self.memory.is_none()
             && self.notifications.is_empty()
         {
             return "Tasks: empty".to_string();
@@ -257,6 +263,82 @@ impl TaskPanelState {
             for diagnostic in &team.snapshot.diagnostics {
                 lines.push(format!(
                     "team diagnostic {:?} {} {}",
+                    diagnostic.severity, diagnostic.code, diagnostic.message
+                ));
+            }
+        }
+        if let Some(memory) = &self.memory {
+            lines.push(format!(
+                "Memory: scope={} enabled={} layers={} records={} proposals={} selected={} rejected={} tombstones={} diagnostics={}",
+                memory.scope_label,
+                memory.enabled,
+                memory.layer_count,
+                memory.record_count,
+                memory.proposal_count,
+                memory.selected_count,
+                memory.rejected_count,
+                memory.tombstone_count,
+                memory.diagnostics.len()
+            ));
+            lines.push(format!(
+                "memory retention export_sensitive={} tombstones_retained={} sensitive_review={}",
+                memory.retention.export_includes_sensitive,
+                memory.retention.tombstones_retained,
+                memory.retention.sensitive_memory_requires_review
+            ));
+            for record in &memory.records {
+                lines.push(format!(
+                    "memory record {} scope={} sensitivity={} confidence={} preview={}",
+                    record.id,
+                    record.scope,
+                    record.sensitivity,
+                    record.confidence,
+                    record.text_preview.as_deref().unwrap_or("[hidden]")
+                ));
+            }
+            for proposal in &memory.proposals {
+                lines.push(format!(
+                    "memory proposal {} status={} sensitivity={} review_required={} redacted={} summary={}",
+                    proposal.proposal_id,
+                    proposal.status,
+                    proposal.sensitivity,
+                    proposal.requires_explicit_approval,
+                    proposal.content_redacted,
+                    proposal.summary
+                ));
+            }
+            if let Some(retrieval) = &memory.retrieval {
+                lines.push(format!(
+                    "memory retrieval query={} selected={} rejected={} candidates={}",
+                    retrieval.query_hash,
+                    retrieval.selected_count,
+                    retrieval.rejected_count,
+                    retrieval.candidates.len()
+                ));
+                for candidate in &retrieval.candidates {
+                    lines.push(format!(
+                        "memory candidate {} selected={} rank={} score={} reasons={} preview={}",
+                        candidate.memory_id,
+                        candidate.selected,
+                        candidate.rank,
+                        candidate.combined_score,
+                        candidate.reasons.join(","),
+                        candidate.preview.as_deref().unwrap_or("[hidden]")
+                    ));
+                }
+            }
+            if let Some(influence) = &memory.influence {
+                lines.push(format!(
+                    "memory influence query={} selected={} rejected={} entries={}",
+                    influence.query_hash,
+                    influence.selected_count,
+                    influence.rejected_count,
+                    influence.entries.len()
+                ));
+            }
+            for diagnostic in &memory.diagnostics {
+                lines.push(format!(
+                    "memory diagnostic {} {} {}",
                     diagnostic.severity, diagnostic.code, diagnostic.message
                 ));
             }

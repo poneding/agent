@@ -13,6 +13,13 @@ use agent_core::{
     TerminalSessionDirectoryReport, TerminalSessionStatus, TerminalSessionSummary,
     normalize_plan_todo_snapshot,
 };
+use agent_memory::{
+    MemoryInfluenceEntrySummary, MemoryInfluenceSummary, MemoryPrivacyDiagnostic,
+    MemoryPrivacyDiagnosticSeverity, MemoryProductSnapshot, MemoryProposalStatus,
+    MemoryProposalSummary, MemoryRecordSummary, MemoryRetentionControlSummary,
+    MemoryRetrievalCandidateSummary, MemoryRetrievalPreview, MemoryRetrievalReason, MemoryScope,
+    MemorySensitivity,
+};
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_team::TeamWorkflowSnapshot;
 use agent_types::{
@@ -2264,6 +2271,438 @@ impl UiTeamWorkflowCommandError {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMemorySnapshot {
+    pub scope_label: String,
+    pub enabled: bool,
+    pub layer_count: u32,
+    pub record_count: u32,
+    pub proposal_count: u32,
+    pub selected_count: u32,
+    pub rejected_count: u32,
+    pub tombstone_count: u32,
+    pub records_truncated: bool,
+    pub proposals_truncated: bool,
+    pub retrieval_candidates_truncated: bool,
+    pub influence_entries_truncated: bool,
+    pub diagnostics_truncated: bool,
+    pub records: Vec<UiMemoryRecordSummary>,
+    pub proposals: Vec<UiMemoryProposalSummary>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub retrieval: Option<UiMemoryRetrievalPreview>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub influence: Option<UiMemoryInfluenceSummary>,
+    pub retention: UiMemoryRetentionSummary,
+    pub diagnostics: Vec<UiMemoryDiagnostic>,
+}
+
+impl UiMemorySnapshot {
+    pub fn from_product_snapshot(snapshot: &MemoryProductSnapshot) -> Result<Self, UiBridgeError> {
+        Self::from_parts(
+            snapshot,
+            snapshot.retention.memory_enabled,
+            0,
+            snapshot
+                .influence
+                .as_ref()
+                .map_or_else(
+                    || {
+                        snapshot
+                            .retrieval
+                            .as_ref()
+                            .map(|retrieval| retrieval.selected_count)
+                    },
+                    |influence| Some(influence.selected_count),
+                )
+                .unwrap_or_default(),
+            snapshot
+                .influence
+                .as_ref()
+                .map_or_else(
+                    || {
+                        snapshot
+                            .retrieval
+                            .as_ref()
+                            .map(|retrieval| retrieval.rejected_count)
+                    },
+                    |influence| Some(influence.rejected_count),
+                )
+                .unwrap_or_default(),
+        )
+    }
+
+    pub fn from_runtime_evidence(
+        evidence: &agent_core::RuntimeMemoryTurnEvidence,
+    ) -> Result<Self, UiBridgeError> {
+        Self::from_parts(
+            &evidence.snapshot,
+            evidence.enabled,
+            evidence.layer_count,
+            evidence.influence.selected_count,
+            evidence.influence.rejected_count,
+        )
+    }
+
+    fn from_parts(
+        snapshot: &MemoryProductSnapshot,
+        enabled: bool,
+        layer_count: usize,
+        selected_count: usize,
+        rejected_count: usize,
+    ) -> Result<Self, UiBridgeError> {
+        let scope_label = bounded_task_text(&snapshot.scope_label);
+        validate_non_empty("memory scope label", &scope_label)?;
+        let records = snapshot
+            .records
+            .iter()
+            .map(UiMemoryRecordSummary::from_summary)
+            .collect::<Result<Vec<_>, _>>()?;
+        let proposals = snapshot
+            .proposals
+            .iter()
+            .map(UiMemoryProposalSummary::from_summary)
+            .collect::<Result<Vec<_>, _>>()?;
+        let retrieval = snapshot
+            .retrieval
+            .as_ref()
+            .map(UiMemoryRetrievalPreview::from_preview)
+            .transpose()?;
+        let influence = snapshot
+            .influence
+            .as_ref()
+            .map(UiMemoryInfluenceSummary::from_summary)
+            .transpose()?;
+        let diagnostics = snapshot
+            .diagnostics
+            .iter()
+            .map(UiMemoryDiagnostic::from_diagnostic)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Self {
+            scope_label,
+            enabled,
+            layer_count: to_u32(layer_count, "memory layer count")?,
+            record_count: to_u32(snapshot.records.len(), "memory record count")?,
+            proposal_count: to_u32(snapshot.proposals.len(), "memory proposal count")?,
+            selected_count: to_u32(selected_count, "memory selected count")?,
+            rejected_count: to_u32(rejected_count, "memory rejected count")?,
+            tombstone_count: snapshot.tombstone_count,
+            records_truncated: snapshot.records_truncated,
+            proposals_truncated: snapshot.proposals_truncated,
+            retrieval_candidates_truncated: snapshot
+                .retrieval
+                .as_ref()
+                .is_some_and(|retrieval| retrieval.candidates_truncated),
+            influence_entries_truncated: snapshot
+                .influence
+                .as_ref()
+                .is_some_and(|influence| influence.entries_truncated),
+            diagnostics_truncated: snapshot.diagnostics_truncated,
+            records,
+            proposals,
+            retrieval,
+            influence,
+            retention: UiMemoryRetentionSummary::from_summary(&snapshot.retention),
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMemoryRecordSummary {
+    pub id: String,
+    pub scope: String,
+    pub sensitivity: String,
+    pub confidence: u8,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_event_id: Option<String>,
+    pub source_description: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text_preview: Option<String>,
+    pub preview_redacted: bool,
+    pub preview_truncated: bool,
+}
+
+impl UiMemoryRecordSummary {
+    fn from_summary(summary: &MemoryRecordSummary) -> Result<Self, UiBridgeError> {
+        let id = bounded_task_text(&summary.id);
+        validate_non_empty("memory record id", &id)?;
+        Ok(Self {
+            id,
+            scope: memory_scope_label(&summary.scope),
+            sensitivity: memory_sensitivity_label(summary.sensitivity).to_string(),
+            confidence: summary.confidence,
+            source_event_id: summary.source_event_id.map(|event_id| event_id.to_string()),
+            source_description: bounded_task_text(&summary.source_description),
+            text_preview: summary
+                .text_preview
+                .as_deref()
+                .map(bounded_diff_text)
+                .filter(|preview| !preview.is_empty()),
+            preview_redacted: summary.preview_redacted,
+            preview_truncated: summary.preview_truncated,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMemoryProposalSummary {
+    pub proposal_id: String,
+    pub proposed_record_id: String,
+    pub scope: String,
+    pub summary: String,
+    pub confidence: u8,
+    pub sensitivity: String,
+    pub status: String,
+    pub content_redacted: bool,
+    pub requires_explicit_approval: bool,
+    pub auto_approval_eligible: bool,
+    pub auto_approval_reason: String,
+    pub source_event_count: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resolution_reason: Option<String>,
+}
+
+impl UiMemoryProposalSummary {
+    fn from_summary(summary: &MemoryProposalSummary) -> Result<Self, UiBridgeError> {
+        let proposal_id = bounded_task_text(&summary.proposal_id);
+        let proposed_record_id = bounded_task_text(&summary.proposed_record_id);
+        let summary_text = bounded_diff_text(&summary.summary);
+        validate_non_empty("memory proposal id", &proposal_id)?;
+        validate_non_empty("memory proposed record id", &proposed_record_id)?;
+        validate_non_empty("memory proposal summary", &summary_text)?;
+
+        Ok(Self {
+            proposal_id,
+            proposed_record_id,
+            scope: memory_scope_label(&summary.scope),
+            summary: summary_text,
+            confidence: summary.confidence,
+            sensitivity: memory_sensitivity_label(summary.sensitivity).to_string(),
+            status: memory_proposal_status_label(summary.status).to_string(),
+            content_redacted: summary.content_redacted,
+            requires_explicit_approval: summary.requires_explicit_approval,
+            auto_approval_eligible: summary.auto_approval.eligible,
+            auto_approval_reason: bounded_task_text(&summary.auto_approval.reason),
+            source_event_count: to_u32(summary.source_event_count, "memory proposal source count")?,
+            resolution_reason: summary
+                .resolution_reason
+                .as_deref()
+                .map(bounded_task_text)
+                .filter(|reason| !reason.is_empty()),
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMemoryRetrievalPreview {
+    pub query_hash: String,
+    pub selected_count: u32,
+    pub rejected_count: u32,
+    pub candidates: Vec<UiMemoryRetrievalCandidateSummary>,
+    pub candidates_truncated: bool,
+}
+
+impl UiMemoryRetrievalPreview {
+    fn from_preview(preview: &MemoryRetrievalPreview) -> Result<Self, UiBridgeError> {
+        let query_hash = bounded_task_text(&preview.query_hash);
+        validate_non_empty("memory retrieval query hash", &query_hash)?;
+        Ok(Self {
+            query_hash,
+            selected_count: to_u32(preview.selected_count, "memory retrieval selected count")?,
+            rejected_count: to_u32(preview.rejected_count, "memory retrieval rejected count")?,
+            candidates: preview
+                .candidates
+                .iter()
+                .map(UiMemoryRetrievalCandidateSummary::from_summary)
+                .collect::<Result<Vec<_>, _>>()?,
+            candidates_truncated: preview.candidates_truncated,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMemoryRetrievalCandidateSummary {
+    pub memory_id: String,
+    pub scope: String,
+    pub sensitivity: String,
+    pub selected: bool,
+    pub rank: u32,
+    pub token_estimate: u32,
+    pub lexical_score: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub semantic_score: Option<String>,
+    pub combined_score: String,
+    pub matched_terms: Vec<String>,
+    pub reasons: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preview: Option<String>,
+    pub preview_redacted: bool,
+    pub preview_truncated: bool,
+}
+
+impl UiMemoryRetrievalCandidateSummary {
+    fn from_summary(summary: &MemoryRetrievalCandidateSummary) -> Result<Self, UiBridgeError> {
+        let memory_id = bounded_task_text(&summary.memory_id);
+        validate_non_empty("memory retrieval candidate id", &memory_id)?;
+        Ok(Self {
+            memory_id,
+            scope: memory_scope_label(&summary.scope),
+            sensitivity: memory_sensitivity_label(summary.sensitivity).to_string(),
+            selected: summary.selected,
+            rank: to_u32(summary.rank, "memory retrieval candidate rank")?,
+            token_estimate: summary.token_estimate,
+            lexical_score: score_label(summary.lexical_score),
+            semantic_score: summary.semantic_score.map(score_label),
+            combined_score: score_label(summary.combined_score),
+            matched_terms: summary
+                .matched_terms
+                .iter()
+                .map(|term| bounded_task_text(term))
+                .filter(|term| !term.is_empty())
+                .collect(),
+            reasons: summary
+                .reasons
+                .iter()
+                .map(|reason| memory_retrieval_reason_label(*reason).to_string())
+                .collect(),
+            preview: summary
+                .preview
+                .as_deref()
+                .map(bounded_diff_text)
+                .filter(|preview| !preview.is_empty()),
+            preview_redacted: summary.preview_redacted,
+            preview_truncated: summary.preview_truncated,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMemoryInfluenceSummary {
+    pub query_hash: String,
+    pub selected_count: u32,
+    pub rejected_count: u32,
+    pub entries: Vec<UiMemoryInfluenceEntrySummary>,
+    pub entries_truncated: bool,
+}
+
+impl UiMemoryInfluenceSummary {
+    fn from_summary(summary: &MemoryInfluenceSummary) -> Result<Self, UiBridgeError> {
+        let query_hash = bounded_task_text(&summary.query_hash);
+        validate_non_empty("memory influence query hash", &query_hash)?;
+        Ok(Self {
+            query_hash,
+            selected_count: to_u32(summary.selected_count, "memory influence selected count")?,
+            rejected_count: to_u32(summary.rejected_count, "memory influence rejected count")?,
+            entries: summary
+                .entries
+                .iter()
+                .map(UiMemoryInfluenceEntrySummary::from_summary)
+                .collect::<Result<Vec<_>, _>>()?,
+            entries_truncated: summary.entries_truncated,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMemoryInfluenceEntrySummary {
+    pub memory_id: String,
+    pub scope: String,
+    pub sensitivity: String,
+    pub selected: bool,
+    pub rank: u32,
+    pub lexical_score: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub semantic_score: Option<String>,
+    pub combined_score: String,
+    pub matched_terms: Vec<String>,
+    pub reasons: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preview: Option<String>,
+    pub preview_redacted: bool,
+    pub preview_truncated: bool,
+}
+
+impl UiMemoryInfluenceEntrySummary {
+    fn from_summary(summary: &MemoryInfluenceEntrySummary) -> Result<Self, UiBridgeError> {
+        let memory_id = bounded_task_text(&summary.memory_id);
+        validate_non_empty("memory influence entry id", &memory_id)?;
+        Ok(Self {
+            memory_id,
+            scope: memory_scope_label(&summary.scope),
+            sensitivity: memory_sensitivity_label(summary.sensitivity).to_string(),
+            selected: summary.selected,
+            rank: to_u32(summary.rank, "memory influence entry rank")?,
+            lexical_score: score_label(summary.lexical_score),
+            semantic_score: summary.semantic_score.map(score_label),
+            combined_score: score_label(summary.combined_score),
+            matched_terms: summary
+                .matched_terms
+                .iter()
+                .map(|term| bounded_task_text(term))
+                .filter(|term| !term.is_empty())
+                .collect(),
+            reasons: summary
+                .reasons
+                .iter()
+                .map(|reason| memory_retrieval_reason_label(*reason).to_string())
+                .collect(),
+            preview: summary
+                .preview
+                .as_deref()
+                .map(bounded_diff_text)
+                .filter(|preview| !preview.is_empty()),
+            preview_redacted: summary.preview_redacted,
+            preview_truncated: summary.preview_truncated,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMemoryRetentionSummary {
+    pub memory_enabled: bool,
+    pub export_includes_sensitive: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub export_max_records: Option<u32>,
+    pub tombstones_retained: bool,
+    pub sensitive_memory_requires_review: bool,
+}
+
+impl UiMemoryRetentionSummary {
+    fn from_summary(summary: &MemoryRetentionControlSummary) -> Self {
+        Self {
+            memory_enabled: summary.memory_enabled,
+            export_includes_sensitive: summary.export_includes_sensitive,
+            export_max_records: summary
+                .export_max_records
+                .map(|value| u32::try_from(value).unwrap_or(u32::MAX)),
+            tombstones_retained: summary.tombstones_retained,
+            sensitive_memory_requires_review: summary.sensitive_memory_requires_review,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiMemoryDiagnostic {
+    pub severity: String,
+    pub code: String,
+    pub message: String,
+}
+
+impl UiMemoryDiagnostic {
+    fn from_diagnostic(diagnostic: &MemoryPrivacyDiagnostic) -> Result<Self, UiBridgeError> {
+        let code = bounded_task_text(&diagnostic.code);
+        let message = bounded_task_text(&diagnostic.message);
+        validate_non_empty("memory diagnostic code", &code)?;
+        validate_non_empty("memory diagnostic message", &message)?;
+        Ok(Self {
+            severity: memory_privacy_diagnostic_severity_label(diagnostic.severity).to_string(),
+            code,
+            message,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UiTaskSnapshot {
     pub tasks: Vec<UiTaskSummary>,
     pub errors: Vec<UiTaskCommandError>,
@@ -2588,6 +3027,7 @@ pub enum UiJsonFrame {
     CommandRetryPlan(UiCommandRetryPlan),
     ConflictInspect(UiConflictInspectReport),
     TeamWorkflowSnapshot(UiTeamWorkflowSnapshot),
+    MemorySnapshot(UiMemorySnapshot),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
     StartupMigrationSnapshot(UiStartupMigrationSnapshot),
@@ -2709,6 +3149,62 @@ fn context_retrieval_diagnostic_severity_label(
         ContextRetrievalDiagnosticSeverity::Warning => "warning",
         ContextRetrievalDiagnosticSeverity::Error => "error",
     }
+}
+
+fn memory_scope_label(scope: &MemoryScope) -> String {
+    match scope {
+        MemoryScope::Conversation(conversation_id) => format!("conversation:{conversation_id}"),
+        MemoryScope::Project { workspace_id } => format!("project:{workspace_id}"),
+    }
+}
+
+fn memory_sensitivity_label(sensitivity: MemorySensitivity) -> &'static str {
+    match sensitivity {
+        MemorySensitivity::Public => "public",
+        MemorySensitivity::Internal => "internal",
+        MemorySensitivity::Sensitive => "sensitive",
+    }
+}
+
+fn memory_retrieval_reason_label(reason: MemoryRetrievalReason) -> &'static str {
+    match reason {
+        MemoryRetrievalReason::Score => "score",
+        MemoryRetrievalReason::Scope => "scope",
+        MemoryRetrievalReason::Sensitivity => "sensitivity",
+        MemoryRetrievalReason::Budget => "budget",
+        MemoryRetrievalReason::Duplicate => "duplicate",
+        MemoryRetrievalReason::BelowThreshold => "below_threshold",
+    }
+}
+
+fn memory_proposal_status_label(status: MemoryProposalStatus) -> &'static str {
+    match status {
+        MemoryProposalStatus::Pending => "pending",
+        MemoryProposalStatus::Approved => "approved",
+        MemoryProposalStatus::Rejected => "rejected",
+        MemoryProposalStatus::Committed => "committed",
+        MemoryProposalStatus::Expired => "expired",
+    }
+}
+
+fn memory_privacy_diagnostic_severity_label(
+    severity: MemoryPrivacyDiagnosticSeverity,
+) -> &'static str {
+    match severity {
+        MemoryPrivacyDiagnosticSeverity::Info => "info",
+        MemoryPrivacyDiagnosticSeverity::Warning => "warning",
+        MemoryPrivacyDiagnosticSeverity::Blocked => "blocked",
+    }
+}
+
+fn score_label(score: f32) -> String {
+    format!("{score:.3}")
+}
+
+fn to_u32(value: usize, label: &str) -> Result<u32, UiBridgeError> {
+    value
+        .try_into()
+        .map_err(|_| UiBridgeError::Validation(format!("too many {label}")))
 }
 
 pub fn encode_json_frame(frame: &UiJsonFrame) -> Result<String, UiBridgeError> {

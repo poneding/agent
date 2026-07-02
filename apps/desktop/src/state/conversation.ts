@@ -13,6 +13,7 @@ import type {
   TurnSubmission,
   UiCommandEnvelope,
   UiJsonFrame,
+  UiMemorySnapshot,
   UiPlanTodoItem,
   UiPlanTodoSnapshot,
   UiTeamWorkflowSnapshot,
@@ -42,6 +43,7 @@ export function createConversationTaskState(
     diagnostics: [],
     pendingFrameCount: 0,
     teamWorkflowSnapshot: null,
+    memorySnapshot: null,
   };
 }
 
@@ -67,6 +69,13 @@ export function reduceConversationTaskState(
     return {
       ...state,
       teamWorkflowSnapshot: frame.data,
+    };
+  }
+
+  if (frame.type === 'memory_snapshot' && isMemorySnapshot(frame.data)) {
+    return {
+      ...state,
+      memorySnapshot: frame.data,
     };
   }
 
@@ -375,6 +384,26 @@ function isTeamWorkflowSnapshot(value: unknown): value is UiTeamWorkflowSnapshot
     typeof value.dry_run === 'boolean' &&
     typeof value.snapshot.status === 'string' &&
     typeof value.snapshot.readiness === 'string'
+  );
+}
+
+function isMemorySnapshot(value: unknown): value is UiMemorySnapshot {
+  if (!isRecord(value) || !isRecord(value.retention)) {
+    return false;
+  }
+  return (
+    typeof value.scope_label === 'string' &&
+    typeof value.enabled === 'boolean' &&
+    typeof value.layer_count === 'number' &&
+    typeof value.record_count === 'number' &&
+    typeof value.proposal_count === 'number' &&
+    typeof value.selected_count === 'number' &&
+    typeof value.rejected_count === 'number' &&
+    typeof value.tombstone_count === 'number' &&
+    Array.isArray(value.records) &&
+    Array.isArray(value.proposals) &&
+    Array.isArray(value.diagnostics) &&
+    typeof value.retention.memory_enabled === 'boolean'
   );
 }
 

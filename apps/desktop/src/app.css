@@ -495,6 +495,128 @@ textarea {
   overflow-wrap: anywhere;
 }
 
+.memory-view {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #d6dbe1;
+  border-radius: 6px;
+  background: #ffffff;
+  margin-bottom: 14px;
+  padding: 12px;
+}
+
+.memory-view-header {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.memory-view h2,
+.memory-subsection h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.memory-view p,
+.memory-subsection p {
+  margin: 3px 0 0;
+  color: #697386;
+  overflow-wrap: anywhere;
+}
+
+.memory-state {
+  border: 1px solid #c3cad5;
+  border-radius: 6px;
+  background: #eef1f5;
+  color: #354052;
+  padding: 4px 7px;
+  white-space: nowrap;
+}
+
+.memory-state.enabled {
+  border-color: #8bbd92;
+  background: #e7f4ea;
+  color: #1f5f2d;
+}
+
+.memory-state.disabled {
+  border-color: #d6a5a5;
+  background: #f8e8e8;
+  color: #7d2626;
+}
+
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.memory-grid dt,
+.memory-grid dd {
+  border: 1px solid #d6dbe1;
+  margin: 0;
+  min-width: 0;
+  padding: 6px;
+}
+
+.memory-grid dt {
+  background: #eef1f5;
+  color: #697386;
+}
+
+.memory-retention {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.memory-retention span {
+  border: 1px solid #d6dbe1;
+  border-radius: 6px;
+  color: #354052;
+  padding: 4px 7px;
+}
+
+.memory-list,
+.memory-diagnostics {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.memory-list li,
+.memory-diagnostics li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(84px, auto);
+  gap: 8px;
+  border-top: 1px solid #eef1f4;
+  padding-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.memory-list li div {
+  display: grid;
+  gap: 2px;
+}
+
+.memory-list li span,
+.memory-diagnostics li span {
+  color: #697386;
+}
+
+.memory-list.compact {
+  margin-top: 6px;
+}
+
+.memory-subsection {
+  display: grid;
+  gap: 6px;
+}
+
 .task-monitor {
   display: grid;
   gap: 10px;

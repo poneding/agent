@@ -38,7 +38,7 @@ Confirm the current bridge/TUI/Desktop patterns for M63 team workflow snapshots,
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Create: `crates/agent-ui-bridge/tests/memory_snapshot.rs`
 
-- [ ] **Step 1: Define UI-safe memory structs**
+- [x] **Step 1: Define UI-safe memory structs**
 
 Add bridge contracts such as:
 
@@ -52,15 +52,15 @@ Add bridge contracts such as:
 
 Use Eq-friendly fields and display-ready values only. Do not include raw memory text, raw proposal content, embeddings, raw prompts, or unbounded diagnostic text.
 
-- [ ] **Step 2: Add JSON frame variant**
+- [x] **Step 2: Add JSON frame variant**
 
 Add a `memory_snapshot` `UiJsonFrame` variant that serializes/deserializes deterministically and can be ignored safely by older reducers.
 
-- [ ] **Step 3: Add conversion helpers**
+- [x] **Step 3: Add conversion helpers**
 
 Map from `MemoryProductSnapshot` and, where needed, `RuntimeMemoryTurnEvidence` into bridge structs without changing memory policy semantics.
 
-- [ ] **Step 4: Test bridge safety**
+- [x] **Step 4: Test bridge safety**
 
 Tests must prove:
 
@@ -76,11 +76,11 @@ Tests must prove:
 - Modify: `crates/agent-tui/src/task_panel.rs`
 - Modify: `crates/agent-tui/tests/task_panel.rs`
 
-- [ ] **Step 1: Extend panel state**
+- [x] **Step 1: Extend panel state**
 
 Add memory snapshot state to the existing task/status panel model. Follow M63 team workflow rendering style: consume bridge frame data and keep local logic limited to layout and labels.
 
-- [ ] **Step 2: Render memory summary**
+- [x] **Step 2: Render memory summary**
 
 Render:
 
@@ -91,7 +91,7 @@ Render:
 - diagnostics
 - retention and tombstone counts
 
-- [ ] **Step 3: Test TUI output**
+- [x] **Step 3: Test TUI output**
 
 Tests should cover normal, empty, disabled/degraded, and redacted-sensitive snapshots.
 
@@ -104,15 +104,15 @@ Tests should cover normal, empty, disabled/degraded, and redacted-sensitive snap
 - Modify existing app route/view wiring as needed
 - Create: `apps/desktop/src/__tests__/memory-ui.test.tsx`
 
-- [ ] **Step 1: Add TypeScript frame types**
+- [x] **Step 1: Add TypeScript frame types**
 
 Mirror the bridge `memory_snapshot` frame shape with typed, fixture-friendly interfaces. Keep naming and field casing aligned with serialized Rust frames.
 
-- [ ] **Step 2: Reduce memory frames**
+- [x] **Step 2: Reduce memory frames**
 
 Store the latest memory snapshot in existing Desktop conversation/app state. Unknown or missing memory frames should leave the UI stable.
 
-- [ ] **Step 3: Add minimal product surface**
+- [x] **Step 3: Add minimal product surface**
 
 Add a focused Desktop memory view/card/section using the existing visual system. It should display:
 
@@ -125,7 +125,7 @@ Add a focused Desktop memory view/card/section using the existing visual system.
 
 Do not add proposal action buttons in this slice unless an existing typed command is already available through the bridge and tested.
 
-- [ ] **Step 4: Test Desktop rendering**
+- [x] **Step 4: Test Desktop rendering**
 
 Vitest coverage should prove:
 
@@ -141,7 +141,7 @@ Vitest coverage should prove:
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
-- [ ] **Step 1: Run focused gates**
+- [x] **Step 1: Run focused gates**
 
 ```bash
 CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-ui-bridge --test memory_snapshot
@@ -152,7 +152,19 @@ cargo fmt --all -- --check
 git diff --check
 ```
 
-- [ ] **Step 2: Update status docs**
+Completed evidence:
+
+```bash
+CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-ui-bridge --test memory_snapshot
+CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-tui --test task_panel
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
+npm --prefix apps/desktop test -- --run src/__tests__/memory-ui.test.tsx
+npm --prefix apps/desktop run build
+cargo fmt --all -- --check
+git diff --check
+```
+
+- [x] **Step 2: Update status docs**
 
 Mark M64-04 complete only after focused gates pass. Keep M64 overall in progress and set M64-05 Memory Smoke, Docs, and Closeout as the next active slice.
 
@@ -161,7 +173,7 @@ Mark M64-04 complete only after focused gates pass. Keep M64 overall in progress
 **Files:**
 - Modify/create only M64-04 files and required status docs.
 
-- [ ] **Step 1: Commit planning**
+- [x] **Step 1: Commit planning**
 
 Exact-stage the M64-04 spec/plan and status docs.
 
@@ -171,7 +183,7 @@ Suggested commit message:
 docs: add m64 memory surfaces plan
 ```
 
-- [ ] **Step 2: Commit implementation**
+- [x] **Step 2: Commit implementation**
 
 Exact-stage bridge/TUI/Desktop implementation, tests, and status docs.
 

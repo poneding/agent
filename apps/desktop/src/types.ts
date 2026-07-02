@@ -312,6 +312,119 @@ export interface UiTeamWorkflowSnapshot {
   errors: UiTeamWorkflowCommandError[];
 }
 
+export interface UiMemoryRecordSummary {
+  id: string;
+  scope: string;
+  sensitivity: string;
+  confidence: number;
+  source_event_id?: string | null;
+  source_description: string;
+  text_preview?: string | null;
+  preview_redacted: boolean;
+  preview_truncated: boolean;
+}
+
+export interface UiMemoryProposalSummary {
+  proposal_id: string;
+  proposed_record_id: string;
+  scope: string;
+  summary: string;
+  confidence: number;
+  sensitivity: string;
+  status: string;
+  content_redacted: boolean;
+  requires_explicit_approval: boolean;
+  auto_approval_eligible: boolean;
+  auto_approval_reason: string;
+  source_event_count: number;
+  resolution_reason?: string | null;
+}
+
+export interface UiMemoryRetrievalCandidateSummary {
+  memory_id: string;
+  scope: string;
+  sensitivity: string;
+  selected: boolean;
+  rank: number;
+  token_estimate: number;
+  lexical_score: string;
+  semantic_score?: string | null;
+  combined_score: string;
+  matched_terms: string[];
+  reasons: string[];
+  preview?: string | null;
+  preview_redacted: boolean;
+  preview_truncated: boolean;
+}
+
+export interface UiMemoryRetrievalPreview {
+  query_hash: string;
+  selected_count: number;
+  rejected_count: number;
+  candidates: UiMemoryRetrievalCandidateSummary[];
+  candidates_truncated: boolean;
+}
+
+export interface UiMemoryInfluenceEntrySummary {
+  memory_id: string;
+  scope: string;
+  sensitivity: string;
+  selected: boolean;
+  rank: number;
+  lexical_score: string;
+  semantic_score?: string | null;
+  combined_score: string;
+  matched_terms: string[];
+  reasons: string[];
+  preview?: string | null;
+  preview_redacted: boolean;
+  preview_truncated: boolean;
+}
+
+export interface UiMemoryInfluenceSummary {
+  query_hash: string;
+  selected_count: number;
+  rejected_count: number;
+  entries: UiMemoryInfluenceEntrySummary[];
+  entries_truncated: boolean;
+}
+
+export interface UiMemoryRetentionSummary {
+  memory_enabled: boolean;
+  export_includes_sensitive: boolean;
+  export_max_records?: number | null;
+  tombstones_retained: boolean;
+  sensitive_memory_requires_review: boolean;
+}
+
+export interface UiMemoryDiagnostic {
+  severity: string;
+  code: string;
+  message: string;
+}
+
+export interface UiMemorySnapshot {
+  scope_label: string;
+  enabled: boolean;
+  layer_count: number;
+  record_count: number;
+  proposal_count: number;
+  selected_count: number;
+  rejected_count: number;
+  tombstone_count: number;
+  records_truncated: boolean;
+  proposals_truncated: boolean;
+  retrieval_candidates_truncated: boolean;
+  influence_entries_truncated: boolean;
+  diagnostics_truncated: boolean;
+  records: UiMemoryRecordSummary[];
+  proposals: UiMemoryProposalSummary[];
+  retrieval?: UiMemoryRetrievalPreview | null;
+  influence?: UiMemoryInfluenceSummary | null;
+  retention: UiMemoryRetentionSummary;
+  diagnostics: UiMemoryDiagnostic[];
+}
+
 export interface PlanTodoProgress {
   total: number;
   pending: number;
@@ -579,6 +692,10 @@ export type UiJsonFrame =
       data: UiTeamWorkflowSnapshot;
     }
   | {
+      type: 'memory_snapshot';
+      data: UiMemorySnapshot;
+    }
+  | {
       type: string;
       data?: unknown;
     };
@@ -674,4 +791,5 @@ export interface ConversationTaskState {
   diagnostics: ConversationDiagnostic[];
   pendingFrameCount: number;
   teamWorkflowSnapshot: UiTeamWorkflowSnapshot | null;
+  memorySnapshot: UiMemorySnapshot | null;
 }

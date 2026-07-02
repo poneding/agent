@@ -21,7 +21,7 @@
 - Read: `crates/agent-memory/src/tombstone.rs`
 - Read: `crates/agent-memory/tests/`
 
-- [ ] **Step 1: Review existing contracts**
+- [x] **Step 1: Review existing contracts**
 
 Identify existing structs and redaction helpers that can feed product summaries without copying raw sensitive memory into UI-facing fields.
 
@@ -30,7 +30,7 @@ Identify existing structs and redaction helpers that can feed product summaries 
 **Files:**
 - Create: `crates/agent-memory/tests/memory_product_snapshot.rs`
 
-- [ ] **Step 1: Add serialization and privacy tests**
+- [x] **Step 1: Add serialization and privacy tests**
 
 Cover:
 
@@ -43,7 +43,7 @@ Cover:
 - tombstone exclusion from active summaries
 - bounded diagnostics
 
-- [ ] **Step 2: Run focused test and verify failure**
+- [x] **Step 2: Run focused test and verify failure**
 
 ```bash
 cargo test -p agent-memory --test memory_product_snapshot
@@ -57,7 +57,7 @@ Expected: tests fail before the snapshot contract exists.
 - Create or modify: `crates/agent-memory/src/product.rs`
 - Modify: `crates/agent-memory/src/lib.rs`
 
-- [ ] **Step 1: Add public summary structs**
+- [x] **Step 1: Add public summary structs**
 
 Implement:
 
@@ -69,11 +69,11 @@ Implement:
 - `MemoryRetentionControlSummary`
 - `MemoryPrivacyDiagnostic`
 
-- [ ] **Step 2: Add constructors/converters**
+- [x] **Step 2: Add constructors/converters**
 
 Convert from existing memory records, proposal summaries, retrieval results, influence traces, archives/import reports, and tombstones where available.
 
-- [ ] **Step 3: Add bounding/redaction helpers**
+- [x] **Step 3: Add bounding/redaction helpers**
 
 Use consistent limits and secret-like redaction for previews, source labels, reasons, diagnostics, and influence summaries.
 
@@ -82,7 +82,7 @@ Use consistent limits and secret-like redaction for previews, source labels, rea
 **Files:**
 - Read: changed files
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 ```bash
 cargo test -p agent-memory --test memory_product_snapshot
@@ -101,11 +101,11 @@ Expected: focused memory checks pass.
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
-- [ ] **Step 1: Update status docs after focused gates pass**
+- [x] **Step 1: Update status docs after focused gates pass**
 
 Mark M64-01 implementation complete only after focused gates pass. Keep M64 overall in progress.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Exact-stage only M64-01 files and required status docs.
 

@@ -7,6 +7,7 @@ pub mod editor;
 pub mod embedding;
 pub mod error;
 pub mod index;
+pub mod product;
 pub mod proposal;
 pub mod record;
 pub mod rerank;
@@ -31,6 +32,11 @@ pub use embedding::{
 pub use error::MemoryError;
 pub use index::{
     HybridMemoryQuery, InMemoryMemoryIndex, MemoryIndex, MemoryIndexStats, MemoryRetrievalCandidate,
+};
+pub use product::{
+    MemoryInfluenceEntrySummary, MemoryInfluenceSummary, MemoryPrivacyDiagnostic,
+    MemoryPrivacyDiagnosticSeverity, MemoryProductSnapshot, MemoryRecordSummary,
+    MemoryRetentionControlSummary, MemoryRetrievalCandidateSummary, MemoryRetrievalPreview,
 };
 pub use proposal::{
     InMemoryMemoryProposalStore, MemoryAutoApprovalEligibility, MemoryProposalDecision,

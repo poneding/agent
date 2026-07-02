@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{MemoryError, MemoryRecord, MemoryScope, MemorySensitivity, MemorySource};
 
+const SUMMARY_LIMIT_BYTES: usize = 160;
+
 pub trait MemoryProposalStore {
     fn add_proposal(&mut self, proposal: MemoryWriteProposal) -> Result<(), MemoryError>;
 
@@ -125,13 +127,19 @@ impl MemoryWriteProposal {
             proposal_id: redact_secret_like_text(&self.proposal_id),
             proposed_record_id: redact_secret_like_text(&self.proposed_record_id),
             scope: self.scope.clone(),
-            summary: redact_secret_like_text(&self.summary),
+            summary: truncate_utf8(&redact_secret_like_text(&self.summary), SUMMARY_LIMIT_BYTES),
             confidence: self.confidence,
             sensitivity: self.sensitivity,
             status: self.status,
             content_redacted: true,
             requires_explicit_approval: self.requires_explicit_approval(),
             auto_approval: self.auto_approval_eligibility(),
+            source_event_count: self.source_event_ids.len(),
+            resolution_reason: self
+                .resolution_reason
+                .as_deref()
+                .map(redact_secret_like_text)
+                .map(|reason| truncate_utf8(&reason, SUMMARY_LIMIT_BYTES)),
         }
     }
 
@@ -178,6 +186,8 @@ pub struct MemoryProposalSummary {
     pub content_redacted: bool,
     pub requires_explicit_approval: bool,
     pub auto_approval: MemoryAutoApprovalEligibility,
+    pub source_event_count: usize,
+    pub resolution_reason: Option<String>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -348,6 +358,18 @@ fn redact_secret_like_text(value: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+fn truncate_utf8(value: &str, max_bytes: usize) -> String {
+    if value.len() <= max_bytes {
+        return value.to_string();
+    }
+
+    let mut end = max_bytes;
+    while !value.is_char_boundary(end) {
+        end -= 1;
+    }
+    format!("{}...", &value[..end])
 }
 
 fn is_secret_like(value: &str) -> bool {

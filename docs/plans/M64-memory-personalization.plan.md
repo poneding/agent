@@ -41,11 +41,11 @@ Confirm the repo already has memory records, scopes, sensitivity, archives, prop
 - Modify if needed: `crates/agent-core/`
 - Modify if needed: `crates/agent-ui-bridge/`
 
-- [ ] **Step 1: Plan M64-01**
+- [x] **Step 1: Plan M64-01**
 
 Define UI-safe product snapshots for memory records, proposal summaries, retrieval previews, influence traces, retention controls, tombstones, and privacy diagnostics.
 
-- [ ] **Step 2: Implement M64-01**
+- [x] **Step 2: Implement M64-01**
 
 Add typed, serializable, bounded, redacted contracts and focused tests. Keep side effects out of M64-01; this slice should make memory state inspectable before broader CLI/UI/runtime behavior is added.
 
@@ -54,6 +54,16 @@ Expected checks:
 ```bash
 cargo test -p agent-memory
 cargo clippy -p agent-memory --all-targets -- -D warnings
+```
+
+Completed evidence:
+
+```bash
+CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-memory --test memory_product_snapshot
+CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-memory
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-memory --all-targets -- -D warnings
+cargo fmt --all -- --check
+git diff --check
 ```
 
 ### Task 3: M64-02 CLI and JSON Memory Review Commands

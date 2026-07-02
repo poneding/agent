@@ -270,7 +270,7 @@ Acceptance:
 
 ### M64 Memory and Personalization
 
-Status: Planned. M64 milestone planning and M64-01 slice planning are ready. Implementation has not started.
+Status: In progress. M64 milestone planning and M64-01 memory product snapshot/privacy contracts are complete. M64-02 CLI and JSON Memory Review Commands is the next active slice.
 
 Purpose: make memory useful, reviewable, privacy-safe, and visible in product workflows rather than only available as lower-level storage/retrieval contracts.
 
@@ -278,7 +278,7 @@ Initial slices:
 
 | Slice | Outcome |
 |---|---|
-| M64-01 Memory Product Snapshot and Privacy Contracts | Planned: typed memory snapshots for records, proposals, retrieval previews, influence traces, retention controls, tombstones, and privacy diagnostics. |
+| M64-01 Memory Product Snapshot and Privacy Contracts | Complete: typed memory snapshots for records, proposals, retrieval previews, influence summaries, retention controls, tombstones, and privacy diagnostics. |
 | M64-02 CLI and JSON Memory Review Commands | Planned: stable memory review, retrieval preview, proposal decision, import/export, delete, and rebuild commands over shared contracts. |
 | M64-03 Runtime Memory Influence and Proposal Loop | Planned: selected memories enter prompt assembly with influence traces, and turn evidence can create reviewable write proposals. |
 | M64-04 TUI/Desktop Memory Surfaces | Planned: TUI/Desktop render memory records, proposals, influence traces, privacy controls, and settings from bridge snapshots. |

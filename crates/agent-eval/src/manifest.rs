@@ -31,6 +31,7 @@ pub enum EvalScenarioKind {
     EvidenceOnly,
     ContextQuality,
     RecoveryCrashSmoke,
+    TeamWorkflowSmoke,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -62,6 +63,8 @@ pub struct EvalExpectations {
     #[serde(default)]
     pub recovery: Option<EvalRecoveryExpectations>,
     #[serde(default)]
+    pub team_workflow: Option<EvalTeamWorkflowExpectations>,
+    #[serde(default)]
     pub golden: Option<Utf8PathBuf>,
 }
 
@@ -84,6 +87,21 @@ pub struct EvalRecoveryExpectations {
     pub min_pending_tool_count: Option<u32>,
     pub min_conflict_count: Option<u32>,
     pub requires_retry_plan: bool,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct EvalTeamWorkflowExpectations {
+    pub min_worktree_count: Option<u32>,
+    pub min_handoff_count: Option<u32>,
+    pub min_blackboard_entry_count: Option<u32>,
+    pub min_conflict_count: Option<u32>,
+    pub min_merge_blocker_count: Option<u32>,
+    pub require_capability_reduction: bool,
+    pub require_policy_blocked: bool,
+    pub require_conflict_blocker: bool,
+    pub require_review_blocker: bool,
+    pub require_redaction: bool,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -186,6 +204,7 @@ where
     validate_permissions(&manifest.permissions)?;
     validate_context_quality_expectations(manifest.kind, &manifest.expectations)?;
     validate_recovery_expectations(manifest.kind, &manifest.expectations)?;
+    validate_team_workflow_expectations(manifest.kind, &manifest.expectations)?;
     validate_metadata(&manifest.metadata)?;
 
     let normalized_fixture_root = normalize_root(fixture_root)?;
@@ -309,6 +328,20 @@ fn validate_recovery_expectations(
     Ok(())
 }
 
+fn validate_team_workflow_expectations(
+    kind: EvalScenarioKind,
+    expectations: &EvalExpectations,
+) -> Result<(), EvalManifestError> {
+    if kind == EvalScenarioKind::TeamWorkflowSmoke && expectations.team_workflow.is_none() {
+        return Err(EvalManifestError::InvalidField {
+            field: "expectations.team_workflow",
+            message: "team_workflow expectations are required for team_workflow_smoke scenarios"
+                .to_string(),
+        });
+    }
+    Ok(())
+}
+
 fn validate_expectation_paths(
     field: &'static str,
     paths: &[String],
@@ -409,7 +442,7 @@ fn enforce_required_fixture(
         EvalScenarioKind::ContextQuality if fixtures.workspace.is_none() => {
             Some("fixtures.workspace")
         }
-        EvalScenarioKind::RecoveryCrashSmoke => None,
+        EvalScenarioKind::RecoveryCrashSmoke | EvalScenarioKind::TeamWorkflowSmoke => None,
         _ => None,
     };
 

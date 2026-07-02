@@ -9,7 +9,18 @@ use agent_core::{
     retrieve_project_context_quality, run_local_coding_fixture, run_recovery_crash_smoke_fixture,
     verify_observability_replay_fixture,
 };
+use agent_policy::{CapabilityAction, ResourceKind, ResourceScope};
 use agent_storage::{check_replay_compatibility, load_replay_fixture_json};
+use agent_team::{
+    BlackboardEntryKind, CapabilityGrant, CapabilitySet, HandoffStatus, ReviewVote, SubagentRole,
+    TeamBlackboardEntrySummary, TeamBlackboardSummary, TeamCapabilityCeilingSummary,
+    TeamHandoffSummary, TeamMergeBlockerKind, TeamMergeReadinessReport, TeamMergeReviewSummary,
+    TeamWorkflowReadiness, TeamWorkflowSnapshot, TeamWorktreeState, TeamWorktreeSummary,
+};
+use agent_types::{
+    AgentId, RecoveryConflictKind, RecoveryConflictNextAction, RecoveryConflictSide,
+    RecoveryConflictSummary, TaskId, TeamId, WorkspaceId,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::manifest::{
@@ -56,6 +67,7 @@ pub fn run_eval_scenario(
         EvalScenarioKind::LocalCoding => run_local_coding_scenario(scenario),
         EvalScenarioKind::ContextQuality => run_context_quality_scenario(scenario),
         EvalScenarioKind::RecoveryCrashSmoke => run_recovery_crash_smoke_scenario(scenario),
+        EvalScenarioKind::TeamWorkflowSmoke => run_team_workflow_smoke_scenario(scenario),
         EvalScenarioKind::FakeModelTurn => run_unimplemented_scenario(scenario, options.strictness),
     }
 }
@@ -768,6 +780,508 @@ fn recovery_readiness_label(readiness: agent_types::RecoveryReadiness) -> &'stat
         agent_types::RecoveryReadiness::StorageError => "storage_error",
         agent_types::RecoveryReadiness::Blocked => "blocked",
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct TeamWorkflowEvalOutcome {
+    snapshot_count: u32,
+    worktree_count: u32,
+    handoff_count: u32,
+    blackboard_entry_count: u32,
+    conflict_count: u32,
+    merge_blocker_count: u32,
+    diagnostic_count: usize,
+    capability_reduced: bool,
+    policy_blocked: bool,
+    conflict_blocker: bool,
+    review_blocker: bool,
+    has_merge_ready: bool,
+    has_conflict_ready: bool,
+    has_policy_blocked: bool,
+    has_review_blocked: bool,
+    redacted: bool,
+    leaked_secret: bool,
+}
+
+fn run_team_workflow_smoke_scenario(scenario: &ValidatedEvalScenario) -> EvalScenarioReport {
+    let Some(expectations) = scenario.manifest.expectations.team_workflow.as_ref() else {
+        return failed_report(
+            scenario,
+            diagnostic(
+                EvalDiagnosticSeverity::Error,
+                "team_workflow_expectations_missing",
+                "team workflow expectations are required",
+                Some("expectations.team_workflow"),
+            ),
+            None,
+        );
+    };
+
+    let outcome = match build_team_workflow_smoke() {
+        Ok(outcome) => outcome,
+        Err(message) => {
+            return failed_report(
+                scenario,
+                diagnostic(
+                    EvalDiagnosticSeverity::Error,
+                    "team_workflow_smoke_failed",
+                    message,
+                    Some("kind"),
+                ),
+                None,
+            );
+        }
+    };
+
+    let mut diagnostics = Vec::new();
+    push_team_min_diagnostic(
+        &mut diagnostics,
+        outcome.worktree_count,
+        expectations.min_worktree_count,
+        "team_workflow_worktree_count_too_low",
+        "worktrees",
+        "expectations.team_workflow.min_worktree_count",
+    );
+    push_team_min_diagnostic(
+        &mut diagnostics,
+        outcome.handoff_count,
+        expectations.min_handoff_count,
+        "team_workflow_handoff_count_too_low",
+        "handoffs",
+        "expectations.team_workflow.min_handoff_count",
+    );
+    push_team_min_diagnostic(
+        &mut diagnostics,
+        outcome.blackboard_entry_count,
+        expectations.min_blackboard_entry_count,
+        "team_workflow_blackboard_entry_count_too_low",
+        "blackboard entries",
+        "expectations.team_workflow.min_blackboard_entry_count",
+    );
+    push_team_min_diagnostic(
+        &mut diagnostics,
+        outcome.conflict_count,
+        expectations.min_conflict_count,
+        "team_workflow_conflict_count_too_low",
+        "conflicts",
+        "expectations.team_workflow.min_conflict_count",
+    );
+    push_team_min_diagnostic(
+        &mut diagnostics,
+        outcome.merge_blocker_count,
+        expectations.min_merge_blocker_count,
+        "team_workflow_merge_blocker_count_too_low",
+        "merge blockers",
+        "expectations.team_workflow.min_merge_blocker_count",
+    );
+    push_team_bool_diagnostic(
+        &mut diagnostics,
+        expectations.require_capability_reduction && !outcome.capability_reduced,
+        "team_workflow_capability_not_reduced",
+        "expected reduced capability ceiling evidence",
+        "expectations.team_workflow.require_capability_reduction",
+    );
+    push_team_bool_diagnostic(
+        &mut diagnostics,
+        expectations.require_policy_blocked && !outcome.policy_blocked,
+        "team_workflow_policy_block_missing",
+        "expected policy-blocked merge readiness evidence",
+        "expectations.team_workflow.require_policy_blocked",
+    );
+    push_team_bool_diagnostic(
+        &mut diagnostics,
+        expectations.require_conflict_blocker && !outcome.conflict_blocker,
+        "team_workflow_conflict_blocker_missing",
+        "expected conflict merge blocker evidence",
+        "expectations.team_workflow.require_conflict_blocker",
+    );
+    push_team_bool_diagnostic(
+        &mut diagnostics,
+        expectations.require_review_blocker && !outcome.review_blocker,
+        "team_workflow_review_blocker_missing",
+        "expected review-blocking merge blocker evidence",
+        "expectations.team_workflow.require_review_blocker",
+    );
+    push_team_bool_diagnostic(
+        &mut diagnostics,
+        expectations.require_redaction && !outcome.redacted,
+        "team_workflow_redaction_marker_missing",
+        "expected redacted marker in team workflow evidence",
+        "expectations.team_workflow.require_redaction",
+    );
+    push_team_bool_diagnostic(
+        &mut diagnostics,
+        outcome.leaked_secret,
+        "team_workflow_secret_leaked",
+        "team workflow smoke evidence leaked secret-like text",
+        "team_workflow_smoke.serialized",
+    );
+    push_team_bool_diagnostic(
+        &mut diagnostics,
+        !outcome.has_merge_ready,
+        "team_workflow_merge_ready_missing",
+        "expected merge-ready workflow evidence",
+        "team_workflow_smoke.readiness",
+    );
+    push_team_bool_diagnostic(
+        &mut diagnostics,
+        !outcome.has_conflict_ready,
+        "team_workflow_conflict_readiness_missing",
+        "expected conflict readiness evidence",
+        "team_workflow_smoke.readiness",
+    );
+    push_team_bool_diagnostic(
+        &mut diagnostics,
+        !outcome.has_policy_blocked,
+        "team_workflow_policy_readiness_missing",
+        "expected policy-blocked readiness evidence",
+        "team_workflow_smoke.readiness",
+    );
+    push_team_bool_diagnostic(
+        &mut diagnostics,
+        !outcome.has_review_blocked,
+        "team_workflow_review_readiness_missing",
+        "expected review-blocked readiness evidence",
+        "team_workflow_smoke.readiness",
+    );
+
+    let status = if diagnostics.is_empty() {
+        EvalScenarioStatus::Passed
+    } else {
+        EvalScenarioStatus::Failed
+    };
+    EvalScenarioReport {
+        scenario_id: scenario.manifest.id.clone(),
+        status,
+        evidence_summary: Some(EvalEvidenceSummary {
+            source: EvalEvidenceSource::TeamWorkflowSmoke,
+            event_count: outcome.snapshot_count as usize,
+            checkpoint_count: outcome.worktree_count as usize,
+            trace_entries: outcome.blackboard_entry_count as usize,
+            audit_records: outcome.merge_blocker_count as usize,
+            telemetry_records: outcome.handoff_count as usize,
+            replayable: true,
+            diagnostics: diagnostics.len() + outcome.diagnostic_count,
+        }),
+        diagnostics,
+    }
+}
+
+fn push_team_min_diagnostic(
+    diagnostics: &mut Vec<EvalDiagnostic>,
+    actual: u32,
+    expected: Option<u32>,
+    code: &'static str,
+    label: &'static str,
+    field: &'static str,
+) {
+    let Some(expected) = expected else {
+        return;
+    };
+    if actual < expected {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            code,
+            format!("expected at least {expected} {label}, got {actual}"),
+            Some(field),
+        ));
+    }
+}
+
+fn push_team_bool_diagnostic(
+    diagnostics: &mut Vec<EvalDiagnostic>,
+    condition: bool,
+    code: &'static str,
+    message: &'static str,
+    field: &'static str,
+) {
+    if condition {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            code,
+            message,
+            Some(field),
+        ));
+    }
+}
+
+fn build_team_workflow_smoke() -> Result<TeamWorkflowEvalOutcome, String> {
+    let reduced = reduced_capability_ceiling()?;
+    let reduced_parent_count = 3_u32;
+    let ready = team_smoke_snapshot(
+        HandoffStatus::Completed,
+        Some(ReviewVote::Approve),
+        TeamMergeReviewSummary::new(1, 1, 0, 1).map_err(|error| error.to_string())?,
+        reduced.clone(),
+        0,
+        Vec::new(),
+    )?;
+    let conflict = team_smoke_snapshot(
+        HandoffStatus::Completed,
+        Some(ReviewVote::Approve),
+        TeamMergeReviewSummary::new(1, 1, 0, 1).map_err(|error| error.to_string())?,
+        reduced.clone(),
+        0,
+        vec![team_smoke_conflict()],
+    )?;
+    let policy = team_smoke_snapshot(
+        HandoffStatus::Completed,
+        Some(ReviewVote::Approve),
+        TeamMergeReviewSummary::new(1, 1, 0, 1).map_err(|error| error.to_string())?,
+        TeamCapabilityCeilingSummary {
+            grant_count: 0,
+            grants: Vec::new(),
+            policy_blocked: true,
+        },
+        0,
+        Vec::new(),
+    )?;
+    let review_blocked = team_smoke_snapshot(
+        HandoffStatus::Completed,
+        Some(ReviewVote::Block),
+        TeamMergeReviewSummary::new(1, 0, 1, 1).map_err(|error| error.to_string())?,
+        reduced.clone(),
+        0,
+        Vec::new(),
+    )?;
+
+    let snapshots = vec![ready, conflict, policy, review_blocked];
+    let reports = snapshots
+        .iter()
+        .map(TeamMergeReadinessReport::from_snapshot)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| error.to_string())?;
+    let serialized = serde_json::to_string(&(&snapshots, &reports))
+        .map_err(|error| format!("failed to serialize team workflow smoke: {error}"))?;
+    let lowered = serialized.to_ascii_lowercase();
+    let leaked_secret = ["api_key", "secret", "token", "password", "sk-live"]
+        .into_iter()
+        .any(|needle| lowered.contains(needle));
+
+    Ok(TeamWorkflowEvalOutcome {
+        snapshot_count: snapshots.len() as u32,
+        worktree_count: snapshots
+            .iter()
+            .map(|snapshot| snapshot.worktrees.len() as u32)
+            .sum(),
+        handoff_count: snapshots
+            .iter()
+            .map(|snapshot| snapshot.handoffs.len() as u32)
+            .sum(),
+        blackboard_entry_count: snapshots
+            .iter()
+            .map(|snapshot| snapshot.blackboard.entry_count)
+            .sum(),
+        conflict_count: snapshots
+            .iter()
+            .map(|snapshot| snapshot.conflicts.len() as u32)
+            .sum(),
+        merge_blocker_count: reports
+            .iter()
+            .map(|report| report.blockers.len() as u32)
+            .sum(),
+        diagnostic_count: snapshots
+            .iter()
+            .map(|snapshot| snapshot.diagnostics.len())
+            .sum::<usize>()
+            + reports
+                .iter()
+                .map(|report| report.diagnostics.len())
+                .sum::<usize>(),
+        capability_reduced: reduced.grant_count > 0 && reduced.grant_count < reduced_parent_count,
+        policy_blocked: reports.iter().any(|report| {
+            report
+                .blockers
+                .iter()
+                .any(|blocker| blocker.kind == TeamMergeBlockerKind::PolicyBlocked)
+        }),
+        conflict_blocker: reports.iter().any(|report| {
+            report
+                .blockers
+                .iter()
+                .any(|blocker| blocker.kind == TeamMergeBlockerKind::Conflict)
+        }),
+        review_blocker: reports.iter().any(|report| {
+            report
+                .blockers
+                .iter()
+                .any(|blocker| blocker.kind == TeamMergeBlockerKind::BlockingReview)
+        }),
+        has_merge_ready: snapshots
+            .iter()
+            .any(|snapshot| snapshot.readiness == TeamWorkflowReadiness::MergeReady),
+        has_conflict_ready: snapshots
+            .iter()
+            .any(|snapshot| snapshot.readiness == TeamWorkflowReadiness::HasConflict),
+        has_policy_blocked: snapshots
+            .iter()
+            .any(|snapshot| snapshot.readiness == TeamWorkflowReadiness::PolicyBlocked),
+        has_review_blocked: snapshots
+            .iter()
+            .any(|snapshot| snapshot.readiness == TeamWorkflowReadiness::Blocked),
+        redacted: serialized.contains("[redacted]"),
+        leaked_secret,
+    })
+}
+
+fn team_smoke_snapshot(
+    handoff_status: HandoffStatus,
+    review_vote: Option<ReviewVote>,
+    merge_review: TeamMergeReviewSummary,
+    capability_ceiling: TeamCapabilityCeilingSummary,
+    pending_approval_count: u32,
+    conflicts: Vec<RecoveryConflictSummary>,
+) -> Result<TeamWorkflowSnapshot, String> {
+    TeamWorkflowSnapshot::new_with_pending_approvals(
+        team_smoke_team_id(),
+        team_smoke_lead_agent_id(),
+        team_smoke_workspace_id(),
+        team_smoke_task_id(),
+        vec![
+            TeamWorktreeSummary::new(
+                "worktree-team-smoke",
+                "main",
+                "agent/m63-team-smoke",
+                ".worktrees/agent-m63-team-smoke",
+                TeamWorktreeState::Active,
+            )
+            .map_err(|error| error.to_string())?,
+        ],
+        vec![
+            TeamHandoffSummary::new(
+                team_smoke_subagent_id(),
+                SubagentRole::Implementer,
+                "worktree-team-smoke",
+                handoff_status,
+                "Implement team workflow smoke",
+            )
+            .map_err(|error| error.to_string())?,
+        ],
+        team_smoke_blackboard(review_vote)?,
+        merge_review,
+        capability_ceiling,
+        pending_approval_count,
+        conflicts,
+        Vec::new(),
+    )
+    .map_err(|error| error.to_string())
+}
+
+fn team_smoke_blackboard(review_vote: Option<ReviewVote>) -> Result<TeamBlackboardSummary, String> {
+    TeamBlackboardSummary::new(vec![
+        TeamBlackboardEntrySummary::new(
+            BlackboardEntryKind::Finding,
+            "Subagent produced bounded worktree evidence",
+            1,
+            1,
+            None,
+        )
+        .map_err(|error| error.to_string())?,
+        TeamBlackboardEntrySummary::new(
+            BlackboardEntryKind::Review,
+            "Reviewer checked api_key sk-live-secret-token password evidence",
+            1,
+            2,
+            review_vote,
+        )
+        .map_err(|error| error.to_string())?,
+    ])
+    .map_err(|error| error.to_string())
+}
+
+fn reduced_capability_ceiling() -> Result<TeamCapabilityCeilingSummary, String> {
+    let parent = capability_set(vec![
+        capability_grant(
+            CapabilityAction::Read,
+            ResourceKind::File,
+            "crates/agent-team/**",
+        )?,
+        capability_grant(CapabilityAction::Search, ResourceKind::Workspace, ".")?,
+        capability_grant(
+            CapabilityAction::Execute,
+            ResourceKind::Command,
+            "cargo test -p agent-team",
+        )?,
+    ])?;
+    let role = capability_set(vec![
+        capability_grant(
+            CapabilityAction::Read,
+            ResourceKind::File,
+            "crates/agent-team/**",
+        )?,
+        capability_grant(CapabilityAction::Search, ResourceKind::Workspace, ".")?,
+    ])?;
+    let task = capability_set(vec![capability_grant(
+        CapabilityAction::Read,
+        ResourceKind::File,
+        "crates/agent-team/**",
+    )?])?;
+
+    Ok(TeamCapabilityCeilingSummary::from_reduced_sets(
+        &parent, &role, &task, false,
+    ))
+}
+
+fn capability_grant(
+    action: CapabilityAction,
+    kind: ResourceKind,
+    pattern: &str,
+) -> Result<CapabilityGrant, String> {
+    let scope = ResourceScope::new(kind, pattern).map_err(|error| error.to_string())?;
+    CapabilityGrant::new(action, scope).map_err(|error| error.to_string())
+}
+
+fn capability_set(grants: Vec<CapabilityGrant>) -> Result<CapabilitySet, String> {
+    CapabilitySet::new(grants).map_err(|error| error.to_string())
+}
+
+fn team_smoke_conflict() -> RecoveryConflictSummary {
+    RecoveryConflictSummary {
+        path: "crates/agent-team/src/workflow.rs".to_string(),
+        kind: RecoveryConflictKind::BothModified,
+        lead_change: RecoveryConflictSide {
+            source: "lead".to_string(),
+            change_kind: "modified".to_string(),
+            content_hash: Some("lead-hash".to_string()),
+        },
+        incoming_change: RecoveryConflictSide {
+            source: "subagent".to_string(),
+            change_kind: "modified".to_string(),
+            content_hash: Some("incoming-hash".to_string()),
+        },
+        next_action: RecoveryConflictNextAction::InspectDiff,
+        diagnostics: Vec::new(),
+    }
+}
+
+fn team_smoke_team_id() -> TeamId {
+    "00000000-0000-0000-0000-000000000263"
+        .parse()
+        .expect("valid team id")
+}
+
+fn team_smoke_lead_agent_id() -> AgentId {
+    "00000000-0000-0000-0000-000000000264"
+        .parse()
+        .expect("valid agent id")
+}
+
+fn team_smoke_subagent_id() -> AgentId {
+    "00000000-0000-0000-0000-000000000265"
+        .parse()
+        .expect("valid agent id")
+}
+
+fn team_smoke_workspace_id() -> WorkspaceId {
+    "00000000-0000-0000-0000-000000000266"
+        .parse()
+        .expect("valid workspace id")
+}
+
+fn team_smoke_task_id() -> TaskId {
+    "00000000-0000-0000-0000-000000000267"
+        .parse()
+        .expect("valid task id")
 }
 
 fn evaluate_context_quality_workspace(

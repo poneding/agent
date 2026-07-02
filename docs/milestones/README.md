@@ -12,9 +12,9 @@ M30-M54 delivered a deep MCP extension track. That work remains valuable, but MC
 
 Current focus:
 
-- M63 Worktree and Agent Team Workflows
 - M64 Memory and Personalization
 - M65 Packaging, Release, and Beta Gate
+- M66 Extensions and MCP Hardening
 
 ## Document Layout
 
@@ -642,9 +642,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M63-04 slice spec | Complete |
 | M63-04 slice plan | Complete |
 | M63-04 implementation | Complete |
-| M63 slice specs | Complete for M63-01 through M63-04 |
-| M63 slice plans | Complete for M63-01 through M63-04 |
-| M63 implementation | In progress |
+| M63-05 slice spec | Complete |
+| M63-05 slice plan | Complete |
+| M63-05 implementation | Complete |
+| M63 slice specs | Complete for M63-01 through M63-05 |
+| M63 slice plans | Complete for M63-01 through M63-05 |
+| M63 implementation | Complete |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -1396,7 +1399,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M63-02 CLI and JSON Team Workflow Commands | `docs/specs/M63-02-cli-json-team-workflows.spec.md` | `docs/plans/M63-02-cli-json-team-workflows.plan.md` | Complete: stable `team` CLI commands, JSON `team_workflow_snapshot` bridge frame, deterministic sample/conflict/policy-blocked fixtures, dry-run guards, focused CLI/bridge/TUI tests. |
 | M63-03 Reviewer Role and Merge Readiness | `docs/specs/M63-03-reviewer-merge-readiness.spec.md` | `docs/plans/M63-03-reviewer-merge-readiness.plan.md` | Complete: typed merge readiness reports, blocker reasons, pending approval and stale worktree blocking, review/artifact evidence checks, and deterministic `agent-team` tests. |
 | M63-04 TUI/Desktop Team Surfaces | `docs/specs/M63-04-tui-desktop-team-surfaces.spec.md` | `docs/plans/M63-04-tui-desktop-team-surfaces.plan.md` | Complete: TUI task panel and Desktop Tasks view render team workflow snapshots from shared bridge frames without local readiness logic. |
-| M63-05 Team Workflow Smoke, Docs, and Closeout | Planned | Planned | Planned: deterministic team workflow smoke, CLI/Desktop docs, final gates, and M63 closeout status. |
+| M63-05 Team Workflow Smoke, Docs, and Closeout | `docs/specs/M63-05-team-workflow-smoke-closeout.spec.md` | `docs/plans/M63-05-team-workflow-smoke-closeout.plan.md` | Complete: default eval team workflow smoke, CLI/Desktop team workflow docs, final gates, and M63 closeout status. |
 
 ## MX01 Slice Index
 
@@ -1411,12 +1414,14 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M63 Worktree and Agent Team Workflows.
+Current implementation focus: M64 Memory and Personalization.
 
 Most recent completed or active planning documents:
 
-- `docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md`
-- `docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md`
+- `docs/specs/M63-05-team-workflow-smoke-closeout.spec.md`
+- `docs/plans/M63-05-team-workflow-smoke-closeout.plan.md`
+- `docs/specs/M63-04-tui-desktop-team-surfaces.spec.md`
+- `docs/plans/M63-04-tui-desktop-team-surfaces.plan.md`
 - `docs/specs/M63-worktree-agent-team-workflows.spec.md`
 - `docs/plans/M63-worktree-agent-team-workflows.plan.md`
 - `docs/specs/M62-05-crash-smoke-closeout.spec.md`

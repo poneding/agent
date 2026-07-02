@@ -226,4 +226,5 @@ pub enum EvalEvidenceSource {
     LocalCoding,
     ContextQuality,
     RecoveryCrashSmoke,
+    TeamWorkflowSmoke,
 }

@@ -16,7 +16,8 @@ pub use manifest::{
     EVAL_SCENARIO_SCHEMA_VERSION, EvalContextQualityExpectations, EvalDiagnostic,
     EvalDiagnosticSeverity, EvalExpectations, EvalExpectedStatus, EvalFixtures, EvalManifestError,
     EvalPermissionProfile, EvalRecoveryExpectations, EvalScenarioKind, EvalScenarioManifest,
-    ValidatedEvalFixtures, ValidatedEvalScenario, parse_eval_scenario_json, validate_eval_scenario,
+    EvalTeamWorkflowExpectations, ValidatedEvalFixtures, ValidatedEvalScenario,
+    parse_eval_scenario_json, validate_eval_scenario,
 };
 pub use report::{
     EVAL_RUN_REPORT_SCHEMA_VERSION, EvalArtifactOptions, EvalArtifactSet, EvalEvidenceSource,

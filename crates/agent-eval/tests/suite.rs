@@ -31,6 +31,7 @@ fn scenario_manifest(id: &str, fixture_path: &str) -> String {
             required_events: Vec::new(),
             context_quality: None,
             recovery: None,
+            team_workflow: None,
             golden: None,
         },
         metadata: Default::default(),

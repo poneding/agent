@@ -6,7 +6,8 @@ use agent_eval::{
     EVAL_SCENARIO_SCHEMA_VERSION, EvalEvidenceSource, EvalExpectations, EvalExpectedStatus,
     EvalFixtures, EvalPermissionProfile, EvalRecoveryExpectations, EvalRunSummary,
     EvalRunnerOptions, EvalScenarioKind, EvalScenarioManifest, EvalScenarioStatus, EvalStrictness,
-    normalized_report_golden, run_eval_scenario, run_eval_scenarios, validate_eval_scenario,
+    EvalTeamWorkflowExpectations, normalized_report_golden, run_eval_scenario, run_eval_scenarios,
+    validate_eval_scenario,
 };
 use agent_storage::load_replay_fixture_json;
 use camino::{Utf8Path, Utf8PathBuf};
@@ -37,6 +38,7 @@ fn manifest(kind: EvalScenarioKind, fixtures: EvalFixtures) -> EvalScenarioManif
             required_events: Vec::new(),
             context_quality: None,
             recovery: None,
+            team_workflow: None,
             golden: None,
         },
         metadata: BTreeMap::new(),
@@ -51,7 +53,41 @@ fn kind_slug(kind: EvalScenarioKind) -> &'static str {
         EvalScenarioKind::EvidenceOnly => "evidence",
         EvalScenarioKind::ContextQuality => "context-quality",
         EvalScenarioKind::RecoveryCrashSmoke => "recovery-crash-smoke",
+        EvalScenarioKind::TeamWorkflowSmoke => "team-workflow-smoke",
     }
+}
+
+#[test]
+fn runner_passes_team_workflow_smoke_fixture() {
+    let tempdir = tempfile::tempdir().expect("tempdir");
+    let root = fixture_root(&tempdir);
+    let mut manifest = manifest(EvalScenarioKind::TeamWorkflowSmoke, EvalFixtures::default());
+    manifest.expectations.team_workflow = Some(EvalTeamWorkflowExpectations {
+        min_worktree_count: Some(4),
+        min_handoff_count: Some(4),
+        min_blackboard_entry_count: Some(8),
+        min_conflict_count: Some(1),
+        min_merge_blocker_count: Some(3),
+        require_capability_reduction: true,
+        require_policy_blocked: true,
+        require_conflict_blocker: true,
+        require_review_blocker: true,
+        require_redaction: true,
+    });
+    let scenario = validate_eval_scenario(manifest, &root).expect("valid scenario");
+
+    let report = run_eval_scenario(&scenario, EvalRunnerOptions::default());
+
+    assert_eq!(report.status, EvalScenarioStatus::Passed);
+    assert!(report.diagnostics.is_empty());
+    let summary = report.evidence_summary.expect("evidence summary");
+    assert_eq!(summary.source, EvalEvidenceSource::TeamWorkflowSmoke);
+    assert_eq!(summary.event_count, 4);
+    assert_eq!(summary.checkpoint_count, 4);
+    assert_eq!(summary.trace_entries, 8);
+    assert_eq!(summary.audit_records, 4);
+    assert_eq!(summary.telemetry_records, 4);
+    assert!(summary.replayable);
 }
 
 #[test]

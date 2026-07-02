@@ -8,7 +8,9 @@ authors.workspace = true
 
 [dependencies]
 agent-core = { path = "../agent-core" }
+agent-policy = { path = "../agent-policy" }
 agent-storage = { path = "../agent-storage" }
+agent-team = { path = "../agent-team" }
 agent-types = { path = "../agent-types" }
 camino = { version = "1", features = ["serde1"] }
 serde = { version = "1", features = ["derive"] }

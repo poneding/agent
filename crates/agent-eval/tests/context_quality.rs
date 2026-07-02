@@ -47,6 +47,7 @@ fn manifest(expectations: EvalContextQualityExpectations) -> EvalScenarioManifes
             required_events: Vec::new(),
             context_quality: Some(expectations),
             recovery: None,
+            team_workflow: None,
             golden: None,
         },
         metadata: BTreeMap::new(),

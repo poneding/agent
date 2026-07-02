@@ -126,15 +126,15 @@ Result: M63-04 adds TUI task panel rendering for `team_workflow_snapshot` bridge
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
-- [ ] **Step 1: Add deterministic smoke coverage**
+- [x] **Step 1: Add deterministic smoke coverage**
 
 Add credential-free evidence for isolated worktree planning, reduced-capability handoff, blackboard output, reviewer vote, conflict-aware merge readiness, and redaction.
 
-- [ ] **Step 2: Document user workflows**
+- [x] **Step 2: Document user workflows**
 
 Document CLI/Desktop team workflow usage, readiness states, review decisions, merge dry-runs, conflict handling, and redaction expectations.
 
-- [ ] **Step 3: Run final M63 gates**
+- [x] **Step 3: Run final M63 gates**
 
 Run:
 
@@ -148,6 +148,8 @@ cargo xtask eval
 ```
 
 Expected: M63 is productized, documented, smoke-tested, and ready to hand off to M64.
+
+Result: M63-05 adds the `team_workflow_smoke` eval scenario and default-suite golden, CLI/Desktop team workflow docs, README and smoke matrix links, and final closeout status. Final gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`; the default eval suite reports `total=6 passed=6 failed=0 skipped=0 invalid=0 not_run=0`, including `default-m63-team-workflow-smoke`.
 
 ### Task 7: Commit Discipline
 

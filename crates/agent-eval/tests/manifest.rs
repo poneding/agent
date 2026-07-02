@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use agent_eval::{
     EVAL_SCENARIO_SCHEMA_VERSION, EvalExpectations, EvalExpectedStatus, EvalFixtures,
     EvalManifestError, EvalPermissionProfile, EvalScenarioKind, EvalScenarioManifest,
-    validate_eval_scenario,
+    EvalTeamWorkflowExpectations, validate_eval_scenario,
 };
 use camino::Utf8PathBuf;
 use serde_json::json;
@@ -24,6 +24,7 @@ fn replay_manifest() -> EvalScenarioManifest {
             required_events: vec!["turn_started".to_string(), "turn_completed".to_string()],
             context_quality: None,
             recovery: None,
+            team_workflow: None,
             golden: Some(Utf8PathBuf::from("goldens/m04_replay.json")),
         },
         metadata: BTreeMap::from([("owner".to_string(), "runtime".to_string())]),
@@ -140,6 +141,52 @@ fn kind_required_fixture_is_enforced() {
     assert!(matches!(
         error,
         EvalManifestError::MissingFixture { field, .. } if field == "fixtures.evidence_bundle"
+    ));
+}
+
+#[test]
+fn team_workflow_smoke_manifest_validates_without_fixtures() {
+    let mut manifest = replay_manifest();
+    manifest.id = "m63-team-workflow-smoke".to_string();
+    manifest.name = "M63 team workflow smoke".to_string();
+    manifest.kind = EvalScenarioKind::TeamWorkflowSmoke;
+    manifest.fixtures = EvalFixtures::default();
+    manifest.expectations.required_events = Vec::new();
+    manifest.expectations.team_workflow = Some(EvalTeamWorkflowExpectations {
+        min_worktree_count: Some(1),
+        min_handoff_count: Some(1),
+        min_blackboard_entry_count: Some(1),
+        min_conflict_count: Some(1),
+        min_merge_blocker_count: Some(1),
+        require_capability_reduction: true,
+        require_policy_blocked: true,
+        require_conflict_blocker: true,
+        require_review_blocker: true,
+        require_redaction: true,
+    });
+
+    let validated =
+        validate_eval_scenario(manifest, "fixtures/eval").expect("valid team workflow manifest");
+
+    assert_eq!(validated.manifest.kind, EvalScenarioKind::TeamWorkflowSmoke);
+    assert!(validated.normalized_fixtures.replay_trace.is_none());
+    assert!(validated.normalized_fixtures.workspace.is_none());
+}
+
+#[test]
+fn team_workflow_smoke_requires_expectations() {
+    let mut manifest = replay_manifest();
+    manifest.id = "m63-team-workflow-smoke".to_string();
+    manifest.kind = EvalScenarioKind::TeamWorkflowSmoke;
+    manifest.fixtures = EvalFixtures::default();
+    manifest.expectations.team_workflow = None;
+
+    let error =
+        validate_eval_scenario(manifest, "fixtures/eval").expect_err("expectations required");
+
+    assert!(matches!(
+        error,
+        EvalManifestError::InvalidField { field, .. } if field == "expectations.team_workflow"
     ));
 }
 

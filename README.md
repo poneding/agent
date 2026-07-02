@@ -6,11 +6,11 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M62 and the MX01 MCP epilogue are implemented. M55 is complete as the product-baseline reset that re-centers the repository on the main coding-agent roadmap, M56 proves a deterministic local coding-agent golden path through repo/session diagnostics, edit/diff, command/test evidence, final review, trace/audit, replay, and eval artifacts, M57 adds first-class multi-provider runtime support across OpenAI-compatible, Anthropic, Gemini, and local/Ollama-style providers with typed capability diagnostics and compatible fallback, M58 adds repo-aware project context intelligence with bounded summaries, lexical and hybrid retrieval, pinned context budget planning, quality traces, and deterministic eval coverage, M59 turns CLI/TUI usage into a terminal daily-driver workflow with session restore/switch, slash/status discovery, approval queues, diff and command panels, task status, and documented JSON/batch recipes, M60 delivers a shared-runtime Desktop daily-driver surface, M61 makes plan/todo/task UX first-class with TodoWrite-compatible state, task controls, approval waits, notifications, artifacts, and smoke coverage, and M62 productizes recovery with typed snapshots, replay/fork commands, idempotent retry visibility, failed-command retry planning, conflict diagnostics, CLI/TUI/Desktop-safe recovery surfaces, deterministic crash/restart smoke, and recovery workflow docs. The repository has strong foundations for event-sourced runtime execution, typed storage and replay, tool policy and audit, model streaming, prompt/context management, memory, scheduler tasks, worktree/subagent foundations, plugins, Desktop bridge contracts, observability, evaluations, CI evidence, and a mature MCP extension layer including HTTP OAuth authorization-code token exchange plus P1-P3 MCP hardening for callbacks, protocol event summaries, sampling review contracts, management snapshots, and server export guardrails.
+M01-M63 and the MX01 MCP epilogue are implemented. M55 is complete as the product-baseline reset that re-centers the repository on the main coding-agent roadmap, M56 proves a deterministic local coding-agent golden path through repo/session diagnostics, edit/diff, command/test evidence, final review, trace/audit, replay, and eval artifacts, M57 adds first-class multi-provider runtime support across OpenAI-compatible, Anthropic, Gemini, and local/Ollama-style providers with typed capability diagnostics and compatible fallback, M58 adds repo-aware project context intelligence with bounded summaries, lexical and hybrid retrieval, pinned context budget planning, quality traces, and deterministic eval coverage, M59 turns CLI/TUI usage into a terminal daily-driver workflow with session restore/switch, slash/status discovery, approval queues, diff and command panels, task status, and documented JSON/batch recipes, M60 delivers a shared-runtime Desktop daily-driver surface, M61 makes plan/todo/task UX first-class with TodoWrite-compatible state, task controls, approval waits, notifications, artifacts, and smoke coverage, M62 productizes recovery with typed snapshots, replay/fork commands, idempotent retry visibility, failed-command retry planning, conflict diagnostics, CLI/TUI/Desktop-safe recovery surfaces, deterministic crash/restart smoke, and recovery workflow docs, and M63 productizes worktree/team workflows with typed handoffs, blackboard evidence, reviewer votes, merge-readiness blockers, UI-safe team panels, CLI/Desktop docs, and default eval smoke. The repository has strong foundations for event-sourced runtime execution, typed storage and replay, tool policy and audit, model streaming, prompt/context management, memory, scheduler tasks, worktree/subagent workflows, plugins, Desktop bridge contracts, observability, evaluations, CI evidence, and a mature MCP extension layer including HTTP OAuth authorization-code token exchange plus P1-P3 MCP hardening for callbacks, protocol event summaries, sampling review contracts, management snapshots, and server export guardrails.
 
 The product roadmap is now re-centered on the user-facing goal: a Claude Code / Codex Desktop-class local coding agent with excellent CLI/TUI and Desktop workflows plus first-class multi-provider support. MCP expansion remains parked as a primary track after M54; MX01 is an epilogue track and does not change the M55+ product roadmap priority.
 
-Current implementation focus is M63 Worktree and Agent Team Workflows. See [Product Roadmap](docs/roadmap/PRODUCT_ROADMAP.md) and [Milestones](docs/milestones/README.md) for the current direction.
+Current implementation focus is M64 Memory and Personalization. See [Product Roadmap](docs/roadmap/PRODUCT_ROADMAP.md) and [Milestones](docs/milestones/README.md) for the current direction.
 
 ## Core Ideas
 
@@ -111,6 +111,8 @@ agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
 agent-cli eval validate --manifest path/to/scenario.eval.json
 agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
 agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
+agent-cli team status
+agent-cli team merge-readiness --fixture conflict --dry-run
 ```
 
 Run `cargo xtask help` for the full command list.
@@ -125,7 +127,7 @@ Run the deterministic M56 coding-agent acceptance path with:
 cargo xtask eval
 ```
 
-The gate runs `docs/eval/default.suite.json`, including the `default-m56-golden-path` local-coding scenario, the `default-m58-context-quality` context-quality scenario, and the `default-m62-recovery-crash-smoke` recovery scenario. It is fixture-driven and requires no provider credentials. It writes redacted evidence artifacts to:
+The gate runs `docs/eval/default.suite.json`, including the `default-m56-golden-path` local-coding scenario, the `default-m58-context-quality` context-quality scenario, the `default-m62-recovery-crash-smoke` recovery scenario, and the `default-m63-team-workflow-smoke` team workflow scenario. It is fixture-driven and requires no provider credentials. It writes redacted evidence artifacts to:
 
 - `target/agent-eval/eval-run-report.json`
 - `target/agent-eval/eval-summary.txt`
@@ -143,6 +145,17 @@ cargo test -p agent-core --test crash_resume_smoke
 ```
 
 The smoke proves checkpoint replay, pending tool recovery, idempotent effect reuse, conflict blocking, and retry planning after a simulated restart. User-facing recovery workflows are documented in [CLI Recovery Workflows](docs/cli/recovery-workflows.md) and [Desktop Recovery Workflows](docs/desktop/recovery-workflows.md).
+
+Run team workflow CLI dry-runs with:
+
+```bash
+agent-cli team status
+agent-cli team handoff --role implementer --objective "Implement the task" --dry-run
+agent-cli team review --vote block --summary "Unsafe merge" --dry-run
+agent-cli team merge-readiness --fixture conflict --dry-run
+```
+
+The M63 team workflow smoke proves isolated worktree evidence, reduced-capability handoff evidence, blackboard output, reviewer votes, conflict-aware merge readiness, policy blocking, and redaction. User-facing workflows are documented in [CLI Team Workflows](docs/cli/team-workflows.md) and [Desktop Team Workflows](docs/desktop/team-workflows.md).
 
 For the local final-review fixture alone:
 

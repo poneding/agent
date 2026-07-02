@@ -246,7 +246,7 @@ Acceptance:
 
 ### M63 Worktree and Agent Team Workflows
 
-Status: In progress. M63-01 team workflow snapshot/readiness contracts, M63-02 CLI/JSON team workflow commands, M63-03 reviewer/merge-readiness blockers, and M63-04 TUI/Desktop team surfaces are complete. Next implementation focus is M63-05 Team Workflow Smoke, Docs, and Closeout.
+Status: Complete. M63-01 team workflow snapshot/readiness contracts, M63-02 CLI/JSON team workflow commands, M63-03 reviewer/merge-readiness blockers, M63-04 TUI/Desktop team surfaces, and M63-05 team workflow smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M64 Memory and Personalization is the next active milestone.
 
 Purpose: productize safe parallel implementation and review over the existing M09 worktree/team foundations and the M62 recovery/conflict baseline.
 
@@ -258,7 +258,7 @@ Initial slices:
 | M63-02 CLI and JSON Team Workflow Commands | Complete: stable `team` CLI commands, JSON `team_workflow_snapshot` bridge frame, deterministic fixtures, dry-run guards, and focused CLI/bridge/TUI coverage. |
 | M63-03 Reviewer Role and Merge Readiness | Complete: typed merge readiness reports with blocker reasons for policy, conflicts, pending approvals, stale worktrees, handoff state, review votes, and missing artifacts. |
 | M63-04 TUI/Desktop Team Surfaces | Complete: TUI and Desktop render team workflow state from shared bridge snapshots without local readiness logic. |
-| M63-05 Team Workflow Smoke, Docs, and Closeout | Planned: deterministic team workflow smoke, CLI/Desktop workflow docs, final gates, and M63 closeout status. |
+| M63-05 Team Workflow Smoke, Docs, and Closeout | Complete: deterministic team workflow smoke, CLI/Desktop workflow docs, final gates, and M63 closeout status. |
 
 Acceptance:
 

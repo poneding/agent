@@ -28,6 +28,11 @@
       "path": "scenarios/m62-recovery-crash-smoke.eval.json",
       "alias": "m62-recovery-crash-smoke",
       "labels": ["default", "recovery", "m62", "smoke"]
+    },
+    {
+      "path": "scenarios/m63-team-workflow-smoke.eval.json",
+      "alias": "m63-team-workflow-smoke",
+      "labels": ["default", "team", "m63", "smoke"]
     }
   ]
 }

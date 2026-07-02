@@ -21,6 +21,10 @@ fn find_m62_recovery_scenario(report: &Value) -> &Value {
     find_scenario(report, "default-m62-recovery-crash-smoke")
 }
 
+fn find_m63_team_scenario(report: &Value) -> &Value {
+    find_scenario(report, "default-m63-team-workflow-smoke")
+}
+
 fn find_scenario<'a>(report: &'a Value, scenario_id: &str) -> &'a Value {
     report["scenarios"]
         .as_array()
@@ -49,8 +53,8 @@ fn golden_path_e2e_default_suite_json_includes_m56_evidence() {
     assert!(!stdout.contains("sk-live-secret"));
     let value: Value = serde_json::from_str(stdout.trim()).expect("json output");
     assert_eq!(value["type"], "eval_suite_run");
-    assert_eq!(value["data"]["report"]["summary"]["total"], 5);
-    assert_eq!(value["data"]["report"]["summary"]["passed"], 5);
+    assert_eq!(value["data"]["report"]["summary"]["total"], 6);
+    assert_eq!(value["data"]["report"]["summary"]["passed"], 6);
 
     let scenario = find_m56_scenario(&value["data"]["report"]);
     assert_eq!(scenario["status"], "passed");
@@ -74,6 +78,15 @@ fn golden_path_e2e_default_suite_json_includes_m56_evidence() {
     );
     assert_eq!(m62_scenario["evidence_summary"]["checkpoint_count"], 1);
     assert_eq!(m62_scenario["evidence_summary"]["replayable"], true);
+    let m63_scenario = find_m63_team_scenario(&value["data"]["report"]);
+    assert_eq!(m63_scenario["status"], "passed");
+    assert_eq!(
+        m63_scenario["evidence_summary"]["source"],
+        "team_workflow_smoke"
+    );
+    assert_eq!(m63_scenario["evidence_summary"]["event_count"], 4);
+    assert_eq!(m63_scenario["evidence_summary"]["audit_records"], 4);
+    assert_eq!(m63_scenario["evidence_summary"]["replayable"], true);
 
     let report_path = output_dir.join("eval-run-report.json");
     let artifact: Value =
@@ -87,4 +100,6 @@ fn golden_path_e2e_default_suite_json_includes_m56_evidence() {
     );
     let artifact_recovery = find_m62_recovery_scenario(&artifact);
     assert_eq!(artifact_recovery["status"], "passed");
+    let artifact_team = find_m63_team_scenario(&artifact);
+    assert_eq!(artifact_team["status"], "passed");
 }

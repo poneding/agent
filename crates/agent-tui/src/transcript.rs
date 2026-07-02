@@ -427,6 +427,21 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::TeamWorkflowSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "team-workflow",
+                format!(
+                    "{} status={:?} readiness={:?} dry_run={} handoffs={} conflicts={} errors={}",
+                    snapshot.operation,
+                    snapshot.snapshot.status,
+                    snapshot.snapshot.readiness,
+                    snapshot.dry_run,
+                    snapshot.snapshot.handoffs.len(),
+                    snapshot.snapshot.conflicts.len(),
+                    snapshot.errors.len()
+                ),
+                false,
+            )),
             UiJsonFrame::TaskSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "tasks",

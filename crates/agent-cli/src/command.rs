@@ -95,16 +95,23 @@ use agent_storage::{
     CheckpointRecord, CheckpointStore, EventStore, IdempotencyKey, IdempotencyStore,
     InMemoryEventStore, ToolEffectRecord,
 };
+use agent_team::{
+    BlackboardEntryKind, CapabilityGrant, CapabilitySet, HandoffStatus, ReviewVote, SubagentRole,
+    TeamBlackboardEntrySummary, TeamBlackboardSummary, TeamCapabilityCeilingSummary,
+    TeamHandoffSummary, TeamMergeReviewSummary, TeamWorkflowDiagnostic,
+    TeamWorkflowDiagnosticSeverity, TeamWorkflowReadiness, TeamWorkflowSnapshot,
+    TeamWorkflowStatus, TeamWorktreeState, TeamWorktreeSummary,
+};
 use agent_types::{
-    ActorRef, ApprovalPreviewRecorded, ApprovalRequested, CheckpointId, ClientKind,
+    ActorRef, AgentId, ApprovalPreviewRecorded, ApprovalRequested, CheckpointId, ClientKind,
     CommandRetryDiagnostic, CommandRetryDiagnosticSeverity, CommandRetryPlan,
     CommandRetryReadiness, CommandRetryRequest, ConversationId, CorrelationId, EventId, EventSeq,
     PlanTodoDiagnostic, PlanTodoEvidenceKind, PlanTodoItem, PlanTodoItemId, PlanTodoSnapshot,
-    RecoveryConflictKind, RecoveryConflictNextAction, RecoveryDiagnostic,
-    RecoveryDiagnosticSeverity, RecoveryReadiness, RecoverySnapshot, ResumeDryRunReport,
-    RuntimeEvent, RuntimeEventPayload, SchemaVersion, TaskId, Timestamp, TodoPriority, TodoSource,
-    TodoStatus, ToolCallProposed, ToolEffectDisposition, ToolExecutionCompleted, TurnId,
-    UserInputReceived, WorkspaceId,
+    RecoveryConflictKind, RecoveryConflictNextAction, RecoveryConflictSide,
+    RecoveryConflictSummary, RecoveryDiagnostic, RecoveryDiagnosticSeverity, RecoveryReadiness,
+    RecoverySnapshot, ResumeDryRunReport, RuntimeEvent, RuntimeEventPayload, SchemaVersion, TaskId,
+    TeamId, Timestamp, TodoPriority, TodoSource, TodoStatus, ToolCallProposed,
+    ToolEffectDisposition, ToolExecutionCompleted, TurnId, UserInputReceived, WorkspaceId,
 };
 use agent_ui_bridge::{
     UiApprovalPreviewSummary, UiApprovalQueueSnapshot, UiApprovalRequest, UiBridgeError,
@@ -119,9 +126,10 @@ use agent_ui_bridge::{
     UiProviderSupportRole, UiProviderSupportSummary, UiRecoverySnapshot, UiReplayForkReport,
     UiReplayInspectReport, UiRepoSessionSnapshot, UiResumeDryRunReport, UiSettingsProfileSummary,
     UiSlashCommandEffect, UiSlashCommandSurface, UiStartupMigrationSnapshot, UiTaskCommandError,
-    UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, UiTerminalSessionSnapshot,
-    UiTerminalStatusSnapshot, approval_queue_snapshot_from_requests, default_slash_command_catalog,
-    encode_json_frame, normalize_runtime_event, resolve_slash_command,
+    UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, UiTeamWorkflowSnapshot,
+    UiTerminalSessionSnapshot, UiTerminalStatusSnapshot, approval_queue_snapshot_from_requests,
+    default_slash_command_catalog, encode_json_frame, normalize_runtime_event,
+    resolve_slash_command,
 };
 use agent_worktree::{ChangeKind, FileChange, detect_conflicts};
 use futures_util::StreamExt;
@@ -278,6 +286,7 @@ pub enum CliCommand {
     Replay(ReplayCliCommand),
     CommandRetry(CommandRetryCliCommand),
     Conflict(ConflictCliCommand),
+    Team(TeamCliCommand),
     Task(TaskCliCommand),
     Approval(ApprovalCliCommand),
     Eval(EvalCliCommand),
@@ -471,6 +480,39 @@ pub enum ConflictCliCommand {
 pub enum ConflictFixture {
     Sample,
     Empty,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TeamCliCommand {
+    Status {
+        fixture: TeamWorkflowFixture,
+    },
+    HandoffDryRun {
+        role: SubagentRole,
+        objective: String,
+        fixture: TeamWorkflowFixture,
+        dry_run: bool,
+    },
+    BlackboardInspect {
+        fixture: TeamWorkflowFixture,
+    },
+    ReviewDryRun {
+        vote: ReviewVote,
+        summary: String,
+        fixture: TeamWorkflowFixture,
+        dry_run: bool,
+    },
+    MergeReadinessDryRun {
+        fixture: TeamWorkflowFixture,
+        dry_run: bool,
+    },
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum TeamWorkflowFixture {
+    Sample,
+    Conflict,
+    PolicyBlocked,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -717,6 +759,7 @@ where
         "replay" => parse_replay_command(&mut args),
         "command" => parse_command_retry_command(&mut args),
         "conflict" => parse_conflict_command(&mut args),
+        "team" => parse_team_command(&mut args),
         "task" => parse_task_command(&mut args),
         "approval" => parse_approval_command(&mut args),
         "eval" => parse_eval_command(&mut args),
@@ -889,6 +932,10 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             render_command_retry_command(&runtime, command, OutputMode::Text)
         }
         CliCommand::Conflict(command) => render_conflict_command(command, OutputMode::Text),
+        CliCommand::Team(command) => {
+            let runtime = TeamWorkflowCommandRuntime::fixture();
+            render_team_command(&runtime, command, OutputMode::Text)
+        }
         CliCommand::Task(command) => {
             let mut runtime = TaskCommandRuntime::fixture();
             render_task_command(&mut runtime, command, OutputMode::Text)
@@ -1023,6 +1070,10 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 render_command_retry_command(&runtime, command, OutputMode::Text)
             }
             CliCommand::Conflict(command) => render_conflict_command(command, OutputMode::Text),
+            CliCommand::Team(command) => {
+                let runtime = TeamWorkflowCommandRuntime::fixture();
+                render_team_command(&runtime, command, OutputMode::Text)
+            }
             CliCommand::Task(command) => {
                 let mut runtime = TaskCommandRuntime::fixture();
                 render_task_command(&mut runtime, command, OutputMode::Text)
@@ -1181,6 +1232,10 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     }
     if let CliCommand::Conflict(command) = invocation.command {
         return render_conflict_command(command, OutputMode::Json);
+    }
+    if let CliCommand::Team(command) = invocation.command {
+        let runtime = TeamWorkflowCommandRuntime::fixture();
+        return render_team_command(&runtime, command, OutputMode::Json);
     }
     if let CliCommand::Task(command) = invocation.command {
         let mut runtime = TaskCommandRuntime::fixture();
@@ -2485,6 +2540,222 @@ where
         turn_id,
         fixture,
     }))
+}
+
+fn parse_team_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("team".to_string()));
+    };
+
+    match subcommand.as_str() {
+        "status" => parse_team_status_args(args),
+        "handoff" => parse_team_handoff_args(args),
+        "blackboard" => parse_team_blackboard_args(args),
+        "review" => parse_team_review_args(args),
+        "merge-readiness" | "merge-ready" => parse_team_merge_readiness_args(args),
+        _ => Err(CliError::UnknownArgument(format!("team {subcommand}"))),
+    }
+}
+
+fn parse_team_status_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let fixture = parse_team_fixture_args(args, "team status")?;
+    Ok(CliCommand::Team(TeamCliCommand::Status { fixture }))
+}
+
+fn parse_team_blackboard_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut fixture = TeamWorkflowFixture::Sample;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "inspect" => {}
+            "--fixture" => {
+                let value = take_flag_value(args, &arg)?;
+                fixture = parse_team_fixture(&value)?;
+            }
+            _ => return Err(CliError::UnknownArgument(format!("team blackboard {arg}"))),
+        }
+    }
+    Ok(CliCommand::Team(TeamCliCommand::BlackboardInspect {
+        fixture,
+    }))
+}
+
+fn parse_team_handoff_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut role = SubagentRole::Implementer;
+    let mut objective = None;
+    let mut fixture = TeamWorkflowFixture::Sample;
+    let mut dry_run = false;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--role" => {
+                let value = take_flag_value(args, &arg)?;
+                role = parse_subagent_role(&value)?;
+            }
+            "--objective" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue(
+                        "team handoff --objective".to_string(),
+                    ));
+                }
+                objective = Some(value);
+            }
+            "--fixture" => {
+                let value = take_flag_value(args, &arg)?;
+                fixture = parse_team_fixture(&value)?;
+            }
+            "--dry-run" => dry_run = true,
+            _ => return Err(CliError::UnknownArgument(format!("team handoff {arg}"))),
+        }
+    }
+    if !dry_run {
+        return Err(CliError::DryRunRequired("team handoff".to_string()));
+    }
+
+    Ok(CliCommand::Team(TeamCliCommand::HandoffDryRun {
+        role,
+        objective: objective
+            .ok_or_else(|| CliError::MissingValue("team handoff --objective".to_string()))?,
+        fixture,
+        dry_run,
+    }))
+}
+
+fn parse_team_review_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut vote = None;
+    let mut summary = None;
+    let mut fixture = TeamWorkflowFixture::Sample;
+    let mut dry_run = false;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--vote" => {
+                let value = take_flag_value(args, &arg)?;
+                vote = Some(parse_review_vote(&value)?);
+            }
+            "--summary" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue("team review --summary".to_string()));
+                }
+                summary = Some(value);
+            }
+            "--fixture" => {
+                let value = take_flag_value(args, &arg)?;
+                fixture = parse_team_fixture(&value)?;
+            }
+            "--dry-run" => dry_run = true,
+            _ => return Err(CliError::UnknownArgument(format!("team review {arg}"))),
+        }
+    }
+    if !dry_run {
+        return Err(CliError::DryRunRequired("team review".to_string()));
+    }
+
+    Ok(CliCommand::Team(TeamCliCommand::ReviewDryRun {
+        vote: vote.ok_or_else(|| CliError::MissingValue("team review --vote".to_string()))?,
+        summary: summary
+            .ok_or_else(|| CliError::MissingValue("team review --summary".to_string()))?,
+        fixture,
+        dry_run,
+    }))
+}
+
+fn parse_team_merge_readiness_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut fixture = TeamWorkflowFixture::Sample;
+    let mut dry_run = false;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--fixture" => {
+                let value = take_flag_value(args, &arg)?;
+                fixture = parse_team_fixture(&value)?;
+            }
+            "--dry-run" => dry_run = true,
+            _ => {
+                return Err(CliError::UnknownArgument(format!(
+                    "team merge-readiness {arg}"
+                )));
+            }
+        }
+    }
+    if !dry_run {
+        return Err(CliError::DryRunRequired("team merge-readiness".to_string()));
+    }
+
+    Ok(CliCommand::Team(TeamCliCommand::MergeReadinessDryRun {
+        fixture,
+        dry_run,
+    }))
+}
+
+fn parse_team_fixture_args<I>(
+    args: &mut I,
+    command_label: &str,
+) -> Result<TeamWorkflowFixture, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut fixture = TeamWorkflowFixture::Sample;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--fixture" => {
+                let value = take_flag_value(args, &arg)?;
+                fixture = parse_team_fixture(&value)?;
+            }
+            _ => return Err(CliError::UnknownArgument(format!("{command_label} {arg}"))),
+        }
+    }
+    Ok(fixture)
+}
+
+fn parse_team_fixture(value: &str) -> Result<TeamWorkflowFixture, CliError> {
+    match value {
+        "sample" => Ok(TeamWorkflowFixture::Sample),
+        "conflict" => Ok(TeamWorkflowFixture::Conflict),
+        "policy-blocked" | "policy_blocked" => Ok(TeamWorkflowFixture::PolicyBlocked),
+        _ => Err(CliError::UnknownArgument(format!("team --fixture {value}"))),
+    }
+}
+
+fn parse_subagent_role(value: &str) -> Result<SubagentRole, CliError> {
+    match value {
+        "implementer" => Ok(SubagentRole::Implementer),
+        "reviewer" => Ok(SubagentRole::Reviewer),
+        "researcher" => Ok(SubagentRole::Researcher),
+        _ => Err(CliError::UnknownArgument(format!(
+            "team handoff --role {value}"
+        ))),
+    }
+}
+
+fn parse_review_vote(value: &str) -> Result<ReviewVote, CliError> {
+    match value {
+        "approve" => Ok(ReviewVote::Approve),
+        "request-changes" | "request_changes" => Ok(ReviewVote::RequestChanges),
+        "block" => Ok(ReviewVote::Block),
+        _ => Err(CliError::UnknownArgument(format!(
+            "team review --vote {value}"
+        ))),
+    }
 }
 
 fn parse_task_command<I>(args: &mut I) -> Result<CliCommand, CliError>
@@ -4457,6 +4728,554 @@ fn recovery_conflict_next_action_label(action: RecoveryConflictNextAction) -> &'
         RecoveryConflictNextAction::ForkWork => "fork_work",
         RecoveryConflictNextAction::ManualResolution => "manual_resolution",
     }
+}
+
+pub struct TeamWorkflowCommandRuntime;
+
+impl TeamWorkflowCommandRuntime {
+    #[must_use]
+    pub const fn fixture() -> Self {
+        Self
+    }
+
+    fn status(&self, fixture: TeamWorkflowFixture) -> Result<TeamWorkflowSnapshot, String> {
+        team_workflow_fixture_snapshot(fixture, Some(ReviewVote::Approve))
+    }
+
+    fn handoff_dry_run(
+        &self,
+        role: SubagentRole,
+        objective: String,
+        fixture: TeamWorkflowFixture,
+    ) -> Result<TeamWorkflowSnapshot, String> {
+        let mut snapshot = team_workflow_fixture_snapshot(fixture, None)?;
+        snapshot.handoffs = vec![
+            TeamHandoffSummary::new(
+                fixture_subagent_id(),
+                role,
+                "worktree-m63-02",
+                HandoffStatus::Created,
+                objective,
+            )
+            .map_err(|error| error.to_string())?,
+        ];
+        snapshot.blackboard = TeamBlackboardSummary::new(vec![
+            TeamBlackboardEntrySummary::new(
+                BlackboardEntryKind::Decision,
+                "handoff dry-run planned reduced-capability subagent work",
+                0,
+                1,
+                None,
+            )
+            .map_err(|error| error.to_string())?,
+        ])
+        .map_err(|error| error.to_string())?;
+        rebuild_team_snapshot(snapshot)
+    }
+
+    fn review_dry_run(
+        &self,
+        vote: ReviewVote,
+        summary: String,
+        fixture: TeamWorkflowFixture,
+    ) -> Result<TeamWorkflowSnapshot, String> {
+        let review = match vote {
+            ReviewVote::Approve => TeamMergeReviewSummary::new(1, 1, 0, 2),
+            ReviewVote::RequestChanges => TeamMergeReviewSummary::new(1, 0, 0, 2),
+            ReviewVote::Block => TeamMergeReviewSummary::new(1, 0, 1, 2),
+        }
+        .map_err(|error| error.to_string())?;
+        let blackboard = TeamBlackboardSummary::new(vec![
+            TeamBlackboardEntrySummary::new(
+                BlackboardEntryKind::DiffSummary,
+                "subagent changed workflow contracts and CLI surfacing",
+                1,
+                2,
+                None,
+            )
+            .map_err(|error| error.to_string())?,
+            TeamBlackboardEntrySummary::new(BlackboardEntryKind::Review, summary, 1, 1, Some(vote))
+                .map_err(|error| error.to_string())?,
+        ])
+        .map_err(|error| error.to_string())?;
+
+        let base = team_workflow_fixture_snapshot(fixture, Some(vote))?;
+        TeamWorkflowSnapshot::new(
+            base.team_id,
+            base.lead_agent_id,
+            base.workspace_id,
+            base.task_id,
+            base.worktrees,
+            base.handoffs,
+            blackboard,
+            review,
+            base.capability_ceiling,
+            base.conflicts,
+            base.diagnostics,
+        )
+        .map_err(|error| error.to_string())
+    }
+
+    fn merge_readiness_dry_run(
+        &self,
+        fixture: TeamWorkflowFixture,
+    ) -> Result<TeamWorkflowSnapshot, String> {
+        team_workflow_fixture_snapshot(fixture, Some(ReviewVote::Approve))
+    }
+}
+
+#[must_use]
+pub fn render_team_command(
+    runtime: &TeamWorkflowCommandRuntime,
+    command: TeamCliCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    let response = match command {
+        TeamCliCommand::Status { fixture } => runtime
+            .status(fixture)
+            .and_then(|snapshot| team_workflow_frame("status", false, snapshot)),
+        TeamCliCommand::HandoffDryRun {
+            role,
+            objective,
+            fixture,
+            dry_run,
+        } => {
+            if !dry_run {
+                return render_team_cli_error(
+                    "team_handoff_dry_run_required",
+                    "team handoff requires --dry-run",
+                    output_mode,
+                );
+            }
+            runtime
+                .handoff_dry_run(role, objective, fixture)
+                .and_then(|snapshot| team_workflow_frame("handoff_dry_run", true, snapshot))
+        }
+        TeamCliCommand::BlackboardInspect { fixture } => runtime
+            .status(fixture)
+            .and_then(|snapshot| team_workflow_frame("blackboard_inspect", false, snapshot)),
+        TeamCliCommand::ReviewDryRun {
+            vote,
+            summary,
+            fixture,
+            dry_run,
+        } => {
+            if !dry_run {
+                return render_team_cli_error(
+                    "team_review_dry_run_required",
+                    "team review requires --dry-run",
+                    output_mode,
+                );
+            }
+            runtime
+                .review_dry_run(vote, summary, fixture)
+                .and_then(|snapshot| team_workflow_frame("review_vote_dry_run", true, snapshot))
+        }
+        TeamCliCommand::MergeReadinessDryRun { fixture, dry_run } => {
+            if !dry_run {
+                return render_team_cli_error(
+                    "team_merge_readiness_dry_run_required",
+                    "team merge-readiness requires --dry-run",
+                    output_mode,
+                );
+            }
+            runtime
+                .merge_readiness_dry_run(fixture)
+                .and_then(|snapshot| team_workflow_frame("merge_readiness_dry_run", true, snapshot))
+        }
+    };
+
+    match response {
+        Ok(frame) => match output_mode {
+            OutputMode::Text => CliOutput::exit(render_team_workflow_text(&frame)),
+            OutputMode::Json => {
+                CliOutput::exit(json_frame_line(UiJsonFrame::TeamWorkflowSnapshot(frame)))
+            }
+        },
+        Err(error) => render_team_cli_error("team_workflow_failed", &error, output_mode),
+    }
+}
+
+fn team_workflow_frame(
+    operation: &str,
+    dry_run: bool,
+    snapshot: TeamWorkflowSnapshot,
+) -> Result<UiTeamWorkflowSnapshot, String> {
+    UiTeamWorkflowSnapshot::new(operation, dry_run, snapshot, Vec::new())
+        .map_err(|error| error.to_string())
+}
+
+fn render_team_cli_error(
+    code: impl Into<String>,
+    message: &str,
+    output_mode: OutputMode,
+) -> CliOutput {
+    let code = code.into();
+    let message = redact_secret_like_text(message);
+    match output_mode {
+        OutputMode::Text => CliOutput::failure(format!("{message}\n"), 2),
+        OutputMode::Json => CliOutput::failure(
+            json_frame_line(UiJsonFrame::Error {
+                code,
+                message,
+                recoverable: true,
+            }),
+            2,
+        ),
+    }
+}
+
+fn team_workflow_fixture_snapshot(
+    fixture: TeamWorkflowFixture,
+    vote: Option<ReviewVote>,
+) -> Result<TeamWorkflowSnapshot, String> {
+    let capability_ceiling = match fixture {
+        TeamWorkflowFixture::PolicyBlocked => TeamCapabilityCeilingSummary {
+            grant_count: 0,
+            grants: Vec::new(),
+            policy_blocked: true,
+        },
+        TeamWorkflowFixture::Sample | TeamWorkflowFixture::Conflict => {
+            TeamCapabilityCeilingSummary::from_capability_set(
+                &team_fixture_capability_set()?,
+                false,
+            )
+        }
+    };
+    let conflicts = match fixture {
+        TeamWorkflowFixture::Conflict => vec![team_fixture_conflict()],
+        TeamWorkflowFixture::Sample | TeamWorkflowFixture::PolicyBlocked => Vec::new(),
+    };
+    let review = match vote {
+        Some(ReviewVote::Approve) => TeamMergeReviewSummary::new(1, 1, 0, 2),
+        Some(ReviewVote::RequestChanges) | None => TeamMergeReviewSummary::new(1, 0, 0, 2),
+        Some(ReviewVote::Block) => TeamMergeReviewSummary::new(1, 0, 1, 2),
+    }
+    .map_err(|error| error.to_string())?;
+
+    TeamWorkflowSnapshot::new(
+        fixture_team_id(),
+        fixture_lead_agent_id(),
+        fixture_team_workspace_id(),
+        fixture_team_task_id(),
+        vec![TeamWorktreeSummary::new(
+            "worktree-m63-02",
+            "main",
+            "agent/m63-02",
+            ".worktrees/agent-m63-02",
+            TeamWorktreeState::Active,
+        )
+        .map_err(|error| error.to_string())?],
+        vec![
+            TeamHandoffSummary::new(
+                fixture_subagent_id(),
+                SubagentRole::Implementer,
+                "worktree-m63-02",
+                HandoffStatus::Completed,
+                "Implement CLI JSON team workflow commands",
+            )
+            .map_err(|error| error.to_string())?,
+        ],
+        team_fixture_blackboard(vote)?,
+        review,
+        capability_ceiling,
+        conflicts,
+        vec![TeamWorkflowDiagnostic::new(
+            TeamWorkflowDiagnosticSeverity::Info,
+            "team.fixture",
+            "using deterministic team workflow fixture; persisted team workflow lookup is not wired yet",
+        )
+        .map_err(|error| error.to_string())?],
+    )
+    .map_err(|error| error.to_string())
+}
+
+fn rebuild_team_snapshot(snapshot: TeamWorkflowSnapshot) -> Result<TeamWorkflowSnapshot, String> {
+    TeamWorkflowSnapshot::new(
+        snapshot.team_id,
+        snapshot.lead_agent_id,
+        snapshot.workspace_id,
+        snapshot.task_id,
+        snapshot.worktrees,
+        snapshot.handoffs,
+        snapshot.blackboard,
+        snapshot.merge_review,
+        snapshot.capability_ceiling,
+        snapshot.conflicts,
+        snapshot.diagnostics,
+    )
+    .map_err(|error| error.to_string())
+}
+
+fn team_fixture_blackboard(vote: Option<ReviewVote>) -> Result<TeamBlackboardSummary, String> {
+    TeamBlackboardSummary::new(vec![
+        TeamBlackboardEntrySummary::new(
+            BlackboardEntryKind::DiffSummary,
+            "subagent changed workflow contracts and CLI surfacing",
+            1,
+            2,
+            None,
+        )
+        .map_err(|error| error.to_string())?,
+        TeamBlackboardEntrySummary::new(
+            BlackboardEntryKind::Review,
+            "reviewer approved bounded team workflow evidence",
+            1,
+            1,
+            vote,
+        )
+        .map_err(|error| error.to_string())?,
+    ])
+    .map_err(|error| error.to_string())
+}
+
+fn team_fixture_capability_set() -> Result<CapabilitySet, String> {
+    CapabilitySet::new(vec![
+        CapabilityGrant::new(
+            CapabilityAction::Read,
+            ResourceScope::new(ResourceKind::File, "crates/agent-team/**")
+                .map_err(|error| error.to_string())?,
+        )
+        .map_err(|error| error.to_string())?,
+        CapabilityGrant::new(
+            CapabilityAction::Execute,
+            ResourceScope::new(ResourceKind::Command, "cargo test -p agent-team")
+                .map_err(|error| error.to_string())?,
+        )
+        .map_err(|error| error.to_string())?,
+    ])
+    .map_err(|error| error.to_string())
+}
+
+fn team_fixture_conflict() -> RecoveryConflictSummary {
+    RecoveryConflictSummary {
+        path: "crates/agent-team/src/workflow.rs".to_string(),
+        kind: RecoveryConflictKind::BothModified,
+        lead_change: RecoveryConflictSide {
+            source: "lead".to_string(),
+            change_kind: "modified".to_string(),
+            content_hash: Some("lead-m63-02".to_string()),
+        },
+        incoming_change: RecoveryConflictSide {
+            source: "subagent".to_string(),
+            change_kind: "modified".to_string(),
+            content_hash: Some("incoming-m63-02".to_string()),
+        },
+        next_action: RecoveryConflictNextAction::InspectDiff,
+        diagnostics: vec![recovery_diagnostic(
+            RecoveryDiagnosticSeverity::Warning,
+            "team.conflict",
+            "merge readiness is blocked until the workflow conflict is resolved",
+            Some("agent-cli"),
+        )],
+    }
+}
+
+fn render_team_workflow_text(frame: &UiTeamWorkflowSnapshot) -> String {
+    let snapshot = &frame.snapshot;
+    let mut output = format!(
+        "{}\nteam={} task={} status={} readiness={} dry_run={}\nworktrees={} handoffs={} blackboard_entries={} conflicts={} diagnostics={}\n",
+        team_operation_title(&frame.operation),
+        snapshot.team_id,
+        snapshot.task_id,
+        team_workflow_status_label(snapshot.status),
+        team_workflow_readiness_label(snapshot.readiness),
+        yes_no_label(frame.dry_run),
+        snapshot.worktrees.len(),
+        snapshot.handoffs.len(),
+        snapshot.blackboard.entry_count,
+        snapshot.conflicts.len(),
+        snapshot.diagnostics.len()
+    );
+    output.push_str(&format!(
+        "capability_ceiling grants={} policy_blocked={}\nmerge_review required={} approving={} blocking={} artifacts={} approved={}\n",
+        snapshot.capability_ceiling.grant_count,
+        yes_no_label(snapshot.capability_ceiling.policy_blocked),
+        snapshot.merge_review.required_review_count,
+        snapshot.merge_review.approving_review_count,
+        snapshot.merge_review.blocking_review_count,
+        snapshot.merge_review.artifact_count,
+        yes_no_label(snapshot.merge_review.approved)
+    ));
+    for grant in &snapshot.capability_ceiling.grants {
+        output.push_str(&format!(
+            "capability action={} scope_kind={} scope={}\n",
+            redact_secret_like_text(&grant.action),
+            redact_secret_like_text(&grant.scope_kind),
+            redact_secret_like_text(&grant.scope_pattern)
+        ));
+    }
+    for worktree in &snapshot.worktrees {
+        output.push_str(&format!(
+            "worktree lease={} state={} base={} branch={} path={}\n",
+            redact_secret_like_text(&worktree.lease_id),
+            team_worktree_state_label(worktree.state),
+            redact_secret_like_text(&worktree.base_branch),
+            redact_secret_like_text(&worktree.worktree_branch),
+            redact_secret_like_text(&worktree.worktree_path)
+        ));
+    }
+    for handoff in &snapshot.handoffs {
+        output.push_str(&format!(
+            "handoff subagent={} role={} status={} lease={} objective={}\n",
+            handoff.subagent_id,
+            subagent_role_label(handoff.role),
+            handoff_status_label(handoff.status),
+            redact_secret_like_text(&handoff.worktree_lease_id),
+            redact_secret_like_text(&handoff.objective)
+        ));
+    }
+    output.push_str(&format!(
+        "blackboard approvals={} request_changes={} blocks={}\n",
+        snapshot.blackboard.approve_count,
+        snapshot.blackboard.request_changes_count,
+        snapshot.blackboard.block_count
+    ));
+    for entry in &snapshot.blackboard.latest_entries {
+        output.push_str(&format!(
+            "blackboard_entry kind={} artifacts={} trace_events={} vote={} summary={}\n",
+            blackboard_entry_kind_label(entry.kind),
+            entry.artifact_count,
+            entry.trace_event_count,
+            entry.review_vote.map(review_vote_label).unwrap_or("none"),
+            redact_secret_like_text(&entry.summary)
+        ));
+    }
+    for conflict in &snapshot.conflicts {
+        output.push_str(&format!(
+            "conflict path={} kind={} next_action={}\n",
+            redact_secret_like_text(&conflict.path),
+            recovery_conflict_kind_label(conflict.kind),
+            recovery_conflict_next_action_label(conflict.next_action)
+        ));
+    }
+    for diagnostic in &snapshot.diagnostics {
+        output.push_str(&format!(
+            "diagnostic severity={} code={} message={}\n",
+            team_diagnostic_severity_label(diagnostic.severity),
+            redact_secret_like_text(&diagnostic.code),
+            redact_secret_like_text(&diagnostic.message)
+        ));
+    }
+    output
+}
+
+fn team_operation_title(operation: &str) -> &'static str {
+    match operation {
+        "status" => "Team workflow status",
+        "handoff_dry_run" => "Team handoff dry-run",
+        "blackboard_inspect" => "Team blackboard inspect",
+        "review_vote_dry_run" => "Team review dry-run",
+        "merge_readiness_dry_run" => "Team merge-readiness dry-run",
+        _ => "Team workflow",
+    }
+}
+
+fn team_workflow_status_label(status: TeamWorkflowStatus) -> &'static str {
+    match status {
+        TeamWorkflowStatus::Planning => "planning",
+        TeamWorkflowStatus::HandoffReady => "handoff_ready",
+        TeamWorkflowStatus::InProgress => "in_progress",
+        TeamWorkflowStatus::ReviewRequired => "review_required",
+        TeamWorkflowStatus::MergeReady => "merge_ready",
+        TeamWorkflowStatus::Blocked => "blocked",
+        TeamWorkflowStatus::Completed => "completed",
+    }
+}
+
+fn team_workflow_readiness_label(readiness: TeamWorkflowReadiness) -> &'static str {
+    match readiness {
+        TeamWorkflowReadiness::ReadyForHandoff => "ready_for_handoff",
+        TeamWorkflowReadiness::WaitingOnSubagent => "waiting_on_subagent",
+        TeamWorkflowReadiness::ReviewRequired => "review_required",
+        TeamWorkflowReadiness::MergeReady => "merge_ready",
+        TeamWorkflowReadiness::HasConflict => "has_conflict",
+        TeamWorkflowReadiness::PolicyBlocked => "policy_blocked",
+        TeamWorkflowReadiness::Blocked => "blocked",
+    }
+}
+
+fn team_worktree_state_label(state: TeamWorktreeState) -> &'static str {
+    match state {
+        TeamWorktreeState::Planned => "planned",
+        TeamWorktreeState::Active => "active",
+        TeamWorktreeState::Released => "released",
+        TeamWorktreeState::CleanupFailed => "cleanup_failed",
+        TeamWorktreeState::Stale => "stale",
+    }
+}
+
+fn subagent_role_label(role: SubagentRole) -> &'static str {
+    match role {
+        SubagentRole::Implementer => "implementer",
+        SubagentRole::Reviewer => "reviewer",
+        SubagentRole::Researcher => "researcher",
+    }
+}
+
+fn handoff_status_label(status: HandoffStatus) -> &'static str {
+    match status {
+        HandoffStatus::Created => "created",
+        HandoffStatus::Accepted => "accepted",
+        HandoffStatus::Completed => "completed",
+        HandoffStatus::Failed => "failed",
+        HandoffStatus::Cancelled => "cancelled",
+    }
+}
+
+fn blackboard_entry_kind_label(kind: BlackboardEntryKind) -> &'static str {
+    match kind {
+        BlackboardEntryKind::Finding => "finding",
+        BlackboardEntryKind::DiffSummary => "diff_summary",
+        BlackboardEntryKind::Review => "review",
+        BlackboardEntryKind::Decision => "decision",
+    }
+}
+
+fn review_vote_label(vote: ReviewVote) -> &'static str {
+    match vote {
+        ReviewVote::Approve => "approve",
+        ReviewVote::RequestChanges => "request_changes",
+        ReviewVote::Block => "block",
+    }
+}
+
+fn team_diagnostic_severity_label(severity: TeamWorkflowDiagnosticSeverity) -> &'static str {
+    match severity {
+        TeamWorkflowDiagnosticSeverity::Info => "info",
+        TeamWorkflowDiagnosticSeverity::Warning => "warning",
+        TeamWorkflowDiagnosticSeverity::Error => "error",
+    }
+}
+
+fn fixture_team_id() -> TeamId {
+    "00000000-0000-0000-0000-000000006320"
+        .parse()
+        .expect("fixture team id is valid")
+}
+
+fn fixture_lead_agent_id() -> AgentId {
+    "00000000-0000-0000-0000-000000006321"
+        .parse()
+        .expect("fixture lead agent id is valid")
+}
+
+fn fixture_subagent_id() -> AgentId {
+    "00000000-0000-0000-0000-000000006322"
+        .parse()
+        .expect("fixture subagent id is valid")
+}
+
+fn fixture_team_workspace_id() -> WorkspaceId {
+    "00000000-0000-0000-0000-000000006323"
+        .parse()
+        .expect("fixture team workspace id is valid")
+}
+
+fn fixture_team_task_id() -> TaskId {
+    "00000000-0000-0000-0000-000000006324"
+        .parse()
+        .expect("fixture team task id is valid")
 }
 
 #[derive(Clone, Debug)]

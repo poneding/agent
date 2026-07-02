@@ -14,6 +14,7 @@ use agent_core::{
     normalize_plan_todo_snapshot,
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
+use agent_team::TeamWorkflowSnapshot;
 use agent_types::{
     ApprovalRequestId, CheckpointId, ClientKind, CommandRetryPlan, ConversationId, EventSeq,
     IdempotentRecoverySummary, PlanTodoItemId, PlanTodoProgress, PlanTodoSnapshot,
@@ -2196,6 +2197,73 @@ impl UiConflictInspectReport {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTeamWorkflowSnapshot {
+    pub operation: String,
+    pub dry_run: bool,
+    pub snapshot: TeamWorkflowSnapshot,
+    pub errors: Vec<UiTeamWorkflowCommandError>,
+}
+
+impl UiTeamWorkflowSnapshot {
+    pub fn new(
+        operation: impl Into<String>,
+        dry_run: bool,
+        snapshot: TeamWorkflowSnapshot,
+        errors: Vec<UiTeamWorkflowCommandError>,
+    ) -> Result<Self, UiBridgeError> {
+        let operation = bounded_task_text(&operation.into());
+        validate_non_empty("team workflow operation", &operation)?;
+
+        Ok(Self {
+            operation,
+            dry_run,
+            snapshot,
+            errors,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiTeamWorkflowCommandError {
+    pub code: String,
+    pub message: String,
+    pub recoverable: bool,
+}
+
+impl UiTeamWorkflowCommandError {
+    pub fn recoverable(
+        code: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        Self::new(code, message, true)
+    }
+
+    pub fn fatal(
+        code: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Result<Self, UiBridgeError> {
+        Self::new(code, message, false)
+    }
+
+    fn new(
+        code: impl Into<String>,
+        message: impl Into<String>,
+        recoverable: bool,
+    ) -> Result<Self, UiBridgeError> {
+        let code = bounded_task_text(&code.into());
+        let message = bounded_task_text(&message.into());
+        validate_non_empty("team workflow command error code", &code)?;
+        validate_non_empty("team workflow command error message", &message)?;
+
+        Ok(Self {
+            code,
+            message,
+            recoverable,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UiTaskSnapshot {
     pub tasks: Vec<UiTaskSummary>,
     pub errors: Vec<UiTaskCommandError>,
@@ -2519,6 +2587,7 @@ pub enum UiJsonFrame {
     ReplayFork(UiReplayForkReport),
     CommandRetryPlan(UiCommandRetryPlan),
     ConflictInspect(UiConflictInspectReport),
+    TeamWorkflowSnapshot(UiTeamWorkflowSnapshot),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
     StartupMigrationSnapshot(UiStartupMigrationSnapshot),

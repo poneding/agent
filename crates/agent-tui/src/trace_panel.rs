@@ -394,6 +394,20 @@ impl TracePanelState {
                     report.diagnostics.len()
                 ),
             )),
+            UiJsonFrame::TeamWorkflowSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "team-workflow",
+                format!(
+                    "{} status={:?} readiness={:?} dry_run={} handoffs={} conflicts={} errors={}",
+                    snapshot.operation,
+                    snapshot.snapshot.status,
+                    snapshot.snapshot.readiness,
+                    snapshot.dry_run,
+                    snapshot.snapshot.handoffs.len(),
+                    snapshot.snapshot.conflicts.len(),
+                    snapshot.errors.len()
+                ),
+            )),
             UiJsonFrame::TaskSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "tasks",

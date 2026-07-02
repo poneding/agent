@@ -26,6 +26,7 @@ agent-policy = { path = "../agent-policy" }
 agent-scheduler = { path = "../agent-scheduler" }
 agent-skill = { path = "../agent-skill" }
 agent-storage = { path = "../agent-storage" }
+agent-team = { path = "../agent-team" }
 agent-types = { path = "../agent-types" }
 agent-tui = { path = "../agent-tui" }
 agent-ui-bridge = { path = "../agent-ui-bridge" }

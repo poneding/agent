@@ -246,7 +246,7 @@ Acceptance:
 
 ### M63 Worktree and Agent Team Workflows
 
-Status: In progress. The milestone spec/plan are complete and M63-01 team workflow snapshot/readiness contracts are implemented in `agent-team`. Next implementation focus is M63-02 CLI and JSON Team Workflow Commands.
+Status: In progress. M63-01 team workflow snapshot/readiness contracts and M63-02 CLI/JSON team workflow commands are complete. Next implementation focus is M63-03 Reviewer Role and Merge Readiness.
 
 Purpose: productize safe parallel implementation and review over the existing M09 worktree/team foundations and the M62 recovery/conflict baseline.
 
@@ -255,7 +255,7 @@ Initial slices:
 | Slice | Outcome |
 |---|---|
 | M63-01 Team Workflow Snapshot and Readiness Contracts | Complete: typed snapshots that compose worktree leases, handoff summaries, blackboard entries, reviewer votes, conflict summaries, merge readiness, capability ceilings, and readiness diagnostics. |
-| M63-02 CLI and JSON Team Workflow Commands | Planned: stable commands for team status, handoff dry-run, blackboard inspect, reviewer vote, and merge-readiness dry-run. |
+| M63-02 CLI and JSON Team Workflow Commands | Complete: stable `team` CLI commands, JSON `team_workflow_snapshot` bridge frame, deterministic fixtures, dry-run guards, and focused CLI/bridge/TUI coverage. |
 | M63-03 Reviewer Role and Merge Readiness | Planned: reviewer role, artifact evidence, policy-backed merge readiness, stale lease detection, and conflict blocks. |
 | M63-04 TUI/Desktop Team Surfaces | Planned: TUI and Desktop render team workflow state from shared bridge snapshots without local readiness logic. |
 | M63-05 Team Workflow Smoke, Docs, and Closeout | Planned: deterministic team workflow smoke, CLI/Desktop workflow docs, final gates, and M63 closeout status. |

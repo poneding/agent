@@ -44,8 +44,8 @@ pub use frame::{
     UiRepoSessionSnapshot, UiResumeDryRunReport, UiSettingsProfileSummary,
     UiStartupMigrationSnapshot, UiTaskActiveTodoSummary, UiTaskCommandError, UiTaskReviewSnapshot,
     UiTaskReviewSummary, UiTaskReviewSummaryArtifact, UiTaskScheduleSummary, UiTaskSnapshot,
-    UiTaskSummary, UiTerminalSessionDiagnostic, UiTerminalSessionSnapshot,
-    UiTerminalSessionSummary, encode_json_frame,
+    UiTaskSummary, UiTeamWorkflowCommandError, UiTeamWorkflowSnapshot, UiTerminalSessionDiagnostic,
+    UiTerminalSessionSnapshot, UiTerminalSessionSummary, encode_json_frame,
 };
 pub use slash::{
     UiSlashCommandCatalogSnapshot, UiSlashCommandCategory, UiSlashCommandDescriptor,

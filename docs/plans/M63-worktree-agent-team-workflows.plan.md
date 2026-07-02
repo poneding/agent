@@ -65,13 +65,15 @@ Result: M63-01 is implemented in `agent-team` with workflow snapshot/readiness c
 - Modify: `crates/agent-ui-bridge/`
 - Modify: `docs/cli/`
 
-- [ ] **Step 1: Plan CLI/JSON surfaces**
+- [x] **Step 1: Plan CLI/JSON surfaces**
 
 Define commands for team status, handoff dry-run, blackboard inspect, reviewer vote record/dry-run, and merge-readiness dry-run.
 
-- [ ] **Step 2: Implement CLI/JSON surfaces**
+- [x] **Step 2: Implement CLI/JSON surfaces**
 
 Commands must render stable text and JSON frames from shared runtime/bridge snapshots.
+
+Result: M63-02 adds deterministic `team` CLI commands, a `team_workflow_snapshot` bridge JSON frame, dry-run guards for handoff/review/merge-readiness commands, sample/conflict/policy-blocked fixtures, focused CLI/bridge tests, and minimal TUI frame consumers for exhaustive match safety.
 
 ### Task 4: M63-03 Reviewer Role and Merge Readiness
 

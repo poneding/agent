@@ -13,13 +13,11 @@ import { ApprovalDetail } from './components/ApprovalDetail';
 import { ApprovalQueue } from './components/ApprovalQueue';
 import { Composer } from './components/Composer';
 import { ConversationList } from './components/ConversationList';
-import { ExtensionHealthView } from './components/ExtensionHealthView';
-import { SettingsView } from './components/SettingsView';
+import { DiffPreview } from './components/DiffPreview';
 import { TaskDetail } from './components/TaskDetail';
 import { TaskList } from './components/TaskList';
 import { TraceTimeline } from './components/TraceTimeline';
 import { TranscriptView } from './components/TranscriptView';
-import { WorkspaceDashboard } from './components/WorkspaceDashboard';
 import { drainUiFrames, normalizeBridgeError, sendUiCommand, startSession } from './bridge';
 import {
   createApprovalState,
@@ -51,8 +49,9 @@ import type {
   DesktopConfigSnapshot,
   DesktopDashboardSnapshot,
   DesktopDiffReview,
+  DesktopInspectorTab,
   DesktopSettings,
-  DesktopShellRoute,
+  DesktopShellUiState,
   DesktopSessionSnapshot,
   DesktopWorkspaceSnapshot,
   ConversationTaskState,
@@ -112,7 +111,21 @@ export function AppShell({
   extensionSnapshot?: UiExtensionSnapshot | null;
   diffReview?: DesktopDiffReview | null;
 }) {
-  const [route, setRoute] = useState<DesktopShellRoute>(bootstrap?.route ?? 'dashboard');
+  void configSnapshot;
+  void settings;
+  void settingsDiagnostics;
+  void settingsError;
+  void extensionSnapshot;
+  const [shellState, setShellState] = useState<DesktopShellUiState>({
+    sidebarOpen: true,
+    inspectorOpen: true,
+    terminalOpen: false,
+    commandPaletteOpen: false,
+    findOpen: false,
+    activeInspectorTab: 'context',
+    lastCommand: null,
+  });
+  const [threadSearch, setThreadSearch] = useState('');
   const diagnostics = bootstrap?.diagnostics ?? [];
   const fallbackConversationTaskState = useMemo(
     () =>
@@ -137,121 +150,362 @@ export function AppShell({
     ) ?? null;
   const composerDisabled =
     sessionSnapshot?.state !== 'connected' || conversationTaskState.activeConversationId === null;
-  const routeLabel = routeLabelFor(route);
+  const filteredConversations = conversationTaskState.conversations.filter((conversation) =>
+    conversation.title.toLowerCase().includes(threadSearch.trim().toLowerCase()),
+  );
+
+  function updateShellState(update: Partial<DesktopShellUiState>) {
+    setShellState((state) => ({ ...state, ...update }));
+  }
+
+  function toggleShellFlag(flag: 'sidebarOpen' | 'inspectorOpen' | 'terminalOpen' | 'findOpen') {
+    setShellState((state) => ({ ...state, [flag]: !state[flag] }));
+  }
+
+  function recordCommand(command: string) {
+    setShellState((state) => ({
+      ...state,
+      commandPaletteOpen: false,
+      lastCommand: command,
+    }));
+  }
+
+  useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      const target = event.target;
+      const isTypingTarget =
+        target instanceof HTMLElement &&
+        (target.tagName === 'TEXTAREA' ||
+          target.tagName === 'INPUT' ||
+          target.isContentEditable);
+      const isModified = event.metaKey || event.ctrlKey;
+      if (!isModified) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      if (isTypingTarget && key !== 'k') {
+        return;
+      }
+
+      if (key === 'k') {
+        event.preventDefault();
+        setShellState((state) => ({
+          ...state,
+          commandPaletteOpen: !state.commandPaletteOpen,
+        }));
+        return;
+      }
+
+      if (key === 'n') {
+        event.preventDefault();
+        recordCommand('New thread shortcut captured');
+        return;
+      }
+
+      if (key === 'b') {
+        event.preventDefault();
+        toggleShellFlag('sidebarOpen');
+        return;
+      }
+
+      if (key === 'i') {
+        event.preventDefault();
+        toggleShellFlag('inspectorOpen');
+        return;
+      }
+
+      if (key === 'j') {
+        event.preventDefault();
+        toggleShellFlag('terminalOpen');
+        return;
+      }
+
+      if (key === ',') {
+        event.preventDefault();
+        recordCommand('Settings shortcut captured');
+        return;
+      }
+
+      if (key === 'f') {
+        event.preventDefault();
+        toggleShellFlag('findOpen');
+      }
+    }
+
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
 
   return (
-    <div className="desktop-shell">
-      <nav className="left-rail" aria-label="Desktop navigation">
+    <div
+      className={[
+        'desktop-shell',
+        shellState.sidebarOpen ? '' : 'sidebar-collapsed',
+        shellState.inspectorOpen ? '' : 'inspector-collapsed',
+        shellState.terminalOpen ? 'terminal-open' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {shellState.commandPaletteOpen ? (
+        <div className="command-overlay" role="dialog" aria-label="Command palette">
+          <section className="command-palette">
+            <header>
+              <span>Command Palette</span>
+              <button
+                aria-label="Close command palette"
+                className="icon-button"
+                type="button"
+                onClick={() => updateShellState({ commandPaletteOpen: false })}
+              >
+                x
+              </button>
+            </header>
+            <input aria-label="Command search" autoFocus placeholder="Type a command" />
+            <div className="command-list" role="list">
+              <button type="button" onClick={() => recordCommand('New thread')}>
+                New thread
+                <kbd>Cmd N</kbd>
+              </button>
+              <button type="button" onClick={() => toggleShellFlag('sidebarOpen')}>
+                Toggle sidebar
+                <kbd>Cmd B</kbd>
+              </button>
+              <button type="button" onClick={() => toggleShellFlag('inspectorOpen')}>
+                Toggle inspector
+                <kbd>Cmd I</kbd>
+              </button>
+              <button type="button" onClick={() => toggleShellFlag('terminalOpen')}>
+                Toggle terminal
+                <kbd>Cmd J</kbd>
+              </button>
+              <button type="button" onClick={() => toggleShellFlag('findOpen')}>
+                Find in thread
+                <kbd>Cmd F</kbd>
+              </button>
+              <button type="button" onClick={() => recordCommand('Settings')}>
+                Settings
+                <kbd>Cmd ,</kbd>
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      <nav className="left-rail" aria-label="Workspace and thread navigation">
         <div className="brand">
           <span className="brand-name">{bootstrap?.app_name ?? 'agent'}</span>
           <span className="brand-version">{bootstrap?.app_version ?? 'starting'}</span>
         </div>
-        <button
-          className={route === 'dashboard' ? 'rail-item active' : 'rail-item'}
-          type="button"
-          onClick={() => setRoute('dashboard')}
-        >
-          Dashboard
+        <button className="workspace-switcher" type="button">
+          <span>Workspace</span>
+          <strong>{dashboardSnapshot?.workspace_root_display ?? 'Local workspace'}</strong>
         </button>
         <button
-          className={route === 'conversation' ? 'rail-item active' : 'rail-item'}
+          className="primary-action"
           type="button"
-          onClick={() => setRoute('conversation')}
+          onClick={() => recordCommand('New thread')}
         >
-          Conversations
+          + New Thread
         </button>
-        <button
-          className={route === 'tasks' ? 'rail-item active' : 'rail-item'}
-          type="button"
-          onClick={() => setRoute('tasks')}
-        >
-          Tasks
-        </button>
-        <button
-          className={route === 'approvals' ? 'rail-item active' : 'rail-item'}
-          type="button"
-          onClick={() => setRoute('approvals')}
-        >
-          Approvals
-        </button>
-        <button
-          className={route === 'trace' ? 'rail-item active' : 'rail-item'}
-          type="button"
-          onClick={() => setRoute('trace')}
-        >
-          Trace
-        </button>
-        <button
-          className={route === 'settings' ? 'rail-item active' : 'rail-item'}
-          type="button"
-          onClick={() => setRoute('settings')}
-        >
-          Settings
-        </button>
+        <input
+          aria-label="Search threads"
+          className="thread-search"
+          placeholder="Search threads"
+          value={threadSearch}
+          onChange={(event) => setThreadSearch(event.currentTarget.value)}
+        />
+        <ThreadSection
+          activeConversationId={conversationTaskState.activeConversationId}
+          conversations={filteredConversations}
+          emptyLabel="No recent threads"
+          label="Recent"
+          onSelect={() => undefined}
+        />
+        <ThreadSection
+          activeConversationId={conversationTaskState.activeConversationId}
+          conversations={[]}
+          emptyLabel="No pinned threads"
+          label="Pinned"
+          onSelect={() => undefined}
+        />
+        <ThreadSection
+          activeConversationId={conversationTaskState.activeConversationId}
+          conversations={[]}
+          emptyLabel="No archived threads"
+          label="Archived"
+          onSelect={() => undefined}
+        />
       </nav>
 
-      <main className="workspace" aria-label={`${routeLabel} workspace`}>
-        {route === 'dashboard' ? (
-          <WorkspaceDashboard
-            snapshot={dashboardSnapshot}
-            onOpenConversation={() => setRoute('conversation')}
-            onOpenApprovals={() => setRoute('approvals')}
-          />
+      <main className="workspace" aria-label="Active thread workspace">
+        <header className="workspace-toolbar">
+          <div>
+            <h1>Thread</h1>
+            <p>
+              {conversationTaskState.activeConversationId ?? 'No active thread'} ·{' '}
+              {sessionSnapshot?.state ?? bootstrap?.runtime_state ?? 'loading'}
+            </p>
+          </div>
+          <div className="toolbar-actions" aria-label="Workspace controls">
+            <button
+              aria-label="Toggle sidebar"
+              className="icon-button"
+              type="button"
+              onClick={() => toggleShellFlag('sidebarOpen')}
+            >
+              ||
+            </button>
+            <button
+              aria-label="Open command palette"
+              className="icon-button"
+              type="button"
+              onClick={() => updateShellState({ commandPaletteOpen: true })}
+            >
+              K
+            </button>
+            <button
+              aria-label="Toggle inspector"
+              className="icon-button"
+              type="button"
+              onClick={() => toggleShellFlag('inspectorOpen')}
+            >
+              []
+            </button>
+            <button
+              aria-label="Toggle terminal"
+              className="icon-button"
+              type="button"
+              onClick={() => toggleShellFlag('terminalOpen')}
+            >
+              _
+            </button>
+          </div>
+        </header>
+        {shellState.findOpen ? (
+          <div className="find-bar">
+            <input aria-label="Find in thread" placeholder="Find in thread" />
+            <button type="button" onClick={() => updateShellState({ findOpen: false })}>
+              Close
+            </button>
+          </div>
         ) : null}
-        {route === 'conversation' ? (
-          <>
-            <section className="transcript-band">
-              <h1>Conversation</h1>
-              <div className="conversation-layout">
-                <ConversationList
-                  activeConversationId={conversationTaskState.activeConversationId}
-                  conversations={conversationTaskState.conversations}
-                  onSelect={() => undefined}
-                />
-                <TranscriptView entries={conversationTaskState.transcript} />
-              </div>
-              {conversationTaskState.diagnostics.length === 0 ? null : (
-                <ul className="conversation-diagnostics" aria-label="Conversation diagnostics">
-                  {conversationTaskState.diagnostics.map((diagnostic) => (
-                    <li key={`${diagnostic.code}-${diagnostic.message}`}>
-                      <strong>{diagnostic.code}</strong>
-                      <span>{diagnostic.message}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-            <Composer
-              disabled={composerDisabled}
-              onSubmitPrompt={onSubmitPrompt}
-              submission={conversationTaskState.currentSubmission}
-            />
-          </>
-        ) : null}
-        {route === 'tasks' ? (
-          <section className="workspace-band">
-            <h1>Tasks</h1>
-            <div className="split-layout">
-              <TaskList
-                activeTaskId={conversationTaskState.activeTaskId}
-                tasks={conversationTaskState.tasks}
-                onSelect={() => undefined}
-              />
-              <TaskDetail task={selectedTask} />
-            </div>
+        {shellState.lastCommand === null ? null : (
+          <div className="command-notice" role="status">
+            {shellState.lastCommand}
+          </div>
+        )}
+        <section className="transcript-band">
+          <TranscriptView entries={conversationTaskState.transcript} />
+          {conversationTaskState.diagnostics.length === 0 ? null : (
+            <ul className="conversation-diagnostics" aria-label="Conversation diagnostics">
+              {conversationTaskState.diagnostics.map((diagnostic) => (
+                <li key={`${diagnostic.code}-${diagnostic.message}`}>
+                  <strong>{diagnostic.code}</strong>
+                  <span>{diagnostic.message}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+        <Composer
+          disabled={composerDisabled}
+          onSubmitPrompt={onSubmitPrompt}
+          submission={conversationTaskState.currentSubmission}
+        />
+        {shellState.terminalOpen ? (
+          <section className="terminal-drawer" aria-label="Integrated terminal">
+            <header>
+              <span>Terminal</span>
+              <button type="button" onClick={() => toggleShellFlag('terminalOpen')}>
+                Hide
+              </button>
+            </header>
+            <p>No terminal session</p>
           </section>
         ) : null}
-        {route === 'approvals' ? (
-          <section className="workspace-band">
-            <h1>Approvals</h1>
-            <div className="split-layout">
-              <div aria-label="Pending approvals">
-                <ApprovalQueue
-                  approvals={approvalState.pending}
-                  selectedRequestId={approvalState.selectedRequestId}
-                  onSelect={onSelectApproval}
-                />
-              </div>
+      </main>
+
+      <aside className="context-panel" aria-label="Inspector">
+        <header className="inspector-header">
+          <h2>Inspector</h2>
+          <button
+            aria-label="Collapse inspector"
+            className="icon-button"
+            type="button"
+            onClick={() => toggleShellFlag('inspectorOpen')}
+          >
+            x
+          </button>
+        </header>
+        <div className="inspector-tabs" role="tablist" aria-label="Inspector tabs">
+          {inspectorTabs.map((tab) => (
+            <button
+              aria-controls={`inspector-${tab}`}
+              aria-selected={shellState.activeInspectorTab === tab}
+              className={shellState.activeInspectorTab === tab ? 'active' : ''}
+              id={`tab-${tab}`}
+              key={tab}
+              role="tab"
+              type="button"
+              onClick={() => updateShellState({ activeInspectorTab: tab })}
+            >
+              {inspectorTabLabel(tab)}
+            </button>
+          ))}
+        </div>
+        <section
+          aria-labelledby={`tab-${shellState.activeInspectorTab}`}
+          className="inspector-content"
+          id={`inspector-${shellState.activeInspectorTab}`}
+          role="tabpanel"
+        >
+          {shellState.activeInspectorTab === 'context' ? (
+            <>
+              {bootstrapError ? <BootstrapError message={bootstrapError} /> : null}
+              <section className="panel-section">
+                <h3>Runtime</h3>
+                <dl>
+                  <dt>State</dt>
+                  <dd>{bootstrap?.runtime_state ?? 'loading'}</dd>
+                  <dt>Session</dt>
+                  <dd>{sessionSnapshot?.session_id ?? 'not connected'}</dd>
+                  <dt>Frames</dt>
+                  <dd>{sessionSnapshot?.pending_frame_count ?? 0}</dd>
+                </dl>
+              </section>
+              <section className="panel-section">
+                <h3>Diagnostics</h3>
+                {diagnostics.length === 0 ? (
+                  <p>No diagnostics</p>
+                ) : (
+                  <ul>
+                    {diagnostics.map((diagnostic) => (
+                      <li key={diagnostic.code}>
+                        <strong>{diagnostic.code}</strong>
+                        <span>{diagnostic.message}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </>
+          ) : null}
+          {shellState.activeInspectorTab === 'changes' ? (
+            selectedApproval?.preview === undefined ? (
+              <div className="empty-list">No changes to review</div>
+            ) : (
+              <DiffPreview preview={selectedApproval.preview} review={diffReview} />
+            )
+          ) : null}
+          {shellState.activeInspectorTab === 'approvals' ? (
+            <>
+              <ApprovalQueue
+                approvals={approvalState.pending}
+                selectedRequestId={approvalState.selectedRequestId}
+                onSelect={onSelectApproval}
+              />
               <ApprovalDetail
                 approval={selectedApproval}
                 decisionAck={approvalState.lastDecisionAck}
@@ -260,81 +514,24 @@ export function AppShell({
                 onAllow={onAllowApproval}
                 onDeny={onDenyApproval}
               />
-            </div>
-          </section>
-        ) : null}
-        {route === 'trace' ? (
-          <section className="workspace-band">
-            <h1>Trace</h1>
+            </>
+          ) : null}
+          {shellState.activeInspectorTab === 'tasks' ? (
+            <>
+              <TaskList
+                activeTaskId={conversationTaskState.activeTaskId}
+                tasks={conversationTaskState.tasks}
+                onSelect={() => undefined}
+              />
+              <TaskDetail task={selectedTask} />
+            </>
+          ) : null}
+          {shellState.activeInspectorTab === 'artifacts' ? (
+            <div className="empty-list">No artifacts yet</div>
+          ) : null}
+          {shellState.activeInspectorTab === 'trace' ? (
             <TraceTimeline timeline={traceTimeline} error={traceError} />
-          </section>
-        ) : null}
-        {route === 'settings' ? (
-          <section className="workspace-band">
-            <h1>Settings</h1>
-            <SettingsView
-              snapshot={configSnapshot}
-              settings={settings}
-              diagnostics={settingsDiagnostics}
-              error={settingsError}
-            />
-            {extensionSnapshot === null ? null : (
-              <ExtensionHealthView snapshot={extensionSnapshot} />
-            )}
-          </section>
-        ) : null}
-      </main>
-
-      <aside className="context-panel" aria-label="Context panel">
-        {bootstrapError ? <BootstrapError message={bootstrapError} /> : null}
-        <section className="panel-section">
-          <h2>Runtime</h2>
-          <dl>
-            <dt>State</dt>
-            <dd>{bootstrap?.runtime_state ?? 'loading'}</dd>
-            <dt>Route</dt>
-            <dd>{route}</dd>
-          </dl>
-        </section>
-        <section className="panel-section">
-          <h2>Tasks</h2>
-          <TaskList
-            activeTaskId={conversationTaskState.activeTaskId}
-            tasks={conversationTaskState.tasks}
-            onSelect={() => undefined}
-          />
-          <TaskDetail task={selectedTask} />
-        </section>
-        <section className="panel-section">
-          <h2>Approvals</h2>
-          <ApprovalQueue
-            approvals={approvalState.pending}
-            selectedRequestId={approvalState.selectedRequestId}
-            onSelect={onSelectApproval}
-          />
-          <ApprovalDetail
-            approval={selectedApproval}
-            decisionAck={approvalState.lastDecisionAck}
-            decisionError={approvalState.lastDecisionError}
-            diffReview={diffReview}
-            onAllow={onAllowApproval}
-            onDeny={onDenyApproval}
-          />
-        </section>
-        <section className="panel-section">
-          <h2>Diagnostics</h2>
-          {diagnostics.length === 0 ? (
-            <p>No diagnostics</p>
-          ) : (
-            <ul>
-              {diagnostics.map((diagnostic) => (
-                <li key={diagnostic.code}>
-                  <strong>{diagnostic.code}</strong>
-                  <span>{diagnostic.message}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          ) : null}
         </section>
       </aside>
 
@@ -347,20 +544,58 @@ export function AppShell({
   );
 }
 
-function routeLabelFor(route: DesktopShellRoute): string {
-  switch (route) {
-    case 'dashboard':
-      return 'Dashboard';
-    case 'conversation':
-      return 'Conversation';
-    case 'tasks':
-      return 'Tasks';
+function ThreadSection({
+  activeConversationId,
+  conversations,
+  emptyLabel,
+  label,
+  onSelect,
+}: {
+  activeConversationId: string | null;
+  conversations: ConversationTaskState['conversations'];
+  emptyLabel: string;
+  label: string;
+  onSelect: (conversationId: string) => void;
+}) {
+  return (
+    <section className="thread-section" aria-label={`${label} threads`}>
+      <h2>{label}</h2>
+      {conversations.length === 0 ? (
+        <div className="empty-list">{emptyLabel}</div>
+      ) : (
+        <ConversationList
+          activeConversationId={activeConversationId}
+          conversations={conversations}
+          onSelect={onSelect}
+        />
+      )}
+    </section>
+  );
+}
+
+const inspectorTabs: DesktopInspectorTab[] = [
+  'context',
+  'changes',
+  'approvals',
+  'tasks',
+  'artifacts',
+  'trace',
+];
+
+function inspectorTabLabel(tab: DesktopInspectorTab): string {
+  switch (tab) {
+    case 'context':
+      return 'Context';
+    case 'changes':
+      return 'Changes';
     case 'approvals':
       return 'Approvals';
+    case 'tasks':
+      return 'Tasks';
+    case 'artifacts':
+      return 'Artifacts';
     case 'trace':
       return 'Trace';
-    case 'settings':
-      return 'Settings';
   }
 }
 
@@ -549,10 +784,6 @@ export default function App() {
       }}
       traceTimeline={traceState.timeline}
       traceError={traceState.error}
-      configSnapshot={settingsState.snapshot}
-      settings={settingsState.settings}
-      settingsDiagnostics={settingsState.validationDiagnostics}
-      settingsError={settingsState.error}
       onAllowApproval={(requestId) => {
         void handleAllowApproval(requestId);
       }}

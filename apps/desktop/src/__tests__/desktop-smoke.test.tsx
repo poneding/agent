@@ -393,64 +393,74 @@ describe('desktop MVP smoke navigation', () => {
       />,
     );
 
-    expect(screen.getByRole('main', { name: 'Dashboard workspace' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('navigation', { name: 'Workspace and thread navigation' }),
+    ).toBeInTheDocument();
+    const threadWorkspace = screen.getByRole('main', { name: 'Active thread workspace' });
+    const inspector = screen.getByRole('complementary', { name: 'Inspector' });
+    expect(threadWorkspace).toBeInTheDocument();
+    expect(inspector).toBeInTheDocument();
     expect(screen.getByText('/workspace/agent')).toBeInTheDocument();
     expect(screen.getAllByText('connected').length).toBeGreaterThan(0);
-    expect(screen.getByRole('button', { name: 'Review approvals' })).toBeEnabled();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Open conversation' }));
-    const conversationWorkspace = screen.getByRole('main', { name: 'Conversation workspace' });
-    expect(conversationWorkspace).toBeInTheDocument();
-    expect(within(conversationWorkspace).getByText('Main thread')).toBeInTheDocument();
-    expect(within(conversationWorkspace).getByText('Desktop smoke fixture completed with tests passing.')).toBeInTheDocument();
-    expect(within(conversationWorkspace).getByText('completed')).toBeInTheDocument();
-    fireEvent.change(within(conversationWorkspace).getByLabelText('Message composer'), {
+    expect(screen.getByRole('region', { name: 'Recent threads' })).toHaveTextContent(
+      'Main thread',
+    );
+    expect(
+      within(threadWorkspace).getByText(
+        'Desktop smoke fixture completed with tests passing.',
+      ),
+    ).toBeInTheDocument();
+    expect(within(threadWorkspace).getByText('completed')).toBeInTheDocument();
+    fireEvent.change(within(threadWorkspace).getByLabelText('Message composer'), {
       target: { value: 'Run the Desktop product gate' },
     });
-    fireEvent.click(within(conversationWorkspace).getByRole('button', { name: 'Send' }));
+    fireEvent.click(within(threadWorkspace).getByRole('button', { name: 'Send' }));
     expect(onSubmitPrompt).toHaveBeenCalledWith('Run the Desktop product gate');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Tasks' }));
-    const tasksWorkspace = screen.getByRole('main', { name: 'Tasks workspace' });
-    expect(tasksWorkspace).toBeInTheDocument();
-    expect(within(tasksWorkspace).getAllByText('Review file-edit approval').length).toBeGreaterThan(0);
-    expect(within(tasksWorkspace).getAllByText('waiting_approval').length).toBeGreaterThan(0);
-    expect(within(tasksWorkspace).getAllByText('plan 2/1/4').length).toBeGreaterThan(0);
-    expect(within(tasksWorkspace).getAllByText('Review approval evidence').length).toBeGreaterThan(0);
-    expect(within(tasksWorkspace).getByText('approval requested')).toBeInTheDocument();
-    expect(within(tasksWorkspace).getAllByText('waiting_approval').length).toBeGreaterThan(0);
-    expect(within(tasksWorkspace).getByText('approval-64')).toBeInTheDocument();
-    expect(within(tasksWorkspace).getByText('Run cargo xtask desktop-test')).toBeInTheDocument();
-    expect(within(tasksWorkspace).getByText('succeeded')).toBeInTheDocument();
+    fireEvent.click(within(inspector).getByRole('tab', { name: 'Tasks' }));
+    const tasksPanel = within(inspector).getByRole('tabpanel', { name: 'Tasks' });
+    expect(within(tasksPanel).getAllByText('Review file-edit approval').length).toBeGreaterThan(
+      0,
+    );
+    expect(within(tasksPanel).getAllByText('waiting_approval').length).toBeGreaterThan(0);
+    expect(within(tasksPanel).getAllByText('plan 2/1/4').length).toBeGreaterThan(0);
+    expect(within(tasksPanel).getAllByText('Review approval evidence').length).toBeGreaterThan(
+      0,
+    );
+    expect(within(tasksPanel).getByText('approval requested')).toBeInTheDocument();
+    expect(within(tasksPanel).getByText('approval-64')).toBeInTheDocument();
+    expect(within(tasksPanel).getByText('Run cargo xtask desktop-test')).toBeInTheDocument();
+    expect(within(tasksPanel).getByText('succeeded')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Approvals' }));
-    const approvalsWorkspace = screen.getByRole('main', { name: 'Approvals workspace' });
-    expect(approvalsWorkspace).toBeInTheDocument();
-    expect(within(approvalsWorkspace).getByText('file_edit')).toBeInTheDocument();
-    expect(within(approvalsWorkspace).getByText('redacted')).toBeInTheDocument();
-    expect(within(approvalsWorkspace).getByLabelText('Visual diff review')).toBeInTheDocument();
-    expect(within(approvalsWorkspace).getByText('Expand Desktop smoke evidence assertions')).toBeInTheDocument();
-    fireEvent.click(within(approvalsWorkspace).getByRole('button', { name: 'Allow' }));
+    fireEvent.click(within(inspector).getByRole('tab', { name: 'Approvals' }));
+    const approvalsPanel = within(inspector).getByRole('tabpanel', { name: 'Approvals' });
+    expect(within(approvalsPanel).getByText('file_edit')).toBeInTheDocument();
+    expect(within(approvalsPanel).getByText('redacted')).toBeInTheDocument();
+    expect(within(approvalsPanel).getByLabelText('Visual diff review')).toBeInTheDocument();
+    expect(
+      within(approvalsPanel).getByText('Expand Desktop smoke evidence assertions'),
+    ).toBeInTheDocument();
+    fireEvent.click(within(approvalsPanel).getByRole('button', { name: 'Allow' }));
     expect(onAllowApproval).toHaveBeenCalledWith('approval-67');
-    fireEvent.change(within(approvalsWorkspace).getByLabelText('Deny reason'), {
+    fireEvent.change(within(approvalsPanel).getByLabelText('Deny reason'), {
       target: { value: 'not safe enough' },
     });
-    fireEvent.click(within(approvalsWorkspace).getByRole('button', { name: 'Deny' }));
+    fireEvent.click(within(approvalsPanel).getByRole('button', { name: 'Deny' }));
     expect(onDenyApproval).toHaveBeenCalledWith('approval-67', 'not safe enough');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Trace' }));
-    const traceWorkspace = screen.getByRole('main', { name: 'Trace workspace' });
-    expect(traceWorkspace).toBeInTheDocument();
-    expect(within(traceWorkspace).getAllByText('cargo xtask desktop-test passed').length).toBeGreaterThan(0);
-    expect(within(traceWorkspace).getByText('Runtime logs')).toBeInTheDocument();
-    expect(within(traceWorkspace).getAllByText('bounded warning [redacted]').length).toBeGreaterThan(0);
+    fireEvent.click(within(inspector).getByRole('tab', { name: 'Changes' }));
+    const changesPanel = within(inspector).getByRole('tabpanel', { name: 'Changes' });
+    expect(within(changesPanel).getByLabelText('Visual diff review')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
-    const settingsWorkspace = screen.getByRole('main', { name: 'Settings workspace' });
-    expect(settingsWorkspace).toBeInTheDocument();
-    expect(within(settingsWorkspace).getByText('fake-scripted')).toBeInTheDocument();
-    expect(within(settingsWorkspace).getByText('streaming yes / tools yes / context 8192')).toBeInTheDocument();
-    expect(within(settingsWorkspace).getByText('desktop.provider.fake_ready')).toBeInTheDocument();
+    fireEvent.click(within(inspector).getByRole('tab', { name: 'Trace' }));
+    const tracePanel = within(inspector).getByRole('tabpanel', { name: 'Trace' });
+    expect(
+      within(tracePanel).getAllByText('cargo xtask desktop-test passed').length,
+    ).toBeGreaterThan(0);
+    expect(within(tracePanel).getByText('Runtime logs')).toBeInTheDocument();
+    expect(
+      within(tracePanel).getAllByText('bounded warning [redacted]').length,
+    ).toBeGreaterThan(0);
 
     for (const forbidden of ['sk-secret', 'api_key', 'token', 'password']) {
       expect(screen.queryByText(forbidden)).not.toBeInTheDocument();

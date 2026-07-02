@@ -101,7 +101,7 @@ git diff --check
 - Modify: `crates/agent-core/`
 - Modify: `crates/agent-memory/`
 
-- [ ] **Step 1: Plan runtime integration**
+- [x] **Step 1: Plan runtime integration**
 
 Define how scoped memories enter prompt assembly, how influence traces attach to turn evidence, and how model output can create reviewable memory write proposals.
 

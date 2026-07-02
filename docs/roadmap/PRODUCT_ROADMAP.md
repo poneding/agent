@@ -270,7 +270,7 @@ Acceptance:
 
 ### M64 Memory and Personalization
 
-Status: In progress. M64-01 memory product snapshot/privacy contracts and M64-02 CLI/JSON memory review commands are complete. M64-03 Runtime Memory Influence and Proposal Loop is the next active slice.
+Status: In progress. M64-01 memory product snapshot/privacy contracts and M64-02 CLI/JSON memory review commands are complete. M64-03 runtime memory influence/proposal planning is complete and implementation is the next active slice.
 
 Purpose: make memory useful, reviewable, privacy-safe, and visible in product workflows rather than only available as lower-level storage/retrieval contracts.
 

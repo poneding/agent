@@ -225,4 +225,5 @@ pub enum EvalEvidenceSource {
     EvidenceBundle,
     LocalCoding,
     ContextQuality,
+    RecoveryCrashSmoke,
 }

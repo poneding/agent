@@ -22,6 +22,7 @@ pub mod plan;
 pub mod project_context;
 pub mod provider_support;
 pub mod recovery;
+pub mod recovery_smoke;
 pub mod repo_session;
 pub mod runtime;
 pub mod settings;
@@ -146,6 +147,9 @@ pub use provider_support::{
     coding_agent_model_requirements,
 };
 pub use recovery::{RecoveryEngine, RecoveryError, RecoveryOutcome, RecoveryPlan};
+pub use recovery_smoke::{
+    RecoveryCrashSmokeError, RecoveryCrashSmokeReport, run_recovery_crash_smoke_fixture,
+};
 pub use repo_session::{
     RepoConfigSummary, RepoGitState, RepoGitSummary, RepoProviderSummary,
     RepoSessionBootstrapError, RepoSessionBootstrapInput, RepoSessionBootstrapReport,

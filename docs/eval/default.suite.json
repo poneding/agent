@@ -23,6 +23,11 @@
       "path": "scenarios/m58-context-quality.eval.json",
       "alias": "m58-context-quality",
       "labels": ["default", "context", "m58", "smoke"]
+    },
+    {
+      "path": "scenarios/m62-recovery-crash-smoke.eval.json",
+      "alias": "m62-recovery-crash-smoke",
+      "labels": ["default", "recovery", "m62", "smoke"]
     }
   ]
 }

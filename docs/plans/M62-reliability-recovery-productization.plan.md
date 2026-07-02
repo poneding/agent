@@ -224,11 +224,11 @@ Expected: conflicts are typed, redacted, actionable, and visible in shared CLI/D
 
 Define deterministic crash/restart fixture, eval or xtask command integration, docs, and closeout evidence requirements.
 
-- [ ] **Step 2: Implement crash smoke and docs**
+- [x] **Step 2: Implement crash smoke and docs**
 
 Add a credential-free recovery smoke that proves checkpoint resume, idempotent skip/replay, retry evidence, and recovery reporting after a simulated interruption.
 
-- [ ] **Step 3: Run final M62 gates**
+- [x] **Step 3: Run final M62 gates**
 
 Run:
 
@@ -242,6 +242,8 @@ cargo xtask eval
 ```
 
 Expected: M62 recovery workflows are implemented, documented, smoke-tested, and do not regress earlier product milestones.
+
+Result: final M62 gates passed. `cargo test --workspace` was run with `CARGO_TARGET_DIR=target/m62-gate` after the default target produced a macOS dyld/code-signing stall for one generated test binary; the isolated target ran the same workspace test gate successfully. The `xtask` quality-gate fixture printed the expected fake rustc flag message and exited successfully.
 
 ### Task 7: Commit Discipline
 
@@ -261,6 +263,6 @@ git commit -m "docs: add m62 recovery productization plan"
 
 Expected: planning docs are committed before implementation slices begin.
 
-- [ ] **Step 2: Commit each implementation slice**
+- [x] **Step 2: Commit each implementation slice**
 
 For each M62 implementation slice, exact-stage the slice spec, slice plan, code, tests, and docs touched by that slice only, then commit with a focused message.

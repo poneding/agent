@@ -25,12 +25,12 @@ fn builtin_corpus_loads_default_suite() {
     let suite = load_default_suite();
 
     assert_eq!(suite.manifest.id, "default-regression");
-    assert_eq!(suite.scenario_refs.len(), 4);
-    assert_eq!(suite.scenarios.len(), 4);
+    assert_eq!(suite.scenario_refs.len(), 5);
+    assert_eq!(suite.scenarios.len(), 5);
     assert_eq!(suite.scenario_refs[0].alias.as_deref(), Some("m04-replay"));
     assert_eq!(
-        suite.scenario_refs[3].alias.as_deref(),
-        Some("m58-context-quality")
+        suite.scenario_refs[4].alias.as_deref(),
+        Some("m62-recovery-crash-smoke")
     );
     assert_eq!(
         suite.scenarios[0].normalized_fixture_root,
@@ -50,8 +50,8 @@ fn builtin_corpus_runs_and_matches_goldens() {
         },
     );
 
-    assert_eq!(report.summary.total, 4);
-    assert_eq!(report.summary.passed, 4);
+    assert_eq!(report.summary.total, 5);
+    assert_eq!(report.summary.passed, 5);
     assert!(report.scenarios.iter().all(|scenario| {
         scenario.status == EvalScenarioStatus::Passed && scenario.diagnostics.is_empty()
     }));

@@ -30,6 +30,7 @@ fn scenario_manifest(id: &str, fixture_path: &str) -> String {
             expected_status: EvalExpectedStatus::Passed,
             required_events: Vec::new(),
             context_quality: None,
+            recovery: None,
             golden: None,
         },
         metadata: Default::default(),

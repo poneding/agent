@@ -2,7 +2,11 @@ use agent_cli::parse_cli_invocation;
 
 #[test]
 fn daily_driver_recipe_agent_cli_commands_are_parseable() {
-    let docs = include_str!("../../../docs/cli/daily-driver-recipes.md");
+    let docs = format!(
+        "{}\n{}",
+        include_str!("../../../docs/cli/daily-driver-recipes.md"),
+        include_str!("../../../docs/cli/recovery-workflows.md")
+    );
     let mut parsed = 0_usize;
 
     for line in docs.lines().map(str::trim) {

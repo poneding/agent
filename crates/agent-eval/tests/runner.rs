@@ -4,9 +4,9 @@ use std::fs;
 use agent_core::{ObservabilityEvidenceOptions, build_observability_evidence};
 use agent_eval::{
     EVAL_SCENARIO_SCHEMA_VERSION, EvalEvidenceSource, EvalExpectations, EvalExpectedStatus,
-    EvalFixtures, EvalPermissionProfile, EvalRunSummary, EvalRunnerOptions, EvalScenarioKind,
-    EvalScenarioManifest, EvalScenarioStatus, EvalStrictness, normalized_report_golden,
-    run_eval_scenario, run_eval_scenarios, validate_eval_scenario,
+    EvalFixtures, EvalPermissionProfile, EvalRecoveryExpectations, EvalRunSummary,
+    EvalRunnerOptions, EvalScenarioKind, EvalScenarioManifest, EvalScenarioStatus, EvalStrictness,
+    normalized_report_golden, run_eval_scenario, run_eval_scenarios, validate_eval_scenario,
 };
 use agent_storage::load_replay_fixture_json;
 use camino::{Utf8Path, Utf8PathBuf};
@@ -36,6 +36,7 @@ fn manifest(kind: EvalScenarioKind, fixtures: EvalFixtures) -> EvalScenarioManif
             expected_status: EvalExpectedStatus::Passed,
             required_events: Vec::new(),
             context_quality: None,
+            recovery: None,
             golden: None,
         },
         metadata: BTreeMap::new(),
@@ -49,7 +50,38 @@ fn kind_slug(kind: EvalScenarioKind) -> &'static str {
         EvalScenarioKind::LocalCoding => "local-coding",
         EvalScenarioKind::EvidenceOnly => "evidence",
         EvalScenarioKind::ContextQuality => "context-quality",
+        EvalScenarioKind::RecoveryCrashSmoke => "recovery-crash-smoke",
     }
+}
+
+#[test]
+fn runner_passes_recovery_crash_smoke_fixture() {
+    let tempdir = tempfile::tempdir().expect("tempdir");
+    let root = fixture_root(&tempdir);
+    let mut manifest = manifest(
+        EvalScenarioKind::RecoveryCrashSmoke,
+        EvalFixtures::default(),
+    );
+    manifest.expectations.recovery = Some(EvalRecoveryExpectations {
+        expected_readiness: Some("has_conflict".to_string()),
+        min_replayed_event_count: Some(2),
+        min_idempotent_effect_count: Some(1),
+        min_pending_tool_count: Some(1),
+        min_conflict_count: Some(1),
+        requires_retry_plan: true,
+    });
+    let scenario = validate_eval_scenario(manifest, &root).expect("valid scenario");
+
+    let report = run_eval_scenario(&scenario, EvalRunnerOptions::default());
+
+    assert_eq!(report.status, EvalScenarioStatus::Passed);
+    assert!(report.diagnostics.is_empty());
+    let summary = report.evidence_summary.expect("evidence summary");
+    assert_eq!(summary.source, EvalEvidenceSource::RecoveryCrashSmoke);
+    assert_eq!(summary.event_count, 2);
+    assert_eq!(summary.checkpoint_count, 1);
+    assert_eq!(summary.trace_entries, 1);
+    assert!(summary.replayable);
 }
 
 #[test]

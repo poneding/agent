@@ -1,0 +1,14 @@
+{
+  "scenario_id": "default-m62-recovery-crash-smoke",
+  "status": "passed",
+  "evidence_summary": {
+    "source": "recovery_crash_smoke",
+    "event_count": 2,
+    "checkpoint_count": 1,
+    "trace_entries": 1,
+    "audit_records": 0,
+    "telemetry_records": 0,
+    "replayable": true,
+    "diagnostics": 1
+  }
+}

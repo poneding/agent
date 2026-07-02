@@ -6,7 +6,7 @@ use agent_core::{
     ObservabilityEvidenceOptions, PinnedProjectContextPin, PinnedProjectContextRequest,
     ProjectContextLimits, ProjectContextPinnedRetrievalInput, ProjectContextRetrievalInput,
     build_observability_evidence, replay_final_review, retrieve_project_context_pinned_quality,
-    retrieve_project_context_quality, run_local_coding_fixture,
+    retrieve_project_context_quality, run_local_coding_fixture, run_recovery_crash_smoke_fixture,
     verify_observability_replay_fixture,
 };
 use agent_storage::{check_replay_compatibility, load_replay_fixture_json};
@@ -55,6 +55,7 @@ pub fn run_eval_scenario(
         EvalScenarioKind::EvidenceOnly => run_evidence_only_scenario(scenario),
         EvalScenarioKind::LocalCoding => run_local_coding_scenario(scenario),
         EvalScenarioKind::ContextQuality => run_context_quality_scenario(scenario),
+        EvalScenarioKind::RecoveryCrashSmoke => run_recovery_crash_smoke_scenario(scenario),
         EvalScenarioKind::FakeModelTurn => run_unimplemented_scenario(scenario, options.strictness),
     }
 }
@@ -621,6 +622,151 @@ fn run_context_quality_scenario(scenario: &ValidatedEvalScenario) -> EvalScenari
             replayable: true,
             diagnostics: diagnostic_count,
         }),
+    }
+}
+
+fn run_recovery_crash_smoke_scenario(scenario: &ValidatedEvalScenario) -> EvalScenarioReport {
+    let Some(expectations) = scenario.manifest.expectations.recovery.as_ref() else {
+        return failed_report(
+            scenario,
+            diagnostic(
+                EvalDiagnosticSeverity::Error,
+                "recovery_expectations_missing",
+                "recovery expectations are required",
+                Some("expectations.recovery"),
+            ),
+            None,
+        );
+    };
+
+    let smoke = match run_recovery_crash_smoke_fixture() {
+        Ok(smoke) => smoke,
+        Err(error) => {
+            return failed_report(
+                scenario,
+                diagnostic(
+                    EvalDiagnosticSeverity::Error,
+                    "recovery_crash_smoke_failed",
+                    error.to_string(),
+                    Some("kind"),
+                ),
+                None,
+            );
+        }
+    };
+
+    let mut diagnostics = Vec::new();
+    let readiness = recovery_readiness_label(smoke.snapshot.readiness);
+    if let Some(expected) = &expectations.expected_readiness {
+        if readiness != expected {
+            diagnostics.push(diagnostic(
+                EvalDiagnosticSeverity::Error,
+                "recovery_readiness_mismatch",
+                format!("expected readiness {expected}, got {readiness}"),
+                Some("expectations.recovery.expected_readiness"),
+            ));
+        }
+    }
+    if smoke.snapshot.replay.replayed_event_count
+        < expectations.min_replayed_event_count.unwrap_or(0)
+    {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            "recovery_replayed_event_count_too_low",
+            format!(
+                "expected at least {} replayed events, got {}",
+                expectations.min_replayed_event_count.unwrap_or(0),
+                smoke.snapshot.replay.replayed_event_count
+            ),
+            Some("expectations.recovery.min_replayed_event_count"),
+        ));
+    }
+    if smoke.snapshot.idempotent_recovery.reusable_effect_count
+        < expectations.min_idempotent_effect_count.unwrap_or(0)
+    {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            "recovery_idempotent_effect_count_too_low",
+            format!(
+                "expected at least {} reusable effects, got {}",
+                expectations.min_idempotent_effect_count.unwrap_or(0),
+                smoke.snapshot.idempotent_recovery.reusable_effect_count
+            ),
+            Some("expectations.recovery.min_idempotent_effect_count"),
+        ));
+    }
+    if smoke.snapshot.idempotent_recovery.pending_tool_count
+        < expectations.min_pending_tool_count.unwrap_or(0)
+    {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            "recovery_pending_tool_count_too_low",
+            format!(
+                "expected at least {} pending tools, got {}",
+                expectations.min_pending_tool_count.unwrap_or(0),
+                smoke.snapshot.idempotent_recovery.pending_tool_count
+            ),
+            Some("expectations.recovery.min_pending_tool_count"),
+        ));
+    }
+    if (smoke.snapshot.conflicts.len() as u32) < expectations.min_conflict_count.unwrap_or(0) {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            "recovery_conflict_count_too_low",
+            format!(
+                "expected at least {} conflicts, got {}",
+                expectations.min_conflict_count.unwrap_or(0),
+                smoke.snapshot.conflicts.len()
+            ),
+            Some("expectations.recovery.min_conflict_count"),
+        ));
+    }
+    if expectations.requires_retry_plan
+        && !matches!(
+            smoke.retry_plan.readiness,
+            agent_types::CommandRetryReadiness::Retryable
+        )
+    {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            "recovery_retry_plan_missing",
+            "expected a retryable command retry plan",
+            Some("expectations.recovery.requires_retry_plan"),
+        ));
+    }
+
+    let status = if diagnostics.is_empty() {
+        EvalScenarioStatus::Passed
+    } else {
+        EvalScenarioStatus::Failed
+    };
+    EvalScenarioReport {
+        scenario_id: scenario.manifest.id.clone(),
+        status,
+        evidence_summary: Some(EvalEvidenceSummary {
+            source: EvalEvidenceSource::RecoveryCrashSmoke,
+            event_count: smoke.snapshot.replay.replayed_event_count as usize,
+            checkpoint_count: usize::from(smoke.snapshot.checkpoint.is_some()),
+            trace_entries: smoke.snapshot.conflicts.len(),
+            audit_records: 0,
+            telemetry_records: 0,
+            replayable: !smoke.dry_run.blocked
+                || smoke.snapshot.readiness == agent_types::RecoveryReadiness::HasConflict,
+            diagnostics: diagnostics.len() + smoke.snapshot.diagnostics.len(),
+        }),
+        diagnostics,
+    }
+}
+
+fn recovery_readiness_label(readiness: agent_types::RecoveryReadiness) -> &'static str {
+    match readiness {
+        agent_types::RecoveryReadiness::Ready => "ready",
+        agent_types::RecoveryReadiness::NeedsApproval => "needs_approval",
+        agent_types::RecoveryReadiness::PendingToolCalls => "pending_tool_calls",
+        agent_types::RecoveryReadiness::HasConflict => "has_conflict",
+        agent_types::RecoveryReadiness::CorruptCheckpoint => "corrupt_checkpoint",
+        agent_types::RecoveryReadiness::StorageError => "storage_error",
+        agent_types::RecoveryReadiness::Blocked => "blocked",
     }
 }
 

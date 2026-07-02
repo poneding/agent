@@ -29,7 +29,7 @@
 - Read: `crates/agent-eval/src/runner.rs`
 - Read: `docs/eval/default.suite.json`
 
-- [ ] **Step 1: Review M62 recovery contracts**
+- [x] **Step 1: Review M62 recovery contracts**
 
 Identify the exact contract fields needed for crash smoke evidence: checkpoint metadata, replay count, readiness, pending tool calls, idempotent recovery summary, retry plan, conflicts, diagnostics, and redaction.
 
@@ -38,7 +38,7 @@ Identify the exact contract fields needed for crash smoke evidence: checkpoint m
 **Files:**
 - Create: `crates/agent-core/tests/crash_resume_smoke.rs`
 
-- [ ] **Step 1: Build fixture setup**
+- [x] **Step 1: Build fixture setup**
 
 Create a deterministic in-memory fixture that records:
 
@@ -51,11 +51,11 @@ Create a deterministic in-memory fixture that records:
 - one worktree conflict summary via `ConflictRecoveryMapper`
 - one secret-like input that must not appear in user-facing summaries
 
-- [ ] **Step 2: Simulate restart**
+- [x] **Step 2: Simulate restart**
 
 Drop the fixture runtime objects and reconstruct recovery using fresh calls into `RecoveryEngine`, idempotency store reads, retry planner, and conflict mapper over the stored fixture data.
 
-- [ ] **Step 3: Assert recovery behavior**
+- [x] **Step 3: Assert recovery behavior**
 
 Assert:
 
@@ -68,7 +68,7 @@ Assert:
 - retry plan is dry-run and evidence-linked if the fixture includes command retry
 - serialized reports do not contain secret-like values
 
-- [ ] **Step 4: Run focused runtime test**
+- [x] **Step 4: Run focused runtime test**
 
 Run:
 
@@ -90,15 +90,15 @@ Expected: crash/restart recovery behavior is deterministic, redacted, and creden
 - Create or update: `docs/eval/goldens/default-m62-recovery-crash-smoke.golden.json`
 - Modify if needed: `xtask/src/lib.rs`
 
-- [ ] **Step 1: Decide integration path**
+- [x] **Step 1: Decide integration path**
 
 Prefer adding a `recovery_crash_smoke` eval scenario if it can reuse the runtime fixture cleanly. If eval integration would duplicate too much runtime logic, add an explicit `xtask` smoke command that runs the core test/evidence path and document why.
 
-- [ ] **Step 2: Implement credential-free eval/smoke**
+- [x] **Step 2: Implement credential-free eval/smoke**
 
 The smoke must require no provider credentials, network, live shell command side effects, or external workspace mutation.
 
-- [ ] **Step 3: Run eval-focused checks**
+- [x] **Step 3: Run eval-focused checks**
 
 Run:
 
@@ -118,7 +118,7 @@ Expected: the default eval or documented smoke gate includes M62 recovery eviden
 - Modify: `README.md`
 - Modify if relevant: `crates/agent-cli/tests/daily_driver_recipes.rs`
 
-- [ ] **Step 1: Document CLI workflows**
+- [x] **Step 1: Document CLI workflows**
 
 Include:
 
@@ -131,7 +131,7 @@ Include:
 - crash/restart expectations
 - redaction and bounded evidence notes
 
-- [ ] **Step 2: Document Desktop workflows**
+- [x] **Step 2: Document Desktop workflows**
 
 Include:
 
@@ -142,7 +142,7 @@ Include:
 - replay/fork expectations
 - what Desktop does and does not do after restart
 
-- [ ] **Step 3: Add docs coverage if available**
+- [x] **Step 3: Add docs coverage if available**
 
 If existing tests assert docs content, update or add focused tests for the new docs.
 
@@ -154,7 +154,7 @@ If existing tests assert docs content, update or add focused tests for the new d
 - Modify: `docs/plans/M62-reliability-recovery-productization.plan.md`
 - Modify: `docs/plans/M62-05-crash-smoke-closeout.plan.md`
 
-- [ ] **Step 1: Run final closeout gates**
+- [x] **Step 1: Run final closeout gates**
 
 Run:
 
@@ -169,7 +169,9 @@ cargo xtask eval
 
 Expected: all final M62 gates pass.
 
-- [ ] **Step 2: Update status docs**
+Result: all final closeout gates passed. `cargo test --workspace` was run with `CARGO_TARGET_DIR=target/m62-gate` after the default target produced a macOS dyld/code-signing stall for one generated test binary; the isolated target ran the same workspace test gate successfully. `cargo xtask eval` reported `total=5 passed=5 failed=0 skipped=0 invalid=0 not_run=0`, including `default-m62-recovery-crash-smoke`.
+
+- [x] **Step 2: Update status docs**
 
 Mark:
 
@@ -180,7 +182,7 @@ Mark:
 
 Do not mark M63-M66 complete.
 
-- [ ] **Step 3: Commit M62-05**
+- [x] **Step 3: Commit M62-05**
 
 Exact-stage only M62-05 source, eval, docs, and status files:
 
@@ -192,4 +194,3 @@ git commit -m "feat: add m62-05 recovery crash smoke closeout"
 ```
 
 Expected: M62-05 commit contains deterministic recovery crash smoke, docs, eval/smoke integration, closeout status, and verification evidence.
-

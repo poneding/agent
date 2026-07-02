@@ -206,6 +206,34 @@ impl RecoveryEngine {
             snapshot,
         }
     }
+
+    pub fn resume_dry_run_with_conflicts<E, I>(
+        &self,
+        events: &E,
+        idempotency: &I,
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+        conflicts: Vec<agent_types::RecoveryConflictSummary>,
+    ) -> ResumeDryRunReport
+    where
+        E: EventStore + CheckpointStore,
+        I: IdempotencyStore + ?Sized,
+    {
+        let snapshot =
+            self.snapshot_with_conflicts(events, idempotency, conversation_id, turn_id, conflicts);
+        ResumeDryRunReport {
+            will_replay_event_count: snapshot.replay.replayed_event_count,
+            will_resume_pending_tool_count: usize_to_u32(snapshot.pending_tool_calls.len()),
+            will_reuse_idempotent_effect_count: usize_to_u32(snapshot.idempotent_effects.len()),
+            blocked: !matches!(
+                snapshot.readiness,
+                RecoveryReadiness::Ready
+                    | RecoveryReadiness::NeedsApproval
+                    | RecoveryReadiness::PendingToolCalls
+            ),
+            snapshot,
+        }
+    }
 }
 
 fn recovery_checkpoint<S>(

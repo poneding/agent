@@ -30,6 +30,7 @@ pub enum EvalScenarioKind {
     LocalCoding,
     EvidenceOnly,
     ContextQuality,
+    RecoveryCrashSmoke,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -59,6 +60,8 @@ pub struct EvalExpectations {
     #[serde(default)]
     pub context_quality: Option<EvalContextQualityExpectations>,
     #[serde(default)]
+    pub recovery: Option<EvalRecoveryExpectations>,
+    #[serde(default)]
     pub golden: Option<Utf8PathBuf>,
 }
 
@@ -70,6 +73,17 @@ pub struct EvalContextQualityExpectations {
     pub required_pinned_paths: Vec<String>,
     pub max_diagnostics: Option<usize>,
     pub require_retrieval_included: bool,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct EvalRecoveryExpectations {
+    pub expected_readiness: Option<String>,
+    pub min_replayed_event_count: Option<u32>,
+    pub min_idempotent_effect_count: Option<u32>,
+    pub min_pending_tool_count: Option<u32>,
+    pub min_conflict_count: Option<u32>,
+    pub requires_retry_plan: bool,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -171,6 +185,7 @@ where
     validate_non_empty("name", &manifest.name)?;
     validate_permissions(&manifest.permissions)?;
     validate_context_quality_expectations(manifest.kind, &manifest.expectations)?;
+    validate_recovery_expectations(manifest.kind, &manifest.expectations)?;
     validate_metadata(&manifest.metadata)?;
 
     let normalized_fixture_root = normalize_root(fixture_root)?;
@@ -275,6 +290,25 @@ fn validate_context_quality_expectations(
     Ok(())
 }
 
+fn validate_recovery_expectations(
+    kind: EvalScenarioKind,
+    expectations: &EvalExpectations,
+) -> Result<(), EvalManifestError> {
+    if kind == EvalScenarioKind::RecoveryCrashSmoke && expectations.recovery.is_none() {
+        return Err(EvalManifestError::InvalidField {
+            field: "expectations.recovery",
+            message: "recovery expectations are required for recovery_crash_smoke scenarios"
+                .to_string(),
+        });
+    }
+    if let Some(recovery) = &expectations.recovery {
+        if let Some(readiness) = &recovery.expected_readiness {
+            validate_non_empty("expectations.recovery.expected_readiness", readiness)?;
+        }
+    }
+    Ok(())
+}
+
 fn validate_expectation_paths(
     field: &'static str,
     paths: &[String],
@@ -375,6 +409,7 @@ fn enforce_required_fixture(
         EvalScenarioKind::ContextQuality if fixtures.workspace.is_none() => {
             Some("fixtures.workspace")
         }
+        EvalScenarioKind::RecoveryCrashSmoke => None,
         _ => None,
     };
 

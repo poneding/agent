@@ -221,7 +221,7 @@ Acceptance:
 
 ### M62 Reliability and Recovery Productization
 
-Status: In progress. M62-01 recovery snapshot and resume contracts, M62-02 CLI/JSON replay/resume/fork commands, M62-03 idempotent retry UX, and M62-04 conflict diagnostics are complete. Remaining work is M62-05 deterministic crash smoke, workflow docs, final gates, and M62 closeout.
+Status: Complete. M62-01 recovery snapshot and resume contracts, M62-02 CLI/JSON replay/resume/fork commands, M62-03 idempotent retry UX, M62-04 conflict diagnostics, and M62-05 deterministic crash smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M63 Worktree and Agent Team Workflows is the next active milestone.
 
 Purpose: make real coding work recoverable after interruption, crashes, conflicts, and retryable failures.
 
@@ -233,7 +233,7 @@ Initial slices:
 | M62-02 CLI/JSON Replay, Resume, and Fork Commands | Complete: stable recovery status/resume and replay inspect/fork dry-run commands through CLI/JSON and bridge contracts. |
 | M62-03 Idempotent Recovery and Failed Command Retry UX | Complete: replayed/skipped side-effect disposition, retryable command/test classification, retry attempt linkage, bridge frames, and CLI dry-run retry planning. |
 | M62-04 Conflict Diagnostics and Recovery Surfacing | Complete: typed conflict diagnostics surface through recovery snapshots, bridge frames, CLI/JSON, TUI task summaries, and Desktop-safe views. |
-| M62-05 Crash Smoke, Docs, and Closeout | Spec/plan complete; next implementation adds deterministic crash/restart smoke, recovery workflow docs, final gates, and status updates. |
+| M62-05 Crash Smoke, Docs, and Closeout | Complete: deterministic crash/restart recovery smoke, default eval coverage, CLI/Desktop recovery workflow docs, final gates, and status updates. |
 
 Acceptance:
 

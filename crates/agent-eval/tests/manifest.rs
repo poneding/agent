@@ -23,6 +23,7 @@ fn replay_manifest() -> EvalScenarioManifest {
             expected_status: EvalExpectedStatus::Passed,
             required_events: vec!["turn_started".to_string(), "turn_completed".to_string()],
             context_quality: None,
+            recovery: None,
             golden: Some(Utf8PathBuf::from("goldens/m04_replay.json")),
         },
         metadata: BTreeMap::from([("owner".to_string(), "runtime".to_string())]),

@@ -5302,6 +5302,7 @@ fn eval_kind_label(kind: EvalScenarioKind) -> &'static str {
         EvalScenarioKind::LocalCoding => "local_coding",
         EvalScenarioKind::EvidenceOnly => "evidence_only",
         EvalScenarioKind::ContextQuality => "context_quality",
+        EvalScenarioKind::RecoveryCrashSmoke => "recovery_crash_smoke",
     }
 }
 

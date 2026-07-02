@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "default-m62-recovery-crash-smoke",
+  "name": "Default M62 recovery crash smoke",
+  "kind": "recovery_crash_smoke",
+  "fixtures": {},
+  "permissions": {},
+  "expectations": {
+    "expected_status": "passed",
+    "recovery": {
+      "expected_readiness": "has_conflict",
+      "min_replayed_event_count": 2,
+      "min_idempotent_effect_count": 1,
+      "min_pending_tool_count": 1,
+      "min_conflict_count": 1,
+      "requires_retry_plan": true
+    },
+    "golden": "goldens/default-m62-recovery-crash-smoke.golden.json"
+  },
+  "metadata": {
+    "corpus": "default",
+    "milestone": "m62"
+  }
+}

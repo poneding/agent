@@ -105,9 +105,19 @@ git diff --check
 
 Define how scoped memories enter prompt assembly, how influence traces attach to turn evidence, and how model output can create reviewable memory write proposals.
 
-- [ ] **Step 2: Implement runtime integration**
+- [x] **Step 2: Implement runtime integration**
 
 Runtime memory must be bounded, policy-aware, recoverable, auditable, and explainable through traces.
+
+Completed evidence:
+
+```bash
+CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-context --test memory_prompt_layers
+CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-core --test runtime_memory_influence
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-context -p agent-core --all-targets -- -D warnings
+cargo fmt --all -- --check
+git diff --check
+```
 
 ### Task 5: M64-04 TUI/Desktop Memory Surfaces
 

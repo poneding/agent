@@ -1,6 +1,6 @@
 use agent_context::{
-    PromptLayerKind, PromptLayerPolicy, PromptLayerSensitivity, PromptLayerSource,
-    PromptLayerVisibility, memory_prompt_layers,
+    PromptLayer, PromptLayerKind, PromptLayerPolicy, PromptLayerSensitivity, PromptLayerSource,
+    PromptLayerVisibility, assemble_prompt_bundle, memory_prompt_layers,
 };
 use agent_memory::{
     MemoryRecord, MemoryRetrievalCandidate, MemoryRetrievalReason, MemoryScope,
@@ -121,4 +121,47 @@ fn memory_prompt_layers_reject_empty_selected_memory_content() {
     .expect_err("empty memory content rejected");
 
     assert!(error.to_string().contains("content"));
+}
+
+#[test]
+fn memory_prompt_layers_assemble_with_user_layers_in_priority_order() {
+    let mut layers = memory_prompt_layers(&[selected(
+        "project-style",
+        "Prefer focused memory review tests.",
+        MemorySensitivity::Public,
+        1,
+        5,
+    )])
+    .expect("memory prompt layers");
+    layers.push(
+        PromptLayer::new(
+            "user",
+            PromptLayerKind::User,
+            0,
+            "Implement the next memory slice.",
+            6,
+            PromptLayerSource::BuiltIn,
+            PromptLayerVisibility::Full,
+            PromptLayerSensitivity::Public,
+            PromptLayerPolicy::Required,
+            1,
+        )
+        .expect("user layer"),
+    );
+
+    let bundle = assemble_prompt_bundle(layers).expect("prompt bundle");
+    let messages = bundle
+        .messages
+        .iter()
+        .map(|message| (message.role.as_str(), message.content.as_str()))
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        messages,
+        vec![
+            ("system", "Prefer focused memory review tests."),
+            ("user", "Implement the next memory slice.")
+        ]
+    );
+    assert_eq!(bundle.estimated_tokens, 11);
 }

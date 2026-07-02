@@ -16,6 +16,7 @@ pub mod final_review;
 pub mod idempotency;
 pub mod local_coding;
 pub mod mcp_sampling;
+pub mod memory;
 pub mod model_runtime;
 pub mod observability;
 pub mod plan;
@@ -91,6 +92,12 @@ pub use mcp_sampling::{
     McpModelSamplingProvider, McpSamplingBridgeDiagnostic, McpSamplingModelBridgeConfig,
     McpSamplingModelBridgeError, McpSamplingModelBridgeIds, build_mcp_sampling_model_request,
     mcp_sampling_bridge_error_diagnostic, mcp_sampling_model_error_diagnostic,
+};
+pub use memory::{
+    RuntimeMemoryAssembly, RuntimeMemoryConfig, RuntimeMemoryDiagnostic,
+    RuntimeMemoryDiagnosticSeverity, RuntimeMemoryError, RuntimeMemoryInfluenceReport,
+    RuntimeMemoryInput, RuntimeMemoryProposalInput, RuntimeMemoryProposalPolicy,
+    RuntimeMemoryProposalReport, RuntimeMemoryTurnEvidence, assemble_runtime_memory,
 };
 pub use model_runtime::{
     AgentLoopBudget, AgentLoopFailureReason, AgentLoopOutcome, AgentLoopTerminalState,

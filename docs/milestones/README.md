@@ -610,8 +610,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M61 implementation | Complete |
 | M62 milestone spec | Complete |
 | M62 milestone plan | Complete |
-| M62 slice specs | Planned for M62-01 through M62-05 |
-| M62 slice plans | Planned for M62-01 through M62-05 |
+| M62-01 slice spec | Complete |
+| M62-01 slice plan | Complete |
+| M62 slice specs | Complete for M62-01; planned for M62-02 through M62-05 |
+| M62 slice plans | Complete for M62-01; planned for M62-02 through M62-05 |
 | M62 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1349,7 +1351,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
-| M62-01 Recovery Snapshot and Resume Contracts | `docs/specs/M62-01-recovery-snapshot-resume.spec.md` | `docs/plans/M62-01-recovery-snapshot-resume.plan.md` | Planned: typed recovery snapshots, readiness, diagnostics, pending tool/idempotency/approval evidence, and resume dry-run behavior. |
+| M62-01 Recovery Snapshot and Resume Contracts | `docs/specs/M62-01-recovery-snapshot-resume.spec.md` | `docs/plans/M62-01-recovery-snapshot-resume.plan.md` | Planned implementation: typed recovery snapshots, readiness, diagnostics, pending tool/idempotency/approval evidence, and resume dry-run behavior. |
 | M62-02 CLI/JSON Replay, Resume, and Fork Commands | `docs/specs/M62-02-cli-json-replay-resume-fork.spec.md` | `docs/plans/M62-02-cli-json-replay-resume-fork.plan.md` | Planned: stable recovery status/resume and replay inspect/fork commands through CLI/JSON and bridge contracts. |
 | M62-03 Idempotent Recovery and Failed Command Retry UX | `docs/specs/M62-03-idempotent-retry-ux.spec.md` | `docs/plans/M62-03-idempotent-retry-ux.plan.md` | Planned: visible idempotent tool recovery, skipped/replayed side-effect summaries, retryable command/test classification, and retry attempt linkage. |
 | M62-04 Conflict Diagnostics and Recovery Surfacing | `docs/specs/M62-04-conflict-diagnostics.spec.md` | `docs/plans/M62-04-conflict-diagnostics.plan.md` | Planned: typed conflict diagnostics surfaced through recovery snapshots and CLI/TUI/Desktop-safe views. |
@@ -1372,6 +1374,8 @@ Current implementation focus: M62 Reliability and Recovery Productization.
 
 Most recent completed or active planning documents:
 
+- `docs/specs/M62-01-recovery-snapshot-resume.spec.md`
+- `docs/plans/M62-01-recovery-snapshot-resume.plan.md`
 - `docs/specs/M62-reliability-recovery-productization.spec.md`
 - `docs/plans/M62-reliability-recovery-productization.plan.md`
 - `docs/specs/M61-plan-todo-task-ux.spec.md`

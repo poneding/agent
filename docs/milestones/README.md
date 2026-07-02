@@ -632,9 +632,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M63 milestone plan | Complete |
 | M63-01 slice spec | Complete |
 | M63-01 slice plan | Complete |
+| M63-01 implementation | Complete |
 | M63 slice specs | Complete for M63-01 |
 | M63 slice plans | Complete for M63-01 |
-| M63 implementation | Planned |
+| M63 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -1382,7 +1383,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
-| M63-01 Team Workflow Snapshot and Readiness Contracts | `docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md` | `docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md` | Spec/plan complete; implementation next for typed team workflow snapshots, readiness precedence, capability ceilings, and deterministic fixture tests. |
+| M63-01 Team Workflow Snapshot and Readiness Contracts | `docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md` | `docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md` | Complete: typed team workflow snapshots, readiness precedence, capability ceiling summaries, redaction/bounding helpers, and deterministic `agent-team` tests. |
 | M63-02 CLI and JSON Team Workflow Commands | Planned | Planned | Planned: team status, handoff dry-run, blackboard inspect, reviewer vote, and merge-readiness dry-run commands. |
 | M63-03 Reviewer Role and Merge Readiness | Planned | Planned | Planned: reviewer role, artifact evidence, policy-backed merge readiness, stale lease detection, and conflict blocks. |
 | M63-04 TUI/Desktop Team Surfaces | Planned | Planned | Planned: TUI/Desktop-safe team panels over shared bridge snapshots. |

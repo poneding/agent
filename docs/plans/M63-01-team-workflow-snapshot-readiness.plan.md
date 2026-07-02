@@ -32,7 +32,7 @@ Confirm existing types already cover worktree leases, handoff envelopes, capabil
 - Create: `crates/agent-team/tests/team_workflow_snapshot.rs`
 - Create if needed: `crates/agent-core/tests/team_workflow_snapshot.rs`
 
-- [ ] **Step 1: Add agent-team contract tests**
+- [x] **Step 1: Add agent-team contract tests**
 
 Cover:
 
@@ -42,7 +42,7 @@ Cover:
 - missing review and waiting handoff states
 - bounded/redacted summary strings
 
-- [ ] **Step 2: Add agent-core fixture tests if assembly lives in core**
+- [x] **Step 2: Add agent-core fixture tests if assembly lives in core**
 
 Cover:
 
@@ -50,7 +50,9 @@ Cover:
 - conflicts force has-conflict readiness
 - serialized runtime snapshot does not leak secret-like fixture values
 
-- [ ] **Step 3: Verify tests fail before implementation**
+Result: core assembly was not needed in M63-01; the UI-independent workflow contract lives in `agent-team`.
+
+- [x] **Step 3: Verify tests fail before implementation**
 
 Run:
 
@@ -61,6 +63,8 @@ cargo test -p agent-core --test team_workflow_snapshot
 
 Expected: new tests fail because the snapshot contracts are not implemented yet.
 
+Result: `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team --test team_workflow_snapshot` failed before implementation because the workflow contracts were not exported yet.
+
 ### Task 3: Implement Contracts
 
 **Files:**
@@ -70,11 +74,11 @@ Expected: new tests fail because the snapshot contracts are not implemented yet.
 - Create if needed: `crates/agent-core/src/team_workflow.rs`
 - Modify if needed: `crates/agent-core/src/lib.rs`
 
-- [ ] **Step 1: Add workflow types**
+- [x] **Step 1: Add workflow types**
 
 Add typed serde contracts for status, readiness, diagnostics, worktree summaries, handoff summaries, blackboard summaries, merge review summaries, capability ceiling summaries, and the top-level snapshot.
 
-- [ ] **Step 2: Add readiness calculation**
+- [x] **Step 2: Add readiness calculation**
 
 Readiness must be deterministic:
 
@@ -84,11 +88,11 @@ Readiness must be deterministic:
 - missing review becomes review-required
 - completed, approved, no-conflict state becomes merge-ready
 
-- [ ] **Step 3: Add redaction/bounding helpers**
+- [x] **Step 3: Add redaction/bounding helpers**
 
 Use existing redaction helpers if available. Otherwise, keep summaries short and redact secret-like path/hash/objective values before serialization.
 
-- [ ] **Step 4: Export public contracts**
+- [x] **Step 4: Export public contracts**
 
 Expose the new contracts from `agent-team` and, if core assembly exists, from `agent-core`.
 
@@ -98,26 +102,29 @@ Expose the new contracts from `agent-team` and, if core assembly exists, from `a
 - Read: `crates/agent-team/Cargo.toml`
 - Read if modified: `crates/agent-core/Cargo.toml`
 
-- [ ] **Step 1: Run focused tests**
+- [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
 cargo test -p agent-team --test team_workflow_snapshot
-cargo test -p agent-core --test team_workflow_snapshot
 ```
 
 Expected: focused tests pass.
 
-- [ ] **Step 2: Run focused clippy**
+Result: `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team --test team_workflow_snapshot` passed with 7 tests. `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team` also passed.
+
+- [x] **Step 2: Run focused clippy**
 
 Run:
 
 ```bash
-cargo clippy -p agent-team -p agent-core --all-targets -- -D warnings
+cargo clippy -p agent-team --all-targets -- -D warnings
 ```
 
 Expected: clippy passes without warnings.
+
+Result: `CARGO_TARGET_DIR=target/m63-gate cargo clippy -p agent-team --all-targets -- -D warnings` passed.
 
 ### Task 5: Update Status and Commit
 
@@ -126,31 +133,32 @@ Expected: clippy passes without warnings.
 - Modify: `docs/plans/M63-worktree-agent-team-workflows.plan.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Update checkboxes and M63 status**
+- [x] **Step 1: Update checkboxes and M63 status**
 
 Mark M63-01 implementation complete only after focused tests and clippy pass. Keep M63 overall in progress.
 
-- [ ] **Step 2: Run final slice checks**
+- [x] **Step 2: Run final slice checks**
 
 Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-team -p agent-core --all-targets -- -D warnings
+cargo clippy -p agent-team --all-targets -- -D warnings
 cargo test -p agent-team --test team_workflow_snapshot
-cargo test -p agent-core --test team_workflow_snapshot
 git diff --check
 ```
 
 Expected: all checks pass.
 
-- [ ] **Step 3: Commit M63-01**
+Result: final slice checks passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m63-gate cargo clippy -p agent-team --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team --test team_workflow_snapshot`, and `git diff --check`.
+
+- [x] **Step 3: Commit M63-01**
 
 Exact-stage only M63-01 files:
 
 ```bash
 git status --short --branch
-git add crates/agent-team/src/workflow.rs crates/agent-team/src/lib.rs crates/agent-team/tests/team_workflow_snapshot.rs crates/agent-core/Cargo.toml crates/agent-core/src/team_workflow.rs crates/agent-core/src/lib.rs crates/agent-core/tests/team_workflow_snapshot.rs docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md docs/plans/M63-worktree-agent-team-workflows.plan.md docs/milestones/README.md
+git add crates/agent-team/src/workflow.rs crates/agent-team/src/lib.rs crates/agent-team/src/error.rs crates/agent-team/tests/team_workflow_snapshot.rs docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md docs/plans/M63-worktree-agent-team-workflows.plan.md docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md
 git commit -m "feat: add m63 team workflow snapshots"
 ```
 

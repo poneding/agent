@@ -8,4 +8,6 @@ pub enum TeamError {
     InvalidTransition(String),
     #[error("invalid team blackboard entry: {0}")]
     InvalidBlackboard(String),
+    #[error("invalid team workflow: {0}")]
+    InvalidWorkflow(String),
 }

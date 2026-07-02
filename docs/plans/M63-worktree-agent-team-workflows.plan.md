@@ -42,7 +42,7 @@ Confirm that M09 supplies worktree leases, conflict detection, handoff envelopes
 
 Define the runtime/team snapshot contract that composes worktree leases, handoff envelopes, blackboard entries, review votes, conflict summaries, merge readiness, and capability ceilings.
 
-- [ ] **Step 2: Implement M63-01**
+- [x] **Step 2: Implement M63-01**
 
 Add typed, serializable, bounded, redacted contracts and focused tests. Keep side effects out of M63-01; this slice should make the workflow state inspectable before CLI or UI commands are added.
 
@@ -50,9 +50,11 @@ Expected checks:
 
 ```bash
 cargo test -p agent-team --test team_workflow_snapshot
-cargo test -p agent-core --test team_workflow_snapshot
-cargo clippy -p agent-team -p agent-core --all-targets -- -D warnings
+cargo test -p agent-team
+cargo clippy -p agent-team --all-targets -- -D warnings
 ```
+
+Result: M63-01 is implemented in `agent-team` with workflow snapshot/readiness contracts, capability ceiling summaries, redaction/bounding helpers, and focused tests. Core assembly was not required in this slice.
 
 ### Task 3: M63-02 CLI and JSON Team Workflow Commands
 

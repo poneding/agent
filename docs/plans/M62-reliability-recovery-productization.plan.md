@@ -183,15 +183,15 @@ Expected: completed side effects are visibly replayed/skipped, retryable command
 - Create: `crates/agent-desktop/tests/recovery_view.rs`
 - Modify: `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
 
-- [ ] **Step 1: Plan conflict surface slice**
+- [x] **Step 1: Plan conflict surface slice**
 
 Define conflict summary contracts, recovery readiness interaction, TUI/Desktop presentation fixtures, and safe next-action text.
 
-- [ ] **Step 2: Implement conflict diagnostics**
+- [x] **Step 2: Implement conflict diagnostics**
 
 Expose conflict reports through recovery snapshots and UI-safe task/recovery surfaces without embedding raw file contents.
 
-- [ ] **Step 3: Verify conflict diagnostics**
+- [x] **Step 3: Verify conflict diagnostics**
 
 Run:
 
@@ -220,7 +220,7 @@ Expected: conflicts are typed, redacted, actionable, and visible in shared CLI/D
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Modify: `docs/milestones/README.md`
 
-- [ ] **Step 1: Plan crash smoke and closeout slice**
+- [x] **Step 1: Plan crash smoke and closeout slice**
 
 Define deterministic crash/restart fixture, eval or xtask command integration, docs, and closeout evidence requirements.
 

@@ -233,7 +233,7 @@ Initial slices:
 | M62-02 CLI/JSON Replay, Resume, and Fork Commands | Complete: stable recovery status/resume and replay inspect/fork dry-run commands through CLI/JSON and bridge contracts. |
 | M62-03 Idempotent Recovery and Failed Command Retry UX | Complete: replayed/skipped side-effect disposition, retryable command/test classification, retry attempt linkage, bridge frames, and CLI dry-run retry planning. |
 | M62-04 Conflict Diagnostics and Recovery Surfacing | Complete: typed conflict diagnostics surface through recovery snapshots, bridge frames, CLI/JSON, TUI task summaries, and Desktop-safe views. |
-| M62-05 Crash Smoke, Docs, and Closeout | Add deterministic crash/restart smoke, recovery workflow docs, final gates, and status updates. |
+| M62-05 Crash Smoke, Docs, and Closeout | Spec/plan complete; next implementation adds deterministic crash/restart smoke, recovery workflow docs, final gates, and status updates. |
 
 Acceptance:
 

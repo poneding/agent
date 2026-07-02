@@ -15,8 +15,9 @@ use agent_core::{
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{
-    ApprovalRequestId, CheckpointId, ClientKind, ConversationId, PlanTodoItemId, PlanTodoProgress,
-    PlanTodoSnapshot, TaskId, TaskState, Timestamp, TodoPriority, WorkspaceId,
+    ApprovalRequestId, CheckpointId, ClientKind, ConversationId, EventSeq, PlanTodoItemId,
+    PlanTodoProgress, PlanTodoSnapshot, RecoveryDiagnostic, RecoverySnapshot, ResumeDryRunReport,
+    TaskId, TaskState, Timestamp, TodoPriority, TurnId, WorkspaceId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -2057,6 +2058,99 @@ impl UiPlanTodoCommandError {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiRecoverySnapshot {
+    pub snapshot: RecoverySnapshot,
+}
+
+impl UiRecoverySnapshot {
+    #[must_use]
+    pub const fn new(snapshot: RecoverySnapshot) -> Self {
+        Self { snapshot }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiResumeDryRunReport {
+    pub report: ResumeDryRunReport,
+}
+
+impl UiResumeDryRunReport {
+    #[must_use]
+    pub const fn new(report: ResumeDryRunReport) -> Self {
+        Self { report }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiReplayInspectReport {
+    pub conversation_id: ConversationId,
+    pub replay_from: EventSeq,
+    pub replayed_event_count: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checkpoint_id: Option<CheckpointId>,
+    #[serde(default)]
+    pub diagnostics: Vec<RecoveryDiagnostic>,
+}
+
+impl UiReplayInspectReport {
+    #[must_use]
+    pub const fn new(
+        conversation_id: ConversationId,
+        replay_from: EventSeq,
+        replayed_event_count: u32,
+        checkpoint_id: Option<CheckpointId>,
+        diagnostics: Vec<RecoveryDiagnostic>,
+    ) -> Self {
+        Self {
+            conversation_id,
+            replay_from,
+            replayed_event_count,
+            checkpoint_id,
+            diagnostics,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiReplayForkReport {
+    pub conversation_id: ConversationId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_turn_id: Option<TurnId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checkpoint_id: Option<CheckpointId>,
+    pub fork_label: String,
+    pub replay_from: EventSeq,
+    pub dry_run: bool,
+    #[serde(default)]
+    pub diagnostics: Vec<RecoveryDiagnostic>,
+}
+
+impl UiReplayForkReport {
+    pub fn new(
+        conversation_id: ConversationId,
+        source_turn_id: Option<TurnId>,
+        checkpoint_id: Option<CheckpointId>,
+        fork_label: impl Into<String>,
+        replay_from: EventSeq,
+        dry_run: bool,
+        diagnostics: Vec<RecoveryDiagnostic>,
+    ) -> Result<Self, UiBridgeError> {
+        let fork_label = bounded_task_text(&fork_label.into());
+        validate_non_empty("replay fork label", &fork_label)?;
+
+        Ok(Self {
+            conversation_id,
+            source_turn_id,
+            checkpoint_id,
+            fork_label,
+            replay_from,
+            dry_run,
+            diagnostics,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UiTaskSnapshot {
     pub tasks: Vec<UiTaskSummary>,
     pub errors: Vec<UiTaskCommandError>,
@@ -2370,6 +2464,10 @@ pub enum UiJsonFrame {
     ProjectContextQualityTraceSnapshot(UiProjectContextQualityTraceSnapshot),
     ExtensionSnapshot(UiExtensionSnapshot),
     PlanTodoSnapshot(UiPlanTodoSnapshot),
+    RecoverySnapshot(UiRecoverySnapshot),
+    ResumeDryRun(UiResumeDryRunReport),
+    ReplayInspect(UiReplayInspectReport),
+    ReplayFork(UiReplayForkReport),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
     StartupMigrationSnapshot(UiStartupMigrationSnapshot),

@@ -34,11 +34,11 @@ use agent_core::{
     ProjectContextPinnedRetrievalReport, ProjectContextQualityRetrievalReport,
     ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
     ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
-    ProviderSupportReport, ProviderSupportRole, RepoGitState, RepoSessionBootstrapError,
-    RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds, RuntimeModelConfig,
-    SettingsError, SettingsProfile, StartupMigrationRunner, TerminalSessionDirectoryReport,
-    TerminalSessionRecord, TerminalSessionRestoreError, TerminalSessionStatus,
-    TerminalSessionSummary, apply_plan_todo_update, bootstrap_repo_session,
+    ProviderSupportReport, ProviderSupportRole, RecoveryEngine, RepoGitState,
+    RepoSessionBootstrapError, RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds,
+    RuntimeModelConfig, SettingsError, SettingsProfile, StartupMigrationRunner,
+    TerminalSessionDirectoryReport, TerminalSessionRecord, TerminalSessionRestoreError,
+    TerminalSessionStatus, TerminalSessionSummary, apply_plan_todo_update, bootstrap_repo_session,
     build_terminal_session_directory, coding_agent_model_requirements, replay_final_review,
     retrieve_project_context, retrieve_project_context_hybrid,
     retrieve_project_context_hybrid_pinned, retrieve_project_context_hybrid_pinned_quality,
@@ -89,11 +89,17 @@ use agent_scheduler::{
 use agent_skill::{
     ManagedSkillRoot, ManagedSkillRootRegistry, SkillRootError, SkillRootInspection,
 };
-use agent_storage::EventStore;
+use agent_storage::{
+    CheckpointRecord, CheckpointStore, EventStore, IdempotencyKey, IdempotencyStore,
+    InMemoryEventStore, ToolEffectRecord,
+};
 use agent_types::{
-    ClientKind, ConversationId, CorrelationId, EventId, PlanTodoDiagnostic, PlanTodoEvidenceKind,
-    PlanTodoItem, PlanTodoItemId, PlanTodoSnapshot, RuntimeEventPayload, TaskId, Timestamp,
-    TodoPriority, TodoSource, TodoStatus, TurnId, WorkspaceId,
+    ActorRef, ApprovalPreviewRecorded, ApprovalRequested, CheckpointId, ClientKind, ConversationId,
+    CorrelationId, EventId, EventSeq, PlanTodoDiagnostic, PlanTodoEvidenceKind, PlanTodoItem,
+    PlanTodoItemId, PlanTodoSnapshot, RecoveryDiagnostic, RecoveryDiagnosticSeverity,
+    RecoveryReadiness, RecoverySnapshot, ResumeDryRunReport, RuntimeEvent, RuntimeEventPayload,
+    SchemaVersion, TaskId, Timestamp, TodoPriority, TodoSource, TodoStatus, ToolCallProposed,
+    ToolExecutionCompleted, TurnId, UserInputReceived, WorkspaceId,
 };
 use agent_ui_bridge::{
     UiApprovalPreviewSummary, UiApprovalQueueSnapshot, UiApprovalRequest, UiBridgeError,
@@ -105,7 +111,8 @@ use agent_ui_bridge::{
     UiProjectContextPinnedRetrievalSnapshot, UiProjectContextQualityTraceSnapshot,
     UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
     UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
-    UiRepoSessionSnapshot, UiSettingsProfileSummary, UiSlashCommandEffect, UiSlashCommandSurface,
+    UiRecoverySnapshot, UiReplayForkReport, UiReplayInspectReport, UiRepoSessionSnapshot,
+    UiResumeDryRunReport, UiSettingsProfileSummary, UiSlashCommandEffect, UiSlashCommandSurface,
     UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
     UiTaskSummary, UiTerminalSessionSnapshot, UiTerminalStatusSnapshot,
     approval_queue_snapshot_from_requests, default_slash_command_catalog, encode_json_frame,
@@ -261,6 +268,8 @@ pub enum CliCommand {
     Memory(MemoryCommand),
     Plan(PlanTodoCliCommand),
     Todo(PlanTodoCliCommand),
+    Recovery(RecoveryCliCommand),
+    Replay(ReplayCliCommand),
     Task(TaskCliCommand),
     Approval(ApprovalCliCommand),
     Eval(EvalCliCommand),
@@ -401,6 +410,35 @@ pub enum MemoryCommand {
     Export,
     Import { path: PathBuf },
     RebuildIndex,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum RecoveryCliCommand {
+    Status {
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+    },
+    Resume {
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+        checkpoint_id: Option<CheckpointId>,
+        dry_run: bool,
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ReplayCliCommand {
+    Inspect {
+        conversation_id: ConversationId,
+        from_checkpoint_id: Option<CheckpointId>,
+    },
+    Fork {
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+        checkpoint_id: Option<CheckpointId>,
+        label: String,
+        dry_run: bool,
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -596,6 +634,14 @@ pub enum CliError {
     InvalidModelSelection(String),
     #[error("invalid conversation id: {0}")]
     InvalidConversationId(String),
+    #[error("invalid turn id: {0}")]
+    InvalidTurnId(String),
+    #[error("invalid checkpoint id: {0}")]
+    InvalidCheckpointId(String),
+    #[error("{0} requires --dry-run")]
+    DryRunRequired(String),
+    #[error("replay fork label cannot be empty")]
+    EmptyForkLabel,
     #[error("config check failed: {message}")]
     ConfigCheckFailed {
         message: String,
@@ -635,6 +681,8 @@ where
         "memory" => parse_memory_command(&mut args),
         "plan" => parse_plan_command(&mut args),
         "todo" => parse_todo_command(&mut args),
+        "recovery" => parse_recovery_command(&mut args),
+        "replay" => parse_replay_command(&mut args),
         "task" => parse_task_command(&mut args),
         "approval" => parse_approval_command(&mut args),
         "eval" => parse_eval_command(&mut args),
@@ -788,6 +836,20 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             let mut runtime = PlanTodoCommandRuntime::fixture();
             render_plan_todo_command(&mut runtime, command, OutputMode::Text)
         }
+        CliCommand::Recovery(command) => {
+            let runtime = RecoveryCommandRuntime::fixture(
+                command_conversation_id(&command),
+                command_turn_id(&command),
+            );
+            render_recovery_command(&runtime, command, OutputMode::Text)
+        }
+        CliCommand::Replay(command) => {
+            let runtime = RecoveryCommandRuntime::fixture(
+                replay_command_conversation_id(&command),
+                replay_command_turn_id(&command),
+            );
+            render_replay_command(&runtime, command, OutputMode::Text)
+        }
         CliCommand::Task(command) => {
             let mut runtime = TaskCommandRuntime::fixture();
             render_task_command(&mut runtime, command, OutputMode::Text)
@@ -902,6 +964,20 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
             CliCommand::Plan(command) | CliCommand::Todo(command) => {
                 let mut runtime = PlanTodoCommandRuntime::fixture();
                 render_plan_todo_command(&mut runtime, command, OutputMode::Text)
+            }
+            CliCommand::Recovery(command) => {
+                let runtime = RecoveryCommandRuntime::fixture(
+                    command_conversation_id(&command),
+                    command_turn_id(&command),
+                );
+                render_recovery_command(&runtime, command, OutputMode::Text)
+            }
+            CliCommand::Replay(command) => {
+                let runtime = RecoveryCommandRuntime::fixture(
+                    replay_command_conversation_id(&command),
+                    replay_command_turn_id(&command),
+                );
+                render_replay_command(&runtime, command, OutputMode::Text)
             }
             CliCommand::Task(command) => {
                 let mut runtime = TaskCommandRuntime::fixture();
@@ -1040,6 +1116,20 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if let CliCommand::Plan(command) | CliCommand::Todo(command) = invocation.command {
         let mut runtime = PlanTodoCommandRuntime::fixture();
         return render_plan_todo_command(&mut runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::Recovery(command) = invocation.command {
+        let runtime = RecoveryCommandRuntime::fixture(
+            command_conversation_id(&command),
+            command_turn_id(&command),
+        );
+        return render_recovery_command(&runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::Replay(command) = invocation.command {
+        let runtime = RecoveryCommandRuntime::fixture(
+            replay_command_conversation_id(&command),
+            replay_command_turn_id(&command),
+        );
+        return render_replay_command(&runtime, command, OutputMode::Json);
     }
     if let CliCommand::Task(command) = invocation.command {
         let mut runtime = TaskCommandRuntime::fixture();
@@ -1286,6 +1376,18 @@ fn parse_conversation_id(value: &str) -> Result<ConversationId, CliError> {
     value
         .parse()
         .map_err(|_| CliError::InvalidConversationId(value.to_string()))
+}
+
+fn parse_turn_id(value: &str) -> Result<TurnId, CliError> {
+    value
+        .parse()
+        .map_err(|_| CliError::InvalidTurnId(value.to_string()))
+}
+
+fn parse_checkpoint_id(value: &str) -> Result<CheckpointId, CliError> {
+    value
+        .parse()
+        .map_err(|_| CliError::InvalidCheckpointId(value.to_string()))
 }
 
 fn parse_repo_context_args<I>(args: &mut I) -> Result<CliCommand, CliError>
@@ -2049,6 +2151,181 @@ where
     };
 
     Ok(CliCommand::Todo(command))
+}
+
+fn parse_recovery_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("recovery".to_string()));
+    };
+
+    let command = match subcommand.as_str() {
+        "status" => parse_recovery_status_args(args)?,
+        "resume" => parse_recovery_resume_args(args)?,
+        _ => return Err(CliError::UnknownArgument(format!("recovery {subcommand}"))),
+    };
+
+    Ok(CliCommand::Recovery(command))
+}
+
+fn parse_recovery_status_args<I>(args: &mut I) -> Result<RecoveryCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut conversation_id = None;
+    let mut turn_id = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--conversation" | "--conversation-id" => {
+                let value = take_flag_value(args, &arg)?;
+                conversation_id = Some(parse_conversation_id(&value)?);
+            }
+            "--turn" | "--turn-id" => {
+                let value = take_flag_value(args, &arg)?;
+                turn_id = Some(parse_turn_id(&value)?);
+            }
+            _ => return Err(CliError::UnknownArgument(format!("recovery status {arg}"))),
+        }
+    }
+
+    Ok(RecoveryCliCommand::Status {
+        conversation_id: conversation_id
+            .ok_or_else(|| CliError::MissingValue("recovery status --conversation".to_string()))?,
+        turn_id,
+    })
+}
+
+fn parse_recovery_resume_args<I>(args: &mut I) -> Result<RecoveryCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut conversation_id = None;
+    let mut turn_id = None;
+    let mut checkpoint_id = None;
+    let mut dry_run = false;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--conversation" | "--conversation-id" => {
+                let value = take_flag_value(args, &arg)?;
+                conversation_id = Some(parse_conversation_id(&value)?);
+            }
+            "--turn" | "--turn-id" => {
+                let value = take_flag_value(args, &arg)?;
+                turn_id = Some(parse_turn_id(&value)?);
+            }
+            "--checkpoint" | "--checkpoint-id" => {
+                let value = take_flag_value(args, &arg)?;
+                checkpoint_id = Some(parse_checkpoint_id(&value)?);
+            }
+            "--dry-run" => dry_run = true,
+            _ => return Err(CliError::UnknownArgument(format!("recovery resume {arg}"))),
+        }
+    }
+    if !dry_run {
+        return Err(CliError::DryRunRequired("recovery resume".to_string()));
+    }
+
+    Ok(RecoveryCliCommand::Resume {
+        conversation_id: conversation_id
+            .ok_or_else(|| CliError::MissingValue("recovery resume --conversation".to_string()))?,
+        turn_id,
+        checkpoint_id,
+        dry_run,
+    })
+}
+
+fn parse_replay_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("replay".to_string()));
+    };
+
+    let command = match subcommand.as_str() {
+        "inspect" => parse_replay_inspect_args(args)?,
+        "fork" => parse_replay_fork_args(args)?,
+        _ => return Err(CliError::UnknownArgument(format!("replay {subcommand}"))),
+    };
+
+    Ok(CliCommand::Replay(command))
+}
+
+fn parse_replay_inspect_args<I>(args: &mut I) -> Result<ReplayCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut conversation_id = None;
+    let mut from_checkpoint_id = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--conversation" | "--conversation-id" => {
+                let value = take_flag_value(args, &arg)?;
+                conversation_id = Some(parse_conversation_id(&value)?);
+            }
+            "--from-checkpoint" | "--from-checkpoint-id" => {
+                let value = take_flag_value(args, &arg)?;
+                from_checkpoint_id = Some(parse_checkpoint_id(&value)?);
+            }
+            _ => return Err(CliError::UnknownArgument(format!("replay inspect {arg}"))),
+        }
+    }
+
+    Ok(ReplayCliCommand::Inspect {
+        conversation_id: conversation_id
+            .ok_or_else(|| CliError::MissingValue("replay inspect --conversation".to_string()))?,
+        from_checkpoint_id,
+    })
+}
+
+fn parse_replay_fork_args<I>(args: &mut I) -> Result<ReplayCliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut conversation_id = None;
+    let mut turn_id = None;
+    let mut checkpoint_id = None;
+    let mut label = None;
+    let mut dry_run = false;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--conversation" | "--conversation-id" => {
+                let value = take_flag_value(args, &arg)?;
+                conversation_id = Some(parse_conversation_id(&value)?);
+            }
+            "--turn" | "--turn-id" => {
+                let value = take_flag_value(args, &arg)?;
+                turn_id = Some(parse_turn_id(&value)?);
+            }
+            "--checkpoint" | "--checkpoint-id" => {
+                let value = take_flag_value(args, &arg)?;
+                checkpoint_id = Some(parse_checkpoint_id(&value)?);
+            }
+            "--label" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::EmptyForkLabel);
+                }
+                label = Some(value);
+            }
+            "--dry-run" => dry_run = true,
+            _ => return Err(CliError::UnknownArgument(format!("replay fork {arg}"))),
+        }
+    }
+    if !dry_run {
+        return Err(CliError::DryRunRequired("replay fork".to_string()));
+    }
+
+    Ok(ReplayCliCommand::Fork {
+        conversation_id: conversation_id
+            .ok_or_else(|| CliError::MissingValue("replay fork --conversation".to_string()))?,
+        turn_id,
+        checkpoint_id,
+        label: label.ok_or_else(|| CliError::MissingValue("replay fork --label".to_string()))?,
+        dry_run,
+    })
 }
 
 fn parse_task_command<I>(args: &mut I) -> Result<CliCommand, CliError>
@@ -3004,6 +3281,599 @@ fn todo_evidence_kind_label(kind: PlanTodoEvidenceKind) -> &'static str {
         PlanTodoEvidenceKind::Task => "task",
         PlanTodoEvidenceKind::Trace => "trace",
         PlanTodoEvidenceKind::Other => "other",
+    }
+}
+
+pub struct RecoveryCommandRuntime {
+    store: InMemoryEventStore,
+}
+
+impl RecoveryCommandRuntime {
+    #[must_use]
+    pub fn fixture(conversation_id: ConversationId, turn_id: Option<TurnId>) -> Self {
+        let mut store = InMemoryEventStore::default();
+        let checkpoint_turn_id = turn_id;
+        let turn_id = turn_id.unwrap_or_else(fixture_recovery_turn_id);
+        let checkpoint_id = fixture_recovery_checkpoint_id();
+
+        store
+            .append(recovery_user_event(
+                conversation_id,
+                turn_id,
+                "before checkpoint with sk-secret-token",
+            ))
+            .expect("append recovery fixture user event");
+        store
+            .put_checkpoint(recovery_checkpoint(
+                checkpoint_id,
+                conversation_id,
+                checkpoint_turn_id,
+                1,
+            ))
+            .expect("put recovery fixture checkpoint");
+        store
+            .append(recovery_tool_call_event(
+                conversation_id,
+                turn_id,
+                "call-pending",
+                "workspace.edit_file",
+            ))
+            .expect("append pending tool call");
+        store
+            .append(recovery_tool_call_event(
+                conversation_id,
+                turn_id,
+                "call-effect",
+                "workspace.write_file",
+            ))
+            .expect("append idempotent tool call");
+        store
+            .append(recovery_tool_completed_event(
+                conversation_id,
+                turn_id,
+                "call-complete",
+            ))
+            .expect("append completed tool event");
+        store
+            .append(recovery_approval_requested_event(
+                conversation_id,
+                turn_id,
+                Some(checkpoint_id),
+            ))
+            .expect("append approval request");
+        store
+            .record_effect(ToolEffectRecord {
+                key: IdempotencyKey::new("call-effect").expect("fixture idempotency key"),
+                call_id: "call-effect".to_string(),
+                tool_name: "workspace.write_file".to_string(),
+                input_hash: "fnv1a64:abc123".to_string(),
+                output_json: serde_json::json!({ "raw_secret": "must-not-appear" }),
+                completed_at: Timestamp::now_utc(),
+            })
+            .expect("record recovery fixture effect");
+
+        Self { store }
+    }
+
+    #[must_use]
+    pub fn snapshot(
+        &self,
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+    ) -> RecoverySnapshot {
+        let mut snapshot =
+            RecoveryEngine.snapshot(&self.store, &self.store, conversation_id, turn_id);
+        snapshot.diagnostics.push(recovery_fixture_diagnostic());
+        snapshot
+    }
+
+    #[must_use]
+    pub fn resume_dry_run(
+        &self,
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+    ) -> ResumeDryRunReport {
+        let mut report =
+            RecoveryEngine.resume_dry_run(&self.store, &self.store, conversation_id, turn_id);
+        report
+            .snapshot
+            .diagnostics
+            .push(recovery_fixture_diagnostic());
+        report
+    }
+}
+
+#[must_use]
+pub fn render_recovery_command(
+    runtime: &RecoveryCommandRuntime,
+    command: RecoveryCliCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match command {
+        RecoveryCliCommand::Status {
+            conversation_id,
+            turn_id,
+        } => {
+            let snapshot = runtime.snapshot(conversation_id, turn_id);
+            match output_mode {
+                OutputMode::Text => CliOutput::exit(render_recovery_snapshot_text(&snapshot)),
+                OutputMode::Json => CliOutput::exit(json_frame_line(
+                    UiJsonFrame::RecoverySnapshot(UiRecoverySnapshot::new(snapshot)),
+                )),
+            }
+        }
+        RecoveryCliCommand::Resume {
+            conversation_id,
+            turn_id,
+            checkpoint_id,
+            dry_run,
+        } => {
+            if !dry_run {
+                return render_recovery_cli_error(
+                    "recovery_dry_run_required",
+                    "recovery resume requires --dry-run",
+                    output_mode,
+                );
+            }
+            let mut report = runtime.resume_dry_run(conversation_id, turn_id);
+            if let Some(checkpoint_id) = checkpoint_id {
+                report
+                    .snapshot
+                    .diagnostics
+                    .push(recovery_checkpoint_argument_diagnostic(checkpoint_id));
+            }
+            match output_mode {
+                OutputMode::Text => CliOutput::exit(render_resume_dry_run_text(&report)),
+                OutputMode::Json => CliOutput::exit(json_frame_line(UiJsonFrame::ResumeDryRun(
+                    UiResumeDryRunReport::new(report),
+                ))),
+            }
+        }
+    }
+}
+
+#[must_use]
+pub fn render_replay_command(
+    runtime: &RecoveryCommandRuntime,
+    command: ReplayCliCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match command {
+        ReplayCliCommand::Inspect {
+            conversation_id,
+            from_checkpoint_id,
+        } => {
+            let snapshot = runtime.snapshot(conversation_id, None);
+            let report = replay_inspect_report(&snapshot, from_checkpoint_id);
+            match output_mode {
+                OutputMode::Text => CliOutput::exit(render_replay_inspect_text(&report)),
+                OutputMode::Json => {
+                    CliOutput::exit(json_frame_line(UiJsonFrame::ReplayInspect(report)))
+                }
+            }
+        }
+        ReplayCliCommand::Fork {
+            conversation_id,
+            turn_id,
+            checkpoint_id,
+            label,
+            dry_run,
+        } => {
+            if !dry_run {
+                return render_recovery_cli_error(
+                    "replay_fork_dry_run_required",
+                    "replay fork requires --dry-run",
+                    output_mode,
+                );
+            }
+            let snapshot = runtime.snapshot(conversation_id, turn_id);
+            let requested_checkpoint_id = checkpoint_id;
+            let checkpoint_id = requested_checkpoint_id.or_else(|| {
+                snapshot
+                    .checkpoint
+                    .as_ref()
+                    .map(|value| value.checkpoint_id)
+            });
+            let mut diagnostics = snapshot.diagnostics.clone();
+            if let Some(checkpoint_id) = requested_checkpoint_id {
+                diagnostics.push(recovery_checkpoint_argument_diagnostic(checkpoint_id));
+            }
+            let report = match UiReplayForkReport::new(
+                conversation_id,
+                turn_id,
+                checkpoint_id,
+                label,
+                snapshot.replay.replay_from,
+                true,
+                diagnostics,
+            ) {
+                Ok(report) => report,
+                Err(error) => {
+                    return render_recovery_cli_error(
+                        "replay_fork_invalid",
+                        &error.to_string(),
+                        output_mode,
+                    );
+                }
+            };
+            match output_mode {
+                OutputMode::Text => CliOutput::exit(render_replay_fork_text(&report)),
+                OutputMode::Json => {
+                    CliOutput::exit(json_frame_line(UiJsonFrame::ReplayFork(report)))
+                }
+            }
+        }
+    }
+}
+
+fn replay_inspect_report(
+    snapshot: &RecoverySnapshot,
+    from_checkpoint_id: Option<CheckpointId>,
+) -> UiReplayInspectReport {
+    let checkpoint_id = from_checkpoint_id.or_else(|| {
+        snapshot
+            .checkpoint
+            .as_ref()
+            .map(|value| value.checkpoint_id)
+    });
+    let mut diagnostics = snapshot.diagnostics.clone();
+    if let Some(checkpoint_id) = from_checkpoint_id {
+        diagnostics.push(recovery_checkpoint_argument_diagnostic(checkpoint_id));
+    }
+    UiReplayInspectReport::new(
+        snapshot.conversation_id,
+        snapshot.replay.replay_from,
+        snapshot.replay.replayed_event_count,
+        checkpoint_id,
+        diagnostics,
+    )
+}
+
+fn render_recovery_snapshot_text(snapshot: &RecoverySnapshot) -> String {
+    let mut output = format!(
+        "Recovery {}\nreadiness={}\nreplay_from={} replayed_event_count={}\npending_tool_count={} idempotent_effect_count={} pending_approval_count={}\n",
+        snapshot.conversation_id,
+        recovery_readiness_label(snapshot.readiness),
+        snapshot.replay.replay_from,
+        snapshot.replay.replayed_event_count,
+        snapshot.pending_tool_calls.len(),
+        snapshot.idempotent_effects.len(),
+        snapshot.pending_approvals.len()
+    );
+    if let Some(turn_id) = snapshot.turn_id {
+        output.push_str(&format!("turn={turn_id}\n"));
+    }
+    if let Some(checkpoint) = &snapshot.checkpoint {
+        output.push_str(&format!(
+            "checkpoint={} seq={} label={}\n",
+            checkpoint.checkpoint_id,
+            checkpoint.event_seq,
+            redact_secret_like_text(&checkpoint.label)
+        ));
+    }
+    for call in &snapshot.pending_tool_calls {
+        output.push_str(&format!(
+            "pending_tool call_id={} tool={}\n",
+            redact_secret_like_text(&call.call_id),
+            call.tool_name
+                .as_deref()
+                .map(redact_secret_like_text)
+                .unwrap_or_else(|| "unknown".to_string())
+        ));
+    }
+    for effect in &snapshot.idempotent_effects {
+        output.push_str(&format!(
+            "idempotent_effect call_id={} tool={} input_hash={}\n",
+            redact_secret_like_text(&effect.call_id),
+            redact_secret_like_text(&effect.tool_name),
+            redact_secret_like_text(&effect.input_hash)
+        ));
+    }
+    for approval in &snapshot.pending_approvals {
+        output.push_str(&format!(
+            "pending_approval id={} action={} resource_kind={} resource={} summary={}\n",
+            redact_secret_like_text(&approval.approval_id),
+            redact_secret_like_text(&approval.action),
+            redact_secret_like_text(&approval.resource_kind),
+            redact_secret_like_text(&approval.resource),
+            redact_secret_like_text(&approval.summary)
+        ));
+    }
+    output.push_str(&render_recovery_diagnostics_text(&snapshot.diagnostics));
+    output
+}
+
+fn render_resume_dry_run_text(report: &ResumeDryRunReport) -> String {
+    let mut output = format!(
+        "Recovery resume dry-run {}\nblocked={}\nwill_replay_event_count={}\nwill_resume_pending_tool_count={}\nwill_reuse_idempotent_effect_count={}\n",
+        report.snapshot.conversation_id,
+        yes_no_label(report.blocked),
+        report.will_replay_event_count,
+        report.will_resume_pending_tool_count,
+        report.will_reuse_idempotent_effect_count
+    );
+    output.push_str(&render_recovery_snapshot_text(&report.snapshot));
+    output
+}
+
+fn render_replay_inspect_text(report: &UiReplayInspectReport) -> String {
+    let mut output = format!(
+        "Replay inspect {}\nreplay_from={} replayed_event_count={}\n",
+        report.conversation_id, report.replay_from, report.replayed_event_count
+    );
+    if let Some(checkpoint_id) = report.checkpoint_id {
+        output.push_str(&format!("checkpoint={checkpoint_id}\n"));
+    }
+    output.push_str(&render_recovery_diagnostics_text(&report.diagnostics));
+    output
+}
+
+fn render_replay_fork_text(report: &UiReplayForkReport) -> String {
+    let mut output = format!(
+        "Replay fork dry-run {}\nlabel={}\nreplay_from={}\ndry_run={}\n",
+        report.conversation_id,
+        redact_secret_like_text(&report.fork_label),
+        report.replay_from,
+        yes_no_label(report.dry_run)
+    );
+    if let Some(turn_id) = report.source_turn_id {
+        output.push_str(&format!("turn={turn_id}\n"));
+    }
+    if let Some(checkpoint_id) = report.checkpoint_id {
+        output.push_str(&format!("checkpoint={checkpoint_id}\n"));
+    }
+    output.push_str(&render_recovery_diagnostics_text(&report.diagnostics));
+    output
+}
+
+fn render_recovery_diagnostics_text(diagnostics: &[RecoveryDiagnostic]) -> String {
+    let mut output = String::new();
+    for diagnostic in diagnostics {
+        output.push_str(&format!(
+            "diagnostic severity={} code={} message={} truncated={}\n",
+            recovery_diagnostic_severity_label(diagnostic.severity),
+            redact_secret_like_text(&diagnostic.code),
+            redact_secret_like_text(&diagnostic.message),
+            yes_no_label(diagnostic.truncated)
+        ));
+    }
+    output
+}
+
+fn render_recovery_cli_error(
+    code: impl Into<String>,
+    message: &str,
+    output_mode: OutputMode,
+) -> CliOutput {
+    let code = code.into();
+    let message = redact_secret_like_text(message);
+    match output_mode {
+        OutputMode::Text => CliOutput::failure(format!("{message}\n"), 2),
+        OutputMode::Json => CliOutput::failure(
+            json_frame_line(UiJsonFrame::Error {
+                code,
+                message,
+                recoverable: true,
+            }),
+            2,
+        ),
+    }
+}
+
+fn command_conversation_id(command: &RecoveryCliCommand) -> ConversationId {
+    match command {
+        RecoveryCliCommand::Status {
+            conversation_id, ..
+        }
+        | RecoveryCliCommand::Resume {
+            conversation_id, ..
+        } => *conversation_id,
+    }
+}
+
+fn command_turn_id(command: &RecoveryCliCommand) -> Option<TurnId> {
+    match command {
+        RecoveryCliCommand::Status { turn_id, .. } | RecoveryCliCommand::Resume { turn_id, .. } => {
+            *turn_id
+        }
+    }
+}
+
+fn replay_command_conversation_id(command: &ReplayCliCommand) -> ConversationId {
+    match command {
+        ReplayCliCommand::Inspect {
+            conversation_id, ..
+        }
+        | ReplayCliCommand::Fork {
+            conversation_id, ..
+        } => *conversation_id,
+    }
+}
+
+fn replay_command_turn_id(command: &ReplayCliCommand) -> Option<TurnId> {
+    match command {
+        ReplayCliCommand::Inspect { .. } => None,
+        ReplayCliCommand::Fork { turn_id, .. } => *turn_id,
+    }
+}
+
+fn recovery_fixture_diagnostic() -> RecoveryDiagnostic {
+    RecoveryDiagnostic {
+        severity: RecoveryDiagnosticSeverity::Info,
+        code: "recovery.fixture".to_string(),
+        message: "using deterministic fixture; persisted session lookup is not wired yet"
+            .to_string(),
+        source: Some("agent-cli".to_string()),
+        truncated: false,
+    }
+}
+
+fn recovery_checkpoint_argument_diagnostic(checkpoint_id: CheckpointId) -> RecoveryDiagnostic {
+    RecoveryDiagnostic {
+        severity: RecoveryDiagnosticSeverity::Info,
+        code: "recovery.checkpoint.argument".to_string(),
+        message: format!(
+            "checkpoint argument {checkpoint_id} was validated; fixture replay remains read-only"
+        ),
+        source: Some("agent-cli".to_string()),
+        truncated: false,
+    }
+}
+
+fn recovery_runtime_event(
+    conversation_id: ConversationId,
+    turn_id: TurnId,
+    payload: RuntimeEventPayload,
+) -> RuntimeEvent {
+    RuntimeEvent {
+        schema_version: SchemaVersion::current(),
+        id: EventId::new(),
+        seq: None,
+        occurred_at: Timestamp::now_utc(),
+        workspace_id: fixture_recovery_workspace_id(),
+        conversation_id,
+        turn_id: Some(turn_id),
+        task_id: None,
+        agent_id: None,
+        team_id: None,
+        actor: ActorRef::system(),
+        correlation_id: CorrelationId::new(),
+        causation_id: None,
+        payload,
+    }
+}
+
+fn recovery_user_event(
+    conversation_id: ConversationId,
+    turn_id: TurnId,
+    message: &str,
+) -> RuntimeEvent {
+    recovery_runtime_event(
+        conversation_id,
+        turn_id,
+        RuntimeEventPayload::UserInputReceived(UserInputReceived {
+            message: message.to_string(),
+        }),
+    )
+}
+
+fn recovery_tool_call_event(
+    conversation_id: ConversationId,
+    turn_id: TurnId,
+    call_id: &str,
+    tool_name: &str,
+) -> RuntimeEvent {
+    recovery_runtime_event(
+        conversation_id,
+        turn_id,
+        RuntimeEventPayload::ToolCallProposed(ToolCallProposed {
+            call_id: call_id.to_string(),
+            tool_name: tool_name.to_string(),
+            input_json: serde_json::json!({
+                "path": "README.md",
+                "secret_token": "must-not-appear"
+            }),
+        }),
+    )
+}
+
+fn recovery_tool_completed_event(
+    conversation_id: ConversationId,
+    turn_id: TurnId,
+    call_id: &str,
+) -> RuntimeEvent {
+    recovery_runtime_event(
+        conversation_id,
+        turn_id,
+        RuntimeEventPayload::ToolExecutionCompleted(ToolExecutionCompleted {
+            call_id: call_id.to_string(),
+            output_json: serde_json::json!({ "raw": "must-not-appear" }),
+        }),
+    )
+}
+
+fn recovery_approval_requested_event(
+    conversation_id: ConversationId,
+    turn_id: TurnId,
+    checkpoint_id: Option<CheckpointId>,
+) -> RuntimeEvent {
+    recovery_runtime_event(
+        conversation_id,
+        turn_id,
+        RuntimeEventPayload::ApprovalRequested(ApprovalRequested {
+            request_id: agent_types::ApprovalRequestId::new(),
+            status: "pending".to_string(),
+            action: "write".to_string(),
+            resource_kind: "tool".to_string(),
+            resource: "workspace.edit_file".to_string(),
+            reason: "needs user approval without sk-secret-token".to_string(),
+            preview: ApprovalPreviewRecorded {
+                kind: "diff".to_string(),
+                resource: "README.md".to_string(),
+                summary: "edit README".to_string(),
+                content_hash: Some("sha256:preview".to_string()),
+                truncated: false,
+                redacted: true,
+            },
+            checkpoint_id,
+            max_duration_seconds: Some(60),
+            expires_at: None,
+        }),
+    )
+}
+
+fn recovery_checkpoint(
+    checkpoint_id: CheckpointId,
+    conversation_id: ConversationId,
+    turn_id: Option<TurnId>,
+    event_seq: u64,
+) -> CheckpointRecord {
+    CheckpointRecord {
+        checkpoint_id,
+        conversation_id,
+        turn_id,
+        label: "m62-02 recovery fixture checkpoint".to_string(),
+        event_seq: EventSeq::new(event_seq).expect("fixture event seq"),
+        state_json: serde_json::json!({ "state": "after checkpoint" }),
+        schema_version: SchemaVersion::current(),
+        created_at: Timestamp::now_utc(),
+    }
+}
+
+fn fixture_recovery_workspace_id() -> WorkspaceId {
+    "00000000-0000-0000-0000-000000006201"
+        .parse()
+        .expect("fixture workspace id is valid")
+}
+
+fn fixture_recovery_checkpoint_id() -> CheckpointId {
+    "00000000-0000-0000-0000-000000006202"
+        .parse()
+        .expect("fixture checkpoint id is valid")
+}
+
+fn fixture_recovery_turn_id() -> TurnId {
+    "00000000-0000-0000-0000-000000006203"
+        .parse()
+        .expect("fixture turn id is valid")
+}
+
+fn recovery_readiness_label(readiness: RecoveryReadiness) -> &'static str {
+    match readiness {
+        RecoveryReadiness::Ready => "ready",
+        RecoveryReadiness::NeedsApproval => "needs_approval",
+        RecoveryReadiness::PendingToolCalls => "pending_tool_calls",
+        RecoveryReadiness::CorruptCheckpoint => "corrupt_checkpoint",
+        RecoveryReadiness::StorageError => "storage_error",
+        RecoveryReadiness::Blocked => "blocked",
+    }
+}
+
+fn recovery_diagnostic_severity_label(severity: RecoveryDiagnosticSeverity) -> &'static str {
+    match severity {
+        RecoveryDiagnosticSeverity::Info => "info",
+        RecoveryDiagnosticSeverity::Warning => "warning",
+        RecoveryDiagnosticSeverity::Error => "error",
     }
 }
 

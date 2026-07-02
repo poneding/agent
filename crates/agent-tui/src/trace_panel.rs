@@ -312,6 +312,55 @@ impl TracePanelState {
                     snapshot.snapshot.revision
                 ),
             )),
+            UiJsonFrame::RecoverySnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "recovery",
+                format!(
+                    "{} readiness={:?} replay={} pending_tools={} effects={} approvals={} diagnostics={}",
+                    snapshot.snapshot.conversation_id,
+                    snapshot.snapshot.readiness,
+                    snapshot.snapshot.replay.replayed_event_count,
+                    snapshot.snapshot.pending_tool_calls.len(),
+                    snapshot.snapshot.idempotent_effects.len(),
+                    snapshot.snapshot.pending_approvals.len(),
+                    snapshot.snapshot.diagnostics.len()
+                ),
+            )),
+            UiJsonFrame::ResumeDryRun(report) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "recovery-resume",
+                format!(
+                    "{} blocked={} replay={} pending_tools={} effects={}",
+                    report.report.snapshot.conversation_id,
+                    report.report.blocked,
+                    report.report.will_replay_event_count,
+                    report.report.will_resume_pending_tool_count,
+                    report.report.will_reuse_idempotent_effect_count
+                ),
+            )),
+            UiJsonFrame::ReplayInspect(report) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "replay-inspect",
+                format!(
+                    "{} replay_from={} replayed={} diagnostics={}",
+                    report.conversation_id,
+                    report.replay_from,
+                    report.replayed_event_count,
+                    report.diagnostics.len()
+                ),
+            )),
+            UiJsonFrame::ReplayFork(report) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "replay-fork",
+                format!(
+                    "{} label={} replay_from={} dry_run={} diagnostics={}",
+                    report.conversation_id,
+                    report.fork_label,
+                    report.replay_from,
+                    report.dry_run,
+                    report.diagnostics.len()
+                ),
+            )),
             UiJsonFrame::TaskSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "tasks",

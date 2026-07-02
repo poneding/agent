@@ -1,8 +1,8 @@
 use agent_policy::ApprovalResponse;
 use agent_scheduler::TaskCommand;
 use agent_types::{
-    ApprovalRequestId, ClientKind, ConversationId, CorrelationId, PlanTodoItemId, PlanTodoSnapshot,
-    SchemaVersion, Timestamp, TodoStatus, TurnId, WorkspaceId,
+    ApprovalRequestId, CheckpointId, ClientKind, ConversationId, CorrelationId, PlanTodoItemId,
+    PlanTodoSnapshot, SchemaVersion, Timestamp, TodoStatus, TurnId, WorkspaceId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -59,6 +59,25 @@ pub enum UiCommand {
     },
     Task(TaskCommand),
     PlanTodo(UiPlanTodoCommand),
+    RecoveryStatus {
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+    },
+    RecoveryResumeDryRun {
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+        checkpoint_id: Option<CheckpointId>,
+    },
+    ReplayInspect {
+        conversation_id: ConversationId,
+        from_checkpoint_id: Option<CheckpointId>,
+    },
+    ReplayFork {
+        conversation_id: ConversationId,
+        source_turn_id: Option<TurnId>,
+        checkpoint_id: Option<CheckpointId>,
+        fork_label: String,
+    },
     SwitchSession {
         workspace_id: WorkspaceId,
         conversation_id: ConversationId,
@@ -158,6 +177,23 @@ pub fn validate_ui_command(envelope: &UiCommandEnvelope) -> Result<(), UiBridgeE
             UiBridgeError::Validation("resolve_approval reason cannot be empty".to_string()),
         ),
         UiCommand::PlanTodo(command) => validate_plan_todo_command(command),
+        UiCommand::RecoveryStatus {
+            conversation_id, ..
+        }
+        | UiCommand::RecoveryResumeDryRun {
+            conversation_id, ..
+        }
+        | UiCommand::ReplayInspect {
+            conversation_id, ..
+        }
+        | UiCommand::ReplayFork {
+            conversation_id, ..
+        } if is_nil_conversation_id(*conversation_id) => Err(UiBridgeError::Validation(
+            "recovery conversation_id cannot be nil".to_string(),
+        )),
+        UiCommand::ReplayFork { fork_label, .. } if fork_label.trim().is_empty() => Err(
+            UiBridgeError::Validation("replay fork_label cannot be empty".to_string()),
+        ),
         UiCommand::SwitchSession { workspace_id, .. } if is_nil_workspace_id(*workspace_id) => Err(
             UiBridgeError::Validation("switch_session workspace_id cannot be nil".to_string()),
         ),

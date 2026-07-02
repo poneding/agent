@@ -24,7 +24,7 @@
 - Read: `crates/agent-cli/tests/plan_todo_commands.rs`
 - Read: `crates/agent-cli/tests/json_mode.rs`
 
-- [ ] **Step 1: Review CLI and bridge patterns**
+- [x] **Step 1: Review CLI and bridge patterns**
 
 Identify existing command parsing, text rendering, JSON frame rendering, fixture helpers, and stable serde test style.
 
@@ -35,7 +35,7 @@ Identify existing command parsing, text rendering, JSON frame rendering, fixture
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
 - Create: `crates/agent-ui-bridge/tests/recovery_bridge.rs`
 
-- [ ] **Step 1: Add UI command variants**
+- [x] **Step 1: Add UI command variants**
 
 Add typed command variants for:
 
@@ -46,7 +46,7 @@ Add typed command variants for:
 
 Use existing ID types and snake_case serde tagging.
 
-- [ ] **Step 2: Add UI recovery frame/report types**
+- [x] **Step 2: Add UI recovery frame/report types**
 
 Add typed report/frame wrappers for:
 
@@ -57,7 +57,7 @@ Add typed report/frame wrappers for:
 
 Wrap existing `agent-types` recovery contracts where possible.
 
-- [ ] **Step 3: Add bridge serde tests**
+- [x] **Step 3: Add bridge serde tests**
 
 Run:
 
@@ -71,9 +71,12 @@ Expected initially: tests fail before bridge contracts exist, then pass after im
 
 **Files:**
 - Modify: `crates/agent-cli/src/command.rs`
+- Modify: `crates/agent-cli/src/lib.rs`
+- Modify: `crates/agent-tui/src/trace_panel.rs`
+- Modify: `crates/agent-tui/src/transcript.rs`
 - Create: `crates/agent-cli/tests/recovery_commands.rs`
 
-- [ ] **Step 1: Add parser coverage**
+- [x] **Step 1: Add parser coverage**
 
 Support command forms:
 
@@ -84,15 +87,15 @@ agent-cli replay inspect --conversation <id> [--from-checkpoint <id>]
 agent-cli replay fork --conversation <id> [--turn <id>] [--checkpoint <id>] --label <name> --dry-run
 ```
 
-- [ ] **Step 2: Add deterministic fixture-backed reports**
+- [x] **Step 2: Add deterministic fixture-backed reports**
 
 If the CLI does not yet have arbitrary persisted session lookup by conversation id, use deterministic fixture helpers for M62-02 tests while preserving the real command shape and returning typed diagnostics when live lookup is unavailable.
 
-- [ ] **Step 3: Render stable text and JSON**
+- [x] **Step 3: Render stable text and JSON**
 
 Text output should include readiness, replay_from, replayed_event_count, pending tool count, idempotent effect count, pending approval count, and diagnostics. JSON output should emit typed data frames suitable for automation.
 
-- [ ] **Step 4: Add CLI tests**
+- [x] **Step 4: Add CLI tests**
 
 Run:
 
@@ -109,7 +112,7 @@ Expected: text and JSON commands are stable, bounded, redacted, and reject inval
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md` if status text needs refreshing
 - Modify: `docs/plans/M62-02-cli-json-replay-resume-fork.plan.md`
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -122,11 +125,11 @@ cargo test -p agent-cli --test recovery_commands
 
 Expected: all focused checks pass.
 
-- [ ] **Step 2: Update status docs**
+- [x] **Step 2: Update status docs**
 
 Mark M62-02 complete only after command contracts, CLI output, tests, and checks pass.
 
-- [ ] **Step 3: Commit planning docs first**
+- [x] **Step 3: Commit planning docs first**
 
 Before implementation, run:
 
@@ -139,14 +142,14 @@ git commit -m "docs: add m62-02 recovery cli plan"
 
 Expected: M62-02 slice planning is committed before code changes.
 
-- [ ] **Step 4: Commit implementation after verification**
+- [x] **Step 4: Commit implementation after verification**
 
 After focused verification passes, exact-stage only M62-02 files and commit:
 
 ```bash
 git status --short --branch
 git diff --check
-git add crates/agent-ui-bridge/src/command.rs crates/agent-ui-bridge/src/frame.rs crates/agent-ui-bridge/tests/recovery_bridge.rs crates/agent-cli/src/command.rs crates/agent-cli/tests/recovery_commands.rs docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md docs/plans/M62-02-cli-json-replay-resume-fork.plan.md
+git add crates/agent-ui-bridge/src/command.rs crates/agent-ui-bridge/src/frame.rs crates/agent-ui-bridge/src/lib.rs crates/agent-ui-bridge/tests/recovery_bridge.rs crates/agent-cli/src/command.rs crates/agent-cli/src/lib.rs crates/agent-cli/tests/recovery_commands.rs crates/agent-tui/src/trace_panel.rs crates/agent-tui/src/transcript.rs docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md docs/plans/M62-02-cli-json-replay-resume-fork.plan.md
 git commit -m "feat: add m62-02 recovery cli commands"
 ```
 

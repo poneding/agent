@@ -244,6 +244,30 @@ Acceptance:
 - Conflict diagnostics are typed, safe, actionable, and available to CLI/Desktop-facing consumers.
 - A deterministic crash smoke proves a coding workflow can recover after interruption without provider credentials.
 
+### M63 Worktree and Agent Team Workflows
+
+Status: In progress. The milestone spec/plan and M63-01 team workflow snapshot/readiness spec/plan are complete. Implementation begins with typed runtime/team workflow snapshots before CLI/JSON, reviewer/merge, UI, and smoke closeout slices.
+
+Purpose: productize safe parallel implementation and review over the existing M09 worktree/team foundations and the M62 recovery/conflict baseline.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M63-01 Team Workflow Snapshot and Readiness Contracts | Planned implementation: typed snapshots that compose worktree leases, handoff envelopes, blackboard entries, reviewer votes, conflict summaries, merge readiness, and capability ceilings. |
+| M63-02 CLI and JSON Team Workflow Commands | Planned: stable commands for team status, handoff dry-run, blackboard inspect, reviewer vote, and merge-readiness dry-run. |
+| M63-03 Reviewer Role and Merge Readiness | Planned: reviewer role, artifact evidence, policy-backed merge readiness, stale lease detection, and conflict blocks. |
+| M63-04 TUI/Desktop Team Surfaces | Planned: TUI and Desktop render team workflow state from shared bridge snapshots without local readiness logic. |
+| M63-05 Team Workflow Smoke, Docs, and Closeout | Planned: deterministic team workflow smoke, CLI/Desktop workflow docs, final gates, and M63 closeout status. |
+
+Acceptance:
+
+- A user can inspect isolated worktree and subagent status through shared runtime/bridge contracts.
+- Handoffs show reduced capabilities and cannot exceed the parent/task/team ceiling.
+- Subagent results are represented as blackboard entries, artifacts, review votes, and trace links.
+- Merge readiness blocks on conflicts, missing review, policy denial, stale leases, or incomplete handoff state.
+- A credential-free smoke proves the isolated worktree to review and merge-readiness workflow.
+
 ## Capability Gates
 
 Each future milestone should ship with:

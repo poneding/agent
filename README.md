@@ -10,7 +10,7 @@ M01-M62 and the MX01 MCP epilogue are implemented. M55 is complete as the produc
 
 The product roadmap is now re-centered on the user-facing goal: a Claude Code / Codex Desktop-class local coding agent with excellent CLI/TUI and Desktop workflows plus first-class multi-provider support. MCP expansion remains parked as a primary track after M54; MX01 is an epilogue track and does not change the M55+ product roadmap priority.
 
-See [Product Roadmap](docs/roadmap/PRODUCT_ROADMAP.md) and [Milestones](docs/milestones/README.md) for the current direction.
+Current implementation focus is M63 Worktree and Agent Team Workflows. See [Product Roadmap](docs/roadmap/PRODUCT_ROADMAP.md) and [Milestones](docs/milestones/README.md) for the current direction.
 
 ## Core Ideas
 

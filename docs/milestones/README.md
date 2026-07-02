@@ -628,6 +628,13 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M62 slice specs | Complete for M62-01 through M62-05 |
 | M62 slice plans | Complete for M62-01 through M62-05 |
 | M62 implementation | Complete |
+| M63 milestone spec | Complete |
+| M63 milestone plan | Complete |
+| M63-01 slice spec | Complete |
+| M63-01 slice plan | Complete |
+| M63 slice specs | Complete for M63-01 |
+| M63 slice plans | Complete for M63-01 |
+| M63 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -704,6 +711,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60 Desktop Daily Driver | `docs/specs/M60-desktop-daily-driver.spec.md` | `docs/plans/M60-desktop-daily-driver.plan.md` | Turn Desktop into a daily-driver interface over the shared runtime with workspace dashboard, conversation, approvals, diff review, provider settings, task monitor, logs, and deterministic smoke coverage. |
 | M61 Plan, Todo, and Task UX | `docs/specs/M61-plan-todo-task-ux.spec.md` | `docs/plans/M61-plan-todo-task-ux.plan.md` | Make plan/todo/task state first-class across interactive and background work with TodoWrite-compatible state, task controls, approval waits, artifacts, and notifications. |
 | M62 Reliability and Recovery Productization | `docs/specs/M62-reliability-recovery-productization.spec.md` | `docs/plans/M62-reliability-recovery-productization.plan.md` | Productize checkpoint resume, replay/fork, idempotent recovery visibility, failed-command retry, conflict diagnostics, and crash smoke evidence. |
+| M63 Worktree and Agent Team Workflows | `docs/specs/M63-worktree-agent-team-workflows.spec.md` | `docs/plans/M63-worktree-agent-team-workflows.plan.md` | Productize isolated worktrees, subagent handoff, shared blackboard, reviewer role, merge review, conflict handling, and team-level permission ceilings. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1370,6 +1378,16 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M62-04 Conflict Diagnostics and Recovery Surfacing | `docs/specs/M62-04-conflict-diagnostics.spec.md` | `docs/plans/M62-04-conflict-diagnostics.plan.md` | Complete: typed conflict diagnostics surface through recovery snapshots, bridge frames, CLI/JSON, TUI task summaries, and Desktop-safe views. |
 | M62-05 Crash Smoke, Docs, and Closeout | `docs/specs/M62-05-crash-smoke-closeout.spec.md` | `docs/plans/M62-05-crash-smoke-closeout.plan.md` | Complete: deterministic crash/restart recovery smoke, default eval coverage, CLI/Desktop recovery workflow docs, final gates, and M62 closeout status updates. |
 
+## M63 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M63-01 Team Workflow Snapshot and Readiness Contracts | `docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md` | `docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md` | Spec/plan complete; implementation next for typed team workflow snapshots, readiness precedence, capability ceilings, and deterministic fixture tests. |
+| M63-02 CLI and JSON Team Workflow Commands | Planned | Planned | Planned: team status, handoff dry-run, blackboard inspect, reviewer vote, and merge-readiness dry-run commands. |
+| M63-03 Reviewer Role and Merge Readiness | Planned | Planned | Planned: reviewer role, artifact evidence, policy-backed merge readiness, stale lease detection, and conflict blocks. |
+| M63-04 TUI/Desktop Team Surfaces | Planned | Planned | Planned: TUI/Desktop-safe team panels over shared bridge snapshots. |
+| M63-05 Team Workflow Smoke, Docs, and Closeout | Planned | Planned | Planned: deterministic team workflow smoke, CLI/Desktop docs, final gates, and M63 closeout status. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1387,14 +1405,14 @@ Current implementation focus: M63 Worktree and Agent Team Workflows.
 
 Most recent completed or active planning documents:
 
-- `docs/specs/M62-02-cli-json-replay-resume-fork.spec.md`
-- `docs/plans/M62-02-cli-json-replay-resume-fork.plan.md`
-- `docs/specs/M62-01-recovery-snapshot-resume.spec.md`
-- `docs/plans/M62-01-recovery-snapshot-resume.plan.md`
+- `docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md`
+- `docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md`
+- `docs/specs/M63-worktree-agent-team-workflows.spec.md`
+- `docs/plans/M63-worktree-agent-team-workflows.plan.md`
+- `docs/specs/M62-05-crash-smoke-closeout.spec.md`
+- `docs/plans/M62-05-crash-smoke-closeout.plan.md`
 - `docs/specs/M62-reliability-recovery-productization.spec.md`
 - `docs/plans/M62-reliability-recovery-productization.plan.md`
-- `docs/specs/M61-plan-todo-task-ux.spec.md`
-- `docs/plans/M61-plan-todo-task-ux.plan.md`
 - `docs/specs/M61-02-cli-json-plan-todo.spec.md`
 - `docs/plans/M61-02-cli-json-plan-todo.plan.md`
 - `docs/specs/M61-03-tui-desktop-plan-task-surfaces.spec.md`

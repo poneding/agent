@@ -8,6 +8,7 @@ pub mod benchmark;
 pub mod command_retry;
 pub mod command_test;
 pub mod config;
+pub mod conflict_recovery;
 pub mod context;
 pub mod edit_diff;
 pub mod extension;
@@ -62,6 +63,7 @@ pub use config::{
     EffectiveRuntimeConfig, RuntimeModelConfig, build_effective_runtime_config,
     load_agent_config_file, load_agent_config_toml,
 };
+pub use conflict_recovery::{ConflictRecoveryMapper, conflict_diagnostic};
 pub use context::ContextAssembler;
 pub use edit_diff::{
     DiffEvidenceState, DiffSummary, EditDiffDiagnostic, EditDiffDiagnosticSeverity,

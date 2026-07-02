@@ -29,6 +29,18 @@ export function isWaitingApproval(task: DesktopTaskItem): boolean {
   return task.waiting_approval === true || task.state === 'waiting_approval';
 }
 
+export function recoveryConflictCount(task: DesktopTaskItem): number {
+  return task.recovery_conflicts?.length ?? 0;
+}
+
+export function recoveryConflictSummaryText(task: DesktopTaskItem): string {
+  const count = recoveryConflictCount(task);
+  if (count === 0) {
+    return 'none';
+  }
+  return `${count} conflict${count === 1 ? '' : 's'}`;
+}
+
 function countTasks(tasks: DesktopTaskItem[]): DesktopTaskMonitorCounts {
   const counts: DesktopTaskMonitorCounts = {
     total: tasks.length,

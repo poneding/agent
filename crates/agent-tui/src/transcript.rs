@@ -417,6 +417,16 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::ConflictInspect(report) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "conflicts",
+                format!(
+                    "{} conflicts diagnostics={}",
+                    report.conflicts.len(),
+                    report.diagnostics.len()
+                ),
+                false,
+            )),
             UiJsonFrame::TaskSnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "tasks",

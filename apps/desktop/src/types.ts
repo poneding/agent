@@ -189,6 +189,39 @@ export interface DesktopTaskItem {
   latest_notification_at?: Timestamp | null;
   latest_notification_approval_id?: string | null;
   artifact_count?: number;
+  recovery_conflicts?: RecoveryConflictSummary[];
+}
+
+export type RecoveryConflictKind =
+  | 'both_modified'
+  | 'delete_modify'
+  | 'add_add_different_content';
+
+export type RecoveryConflictNextAction =
+  | 'inspect_diff'
+  | 'choose_side'
+  | 'fork_work'
+  | 'manual_resolution';
+
+export interface RecoveryConflictSide {
+  source: string;
+  change_kind: string;
+  content_hash?: string | null;
+}
+
+export interface RecoveryDiagnostic {
+  severity: 'info' | 'warning' | 'error';
+  code: string;
+  message: string;
+}
+
+export interface RecoveryConflictSummary {
+  path: string;
+  kind: RecoveryConflictKind;
+  lead_change: RecoveryConflictSide;
+  incoming_change: RecoveryConflictSide;
+  next_action: RecoveryConflictNextAction;
+  diagnostics: RecoveryDiagnostic[];
 }
 
 export interface PlanTodoProgress {

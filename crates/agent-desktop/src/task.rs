@@ -1,6 +1,6 @@
 use agent_types::{
-    ApprovalRequestId, ConversationId, PlanTodoItemId, PlanTodoProgress, TaskId, TaskState,
-    Timestamp, TodoPriority, WorkspaceId,
+    ApprovalRequestId, ConversationId, PlanTodoItemId, PlanTodoProgress, RecoveryConflictSummary,
+    TaskId, TaskState, Timestamp, TodoPriority, WorkspaceId,
 };
 use agent_ui_bridge::{
     UiTaskActiveTodoSummary, UiTaskCommandError, UiTaskReviewSummary, UiTaskReviewSummaryArtifact,
@@ -39,6 +39,8 @@ pub struct DesktopTaskItem {
     pub latest_notification_approval_id: Option<ApprovalRequestId>,
     #[serde(default)]
     pub artifact_count: u32,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub recovery_conflicts: Vec<RecoveryConflictSummary>,
 }
 
 impl DesktopTaskItem {
@@ -66,6 +68,7 @@ impl DesktopTaskItem {
             latest_notification_at: None,
             latest_notification_approval_id: None,
             artifact_count: 0,
+            recovery_conflicts: Vec::new(),
         })
     }
 
@@ -116,6 +119,7 @@ impl TryFrom<&UiTaskSummary> for DesktopTaskItem {
         item.latest_notification_at = summary.latest_notification_at;
         item.latest_notification_approval_id = summary.latest_notification_approval_id;
         item.artifact_count = summary.artifact_count;
+        item.recovery_conflicts = summary.recovery_conflicts.clone();
         Ok(item)
     }
 }
@@ -185,6 +189,7 @@ pub struct DesktopTaskMonitorItem {
     pub latest_notification_at: Option<Timestamp>,
     pub latest_notification_approval_id: Option<ApprovalRequestId>,
     pub artifact_count: u32,
+    pub recovery_conflicts: Vec<RecoveryConflictSummary>,
     pub updated_at: Timestamp,
 }
 
@@ -266,6 +271,7 @@ impl TryFrom<&UiTaskSummary> for DesktopTaskMonitorItem {
             latest_notification_at: summary.latest_notification_at,
             latest_notification_approval_id: summary.latest_notification_approval_id,
             artifact_count: summary.artifact_count,
+            recovery_conflicts: summary.recovery_conflicts.clone(),
             updated_at: summary.updated_at,
         })
     }

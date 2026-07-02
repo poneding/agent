@@ -18,6 +18,7 @@ agent-storage = { path = "../agent-storage" }
 agent-telemetry = { path = "../agent-telemetry" }
 agent-tool = { path = "../agent-tool" }
 agent-types = { path = "../agent-types" }
+agent-worktree = { path = "../agent-worktree" }
 async-trait = "0.1"
 futures-util = "0.3"
 serde = { version = "1", features = ["derive"] }

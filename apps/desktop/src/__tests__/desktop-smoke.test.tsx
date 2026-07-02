@@ -83,6 +83,30 @@ const workspaceSnapshot: DesktopWorkspaceSnapshot = {
       latest_notification_kind: 'waiting_approval',
       latest_notification_approval_id: 'approval-64',
       artifact_count: 1,
+      recovery_conflicts: [
+        {
+          path: 'src/lib.rs',
+          kind: 'both_modified',
+          lead_change: {
+            source: 'workspace',
+            change_kind: 'modified',
+            content_hash: 'lead-hash',
+          },
+          incoming_change: {
+            source: 'recovery',
+            change_kind: 'modified',
+            content_hash: 'incoming-hash',
+          },
+          next_action: 'inspect_diff',
+          diagnostics: [
+            {
+              severity: 'warning',
+              code: 'recovery.conflict.blocks_resume',
+              message: 'manual review required before resume',
+            },
+          ],
+        },
+      ],
     },
     {
       task_id: 'task-65',
@@ -420,6 +444,11 @@ describe('desktop MVP smoke navigation', () => {
     expect(within(tasksWorkspace).getByText('approval requested')).toBeInTheDocument();
     expect(within(tasksWorkspace).getAllByText('waiting_approval').length).toBeGreaterThan(0);
     expect(within(tasksWorkspace).getByText('approval-64')).toBeInTheDocument();
+    expect(within(tasksWorkspace).getByText('1 conflict')).toBeInTheDocument();
+    expect(within(tasksWorkspace).getByLabelText('Recovery conflicts')).toBeInTheDocument();
+    expect(within(tasksWorkspace).getByText('src/lib.rs')).toBeInTheDocument();
+    expect(within(tasksWorkspace).getByText('both_modified')).toBeInTheDocument();
+    expect(within(tasksWorkspace).getByText('inspect_diff')).toBeInTheDocument();
     expect(within(tasksWorkspace).getByText('Run cargo xtask desktop-test')).toBeInTheDocument();
     expect(within(tasksWorkspace).getByText('succeeded')).toBeInTheDocument();
 

@@ -13,6 +13,8 @@ pub struct RecoverySnapshot {
     pub idempotent_effects: Vec<RecoveredToolEffect>,
     #[serde(default)]
     pub idempotent_recovery: IdempotentRecoverySummary,
+    #[serde(default)]
+    pub conflicts: Vec<RecoveryConflictSummary>,
     pub pending_approvals: Vec<RecoveredApprovalWait>,
     pub diagnostics: Vec<RecoveryDiagnostic>,
 }
@@ -37,6 +39,7 @@ pub enum RecoveryReadiness {
     Ready,
     NeedsApproval,
     PendingToolCalls,
+    HasConflict,
     CorruptCheckpoint,
     StorageError,
     Blocked,
@@ -72,6 +75,41 @@ pub struct RecoveredApprovalWait {
     pub resource_kind: String,
     pub resource: String,
     pub summary: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct RecoveryConflictSummary {
+    pub path: String,
+    pub kind: RecoveryConflictKind,
+    pub lead_change: RecoveryConflictSide,
+    pub incoming_change: RecoveryConflictSide,
+    pub next_action: RecoveryConflictNextAction,
+    #[serde(default)]
+    pub diagnostics: Vec<RecoveryDiagnostic>,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecoveryConflictKind {
+    BothModified,
+    DeleteModify,
+    AddAddDifferentContent,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct RecoveryConflictSide {
+    pub source: String,
+    pub change_kind: String,
+    pub content_hash: Option<String>,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecoveryConflictNextAction {
+    InspectDiff,
+    ChooseSide,
+    ForkWork,
+    ManualResolution,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

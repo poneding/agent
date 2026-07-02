@@ -1,13 +1,14 @@
 use agent_types::{
     CheckpointId, ClientKind, CommandRetryAttemptLink, CommandRetryCommandSummary,
     CommandRetryFailureClassification, CommandRetryPlan, CommandRetryReadiness, ConversationId,
-    CorrelationId, EventSeq, IdempotentRecoverySummary, RecoveryReplaySummary, RecoverySnapshot,
-    ResumeDryRunReport, SchemaVersion, TurnId,
+    CorrelationId, EventSeq, IdempotentRecoverySummary, RecoveryConflictKind,
+    RecoveryConflictNextAction, RecoveryConflictSide, RecoveryConflictSummary,
+    RecoveryReplaySummary, RecoverySnapshot, ResumeDryRunReport, SchemaVersion, TurnId,
 };
 use agent_ui_bridge::{
-    UiClientInfo, UiCommand, UiCommandEnvelope, UiCommandRetryPlan, UiIdempotentRecoverySummary,
-    UiJsonFrame, UiRecoverySnapshot, UiReplayForkReport, UiReplayInspectReport,
-    UiResumeDryRunReport, validate_ui_command,
+    UiClientInfo, UiCommand, UiCommandEnvelope, UiCommandRetryPlan, UiConflictInspectReport,
+    UiIdempotentRecoverySummary, UiJsonFrame, UiRecoverySnapshot, UiReplayForkReport,
+    UiReplayInspectReport, UiResumeDryRunReport, validate_ui_command,
 };
 
 fn conversation_id(value: &str) -> ConversationId {
@@ -35,6 +36,7 @@ fn snapshot(conversation_id: ConversationId, turn_id: Option<TurnId>) -> Recover
         pending_tool_calls: Vec::new(),
         idempotent_effects: Vec::new(),
         idempotent_recovery: agent_types::IdempotentRecoverySummary::default(),
+        conflicts: Vec::new(),
         pending_approvals: Vec::new(),
         diagnostics: Vec::new(),
     }
@@ -241,4 +243,32 @@ fn command_retry_and_idempotent_recovery_frames_serialize() {
     .expect("serialize idempotent frame");
     assert!(idempotent_json.contains("idempotent_recovery"));
     assert!(idempotent_json.contains("reusable_effect_count"));
+}
+
+#[test]
+fn conflict_inspect_frame_serializes_safe_shape() {
+    let conflict = RecoveryConflictSummary {
+        path: "src/lib.rs".to_string(),
+        kind: RecoveryConflictKind::BothModified,
+        lead_change: RecoveryConflictSide {
+            source: "lead".to_string(),
+            change_kind: "modified".to_string(),
+            content_hash: Some("lead-hash".to_string()),
+        },
+        incoming_change: RecoveryConflictSide {
+            source: "incoming".to_string(),
+            change_kind: "modified".to_string(),
+            content_hash: Some("incoming-hash".to_string()),
+        },
+        next_action: RecoveryConflictNextAction::InspectDiff,
+        diagnostics: Vec::new(),
+    };
+    let frame =
+        UiJsonFrame::ConflictInspect(UiConflictInspectReport::new(vec![conflict], Vec::new()));
+    let value = serde_json::to_value(frame).expect("serialize conflict frame");
+
+    assert_eq!(value["type"], "conflict_inspect");
+    assert_eq!(value["data"]["conflicts"][0]["path"], "src/lib.rs");
+    assert_eq!(value["data"]["conflicts"][0]["kind"], "both_modified");
+    assert_eq!(value["data"]["conflicts"][0]["next_action"], "inspect_diff");
 }

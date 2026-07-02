@@ -385,6 +385,15 @@ impl TracePanelState {
                     plan.plan.diagnostics.len()
                 ),
             )),
+            UiJsonFrame::ConflictInspect(report) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "conflicts",
+                format!(
+                    "{} conflicts diagnostics={}",
+                    report.conflicts.len(),
+                    report.diagnostics.len()
+                ),
+            )),
             UiJsonFrame::TaskSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "tasks",

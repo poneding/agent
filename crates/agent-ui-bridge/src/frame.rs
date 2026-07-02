@@ -17,8 +17,8 @@ use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_ta
 use agent_types::{
     ApprovalRequestId, CheckpointId, ClientKind, CommandRetryPlan, ConversationId, EventSeq,
     IdempotentRecoverySummary, PlanTodoItemId, PlanTodoProgress, PlanTodoSnapshot,
-    RecoveryDiagnostic, RecoverySnapshot, ResumeDryRunReport, TaskId, TaskState, Timestamp,
-    TodoPriority, TurnId, WorkspaceId,
+    RecoveryConflictSummary, RecoveryDiagnostic, RecoverySnapshot, ResumeDryRunReport, TaskId,
+    TaskState, Timestamp, TodoPriority, TurnId, WorkspaceId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -2176,6 +2176,26 @@ impl UiCommandRetryPlan {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiConflictInspectReport {
+    pub conflicts: Vec<RecoveryConflictSummary>,
+    pub diagnostics: Vec<RecoveryDiagnostic>,
+}
+
+impl UiConflictInspectReport {
+    #[must_use]
+    pub fn new(
+        mut conflicts: Vec<RecoveryConflictSummary>,
+        diagnostics: Vec<RecoveryDiagnostic>,
+    ) -> Self {
+        conflicts.sort_by(|left, right| left.path.cmp(&right.path));
+        Self {
+            conflicts,
+            diagnostics,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UiTaskSnapshot {
     pub tasks: Vec<UiTaskSummary>,
     pub errors: Vec<UiTaskCommandError>,
@@ -2220,6 +2240,8 @@ pub struct UiTaskSummary {
     pub latest_notification_approval_id: Option<ApprovalRequestId>,
     #[serde(default)]
     pub artifact_count: u32,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub recovery_conflicts: Vec<RecoveryConflictSummary>,
     pub created_at: Timestamp,
     pub updated_at: Timestamp,
 }
@@ -2263,6 +2285,7 @@ impl UiTaskSummary {
                 .as_ref()
                 .and_then(|notification| notification.approval_id),
             artifact_count: 0,
+            recovery_conflicts: Vec::new(),
             created_at: task.created_at,
             updated_at: task.updated_at,
         })
@@ -2495,6 +2518,7 @@ pub enum UiJsonFrame {
     ReplayInspect(UiReplayInspectReport),
     ReplayFork(UiReplayForkReport),
     CommandRetryPlan(UiCommandRetryPlan),
+    ConflictInspect(UiConflictInspectReport),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
     StartupMigrationSnapshot(UiStartupMigrationSnapshot),

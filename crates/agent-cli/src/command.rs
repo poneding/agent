@@ -20,18 +20,18 @@ use agent_core::{
     CommandTestDiagnosticSeverity, CommandTestLoopError, CommandTestLoopInput,
     CommandTestLoopReport, ConfigDiagnostic, ConfigDiagnosticSeverity, ConfigLayer,
     ConfigLayerKind, ConfigOverride, ConfiguredTurnError, ConfiguredTurnInput,
-    ConfiguredTurnRunner, ContextBudget, ContextRetrievalQuery, ContextSemanticFallbackPolicy,
-    ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode, EditDiffDiagnosticSeverity,
-    EditDiffFlowError, EditDiffFlowInput, EditDiffFlowReport, EffectiveRuntimeConfig,
-    ExtensionCapabilitySummary, ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus,
-    ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry,
-    ExtensionRegistryError, ExtensionSource, ExtensionSourceKind, PinnedProjectContextBudgetReport,
-    PinnedProjectContextPin, PinnedProjectContextRequest, PlanTodoOperation, PlanTodoUpdate,
-    PlanTodoUpdateOutcome, PlatformPathOverrides, PlatformPaths, ProjectContextDiagnostic,
-    ProjectContextDiagnosticSeverity, ProjectContextHybridPinnedQualityRetrievalReport,
-    ProjectContextHybridPinnedRetrievalInput, ProjectContextHybridPinnedRetrievalReport,
-    ProjectContextHybridQualityRetrievalReport, ProjectContextHybridRetrievalInput,
-    ProjectContextHybridRetrievalReport, ProjectContextLimits,
+    ConfiguredTurnRunner, ConflictRecoveryMapper, ContextBudget, ContextRetrievalQuery,
+    ContextSemanticFallbackPolicy, ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode,
+    EditDiffDiagnosticSeverity, EditDiffFlowError, EditDiffFlowInput, EditDiffFlowReport,
+    EffectiveRuntimeConfig, ExtensionCapabilitySummary, ExtensionCompatibility, ExtensionHealth,
+    ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord,
+    ExtensionRegistry, ExtensionRegistryError, ExtensionSource, ExtensionSourceKind,
+    PinnedProjectContextBudgetReport, PinnedProjectContextPin, PinnedProjectContextRequest,
+    PlanTodoOperation, PlanTodoUpdate, PlanTodoUpdateOutcome, PlatformPathOverrides, PlatformPaths,
+    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
+    ProjectContextHybridPinnedQualityRetrievalReport, ProjectContextHybridPinnedRetrievalInput,
+    ProjectContextHybridPinnedRetrievalReport, ProjectContextHybridQualityRetrievalReport,
+    ProjectContextHybridRetrievalInput, ProjectContextHybridRetrievalReport, ProjectContextLimits,
     ProjectContextPinnedQualityRetrievalReport, ProjectContextPinnedRetrievalInput,
     ProjectContextPinnedRetrievalReport, ProjectContextQualityRetrievalReport,
     ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
@@ -100,17 +100,18 @@ use agent_types::{
     CommandRetryDiagnostic, CommandRetryDiagnosticSeverity, CommandRetryPlan,
     CommandRetryReadiness, CommandRetryRequest, ConversationId, CorrelationId, EventId, EventSeq,
     PlanTodoDiagnostic, PlanTodoEvidenceKind, PlanTodoItem, PlanTodoItemId, PlanTodoSnapshot,
-    RecoveryDiagnostic, RecoveryDiagnosticSeverity, RecoveryReadiness, RecoverySnapshot,
-    ResumeDryRunReport, RuntimeEvent, RuntimeEventPayload, SchemaVersion, TaskId, Timestamp,
-    TodoPriority, TodoSource, TodoStatus, ToolCallProposed, ToolEffectDisposition,
-    ToolExecutionCompleted, TurnId, UserInputReceived, WorkspaceId,
+    RecoveryConflictKind, RecoveryConflictNextAction, RecoveryDiagnostic,
+    RecoveryDiagnosticSeverity, RecoveryReadiness, RecoverySnapshot, ResumeDryRunReport,
+    RuntimeEvent, RuntimeEventPayload, SchemaVersion, TaskId, Timestamp, TodoPriority, TodoSource,
+    TodoStatus, ToolCallProposed, ToolEffectDisposition, ToolExecutionCompleted, TurnId,
+    UserInputReceived, WorkspaceId,
 };
 use agent_ui_bridge::{
     UiApprovalPreviewSummary, UiApprovalQueueSnapshot, UiApprovalRequest, UiBridgeError,
     UiCommandRetryPlan, UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity,
-    UiConfigSnapshot, UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic,
-    UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame,
-    UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
+    UiConfigSnapshot, UiConflictInspectReport, UiEditDiffSnapshot, UiExtensionCapabilityReview,
+    UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot,
+    UiJsonFrame, UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
     UiPlanTodoCommandError, UiPlanTodoSnapshot, UiPlatformPathsSummary,
     UiProjectContextHybridRetrievalSnapshot, UiProjectContextPinnedRetrievalSnapshot,
     UiProjectContextQualityTraceSnapshot, UiProjectContextRetrievalSnapshot,
@@ -122,6 +123,7 @@ use agent_ui_bridge::{
     UiTerminalStatusSnapshot, approval_queue_snapshot_from_requests, default_slash_command_catalog,
     encode_json_frame, normalize_runtime_event, resolve_slash_command,
 };
+use agent_worktree::{ChangeKind, FileChange, detect_conflicts};
 use futures_util::StreamExt;
 
 use crate::providers::{build_model_provider_registry, redact_secret_like_text};
@@ -275,6 +277,7 @@ pub enum CliCommand {
     Recovery(RecoveryCliCommand),
     Replay(ReplayCliCommand),
     CommandRetry(CommandRetryCliCommand),
+    Conflict(ConflictCliCommand),
     Task(TaskCliCommand),
     Approval(ApprovalCliCommand),
     Eval(EvalCliCommand),
@@ -453,6 +456,21 @@ pub enum CommandRetryCliCommand {
         reason: String,
         dry_run: bool,
     },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ConflictCliCommand {
+    Inspect {
+        conversation_id: Option<ConversationId>,
+        turn_id: Option<TurnId>,
+        fixture: ConflictFixture,
+    },
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ConflictFixture {
+    Sample,
+    Empty,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -698,6 +716,7 @@ where
         "recovery" => parse_recovery_command(&mut args),
         "replay" => parse_replay_command(&mut args),
         "command" => parse_command_retry_command(&mut args),
+        "conflict" => parse_conflict_command(&mut args),
         "task" => parse_task_command(&mut args),
         "approval" => parse_approval_command(&mut args),
         "eval" => parse_eval_command(&mut args),
@@ -869,6 +888,7 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             let runtime = CommandRetryRuntime::fixture();
             render_command_retry_command(&runtime, command, OutputMode::Text)
         }
+        CliCommand::Conflict(command) => render_conflict_command(command, OutputMode::Text),
         CliCommand::Task(command) => {
             let mut runtime = TaskCommandRuntime::fixture();
             render_task_command(&mut runtime, command, OutputMode::Text)
@@ -1002,6 +1022,7 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                 let runtime = CommandRetryRuntime::fixture();
                 render_command_retry_command(&runtime, command, OutputMode::Text)
             }
+            CliCommand::Conflict(command) => render_conflict_command(command, OutputMode::Text),
             CliCommand::Task(command) => {
                 let mut runtime = TaskCommandRuntime::fixture();
                 render_task_command(&mut runtime, command, OutputMode::Text)
@@ -1157,6 +1178,9 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
     if let CliCommand::CommandRetry(command) = invocation.command {
         let runtime = CommandRetryRuntime::fixture();
         return render_command_retry_command(&runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::Conflict(command) = invocation.command {
+        return render_conflict_command(command, OutputMode::Json);
     }
     if let CliCommand::Task(command) = invocation.command {
         let mut runtime = TaskCommandRuntime::fixture();
@@ -2406,6 +2430,60 @@ where
         reason: reason
             .ok_or_else(|| CliError::MissingValue("command retry --reason".to_string()))?,
         dry_run,
+    }))
+}
+
+fn parse_conflict_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("conflict".to_string()));
+    };
+
+    match subcommand.as_str() {
+        "inspect" => parse_conflict_inspect_args(args),
+        _ => Err(CliError::UnknownArgument(format!("conflict {subcommand}"))),
+    }
+}
+
+fn parse_conflict_inspect_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut conversation_id = None;
+    let mut turn_id = None;
+    let mut fixture = ConflictFixture::Sample;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--conversation" | "--conversation-id" => {
+                let value = take_flag_value(args, &arg)?;
+                conversation_id = Some(parse_conversation_id(&value)?);
+            }
+            "--turn" | "--turn-id" => {
+                let value = take_flag_value(args, &arg)?;
+                turn_id = Some(parse_turn_id(&value)?);
+            }
+            "--fixture" => {
+                let value = take_flag_value(args, &arg)?;
+                fixture = match value.as_str() {
+                    "sample" => ConflictFixture::Sample,
+                    "empty" => ConflictFixture::Empty,
+                    _ => {
+                        return Err(CliError::UnknownArgument(format!(
+                            "conflict inspect --fixture {value}"
+                        )));
+                    }
+                };
+            }
+            _ => return Err(CliError::UnknownArgument(format!("conflict inspect {arg}"))),
+        }
+    }
+
+    Ok(CliCommand::Conflict(ConflictCliCommand::Inspect {
+        conversation_id,
+        turn_id,
+        fixture,
     }))
 }
 
@@ -3797,6 +3875,114 @@ fn render_command_retry_plan_text(plan: &CommandRetryPlan) -> String {
     output
 }
 
+#[must_use]
+pub fn render_conflict_command(command: ConflictCliCommand, output_mode: OutputMode) -> CliOutput {
+    match command {
+        ConflictCliCommand::Inspect {
+            conversation_id,
+            turn_id: _,
+            fixture,
+        } => match conflict_inspect_fixture_report(fixture) {
+            Ok(mut report) => {
+                if conversation_id.is_some() {
+                    report.diagnostics.push(recovery_diagnostic(
+                        RecoveryDiagnosticSeverity::Info,
+                        "conflict.fixture",
+                        "using deterministic conflict fixture; persisted conflict lookup is not wired yet",
+                        Some("agent-cli"),
+                    ));
+                }
+                match output_mode {
+                    OutputMode::Text => CliOutput::exit(render_conflict_inspect_text(&report)),
+                    OutputMode::Json => {
+                        CliOutput::exit(json_frame_line(UiJsonFrame::ConflictInspect(report)))
+                    }
+                }
+            }
+            Err(error) => render_recovery_cli_error("conflict_inspect_failed", &error, output_mode),
+        },
+    }
+}
+
+fn conflict_inspect_fixture_report(
+    fixture: ConflictFixture,
+) -> Result<UiConflictInspectReport, String> {
+    let (lead, incoming) = match fixture {
+        ConflictFixture::Sample => (
+            vec![
+                conflict_change(
+                    "src/token-secret.rs",
+                    ChangeKind::Modified,
+                    Some("lead-secret-hash"),
+                )?,
+                conflict_change("src/lib.rs", ChangeKind::Deleted, None)?,
+            ],
+            vec![
+                conflict_change(
+                    "src/token-secret.rs",
+                    ChangeKind::Modified,
+                    Some("incoming-api_key-hash"),
+                )?,
+                conflict_change("src/lib.rs", ChangeKind::Modified, Some("incoming"))?,
+            ],
+        ),
+        ConflictFixture::Empty => (
+            vec![conflict_change(
+                "src/a.rs",
+                ChangeKind::Modified,
+                Some("a"),
+            )?],
+            vec![conflict_change(
+                "src/b.rs",
+                ChangeKind::Modified,
+                Some("b"),
+            )?],
+        ),
+    };
+    let report = detect_conflicts(&lead, &incoming).map_err(|error| error.to_string())?;
+    let conflicts = ConflictRecoveryMapper.map_report(&report);
+    let diagnostics = vec![recovery_diagnostic(
+        RecoveryDiagnosticSeverity::Info,
+        "conflict.fixture",
+        "using deterministic conflict fixture; persisted conflict lookup is not wired yet",
+        Some("agent-cli"),
+    )];
+    Ok(UiConflictInspectReport::new(conflicts, diagnostics))
+}
+
+fn conflict_change(path: &str, kind: ChangeKind, hash: Option<&str>) -> Result<FileChange, String> {
+    FileChange::new(path, kind, hash.map(str::to_string)).map_err(|error| error.to_string())
+}
+
+fn render_conflict_inspect_text(report: &UiConflictInspectReport) -> String {
+    let mut output = format!(
+        "Conflict inspect\nconflict_count={}\n",
+        report.conflicts.len()
+    );
+    if report.conflicts.is_empty() {
+        output.push_str("No conflicts\n");
+    }
+    for conflict in &report.conflicts {
+        output.push_str(&format!(
+            "conflict path={} kind={} next_action={} lead={} incoming={}",
+            redact_secret_like_text(&conflict.path),
+            recovery_conflict_kind_label(conflict.kind),
+            recovery_conflict_next_action_label(conflict.next_action),
+            redact_secret_like_text(&conflict.lead_change.change_kind),
+            redact_secret_like_text(&conflict.incoming_change.change_kind)
+        ));
+        if let Some(hash) = &conflict.lead_change.content_hash {
+            output.push_str(&format!(" lead_hash={}", redact_secret_like_text(hash)));
+        }
+        if let Some(hash) = &conflict.incoming_change.content_hash {
+            output.push_str(&format!(" incoming_hash={}", redact_secret_like_text(hash)));
+        }
+        output.push('\n');
+    }
+    output.push_str(&render_recovery_diagnostics_text(&report.diagnostics));
+    output
+}
+
 fn replay_inspect_report(
     snapshot: &RecoverySnapshot,
     from_checkpoint_id: Option<CheckpointId>,
@@ -3874,6 +4060,17 @@ fn render_recovery_snapshot_text(snapshot: &RecoverySnapshot) -> String {
             tool_effect_disposition_label(effect.disposition),
             redact_secret_like_text(&effect.input_hash)
         ));
+    }
+    if !snapshot.conflicts.is_empty() {
+        output.push_str(&format!("conflict_count={}\n", snapshot.conflicts.len()));
+        for conflict in &snapshot.conflicts {
+            output.push_str(&format!(
+                "conflict path={} kind={} next_action={}\n",
+                redact_secret_like_text(&conflict.path),
+                recovery_conflict_kind_label(conflict.kind),
+                recovery_conflict_next_action_label(conflict.next_action)
+            ));
+        }
     }
     for approval in &snapshot.pending_approvals {
         output.push_str(&format!(
@@ -4169,6 +4366,7 @@ fn recovery_readiness_label(readiness: RecoveryReadiness) -> &'static str {
         RecoveryReadiness::Ready => "ready",
         RecoveryReadiness::NeedsApproval => "needs_approval",
         RecoveryReadiness::PendingToolCalls => "pending_tool_calls",
+        RecoveryReadiness::HasConflict => "has_conflict",
         RecoveryReadiness::CorruptCheckpoint => "corrupt_checkpoint",
         RecoveryReadiness::StorageError => "storage_error",
         RecoveryReadiness::Blocked => "blocked",
@@ -4180,6 +4378,21 @@ fn recovery_diagnostic_severity_label(severity: RecoveryDiagnosticSeverity) -> &
         RecoveryDiagnosticSeverity::Info => "info",
         RecoveryDiagnosticSeverity::Warning => "warning",
         RecoveryDiagnosticSeverity::Error => "error",
+    }
+}
+
+fn recovery_diagnostic(
+    severity: RecoveryDiagnosticSeverity,
+    code: impl Into<String>,
+    message: impl Into<String>,
+    source: Option<&str>,
+) -> RecoveryDiagnostic {
+    RecoveryDiagnostic {
+        severity,
+        code: redact_secret_like_text(&code.into()),
+        message: redact_secret_like_text(&message.into()),
+        source: source.map(ToOwned::to_owned),
+        truncated: false,
     }
 }
 
@@ -4226,6 +4439,23 @@ fn tool_effect_disposition_label(disposition: ToolEffectDisposition) -> &'static
         ToolEffectDisposition::SkippedDuplicate => "skipped_duplicate",
         ToolEffectDisposition::PendingReplay => "pending_replay",
         ToolEffectDisposition::Conflict => "conflict",
+    }
+}
+
+fn recovery_conflict_kind_label(kind: RecoveryConflictKind) -> &'static str {
+    match kind {
+        RecoveryConflictKind::BothModified => "both_modified",
+        RecoveryConflictKind::DeleteModify => "delete_modify",
+        RecoveryConflictKind::AddAddDifferentContent => "add_add_different_content",
+    }
+}
+
+fn recovery_conflict_next_action_label(action: RecoveryConflictNextAction) -> &'static str {
+    match action {
+        RecoveryConflictNextAction::InspectDiff => "inspect_diff",
+        RecoveryConflictNextAction::ChooseSide => "choose_side",
+        RecoveryConflictNextAction::ForkWork => "fork_work",
+        RecoveryConflictNextAction::ManualResolution => "manual_resolution",
     }
 }
 

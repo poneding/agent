@@ -13,6 +13,7 @@ use agent_types::{
 use thiserror::Error;
 
 use crate::ApprovalRecoveryView;
+use crate::ConflictRecoveryMapper;
 
 const MAX_RECOVERY_DIAGNOSTIC_CHARS: usize = 240;
 const MAX_RECOVERY_SUMMARY_CHARS: usize = 240;
@@ -158,9 +159,26 @@ impl RecoveryEngine {
             pending_tool_calls,
             idempotent_effects,
             idempotent_recovery,
+            conflicts: Vec::new(),
             pending_approvals,
             diagnostics,
         }
+    }
+
+    pub fn snapshot_with_conflicts<E, I>(
+        &self,
+        events: &E,
+        idempotency: &I,
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+        conflicts: Vec<agent_types::RecoveryConflictSummary>,
+    ) -> RecoverySnapshot
+    where
+        E: EventStore + CheckpointStore,
+        I: IdempotencyStore + ?Sized,
+    {
+        let snapshot = self.snapshot(events, idempotency, conversation_id, turn_id);
+        ConflictRecoveryMapper.apply_to_snapshot(snapshot, conflicts)
     }
 
     pub fn resume_dry_run<E, I>(

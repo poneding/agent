@@ -1,5 +1,9 @@
 import type { DesktopTaskItem } from '../types';
-import { isWaitingApproval, planProgressText } from '../state/tasks';
+import {
+  isWaitingApproval,
+  planProgressText,
+  recoveryConflictSummaryText,
+} from '../state/tasks';
 
 export function TaskDetail({ task }: { task: DesktopTaskItem | null }) {
   if (task === null) {
@@ -31,7 +35,20 @@ export function TaskDetail({ task }: { task: DesktopTaskItem | null }) {
         <dd>{task.latest_notification_kind ?? 'none'}</dd>
         <dt>Artifacts</dt>
         <dd>{task.artifact_count ?? 0}</dd>
+        <dt>Recovery Conflicts</dt>
+        <dd>{recoveryConflictSummaryText(task)}</dd>
       </dl>
+      {(task.recovery_conflicts?.length ?? 0) > 0 ? (
+        <ul className="task-conflict-list" aria-label="Recovery conflicts">
+          {task.recovery_conflicts?.map((conflict) => (
+            <li key={`${conflict.path}:${conflict.kind}`}>
+              <span>{conflict.path}</span>
+              <span>{conflict.kind}</span>
+              <span>{conflict.next_action}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }

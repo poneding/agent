@@ -1,6 +1,7 @@
 use agent_cli::{
-    CliCommand, CliError, CommandRetryCliCommand, OutputMode, RecoveryCliCommand, ReplayCliCommand,
-    parse_cli_command, parse_cli_invocation, render_cli_invocation,
+    CliCommand, CliError, CommandRetryCliCommand, ConflictCliCommand, ConflictFixture, OutputMode,
+    RecoveryCliCommand, ReplayCliCommand, parse_cli_command, parse_cli_invocation,
+    render_cli_invocation,
 };
 use agent_types::{CheckpointId, ConversationId, TurnId};
 use agent_ui_bridge::UiJsonFrame;
@@ -122,6 +123,28 @@ fn command_retry_command_parses() {
             command_run_id: "test-failed".to_string(),
             reason: "fixed assertion".to_string(),
             dry_run: true,
+        })
+    );
+}
+
+#[test]
+fn conflict_inspect_command_parses() {
+    assert_eq!(
+        parse_cli_command([
+            "conflict",
+            "inspect",
+            "--conversation",
+            CONVERSATION,
+            "--turn",
+            TURN,
+            "--fixture",
+            "sample",
+        ])
+        .expect("parse conflict inspect"),
+        CliCommand::Conflict(ConflictCliCommand::Inspect {
+            conversation_id: Some(conversation_id()),
+            turn_id: Some(turn_id()),
+            fixture: ConflictFixture::Sample,
         })
     );
 }
@@ -283,6 +306,62 @@ fn command_retry_reports_blocked_and_missing_targets() {
         UiJsonFrame::CommandRetryPlan(plan)
             if plan.plan.readiness == agent_types::CommandRetryReadiness::MissingEvidence
     ));
+}
+
+#[test]
+fn conflict_inspect_renders_text_and_json() {
+    let text = render_cli_invocation(
+        parse_cli_invocation(["conflict", "inspect", "--fixture", "sample"])
+            .expect("parse text conflict inspect"),
+    );
+
+    assert_eq!(text.status_code, 0);
+    assert!(text.stdout.contains("Conflict inspect"));
+    assert!(text.stdout.contains("conflict_count=2"));
+    assert!(
+        text.stdout
+            .contains("conflict path=src/lib.rs kind=delete_modify")
+    );
+    assert!(
+        text.stdout
+            .contains("conflict path=src/[redacted] kind=both_modified")
+    );
+    assert!(text.stdout.contains("next_action=choose_side"));
+    assert!(text.stdout.contains("next_action=inspect_diff"));
+    assert!(!text.stdout.contains("token-secret"));
+    assert!(!text.stdout.contains("lead-secret-hash"));
+    assert!(!text.stdout.contains("api_key"));
+    assert!(!text.stdout.contains("token"));
+    assert!(!text.stdout.contains("must-not-appear"));
+
+    let json = render_cli_invocation(
+        parse_cli_invocation(["--json", "conflict", "inspect", "--fixture", "sample"])
+            .expect("parse json conflict inspect"),
+    );
+    assert_eq!(json.status_code, 0);
+    let frames = parse_frames(&json.stdout);
+    assert!(matches!(
+        &frames[0],
+        UiJsonFrame::ConflictInspect(report)
+            if report.conflicts.len() == 2
+                && report.conflicts.iter().any(|conflict|
+                    conflict.path == "src/lib.rs"
+                        && conflict.kind == agent_types::RecoveryConflictKind::DeleteModify)
+    ));
+    assert!(!json.stdout.contains("token-secret"));
+    assert!(!json.stdout.contains("api_key"));
+}
+
+#[test]
+fn conflict_inspect_empty_fixture_is_non_blocking() {
+    let output = render_cli_invocation(
+        parse_cli_invocation(["conflict", "inspect", "--fixture", "empty"])
+            .expect("parse empty conflict inspect"),
+    );
+
+    assert_eq!(output.status_code, 0);
+    assert!(output.stdout.contains("conflict_count=0"));
+    assert!(output.stdout.contains("No conflicts"));
 }
 
 #[test]

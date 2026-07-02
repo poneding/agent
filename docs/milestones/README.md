@@ -621,6 +621,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M62-03 implementation | Complete |
 | M62-04 slice spec | Complete |
 | M62-04 slice plan | Complete |
+| M62-04 implementation | Complete |
 | M62 slice specs | Complete for M62-01 through M62-04; planned for M62-05 |
 | M62 slice plans | Complete for M62-01 through M62-04; planned for M62-05 |
 | M62 implementation | In progress |
@@ -1363,7 +1364,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M62-01 Recovery Snapshot and Resume Contracts | `docs/specs/M62-01-recovery-snapshot-resume.spec.md` | `docs/plans/M62-01-recovery-snapshot-resume.plan.md` | Complete: typed recovery snapshots, readiness, diagnostics, pending tool/idempotency/approval evidence, resume dry-run reports, and focused tests. |
 | M62-02 CLI/JSON Replay, Resume, and Fork Commands | `docs/specs/M62-02-cli-json-replay-resume-fork.spec.md` | `docs/plans/M62-02-cli-json-replay-resume-fork.plan.md` | Complete: stable recovery status/resume and replay inspect/fork dry-run commands through CLI/JSON and bridge contracts, with deterministic fixture diagnostics and focused tests. |
 | M62-03 Idempotent Recovery and Failed Command Retry UX | `docs/specs/M62-03-idempotent-retry-ux.spec.md` | `docs/plans/M62-03-idempotent-retry-ux.plan.md` | Complete: visible idempotent tool recovery disposition, retryable command/test classification, retry attempt linkage, bridge frames, CLI dry-run retry planning, and focused tests. |
-| M62-04 Conflict Diagnostics and Recovery Surfacing | `docs/specs/M62-04-conflict-diagnostics.spec.md` | `docs/plans/M62-04-conflict-diagnostics.plan.md` | Spec/plan complete; implementation next for typed conflict diagnostics surfaced through recovery snapshots and CLI/TUI/Desktop-safe views. |
+| M62-04 Conflict Diagnostics and Recovery Surfacing | `docs/specs/M62-04-conflict-diagnostics.spec.md` | `docs/plans/M62-04-conflict-diagnostics.plan.md` | Complete: typed conflict diagnostics surface through recovery snapshots, bridge frames, CLI/JSON, TUI task summaries, and Desktop-safe views. |
 | M62-05 Crash Smoke, Docs, and Closeout | `docs/specs/M62-05-crash-smoke-closeout.spec.md` | `docs/plans/M62-05-crash-smoke-closeout.plan.md` | Planned: deterministic crash/restart smoke, user workflow docs, final gates, and M62 closeout status updates. |
 
 ## MX01 Slice Index
@@ -1379,7 +1380,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M62 Reliability and Recovery Productization, continuing with M62-04 Conflict Diagnostics and Recovery Surfacing.
+Current implementation focus: M62 Reliability and Recovery Productization, continuing with M62-05 Crash Smoke, Docs, and Closeout.
 
 Most recent completed or active planning documents:
 
@@ -1886,4 +1887,4 @@ Most recent completed technical design documents:
 
 Next implementation direction:
 
-- Plan and implement M62-04 Conflict Diagnostics and Recovery Surfacing with typed conflict summaries through recovery snapshots and CLI/TUI/Desktop-safe views.
+- Plan and implement M62-05 Crash Smoke, Docs, and Closeout with deterministic crash/restart recovery evidence, user workflow docs, final gates, and M62 status closeout.

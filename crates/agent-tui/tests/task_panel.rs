@@ -1,8 +1,9 @@
 use agent_tui::{ComposerAction, TaskPanelState, TuiAction, TuiApp, render_app_to_string};
 use agent_types::{
     ConversationId, CorrelationId, EventId, PlanTodoDiagnostic, PlanTodoItem, PlanTodoItemId,
-    PlanTodoProgress, PlanTodoSnapshot, SchemaVersion, TaskId, TaskState, Timestamp, TodoPriority,
-    TodoSource, TodoStatus,
+    PlanTodoProgress, PlanTodoSnapshot, RecoveryConflictKind, RecoveryConflictNextAction,
+    RecoveryConflictSide, RecoveryConflictSummary, RecoveryDiagnostic, RecoveryDiagnosticSeverity,
+    SchemaVersion, TaskId, TaskState, Timestamp, TodoPriority, TodoSource, TodoStatus,
 };
 use agent_ui_bridge::{
     UiEventEnvelope, UiEventPayload, UiJsonFrame, UiPlanTodoSnapshot, UiTaskActiveTodoSummary,
@@ -199,6 +200,59 @@ fn task_panel_renders_task_summary_plan_fields() {
     assert!(rendered.contains("waiting_approval=yes"));
     assert!(rendered.contains("notification=needs approval"));
     assert!(rendered.contains("artifacts=3"));
+}
+
+#[test]
+fn task_panel_renders_recovery_conflict_summaries() {
+    let mut panel = TaskPanelState::default();
+    let mut snapshot: UiTaskSnapshot = serde_json::from_value(serde_json::json!({
+        "tasks": [{
+            "task_id": TaskId::new(),
+            "workspace_id": agent_types::WorkspaceId::new(),
+            "conversation_id": ConversationId::new(),
+            "state": "failed",
+            "priority": "high",
+            "schedule": { "kind": "one_shot", "label": "once" },
+            "prompt_summary": "recover conflicted work",
+            "latest_run_summary": "blocked by conflict",
+            "created_at": "2026-07-01T00:00:00Z",
+            "updated_at": "2026-07-01T00:00:01Z"
+        }],
+        "errors": []
+    }))
+    .expect("task snapshot");
+    snapshot.tasks[0].recovery_conflicts = vec![RecoveryConflictSummary {
+        path: "src/[redacted].rs".to_string(),
+        kind: RecoveryConflictKind::BothModified,
+        lead_change: RecoveryConflictSide {
+            source: "workspace".to_string(),
+            change_kind: "modified".to_string(),
+            content_hash: Some("[redacted]".to_string()),
+        },
+        incoming_change: RecoveryConflictSide {
+            source: "recovery".to_string(),
+            change_kind: "modified".to_string(),
+            content_hash: Some("safe-hash".to_string()),
+        },
+        next_action: RecoveryConflictNextAction::InspectDiff,
+        diagnostics: vec![RecoveryDiagnostic {
+            severity: RecoveryDiagnosticSeverity::Warning,
+            code: "recovery.conflict.blocks_resume".to_string(),
+            message: "manual review required before resume".to_string(),
+            source: Some("fixture".to_string()),
+            truncated: false,
+        }],
+    }];
+
+    panel.reduce_frame(&UiJsonFrame::TaskSnapshot(snapshot));
+
+    let rendered = panel.render_text();
+    assert!(rendered.contains("conflicts=1"));
+    assert!(rendered.contains("conflict=src/[redacted].rs"));
+    assert!(rendered.contains("kind=both_modified"));
+    assert!(rendered.contains("next_action=inspect_diff"));
+    assert!(!rendered.contains("token-secret"));
+    assert!(!rendered.contains("api_key"));
 }
 
 #[test]

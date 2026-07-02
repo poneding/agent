@@ -172,6 +172,17 @@ impl TaskPanelState {
             if task.artifact_count > 0 {
                 line.push_str(&format!(" artifacts={}", task.artifact_count));
             }
+            if !task.recovery_conflicts.is_empty() {
+                line.push_str(&format!(" conflicts={}", task.recovery_conflicts.len()));
+                for conflict in &task.recovery_conflicts {
+                    line.push_str(&format!(
+                        " conflict={} kind={} next_action={}",
+                        conflict.path,
+                        conflict_kind_label(conflict.kind),
+                        conflict_next_action_label(conflict.next_action)
+                    ));
+                }
+            }
             line
         }));
         lines.extend(self.reviews.iter().map(|review| {
@@ -225,6 +236,23 @@ impl TaskPanelState {
             (count > 0).then(|| (state, count.try_into().unwrap_or(u32::MAX)))
         })
         .collect()
+    }
+}
+
+fn conflict_kind_label(kind: agent_types::RecoveryConflictKind) -> &'static str {
+    match kind {
+        agent_types::RecoveryConflictKind::BothModified => "both_modified",
+        agent_types::RecoveryConflictKind::DeleteModify => "delete_modify",
+        agent_types::RecoveryConflictKind::AddAddDifferentContent => "add_add_different_content",
+    }
+}
+
+fn conflict_next_action_label(action: agent_types::RecoveryConflictNextAction) -> &'static str {
+    match action {
+        agent_types::RecoveryConflictNextAction::InspectDiff => "inspect_diff",
+        agent_types::RecoveryConflictNextAction::ChooseSide => "choose_side",
+        agent_types::RecoveryConflictNextAction::ForkWork => "fork_work",
+        agent_types::RecoveryConflictNextAction::ManualResolution => "manual_resolution",
     }
 }
 

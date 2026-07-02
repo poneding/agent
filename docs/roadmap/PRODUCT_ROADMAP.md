@@ -221,7 +221,7 @@ Acceptance:
 
 ### M62 Reliability and Recovery Productization
 
-Status: In progress. M62-01 recovery snapshot and resume contracts, M62-02 CLI/JSON replay/resume/fork commands, and M62-03 idempotent retry UX are complete. M62-04 conflict diagnostics planning is complete and ready for implementation. Remaining slices cover conflict diagnostics implementation and deterministic crash smoke coverage.
+Status: In progress. M62-01 recovery snapshot and resume contracts, M62-02 CLI/JSON replay/resume/fork commands, M62-03 idempotent retry UX, and M62-04 conflict diagnostics are complete. Remaining work is M62-05 deterministic crash smoke, workflow docs, final gates, and M62 closeout.
 
 Purpose: make real coding work recoverable after interruption, crashes, conflicts, and retryable failures.
 
@@ -232,7 +232,7 @@ Initial slices:
 | M62-01 Recovery Snapshot and Resume Contracts | Complete: typed recovery snapshots, readiness, diagnostics, pending tool/idempotency/approval evidence, and resume dry-run behavior. |
 | M62-02 CLI/JSON Replay, Resume, and Fork Commands | Complete: stable recovery status/resume and replay inspect/fork dry-run commands through CLI/JSON and bridge contracts. |
 | M62-03 Idempotent Recovery and Failed Command Retry UX | Complete: replayed/skipped side-effect disposition, retryable command/test classification, retry attempt linkage, bridge frames, and CLI dry-run retry planning. |
-| M62-04 Conflict Diagnostics and Recovery Surfacing | Spec/plan complete; next implementation surfaces typed conflict diagnostics through recovery snapshots and CLI/TUI/Desktop-safe views. |
+| M62-04 Conflict Diagnostics and Recovery Surfacing | Complete: typed conflict diagnostics surface through recovery snapshots, bridge frames, CLI/JSON, TUI task summaries, and Desktop-safe views. |
 | M62-05 Crash Smoke, Docs, and Closeout | Add deterministic crash/restart smoke, recovery workflow docs, final gates, and status updates. |
 
 Acceptance:

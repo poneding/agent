@@ -29,6 +29,7 @@ agent-storage = { path = "../agent-storage" }
 agent-types = { path = "../agent-types" }
 agent-tui = { path = "../agent-tui" }
 agent-ui-bridge = { path = "../agent-ui-bridge" }
+agent-worktree = { path = "../agent-worktree" }
 camino = { version = "1" }
 futures-util = "0.3"
 serde = { version = "1", features = ["derive"] }

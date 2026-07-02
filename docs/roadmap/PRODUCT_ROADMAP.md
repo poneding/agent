@@ -221,7 +221,7 @@ Acceptance:
 
 ### M62 Reliability and Recovery Productization
 
-Status: Planned. The milestone spec and implementation plan define recovery snapshot/resume contracts, replay/fork commands, idempotent recovery visibility, failed-command retry UX, conflict diagnostics, and deterministic crash smoke coverage.
+Status: In progress. M62-01 recovery snapshot and resume contracts are complete, including typed recovery snapshots, readiness diagnostics, pending tool/idempotency/approval evidence, and resume dry-run reports. Remaining slices cover replay/fork commands, idempotent retry UX, conflict diagnostics, and deterministic crash smoke coverage.
 
 Purpose: make real coding work recoverable after interruption, crashes, conflicts, and retryable failures.
 
@@ -229,7 +229,7 @@ Initial slices:
 
 | Slice | Outcome |
 |---|---|
-| M62-01 Recovery Snapshot and Resume Contracts | Add typed recovery snapshots, readiness, diagnostics, pending tool/idempotency/approval evidence, and resume dry-run behavior. |
+| M62-01 Recovery Snapshot and Resume Contracts | Complete: typed recovery snapshots, readiness, diagnostics, pending tool/idempotency/approval evidence, and resume dry-run behavior. |
 | M62-02 CLI/JSON Replay, Resume, and Fork Commands | Expose stable recovery status/resume and replay inspect/fork commands through CLI/JSON and bridge contracts. |
 | M62-03 Idempotent Recovery and Failed Command Retry UX | Show replayed/skipped side effects, classify retryable command/test failures, and link retry attempts to prior evidence. |
 | M62-04 Conflict Diagnostics and Recovery Surfacing | Surface typed conflict diagnostics through recovery snapshots and CLI/TUI/Desktop-safe views. |

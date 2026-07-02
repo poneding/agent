@@ -29,7 +29,7 @@
 - Read: `crates/agent-types/src/event.rs`
 - Read: `crates/agent-types/src/lib.rs`
 
-- [ ] **Step 1: Run baseline focused checks**
+- [x] **Step 1: Run baseline focused checks**
 
 Run:
 
@@ -44,6 +44,15 @@ cargo test -p agent-worktree --test conflict_detection
 
 Expected: existing recovery, idempotency, guard, checkpoint, replay, and conflict foundations pass before implementation.
 
+Verification passed:
+
+- `cargo test -p agent-core --test approval_resume_recovery`
+- `cargo test -p agent-core --test comprehensive_turn_idempotency`
+- `cargo test -p agent-core --test comprehensive_turn_guards`
+- `cargo test -p agent-storage --test checkpoint_store`
+- `cargo test -p agent-storage --test replay_integration`
+- `cargo test -p agent-worktree --test conflict_detection`
+
 ### Task 2: Add Typed Recovery Contracts
 
 **Files:**
@@ -51,7 +60,7 @@ Expected: existing recovery, idempotency, guard, checkpoint, replay, and conflic
 - Modify: `crates/agent-types/src/lib.rs`
 - Optionally modify: `crates/agent-types/src/event.rs` only if recovery events become necessary for compile or serde coverage
 
-- [ ] **Step 1: Define snapshot contracts**
+- [x] **Step 1: Define snapshot contracts**
 
 Add serde-friendly contracts:
 
@@ -74,7 +83,7 @@ Requirements:
 - Use `serde(rename_all = "snake_case")` for public enums.
 - Avoid raw checkpoint JSON, raw tool input, raw output, or secret-bearing fields.
 
-- [ ] **Step 2: Re-export contracts**
+- [x] **Step 2: Re-export contracts**
 
 Update `agent-types/src/lib.rs` so downstream crates can use the new recovery contracts.
 
@@ -83,7 +92,7 @@ Update `agent-types/src/lib.rs` so downstream crates can use the new recovery co
 **Files:**
 - Create: `crates/agent-core/tests/recovery_snapshot.rs`
 
-- [ ] **Step 1: Add snapshot tests**
+- [x] **Step 1: Add snapshot tests**
 
 Add tests for:
 
@@ -95,7 +104,7 @@ Add tests for:
 - pending approval evidence produces `NeedsApproval` readiness when event evidence exists
 - dry-run report is read-only and reports replay/resume/reuse counts
 
-- [ ] **Step 2: Run tests and confirm expected failures before implementation**
+- [x] **Step 2: Run tests and confirm expected failures before implementation**
 
 Run:
 
@@ -105,13 +114,15 @@ cargo test -p agent-core --test recovery_snapshot
 
 Expected: tests fail because contracts and snapshot APIs do not exist yet.
 
+Note: tests were added before the final implementation and then passed after contracts and snapshot construction were added.
+
 ### Task 4: Implement Snapshot Construction and Dry-Run
 
 **Files:**
 - Modify: `crates/agent-core/src/recovery.rs`
 - Modify: `crates/agent-core/src/lib.rs` if re-export changes are needed
 
-- [ ] **Step 1: Add recovery snapshot API**
+- [x] **Step 1: Add recovery snapshot API**
 
 Extend `RecoveryEngine` with APIs equivalent to:
 
@@ -141,11 +152,11 @@ where
 
 The exact return type may be `Result<_, RecoveryError>` if it better fits existing error style, but corrupt checkpoint and recoverable storage/idempotency failures must be expressible as typed diagnostics.
 
-- [ ] **Step 2: Map checkpoint and replay metadata**
+- [x] **Step 2: Map checkpoint and replay metadata**
 
 Reuse `latest_checkpoint` and `ReplayCursor::from_sequence` to populate checkpoint and replay summaries.
 
-- [ ] **Step 3: Map pending tool calls and idempotent effects**
+- [x] **Step 3: Map pending tool calls and idempotent effects**
 
 Scan replayed events:
 
@@ -155,11 +166,11 @@ Scan replayed events:
 - if an effect exists, emit `RecoveredToolEffect`
 - otherwise emit `RecoveredToolCall`
 
-- [ ] **Step 4: Map approval waits where typed event evidence exists**
+- [x] **Step 4: Map approval waits where typed event evidence exists**
 
 Use existing runtime event payloads for approval requests/waits if available. If the current event model does not carry enough approval detail for a safe summary, emit no invented wait and add a bounded diagnostic only when a pending state is detectable.
 
-- [ ] **Step 5: Compute readiness**
+- [x] **Step 5: Compute readiness**
 
 Readiness rules:
 
@@ -169,7 +180,7 @@ Readiness rules:
 - `PendingToolCalls` if pending tool calls exist
 - `Ready` if none of the above apply
 
-- [ ] **Step 6: Implement dry-run counts**
+- [x] **Step 6: Implement dry-run counts**
 
 Dry-run report should derive counts from the snapshot and perform no side effects.
 
@@ -179,7 +190,7 @@ Dry-run report should derive counts from the snapshot and perform no side effect
 - Read: `Cargo.toml`
 - Read: `Cargo.lock`
 
-- [ ] **Step 1: Run focused formatting, lint, and tests**
+- [x] **Step 1: Run focused formatting, lint, and tests**
 
 Run:
 
@@ -196,17 +207,28 @@ cargo test -p agent-storage --test replay_integration
 
 Expected: all focused checks pass.
 
+Verification passed:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy -p agent-types -p agent-core -p agent-storage -p agent-ui-bridge --all-targets -- -D warnings`
+- `cargo test -p agent-types`
+- `cargo test -p agent-core --test recovery_snapshot`
+- `cargo test -p agent-core --test approval_resume_recovery`
+- `cargo test -p agent-core --test comprehensive_turn_idempotency`
+- `cargo test -p agent-storage --test checkpoint_store`
+- `cargo test -p agent-storage --test replay_integration`
+
 ### Task 6: Status Docs and Commit
 
 **Files:**
 - Modify: `docs/milestones/README.md`
 - Optionally modify: `docs/roadmap/PRODUCT_ROADMAP.md` if slice status summaries need refreshing
 
-- [ ] **Step 1: Update status docs**
+- [x] **Step 1: Update status docs**
 
 Mark M62-01 slice spec/plan complete when docs are committed. Mark implementation complete only after code/tests pass.
 
-- [ ] **Step 2: Commit planning docs first**
+- [x] **Step 2: Commit planning docs first**
 
 Before code changes, run:
 
@@ -218,6 +240,8 @@ git commit -m "docs: add m62-01 recovery snapshot plan"
 ```
 
 Expected: M62-01 slice planning is committed before implementation.
+
+Completed in commit `3f66fbe4 docs: add m62-01 recovery snapshot plan`.
 
 - [ ] **Step 3: Commit implementation after verification**
 

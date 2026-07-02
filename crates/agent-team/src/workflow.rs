@@ -287,6 +287,8 @@ pub struct TeamWorkflowSnapshot {
     pub blackboard: TeamBlackboardSummary,
     pub merge_review: TeamMergeReviewSummary,
     pub capability_ceiling: TeamCapabilityCeilingSummary,
+    #[serde(default)]
+    pub pending_approval_count: u32,
     pub conflicts: Vec<RecoveryConflictSummary>,
     pub diagnostics: Vec<TeamWorkflowDiagnostic>,
 }
@@ -306,11 +308,49 @@ impl TeamWorkflowSnapshot {
         conflicts: Vec<RecoveryConflictSummary>,
         diagnostics: Vec<TeamWorkflowDiagnostic>,
     ) -> Result<Self, TeamError> {
+        Self::new_with_pending_approvals(
+            team_id,
+            lead_agent_id,
+            workspace_id,
+            task_id,
+            worktrees,
+            handoffs,
+            blackboard,
+            merge_review,
+            capability_ceiling,
+            0,
+            conflicts,
+            diagnostics,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn new_with_pending_approvals(
+        team_id: TeamId,
+        lead_agent_id: AgentId,
+        workspace_id: WorkspaceId,
+        task_id: TaskId,
+        worktrees: Vec<TeamWorktreeSummary>,
+        handoffs: Vec<TeamHandoffSummary>,
+        blackboard: TeamBlackboardSummary,
+        merge_review: TeamMergeReviewSummary,
+        capability_ceiling: TeamCapabilityCeilingSummary,
+        pending_approval_count: u32,
+        conflicts: Vec<RecoveryConflictSummary>,
+        diagnostics: Vec<TeamWorkflowDiagnostic>,
+    ) -> Result<Self, TeamError> {
         let conflicts = conflicts
             .into_iter()
             .map(redact_conflict)
             .collect::<Vec<_>>();
-        let readiness = derive_readiness(&handoffs, &merge_review, &capability_ceiling, &conflicts);
+        let readiness = derive_readiness(
+            &worktrees,
+            &handoffs,
+            &merge_review,
+            &capability_ceiling,
+            pending_approval_count,
+            &conflicts,
+        );
         let status = status_for_readiness(readiness);
 
         Ok(Self {
@@ -325,6 +365,7 @@ impl TeamWorkflowSnapshot {
             blackboard,
             merge_review,
             capability_ceiling,
+            pending_approval_count,
             conflicts,
             diagnostics,
         })
@@ -332,9 +373,11 @@ impl TeamWorkflowSnapshot {
 }
 
 fn derive_readiness(
+    worktrees: &[TeamWorktreeSummary],
     handoffs: &[TeamHandoffSummary],
     merge_review: &TeamMergeReviewSummary,
     capability_ceiling: &TeamCapabilityCeilingSummary,
+    pending_approval_count: u32,
     conflicts: &[RecoveryConflictSummary],
 ) -> TeamWorkflowReadiness {
     if capability_ceiling.policy_blocked || capability_ceiling.grant_count == 0 {
@@ -342,6 +385,13 @@ fn derive_readiness(
     }
     if !conflicts.is_empty() {
         return TeamWorkflowReadiness::HasConflict;
+    }
+    if pending_approval_count > 0
+        || worktrees
+            .iter()
+            .any(|worktree| worktree.state == TeamWorktreeState::Stale)
+    {
+        return TeamWorkflowReadiness::Blocked;
     }
     if handoffs.iter().any(|handoff| {
         matches!(

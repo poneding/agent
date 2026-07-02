@@ -84,13 +84,15 @@ Result: M63-02 adds deterministic `team` CLI commands, a `team_workflow_snapshot
 - Modify: `crates/agent-worktree/`
 - Modify: `crates/agent-core/`
 
-- [ ] **Step 1: Plan reviewer and merge-readiness rules**
+- [x] **Step 1: Plan reviewer and merge-readiness rules**
 
 Define reviewer role, required artifact evidence, review votes, stale lease detection, conflict handling, and policy-backed readiness states.
 
-- [ ] **Step 2: Implement dry-run merge readiness**
+- [x] **Step 2: Implement dry-run merge readiness**
 
 Merge readiness must block on conflicts, missing review, pending approval, stale leases, policy denial, and incomplete handoffs.
+
+Result: M63-03 adds `agent-team` merge readiness reports with typed blockers for policy, conflicts, pending approvals, stale worktrees, waiting/failed handoffs, blocking reviews, missing reviews, and missing artifacts. Workflow snapshots now include pending approval counts and block stale worktrees/pending approvals during readiness derivation.
 
 ### Task 5: M63-04 TUI/Desktop Team Surfaces
 

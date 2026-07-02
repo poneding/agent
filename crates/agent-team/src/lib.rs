@@ -5,6 +5,7 @@ pub mod blackboard;
 pub mod capability;
 pub mod error;
 pub mod handoff;
+pub mod merge_review;
 pub mod workflow;
 
 pub use blackboard::{
@@ -16,6 +17,7 @@ pub use error::TeamError;
 pub use handoff::{
     HandoffEnvelope, HandoffStatus, SubagentProfile, SubagentRole, transition_handoff_status,
 };
+pub use merge_review::{TeamMergeBlocker, TeamMergeBlockerKind, TeamMergeReadinessReport};
 pub use workflow::{
     TeamBlackboardEntrySummary, TeamBlackboardSummary, TeamCapabilityCeilingSummary,
     TeamCapabilityGrantSummary, TeamHandoffSummary, TeamMergeReviewSummary, TeamWorkflowDiagnostic,

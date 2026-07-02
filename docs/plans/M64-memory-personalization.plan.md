@@ -75,7 +75,7 @@ git diff --check
 - Modify: `crates/agent-ui-bridge/`
 - Modify: `docs/cli/`
 
-- [ ] **Step 1: Plan CLI/JSON surfaces**
+- [x] **Step 1: Plan CLI/JSON surfaces**
 
 Define stable text/JSON commands for memory snapshots, retrieval preview, proposal inspect/approve/reject, import/export, delete/tombstone, and rebuild/index evidence.
 

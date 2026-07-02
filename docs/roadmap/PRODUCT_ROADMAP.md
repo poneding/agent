@@ -270,7 +270,7 @@ Acceptance:
 
 ### M64 Memory and Personalization
 
-Status: In progress. M64 milestone planning and M64-01 memory product snapshot/privacy contracts are complete. M64-02 CLI and JSON Memory Review Commands is the next active slice.
+Status: In progress. M64 milestone planning, M64-01 memory product snapshot/privacy contracts, and M64-02 CLI/JSON planning are complete. M64-02 implementation is the next active slice.
 
 Purpose: make memory useful, reviewable, privacy-safe, and visible in product workflows rather than only available as lower-level storage/retrieval contracts.
 

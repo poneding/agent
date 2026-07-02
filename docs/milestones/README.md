@@ -653,6 +653,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M64-01 slice spec | Complete |
 | M64-01 slice plan | Complete |
 | M64-01 implementation | Complete |
+| M64-02 slice spec | Complete |
+| M64-02 slice plan | Complete |
 | M64 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1413,7 +1415,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M64-01 Memory Product Snapshot and Privacy Contracts | `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md` | `docs/plans/M64-01-memory-product-snapshot-privacy.plan.md` | Complete: typed, serializable, bounded, redacted memory product snapshots for records, proposals, retrieval previews, influence summaries, retention controls, tombstones, and privacy diagnostics. |
-| M64-02 CLI and JSON Memory Review Commands | Planned | Planned | Planned: stable memory review, retrieval preview, proposal decision, import/export, delete, and rebuild commands. |
+| M64-02 CLI and JSON Memory Review Commands | `docs/specs/M64-02-cli-json-memory-review.spec.md` | `docs/plans/M64-02-cli-json-memory-review.plan.md` | Planned: stable memory review, retrieval preview, proposal decision, import/export, delete, and rebuild commands. |
 | M64-03 Runtime Memory Influence and Proposal Loop | Planned | Planned | Planned: prompt influence traces and reviewable memory write proposals from runtime turn evidence. |
 | M64-04 TUI/Desktop Memory Surfaces | Planned | Planned | Planned: memory review, proposal, influence trace, privacy, import/export, and settings surfaces over bridge snapshots. |
 | M64-05 Memory Smoke, Docs, and Closeout | Planned | Planned | Planned: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
@@ -1439,6 +1441,8 @@ Most recent completed or active planning documents:
 - `docs/plans/M63-05-team-workflow-smoke-closeout.plan.md`
 - `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md`
 - `docs/plans/M64-01-memory-product-snapshot-privacy.plan.md`
+- `docs/specs/M64-02-cli-json-memory-review.spec.md`
+- `docs/plans/M64-02-cli-json-memory-review.plan.md`
 - `docs/specs/M64-memory-personalization.spec.md`
 - `docs/plans/M64-memory-personalization.plan.md`
 - `docs/specs/M63-04-tui-desktop-team-surfaces.spec.md`

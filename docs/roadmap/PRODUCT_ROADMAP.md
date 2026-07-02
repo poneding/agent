@@ -282,7 +282,7 @@ Initial slices:
 | M64-02 CLI and JSON Memory Review Commands | Complete: stable memory review, retrieval preview, proposal decision, import/export, delete, and rebuild commands over shared contracts. |
 | M64-03 Runtime Memory Influence and Proposal Loop | Complete: selected memories enter prompt assembly with influence traces, and turn evidence can create reviewable write proposals. |
 | M64-04 TUI/Desktop Memory Surfaces | Complete: TUI/Desktop render memory records, proposals, influence traces, privacy controls, retention/tombstones, diagnostics, and settings from bridge snapshots. |
-| M64-05 Memory Smoke, Docs, and Closeout | Planned: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
+| M64-05 Memory Smoke, Docs, and Closeout | In progress: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
 
 Acceptance:
 

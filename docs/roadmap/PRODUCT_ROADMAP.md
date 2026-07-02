@@ -270,7 +270,7 @@ Acceptance:
 
 ### M64 Memory and Personalization
 
-Status: In progress. M64-01 memory product snapshot/privacy contracts, M64-02 CLI/JSON memory review commands, and M64-03 runtime memory influence/proposal loop are complete. M64-04 TUI/Desktop Memory Surfaces is the next active slice.
+Status: In progress. M64-01 memory product snapshot/privacy contracts, M64-02 CLI/JSON memory review commands, and M64-03 runtime memory influence/proposal loop are complete. M64-04 TUI/Desktop Memory Surfaces is planned and now active for implementation.
 
 Purpose: make memory useful, reviewable, privacy-safe, and visible in product workflows rather than only available as lower-level storage/retrieval contracts.
 
@@ -281,7 +281,7 @@ Initial slices:
 | M64-01 Memory Product Snapshot and Privacy Contracts | Complete: typed memory snapshots for records, proposals, retrieval previews, influence summaries, retention controls, tombstones, and privacy diagnostics. |
 | M64-02 CLI and JSON Memory Review Commands | Complete: stable memory review, retrieval preview, proposal decision, import/export, delete, and rebuild commands over shared contracts. |
 | M64-03 Runtime Memory Influence and Proposal Loop | Complete: selected memories enter prompt assembly with influence traces, and turn evidence can create reviewable write proposals. |
-| M64-04 TUI/Desktop Memory Surfaces | Planned: TUI/Desktop render memory records, proposals, influence traces, privacy controls, and settings from bridge snapshots. |
+| M64-04 TUI/Desktop Memory Surfaces | In progress: TUI/Desktop render memory records, proposals, influence traces, privacy controls, and settings from bridge snapshots. |
 | M64-05 Memory Smoke, Docs, and Closeout | Planned: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
 
 Acceptance:

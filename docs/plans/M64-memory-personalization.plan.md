@@ -128,7 +128,7 @@ git diff --check
 - Modify: `apps/desktop/`
 - Modify: `docs/desktop/`
 
-- [ ] **Step 1: Plan UI-safe memory surfaces**
+- [x] **Step 1: Plan UI-safe memory surfaces**
 
 Define memory panels for records, proposals, selected influence, privacy state, import/export state, and settings.
 

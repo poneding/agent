@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::fs;
 use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
@@ -67,10 +68,14 @@ use agent_mcp::{
     parse_mcp_server_export_manifest_json, select_mcp_server_export_profile,
 };
 use agent_memory::{
-    DeterministicEmbeddingProvider, EmbeddingProvider, InMemoryMemoryEditor, MemoryArchive,
-    MemoryArchiveError, MemoryEditor, MemoryEditorSummary, MemoryError, MemoryImportPolicy,
-    MemoryRecord, MemoryRetentionPolicy, MemoryScope, MemorySensitivity, MemorySource,
-    MemoryTombstone,
+    DeterministicEmbeddingProvider, DeterministicMemoryReranker, EmbeddingProvider,
+    HybridMemoryQuery, InMemoryMemoryEditor, InMemoryMemoryIndex, InMemoryMemoryProposalStore,
+    MemoryArchive, MemoryArchiveError, MemoryEditor, MemoryEditorSummary, MemoryError,
+    MemoryImportPolicy, MemoryIndex, MemoryProductSnapshot, MemoryProposalDecision,
+    MemoryProposalStatus, MemoryProposalStore, MemoryProposalSummary, MemoryRecord,
+    MemoryRecordSummary, MemoryRerankRequest, MemoryReranker, MemoryRetentionControlSummary,
+    MemoryRetentionPolicy, MemoryRetrievalReason, MemoryRetrievalResult, MemoryScope,
+    MemorySensitivity, MemorySource, MemoryTombstone, MemoryWriteProposal,
 };
 use agent_model::{
     EnvSecretResolver, ModelCapabilities, ModelConfigError, ModelCostProfile, ModelEndpointConfig,
@@ -422,11 +427,19 @@ impl McpServerStdioConfig {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum MemoryCommand {
     List,
+    Snapshot,
     Inspect { id: String },
+    Retrieve { query: String, max_selected: usize },
     Delete { id: String, reason: String },
     Export,
     Import { path: PathBuf },
     RebuildIndex,
+    ProposalList,
+    ProposalInspect { id: String },
+    ProposalApprove { id: String },
+    ProposalReject { id: String, reason: String },
+    ProposalExpire { id: String, reason: String },
+    ProposalCommit { id: String },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -2190,6 +2203,10 @@ where
             no_plugin_extra_args(args, "memory list")?;
             MemoryCommand::List
         }
+        "snapshot" => {
+            no_plugin_extra_args(args, "memory snapshot")?;
+            MemoryCommand::Snapshot
+        }
         "inspect" => {
             let id = args
                 .next()
@@ -2197,6 +2214,7 @@ where
             no_plugin_extra_args(args, "memory inspect")?;
             MemoryCommand::Inspect { id }
         }
+        "retrieve" => parse_memory_retrieve(args)?,
         "delete" => parse_memory_delete(args)?,
         "export" => {
             no_plugin_extra_args(args, "memory export")?;
@@ -2215,6 +2233,7 @@ where
             no_plugin_extra_args(args, "memory rebuild-index")?;
             MemoryCommand::RebuildIndex
         }
+        "proposal" => parse_memory_proposal(args)?,
         _ => return Err(CliError::UnknownArgument(format!("memory {subcommand}"))),
     };
 
@@ -3170,6 +3189,116 @@ where
         reason: reason
             .ok_or_else(|| CliError::MissingValue("memory delete --reason".to_string()))?,
     })
+}
+
+fn parse_memory_retrieve<I>(args: &mut I) -> Result<MemoryCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut query = None;
+    let mut max_selected = 3_usize;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--query" => query = Some(take_flag_value(args, &arg)?),
+            "--max-selected" => {
+                max_selected = parse_memory_positive_usize(
+                    "memory retrieve --max-selected",
+                    &take_flag_value(args, &arg)?,
+                )?;
+            }
+            _ => return Err(CliError::UnknownArgument(format!("memory retrieve {arg}"))),
+        }
+    }
+
+    Ok(MemoryCommand::Retrieve {
+        query: query
+            .ok_or_else(|| CliError::MissingValue("memory retrieve --query".to_string()))?,
+        max_selected,
+    })
+}
+
+fn parse_memory_proposal<I>(args: &mut I) -> Result<MemoryCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("memory proposal".to_string()));
+    };
+
+    match subcommand.as_str() {
+        "list" => {
+            no_plugin_extra_args(args, "memory proposal list")?;
+            Ok(MemoryCommand::ProposalList)
+        }
+        "inspect" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("memory proposal inspect".to_string()))?;
+            no_plugin_extra_args(args, "memory proposal inspect")?;
+            Ok(MemoryCommand::ProposalInspect { id })
+        }
+        "approve" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("memory proposal approve".to_string()))?;
+            no_plugin_extra_args(args, "memory proposal approve")?;
+            Ok(MemoryCommand::ProposalApprove { id })
+        }
+        "reject" => parse_memory_proposal_reason(args, "reject"),
+        "expire" => parse_memory_proposal_reason(args, "expire"),
+        "commit" => {
+            let id = args
+                .next()
+                .ok_or_else(|| CliError::MissingValue("memory proposal commit".to_string()))?;
+            no_plugin_extra_args(args, "memory proposal commit")?;
+            Ok(MemoryCommand::ProposalCommit { id })
+        }
+        _ => Err(CliError::UnknownArgument(format!(
+            "memory proposal {subcommand}"
+        ))),
+    }
+}
+
+fn parse_memory_proposal_reason<I>(args: &mut I, action: &str) -> Result<MemoryCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let id = args
+        .next()
+        .ok_or_else(|| CliError::MissingValue(format!("memory proposal {action}")))?;
+    let mut reason = None;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--reason" => reason = Some(take_flag_value(args, &arg)?),
+            _ => {
+                return Err(CliError::UnknownArgument(format!(
+                    "memory proposal {action} {arg}"
+                )));
+            }
+        }
+    }
+
+    let reason = reason
+        .ok_or_else(|| CliError::MissingValue(format!("memory proposal {action} --reason")))?;
+    match action {
+        "reject" => Ok(MemoryCommand::ProposalReject { id, reason }),
+        "expire" => Ok(MemoryCommand::ProposalExpire { id, reason }),
+        _ => Err(CliError::UnknownArgument(format!(
+            "memory proposal {action}"
+        ))),
+    }
+}
+
+fn parse_memory_positive_usize(label: &str, value: &str) -> Result<usize, CliError> {
+    let parsed = value
+        .parse::<usize>()
+        .map_err(|_| CliError::UnknownArgument(format!("{label} {value}")))?;
+    if parsed == 0 {
+        return Err(CliError::UnknownArgument(format!("{label} {value}")));
+    }
+    Ok(parsed)
 }
 
 fn parse_skill_root_add<I>(args: &mut I) -> Result<SkillRootCommand, CliError>
@@ -7489,6 +7618,7 @@ fn skill_registry_error(error: ExtensionRegistryError) -> SkillRootCommandError 
 #[derive(Clone, Debug)]
 pub struct MemoryCommandRuntime {
     editor: InMemoryMemoryEditor,
+    proposals: InMemoryMemoryProposalStore,
 }
 
 impl Default for MemoryCommandRuntime {
@@ -7509,13 +7639,33 @@ impl Default for MemoryCommandRuntime {
         ));
         let _ = editor.upsert_embedding_marker("public-memory");
         let _ = editor.upsert_embedding_marker("stale-memory");
-        Self { editor }
+
+        let mut proposals = InMemoryMemoryProposalStore::default();
+        let _ = proposals.add_proposal(fixture_memory_proposal(
+            "proposal-public",
+            "proposal-committed-memory",
+            "prefer compact memory review command output",
+            "remember compact memory review command output",
+            MemorySensitivity::Public,
+            fixture_memory_scope(),
+        ));
+        let _ = proposals.add_proposal(fixture_memory_proposal(
+            "proposal-sensitive",
+            "proposal-sensitive-memory",
+            "raw sk-secret token must stay private",
+            "remember sensitive memory review requires approval",
+            MemorySensitivity::Sensitive,
+            fixture_memory_scope(),
+        ));
+        Self { editor, proposals }
     }
 }
 
 enum MemoryCommandResponse {
     List(Vec<MemoryEditorSummary>),
+    Snapshot(MemoryProductSnapshot),
     Inspect(MemoryEditorSummary),
+    Retrieval(MemoryProductSnapshot),
     Deleted(MemoryTombstone),
     Export(MemoryArchive),
     Import {
@@ -7523,6 +7673,10 @@ enum MemoryCommandResponse {
         tombstones: usize,
     },
     Rebuild(agent_memory::MemoryIndexRebuildReport),
+    ProposalList(Vec<MemoryProposalSummary>),
+    ProposalInspect(MemoryProposalSummary),
+    ProposalDecision(MemoryProposalSummary),
+    ProposalCommit(MemoryRecordSummary),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -7556,10 +7710,23 @@ fn run_memory_command(
 ) -> Result<MemoryCommandResponse, MemoryCommandError> {
     match command {
         MemoryCommand::List => Ok(MemoryCommandResponse::List(runtime.editor.summaries())),
+        MemoryCommand::Snapshot => Ok(MemoryCommandResponse::Snapshot(memory_product_snapshot(
+            runtime, None,
+        ))),
         MemoryCommand::Inspect { id } => {
             let summary = find_memory_summary(&runtime.editor, &id)
                 .ok_or_else(|| MemoryCommandError::new(format!("memory {id} is missing")))?;
             Ok(MemoryCommandResponse::Inspect(summary))
+        }
+        MemoryCommand::Retrieve {
+            query,
+            max_selected,
+        } => {
+            let retrieval = run_memory_retrieval(runtime, &query, max_selected)?;
+            Ok(MemoryCommandResponse::Retrieval(memory_product_snapshot(
+                runtime,
+                Some(&retrieval),
+            )))
         }
         MemoryCommand::Delete { id, reason } => {
             let scope = find_memory_scope(&runtime.editor, &id)
@@ -7610,7 +7777,148 @@ fn run_memory_command(
             let report = runtime.editor.rebuild_index().map_err(memory_error)?;
             Ok(MemoryCommandResponse::Rebuild(report))
         }
+        MemoryCommand::ProposalList => Ok(MemoryCommandResponse::ProposalList(proposal_summaries(
+            &runtime.proposals,
+        ))),
+        MemoryCommand::ProposalInspect { id } => {
+            let proposal = find_memory_proposal(&runtime.proposals, &id)?;
+            Ok(MemoryCommandResponse::ProposalInspect(
+                proposal.safe_summary(),
+            ))
+        }
+        MemoryCommand::ProposalApprove { id } => {
+            let proposal = runtime
+                .proposals
+                .resolve(&id, MemoryProposalDecision::Approve)
+                .map_err(memory_error)?;
+            Ok(MemoryCommandResponse::ProposalDecision(
+                proposal.safe_summary(),
+            ))
+        }
+        MemoryCommand::ProposalReject { id, reason } => {
+            let proposal = runtime
+                .proposals
+                .resolve(&id, MemoryProposalDecision::Reject { reason })
+                .map_err(memory_error)?;
+            Ok(MemoryCommandResponse::ProposalDecision(
+                proposal.safe_summary(),
+            ))
+        }
+        MemoryCommand::ProposalExpire { id, reason } => {
+            let proposal = runtime
+                .proposals
+                .resolve(&id, MemoryProposalDecision::Expire { reason })
+                .map_err(memory_error)?;
+            Ok(MemoryCommandResponse::ProposalDecision(
+                proposal.safe_summary(),
+            ))
+        }
+        MemoryCommand::ProposalCommit { id } => {
+            let record = runtime.proposals.commit(&id).map_err(memory_error)?;
+            if find_memory_summary(&runtime.editor, &record.id).is_none() {
+                runtime
+                    .editor
+                    .add_record(record.clone())
+                    .map_err(memory_error)?;
+            }
+            Ok(MemoryCommandResponse::ProposalCommit(
+                MemoryRecordSummary::from_record(&record),
+            ))
+        }
     }
+}
+
+fn memory_product_snapshot(
+    runtime: &MemoryCommandRuntime,
+    retrieval: Option<&MemoryRetrievalResult>,
+) -> MemoryProductSnapshot {
+    MemoryProductSnapshot::from_parts(
+        "fixture project memory",
+        &runtime.editor.active_records(),
+        &runtime.proposals.list_proposals(),
+        retrieval,
+        retrieval.map(|result| &result.trace),
+        MemoryRetentionControlSummary::default(),
+        &runtime.editor.tombstones(),
+        Vec::new(),
+    )
+}
+
+fn run_memory_retrieval(
+    runtime: &MemoryCommandRuntime,
+    query: &str,
+    max_selected: usize,
+) -> Result<MemoryRetrievalResult, MemoryCommandError> {
+    if query.trim().is_empty() {
+        return Err(MemoryCommandError::new(
+            "memory retrieval query cannot be empty",
+        ));
+    }
+    if max_selected == 0 {
+        return Err(MemoryCommandError::new(
+            "memory retrieval max_selected must be greater than zero",
+        ));
+    }
+
+    let records = runtime.editor.active_records();
+    let candidates = if records.is_empty() {
+        Vec::new()
+    } else {
+        let scopes = records
+            .iter()
+            .map(|record| record.scope.clone())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+        let mut index = InMemoryMemoryIndex::default();
+        for record in records {
+            index.upsert_record(record).map_err(memory_error)?;
+        }
+        index
+            .query(
+                HybridMemoryQuery::new(
+                    query,
+                    None,
+                    scopes,
+                    MemorySensitivity::Sensitive,
+                    1.0,
+                    0.0,
+                    max_selected.saturating_mul(4).max(max_selected),
+                    0.0,
+                    None,
+                )
+                .map_err(memory_error)?,
+            )
+            .map_err(memory_error)?
+    };
+
+    DeterministicMemoryReranker::default()
+        .rerank(MemoryRerankRequest {
+            query_text: query.to_string(),
+            candidates,
+            max_selected,
+            prompt_budget_tokens: Some(256),
+        })
+        .map_err(memory_error)
+}
+
+fn proposal_summaries(store: &InMemoryMemoryProposalStore) -> Vec<MemoryProposalSummary> {
+    let mut proposals = store
+        .list_proposals()
+        .iter()
+        .map(MemoryWriteProposal::safe_summary)
+        .collect::<Vec<_>>();
+    proposals.sort_by(|left, right| left.proposal_id.cmp(&right.proposal_id));
+    proposals
+}
+
+fn find_memory_proposal(
+    store: &InMemoryMemoryProposalStore,
+    id: &str,
+) -> Result<MemoryWriteProposal, MemoryCommandError> {
+    store
+        .inspect_proposal(id)
+        .ok_or_else(|| MemoryCommandError::new(format!("memory proposal {id} is missing")))
 }
 
 fn render_memory_response(response: MemoryCommandResponse, output_mode: OutputMode) -> CliOutput {
@@ -7641,6 +7949,12 @@ fn render_memory_text_response(response: MemoryCommandResponse) -> CliOutput {
                 .join("\n")
                 + "\n",
         ),
+        MemoryCommandResponse::Snapshot(snapshot) => CliOutput::exit(format!(
+            "Memory snapshot records={} proposals={} tombstones={}\n",
+            snapshot.records.len(),
+            snapshot.proposals.len(),
+            snapshot.tombstone_count
+        )),
         MemoryCommandResponse::Inspect(summary) => CliOutput::exit(format!(
             "Memory {}\nsensitivity={}\nconfidence={}\nsource={}\npreview={}\n",
             summary.id,
@@ -7649,6 +7963,35 @@ fn render_memory_text_response(response: MemoryCommandResponse) -> CliOutput {
             summary.source_description,
             summary.text_preview.as_deref().unwrap_or("redacted")
         )),
+        MemoryCommandResponse::Retrieval(snapshot) => {
+            let Some(retrieval) = snapshot.retrieval else {
+                return CliOutput::exit("Memory retrieval selected=0 rejected=0\n");
+            };
+            let mut lines = vec![format!(
+                "Memory retrieval selected={} rejected={}",
+                retrieval.selected_count, retrieval.rejected_count
+            )];
+            for candidate in retrieval.candidates {
+                lines.push(format!(
+                    "{} {} rank={} reasons={} preview={}",
+                    if candidate.selected {
+                        "selected"
+                    } else {
+                        "rejected"
+                    },
+                    candidate.memory_id,
+                    candidate.rank,
+                    candidate
+                        .reasons
+                        .iter()
+                        .map(memory_retrieval_reason_label)
+                        .collect::<Vec<_>>()
+                        .join(","),
+                    candidate.preview.as_deref().unwrap_or("redacted")
+                ));
+            }
+            CliOutput::exit(lines.join("\n") + "\n")
+        }
         MemoryCommandResponse::Deleted(tombstone) => CliOutput::exit(format!(
             "Deleted memory {}\ntombstone={}\nreason={}\n",
             tombstone.record_id, tombstone.tombstone_id, tombstone.reason
@@ -7666,6 +8009,28 @@ fn render_memory_text_response(response: MemoryCommandResponse) -> CliOutput {
             "Memory index rebuilt indexed_records={} skipped_tombstoned={} stale_embeddings_removed={}\n",
             report.indexed_records, report.skipped_tombstoned, report.stale_embeddings_removed
         )),
+        MemoryCommandResponse::ProposalList(proposals) if proposals.is_empty() => {
+            CliOutput::exit("No memory proposals\n")
+        }
+        MemoryCommandResponse::ProposalList(proposals) => CliOutput::exit(
+            proposals
+                .iter()
+                .map(render_memory_proposal_text_line)
+                .collect::<Vec<_>>()
+                .join("\n")
+                + "\n",
+        ),
+        MemoryCommandResponse::ProposalInspect(proposal)
+        | MemoryCommandResponse::ProposalDecision(proposal) => {
+            CliOutput::exit(render_memory_proposal_text_block(&proposal))
+        }
+        MemoryCommandResponse::ProposalCommit(record) => CliOutput::exit(format!(
+            "Committed memory {}\nsensitivity={}\nconfidence={}\npreview={}\n",
+            record.id,
+            memory_sensitivity_label(record.sensitivity),
+            record.confidence,
+            record.text_preview.as_deref().unwrap_or("redacted")
+        )),
     }
 }
 
@@ -7677,10 +8042,24 @@ fn render_memory_json_response(response: MemoryCommandResponse) -> CliOutput {
                 "memories": summaries,
             },
         }),
+        MemoryCommandResponse::Snapshot(snapshot) => serde_json::json!({
+            "type": "memory_snapshot",
+            "data": {
+                "snapshot": snapshot,
+            },
+        }),
         MemoryCommandResponse::Inspect(summary) => serde_json::json!({
             "type": "memory_inspect",
             "data": {
                 "memory": summary,
+            },
+        }),
+        MemoryCommandResponse::Retrieval(snapshot) => serde_json::json!({
+            "type": "memory_retrieval_preview",
+            "data": {
+                "retrieval": snapshot.retrieval,
+                "influence": snapshot.influence,
+                "snapshot": snapshot,
             },
         }),
         MemoryCommandResponse::Deleted(tombstone) => serde_json::json!({
@@ -7706,6 +8085,30 @@ fn render_memory_json_response(response: MemoryCommandResponse) -> CliOutput {
             "type": "memory_rebuild",
             "data": {
                 "report": report,
+            },
+        }),
+        MemoryCommandResponse::ProposalList(proposals) => serde_json::json!({
+            "type": "memory_proposal_list",
+            "data": {
+                "proposals": proposals,
+            },
+        }),
+        MemoryCommandResponse::ProposalInspect(proposal) => serde_json::json!({
+            "type": "memory_proposal_inspect",
+            "data": {
+                "proposal": proposal,
+            },
+        }),
+        MemoryCommandResponse::ProposalDecision(proposal) => serde_json::json!({
+            "type": "memory_proposal_decision",
+            "data": {
+                "proposal": proposal,
+            },
+        }),
+        MemoryCommandResponse::ProposalCommit(record) => serde_json::json!({
+            "type": "memory_proposal_commit",
+            "data": {
+                "record": record,
             },
         }),
     };
@@ -7763,6 +8166,27 @@ fn fixture_memory_record(
     }
 }
 
+fn fixture_memory_proposal(
+    proposal_id: &str,
+    proposed_record_id: &str,
+    content: &str,
+    summary: &str,
+    sensitivity: MemorySensitivity,
+    scope: MemoryScope,
+) -> MemoryWriteProposal {
+    MemoryWriteProposal::new(
+        proposal_id,
+        proposed_record_id,
+        scope,
+        content,
+        summary,
+        vec![fixture_event_id()],
+        90,
+        sensitivity,
+    )
+    .expect("fixture memory proposal")
+}
+
 fn fixture_memory_scope() -> MemoryScope {
     MemoryScope::Project {
         workspace_id: "00000000-0000-0000-0000-000000002635"
@@ -7783,6 +8207,62 @@ fn memory_sensitivity_label(sensitivity: MemorySensitivity) -> &'static str {
         MemorySensitivity::Internal => "internal",
         MemorySensitivity::Sensitive => "sensitive",
     }
+}
+
+fn memory_proposal_status_label(status: MemoryProposalStatus) -> &'static str {
+    match status {
+        MemoryProposalStatus::Pending => "pending",
+        MemoryProposalStatus::Approved => "approved",
+        MemoryProposalStatus::Rejected => "rejected",
+        MemoryProposalStatus::Committed => "committed",
+        MemoryProposalStatus::Expired => "expired",
+    }
+}
+
+fn memory_retrieval_reason_label(reason: &MemoryRetrievalReason) -> &'static str {
+    match reason {
+        MemoryRetrievalReason::Score => "score",
+        MemoryRetrievalReason::Scope => "scope",
+        MemoryRetrievalReason::Sensitivity => "sensitivity",
+        MemoryRetrievalReason::Budget => "budget",
+        MemoryRetrievalReason::Duplicate => "duplicate",
+        MemoryRetrievalReason::BelowThreshold => "below_threshold",
+    }
+}
+
+fn render_memory_proposal_text_line(proposal: &MemoryProposalSummary) -> String {
+    format!(
+        "{} status={} sensitivity={} confidence={} requires_explicit_approval={} source_events={} summary={}",
+        proposal.proposal_id,
+        memory_proposal_status_label(proposal.status),
+        memory_sensitivity_label(proposal.sensitivity),
+        proposal.confidence,
+        proposal.requires_explicit_approval,
+        proposal.source_event_count,
+        proposal.summary
+    )
+}
+
+fn render_memory_proposal_text_block(proposal: &MemoryProposalSummary) -> String {
+    let mut lines = vec![
+        format!("Proposal {}", proposal.proposal_id),
+        format!("status={}", memory_proposal_status_label(proposal.status)),
+        format!(
+            "sensitivity={}",
+            memory_sensitivity_label(proposal.sensitivity)
+        ),
+        format!("confidence={}", proposal.confidence),
+        format!(
+            "requires_explicit_approval={}",
+            proposal.requires_explicit_approval
+        ),
+        format!("source_events={}", proposal.source_event_count),
+        format!("summary={}", proposal.summary),
+    ];
+    if let Some(reason) = &proposal.resolution_reason {
+        lines.push(format!("resolution_reason={reason}"));
+    }
+    lines.join("\n") + "\n"
 }
 
 fn memory_error(error: MemoryError) -> MemoryCommandError {

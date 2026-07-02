@@ -79,9 +79,18 @@ git diff --check
 
 Define stable text/JSON commands for memory snapshots, retrieval preview, proposal inspect/approve/reject, import/export, delete/tombstone, and rebuild/index evidence.
 
-- [ ] **Step 2: Implement CLI/JSON surfaces**
+- [x] **Step 2: Implement CLI/JSON surfaces**
 
 Commands must render shared contracts and keep raw sensitive memory out of default summaries.
+
+Completed evidence:
+
+```bash
+CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-cli --test memory_commands
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-cli --all-targets -- -D warnings
+cargo fmt --all -- --check
+git diff --check
+```
 
 ### Task 4: M64-03 Runtime Memory Influence and Proposal Loop
 

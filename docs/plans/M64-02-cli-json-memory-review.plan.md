@@ -30,7 +30,7 @@ Confirm existing fixture-backed CLI commands cover list, inspect, delete, export
 **Files:**
 - Modify: `crates/agent-cli/tests/memory_commands.rs`
 
-- [ ] **Step 1: Add parse tests**
+- [x] **Step 1: Add parse tests**
 
 Cover:
 
@@ -43,7 +43,7 @@ Cover:
 - `memory proposal expire <id> --reason <reason>`
 - `memory proposal commit <id>`
 
-- [ ] **Step 2: Add render tests**
+- [x] **Step 2: Add render tests**
 
 Cover text and JSON output for:
 
@@ -54,7 +54,7 @@ Cover text and JSON output for:
 - invalid proposal transitions
 - redacted errors
 
-- [ ] **Step 3: Run focused test and verify failure before implementation**
+- [x] **Step 3: Run focused test and verify failure before implementation**
 
 ```bash
 CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-cli --test memory_commands
@@ -67,15 +67,15 @@ Expected: new tests fail until parser/runtime/rendering support is implemented.
 **Files:**
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Extend `MemoryCommand`**
+- [x] **Step 1: Extend `MemoryCommand`**
 
 Add command variants for snapshot, retrieval preview, and proposal review/decision actions.
 
-- [ ] **Step 2: Extend parsing**
+- [x] **Step 2: Extend parsing**
 
 Parse the new subcommands with required values and stable error messages. Reject invalid `--max-selected` and missing `--reason` values.
 
-- [ ] **Step 3: Extend `MemoryCommandRuntime`**
+- [x] **Step 3: Extend `MemoryCommandRuntime`**
 
 Add deterministic proposal fixture state and retrieval preview helpers. Runtime adapters should rebuild retrieval candidates from active records and call `agent-memory` rerank/product contracts rather than implementing privacy rules locally.
 
@@ -84,15 +84,15 @@ Add deterministic proposal fixture state and retrieval preview helpers. Runtime 
 **Files:**
 - Modify: `crates/agent-cli/src/command.rs`
 
-- [ ] **Step 1: Render text review workflows**
+- [x] **Step 1: Render text review workflows**
 
 Render compact text summaries for snapshots, retrieval previews, proposal lists, proposal decisions, and commits.
 
-- [ ] **Step 2: Render stable JSON frames**
+- [x] **Step 2: Render stable JSON frames**
 
 Emit stable JSON frame `type` values documented in the spec. Include shared product contracts where possible.
 
-- [ ] **Step 3: Preserve existing command behavior**
+- [x] **Step 3: Preserve existing command behavior**
 
 Existing `list`, `inspect`, `delete`, `export`, `import`, and `rebuild-index` tests must keep passing.
 
@@ -104,11 +104,11 @@ Existing `list`, `inspect`, `delete`, `export`, `import`, and `rebuild-index` te
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
-- [ ] **Step 1: Add CLI memory docs**
+- [x] **Step 1: Add CLI memory docs**
 
 Document the memory review workflow, JSON frame types, proposal decisions, retrieval previews, import/export, deletion/tombstones, rebuild evidence, and privacy guarantees.
 
-- [ ] **Step 2: Update status docs after focused gates pass**
+- [x] **Step 2: Update status docs after focused gates pass**
 
 Mark M64-02 complete only after focused checks pass. Keep M64 overall in progress.
 
@@ -117,7 +117,7 @@ Mark M64-02 complete only after focused checks pass. Keep M64 overall in progres
 **Files:**
 - Modify/create only M64-02 files and required status docs.
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 ```bash
 CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-cli --test memory_commands
@@ -126,7 +126,7 @@ cargo fmt --all -- --check
 git diff --check
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 Exact-stage only M64-02 files and required status docs.
 

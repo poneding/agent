@@ -17,6 +17,7 @@ import { ExtensionHealthView } from './components/ExtensionHealthView';
 import { SettingsView } from './components/SettingsView';
 import { TaskDetail } from './components/TaskDetail';
 import { TaskList } from './components/TaskList';
+import { TeamWorkflowView } from './components/TeamWorkflowView';
 import { TraceTimeline } from './components/TraceTimeline';
 import { TranscriptView } from './components/TranscriptView';
 import { WorkspaceDashboard } from './components/WorkspaceDashboard';
@@ -60,6 +61,7 @@ import type {
   TraceTimeline as TraceTimelineModel,
   TraceUiState,
   UiExtensionSnapshot,
+  UiTeamWorkflowSnapshot,
 } from './types';
 
 export function BootstrapError({ message }: { message: string }) {
@@ -91,6 +93,7 @@ export function AppShell({
   settingsError = null,
   extensionSnapshot = null,
   diffReview = null,
+  teamWorkflowSnapshot = null,
 }: {
   bootstrap: DesktopBootstrap | null;
   bootstrapError: string | null;
@@ -111,6 +114,7 @@ export function AppShell({
   settingsError?: string | null;
   extensionSnapshot?: UiExtensionSnapshot | null;
   diffReview?: DesktopDiffReview | null;
+  teamWorkflowSnapshot?: UiTeamWorkflowSnapshot | null;
 }) {
   const [route, setRoute] = useState<DesktopShellRoute>(bootstrap?.route ?? 'dashboard');
   const diagnostics = bootstrap?.diagnostics ?? [];
@@ -127,6 +131,8 @@ export function AppShell({
     [workspaceSnapshot],
   );
   const conversationTaskState = conversationState ?? fallbackConversationTaskState;
+  const effectiveTeamWorkflowSnapshot =
+    teamWorkflowSnapshot ?? conversationTaskState.teamWorkflowSnapshot;
   const selectedTask = selectTask(
     conversationTaskState.tasks,
     conversationTaskState.activeTaskId,
@@ -231,6 +237,9 @@ export function AppShell({
         {route === 'tasks' ? (
           <section className="workspace-band">
             <h1>Tasks</h1>
+            {effectiveTeamWorkflowSnapshot === null ? null : (
+              <TeamWorkflowView snapshot={effectiveTeamWorkflowSnapshot} />
+            )}
             <div className="split-layout">
               <TaskList
                 activeTaskId={conversationTaskState.activeTaskId}

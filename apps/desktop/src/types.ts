@@ -224,6 +224,94 @@ export interface RecoveryConflictSummary {
   diagnostics: RecoveryDiagnostic[];
 }
 
+export interface TeamWorktreeSummary {
+  lease_id: string;
+  base_branch: string;
+  worktree_branch: string;
+  worktree_path: string;
+  state: string;
+}
+
+export interface TeamHandoffSummary {
+  subagent_id: string;
+  role: string;
+  worktree_lease_id: string;
+  status: string;
+  objective: string;
+}
+
+export interface TeamBlackboardEntrySummary {
+  kind: string;
+  summary: string;
+  artifact_count: number;
+  trace_event_count: number;
+  review_vote?: string | null;
+}
+
+export interface TeamBlackboardSummary {
+  entry_count: number;
+  latest_entries: TeamBlackboardEntrySummary[];
+  approve_count: number;
+  request_changes_count: number;
+  block_count: number;
+}
+
+export interface TeamMergeReviewSummary {
+  required_review_count: number;
+  approving_review_count: number;
+  blocking_review_count: number;
+  artifact_count: number;
+  approved: boolean;
+}
+
+export interface TeamCapabilityGrantSummary {
+  action: string;
+  scope_kind: string;
+  scope_pattern: string;
+}
+
+export interface TeamCapabilityCeilingSummary {
+  grant_count: number;
+  grants: TeamCapabilityGrantSummary[];
+  policy_blocked: boolean;
+}
+
+export interface TeamWorkflowDiagnostic {
+  severity: string;
+  code: string;
+  message: string;
+}
+
+export interface TeamWorkflowSnapshot {
+  team_id: string;
+  lead_agent_id: string;
+  workspace_id: string;
+  task_id: string;
+  status: string;
+  readiness: string;
+  worktrees: TeamWorktreeSummary[];
+  handoffs: TeamHandoffSummary[];
+  blackboard: TeamBlackboardSummary;
+  merge_review: TeamMergeReviewSummary;
+  capability_ceiling: TeamCapabilityCeilingSummary;
+  pending_approval_count: number;
+  conflicts: RecoveryConflictSummary[];
+  diagnostics: TeamWorkflowDiagnostic[];
+}
+
+export interface UiTeamWorkflowCommandError {
+  code: string;
+  message: string;
+  recoverable: boolean;
+}
+
+export interface UiTeamWorkflowSnapshot {
+  operation: string;
+  dry_run: boolean;
+  snapshot: TeamWorkflowSnapshot;
+  errors: UiTeamWorkflowCommandError[];
+}
+
 export interface PlanTodoProgress {
   total: number;
   pending: number;
@@ -487,6 +575,10 @@ export type UiJsonFrame =
       data: UiPlanTodoSnapshot;
     }
   | {
+      type: 'team_workflow_snapshot';
+      data: UiTeamWorkflowSnapshot;
+    }
+  | {
       type: string;
       data?: unknown;
     };
@@ -581,4 +673,5 @@ export interface ConversationTaskState {
   currentSubmission: TurnSubmission | null;
   diagnostics: ConversationDiagnostic[];
   pendingFrameCount: number;
+  teamWorkflowSnapshot: UiTeamWorkflowSnapshot | null;
 }

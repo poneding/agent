@@ -1,6 +1,7 @@
 use agent_types::{ApprovalRequestId, TaskId, TaskState, TodoStatus};
 use agent_ui_bridge::{
     UiEventPayload, UiJsonFrame, UiPlanTodoSnapshot, UiTaskReviewSummary, UiTaskSummary,
+    UiTeamWorkflowSnapshot,
 };
 
 const DEFAULT_TASK_NOTIFICATION_LIMIT: usize = 100;
@@ -47,6 +48,7 @@ pub struct TaskPanelState {
     pub tasks: Vec<UiTaskSummary>,
     pub plan: Option<UiPlanTodoSnapshot>,
     pub reviews: Vec<UiTaskReviewSummary>,
+    pub team_workflows: Vec<UiTeamWorkflowSnapshot>,
     pub notifications: Vec<TaskPanelNotification>,
     limit: usize,
 }
@@ -58,6 +60,7 @@ impl TaskPanelState {
             tasks: Vec::new(),
             plan: None,
             reviews: Vec::new(),
+            team_workflows: Vec::new(),
             notifications: Vec::new(),
             limit: limit.max(1),
         }
@@ -73,6 +76,9 @@ impl TaskPanelState {
             }
             UiJsonFrame::TaskReviewSnapshot(snapshot) => {
                 self.reviews = snapshot.reviews.clone();
+            }
+            UiJsonFrame::TeamWorkflowSnapshot(snapshot) => {
+                self.team_workflows = vec![snapshot.clone()];
             }
             UiJsonFrame::Event(event) => {
                 let UiEventPayload::TaskNotification(notification) = &event.payload else {
@@ -95,6 +101,7 @@ impl TaskPanelState {
         if self.tasks.is_empty()
             && self.plan.is_none()
             && self.reviews.is_empty()
+            && self.team_workflows.is_empty()
             && self.notifications.is_empty()
         {
             return "Tasks: empty".to_string();
@@ -201,6 +208,59 @@ impl TaskPanelState {
             }
             line
         }));
+        for team in &self.team_workflows {
+            lines.push(format!(
+                "Team workflow: operation={} status={:?} readiness={:?} dry_run={} pending_approvals={} conflicts={} diagnostics={} errors={}",
+                team.operation,
+                team.snapshot.status,
+                team.snapshot.readiness,
+                team.dry_run,
+                team.snapshot.pending_approval_count,
+                team.snapshot.conflicts.len(),
+                team.snapshot.diagnostics.len(),
+                team.errors.len()
+            ));
+            lines.push(format!(
+                "team capability grants={} policy_blocked={}",
+                team.snapshot.capability_ceiling.grant_count,
+                team.snapshot.capability_ceiling.policy_blocked
+            ));
+            lines.push(format!(
+                "team blackboard entries={} approvals={} request_changes={} blocks={}",
+                team.snapshot.blackboard.entry_count,
+                team.snapshot.blackboard.approve_count,
+                team.snapshot.blackboard.request_changes_count,
+                team.snapshot.blackboard.block_count
+            ));
+            lines.push(format!(
+                "team merge_review required={} approving={} blocking={} artifacts={} approved={}",
+                team.snapshot.merge_review.required_review_count,
+                team.snapshot.merge_review.approving_review_count,
+                team.snapshot.merge_review.blocking_review_count,
+                team.snapshot.merge_review.artifact_count,
+                team.snapshot.merge_review.approved
+            ));
+            for handoff in &team.snapshot.handoffs {
+                lines.push(format!(
+                    "team handoff {} role={:?} status={:?} objective={}",
+                    handoff.subagent_id, handoff.role, handoff.status, handoff.objective
+                ));
+            }
+            for conflict in &team.snapshot.conflicts {
+                lines.push(format!(
+                    "team conflict {} kind={} next_action={}",
+                    conflict.path,
+                    conflict_kind_label(conflict.kind),
+                    conflict_next_action_label(conflict.next_action)
+                ));
+            }
+            for diagnostic in &team.snapshot.diagnostics {
+                lines.push(format!(
+                    "team diagnostic {:?} {} {}",
+                    diagnostic.severity, diagnostic.code, diagnostic.message
+                ));
+            }
+        }
         lines.extend(
             self.notifications
                 .iter()

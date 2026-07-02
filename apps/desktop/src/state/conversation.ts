@@ -15,6 +15,7 @@ import type {
   UiJsonFrame,
   UiPlanTodoItem,
   UiPlanTodoSnapshot,
+  UiTeamWorkflowSnapshot,
 } from '../types';
 
 const MAX_CONVERSATION_TEXT_CHARS = 240;
@@ -40,6 +41,7 @@ export function createConversationTaskState(
     currentSubmission: null,
     diagnostics: [],
     pendingFrameCount: 0,
+    teamWorkflowSnapshot: null,
   };
 }
 
@@ -59,6 +61,13 @@ export function reduceConversationTaskState(
 
   if (frame.type === 'plan_todo_snapshot' && isPlanTodoSnapshot(frame.data)) {
     return reducePlanTodoSnapshot(state, frame.data);
+  }
+
+  if (frame.type === 'team_workflow_snapshot' && isTeamWorkflowSnapshot(frame.data)) {
+    return {
+      ...state,
+      teamWorkflowSnapshot: frame.data,
+    };
   }
 
   if (frame.type !== 'event' || !isRecord(frame.data)) {
@@ -354,6 +363,18 @@ function isPlanTodoSnapshot(value: unknown): value is UiPlanTodoSnapshot {
     typeof value.progress.in_progress === 'number' &&
     typeof value.progress.completed === 'number' &&
     typeof value.progress.cancelled === 'number'
+  );
+}
+
+function isTeamWorkflowSnapshot(value: unknown): value is UiTeamWorkflowSnapshot {
+  if (!isRecord(value) || !isRecord(value.snapshot)) {
+    return false;
+  }
+  return (
+    typeof value.operation === 'string' &&
+    typeof value.dry_run === 'boolean' &&
+    typeof value.snapshot.status === 'string' &&
+    typeof value.snapshot.readiness === 'string'
   );
 }
 

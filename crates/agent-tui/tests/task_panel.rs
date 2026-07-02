@@ -33,6 +33,91 @@ fn task_notification(task_id: TaskId, kind: &str, summary: &str) -> UiJsonFrame 
     }))
 }
 
+fn team_workflow_frame() -> UiJsonFrame {
+    serde_json::from_value(serde_json::json!({
+        "type": "team_workflow_snapshot",
+        "data": {
+            "operation": "merge_readiness_dry_run",
+            "dry_run": true,
+            "snapshot": {
+                "team_id": "00000000-0000-0000-0000-000000006401",
+                "lead_agent_id": "00000000-0000-0000-0000-000000006402",
+                "workspace_id": "00000000-0000-0000-0000-000000006403",
+                "task_id": "00000000-0000-0000-0000-000000006404",
+                "status": "blocked",
+                "readiness": "has_conflict",
+                "worktrees": [{
+                    "lease_id": "worktree-team",
+                    "base_branch": "main",
+                    "worktree_branch": "agent/m63-04",
+                    "worktree_path": ".worktrees/agent-m63-04",
+                    "state": "active"
+                }],
+                "handoffs": [{
+                    "subagent_id": "00000000-0000-0000-0000-000000006405",
+                    "role": "implementer",
+                    "worktree_lease_id": "worktree-team",
+                    "status": "completed",
+                    "objective": "Implement UI team surface"
+                }],
+                "blackboard": {
+                    "entry_count": 1,
+                    "latest_entries": [{
+                        "kind": "review",
+                        "summary": "Reviewer found conflict",
+                        "artifact_count": 1,
+                        "trace_event_count": 2,
+                        "review_vote": "block"
+                    }],
+                    "approve_count": 0,
+                    "request_changes_count": 0,
+                    "block_count": 1
+                },
+                "merge_review": {
+                    "required_review_count": 1,
+                    "approving_review_count": 0,
+                    "blocking_review_count": 1,
+                    "artifact_count": 1,
+                    "approved": false
+                },
+                "capability_ceiling": {
+                    "grant_count": 1,
+                    "grants": [{
+                        "action": "read",
+                        "scope_kind": "file",
+                        "scope_pattern": "crates/agent-team/**"
+                    }],
+                    "policy_blocked": false
+                },
+                "pending_approval_count": 0,
+                "conflicts": [{
+                    "path": "crates/agent-team/src/workflow.rs",
+                    "kind": "both_modified",
+                    "lead_change": {
+                        "source": "lead",
+                        "change_kind": "modified",
+                        "content_hash": "lead"
+                    },
+                    "incoming_change": {
+                        "source": "subagent",
+                        "change_kind": "modified",
+                        "content_hash": "incoming"
+                    },
+                    "next_action": "inspect_diff",
+                    "diagnostics": []
+                }],
+                "diagnostics": [{
+                    "severity": "warning",
+                    "code": "team.ui.fixture",
+                    "message": "team UI fixture"
+                }]
+            },
+            "errors": []
+        }
+    }))
+    .expect("valid team workflow frame")
+}
+
 fn plan_snapshot() -> UiPlanTodoSnapshot {
     let snapshot = PlanTodoSnapshot {
         conversation_id: ConversationId::new(),
@@ -154,6 +239,38 @@ fn task_panel_renders_task_snapshot_status_metadata() {
     assert!(rendered.contains("priority=high"));
     assert!(rendered.contains("schedule=once"));
     assert!(rendered.contains("latest=waiting for approval"));
+}
+
+#[test]
+fn task_panel_renders_team_workflow_snapshot() {
+    let mut panel = TaskPanelState::default();
+
+    panel.reduce_frame(&team_workflow_frame());
+
+    let rendered = panel.render_text();
+    assert!(rendered.contains("Team workflow: operation=merge_readiness_dry_run"));
+    assert!(rendered.contains("readiness=HasConflict"));
+    assert!(rendered.contains("team capability grants=1 policy_blocked=false"));
+    assert!(rendered.contains("team blackboard entries=1 approvals=0 request_changes=0 blocks=1"));
+    assert!(rendered.contains("team merge_review required=1 approving=0 blocking=1 artifacts=1"));
+    assert!(rendered.contains("team handoff 00000000-0000-0000-0000-000000006405"));
+    assert!(rendered.contains("team conflict crates/agent-team/src/workflow.rs"));
+    assert!(rendered.contains("team diagnostic Warning team.ui.fixture team UI fixture"));
+}
+
+#[test]
+fn app_reducer_routes_team_workflow_to_task_panel() {
+    let mut app = TuiApp::default();
+
+    app.reduce(TuiAction::BridgeFrame(Box::new(team_workflow_frame())));
+    app.reduce(TuiAction::Composer(ComposerAction::InsertText(
+        "/tasks".to_string(),
+    )));
+    app.reduce(TuiAction::Composer(ComposerAction::Submit));
+
+    let rendered = render_app_to_string(&app, 110, 20).expect("render tasks panel");
+    assert!(rendered.contains("Team workflow"));
+    assert!(rendered.contains("HasConflict"));
 }
 
 #[test]

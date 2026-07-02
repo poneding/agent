@@ -104,13 +104,15 @@ Result: M63-03 adds `agent-team` merge readiness reports with typed blockers for
 - Modify: `apps/desktop/`
 - Modify: `docs/desktop/`
 
-- [ ] **Step 1: Plan UI-safe team surfaces**
+- [x] **Step 1: Plan UI-safe team surfaces**
 
 Define task/team panels that display team readiness, handoffs, subagent state, blackboard entries, review votes, conflicts, and merge-readiness next actions.
 
-- [ ] **Step 2: Implement TUI/Desktop rendering**
+- [x] **Step 2: Implement TUI/Desktop rendering**
 
 TUI and Desktop must render bridge snapshots only and must not implement readiness, policy, or conflict classification.
+
+Result: M63-04 adds TUI task panel rendering for `team_workflow_snapshot` bridge frames, Desktop team workflow snapshot typing and state reduction, a compact Tasks-route team workflow panel, and focused TUI/Desktop tests. UI surfaces render shared bridge snapshots only; readiness and merge logic remain in shared crates.
 
 ### Task 6: M63-05 Team Workflow Smoke, Docs, and Closeout
 

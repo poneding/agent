@@ -268,6 +268,30 @@ Acceptance:
 - Merge readiness blocks on conflicts, missing review, policy denial, stale leases, or incomplete handoff state.
 - A credential-free smoke proves the isolated worktree to review and merge-readiness workflow.
 
+### M64 Memory and Personalization
+
+Status: Planned. M64 milestone planning and M64-01 slice planning are ready. Implementation has not started.
+
+Purpose: make memory useful, reviewable, privacy-safe, and visible in product workflows rather than only available as lower-level storage/retrieval contracts.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M64-01 Memory Product Snapshot and Privacy Contracts | Planned: typed memory snapshots for records, proposals, retrieval previews, influence traces, retention controls, tombstones, and privacy diagnostics. |
+| M64-02 CLI and JSON Memory Review Commands | Planned: stable memory review, retrieval preview, proposal decision, import/export, delete, and rebuild commands over shared contracts. |
+| M64-03 Runtime Memory Influence and Proposal Loop | Planned: selected memories enter prompt assembly with influence traces, and turn evidence can create reviewable write proposals. |
+| M64-04 TUI/Desktop Memory Surfaces | Planned: TUI/Desktop render memory records, proposals, influence traces, privacy controls, and settings from bridge snapshots. |
+| M64-05 Memory Smoke, Docs, and Closeout | Planned: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
+
+Acceptance:
+
+- Users can inspect which memories exist, which memories influenced a turn, and why.
+- Memory writes are proposed, reviewed, and committed through explicit typed states.
+- Sensitive memories, secret-like text, embeddings, raw prompts, and archive payloads do not leak through default summaries.
+- Import/export, deletion, tombstones, retention controls, and index rebuild evidence are documented and test-covered.
+- A credential-free smoke proves retrieval, influence traces, proposals, privacy controls, and redaction.
+
 ## Capability Gates
 
 Each future milestone should ship with:

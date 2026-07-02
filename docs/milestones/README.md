@@ -648,6 +648,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M63 slice specs | Complete for M63-01 through M63-05 |
 | M63 slice plans | Complete for M63-01 through M63-05 |
 | M63 implementation | Complete |
+| M64 milestone spec | Complete |
+| M64 milestone plan | Complete |
+| M64-01 slice spec | Complete |
+| M64-01 slice plan | Complete |
+| M64 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -725,6 +730,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M61 Plan, Todo, and Task UX | `docs/specs/M61-plan-todo-task-ux.spec.md` | `docs/plans/M61-plan-todo-task-ux.plan.md` | Make plan/todo/task state first-class across interactive and background work with TodoWrite-compatible state, task controls, approval waits, artifacts, and notifications. |
 | M62 Reliability and Recovery Productization | `docs/specs/M62-reliability-recovery-productization.spec.md` | `docs/plans/M62-reliability-recovery-productization.plan.md` | Productize checkpoint resume, replay/fork, idempotent recovery visibility, failed-command retry, conflict diagnostics, and crash smoke evidence. |
 | M63 Worktree and Agent Team Workflows | `docs/specs/M63-worktree-agent-team-workflows.spec.md` | `docs/plans/M63-worktree-agent-team-workflows.plan.md` | Productize isolated worktrees, subagent handoff, shared blackboard, reviewer role, merge review, conflict handling, and team-level permission ceilings. |
+| M64 Memory and Personalization | `docs/specs/M64-memory-personalization.spec.md` | `docs/plans/M64-memory-personalization.plan.md` | Productize memory so project/user recall is reviewable, privacy-safe, explainable, and visible in CLI/Desktop. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1401,6 +1407,16 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M63-04 TUI/Desktop Team Surfaces | `docs/specs/M63-04-tui-desktop-team-surfaces.spec.md` | `docs/plans/M63-04-tui-desktop-team-surfaces.plan.md` | Complete: TUI task panel and Desktop Tasks view render team workflow snapshots from shared bridge frames without local readiness logic. |
 | M63-05 Team Workflow Smoke, Docs, and Closeout | `docs/specs/M63-05-team-workflow-smoke-closeout.spec.md` | `docs/plans/M63-05-team-workflow-smoke-closeout.plan.md` | Complete: default eval team workflow smoke, CLI/Desktop team workflow docs, final gates, and M63 closeout status. |
 
+## M64 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M64-01 Memory Product Snapshot and Privacy Contracts | `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md` | `docs/plans/M64-01-memory-product-snapshot-privacy.plan.md` | Planned: UI-safe memory product snapshots for records, proposals, retrieval, influence traces, retention, tombstones, and privacy diagnostics. |
+| M64-02 CLI and JSON Memory Review Commands | Planned | Planned | Planned: stable memory review, retrieval preview, proposal decision, import/export, delete, and rebuild commands. |
+| M64-03 Runtime Memory Influence and Proposal Loop | Planned | Planned | Planned: prompt influence traces and reviewable memory write proposals from runtime turn evidence. |
+| M64-04 TUI/Desktop Memory Surfaces | Planned | Planned | Planned: memory review, proposal, influence trace, privacy, import/export, and settings surfaces over bridge snapshots. |
+| M64-05 Memory Smoke, Docs, and Closeout | Planned | Planned | Planned: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1420,6 +1436,10 @@ Most recent completed or active planning documents:
 
 - `docs/specs/M63-05-team-workflow-smoke-closeout.spec.md`
 - `docs/plans/M63-05-team-workflow-smoke-closeout.plan.md`
+- `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md`
+- `docs/plans/M64-01-memory-product-snapshot-privacy.plan.md`
+- `docs/specs/M64-memory-personalization.spec.md`
+- `docs/plans/M64-memory-personalization.plan.md`
 - `docs/specs/M63-04-tui-desktop-team-surfaces.spec.md`
 - `docs/plans/M63-04-tui-desktop-team-surfaces.plan.md`
 - `docs/specs/M63-worktree-agent-team-workflows.spec.md`

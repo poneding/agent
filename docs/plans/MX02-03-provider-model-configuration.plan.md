@@ -1,4 +1,4 @@
-# M62A-03 Provider and Model Configuration Implementation Plan
+# MX02-03 Provider and Model Configuration Implementation Plan
 
 > **For agentic workers:** If the `superpowers` skill is available, use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to execute this plan task by task. If it is unavailable, follow the same strict checklist directly.
 
@@ -13,7 +13,7 @@
 ### Task 1: Confirm Inputs
 
 **Files:**
-- Read: `docs/specs/M62A-03-provider-model-configuration.spec.md`
+- Read: `docs/specs/MX02-03-provider-model-configuration.spec.md`
 - Read: `crates/agent-model/src/config.rs`
 - Read: `crates/agent-desktop/src/settings.rs`
 - Read: `crates/agent-ui-bridge/src/frame.rs`
@@ -85,7 +85,7 @@ Run:
 
 ```bash
 git diff --check
-git add crates/agent-model crates/agent-desktop crates/agent-ui-bridge apps/desktop docs/specs/M62A-03-provider-model-configuration.spec.md docs/plans/M62A-03-provider-model-configuration.plan.md
+git add crates/agent-model crates/agent-desktop crates/agent-ui-bridge apps/desktop docs/specs/MX02-03-provider-model-configuration.spec.md docs/plans/MX02-03-provider-model-configuration.plan.md
 git commit -m "feat: productize desktop provider settings"
 ```
 

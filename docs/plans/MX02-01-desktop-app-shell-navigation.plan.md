@@ -1,4 +1,4 @@
-# M62A-01 Desktop App Shell and Navigation Implementation Plan
+# MX02-01 Desktop App Shell and Navigation Implementation Plan
 
 > **For agentic workers:** If the `superpowers` skill is available, use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to execute this plan task by task. If it is unavailable, follow the same strict checklist directly.
 
@@ -13,7 +13,7 @@
 ### Task 1: Confirm Inputs
 
 **Files:**
-- Read: `docs/specs/M62A-01-desktop-app-shell-navigation.spec.md`
+- Read: `docs/specs/MX02-01-desktop-app-shell-navigation.spec.md`
 - Read: `apps/desktop/package.json`
 - Read: `apps/desktop/src/App.tsx`
 - Read: `apps/desktop/src/app.css`
@@ -35,7 +35,7 @@ Expected: identify current dashboard/conversation/tasks/approvals/trace/settings
 
 **Files:**
 - Modify: `apps/desktop/package.json` only if dependencies are adopted
-- Modify: `docs/plans/M62A-01-desktop-app-shell-navigation.plan.md` with dependency notes if needed
+- Modify: `docs/plans/MX02-01-desktop-app-shell-navigation.plan.md` with dependency notes if needed
 
 - [ ] **Step 1: Decide dependency footprint**
 
@@ -85,7 +85,7 @@ Expected: focused tests and production build pass.
 ### Task 5: Commit
 
 **Files:**
-- Stage only M62A-01 source/tests/docs.
+- Stage only MX02-01 source/tests/docs.
 
 - [ ] **Step 1: Commit slice**
 
@@ -93,7 +93,7 @@ Run:
 
 ```bash
 git diff --check
-git add apps/desktop docs/specs/M62A-01-desktop-app-shell-navigation.spec.md docs/plans/M62A-01-desktop-app-shell-navigation.plan.md
+git add apps/desktop docs/specs/MX02-01-desktop-app-shell-navigation.spec.md docs/plans/MX02-01-desktop-app-shell-navigation.plan.md
 git commit -m "feat: productize desktop app shell"
 ```
 

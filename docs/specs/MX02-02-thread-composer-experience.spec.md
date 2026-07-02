@@ -1,4 +1,4 @@
-# M62A-02 Thread and Composer Experience Spec
+# MX02-02 Thread and Composer Experience Spec
 
 ## Purpose
 
@@ -6,7 +6,7 @@ Make the Desktop center workspace feel like a real coding-agent thread: searchab
 
 ## Product Context
 
-M62A-01 creates the shell. M62A-02 fills the left/center workflow around threads and prompt submission while continuing to consume typed bridge frames and Desktop view models.
+MX02-01 creates the shell. MX02-02 fills the left/center workflow around threads and prompt submission while continuing to consume typed bridge frames and Desktop view models.
 
 ## Scope
 
@@ -20,8 +20,8 @@ This spec delivers:
 
 Owned by other specs:
 
-- provider/model configuration persistence belongs to M62A-03
-- inspector-specific approval/diff/task/artifact panels belong to M62A-04
+- provider/model configuration persistence belongs to MX02-03
+- inspector-specific approval/diff/task/artifact panels belong to MX02-04
 - recovery-aware resume/replay/fork belongs to M62
 
 ## Architecture
@@ -96,4 +96,4 @@ pub struct DesktopComposerState {
 
 ## Completion Signal
 
-M62A-02 is complete when `npm --prefix apps/desktop test -- conversation-task-ui app-shell` and `npm --prefix apps/desktop run build` pass.
+MX02-02 is complete when `npm --prefix apps/desktop test -- conversation-task-ui app-shell` and `npm --prefix apps/desktop run build` pass.

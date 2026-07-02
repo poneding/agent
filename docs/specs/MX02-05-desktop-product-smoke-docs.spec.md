@@ -1,4 +1,4 @@
-# M62A-05 Desktop Product Smoke and Documentation Spec
+# MX02-05 Desktop Product Smoke and Documentation Spec
 
 ## Purpose
 
@@ -6,7 +6,7 @@ Add deterministic smoke coverage and user-facing documentation for the productiz
 
 ## Product Context
 
-M60 added a Desktop daily-driver smoke. M62A-05 updates that smoke to cover the productized shell, thread/composer workflow, provider/model selection, inspector panels, settings, and secret redaction.
+M60 added a Desktop daily-driver smoke. MX02-05 updates that smoke to cover the productized shell, thread/composer workflow, provider/model selection, inspector panels, settings, and secret redaction.
 
 ## Scope
 
@@ -15,7 +15,7 @@ This spec delivers:
 - Desktop product smoke fixture covering open workspace, create thread, choose provider/model, submit prompt, receive typed frames, show approval, show diff, show task progress, open settings, and verify no secret leakage
 - `docs/desktop/desktop-productization.md` user workflow document
 - `cargo xtask desktop-test` updates or explicit documented smoke command if no xtask change is required
-- README, roadmap, milestone status updates at M62A closeout
+- README, roadmap, milestone status updates at MX02 closeout
 
 Owned by other specs:
 
@@ -68,4 +68,4 @@ No new runtime contract is required unless the smoke identifies missing typed sn
 
 ## Completion Signal
 
-M62A-05 is complete when Desktop product smoke, docs, README/roadmap/milestone updates, `cargo xtask desktop-test`, final workspace gates, and closeout commit are complete.
+MX02-05 is complete when Desktop product smoke, docs, README/roadmap/milestone updates, `cargo xtask desktop-test`, final workspace gates, and closeout commit are complete.

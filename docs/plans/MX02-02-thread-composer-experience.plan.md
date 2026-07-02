@@ -1,4 +1,4 @@
-# M62A-02 Thread and Composer Experience Implementation Plan
+# MX02-02 Thread and Composer Experience Implementation Plan
 
 > **For agentic workers:** If the `superpowers` skill is available, use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to execute this plan task by task. If it is unavailable, follow the same strict checklist directly.
 
@@ -13,7 +13,7 @@
 ### Task 1: Confirm Inputs
 
 **Files:**
-- Read: `docs/specs/M62A-02-thread-composer-experience.spec.md`
+- Read: `docs/specs/MX02-02-thread-composer-experience.spec.md`
 - Read: `crates/agent-desktop/src/conversation.rs`
 - Read: `crates/agent-ui-bridge/src/command.rs`
 - Read: `crates/agent-ui-bridge/src/frame.rs`
@@ -88,7 +88,7 @@ Run:
 
 ```bash
 git diff --check
-git add apps/desktop crates/agent-desktop crates/agent-ui-bridge docs/specs/M62A-02-thread-composer-experience.spec.md docs/plans/M62A-02-thread-composer-experience.plan.md
+git add apps/desktop crates/agent-desktop crates/agent-ui-bridge docs/specs/MX02-02-thread-composer-experience.spec.md docs/plans/MX02-02-thread-composer-experience.plan.md
 git commit -m "feat: productize desktop thread composer"
 ```
 

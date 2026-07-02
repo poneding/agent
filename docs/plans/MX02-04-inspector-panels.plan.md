@@ -1,4 +1,4 @@
-# M62A-04 Inspector Panels Implementation Plan
+# MX02-04 Inspector Panels Implementation Plan
 
 > **For agentic workers:** If the `superpowers` skill is available, use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to execute this plan task by task. If it is unavailable, follow the same strict checklist directly.
 
@@ -13,7 +13,7 @@
 ### Task 1: Confirm Inputs
 
 **Files:**
-- Read: `docs/specs/M62A-04-inspector-panels.spec.md`
+- Read: `docs/specs/MX02-04-inspector-panels.spec.md`
 - Read: `crates/agent-desktop/src/diff.rs`
 - Read: `crates/agent-desktop/src/permission.rs`
 - Read: `crates/agent-desktop/src/task.rs`
@@ -73,7 +73,7 @@ Run:
 
 ```bash
 git diff --check
-git add crates/agent-desktop apps/desktop docs/specs/M62A-04-inspector-panels.spec.md docs/plans/M62A-04-inspector-panels.plan.md
+git add crates/agent-desktop apps/desktop docs/specs/MX02-04-inspector-panels.spec.md docs/plans/MX02-04-inspector-panels.plan.md
 git commit -m "feat: productize desktop inspector panels"
 ```
 

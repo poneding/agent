@@ -1,4 +1,4 @@
-# M62A-03 Provider and Model Configuration Spec
+# MX02-03 Provider and Model Configuration Spec
 
 ## Purpose
 
@@ -6,7 +6,7 @@ Make Desktop provider/model configuration a first-class product surface with mul
 
 ## Product Context
 
-M57 introduced multi-provider runtime support and capability diagnostics. M60 exposed a basic settings view. M62A-03 upgrades Desktop configuration so model choice is visible in both settings and the composer without leaking secrets into React/Tauri snapshots.
+M57 introduced multi-provider runtime support and capability diagnostics. M60 exposed a basic settings view. MX02-03 upgrades Desktop configuration so model choice is visible in both settings and the composer without leaking secrets into React/Tauri snapshots.
 
 ## Scope
 
@@ -104,4 +104,4 @@ pub struct ModelProfile {
 
 ## Completion Signal
 
-M62A-03 is complete when the focused Rust, Tauri, Vitest, and build checks in the plan pass.
+MX02-03 is complete when the focused Rust, Tauri, Vitest, and build checks in the plan pass.

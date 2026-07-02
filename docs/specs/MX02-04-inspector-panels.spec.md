@@ -1,4 +1,4 @@
-# M62A-04 Inspector Panels for Changes, Approvals, Tasks, and Artifacts Spec
+# MX02-04 Inspector Panels for Changes, Approvals, Tasks, and Artifacts Spec
 
 ## Purpose
 
@@ -6,7 +6,7 @@ Productize the right-side Desktop inspector so users can inspect context, change
 
 ## Product Context
 
-M60 created separate approval, diff, task, settings, and trace routes. M62A-04 brings those surfaces into a compact tabbed inspector that supports the M62A shell while preserving typed Desktop/runtime contracts.
+M60 created separate approval, diff, task, settings, and trace routes. MX02-04 brings those surfaces into a compact tabbed inspector that supports the MX02 shell while preserving typed Desktop/runtime contracts.
 
 ## Scope
 
@@ -98,4 +98,4 @@ pub struct DesktopArtifactPreview {
 
 ## Completion Signal
 
-M62A-04 is complete when focused inspector Rust/frontend checks and build pass.
+MX02-04 is complete when focused inspector Rust/frontend checks and build pass.

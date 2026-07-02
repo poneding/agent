@@ -1,12 +1,12 @@
-# M62A Desktop Productization Spec
+# MX02 Desktop Productization Spec
 
 ## Purpose
 
-Turn `apps/desktop` from a functional engineering shell into a polished local coding-agent workspace. M62A keeps the existing Rust runtime, Tauri 2 bridge, React/TypeScript frontend, and typed Desktop contracts, but reshapes the product surface around dense thread navigation, a primary composer, command-first interactions, inspector panels, provider/model management, and a deterministic Desktop smoke path.
+Turn `apps/desktop` from a functional engineering shell into a polished local coding-agent workspace. MX02 keeps the existing Rust runtime, Tauri 2 bridge, React/TypeScript frontend, and typed Desktop contracts, but reshapes the product surface around dense thread navigation, a primary composer, command-first interactions, inspector panels, provider/model management, and a deterministic Desktop smoke path.
 
 ## Product Context
 
-M60 proved that Desktop can consume shared runtime state for dashboard, conversation, approvals, diffs, settings, tasks, logs, and smoke coverage. M61 made plan/todo/task state first-class across surfaces. M62 recovery work continues separately. M62A is an independent Desktop Productization lane that improves the Desktop product shape without advancing recovery implementation and without duplicating runtime truth in React or Tauri.
+M60 proved that Desktop can consume shared runtime state for dashboard, conversation, approvals, diffs, settings, tasks, logs, and smoke coverage. M61 made plan/todo/task state first-class across surfaces. M62 recovery work continues separately. MX02 is an independent Desktop Productization lane that improves the Desktop product shape without advancing recovery implementation and without duplicating runtime truth in React or Tauri.
 
 This work references public, observable coding-agent Desktop product patterns: project/thread navigation, parallel threads, composer-first interaction, slash commands, command palette, approvals, diffs, inspectors, settings, terminal drawer, and keyboard-first flows. It does not depend on or claim knowledge of any private Codex Desktop implementation.
 
@@ -54,12 +54,12 @@ Dependency rules:
 ```text
 docs/
   specs/
-    M62A-desktop-productization.spec.md
-    M62A-01-desktop-app-shell-navigation.spec.md
-    M62A-02-thread-composer-experience.spec.md
-    M62A-03-provider-model-configuration.spec.md
-    M62A-04-inspector-panels.spec.md
-    M62A-05-desktop-product-smoke-docs.spec.md
+    MX02-desktop-productization.spec.md
+    MX02-01-desktop-app-shell-navigation.spec.md
+    MX02-02-thread-composer-experience.spec.md
+    MX02-03-provider-model-configuration.spec.md
+    MX02-04-inspector-panels.spec.md
+    MX02-05-desktop-product-smoke-docs.spec.md
   plans/
     matching implementation plans
   desktop/
@@ -85,7 +85,7 @@ Exact module names may change by slice, but ownership must stay aligned with the
 
 ## Public Contracts
 
-M62A should evolve the existing typed contracts toward shapes like:
+MX02 should evolve the existing typed contracts toward shapes like:
 
 ```rust
 pub struct DesktopWorkspaceShellSnapshot {
@@ -148,7 +148,7 @@ Provider kinds must cover OpenAI-compatible, Anthropic, Gemini, local/Ollama-sty
 - `agent-desktop` tests for shell snapshots, thread summaries, inspector view models, provider settings, approvals/diffs/tasks/artifacts, and trace summaries
 - Tauri tests for command allowlist, validation, config snapshots, approval/diff/task/trace loading, and no-secret snapshots
 - Vitest tests for app shell navigation, conversation/task UI, approval/diff UI, trace/settings UI, and Desktop smoke fixtures
-- final M62A gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, `cargo xtask desktop-test`, and `cargo xtask eval`
+- final MX02 gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, `cargo xtask desktop-test`, and `cargo xtask eval`
 
 ## Acceptance Criteria
 
@@ -162,4 +162,4 @@ Provider kinds must cover OpenAI-compatible, Anthropic, Gemini, local/Ollama-sty
 
 ## Completion Signal
 
-M62A is complete when all five Desktop Productization slices are implemented, focused checks pass per slice, final gates pass, `docs/desktop/desktop-productization.md` documents the product workflow, roadmap/milestone status is updated, and commits remain separated from M62 recovery implementation work.
+MX02 is complete when all five Desktop Productization slices are implemented, focused checks pass per slice, final gates pass, `docs/desktop/desktop-productization.md` documents the product workflow, roadmap/milestone status is updated, and commits remain separated from M62 recovery implementation work.

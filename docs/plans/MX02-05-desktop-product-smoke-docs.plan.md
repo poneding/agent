@@ -1,4 +1,4 @@
-# M62A-05 Desktop Product Smoke and Documentation Implementation Plan
+# MX02-05 Desktop Product Smoke and Documentation Implementation Plan
 
 > **For agentic workers:** If the `superpowers` skill is available, use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to execute this plan task by task. If it is unavailable, follow the same strict checklist directly.
 
@@ -13,7 +13,7 @@
 ### Task 1: Confirm Inputs
 
 **Files:**
-- Read: `docs/specs/M62A-05-desktop-product-smoke-docs.spec.md`
+- Read: `docs/specs/MX02-05-desktop-product-smoke-docs.spec.md`
 - Read: `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
 - Read: `docs/desktop/daily-driver-smoke.md`
 - Read: `README.md`
@@ -52,7 +52,7 @@ Describe the productized shell, thread navigation, composer, command palette, in
 
 - [ ] **Step 2: Close out status docs**
 
-Update M62A status and slice completion evidence after implementation gates pass.
+Update MX02 status and slice completion evidence after implementation gates pass.
 
 ### Task 4: Run Final Gates
 
@@ -70,7 +70,7 @@ cargo xtask desktop-test
 cargo xtask eval
 ```
 
-Expected: all M62A final gates pass.
+Expected: all MX02 final gates pass.
 
 ### Task 5: Commit
 
@@ -80,7 +80,7 @@ Run:
 
 ```bash
 git diff --check
-git add README.md docs/desktop/desktop-productization.md docs/roadmap/PRODUCT_ROADMAP.md docs/milestones/README.md apps/desktop xtask docs/specs/M62A-05-desktop-product-smoke-docs.spec.md docs/plans/M62A-05-desktop-product-smoke-docs.plan.md
+git add README.md docs/desktop/desktop-productization.md docs/roadmap/PRODUCT_ROADMAP.md docs/milestones/README.md apps/desktop xtask docs/specs/MX02-05-desktop-product-smoke-docs.spec.md docs/plans/MX02-05-desktop-product-smoke-docs.plan.md
 git commit -m "test: add desktop product smoke"
 ```
 

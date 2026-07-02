@@ -12,7 +12,7 @@ M30-M54 delivered a deep MCP extension track. That work remains valuable, but MC
 
 Current focus:
 
-- M62A Desktop Productization
+- MX02 Desktop Productization
 - M62 Reliability and Recovery Productization
 - M63 Worktree and Agent Team Workflows
 - M64 Memory and Personalization
@@ -617,11 +617,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M62 slice specs | Complete for M62-01; planned for M62-02 through M62-05 |
 | M62 slice plans | Complete for M62-01; planned for M62-02 through M62-05 |
 | M62 implementation | In progress |
-| M62A milestone spec | Complete |
-| M62A milestone plan | Complete |
-| M62A slice specs | Complete for M62A-01 through M62A-05 |
-| M62A slice plans | Complete for M62A-01 through M62A-05 |
-| M62A implementation | Planned |
+| MX02 milestone spec | Complete |
+| MX02 milestone plan | Complete |
+| MX02 slice specs | Complete for MX02-01 through MX02-05 |
+| MX02 slice plans | Complete for MX02-01 through MX02-05 |
+| MX02 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -698,7 +698,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60 Desktop Daily Driver | `docs/specs/M60-desktop-daily-driver.spec.md` | `docs/plans/M60-desktop-daily-driver.plan.md` | Turn Desktop into a daily-driver interface over the shared runtime with workspace dashboard, conversation, approvals, diff review, provider settings, task monitor, logs, and deterministic smoke coverage. |
 | M61 Plan, Todo, and Task UX | `docs/specs/M61-plan-todo-task-ux.spec.md` | `docs/plans/M61-plan-todo-task-ux.plan.md` | Make plan/todo/task state first-class across interactive and background work with TodoWrite-compatible state, task controls, approval waits, artifacts, and notifications. |
 | M62 Reliability and Recovery Productization | `docs/specs/M62-reliability-recovery-productization.spec.md` | `docs/plans/M62-reliability-recovery-productization.plan.md` | Productize checkpoint resume, replay/fork, idempotent recovery visibility, failed-command retry, conflict diagnostics, and crash smoke evidence. |
-| M62A Desktop Productization | `docs/specs/M62A-desktop-productization.spec.md` | `docs/plans/M62A-desktop-productization.plan.md` | Turn Desktop into a modern local coding-agent workspace with thread navigation, composer, command palette, inspector panels, provider/model settings, and product smoke. |
+| MX02 Desktop Productization | `docs/specs/MX02-desktop-productization.spec.md` | `docs/plans/MX02-desktop-productization.plan.md` | Turn Desktop into a modern local coding-agent workspace with thread navigation, composer, command palette, inspector panels, provider/model settings, and product smoke. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1365,15 +1365,15 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M62-04 Conflict Diagnostics and Recovery Surfacing | `docs/specs/M62-04-conflict-diagnostics.spec.md` | `docs/plans/M62-04-conflict-diagnostics.plan.md` | Planned: typed conflict diagnostics surfaced through recovery snapshots and CLI/TUI/Desktop-safe views. |
 | M62-05 Crash Smoke, Docs, and Closeout | `docs/specs/M62-05-crash-smoke-closeout.spec.md` | `docs/plans/M62-05-crash-smoke-closeout.plan.md` | Planned: deterministic crash/restart smoke, user workflow docs, final gates, and M62 closeout status updates. |
 
-## M62A Slice Index
+## MX02 Slice Index
 
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
-| M62A-01 Desktop App Shell and Navigation | `docs/specs/M62A-01-desktop-app-shell-navigation.spec.md` | `docs/plans/M62A-01-desktop-app-shell-navigation.plan.md` | Planned: three-column Desktop workspace, thread sidebar, inspector tabs, command palette skeleton, keyboard shortcuts, and terminal drawer placeholder. |
-| M62A-02 Thread and Composer Experience | `docs/specs/M62A-02-thread-composer-experience.spec.md` | `docs/plans/M62A-02-thread-composer-experience.plan.md` | Planned: thread lifecycle UI, composer controls, slash and skill hints, send/stop/retry states, goal/progress row, and typed transcript cards. |
-| M62A-03 Provider and Model Configuration | `docs/specs/M62A-03-provider-model-configuration.spec.md` | `docs/plans/M62A-03-provider-model-configuration.plan.md` | Planned: provider/model profiles, multi-provider settings, capability diagnostics, per-thread overrides, and secret-safe snapshots. |
-| M62A-04 Inspector Panels for Changes, Approvals, Tasks, and Artifacts | `docs/specs/M62A-04-inspector-panels.spec.md` | `docs/plans/M62A-04-inspector-panels.plan.md` | Planned: Context, Changes, Approvals, Tasks, Artifacts, and Trace inspector panels backed by typed Desktop/bridge state. |
-| M62A-05 Desktop Product Smoke and Documentation | `docs/specs/M62A-05-desktop-product-smoke-docs.spec.md` | `docs/plans/M62A-05-desktop-product-smoke-docs.plan.md` | Planned: deterministic Desktop product smoke, no-secret fixture checks, `docs/desktop/desktop-productization.md`, and closeout gates. |
+| MX02-01 Desktop App Shell and Navigation | `docs/specs/MX02-01-desktop-app-shell-navigation.spec.md` | `docs/plans/MX02-01-desktop-app-shell-navigation.plan.md` | Planned: three-column Desktop workspace, thread sidebar, inspector tabs, command palette skeleton, keyboard shortcuts, and terminal drawer placeholder. |
+| MX02-02 Thread and Composer Experience | `docs/specs/MX02-02-thread-composer-experience.spec.md` | `docs/plans/MX02-02-thread-composer-experience.plan.md` | Planned: thread lifecycle UI, composer controls, slash and skill hints, send/stop/retry states, goal/progress row, and typed transcript cards. |
+| MX02-03 Provider and Model Configuration | `docs/specs/MX02-03-provider-model-configuration.spec.md` | `docs/plans/MX02-03-provider-model-configuration.plan.md` | Planned: provider/model profiles, multi-provider settings, capability diagnostics, per-thread overrides, and secret-safe snapshots. |
+| MX02-04 Inspector Panels for Changes, Approvals, Tasks, and Artifacts | `docs/specs/MX02-04-inspector-panels.spec.md` | `docs/plans/MX02-04-inspector-panels.plan.md` | Planned: Context, Changes, Approvals, Tasks, Artifacts, and Trace inspector panels backed by typed Desktop/bridge state. |
+| MX02-05 Desktop Product Smoke and Documentation | `docs/specs/MX02-05-desktop-product-smoke-docs.spec.md` | `docs/plans/MX02-05-desktop-product-smoke-docs.plan.md` | Planned: deterministic Desktop product smoke, no-secret fixture checks, `docs/desktop/desktop-productization.md`, and closeout gates. |
 
 ## MX01 Slice Index
 
@@ -1388,22 +1388,22 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M62A Desktop Productization planning and M62 Reliability and Recovery Productization. Keep M62A Desktop work on its own branch/commits and do not mix it with M62 recovery implementation files.
+Current implementation focus: MX02 Desktop Productization planning and M62 Reliability and Recovery Productization. Keep MX02 Desktop work on its own branch/commits and do not mix it with M62 recovery implementation files.
 
 Most recent completed or active planning documents:
 
-- `docs/specs/M62A-desktop-productization.spec.md`
-- `docs/plans/M62A-desktop-productization.plan.md`
-- `docs/specs/M62A-01-desktop-app-shell-navigation.spec.md`
-- `docs/plans/M62A-01-desktop-app-shell-navigation.plan.md`
-- `docs/specs/M62A-02-thread-composer-experience.spec.md`
-- `docs/plans/M62A-02-thread-composer-experience.plan.md`
-- `docs/specs/M62A-03-provider-model-configuration.spec.md`
-- `docs/plans/M62A-03-provider-model-configuration.plan.md`
-- `docs/specs/M62A-04-inspector-panels.spec.md`
-- `docs/plans/M62A-04-inspector-panels.plan.md`
-- `docs/specs/M62A-05-desktop-product-smoke-docs.spec.md`
-- `docs/plans/M62A-05-desktop-product-smoke-docs.plan.md`
+- `docs/specs/MX02-desktop-productization.spec.md`
+- `docs/plans/MX02-desktop-productization.plan.md`
+- `docs/specs/MX02-01-desktop-app-shell-navigation.spec.md`
+- `docs/plans/MX02-01-desktop-app-shell-navigation.plan.md`
+- `docs/specs/MX02-02-thread-composer-experience.spec.md`
+- `docs/plans/MX02-02-thread-composer-experience.plan.md`
+- `docs/specs/MX02-03-provider-model-configuration.spec.md`
+- `docs/plans/MX02-03-provider-model-configuration.plan.md`
+- `docs/specs/MX02-04-inspector-panels.spec.md`
+- `docs/plans/MX02-04-inspector-panels.plan.md`
+- `docs/specs/MX02-05-desktop-product-smoke-docs.spec.md`
+- `docs/plans/MX02-05-desktop-product-smoke-docs.plan.md`
 - `docs/specs/M62-01-recovery-snapshot-resume.spec.md`
 - `docs/plans/M62-01-recovery-snapshot-resume.plan.md`
 - `docs/specs/M62-reliability-recovery-productization.spec.md`
@@ -1905,5 +1905,5 @@ Most recent completed technical design documents:
 
 Next implementation direction:
 
-- Start M62A-01 Desktop App Shell and Navigation on the Desktop Productization branch.
+- Start MX02-01 Desktop App Shell and Navigation on the Desktop Productization branch.
 - Continue M62-02 CLI/JSON Replay, Resume, and Fork Commands in the separate recovery workflow.

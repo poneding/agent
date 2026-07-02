@@ -1,4 +1,4 @@
-# M62A-01 Desktop App Shell and Navigation Spec
+# MX02-01 Desktop App Shell and Navigation Spec
 
 ## Purpose
 
@@ -6,7 +6,7 @@ Refactor the Desktop shell from route-centric dashboard pages into a modern codi
 
 ## Product Context
 
-M60 created the initial Desktop daily-driver views. M62A-01 reshapes those views into the product frame that later slices can fill. This slice is UI shell/navigation only; it does not add new runtime behavior or recovery features.
+M60 created the initial Desktop daily-driver views. MX02-01 reshapes those views into the product frame that later slices can fill. This slice is UI shell/navigation only; it does not add new runtime behavior or recovery features.
 
 ## Scope
 
@@ -22,10 +22,10 @@ This spec delivers:
 
 Owned by other specs:
 
-- thread lifecycle and composer semantics belong to M62A-02
-- provider/model settings implementation belongs to M62A-03
-- inspector panel data depth belongs to M62A-04
-- product smoke and docs belong to M62A-05
+- thread lifecycle and composer semantics belong to MX02-02
+- provider/model settings implementation belongs to MX02-03
+- inspector panel data depth belongs to MX02-04
+- product smoke and docs belong to MX02-05
 
 ## Architecture
 
@@ -104,4 +104,4 @@ export interface DesktopShellUiState {
 
 ## Completion Signal
 
-M62A-01 is complete when focused app-shell tests and `npm --prefix apps/desktop run build` pass.
+MX02-01 is complete when focused app-shell tests and `npm --prefix apps/desktop run build` pass.

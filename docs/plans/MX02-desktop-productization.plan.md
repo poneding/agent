@@ -1,4 +1,4 @@
-# M62A Desktop Productization Implementation Plan
+# MX02 Desktop Productization Implementation Plan
 
 > **For agentic workers:** If the `superpowers` skill is available, use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to execute this plan task by task. If it is unavailable, follow the same strict checklist directly. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -10,10 +10,10 @@
 
 ---
 
-### Task 1: Confirm M62A Inputs
+### Task 1: Confirm MX02 Inputs
 
 **Files:**
-- Read: `docs/specs/M62A-desktop-productization.spec.md`
+- Read: `docs/specs/MX02-desktop-productization.spec.md`
 - Read: `docs/PRD.md`
 - Read: `docs/architecture/README.md`
 - Read: `docs/architecture/crate-boundaries.md`
@@ -36,7 +36,7 @@
 
 - [x] **Step 1: Review baseline**
 
-Baseline reviewed during M62A planning:
+Baseline reviewed during MX02 planning:
 
 - M60 Desktop daily-driver contract and current route-centric Desktop shell
 - M61 task/plan/todo Desktop surfaces
@@ -57,11 +57,11 @@ cargo test -p agent-ui-bridge
 
 Expected: existing Desktop contracts and UI pass before productization changes.
 
-### Task 2: M62A-01 Desktop App Shell and Navigation
+### Task 2: MX02-01 Desktop App Shell and Navigation
 
 **Files:**
-- Read: `docs/specs/M62A-01-desktop-app-shell-navigation.spec.md`
-- Read: `docs/plans/M62A-01-desktop-app-shell-navigation.plan.md`
+- Read: `docs/specs/MX02-01-desktop-app-shell-navigation.spec.md`
+- Read: `docs/plans/MX02-01-desktop-app-shell-navigation.plan.md`
 - Modify: `apps/desktop/package.json`
 - Modify: `apps/desktop/src/App.tsx`
 - Modify: `apps/desktop/src/app.css`
@@ -89,11 +89,11 @@ npm --prefix apps/desktop run build
 
 Expected: shell navigation, toggles, command palette skeleton, inspector tabs, and terminal drawer placeholder render without layout regressions.
 
-### Task 3: M62A-02 Thread and Composer Experience
+### Task 3: MX02-02 Thread and Composer Experience
 
 **Files:**
-- Read: `docs/specs/M62A-02-thread-composer-experience.spec.md`
-- Read: `docs/plans/M62A-02-thread-composer-experience.plan.md`
+- Read: `docs/specs/MX02-02-thread-composer-experience.spec.md`
+- Read: `docs/plans/MX02-02-thread-composer-experience.plan.md`
 - Modify: `crates/agent-desktop/src/conversation.rs`
 - Modify: `crates/agent-ui-bridge/src/command.rs`
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
@@ -124,11 +124,11 @@ npm --prefix apps/desktop run build
 
 Expected: thread and composer state is keyboard-friendly, typed-frame-driven, and secret-safe.
 
-### Task 4: M62A-03 Provider and Model Configuration
+### Task 4: MX02-03 Provider and Model Configuration
 
 **Files:**
-- Read: `docs/specs/M62A-03-provider-model-configuration.spec.md`
-- Read: `docs/plans/M62A-03-provider-model-configuration.plan.md`
+- Read: `docs/specs/MX02-03-provider-model-configuration.spec.md`
+- Read: `docs/plans/MX02-03-provider-model-configuration.plan.md`
 - Modify: `crates/agent-model/src/config.rs`
 - Modify: `crates/agent-desktop/src/settings.rs`
 - Modify: `crates/agent-ui-bridge/src/frame.rs`
@@ -161,11 +161,11 @@ npm --prefix apps/desktop run build
 
 Expected: provider/model snapshots are typed, diagnosable, capability-aware, and secret-safe.
 
-### Task 5: M62A-04 Inspector Panels for Changes, Approvals, Tasks, and Artifacts
+### Task 5: MX02-04 Inspector Panels for Changes, Approvals, Tasks, and Artifacts
 
 **Files:**
-- Read: `docs/specs/M62A-04-inspector-panels.spec.md`
-- Read: `docs/plans/M62A-04-inspector-panels.plan.md`
+- Read: `docs/specs/MX02-04-inspector-panels.spec.md`
+- Read: `docs/plans/MX02-04-inspector-panels.plan.md`
 - Modify: `crates/agent-desktop/src/diff.rs`
 - Modify: `crates/agent-desktop/src/permission.rs`
 - Modify: `crates/agent-desktop/src/task.rs`
@@ -195,11 +195,11 @@ npm --prefix apps/desktop run build
 
 Expected: inspector panels are typed, redacted, actionable, and responsive.
 
-### Task 6: M62A-05 Desktop Product Smoke and Documentation
+### Task 6: MX02-05 Desktop Product Smoke and Documentation
 
 **Files:**
-- Read: `docs/specs/M62A-05-desktop-product-smoke-docs.spec.md`
-- Read: `docs/plans/M62A-05-desktop-product-smoke-docs.plan.md`
+- Read: `docs/specs/MX02-05-desktop-product-smoke-docs.spec.md`
+- Read: `docs/plans/MX02-05-desktop-product-smoke-docs.plan.md`
 - Create: `docs/desktop/desktop-productization.md`
 - Modify: `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
 - Modify: `xtask/` if `cargo xtask desktop-test` needs smoke coverage updates
@@ -239,11 +239,11 @@ Expected: Desktop Productization is implemented, documented, secret-safe, and do
 
 - [x] **Step 1: Commit milestone planning**
 
-After M62A milestone and slice docs are created, run:
+After MX02 milestone and slice docs are created, run:
 
 ```bash
 git diff --check
-git add README.md docs/roadmap/PRODUCT_ROADMAP.md docs/milestones/README.md docs/specs/M62A*.md docs/plans/M62A*.md
+git add README.md docs/roadmap/PRODUCT_ROADMAP.md docs/milestones/README.md docs/specs/MX02*.md docs/plans/MX02*.md
 git commit -m "docs: add desktop productization plan"
 ```
 

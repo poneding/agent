@@ -7,7 +7,8 @@ use agent_types::{
     ActorRef, ApprovalPreviewRecorded, ApprovalRequested, CheckpointId, ConversationId,
     CorrelationId, EventSeq, RecoveredToolCallStatus, RecoveryDiagnosticSeverity,
     RecoveryReadiness, RuntimeEvent, RuntimeEventPayload, SchemaVersion, Timestamp,
-    ToolCallProposed, ToolExecutionCompleted, TurnId, UserInputReceived, WorkspaceId,
+    ToolCallProposed, ToolEffectDisposition, ToolExecutionCompleted, TurnId, UserInputReceived,
+    WorkspaceId,
 };
 use serde_json::json;
 
@@ -286,6 +287,13 @@ fn recovery_snapshot_filters_terminal_and_idempotent_tool_calls() {
     assert_eq!(
         snapshot.idempotent_effects[0].tool_name,
         "workspace.write_file"
+    );
+    assert_eq!(snapshot.idempotent_recovery.reusable_effect_count, 1);
+    assert_eq!(snapshot.idempotent_recovery.pending_tool_count, 1);
+    assert_eq!(snapshot.idempotent_recovery.conflict_count, 0);
+    assert_eq!(
+        snapshot.idempotent_recovery.effects[0].disposition,
+        ToolEffectDisposition::Reusable
     );
     assert!(!serialized.contains("must-not-appear"));
 }

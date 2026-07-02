@@ -25,7 +25,7 @@
 - Read: `crates/agent-cli/src/command.rs`
 - Read: `crates/agent-cli/tests/recovery_commands.rs`
 
-- [ ] **Step 1: Review retry and idempotency foundations**
+- [x] **Step 1: Review retry and idempotency foundations**
 
 Identify existing command report fields, failure classifications, redaction helpers, idempotency records, and recovery snapshot output.
 
@@ -41,7 +41,7 @@ Identify existing command report fields, failure classifications, redaction help
 - Create: `crates/agent-core/tests/failed_command_retry.rs`
 - Modify: `crates/agent-core/tests/recovery_snapshot.rs`
 
-- [ ] **Step 1: Define typed retry contracts**
+- [x] **Step 1: Define typed retry contracts**
 
 Add serializable contracts for:
 
@@ -53,11 +53,11 @@ Add serializable contracts for:
 
 Use stable ids, bounded strings, and existing `CommandFailureClassification`/`CommandIntentSummary` where possible.
 
-- [ ] **Step 2: Define idempotent recovery disposition contracts**
+- [x] **Step 2: Define idempotent recovery disposition contracts**
 
 Add serializable summaries for reusable/skipped/pending/conflicting side effects. Preserve existing `RecoveredToolEffect` compatibility, but add enough status/disposition information for product UI.
 
-- [ ] **Step 3: Implement `CommandRetryPlanner`**
+- [x] **Step 3: Implement `CommandRetryPlanner`**
 
 Create a runtime planner that builds retry plans from typed command evidence. It must:
 
@@ -69,11 +69,11 @@ Create a runtime planner that builds retry plans from typed command evidence. It
 - create a new attempt id linked to the previous attempt id
 - redact reason and diagnostic text
 
-- [ ] **Step 4: Extend recovery summaries**
+- [x] **Step 4: Extend recovery summaries**
 
 Thread idempotent effect disposition into recovery snapshot or adjacent recovery summary output. Do not expose raw tool input/output.
 
-- [ ] **Step 5: Add core tests**
+- [x] **Step 5: Add core tests**
 
 Run:
 
@@ -93,7 +93,7 @@ Expected: retry plans are typed and evidence-linked, idempotent recovery summari
 - Modify: `crates/agent-ui-bridge/src/lib.rs`
 - Modify: `crates/agent-ui-bridge/tests/recovery_bridge.rs`
 
-- [ ] **Step 1: Add retry UI command**
+- [x] **Step 1: Add retry UI command**
 
 Add a typed command equivalent to:
 
@@ -107,11 +107,11 @@ CommandRetryPlan {
 
 Validate non-empty command id, non-empty reason, and planning-only `dry_run` until real execution is wired.
 
-- [ ] **Step 2: Add retry/idempotent frames**
+- [x] **Step 2: Add retry/idempotent frames**
 
 Add typed frames for command retry plans and idempotent recovery summaries.
 
-- [ ] **Step 3: Add bridge tests**
+- [x] **Step 3: Add bridge tests**
 
 Run:
 
@@ -128,7 +128,7 @@ Expected: command/frame JSON shapes are stable, bounded, and redacted.
 - Modify: `crates/agent-cli/src/lib.rs`
 - Modify: `crates/agent-cli/tests/recovery_commands.rs`
 
-- [ ] **Step 1: Add parser coverage**
+- [x] **Step 1: Add parser coverage**
 
 Support:
 
@@ -138,7 +138,7 @@ agent-cli command retry <command-run-id> --reason <text> --dry-run
 
 If `command` is already used for repo shell execution, keep the existing `repo command` path unchanged and add a top-level `command retry` parser only for retry planning.
 
-- [ ] **Step 2: Add deterministic fixture-backed retry plans**
+- [x] **Step 2: Add deterministic fixture-backed retry plans**
 
 If durable command evidence lookup is not available yet, use deterministic command report fixtures for:
 
@@ -150,11 +150,11 @@ If durable command evidence lookup is not available yet, use deterministic comma
 
 Return a typed diagnostic explaining fixture mode.
 
-- [ ] **Step 3: Render text and JSON**
+- [x] **Step 3: Render text and JSON**
 
 Text output should include readiness, classification, command display, previous attempt id, next attempt id, dry-run state, and diagnostics. JSON output should emit the typed retry frame.
 
-- [ ] **Step 4: Add CLI tests**
+- [x] **Step 4: Add CLI tests**
 
 Run:
 
@@ -171,7 +171,7 @@ Expected: retry dry-run text/JSON is stable and rejects missing reason, missing 
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Modify: `docs/plans/M62-03-idempotent-retry-ux.plan.md`
 
-- [ ] **Step 1: Run focused checks**
+- [x] **Step 1: Run focused checks**
 
 Run:
 
@@ -186,11 +186,11 @@ cargo test -p agent-cli --test recovery_commands
 
 Expected: all focused checks pass.
 
-- [ ] **Step 2: Update status docs**
+- [x] **Step 2: Update status docs**
 
 Mark M62-03 complete only after runtime contracts, bridge frames, CLI output, tests, and focused checks pass.
 
-- [ ] **Step 3: Commit planning docs first**
+- [x] **Step 3: Commit planning docs first**
 
 Before implementation, run:
 
@@ -203,14 +203,14 @@ git commit -m "docs: add m62-03 retry recovery plan"
 
 Expected: M62-03 slice planning is committed before code changes.
 
-- [ ] **Step 4: Commit implementation after verification**
+- [x] **Step 4: Commit implementation after verification**
 
 After focused verification passes, exact-stage only M62-03 files and commit:
 
 ```bash
 git status --short --branch
 git diff --check
-git add crates/agent-types/src/recovery.rs crates/agent-types/src/command_retry.rs crates/agent-types/src/lib.rs crates/agent-core/src/command_retry.rs crates/agent-core/src/lib.rs crates/agent-core/src/recovery.rs crates/agent-core/tests/failed_command_retry.rs crates/agent-core/tests/recovery_snapshot.rs crates/agent-ui-bridge/src/command.rs crates/agent-ui-bridge/src/frame.rs crates/agent-ui-bridge/src/lib.rs crates/agent-ui-bridge/tests/recovery_bridge.rs crates/agent-cli/src/command.rs crates/agent-cli/src/lib.rs crates/agent-cli/tests/recovery_commands.rs docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md docs/plans/M62-03-idempotent-retry-ux.plan.md
+git add crates/agent-types/src/recovery.rs crates/agent-types/src/command_retry.rs crates/agent-types/src/lib.rs crates/agent-core/src/command_retry.rs crates/agent-core/src/lib.rs crates/agent-core/src/recovery.rs crates/agent-core/tests/failed_command_retry.rs crates/agent-core/tests/recovery_snapshot.rs crates/agent-ui-bridge/src/command.rs crates/agent-ui-bridge/src/frame.rs crates/agent-ui-bridge/src/lib.rs crates/agent-ui-bridge/tests/recovery_bridge.rs crates/agent-cli/src/command.rs crates/agent-cli/src/lib.rs crates/agent-cli/tests/recovery_commands.rs crates/agent-tui/src/trace_panel.rs crates/agent-tui/src/transcript.rs docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md docs/plans/M62-03-idempotent-retry-ux.plan.md
 git commit -m "feat: add m62-03 command retry planning"
 ```
 

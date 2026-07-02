@@ -2,6 +2,7 @@
 //! Shared durable contracts for agent.
 
 pub mod actor;
+pub mod command_retry;
 pub mod error;
 pub mod event;
 pub mod external;
@@ -15,6 +16,7 @@ pub mod timestamp;
 pub mod tool;
 
 pub use actor::{ActorKind, ActorRef};
+pub use command_retry::*;
 pub use error::{AgentError, AgentTypesError, RuntimeError, RuntimeWarning};
 pub use event::*;
 pub use external::*;

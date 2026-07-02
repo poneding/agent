@@ -14,10 +14,12 @@ use agent_context::{
     PromptProfileId, PromptRuntime, PromptSnapshot,
 };
 use agent_core::{
-    AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, CommandExecutionStatus,
-    CommandFailureClassification, CommandTestDiagnosticSeverity, CommandTestLoopError,
-    CommandTestLoopInput, CommandTestLoopReport, ConfigDiagnostic, ConfigDiagnosticSeverity,
-    ConfigLayer, ConfigLayerKind, ConfigOverride, ConfiguredTurnError, ConfiguredTurnInput,
+    AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, BoundedCommandOutput,
+    CommandCancellationState, CommandExecutionStatus, CommandFailureClassification,
+    CommandIntentSummary, CommandObservationSummary, CommandRetryPlanner,
+    CommandTestDiagnosticSeverity, CommandTestLoopError, CommandTestLoopInput,
+    CommandTestLoopReport, ConfigDiagnostic, ConfigDiagnosticSeverity, ConfigLayer,
+    ConfigLayerKind, ConfigOverride, ConfiguredTurnError, ConfiguredTurnInput,
     ConfiguredTurnRunner, ContextBudget, ContextRetrievalQuery, ContextSemanticFallbackPolicy,
     ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode, EditDiffDiagnosticSeverity,
     EditDiffFlowError, EditDiffFlowInput, EditDiffFlowReport, EffectiveRuntimeConfig,
@@ -94,29 +96,31 @@ use agent_storage::{
     InMemoryEventStore, ToolEffectRecord,
 };
 use agent_types::{
-    ActorRef, ApprovalPreviewRecorded, ApprovalRequested, CheckpointId, ClientKind, ConversationId,
-    CorrelationId, EventId, EventSeq, PlanTodoDiagnostic, PlanTodoEvidenceKind, PlanTodoItem,
-    PlanTodoItemId, PlanTodoSnapshot, RecoveryDiagnostic, RecoveryDiagnosticSeverity,
-    RecoveryReadiness, RecoverySnapshot, ResumeDryRunReport, RuntimeEvent, RuntimeEventPayload,
-    SchemaVersion, TaskId, Timestamp, TodoPriority, TodoSource, TodoStatus, ToolCallProposed,
+    ActorRef, ApprovalPreviewRecorded, ApprovalRequested, CheckpointId, ClientKind,
+    CommandRetryDiagnostic, CommandRetryDiagnosticSeverity, CommandRetryPlan,
+    CommandRetryReadiness, CommandRetryRequest, ConversationId, CorrelationId, EventId, EventSeq,
+    PlanTodoDiagnostic, PlanTodoEvidenceKind, PlanTodoItem, PlanTodoItemId, PlanTodoSnapshot,
+    RecoveryDiagnostic, RecoveryDiagnosticSeverity, RecoveryReadiness, RecoverySnapshot,
+    ResumeDryRunReport, RuntimeEvent, RuntimeEventPayload, SchemaVersion, TaskId, Timestamp,
+    TodoPriority, TodoSource, TodoStatus, ToolCallProposed, ToolEffectDisposition,
     ToolExecutionCompleted, TurnId, UserInputReceived, WorkspaceId,
 };
 use agent_ui_bridge::{
     UiApprovalPreviewSummary, UiApprovalQueueSnapshot, UiApprovalRequest, UiBridgeError,
-    UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot,
-    UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot,
-    UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame, UiModelCostProfile,
-    UiModelProviderCapabilities, UiModelProviderSummary, UiPlanTodoCommandError,
-    UiPlanTodoSnapshot, UiPlatformPathsSummary, UiProjectContextHybridRetrievalSnapshot,
-    UiProjectContextPinnedRetrievalSnapshot, UiProjectContextQualityTraceSnapshot,
-    UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
-    UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
-    UiRecoverySnapshot, UiReplayForkReport, UiReplayInspectReport, UiRepoSessionSnapshot,
-    UiResumeDryRunReport, UiSettingsProfileSummary, UiSlashCommandEffect, UiSlashCommandSurface,
-    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
-    UiTaskSummary, UiTerminalSessionSnapshot, UiTerminalStatusSnapshot,
-    approval_queue_snapshot_from_requests, default_slash_command_catalog, encode_json_frame,
-    normalize_runtime_event, resolve_slash_command,
+    UiCommandRetryPlan, UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity,
+    UiConfigSnapshot, UiEditDiffSnapshot, UiExtensionCapabilityReview, UiExtensionDiagnostic,
+    UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot, UiJsonFrame,
+    UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
+    UiPlanTodoCommandError, UiPlanTodoSnapshot, UiPlatformPathsSummary,
+    UiProjectContextHybridRetrievalSnapshot, UiProjectContextPinnedRetrievalSnapshot,
+    UiProjectContextQualityTraceSnapshot, UiProjectContextRetrievalSnapshot,
+    UiProjectContextSnapshot, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
+    UiProviderSupportRole, UiProviderSupportSummary, UiRecoverySnapshot, UiReplayForkReport,
+    UiReplayInspectReport, UiRepoSessionSnapshot, UiResumeDryRunReport, UiSettingsProfileSummary,
+    UiSlashCommandEffect, UiSlashCommandSurface, UiStartupMigrationSnapshot, UiTaskCommandError,
+    UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, UiTerminalSessionSnapshot,
+    UiTerminalStatusSnapshot, approval_queue_snapshot_from_requests, default_slash_command_catalog,
+    encode_json_frame, normalize_runtime_event, resolve_slash_command,
 };
 use futures_util::StreamExt;
 
@@ -270,6 +274,7 @@ pub enum CliCommand {
     Todo(PlanTodoCliCommand),
     Recovery(RecoveryCliCommand),
     Replay(ReplayCliCommand),
+    CommandRetry(CommandRetryCliCommand),
     Task(TaskCliCommand),
     Approval(ApprovalCliCommand),
     Eval(EvalCliCommand),
@@ -437,6 +442,15 @@ pub enum ReplayCliCommand {
         turn_id: Option<TurnId>,
         checkpoint_id: Option<CheckpointId>,
         label: String,
+        dry_run: bool,
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CommandRetryCliCommand {
+    Plan {
+        command_run_id: String,
+        reason: String,
         dry_run: bool,
     },
 }
@@ -683,6 +697,7 @@ where
         "todo" => parse_todo_command(&mut args),
         "recovery" => parse_recovery_command(&mut args),
         "replay" => parse_replay_command(&mut args),
+        "command" => parse_command_retry_command(&mut args),
         "task" => parse_task_command(&mut args),
         "approval" => parse_approval_command(&mut args),
         "eval" => parse_eval_command(&mut args),
@@ -850,6 +865,10 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             );
             render_replay_command(&runtime, command, OutputMode::Text)
         }
+        CliCommand::CommandRetry(command) => {
+            let runtime = CommandRetryRuntime::fixture();
+            render_command_retry_command(&runtime, command, OutputMode::Text)
+        }
         CliCommand::Task(command) => {
             let mut runtime = TaskCommandRuntime::fixture();
             render_task_command(&mut runtime, command, OutputMode::Text)
@@ -978,6 +997,10 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
                     replay_command_turn_id(&command),
                 );
                 render_replay_command(&runtime, command, OutputMode::Text)
+            }
+            CliCommand::CommandRetry(command) => {
+                let runtime = CommandRetryRuntime::fixture();
+                render_command_retry_command(&runtime, command, OutputMode::Text)
             }
             CliCommand::Task(command) => {
                 let mut runtime = TaskCommandRuntime::fixture();
@@ -1130,6 +1153,10 @@ fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
             replay_command_turn_id(&command),
         );
         return render_replay_command(&runtime, command, OutputMode::Json);
+    }
+    if let CliCommand::CommandRetry(command) = invocation.command {
+        let runtime = CommandRetryRuntime::fixture();
+        return render_command_retry_command(&runtime, command, OutputMode::Json);
     }
     if let CliCommand::Task(command) = invocation.command {
         let mut runtime = TaskCommandRuntime::fixture();
@@ -2328,6 +2355,60 @@ where
     })
 }
 
+fn parse_command_retry_command<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingValue("command".to_string()));
+    };
+
+    match subcommand.as_str() {
+        "retry" => parse_command_retry_args(args),
+        _ => Err(CliError::UnknownArgument(format!("command {subcommand}"))),
+    }
+}
+
+fn parse_command_retry_args<I>(args: &mut I) -> Result<CliCommand, CliError>
+where
+    I: Iterator<Item = String>,
+{
+    let command_run_id = args
+        .next()
+        .ok_or_else(|| CliError::MissingValue("command retry <command-run-id>".to_string()))?;
+    if command_run_id.trim().is_empty() {
+        return Err(CliError::MissingValue(
+            "command retry <command-run-id>".to_string(),
+        ));
+    }
+
+    let mut reason = None;
+    let mut dry_run = false;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--reason" => {
+                let value = take_flag_value(args, &arg)?;
+                if value.trim().is_empty() {
+                    return Err(CliError::MissingValue("command retry --reason".to_string()));
+                }
+                reason = Some(value);
+            }
+            "--dry-run" => dry_run = true,
+            _ => return Err(CliError::UnknownArgument(format!("command retry {arg}"))),
+        }
+    }
+    if !dry_run {
+        return Err(CliError::DryRunRequired("command retry".to_string()));
+    }
+
+    Ok(CliCommand::CommandRetry(CommandRetryCliCommand::Plan {
+        command_run_id,
+        reason: reason
+            .ok_or_else(|| CliError::MissingValue("command retry --reason".to_string()))?,
+        dry_run,
+    }))
+}
+
 fn parse_task_command<I>(args: &mut I) -> Result<CliCommand, CliError>
 where
     I: Iterator<Item = String>,
@@ -3506,6 +3587,216 @@ pub fn render_replay_command(
     }
 }
 
+pub struct CommandRetryRuntime {
+    reports: Vec<(String, CommandTestLoopReport)>,
+}
+
+impl CommandRetryRuntime {
+    #[must_use]
+    pub fn fixture() -> Self {
+        Self {
+            reports: vec![
+                (
+                    "command-failed".to_string(),
+                    command_retry_fixture_report(
+                        CommandExecutionStatus::Failed,
+                        CommandFailureClassification::CommandFailure,
+                        false,
+                    ),
+                ),
+                (
+                    "test-failed".to_string(),
+                    command_retry_fixture_report(
+                        CommandExecutionStatus::Failed,
+                        CommandFailureClassification::TestFailure,
+                        true,
+                    ),
+                ),
+                (
+                    "timeout".to_string(),
+                    command_retry_fixture_report(
+                        CommandExecutionStatus::TimedOut,
+                        CommandFailureClassification::Timeout,
+                        false,
+                    ),
+                ),
+                (
+                    "success".to_string(),
+                    command_retry_fixture_report(
+                        CommandExecutionStatus::Succeeded,
+                        CommandFailureClassification::None,
+                        false,
+                    ),
+                ),
+                (
+                    "waiting-approval".to_string(),
+                    command_retry_fixture_report(
+                        CommandExecutionStatus::WaitingApproval,
+                        CommandFailureClassification::WaitingApproval,
+                        false,
+                    ),
+                ),
+                (
+                    "denied".to_string(),
+                    command_retry_fixture_report(
+                        CommandExecutionStatus::Denied,
+                        CommandFailureClassification::PolicyDenied,
+                        false,
+                    ),
+                ),
+            ],
+        }
+    }
+
+    #[must_use]
+    pub fn plan(&self, command_run_id: String, reason: String, dry_run: bool) -> CommandRetryPlan {
+        let request = CommandRetryRequest {
+            command_run_id: command_run_id.clone(),
+            reason,
+            dry_run,
+        };
+        let planner = CommandRetryPlanner;
+        let mut plan = self
+            .reports
+            .iter()
+            .find(|(id, _)| id == &command_run_id)
+            .map_or_else(
+                || planner.missing_evidence_plan(request.clone()),
+                |(_, report)| planner.plan_from_report(request.clone(), report),
+            );
+        plan.diagnostics.push(command_retry_fixture_diagnostic());
+        plan
+    }
+}
+
+#[must_use]
+pub fn render_command_retry_command(
+    runtime: &CommandRetryRuntime,
+    command: CommandRetryCliCommand,
+    output_mode: OutputMode,
+) -> CliOutput {
+    match command {
+        CommandRetryCliCommand::Plan {
+            command_run_id,
+            reason,
+            dry_run,
+        } => {
+            if !dry_run {
+                return render_recovery_cli_error(
+                    "command_retry_dry_run_required",
+                    "command retry requires --dry-run",
+                    output_mode,
+                );
+            }
+            let plan = runtime.plan(command_run_id, reason, dry_run);
+            match output_mode {
+                OutputMode::Text => CliOutput::exit(render_command_retry_plan_text(&plan)),
+                OutputMode::Json => CliOutput::exit(json_frame_line(
+                    UiJsonFrame::CommandRetryPlan(UiCommandRetryPlan::new(plan)),
+                )),
+            }
+        }
+    }
+}
+
+fn command_retry_fixture_report(
+    status: CommandExecutionStatus,
+    classification: CommandFailureClassification,
+    classify_as_test: bool,
+) -> CommandTestLoopReport {
+    CommandTestLoopReport {
+        workspace_id: fixture_recovery_workspace_id(),
+        conversation_id: "00000000-0000-0000-0000-000000006304"
+            .parse()
+            .expect("fixture conversation id is valid"),
+        command: CommandIntentSummary {
+            display: if classify_as_test {
+                "cargo test -p agent-core".to_string()
+            } else {
+                "cargo check -p agent-core".to_string()
+            },
+            cwd: ".".to_string(),
+            classify_as_test,
+        },
+        status,
+        classification,
+        exit_code: match status {
+            CommandExecutionStatus::Succeeded => Some(0),
+            CommandExecutionStatus::WaitingApproval | CommandExecutionStatus::Denied => None,
+            _ => Some(101),
+        },
+        stdout: command_retry_bounded_output("must-not-appear sk-secret-token"),
+        stderr: command_retry_bounded_output("api_key token password"),
+        timed_out: classification == CommandFailureClassification::Timeout,
+        cancellation: CommandCancellationState {
+            cancellable: matches!(
+                status,
+                CommandExecutionStatus::Failed | CommandExecutionStatus::TimedOut
+            ),
+            reason: "fixture command retry evidence".to_string(),
+        },
+        observation: CommandObservationSummary {
+            message: "fixture command observation".to_string(),
+            truncated: false,
+            redacted: true,
+        },
+        events: Vec::new(),
+        diagnostics: Vec::new(),
+    }
+}
+
+fn command_retry_bounded_output(text: &str) -> BoundedCommandOutput {
+    BoundedCommandOutput {
+        text: text.to_string(),
+        byte_count: text.len().try_into().unwrap_or(u64::MAX),
+        truncated: false,
+        redacted: true,
+    }
+}
+
+fn command_retry_fixture_diagnostic() -> CommandRetryDiagnostic {
+    CommandRetryDiagnostic {
+        severity: CommandRetryDiagnosticSeverity::Info,
+        code: "command_retry.fixture".to_string(),
+        message: "using deterministic command retry fixture; persisted command evidence lookup is not wired yet".to_string(),
+        recoverable: true,
+        truncated: false,
+    }
+}
+
+fn render_command_retry_plan_text(plan: &CommandRetryPlan) -> String {
+    let mut output = format!(
+        "Command retry dry-run {}\nreadiness={}\nclassification={}\ncommand={} cwd={} classify_as_test={}\nprevious_attempt={} next_attempt={}\ndry_run={}\n",
+        plan.command_run_id,
+        command_retry_readiness_label(plan.readiness),
+        command_retry_classification_label(plan.classification),
+        redact_secret_like_text(&plan.command.display),
+        redact_secret_like_text(&plan.command.cwd),
+        yes_no_label(plan.command.classify_as_test),
+        redact_secret_like_text(&plan.attempt.previous_attempt_id),
+        redact_secret_like_text(&plan.attempt.next_attempt_id),
+        yes_no_label(plan.dry_run)
+    );
+    if let Some(exit_code) = plan.exit_code {
+        output.push_str(&format!("exit_code={exit_code}\n"));
+    }
+    output.push_str(&format!(
+        "reason={}\n",
+        redact_secret_like_text(&plan.reason)
+    ));
+    for diagnostic in &plan.diagnostics {
+        output.push_str(&format!(
+            "diagnostic severity={} code={} message={} recoverable={} truncated={}\n",
+            command_retry_diagnostic_severity_label(diagnostic.severity),
+            redact_secret_like_text(&diagnostic.code),
+            redact_secret_like_text(&diagnostic.message),
+            yes_no_label(diagnostic.recoverable),
+            yes_no_label(diagnostic.truncated)
+        ));
+    }
+    output
+}
+
 fn replay_inspect_report(
     snapshot: &RecoverySnapshot,
     from_checkpoint_id: Option<CheckpointId>,
@@ -3566,6 +3857,21 @@ fn render_recovery_snapshot_text(snapshot: &RecoverySnapshot) -> String {
             "idempotent_effect call_id={} tool={} input_hash={}\n",
             redact_secret_like_text(&effect.call_id),
             redact_secret_like_text(&effect.tool_name),
+            redact_secret_like_text(&effect.input_hash)
+        ));
+    }
+    output.push_str(&format!(
+        "idempotent_recovery reusable_effect_count={} pending_tool_count={} conflict_count={}\n",
+        snapshot.idempotent_recovery.reusable_effect_count,
+        snapshot.idempotent_recovery.pending_tool_count,
+        snapshot.idempotent_recovery.conflict_count
+    ));
+    for effect in &snapshot.idempotent_recovery.effects {
+        output.push_str(&format!(
+            "idempotent_disposition call_id={} tool={} disposition={} input_hash={}\n",
+            redact_secret_like_text(&effect.call_id),
+            redact_secret_like_text(&effect.tool_name),
+            tool_effect_disposition_label(effect.disposition),
             redact_secret_like_text(&effect.input_hash)
         ));
     }
@@ -3874,6 +4180,52 @@ fn recovery_diagnostic_severity_label(severity: RecoveryDiagnosticSeverity) -> &
         RecoveryDiagnosticSeverity::Info => "info",
         RecoveryDiagnosticSeverity::Warning => "warning",
         RecoveryDiagnosticSeverity::Error => "error",
+    }
+}
+
+fn command_retry_readiness_label(readiness: CommandRetryReadiness) -> &'static str {
+    match readiness {
+        CommandRetryReadiness::Retryable => "retryable",
+        CommandRetryReadiness::AlreadySucceeded => "already_succeeded",
+        CommandRetryReadiness::WaitingApproval => "waiting_approval",
+        CommandRetryReadiness::PolicyBlocked => "policy_blocked",
+        CommandRetryReadiness::StaleTarget => "stale_target",
+        CommandRetryReadiness::MissingEvidence => "missing_evidence",
+        CommandRetryReadiness::InvalidTarget => "invalid_target",
+    }
+}
+
+fn command_retry_classification_label(
+    classification: agent_types::CommandRetryFailureClassification,
+) -> &'static str {
+    match classification {
+        agent_types::CommandRetryFailureClassification::None => "none",
+        agent_types::CommandRetryFailureClassification::TestFailure => "test_failure",
+        agent_types::CommandRetryFailureClassification::CommandFailure => "command_failure",
+        agent_types::CommandRetryFailureClassification::Timeout => "timeout",
+        agent_types::CommandRetryFailureClassification::PolicyDenied => "policy_denied",
+        agent_types::CommandRetryFailureClassification::WaitingApproval => "waiting_approval",
+        agent_types::CommandRetryFailureClassification::ToolFailure => "tool_failure",
+        agent_types::CommandRetryFailureClassification::InvalidInput => "invalid_input",
+    }
+}
+
+fn command_retry_diagnostic_severity_label(
+    severity: CommandRetryDiagnosticSeverity,
+) -> &'static str {
+    match severity {
+        CommandRetryDiagnosticSeverity::Info => "info",
+        CommandRetryDiagnosticSeverity::Warning => "warning",
+        CommandRetryDiagnosticSeverity::Error => "error",
+    }
+}
+
+fn tool_effect_disposition_label(disposition: ToolEffectDisposition) -> &'static str {
+    match disposition {
+        ToolEffectDisposition::Reusable => "reusable",
+        ToolEffectDisposition::SkippedDuplicate => "skipped_duplicate",
+        ToolEffectDisposition::PendingReplay => "pending_replay",
+        ToolEffectDisposition::Conflict => "conflict",
     }
 }
 

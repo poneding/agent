@@ -5,6 +5,7 @@ pub mod approval;
 pub mod audit_export;
 pub mod background;
 pub mod benchmark;
+pub mod command_retry;
 pub mod command_test;
 pub mod config;
 pub mod context;
@@ -48,6 +49,7 @@ pub use benchmark::{
     BenchmarkEnvironment, BenchmarkError, BenchmarkResult, BenchmarkRunner, BenchmarkScenario,
     run_smoke_benchmarks, smoke_benchmark_scenarios,
 };
+pub use command_retry::CommandRetryPlanner;
 pub use command_test::{
     BoundedCommandOutput, CommandCancellationState, CommandExecutionStatus,
     CommandFailureClassification, CommandIntentSummary, CommandObservationSummary,

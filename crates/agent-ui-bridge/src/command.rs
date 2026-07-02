@@ -78,6 +78,11 @@ pub enum UiCommand {
         checkpoint_id: Option<CheckpointId>,
         fork_label: String,
     },
+    CommandRetryPlan {
+        command_run_id: String,
+        reason: String,
+        dry_run: bool,
+    },
     SwitchSession {
         workspace_id: WorkspaceId,
         conversation_id: ConversationId,
@@ -194,6 +199,17 @@ pub fn validate_ui_command(envelope: &UiCommandEnvelope) -> Result<(), UiBridgeE
         UiCommand::ReplayFork { fork_label, .. } if fork_label.trim().is_empty() => Err(
             UiBridgeError::Validation("replay fork_label cannot be empty".to_string()),
         ),
+        UiCommand::CommandRetryPlan { command_run_id, .. } if command_run_id.trim().is_empty() => {
+            Err(UiBridgeError::Validation(
+                "command_retry command_run_id cannot be empty".to_string(),
+            ))
+        }
+        UiCommand::CommandRetryPlan { reason, .. } if reason.trim().is_empty() => Err(
+            UiBridgeError::Validation("command_retry reason cannot be empty".to_string()),
+        ),
+        UiCommand::CommandRetryPlan { dry_run, .. } if !dry_run => Err(UiBridgeError::Validation(
+            "command_retry requires dry_run until execution is wired".to_string(),
+        )),
         UiCommand::SwitchSession { workspace_id, .. } if is_nil_workspace_id(*workspace_id) => Err(
             UiBridgeError::Validation("switch_session workspace_id cannot be nil".to_string()),
         ),

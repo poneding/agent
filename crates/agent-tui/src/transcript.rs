@@ -366,6 +366,19 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::IdempotentRecovery(summary) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "idempotent-recovery",
+                format!(
+                    "reusable={} pending={} conflicts={} effects={} diagnostics={}",
+                    summary.summary.reusable_effect_count,
+                    summary.summary.pending_tool_count,
+                    summary.summary.conflict_count,
+                    summary.summary.effects.len(),
+                    summary.summary.diagnostics.len()
+                ),
+                false,
+            )),
             UiJsonFrame::ReplayInspect(report) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "replay-inspect",
@@ -388,6 +401,19 @@ impl TranscriptState {
                     report.replay_from,
                     report.dry_run,
                     report.diagnostics.len()
+                ),
+                false,
+            )),
+            UiJsonFrame::CommandRetryPlan(plan) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "command-retry",
+                format!(
+                    "{} readiness={:?} classification={:?} dry_run={} diagnostics={}",
+                    plan.plan.command_run_id,
+                    plan.plan.readiness,
+                    plan.plan.classification,
+                    plan.plan.dry_run,
+                    plan.plan.diagnostics.len()
                 ),
                 false,
             )),

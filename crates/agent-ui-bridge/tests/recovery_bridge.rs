@@ -1,10 +1,13 @@
 use agent_types::{
-    CheckpointId, ClientKind, ConversationId, CorrelationId, EventSeq, RecoveryReplaySummary,
-    RecoverySnapshot, ResumeDryRunReport, SchemaVersion, TurnId,
+    CheckpointId, ClientKind, CommandRetryAttemptLink, CommandRetryCommandSummary,
+    CommandRetryFailureClassification, CommandRetryPlan, CommandRetryReadiness, ConversationId,
+    CorrelationId, EventSeq, IdempotentRecoverySummary, RecoveryReplaySummary, RecoverySnapshot,
+    ResumeDryRunReport, SchemaVersion, TurnId,
 };
 use agent_ui_bridge::{
-    UiClientInfo, UiCommand, UiCommandEnvelope, UiJsonFrame, UiRecoverySnapshot,
-    UiReplayForkReport, UiReplayInspectReport, UiResumeDryRunReport, validate_ui_command,
+    UiClientInfo, UiCommand, UiCommandEnvelope, UiCommandRetryPlan, UiIdempotentRecoverySummary,
+    UiJsonFrame, UiRecoverySnapshot, UiReplayForkReport, UiReplayInspectReport,
+    UiResumeDryRunReport, validate_ui_command,
 };
 
 fn conversation_id(value: &str) -> ConversationId {
@@ -31,6 +34,7 @@ fn snapshot(conversation_id: ConversationId, turn_id: Option<TurnId>) -> Recover
         readiness: agent_types::RecoveryReadiness::Ready,
         pending_tool_calls: Vec::new(),
         idempotent_effects: Vec::new(),
+        idempotent_recovery: agent_types::IdempotentRecoverySummary::default(),
         pending_approvals: Vec::new(),
         diagnostics: Vec::new(),
     }
@@ -163,4 +167,78 @@ fn replay_reports_are_bounded_and_redacted() {
     assert!(fork_json.contains("replay_fork"));
     assert!(!fork_json.contains("sk-secret-token"));
     assert!(!fork_json.contains("api_key"));
+}
+
+#[test]
+fn command_retry_command_validates_dry_run_shape() {
+    let envelope = UiCommandEnvelope {
+        schema_version: SchemaVersion::current(),
+        command_id: CorrelationId::new(),
+        client: UiClientInfo {
+            kind: ClientKind::Cli,
+            version: "test".to_string(),
+        },
+        command: UiCommand::CommandRetryPlan {
+            command_run_id: "command-run-1".to_string(),
+            reason: "rerun after fix".to_string(),
+            dry_run: true,
+        },
+    };
+
+    validate_ui_command(&envelope).expect("valid command retry plan command");
+    let value = serde_json::to_value(&envelope.command).expect("serialize command");
+    assert_eq!(value["type"], "command_retry_plan");
+    assert_eq!(value["data"]["command_run_id"], "command-run-1");
+
+    let invalid = UiCommandEnvelope {
+        command: UiCommand::CommandRetryPlan {
+            command_run_id: "command-run-1".to_string(),
+            reason: "rerun".to_string(),
+            dry_run: false,
+        },
+        ..envelope
+    };
+    let error = validate_ui_command(&invalid).expect_err("real retry not wired");
+    assert!(error.to_string().contains("requires dry_run"));
+}
+
+#[test]
+fn command_retry_and_idempotent_recovery_frames_serialize() {
+    let plan = CommandRetryPlan {
+        command_run_id: "command-run-1".to_string(),
+        attempt: CommandRetryAttemptLink {
+            previous_attempt_id: "command-run-1".to_string(),
+            next_attempt_id: "command-run-1-retry-1".to_string(),
+        },
+        readiness: CommandRetryReadiness::Retryable,
+        classification: CommandRetryFailureClassification::TestFailure,
+        command: CommandRetryCommandSummary {
+            display: "cargo test".to_string(),
+            cwd: ".".to_string(),
+            classify_as_test: true,
+        },
+        exit_code: Some(101),
+        reason: "rerun after [redacted]".to_string(),
+        dry_run: true,
+        diagnostics: Vec::new(),
+    };
+    let retry_json = serde_json::to_string(&UiJsonFrame::CommandRetryPlan(
+        UiCommandRetryPlan::new(plan),
+    ))
+    .expect("serialize retry frame");
+    assert!(retry_json.contains("command_retry_plan"));
+    assert!(!retry_json.contains("sk-secret-token"));
+
+    let idempotent_json = serde_json::to_string(&UiJsonFrame::IdempotentRecovery(
+        UiIdempotentRecoverySummary::new(IdempotentRecoverySummary {
+            reusable_effect_count: 1,
+            pending_tool_count: 0,
+            conflict_count: 0,
+            effects: Vec::new(),
+            diagnostics: Vec::new(),
+        }),
+    ))
+    .expect("serialize idempotent frame");
+    assert!(idempotent_json.contains("idempotent_recovery"));
+    assert!(idempotent_json.contains("reusable_effect_count"));
 }

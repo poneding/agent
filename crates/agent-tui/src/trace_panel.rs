@@ -338,6 +338,18 @@ impl TracePanelState {
                     report.report.will_reuse_idempotent_effect_count
                 ),
             )),
+            UiJsonFrame::IdempotentRecovery(summary) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "idempotent-recovery",
+                format!(
+                    "reusable={} pending={} conflicts={} effects={} diagnostics={}",
+                    summary.summary.reusable_effect_count,
+                    summary.summary.pending_tool_count,
+                    summary.summary.conflict_count,
+                    summary.summary.effects.len(),
+                    summary.summary.diagnostics.len()
+                ),
+            )),
             UiJsonFrame::ReplayInspect(report) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "replay-inspect",
@@ -359,6 +371,18 @@ impl TracePanelState {
                     report.replay_from,
                     report.dry_run,
                     report.diagnostics.len()
+                ),
+            )),
+            UiJsonFrame::CommandRetryPlan(plan) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "command-retry",
+                format!(
+                    "{} readiness={:?} classification={:?} dry_run={} diagnostics={}",
+                    plan.plan.command_run_id,
+                    plan.plan.readiness,
+                    plan.plan.classification,
+                    plan.plan.dry_run,
+                    plan.plan.diagnostics.len()
                 ),
             )),
             UiJsonFrame::TaskSnapshot(snapshot) => self.push(TracePanelEntry::new(

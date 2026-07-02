@@ -15,9 +15,10 @@ use agent_core::{
 };
 use agent_scheduler::{BackgroundAgentTask, TaskPriority, TaskSchedule, redact_task_text};
 use agent_types::{
-    ApprovalRequestId, CheckpointId, ClientKind, ConversationId, EventSeq, PlanTodoItemId,
-    PlanTodoProgress, PlanTodoSnapshot, RecoveryDiagnostic, RecoverySnapshot, ResumeDryRunReport,
-    TaskId, TaskState, Timestamp, TodoPriority, TurnId, WorkspaceId,
+    ApprovalRequestId, CheckpointId, ClientKind, CommandRetryPlan, ConversationId, EventSeq,
+    IdempotentRecoverySummary, PlanTodoItemId, PlanTodoProgress, PlanTodoSnapshot,
+    RecoveryDiagnostic, RecoverySnapshot, ResumeDryRunReport, TaskId, TaskState, Timestamp,
+    TodoPriority, TurnId, WorkspaceId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -2082,6 +2083,18 @@ impl UiResumeDryRunReport {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiIdempotentRecoverySummary {
+    pub summary: IdempotentRecoverySummary,
+}
+
+impl UiIdempotentRecoverySummary {
+    #[must_use]
+    pub const fn new(summary: IdempotentRecoverySummary) -> Self {
+        Self { summary }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UiReplayInspectReport {
     pub conversation_id: ConversationId,
     pub replay_from: EventSeq,
@@ -2147,6 +2160,18 @@ impl UiReplayForkReport {
             dry_run,
             diagnostics,
         })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiCommandRetryPlan {
+    pub plan: CommandRetryPlan,
+}
+
+impl UiCommandRetryPlan {
+    #[must_use]
+    pub const fn new(plan: CommandRetryPlan) -> Self {
+        Self { plan }
     }
 }
 
@@ -2466,8 +2491,10 @@ pub enum UiJsonFrame {
     PlanTodoSnapshot(UiPlanTodoSnapshot),
     RecoverySnapshot(UiRecoverySnapshot),
     ResumeDryRun(UiResumeDryRunReport),
+    IdempotentRecovery(UiIdempotentRecoverySummary),
     ReplayInspect(UiReplayInspectReport),
     ReplayFork(UiReplayForkReport),
+    CommandRetryPlan(UiCommandRetryPlan),
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
     StartupMigrationSnapshot(UiStartupMigrationSnapshot),

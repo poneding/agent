@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{CheckpointId, ConversationId, EventSeq, Timestamp, TurnId};
+use crate::{CheckpointId, ConversationId, EventSeq, IdempotentRecoverySummary, Timestamp, TurnId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct RecoverySnapshot {
@@ -11,6 +11,8 @@ pub struct RecoverySnapshot {
     pub readiness: RecoveryReadiness,
     pub pending_tool_calls: Vec<RecoveredToolCall>,
     pub idempotent_effects: Vec<RecoveredToolEffect>,
+    #[serde(default)]
+    pub idempotent_recovery: IdempotentRecoverySummary,
     pub pending_approvals: Vec<RecoveredApprovalWait>,
     pub diagnostics: Vec<RecoveryDiagnostic>,
 }

@@ -5,9 +5,10 @@ use agent_storage::{
 };
 use agent_types::{
     CheckpointId, ConversationId, EventSeq, RecoveredApprovalWait, RecoveredToolCall,
-    RecoveredToolCallStatus, RecoveredToolEffect, RecoveryCheckpointSummary, RecoveryDiagnostic,
-    RecoveryDiagnosticSeverity, RecoveryReadiness, RecoveryReplaySummary, RecoverySnapshot,
-    ResumeDryRunReport, RuntimeEventPayload, TurnId,
+    RecoveredToolCallStatus, RecoveredToolEffect, RecoveredToolEffectDisposition,
+    RecoveryCheckpointSummary, RecoveryDiagnostic, RecoveryDiagnosticSeverity, RecoveryReadiness,
+    RecoveryReplaySummary, RecoverySnapshot, ResumeDryRunReport, RuntimeEventPayload,
+    ToolEffectDisposition, TurnId,
 };
 use thiserror::Error;
 
@@ -136,6 +137,11 @@ impl RecoveryEngine {
 
         let (pending_tool_calls, idempotent_effects) =
             recovered_tools(&replayed, idempotency, &mut diagnostics);
+        let idempotent_recovery = idempotent_recovery_summary(
+            &pending_tool_calls,
+            &idempotent_effects,
+            diagnostics.clone(),
+        );
 
         let pending_approvals = recovered_approvals(events, conversation_id, &mut diagnostics);
         let readiness = readiness(&diagnostics, &pending_approvals, &pending_tool_calls);
@@ -151,6 +157,7 @@ impl RecoveryEngine {
             readiness,
             pending_tool_calls,
             idempotent_effects,
+            idempotent_recovery,
             pending_approvals,
             diagnostics,
         }
@@ -247,6 +254,38 @@ where
         },
         replay_from,
     ))
+}
+
+fn idempotent_recovery_summary(
+    pending_tool_calls: &[RecoveredToolCall],
+    idempotent_effects: &[RecoveredToolEffect],
+    diagnostics: Vec<RecoveryDiagnostic>,
+) -> agent_types::IdempotentRecoverySummary {
+    agent_types::IdempotentRecoverySummary {
+        reusable_effect_count: usize_to_u32(idempotent_effects.len()),
+        pending_tool_count: usize_to_u32(pending_tool_calls.len()),
+        conflict_count: usize_to_u32(
+            diagnostics
+                .iter()
+                .filter(|diagnostic| diagnostic.code.contains("idempotency.conflict"))
+                .count(),
+        ),
+        effects: idempotent_effects
+            .iter()
+            .map(|effect| RecoveredToolEffectDisposition {
+                call_id: effect.call_id.clone(),
+                tool_name: effect.tool_name.clone(),
+                idempotency_key: effect.idempotency_key.clone(),
+                input_hash: effect.input_hash.clone(),
+                disposition: ToolEffectDisposition::Reusable,
+                completed_at: effect.completed_at,
+            })
+            .collect(),
+        diagnostics: diagnostics
+            .into_iter()
+            .filter(|diagnostic| diagnostic.code.contains("idempotency"))
+            .collect(),
+    }
 }
 
 fn recovered_tools<I>(

@@ -1,6 +1,6 @@
 use agent_cli::{
-    CliCommand, CliError, OutputMode, RecoveryCliCommand, ReplayCliCommand, parse_cli_command,
-    parse_cli_invocation, render_cli_invocation,
+    CliCommand, CliError, CommandRetryCliCommand, OutputMode, RecoveryCliCommand, ReplayCliCommand,
+    parse_cli_command, parse_cli_invocation, render_cli_invocation,
 };
 use agent_types::{CheckpointId, ConversationId, TurnId};
 use agent_ui_bridge::UiJsonFrame;
@@ -107,6 +107,26 @@ fn recovery_and_replay_commands_parse() {
 }
 
 #[test]
+fn command_retry_command_parses() {
+    assert_eq!(
+        parse_cli_command([
+            "command",
+            "retry",
+            "test-failed",
+            "--reason",
+            "fixed assertion",
+            "--dry-run",
+        ])
+        .expect("parse command retry"),
+        CliCommand::CommandRetry(CommandRetryCliCommand::Plan {
+            command_run_id: "test-failed".to_string(),
+            reason: "fixed assertion".to_string(),
+            dry_run: true,
+        })
+    );
+}
+
+#[test]
 fn recovery_status_renders_text_snapshot() {
     let output = render_cli_invocation(
         parse_cli_invocation(["recovery", "status", "--conversation", CONVERSATION])
@@ -123,6 +143,16 @@ fn recovery_status_renders_text_snapshot() {
     );
     assert!(output.stdout.contains("pending_tool_count=1"));
     assert!(output.stdout.contains("idempotent_effect_count=1"));
+    assert!(
+        output
+            .stdout
+            .contains("idempotent_recovery reusable_effect_count=1 pending_tool_count=1")
+    );
+    assert!(
+        output
+            .stdout
+            .contains("idempotent_disposition call_id=call-effect")
+    );
     assert!(output.stdout.contains("pending_approval_count=1"));
     assert!(
         output
@@ -158,11 +188,101 @@ fn recovery_status_renders_json_frame() {
                 && snapshot.snapshot.replay.replayed_event_count == 4
                 && snapshot.snapshot.pending_tool_calls.len() == 1
                 && snapshot.snapshot.idempotent_effects.len() == 1
+                && snapshot.snapshot.idempotent_recovery.reusable_effect_count == 1
+                && snapshot.snapshot.idempotent_recovery.effects[0].disposition
+                    == agent_types::ToolEffectDisposition::Reusable
                 && snapshot.snapshot.pending_approvals.len() == 1
     ));
     assert!(!output.stdout.contains("must-not-appear"));
     assert!(!output.stdout.contains("sk-secret-token"));
     assert!(!output.stdout.contains("api_key"));
+}
+
+#[test]
+fn command_retry_renders_text_and_json_plans() {
+    let text = render_cli_invocation(
+        parse_cli_invocation([
+            "command",
+            "retry",
+            "test-failed",
+            "--reason",
+            "rerun after sk-secret-token",
+            "--dry-run",
+        ])
+        .expect("parse text retry"),
+    );
+
+    assert_eq!(text.status_code, 0);
+    assert!(text.stdout.contains("Command retry dry-run test-failed"));
+    assert!(text.stdout.contains("readiness=retryable"));
+    assert!(text.stdout.contains("classification=test_failure"));
+    assert!(text.stdout.contains("classify_as_test=yes"));
+    assert!(text.stdout.contains("previous_attempt=test-failed"));
+    assert!(text.stdout.contains("next_attempt=test-failed-retry-1"));
+    assert!(text.stdout.contains("reason=rerun after [redacted]"));
+    assert!(!text.stdout.contains("sk-secret-token"));
+    assert!(!text.stdout.contains("api_key"));
+    assert!(!text.stdout.contains("token"));
+    assert!(!text.stdout.contains("must-not-appear"));
+
+    let json = render_cli_invocation(
+        parse_cli_invocation([
+            "--json",
+            "command",
+            "retry",
+            "command-failed",
+            "--reason",
+            "rerun command",
+            "--dry-run",
+        ])
+        .expect("parse json retry"),
+    );
+    assert_eq!(json.status_code, 0);
+    let frames = parse_frames(&json.stdout);
+    assert!(matches!(
+        &frames[0],
+        UiJsonFrame::CommandRetryPlan(plan)
+            if plan.plan.command_run_id == "command-failed"
+                && plan.plan.readiness == agent_types::CommandRetryReadiness::Retryable
+                && plan.plan.dry_run
+    ));
+}
+
+#[test]
+fn command_retry_reports_blocked_and_missing_targets() {
+    let success = render_cli_invocation(
+        parse_cli_invocation([
+            "command",
+            "retry",
+            "success",
+            "--reason",
+            "rerun success",
+            "--dry-run",
+        ])
+        .expect("parse success retry"),
+    );
+    assert_eq!(success.status_code, 0);
+    assert!(success.stdout.contains("readiness=already_succeeded"));
+
+    let missing = render_cli_invocation(
+        parse_cli_invocation([
+            "--json",
+            "command",
+            "retry",
+            "missing-run",
+            "--reason",
+            "inspect",
+            "--dry-run",
+        ])
+        .expect("parse missing retry"),
+    );
+    assert_eq!(missing.status_code, 0);
+    let frames = parse_frames(&missing.stdout);
+    assert!(matches!(
+        &frames[0],
+        UiJsonFrame::CommandRetryPlan(plan)
+            if plan.plan.readiness == agent_types::CommandRetryReadiness::MissingEvidence
+    ));
 }
 
 #[test]
@@ -308,6 +428,16 @@ fn recovery_and_replay_reject_unsafe_or_invalid_arguments() {
         ])
         .expect_err("empty label"),
         CliError::EmptyForkLabel
+    );
+    assert_eq!(
+        parse_cli_command(["command", "retry", "test-failed", "--reason", "rerun"])
+            .expect_err("missing command retry dry run"),
+        CliError::DryRunRequired("command retry".to_string())
+    );
+    assert_eq!(
+        parse_cli_command(["command", "retry", "test-failed", "--dry-run"])
+            .expect_err("missing command retry reason"),
+        CliError::MissingValue("command retry --reason".to_string())
     );
 }
 

@@ -9,6 +9,7 @@ Support bundles should include these sections when available:
 - app name, version, release channel, target triple, and build metadata
 - platform path summary for config, data, cache, logs, plugins, and release smoke roots
 - config summary with secret references, not secret values
+- onboarding readiness snapshot for settings, paths, secret store health, migrations, and provider/model support
 - provider/model readiness and capability diagnostics
 - startup migration report and schema/config versions
 - package artifact manifest and checksum references
@@ -42,6 +43,8 @@ Redaction should happen before evidence crosses durable, CLI, Desktop, or suppor
 - `log_truncated`
 - `section_unavailable`
 - `provider_secret_missing`
+- `onboarding_secret_store_unavailable`
+- `onboarding_migration_blocked`
 
 Redaction diagnostics are useful evidence. They should explain what class of data was omitted without echoing the omitted value.
 
@@ -67,6 +70,12 @@ CLI and Desktop may expose a support bundle command or button only after a typed
 - next action
 
 They should not assemble raw support data themselves.
+
+## Onboarding Snapshot Input
+
+M65-04 provides `OnboardingReadinessSnapshot` in `agent-core` and a UI-safe bridge frame. M65-05 support bundle generation should include that snapshot directly instead of collecting raw config files, raw environment variables, keychain values, migration text, or provider endpoints.
+
+The snapshot is already bounded and redacted, but support bundle generation should still treat it as allowlisted evidence and preserve redaction diagnostics.
 
 ## M65 Ownership
 

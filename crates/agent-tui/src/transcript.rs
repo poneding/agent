@@ -488,6 +488,20 @@ impl TranscriptState {
                 ),
                 false,
             )),
+            UiJsonFrame::OnboardingReadinessSnapshot(snapshot) => self.push(TranscriptItem::new(
+                TranscriptItemKind::Progress,
+                "onboarding",
+                format!(
+                    "status={} provider={}/{} secrets={} migration={} diagnostics={}",
+                    snapshot.status,
+                    snapshot.selected_provider,
+                    snapshot.selected_model,
+                    snapshot.secret_store_available,
+                    snapshot.migration_runtime_allowed,
+                    snapshot.diagnostics.len()
+                ),
+                false,
+            )),
             UiJsonFrame::ObservabilitySnapshot(snapshot) => self.push(TranscriptItem::new(
                 TranscriptItemKind::Progress,
                 "observability",

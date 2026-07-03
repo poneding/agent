@@ -4,12 +4,13 @@ use agent_core::{
     ContextHybridCandidateOmission, ContextQualityDiagnostic, ContextQualitySignal,
     ContextQualityTrace, ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity,
     ContextSemanticRetrievalSummary, DiffEvidenceState, EditDiffFlowReport,
-    ObservabilityEvidenceBundle, PinnedContextItem, PinnedContextOmission,
-    ProjectContextDiagnosticSeverity, ProjectContextHybridPinnedRetrievalReport,
-    ProjectContextHybridRetrievalReport, ProjectContextPinnedRetrievalReport,
-    ProjectContextRetrievalReport, ProjectContextSummary, ProjectFileSummary, RepoGitState,
-    RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity, StartupMigrationOutcome,
-    TaskArtifact, TaskReviewSummary, TerminalSessionDiagnosticSeverity,
+    ObservabilityEvidenceBundle, OnboardingDiagnosticSeverity, OnboardingNextActionTarget,
+    OnboardingReadinessSnapshot, OnboardingReadinessStatus, PinnedContextItem,
+    PinnedContextOmission, ProjectContextDiagnosticSeverity,
+    ProjectContextHybridPinnedRetrievalReport, ProjectContextHybridRetrievalReport,
+    ProjectContextPinnedRetrievalReport, ProjectContextRetrievalReport, ProjectContextSummary,
+    ProjectFileSummary, RepoGitState, RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity,
+    StartupMigrationOutcome, TaskArtifact, TaskReviewSummary, TerminalSessionDiagnosticSeverity,
     TerminalSessionDirectoryReport, TerminalSessionStatus, TerminalSessionSummary,
     normalize_plan_todo_snapshot,
 };
@@ -200,6 +201,114 @@ pub struct UiObservabilitySnapshot {
     pub telemetry_count: usize,
     pub replayable: bool,
     pub diagnostics: Vec<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiOnboardingReadinessSnapshot {
+    pub schema_version: u32,
+    pub status: String,
+    pub settings_profile: String,
+    pub release_channel: String,
+    pub selected_provider: String,
+    pub selected_model: String,
+    pub secret_store_kind: String,
+    pub secret_store_available: bool,
+    pub secret_store_writable: bool,
+    pub secret_env_fallback_available: bool,
+    pub migration_runtime_allowed: bool,
+    pub migration_pending_step_count: u32,
+    pub migration_applied_step_count: u32,
+    pub provider_count: u32,
+    pub enabled_provider_count: u32,
+    pub selected_provider_compatible: bool,
+    pub diagnostics: Vec<UiOnboardingDiagnostic>,
+    pub next_actions: Vec<UiOnboardingNextAction>,
+}
+
+impl UiOnboardingReadinessSnapshot {
+    pub fn from_snapshot(snapshot: &OnboardingReadinessSnapshot) -> Result<Self, UiBridgeError> {
+        let selected_provider = bounded_task_text(&snapshot.providers.selected_provider);
+        let selected_model = bounded_task_text(&snapshot.providers.selected_model);
+        validate_non_empty("onboarding selected provider", &selected_provider)?;
+        validate_non_empty("onboarding selected model", &selected_model)?;
+        Ok(Self {
+            schema_version: snapshot.schema_version,
+            status: onboarding_status_label(snapshot.status).to_string(),
+            settings_profile: bounded_task_text(&snapshot.settings.profile_id),
+            release_channel: bounded_task_text(&snapshot.settings.release_channel),
+            selected_provider,
+            selected_model,
+            secret_store_kind: format!("{:?}", snapshot.secrets.kind).to_ascii_lowercase(),
+            secret_store_available: snapshot.secrets.available,
+            secret_store_writable: snapshot.secrets.writable,
+            secret_env_fallback_available: snapshot.secrets.env_fallback_available,
+            migration_runtime_allowed: snapshot.migrations.runtime_allowed,
+            migration_pending_step_count: snapshot.migrations.pending_step_count,
+            migration_applied_step_count: snapshot.migrations.applied_step_count,
+            provider_count: snapshot.providers.provider_count,
+            enabled_provider_count: snapshot.providers.enabled_provider_count,
+            selected_provider_compatible: snapshot.providers.selected_provider_compatible,
+            diagnostics: snapshot
+                .diagnostics
+                .iter()
+                .map(UiOnboardingDiagnostic::from_diagnostic)
+                .collect::<Result<Vec<_>, _>>()?,
+            next_actions: snapshot
+                .next_actions
+                .iter()
+                .map(UiOnboardingNextAction::from_action)
+                .collect::<Result<Vec<_>, _>>()?,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiOnboardingDiagnostic {
+    pub severity: String,
+    pub code: String,
+    pub message: String,
+    pub surface: Option<String>,
+}
+
+impl UiOnboardingDiagnostic {
+    pub fn from_diagnostic(
+        diagnostic: &agent_core::OnboardingDiagnostic,
+    ) -> Result<Self, UiBridgeError> {
+        let code = bounded_contract_text(&diagnostic.code);
+        let message = bounded_task_text(&diagnostic.message);
+        validate_non_empty("onboarding diagnostic code", &code)?;
+        validate_non_empty("onboarding diagnostic message", &message)?;
+        Ok(Self {
+            severity: onboarding_diagnostic_severity_label(diagnostic.severity).to_string(),
+            code,
+            message,
+            surface: diagnostic
+                .surface
+                .as_ref()
+                .map(|surface| bounded_contract_text(surface)),
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiOnboardingNextAction {
+    pub id: String,
+    pub target: String,
+    pub label: String,
+}
+
+impl UiOnboardingNextAction {
+    pub fn from_action(action: &agent_core::OnboardingNextAction) -> Result<Self, UiBridgeError> {
+        let id = bounded_contract_text(&action.id);
+        let label = bounded_task_text(&action.label);
+        validate_non_empty("onboarding next action id", &id)?;
+        validate_non_empty("onboarding next action label", &label)?;
+        Ok(Self {
+            id,
+            target: onboarding_next_action_target_label(action.target).to_string(),
+            label,
+        })
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -3031,6 +3140,7 @@ pub enum UiJsonFrame {
     TaskSnapshot(UiTaskSnapshot),
     TaskReviewSnapshot(UiTaskReviewSnapshot),
     StartupMigrationSnapshot(UiStartupMigrationSnapshot),
+    OnboardingReadinessSnapshot(UiOnboardingReadinessSnapshot),
     ObservabilitySnapshot(UiObservabilitySnapshot),
     ModelSelection {
         provider: String,
@@ -3197,6 +3307,31 @@ fn memory_privacy_diagnostic_severity_label(
     }
 }
 
+fn onboarding_status_label(status: OnboardingReadinessStatus) -> &'static str {
+    match status {
+        OnboardingReadinessStatus::Ready => "ready",
+        OnboardingReadinessStatus::Degraded => "degraded",
+        OnboardingReadinessStatus::Blocked => "blocked",
+    }
+}
+
+fn onboarding_diagnostic_severity_label(severity: OnboardingDiagnosticSeverity) -> &'static str {
+    match severity {
+        OnboardingDiagnosticSeverity::Info => "info",
+        OnboardingDiagnosticSeverity::Warning => "warning",
+        OnboardingDiagnosticSeverity::Blocked => "blocked",
+    }
+}
+
+fn onboarding_next_action_target_label(target: OnboardingNextActionTarget) -> &'static str {
+    match target {
+        OnboardingNextActionTarget::Settings => "settings",
+        OnboardingNextActionTarget::Secrets => "secrets",
+        OnboardingNextActionTarget::Migrations => "migrations",
+        OnboardingNextActionTarget::Providers => "providers",
+    }
+}
+
 fn score_label(score: f32) -> String {
     format!("{score:.3}")
 }
@@ -3260,6 +3395,15 @@ fn bounded_task_text(value: &str) -> String {
         redacted.chars().take(120).collect()
     } else {
         redacted.to_string()
+    }
+}
+
+fn bounded_contract_text(value: &str) -> String {
+    let value = value.trim();
+    if value.chars().count() > 120 {
+        value.chars().take(120).collect()
+    } else {
+        value.to_string()
     }
 }
 

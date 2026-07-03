@@ -183,7 +183,12 @@ fn cli_config_diagnostics_text_reports_valid_config() {
     assert!(output.stdout.contains(
         "Secret store: os_keychain available=false writable=false fallback=env_fallback"
     ));
+    assert!(output.stdout.contains("Onboarding readiness: degraded"));
+    assert!(output.stdout.contains("Onboarding diagnostics: "));
+    assert!(output.stdout.contains("Onboarding next actions: "));
     assert!(output.stdout.contains("Config dir: "));
+    assert!(!output.stdout.contains("OPENAI_API_KEY"));
+    assert!(!output.stdout.contains("api_key"));
 }
 
 #[test]
@@ -275,6 +280,25 @@ fn cli_config_diagnostics_json_renders_config_summary() {
             .config_dir
             .is_empty()
     );
+    let onboarding = frames.iter().find_map(|frame| {
+        if let UiJsonFrame::OnboardingReadinessSnapshot(snapshot) = frame {
+            Some(snapshot)
+        } else {
+            None
+        }
+    });
+    let onboarding = onboarding.expect("onboarding readiness snapshot frame");
+    assert_eq!(onboarding.status, "degraded");
+    assert_eq!(onboarding.selected_provider, "fake");
+    assert_eq!(onboarding.selected_model, "fake-custom");
+    assert_eq!(onboarding.secret_store_kind, "oskeychain");
+    assert!(!onboarding.secret_store_available);
+    assert!(onboarding.secret_env_fallback_available);
+    assert!(onboarding.migration_runtime_allowed);
+    assert!(onboarding.diagnostics.iter().any(|diagnostic| {
+        diagnostic.code == "onboarding.secret_store_unavailable"
+            || diagnostic.code == "secret_store.keychain_unavailable"
+    }));
     let summary = frames.iter().find_map(|frame| {
         if let UiJsonFrame::ConfigSummary {
             selected_provider,

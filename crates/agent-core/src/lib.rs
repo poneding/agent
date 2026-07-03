@@ -19,6 +19,7 @@ pub mod mcp_sampling;
 pub mod memory;
 pub mod model_runtime;
 pub mod observability;
+pub mod onboarding;
 pub mod plan;
 pub mod project_context;
 pub mod provider_support;
@@ -114,6 +115,13 @@ pub use observability::{
     ObservabilityEvidenceOptions, ObservabilityEvidenceSummary, ReplayEvidenceSummary,
     build_observability_evidence, build_observability_evidence_at,
     verify_observability_evidence_replay, verify_observability_replay_fixture,
+};
+pub use onboarding::{
+    ONBOARDING_READINESS_SCHEMA_VERSION, OnboardingDiagnostic, OnboardingDiagnosticSeverity,
+    OnboardingMigrationSummary, OnboardingNextAction, OnboardingNextActionTarget,
+    OnboardingPathSummary, OnboardingProviderSummary, OnboardingReadinessInput,
+    OnboardingReadinessSnapshot, OnboardingReadinessStatus, OnboardingSecretStoreSummary,
+    OnboardingSettingsSummary,
 };
 pub use plan::{
     PlanTodoError, PlanTodoOperation, PlanTodoUpdate, PlanTodoUpdateOutcome,

@@ -450,6 +450,19 @@ impl TracePanelState {
                     snapshot.diagnostic_count
                 ),
             )),
+            UiJsonFrame::OnboardingReadinessSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "onboarding",
+                format!(
+                    "status={} provider={}/{} secrets={} migration={} diagnostics={}",
+                    snapshot.status,
+                    snapshot.selected_provider,
+                    snapshot.selected_model,
+                    snapshot.secret_store_available,
+                    snapshot.migration_runtime_allowed,
+                    snapshot.diagnostics.len()
+                ),
+            )),
             UiJsonFrame::ObservabilitySnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "observability",

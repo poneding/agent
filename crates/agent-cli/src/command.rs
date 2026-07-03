@@ -27,12 +27,13 @@ use agent_core::{
     EffectiveRuntimeConfig, ExtensionCapabilitySummary, ExtensionCompatibility, ExtensionHealth,
     ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord,
     ExtensionRegistry, ExtensionRegistryError, ExtensionSource, ExtensionSourceKind,
-    PinnedProjectContextBudgetReport, PinnedProjectContextPin, PinnedProjectContextRequest,
-    PlanTodoOperation, PlanTodoUpdate, PlanTodoUpdateOutcome, PlatformPathOverrides, PlatformPaths,
-    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
-    ProjectContextHybridPinnedQualityRetrievalReport, ProjectContextHybridPinnedRetrievalInput,
-    ProjectContextHybridPinnedRetrievalReport, ProjectContextHybridQualityRetrievalReport,
-    ProjectContextHybridRetrievalInput, ProjectContextHybridRetrievalReport, ProjectContextLimits,
+    OnboardingReadinessInput, OnboardingReadinessSnapshot, PinnedProjectContextBudgetReport,
+    PinnedProjectContextPin, PinnedProjectContextRequest, PlanTodoOperation, PlanTodoUpdate,
+    PlanTodoUpdateOutcome, PlatformPathOverrides, PlatformPaths, ProjectContextDiagnostic,
+    ProjectContextDiagnosticSeverity, ProjectContextHybridPinnedQualityRetrievalReport,
+    ProjectContextHybridPinnedRetrievalInput, ProjectContextHybridPinnedRetrievalReport,
+    ProjectContextHybridQualityRetrievalReport, ProjectContextHybridRetrievalInput,
+    ProjectContextHybridRetrievalReport, ProjectContextLimits,
     ProjectContextPinnedQualityRetrievalReport, ProjectContextPinnedRetrievalInput,
     ProjectContextPinnedRetrievalReport, ProjectContextQualityRetrievalReport,
     ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
@@ -124,17 +125,17 @@ use agent_ui_bridge::{
     UiConfigSnapshot, UiConflictInspectReport, UiEditDiffSnapshot, UiExtensionCapabilityReview,
     UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot,
     UiJsonFrame, UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
-    UiPlanTodoCommandError, UiPlanTodoSnapshot, UiPlatformPathsSummary,
-    UiProjectContextHybridRetrievalSnapshot, UiProjectContextPinnedRetrievalSnapshot,
-    UiProjectContextQualityTraceSnapshot, UiProjectContextRetrievalSnapshot,
-    UiProjectContextSnapshot, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
-    UiProviderSupportRole, UiProviderSupportSummary, UiRecoverySnapshot, UiReplayForkReport,
-    UiReplayInspectReport, UiRepoSessionSnapshot, UiResumeDryRunReport, UiSettingsProfileSummary,
-    UiSlashCommandEffect, UiSlashCommandSurface, UiStartupMigrationSnapshot, UiTaskCommandError,
-    UiTaskReviewSummary, UiTaskSnapshot, UiTaskSummary, UiTeamWorkflowSnapshot,
-    UiTerminalSessionSnapshot, UiTerminalStatusSnapshot, approval_queue_snapshot_from_requests,
-    default_slash_command_catalog, encode_json_frame, normalize_runtime_event,
-    resolve_slash_command,
+    UiOnboardingReadinessSnapshot, UiPlanTodoCommandError, UiPlanTodoSnapshot,
+    UiPlatformPathsSummary, UiProjectContextHybridRetrievalSnapshot,
+    UiProjectContextPinnedRetrievalSnapshot, UiProjectContextQualityTraceSnapshot,
+    UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
+    UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
+    UiRecoverySnapshot, UiReplayForkReport, UiReplayInspectReport, UiRepoSessionSnapshot,
+    UiResumeDryRunReport, UiSettingsProfileSummary, UiSlashCommandEffect, UiSlashCommandSurface,
+    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
+    UiTaskSummary, UiTeamWorkflowSnapshot, UiTerminalSessionSnapshot, UiTerminalStatusSnapshot,
+    approval_queue_snapshot_from_requests, default_slash_command_catalog, encode_json_frame,
+    normalize_runtime_event, resolve_slash_command,
 };
 use agent_worktree::{ChangeKind, FileChange, detect_conflicts};
 use futures_util::StreamExt;
@@ -8861,11 +8862,18 @@ fn render_json_config_check(
                 Ok(snapshot) => snapshot,
                 Err(error) => return render_json_config_check_error(error),
             };
+            let onboarding = match ui_onboarding_readiness_snapshot(&report.onboarding) {
+                Ok(snapshot) => snapshot,
+                Err(error) => return render_json_config_check_error(error),
+            };
             let mut stdout = String::new();
             for diagnostic in &report.effective.diagnostics {
                 stdout.push_str(&json_frame_line(config_diagnostic_frame(diagnostic)));
             }
             stdout.push_str(&json_frame_line(UiJsonFrame::ConfigSnapshot(snapshot)));
+            stdout.push_str(&json_frame_line(UiJsonFrame::OnboardingReadinessSnapshot(
+                onboarding,
+            )));
             stdout.push_str(&json_frame_line(config_summary_frame(&report.effective)));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
@@ -11386,13 +11394,28 @@ fn evaluate_config_check(
     let settings = SettingsProfile::default();
     let platform_paths =
         PlatformPaths::current(PlatformPathOverrides::default()).map_err(map_settings_error)?;
+    let secret_store_health = OsKeychainSecretStore::unavailable_with_env_fallback().health();
+    let mut migration_runner = StartupMigrationRunner::with_default_participants();
+    let migration_outcome = migration_runner
+        .apply()
+        .map_err(map_startup_migration_config_error)?;
+    let onboarding = OnboardingReadinessSnapshot::from_input(OnboardingReadinessInput {
+        effective: effective.clone(),
+        provider_support: provider_support.clone(),
+        settings: settings.clone(),
+        platform_paths: platform_paths.clone(),
+        secret_store_health: secret_store_health.clone(),
+        secret_env_fallback_available: true,
+        migration_outcome,
+    });
 
     Ok(ConfigCheckReport {
         effective,
         provider_support,
         platform_paths,
         settings,
-        secret_store_summary: secret_store_summary(),
+        secret_store_summary: secret_store_summary(&secret_store_health),
+        onboarding,
     })
 }
 
@@ -11427,6 +11450,7 @@ struct ConfigCheckReport {
     platform_paths: PlatformPaths,
     settings: SettingsProfile,
     secret_store_summary: String,
+    onboarding: OnboardingReadinessSnapshot,
 }
 
 fn built_in_runtime_config() -> Result<AgentRuntimeConfig, CliError> {
@@ -11465,7 +11489,7 @@ fn render_config_summary_text(report: &ConfigCheckReport) -> String {
     let provider_capabilities = config_provider_capabilities_summary(effective);
     let provider_support = config_provider_support_summary(&report.provider_support);
     format!(
-        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nProvider capabilities: {}\nProvider support: {}\nLayers: {}\nDiagnostics: {}\nSettings profile: {}\nRelease channel: {}\nSecret store: {}\nConfig dir: {}\nData dir: {}\nCache dir: {}\nLog dir: {}\n",
+        "Config: valid\nSelected provider: {}\nSelected model: {}\nProviders: {}\nProvider capabilities: {}\nProvider support: {}\nLayers: {}\nDiagnostics: {}\nSettings profile: {}\nRelease channel: {}\nSecret store: {}\nOnboarding readiness: {}\nOnboarding diagnostics: {}\nOnboarding next actions: {}\nConfig dir: {}\nData dir: {}\nCache dir: {}\nLog dir: {}\n",
         effective.selected_provider,
         effective.selected_model,
         provider_ids,
@@ -11476,6 +11500,9 @@ fn render_config_summary_text(report: &ConfigCheckReport) -> String {
         report.settings.profile_id,
         report.settings.release_channel.as_str(),
         report.secret_store_summary,
+        onboarding_readiness_status_label(report.onboarding.status),
+        report.onboarding.diagnostics.len(),
+        report.onboarding.next_actions.len(),
         report.platform_paths.config_dir.display(),
         report.platform_paths.data_dir.display(),
         report.platform_paths.cache_dir.display(),
@@ -11522,6 +11549,16 @@ fn provider_support_status(
     format!("missing={missing}")
 }
 
+fn onboarding_readiness_status_label(
+    status: agent_core::OnboardingReadinessStatus,
+) -> &'static str {
+    match status {
+        agent_core::OnboardingReadinessStatus::Ready => "ready",
+        agent_core::OnboardingReadinessStatus::Degraded => "degraded",
+        agent_core::OnboardingReadinessStatus::Blocked => "blocked",
+    }
+}
+
 fn config_provider_capabilities_summary(effective: &EffectiveRuntimeConfig) -> String {
     let mut entries = effective
         .config
@@ -11553,8 +11590,7 @@ fn format_capability_token_limit(limit: Option<u32>) -> String {
         .unwrap_or_else(|| "unknown".to_string())
 }
 
-fn secret_store_summary() -> String {
-    let health = OsKeychainSecretStore::unavailable_with_env_fallback().health();
+fn secret_store_summary(health: &agent_model::SecretStoreHealth) -> String {
     let fallback = if health.available {
         "native"
     } else {
@@ -11642,6 +11678,12 @@ fn ui_config_snapshot(report: &ConfigCheckReport) -> Result<UiConfigSnapshot, Cl
         .with_provider_support(provider_support)
         .with_platform_paths(platform_paths)
         .with_settings(settings))
+}
+
+fn ui_onboarding_readiness_snapshot(
+    snapshot: &OnboardingReadinessSnapshot,
+) -> Result<UiOnboardingReadinessSnapshot, CliError> {
+    UiOnboardingReadinessSnapshot::from_snapshot(snapshot).map_err(map_ui_bridge_error)
 }
 
 fn ui_model_provider_capabilities(
@@ -11772,6 +11814,13 @@ fn map_ui_bridge_error(error: UiBridgeError) -> CliError {
 fn map_settings_error(error: SettingsError) -> CliError {
     CliError::ConfigCheckFailed {
         message: error.to_string(),
+        diagnostics: Vec::new(),
+    }
+}
+
+fn map_startup_migration_config_error(error: agent_core::StartupMigrationError) -> CliError {
+    CliError::ConfigCheckFailed {
+        message: format!("startup migration check failed: {error}"),
         diagnostics: Vec::new(),
     }
 }

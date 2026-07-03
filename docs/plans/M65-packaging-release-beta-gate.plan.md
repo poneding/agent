@@ -95,11 +95,11 @@ Keep Desktop smoke deterministic and credential-free. Do not redesign Desktop UI
 - Modify: `crates/agent-cli/`
 - Modify: `apps/desktop/src/`
 
-- [ ] **Step 1: Plan upgrade/onboarding diagnostics**
+- [x] **Step 1: Plan upgrade/onboarding diagnostics**
 
 Specify migration diagnostics, keychain/env secret setup, provider readiness, config migration safety, and CLI/Desktop rendering.
 
-- [ ] **Step 2: Implement upgrade/onboarding diagnostics**
+- [x] **Step 2: Implement upgrade/onboarding diagnostics**
 
 Runtime crates own decisions. CLI/Desktop render typed snapshots and next actions.
 

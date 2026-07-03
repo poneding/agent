@@ -48,6 +48,7 @@ fn manifest(expectations: EvalContextQualityExpectations) -> EvalScenarioManifes
             context_quality: Some(expectations),
             recovery: None,
             team_workflow: None,
+            memory: None,
             golden: None,
         },
         metadata: BTreeMap::new(),

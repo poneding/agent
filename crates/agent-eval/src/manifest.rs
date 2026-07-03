@@ -32,6 +32,7 @@ pub enum EvalScenarioKind {
     ContextQuality,
     RecoveryCrashSmoke,
     TeamWorkflowSmoke,
+    MemorySmoke,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -64,6 +65,8 @@ pub struct EvalExpectations {
     pub recovery: Option<EvalRecoveryExpectations>,
     #[serde(default)]
     pub team_workflow: Option<EvalTeamWorkflowExpectations>,
+    #[serde(default)]
+    pub memory: Option<EvalMemoryExpectations>,
     #[serde(default)]
     pub golden: Option<Utf8PathBuf>,
 }
@@ -101,6 +104,22 @@ pub struct EvalTeamWorkflowExpectations {
     pub require_policy_blocked: bool,
     pub require_conflict_blocker: bool,
     pub require_review_blocker: bool,
+    pub require_redaction: bool,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct EvalMemoryExpectations {
+    pub min_record_count: Option<u32>,
+    pub min_proposal_count: Option<u32>,
+    pub min_selected_count: Option<u32>,
+    pub min_tombstone_count: Option<u32>,
+    pub min_import_accepted_count: Option<u32>,
+    pub min_rebuild_stale_removed_count: Option<u32>,
+    pub require_proposal_decisions: bool,
+    pub require_import_export: bool,
+    pub require_rebuild: bool,
+    pub require_disabled_diagnostic: bool,
     pub require_redaction: bool,
 }
 
@@ -205,6 +224,7 @@ where
     validate_context_quality_expectations(manifest.kind, &manifest.expectations)?;
     validate_recovery_expectations(manifest.kind, &manifest.expectations)?;
     validate_team_workflow_expectations(manifest.kind, &manifest.expectations)?;
+    validate_memory_expectations(manifest.kind, &manifest.expectations)?;
     validate_metadata(&manifest.metadata)?;
 
     let normalized_fixture_root = normalize_root(fixture_root)?;
@@ -342,6 +362,19 @@ fn validate_team_workflow_expectations(
     Ok(())
 }
 
+fn validate_memory_expectations(
+    kind: EvalScenarioKind,
+    expectations: &EvalExpectations,
+) -> Result<(), EvalManifestError> {
+    if kind == EvalScenarioKind::MemorySmoke && expectations.memory.is_none() {
+        return Err(EvalManifestError::InvalidField {
+            field: "expectations.memory",
+            message: "memory expectations are required for memory_smoke scenarios".to_string(),
+        });
+    }
+    Ok(())
+}
+
 fn validate_expectation_paths(
     field: &'static str,
     paths: &[String],
@@ -442,7 +475,9 @@ fn enforce_required_fixture(
         EvalScenarioKind::ContextQuality if fixtures.workspace.is_none() => {
             Some("fixtures.workspace")
         }
-        EvalScenarioKind::RecoveryCrashSmoke | EvalScenarioKind::TeamWorkflowSmoke => None,
+        EvalScenarioKind::RecoveryCrashSmoke
+        | EvalScenarioKind::TeamWorkflowSmoke
+        | EvalScenarioKind::MemorySmoke => None,
         _ => None,
     };
 

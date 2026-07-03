@@ -56,6 +56,19 @@ agent-cli memory rebuild-index
 
 Export excludes sensitive records by default. Import reports accepted, skipped, rejected, and tombstone counts. Delete creates a tombstone with a redacted reason. Rebuild reports indexed records, skipped tombstones, and stale embedding removals.
 
+## Disabled Memory
+
+When memory is disabled by config or policy, runtime memory assembly returns a diagnostic instead of silently using stale state. CLI/JSON output should surface the disabled diagnostic and avoid showing selected memory influence for that turn.
+
+Use the snapshot and retrieval preview to confirm the disabled state:
+
+```bash
+agent-cli memory snapshot
+agent-cli --json memory retrieve --query "fixture memory"
+```
+
+The CLI should render the runtime-provided diagnostic directly. It must not infer local privacy, retrieval, proposal, or retention rules.
+
 ## JSON Frame Types
 
 - `memory_list`
@@ -75,3 +88,21 @@ Export excludes sensitive records by default. Import reports accepted, skipped, 
 ## Privacy Guarantees
 
 CLI memory output must not include raw sensitive memory text, proposal content, embeddings, or unbounded command logs. Secret-like values in ids, summaries, reasons, diagnostics, and errors are redacted before rendering.
+
+Default export excludes sensitive records unless a future policy explicitly allows them. Proposal content is intentionally omitted from default list, inspect, decision, and JSON summaries; users review bounded summaries and explicit status instead of raw proposed text.
+
+## Desktop And TUI Parity
+
+TUI and Desktop render the same shared memory snapshot and runtime influence contracts that power CLI/JSON output. Presentation layers can show records, proposal states, retrieval counts, influence traces, retention state, tombstones, and diagnostics, but they must not recalculate redaction, proposal eligibility, retrieval ranking, or retention behavior.
+
+See `docs/desktop/memory-workflows.md` for Desktop-specific placement and UI expectations.
+
+## Smoke Evidence
+
+M64 closeout adds a credential-free default eval scenario:
+
+```bash
+cargo xtask eval
+```
+
+The default suite includes `default-m64-memory-smoke`. The smoke constructs deterministic memory evidence for selected and rejected retrieval candidates, runtime influence, approve/commit and reject proposal decisions, import/export, delete/tombstone, rebuild stale-removal, disabled-memory diagnostics, and redaction. It intentionally includes secret-like source text and fails if serialized evidence leaks raw secret-like strings.

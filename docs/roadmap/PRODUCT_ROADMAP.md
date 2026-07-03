@@ -270,7 +270,7 @@ Acceptance:
 
 ### M64 Memory and Personalization
 
-Status: In progress. M64-01 memory product snapshot/privacy contracts, M64-02 CLI/JSON memory review commands, M64-03 runtime memory influence/proposal loop, and M64-04 TUI/Desktop memory surfaces are complete. M64-05 Memory Smoke, Docs, and Closeout is the next active slice.
+Status: Complete. M64-01 memory product snapshot/privacy contracts, M64-02 CLI/JSON memory review commands, M64-03 runtime memory influence/proposal loop, M64-04 TUI/Desktop memory surfaces, and M64-05 deterministic memory smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m64-dev cargo clippy --workspace --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m64-dev cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M65 Packaging, Release, and Beta Gate is the next active milestone.
 
 Purpose: make memory useful, reviewable, privacy-safe, and visible in product workflows rather than only available as lower-level storage/retrieval contracts.
 
@@ -282,7 +282,7 @@ Initial slices:
 | M64-02 CLI and JSON Memory Review Commands | Complete: stable memory review, retrieval preview, proposal decision, import/export, delete, and rebuild commands over shared contracts. |
 | M64-03 Runtime Memory Influence and Proposal Loop | Complete: selected memories enter prompt assembly with influence traces, and turn evidence can create reviewable write proposals. |
 | M64-04 TUI/Desktop Memory Surfaces | Complete: TUI/Desktop render memory records, proposals, influence traces, privacy controls, retention/tombstones, diagnostics, and settings from bridge snapshots. |
-| M64-05 Memory Smoke, Docs, and Closeout | In progress: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
+| M64-05 Memory Smoke, Docs, and Closeout | Complete: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
 
 Acceptance:
 

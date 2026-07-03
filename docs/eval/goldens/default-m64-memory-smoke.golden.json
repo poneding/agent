@@ -1,0 +1,15 @@
+{
+  "diagnostics": [],
+  "evidence_summary": {
+    "audit_records": 3,
+    "checkpoint_count": 1,
+    "diagnostics": 1,
+    "event_count": 2,
+    "replayable": true,
+    "source": "memory_smoke",
+    "telemetry_records": 6,
+    "trace_entries": 2
+  },
+  "scenario_id": "default-m64-memory-smoke",
+  "status": "passed"
+}

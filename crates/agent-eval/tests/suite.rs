@@ -32,6 +32,7 @@ fn scenario_manifest(id: &str, fixture_path: &str) -> String {
             context_quality: None,
             recovery: None,
             team_workflow: None,
+            memory: None,
             golden: None,
         },
         metadata: Default::default(),

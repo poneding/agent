@@ -5,9 +5,16 @@ use agent_core::{
     ContextBudget, ContextRetrievalQuery, ObservabilityEvidenceBundle,
     ObservabilityEvidenceOptions, PinnedProjectContextPin, PinnedProjectContextRequest,
     ProjectContextLimits, ProjectContextPinnedRetrievalInput, ProjectContextRetrievalInput,
-    build_observability_evidence, replay_final_review, retrieve_project_context_pinned_quality,
-    retrieve_project_context_quality, run_local_coding_fixture, run_recovery_crash_smoke_fixture,
+    RuntimeMemoryConfig, RuntimeMemoryInput, RuntimeMemoryProposalInput,
+    RuntimeMemoryProposalPolicy, assemble_runtime_memory, build_observability_evidence,
+    replay_final_review, retrieve_project_context_pinned_quality, retrieve_project_context_quality,
+    run_local_coding_fixture, run_recovery_crash_smoke_fixture,
     verify_observability_replay_fixture,
+};
+use agent_memory::{
+    InMemoryMemoryEditor, InMemoryMemoryProposalStore, MemoryEditor, MemoryImportPolicy,
+    MemoryProposalDecision, MemoryProposalStore, MemoryRecord, MemoryRetentionPolicy,
+    MemoryRetrievalCandidate, MemoryScope, MemorySensitivity, MemorySource, MemoryWriteProposal,
 };
 use agent_policy::{CapabilityAction, ResourceKind, ResourceScope};
 use agent_storage::{check_replay_compatibility, load_replay_fixture_json};
@@ -18,8 +25,8 @@ use agent_team::{
     TeamWorkflowReadiness, TeamWorkflowSnapshot, TeamWorktreeState, TeamWorktreeSummary,
 };
 use agent_types::{
-    AgentId, RecoveryConflictKind, RecoveryConflictNextAction, RecoveryConflictSide,
-    RecoveryConflictSummary, TaskId, TeamId, WorkspaceId,
+    AgentId, ConversationId, EventId, RecoveryConflictKind, RecoveryConflictNextAction,
+    RecoveryConflictSide, RecoveryConflictSummary, TaskId, TeamId, WorkspaceId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -68,6 +75,7 @@ pub fn run_eval_scenario(
         EvalScenarioKind::ContextQuality => run_context_quality_scenario(scenario),
         EvalScenarioKind::RecoveryCrashSmoke => run_recovery_crash_smoke_scenario(scenario),
         EvalScenarioKind::TeamWorkflowSmoke => run_team_workflow_smoke_scenario(scenario),
+        EvalScenarioKind::MemorySmoke => run_memory_smoke_scenario(scenario),
         EvalScenarioKind::FakeModelTurn => run_unimplemented_scenario(scenario, options.strictness),
     }
 }
@@ -780,6 +788,496 @@ fn recovery_readiness_label(readiness: agent_types::RecoveryReadiness) -> &'stat
         agent_types::RecoveryReadiness::StorageError => "storage_error",
         agent_types::RecoveryReadiness::Blocked => "blocked",
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct MemorySmokeEvalOutcome {
+    record_count: u32,
+    proposal_count: u32,
+    proposal_decision_count: u32,
+    selected_count: u32,
+    rejected_count: u32,
+    tombstone_count: u32,
+    export_record_count: u32,
+    export_sensitive_record_count: u32,
+    import_accepted_count: u32,
+    rebuild_indexed_records: u32,
+    rebuild_skipped_tombstoned: u32,
+    rebuild_stale_removed: u32,
+    disabled_diagnostic: bool,
+    diagnostic_count: usize,
+    redacted: bool,
+    leaked_secret: bool,
+}
+
+fn run_memory_smoke_scenario(scenario: &ValidatedEvalScenario) -> EvalScenarioReport {
+    let Some(expectations) = scenario.manifest.expectations.memory.as_ref() else {
+        return failed_report(
+            scenario,
+            diagnostic(
+                EvalDiagnosticSeverity::Error,
+                "memory_expectations_missing",
+                "memory expectations are required",
+                Some("expectations.memory"),
+            ),
+            None,
+        );
+    };
+
+    let outcome = match build_memory_smoke() {
+        Ok(outcome) => outcome,
+        Err(message) => {
+            return failed_report(
+                scenario,
+                diagnostic(
+                    EvalDiagnosticSeverity::Error,
+                    "memory_smoke_failed",
+                    message,
+                    Some("kind"),
+                ),
+                None,
+            );
+        }
+    };
+
+    let mut diagnostics = Vec::new();
+    push_memory_min_diagnostic(
+        &mut diagnostics,
+        outcome.record_count,
+        expectations.min_record_count,
+        "memory_record_count_too_low",
+        "records",
+        "expectations.memory.min_record_count",
+    );
+    push_memory_min_diagnostic(
+        &mut diagnostics,
+        outcome.proposal_count,
+        expectations.min_proposal_count,
+        "memory_proposal_count_too_low",
+        "proposals",
+        "expectations.memory.min_proposal_count",
+    );
+    push_memory_min_diagnostic(
+        &mut diagnostics,
+        outcome.selected_count,
+        expectations.min_selected_count,
+        "memory_selected_count_too_low",
+        "selected memories",
+        "expectations.memory.min_selected_count",
+    );
+    push_memory_min_diagnostic(
+        &mut diagnostics,
+        outcome.tombstone_count,
+        expectations.min_tombstone_count,
+        "memory_tombstone_count_too_low",
+        "tombstones",
+        "expectations.memory.min_tombstone_count",
+    );
+    push_memory_min_diagnostic(
+        &mut diagnostics,
+        outcome.import_accepted_count,
+        expectations.min_import_accepted_count,
+        "memory_import_accepted_count_too_low",
+        "accepted imports",
+        "expectations.memory.min_import_accepted_count",
+    );
+    push_memory_min_diagnostic(
+        &mut diagnostics,
+        outcome.rebuild_stale_removed,
+        expectations.min_rebuild_stale_removed_count,
+        "memory_rebuild_stale_removed_count_too_low",
+        "stale rebuild removals",
+        "expectations.memory.min_rebuild_stale_removed_count",
+    );
+    push_memory_bool_diagnostic(
+        &mut diagnostics,
+        expectations.require_proposal_decisions && outcome.proposal_decision_count == 0,
+        "memory_proposal_decisions_missing",
+        "expected proposal approve/reject/commit evidence",
+        "expectations.memory.require_proposal_decisions",
+    );
+    push_memory_bool_diagnostic(
+        &mut diagnostics,
+        expectations.require_import_export
+            && (outcome.export_record_count == 0 || outcome.import_accepted_count == 0),
+        "memory_import_export_missing",
+        "expected import/export evidence",
+        "expectations.memory.require_import_export",
+    );
+    push_memory_bool_diagnostic(
+        &mut diagnostics,
+        outcome.export_sensitive_record_count != 0,
+        "memory_sensitive_exported_by_default",
+        "default memory export should exclude sensitive records",
+        "memory_smoke.export.sensitive_record_count",
+    );
+    push_memory_bool_diagnostic(
+        &mut diagnostics,
+        expectations.require_rebuild
+            && (outcome.rebuild_indexed_records == 0
+                || outcome.rebuild_skipped_tombstoned == 0
+                || outcome.rebuild_stale_removed == 0),
+        "memory_rebuild_missing",
+        "expected rebuild indexed, skipped tombstone, and stale removal evidence",
+        "expectations.memory.require_rebuild",
+    );
+    push_memory_bool_diagnostic(
+        &mut diagnostics,
+        expectations.require_disabled_diagnostic && !outcome.disabled_diagnostic,
+        "memory_disabled_diagnostic_missing",
+        "expected disabled-memory diagnostic evidence",
+        "expectations.memory.require_disabled_diagnostic",
+    );
+    push_memory_bool_diagnostic(
+        &mut diagnostics,
+        expectations.require_redaction && !outcome.redacted,
+        "memory_redaction_marker_missing",
+        "expected redacted marker in memory smoke evidence",
+        "expectations.memory.require_redaction",
+    );
+    push_memory_bool_diagnostic(
+        &mut diagnostics,
+        outcome.leaked_secret,
+        "memory_secret_leaked",
+        "memory smoke evidence leaked raw secret-like text",
+        "memory_smoke.serialized",
+    );
+
+    let status = if diagnostics.is_empty() {
+        EvalScenarioStatus::Passed
+    } else {
+        EvalScenarioStatus::Failed
+    };
+    EvalScenarioReport {
+        scenario_id: scenario.manifest.id.clone(),
+        status,
+        evidence_summary: Some(EvalEvidenceSummary {
+            source: EvalEvidenceSource::MemorySmoke,
+            event_count: outcome.record_count as usize,
+            checkpoint_count: outcome.tombstone_count as usize,
+            trace_entries: (outcome.selected_count + outcome.rejected_count) as usize,
+            audit_records: outcome.proposal_count as usize,
+            telemetry_records: (outcome.export_record_count + outcome.import_accepted_count)
+                as usize,
+            replayable: true,
+            diagnostics: diagnostics.len() + outcome.diagnostic_count,
+        }),
+        diagnostics,
+    }
+}
+
+fn push_memory_min_diagnostic(
+    diagnostics: &mut Vec<EvalDiagnostic>,
+    actual: u32,
+    expected: Option<u32>,
+    code: &'static str,
+    label: &'static str,
+    field: &'static str,
+) {
+    let Some(expected) = expected else {
+        return;
+    };
+    if actual < expected {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            code,
+            format!("expected at least {expected} {label}, got {actual}"),
+            Some(field),
+        ));
+    }
+}
+
+fn push_memory_bool_diagnostic(
+    diagnostics: &mut Vec<EvalDiagnostic>,
+    condition: bool,
+    code: &'static str,
+    message: &'static str,
+    field: &'static str,
+) {
+    if condition {
+        diagnostics.push(diagnostic(
+            EvalDiagnosticSeverity::Error,
+            code,
+            message,
+            Some(field),
+        ));
+    }
+}
+
+fn build_memory_smoke() -> Result<MemorySmokeEvalOutcome, String> {
+    let public = memory_smoke_record(
+        "memory-public",
+        "prefer deterministic memory smoke tests",
+        MemorySensitivity::Public,
+    );
+    let internal = memory_smoke_record(
+        "memory-internal",
+        "project uses memory review before durable writes",
+        MemorySensitivity::Internal,
+    );
+    let sensitive = memory_smoke_record(
+        "memory-sensitive",
+        "private api_key sk-live-secret-token password should stay hidden",
+        MemorySensitivity::Sensitive,
+    );
+
+    let runtime = assemble_runtime_memory(RuntimeMemoryInput {
+        query: "memory smoke review preference".to_string(),
+        candidates: vec![
+            memory_smoke_candidate(public.clone(), 0.8, Some(0.4), 0.95),
+            memory_smoke_candidate(sensitive.clone(), 0.4, Some(0.2), 0.60),
+        ],
+        config: RuntimeMemoryConfig {
+            max_selected: 1,
+            ..Default::default()
+        },
+        proposal_policy: RuntimeMemoryProposalPolicy::default(),
+        proposal_inputs: vec![RuntimeMemoryProposalInput {
+            proposal_id: "proposal-runtime".to_string(),
+            proposed_record_id: "memory-runtime-proposal".to_string(),
+            scope: memory_smoke_conversation_scope(),
+            content: "remember raw sk-live-secret-token only through review".to_string(),
+            summary: "remember memory review preference with sk-live-secret-token".to_string(),
+            source_event_ids: vec![memory_smoke_event_id()],
+            confidence: 87,
+            sensitivity: MemorySensitivity::Sensitive,
+        }],
+    })
+    .map_err(|error| error.to_string())?
+    .evidence;
+
+    let disabled = assemble_runtime_memory(RuntimeMemoryInput {
+        query: "memory disabled".to_string(),
+        candidates: Vec::new(),
+        config: RuntimeMemoryConfig {
+            enabled: false,
+            ..Default::default()
+        },
+        proposal_policy: RuntimeMemoryProposalPolicy::default(),
+        proposal_inputs: Vec::new(),
+    })
+    .map_err(|error| error.to_string())?
+    .evidence;
+
+    let mut proposals = InMemoryMemoryProposalStore::default();
+    let approve = MemoryWriteProposal::new(
+        "proposal-commit",
+        "memory-committed",
+        memory_smoke_project_scope(),
+        "prefer memory closeout docs",
+        "remember memory closeout docs",
+        vec![memory_smoke_event_id()],
+        91,
+        MemorySensitivity::Public,
+    )
+    .map_err(|error| error.to_string())?;
+    let reject = MemoryWriteProposal::new(
+        "proposal-reject",
+        "memory-rejected",
+        memory_smoke_conversation_scope(),
+        "do not store sk-live-secret-token values",
+        "reject memory with sk-live-secret-token",
+        vec![memory_smoke_event_id()],
+        60,
+        MemorySensitivity::Sensitive,
+    )
+    .map_err(|error| error.to_string())?;
+    proposals
+        .add_proposal(approve)
+        .map_err(|error| error.to_string())?;
+    proposals
+        .add_proposal(reject)
+        .map_err(|error| error.to_string())?;
+    proposals
+        .resolve("proposal-commit", MemoryProposalDecision::Approve)
+        .map_err(|error| error.to_string())?;
+    let committed = proposals
+        .commit("proposal-commit")
+        .map_err(|error| error.to_string())?;
+    proposals
+        .resolve(
+            "proposal-reject",
+            MemoryProposalDecision::Reject {
+                reason: "contains sk-live-secret-token".to_string(),
+            },
+        )
+        .map_err(|error| error.to_string())?;
+    let proposal_summaries = proposals
+        .list_proposals()
+        .iter()
+        .map(MemoryWriteProposal::safe_summary)
+        .collect::<Vec<_>>();
+    let proposal_decision_count = proposal_summaries
+        .iter()
+        .filter(|summary| {
+            matches!(
+                summary.status,
+                agent_memory::MemoryProposalStatus::Committed
+                    | agent_memory::MemoryProposalStatus::Rejected
+            )
+        })
+        .count();
+
+    let mut editor = InMemoryMemoryEditor::default();
+    editor
+        .add_record(public)
+        .map_err(|error| error.to_string())?;
+    editor
+        .add_record(internal)
+        .map_err(|error| error.to_string())?;
+    editor
+        .add_record(sensitive)
+        .map_err(|error| error.to_string())?;
+    editor
+        .add_record(committed)
+        .map_err(|error| error.to_string())?;
+    editor
+        .upsert_embedding_marker("memory-public")
+        .map_err(|error| error.to_string())?;
+    editor
+        .upsert_embedding_marker("memory-sensitive")
+        .map_err(|error| error.to_string())?;
+    editor
+        .delete_memory(
+            &memory_smoke_project_scope(),
+            "memory-sensitive",
+            "cleanup sk-live-secret-token password",
+            Some(memory_smoke_event_id()),
+        )
+        .map_err(|error| error.to_string())?;
+    let tombstones = editor.tombstones();
+    let rebuild = editor.rebuild_index().map_err(|error| error.to_string())?;
+    let archive = editor
+        .export_archive(MemoryRetentionPolicy {
+            include_sensitive: false,
+            max_records: None,
+        })
+        .map_err(|error| error.to_string())?;
+    let mut imported = InMemoryMemoryEditor::default();
+    let import = imported
+        .import_archive(&archive, MemoryImportPolicy::default())
+        .map_err(|error| error.to_string())?;
+
+    let serialized = serde_json::to_string(&(
+        &runtime,
+        &disabled,
+        &proposal_summaries,
+        &archive,
+        &import.report,
+        &tombstones,
+        &rebuild,
+    ))
+    .map_err(|error| format!("failed to serialize memory smoke: {error}"))?;
+    let leaked_secret = [
+        "sk-live-secret-token",
+        "api_key",
+        "password should stay hidden",
+        "remember raw",
+        "do not store sk-live",
+    ]
+    .into_iter()
+    .any(|needle| serialized.contains(needle));
+
+    Ok(MemorySmokeEvalOutcome {
+        record_count: runtime
+            .snapshot
+            .records
+            .len()
+            .try_into()
+            .unwrap_or(u32::MAX),
+        proposal_count: (runtime.proposals.created_count + proposal_summaries.len())
+            .try_into()
+            .unwrap_or(u32::MAX),
+        proposal_decision_count: proposal_decision_count.try_into().unwrap_or(u32::MAX),
+        selected_count: runtime
+            .influence
+            .selected_count
+            .try_into()
+            .unwrap_or(u32::MAX),
+        rejected_count: runtime
+            .influence
+            .rejected_count
+            .try_into()
+            .unwrap_or(u32::MAX),
+        tombstone_count: tombstones.len().try_into().unwrap_or(u32::MAX),
+        export_record_count: archive.manifest.record_count.try_into().unwrap_or(u32::MAX),
+        export_sensitive_record_count: archive
+            .manifest
+            .sensitive_record_count
+            .try_into()
+            .unwrap_or(u32::MAX),
+        import_accepted_count: import.report.accepted.try_into().unwrap_or(u32::MAX),
+        rebuild_indexed_records: rebuild.indexed_records.try_into().unwrap_or(u32::MAX),
+        rebuild_skipped_tombstoned: rebuild.skipped_tombstoned.try_into().unwrap_or(u32::MAX),
+        rebuild_stale_removed: rebuild
+            .stale_embeddings_removed
+            .try_into()
+            .unwrap_or(u32::MAX),
+        disabled_diagnostic: disabled
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "memory_disabled"),
+        diagnostic_count: runtime.diagnostics.len() + disabled.diagnostics.len(),
+        redacted: serialized.contains("[redacted]"),
+        leaked_secret,
+    })
+}
+
+fn memory_smoke_record(id: &str, text: &str, sensitivity: MemorySensitivity) -> MemoryRecord {
+    MemoryRecord {
+        id: id.to_string(),
+        scope: memory_smoke_project_scope(),
+        text: text.to_string(),
+        source: MemorySource {
+            event_id: Some(memory_smoke_event_id()),
+            description: "memory smoke fixture".to_string(),
+        },
+        confidence: 91,
+        sensitivity,
+    }
+}
+
+fn memory_smoke_candidate(
+    record: MemoryRecord,
+    lexical_score: f32,
+    semantic_score: Option<f32>,
+    combined_score: f32,
+) -> MemoryRetrievalCandidate {
+    MemoryRetrievalCandidate {
+        record,
+        lexical_score,
+        semantic_score,
+        combined_score,
+        matched_terms: vec!["memory".to_string(), "sk-live-secret-token".to_string()],
+    }
+}
+
+fn memory_smoke_project_scope() -> MemoryScope {
+    MemoryScope::Project {
+        workspace_id: memory_smoke_workspace_id(),
+    }
+}
+
+fn memory_smoke_conversation_scope() -> MemoryScope {
+    MemoryScope::Conversation(memory_smoke_conversation_id())
+}
+
+fn memory_smoke_workspace_id() -> WorkspaceId {
+    "00000000-0000-0000-0000-000000000641"
+        .parse()
+        .expect("valid workspace id")
+}
+
+fn memory_smoke_conversation_id() -> ConversationId {
+    "00000000-0000-0000-0000-000000000642"
+        .parse()
+        .expect("valid conversation id")
+}
+
+fn memory_smoke_event_id() -> EventId {
+    "00000000-0000-0000-0000-000000000643"
+        .parse()
+        .expect("valid event id")
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

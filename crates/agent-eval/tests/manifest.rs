@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 
 use agent_eval::{
     EVAL_SCENARIO_SCHEMA_VERSION, EvalExpectations, EvalExpectedStatus, EvalFixtures,
-    EvalManifestError, EvalPermissionProfile, EvalScenarioKind, EvalScenarioManifest,
-    EvalTeamWorkflowExpectations, validate_eval_scenario,
+    EvalManifestError, EvalMemoryExpectations, EvalPermissionProfile, EvalScenarioKind,
+    EvalScenarioManifest, EvalTeamWorkflowExpectations, validate_eval_scenario,
 };
 use camino::Utf8PathBuf;
 use serde_json::json;
@@ -25,6 +25,7 @@ fn replay_manifest() -> EvalScenarioManifest {
             context_quality: None,
             recovery: None,
             team_workflow: None,
+            memory: None,
             golden: Some(Utf8PathBuf::from("goldens/m04_replay.json")),
         },
         metadata: BTreeMap::from([("owner".to_string(), "runtime".to_string())]),
@@ -187,6 +188,53 @@ fn team_workflow_smoke_requires_expectations() {
     assert!(matches!(
         error,
         EvalManifestError::InvalidField { field, .. } if field == "expectations.team_workflow"
+    ));
+}
+
+#[test]
+fn memory_smoke_manifest_validates_without_fixtures() {
+    let mut manifest = replay_manifest();
+    manifest.id = "m64-memory-smoke".to_string();
+    manifest.name = "M64 memory smoke".to_string();
+    manifest.kind = EvalScenarioKind::MemorySmoke;
+    manifest.fixtures = EvalFixtures::default();
+    manifest.expectations.required_events = Vec::new();
+    manifest.expectations.memory = Some(EvalMemoryExpectations {
+        min_record_count: Some(2),
+        min_proposal_count: Some(2),
+        min_selected_count: Some(1),
+        min_tombstone_count: Some(1),
+        min_import_accepted_count: Some(1),
+        min_rebuild_stale_removed_count: Some(1),
+        require_proposal_decisions: true,
+        require_import_export: true,
+        require_rebuild: true,
+        require_disabled_diagnostic: true,
+        require_redaction: true,
+    });
+
+    let validated =
+        validate_eval_scenario(manifest, "fixtures/eval").expect("valid memory smoke manifest");
+
+    assert_eq!(validated.manifest.kind, EvalScenarioKind::MemorySmoke);
+    assert!(validated.normalized_fixtures.replay_trace.is_none());
+    assert!(validated.normalized_fixtures.workspace.is_none());
+}
+
+#[test]
+fn memory_smoke_requires_expectations() {
+    let mut manifest = replay_manifest();
+    manifest.id = "m64-memory-smoke".to_string();
+    manifest.kind = EvalScenarioKind::MemorySmoke;
+    manifest.fixtures = EvalFixtures::default();
+    manifest.expectations.memory = None;
+
+    let error =
+        validate_eval_scenario(manifest, "fixtures/eval").expect_err("expectations required");
+
+    assert!(matches!(
+        error,
+        EvalManifestError::InvalidField { field, .. } if field == "expectations.memory"
     ));
 }
 

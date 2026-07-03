@@ -25,6 +25,10 @@ fn find_m63_team_scenario(report: &Value) -> &Value {
     find_scenario(report, "default-m63-team-workflow-smoke")
 }
 
+fn find_m64_memory_scenario(report: &Value) -> &Value {
+    find_scenario(report, "default-m64-memory-smoke")
+}
+
 fn find_scenario<'a>(report: &'a Value, scenario_id: &str) -> &'a Value {
     report["scenarios"]
         .as_array()
@@ -53,8 +57,8 @@ fn golden_path_e2e_default_suite_json_includes_m56_evidence() {
     assert!(!stdout.contains("sk-live-secret"));
     let value: Value = serde_json::from_str(stdout.trim()).expect("json output");
     assert_eq!(value["type"], "eval_suite_run");
-    assert_eq!(value["data"]["report"]["summary"]["total"], 6);
-    assert_eq!(value["data"]["report"]["summary"]["passed"], 6);
+    assert_eq!(value["data"]["report"]["summary"]["total"], 7);
+    assert_eq!(value["data"]["report"]["summary"]["passed"], 7);
 
     let scenario = find_m56_scenario(&value["data"]["report"]);
     assert_eq!(scenario["status"], "passed");
@@ -87,6 +91,15 @@ fn golden_path_e2e_default_suite_json_includes_m56_evidence() {
     assert_eq!(m63_scenario["evidence_summary"]["event_count"], 4);
     assert_eq!(m63_scenario["evidence_summary"]["audit_records"], 4);
     assert_eq!(m63_scenario["evidence_summary"]["replayable"], true);
+    let m64_scenario = find_m64_memory_scenario(&value["data"]["report"]);
+    assert_eq!(m64_scenario["status"], "passed");
+    assert_eq!(
+        m64_scenario["evidence_summary"]["source"],
+        "memory_smoke"
+    );
+    assert_eq!(m64_scenario["evidence_summary"]["event_count"], 2);
+    assert_eq!(m64_scenario["evidence_summary"]["audit_records"], 3);
+    assert_eq!(m64_scenario["evidence_summary"]["replayable"], true);
 
     let report_path = output_dir.join("eval-run-report.json");
     let artifact: Value =

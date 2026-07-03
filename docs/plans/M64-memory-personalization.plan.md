@@ -160,15 +160,15 @@ git diff --check
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
-- [ ] **Step 1: Add deterministic smoke coverage**
+- [x] **Step 1: Add deterministic smoke coverage**
 
 Add credential-free evidence for retrieval, influence traces, proposal review, import/export, deletion/tombstones, rebuild, redaction, and disabled-memory behavior.
 
-- [ ] **Step 2: Document user workflows**
+- [x] **Step 2: Document user workflows**
 
 Document CLI/Desktop memory usage, proposal decisions, influence traces, privacy controls, import/export, deletion, and redaction expectations.
 
-- [ ] **Step 3: Run final M64 gates**
+- [x] **Step 3: Run final M64 gates**
 
 Run:
 

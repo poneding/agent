@@ -33,6 +33,11 @@
       "path": "scenarios/m63-team-workflow-smoke.eval.json",
       "alias": "m63-team-workflow-smoke",
       "labels": ["default", "team", "m63", "smoke"]
+    },
+    {
+      "path": "scenarios/m64-memory-smoke.eval.json",
+      "alias": "m64-memory-smoke",
+      "labels": ["default", "memory", "m64", "smoke"]
     }
   ]
 }

@@ -111,6 +111,7 @@ name = "agent-eval"
 version = "0.1.0"
 dependencies = [
  "agent-core",
+ "agent-memory",
  "agent-policy",
  "agent-storage",
  "agent-team",

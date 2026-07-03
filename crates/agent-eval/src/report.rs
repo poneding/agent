@@ -227,4 +227,5 @@ pub enum EvalEvidenceSource {
     ContextQuality,
     RecoveryCrashSmoke,
     TeamWorkflowSmoke,
+    MemorySmoke,
 }

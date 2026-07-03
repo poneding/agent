@@ -68,6 +68,7 @@ fn eval_suite_list_text_prints_default_corpus() {
     assert!(stdout.contains("default-m58-context-quality"));
     assert!(stdout.contains("default-m62-recovery-crash-smoke"));
     assert!(stdout.contains("default-m63-team-workflow-smoke"));
+    assert!(stdout.contains("default-m64-memory-smoke"));
 }
 
 #[test]
@@ -89,7 +90,7 @@ fn eval_suite_validate_json_is_parseable() {
             .as_array()
             .unwrap()
             .len(),
-        6
+        7
     );
 }
 
@@ -104,13 +105,14 @@ fn eval_suite_run_text_reports_passed_summary() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("Eval suite default-regression"));
-    assert!(stdout.contains("passed=6"));
+    assert!(stdout.contains("passed=7"));
     assert!(stdout.contains("default-m04-replay status=passed"));
     assert!(stdout.contains("default-m04-evidence status=passed"));
     assert!(stdout.contains("default-m56-golden-path status=passed"));
     assert!(stdout.contains("default-m58-context-quality status=passed"));
     assert!(stdout.contains("default-m62-recovery-crash-smoke status=passed"));
     assert!(stdout.contains("default-m63-team-workflow-smoke status=passed"));
+    assert!(stdout.contains("default-m64-memory-smoke status=passed"));
     assert!(stdout.contains("audit=30"));
 }
 
@@ -135,10 +137,10 @@ fn eval_suite_update_goldens_dry_run_json_does_not_write() {
     let value: Value = serde_json::from_str(stdout.trim()).expect("json output");
     assert_eq!(value["type"], "eval_suite_golden_update");
     assert_eq!(value["data"]["dry_run"], true);
-    assert_eq!(value["data"]["report_summary"]["passed"], 6);
+    assert_eq!(value["data"]["report_summary"]["passed"], 7);
     let updated = value["data"]["update"]["updated"].as_u64().unwrap();
     let unchanged = value["data"]["update"]["unchanged"].as_u64().unwrap();
-    assert_eq!(updated + unchanged, 6);
+    assert_eq!(updated + unchanged, 7);
 }
 
 #[test]

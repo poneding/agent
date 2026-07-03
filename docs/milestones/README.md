@@ -12,7 +12,6 @@ M30-M54 delivered a deep MCP extension track. That work remains valuable, but MC
 
 Current focus:
 
-- M64 Memory and Personalization
 - M65 Packaging, Release, and Beta Gate
 - M66 Extensions and MCP Hardening
 
@@ -664,7 +663,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M64-04 implementation | Complete |
 | M64-05 slice spec | Complete |
 | M64-05 slice plan | Complete |
-| M64 implementation | In progress |
+| M64-05 implementation | Complete |
+| M64 implementation | Complete |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -1427,7 +1427,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M64-02 CLI and JSON Memory Review Commands | `docs/specs/M64-02-cli-json-memory-review.spec.md` | `docs/plans/M64-02-cli-json-memory-review.plan.md` | Complete: stable text/JSON memory snapshot, retrieval preview, proposal review/decision, import/export, delete, and rebuild commands with redacted product contracts. |
 | M64-03 Runtime Memory Influence and Proposal Loop | `docs/specs/M64-03-runtime-memory-influence-proposals.spec.md` | `docs/plans/M64-03-runtime-memory-influence-proposals.plan.md` | Complete: runtime memory inputs, prompt-layer influence, safe turn evidence, and reviewable proposal summaries without automatic commits. |
 | M64-04 TUI/Desktop Memory Surfaces | `docs/specs/M64-04-tui-desktop-memory-surfaces.spec.md` | `docs/plans/M64-04-tui-desktop-memory-surfaces.plan.md` | Complete: bridge, TUI, and Desktop render memory review, proposal, influence trace, privacy, retention, tombstone, and diagnostic state from shared snapshots. |
-| M64-05 Memory Smoke, Docs, and Closeout | `docs/specs/M64-05-memory-smoke-closeout.spec.md` | `docs/plans/M64-05-memory-smoke-closeout.plan.md` | In progress: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
+| M64-05 Memory Smoke, Docs, and Closeout | `docs/specs/M64-05-memory-smoke-closeout.spec.md` | `docs/plans/M64-05-memory-smoke-closeout.plan.md` | Complete: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
 
 ## MX01 Slice Index
 
@@ -1442,7 +1442,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M64 Memory and Personalization, next slice M64-05 Memory Smoke, Docs, and Closeout.
+Current implementation focus: M65 Packaging, Release, and Beta Gate.
 
 Most recent completed or active planning documents:
 
@@ -1454,6 +1454,10 @@ Most recent completed or active planning documents:
 - `docs/plans/M64-02-cli-json-memory-review.plan.md`
 - `docs/specs/M64-03-runtime-memory-influence-proposals.spec.md`
 - `docs/plans/M64-03-runtime-memory-influence-proposals.plan.md`
+- `docs/specs/M64-04-tui-desktop-memory-surfaces.spec.md`
+- `docs/plans/M64-04-tui-desktop-memory-surfaces.plan.md`
+- `docs/specs/M64-05-memory-smoke-closeout.spec.md`
+- `docs/plans/M64-05-memory-smoke-closeout.plan.md`
 - `docs/specs/M64-memory-personalization.spec.md`
 - `docs/plans/M64-memory-personalization.plan.md`
 - `docs/specs/M63-04-tui-desktop-team-surfaces.spec.md`

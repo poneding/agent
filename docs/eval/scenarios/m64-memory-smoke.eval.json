@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "default-m64-memory-smoke",
+  "name": "M64 memory smoke",
+  "kind": "memory_smoke",
+  "fixtures": {},
+  "permissions": {
+    "allow_network": false,
+    "allow_writes": false,
+    "allowed_commands": [],
+    "env": []
+  },
+  "expectations": {
+    "expected_status": "passed",
+    "memory": {
+      "min_record_count": 2,
+      "min_proposal_count": 3,
+      "min_selected_count": 1,
+      "min_tombstone_count": 1,
+      "min_import_accepted_count": 1,
+      "min_rebuild_stale_removed_count": 1,
+      "require_proposal_decisions": true,
+      "require_import_export": true,
+      "require_rebuild": true,
+      "require_disabled_diagnostic": true,
+      "require_redaction": true
+    },
+    "golden": "goldens/default-m64-memory-smoke.golden.json"
+  },
+  "metadata": {
+    "milestone": "M64",
+    "surface": "memory"
+  }
+}

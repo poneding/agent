@@ -89,4 +89,4 @@ Readiness status is `ready`, `degraded`, or `blocked`. Diagnostic messages are r
 | Desktop bundle/update smoke needs beta-grade evidence | M65-03 |
 | Settings, secrets, migrations, and provider onboarding need product diagnostics | M65-04 complete |
 | Support bundle generation and release evidence need typed redaction | M65-05 complete |
-| Install/upgrade/support docs and final status need closeout | M65-06 |
+| Install/upgrade/support docs and final status need closeout | M65-06 complete |

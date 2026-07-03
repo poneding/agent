@@ -6,11 +6,11 @@ The project focuses on one thing first: make agent execution observable, permiss
 
 ## Status
 
-M01-M63 and the MX01 MCP epilogue are implemented. M55 is complete as the product-baseline reset that re-centers the repository on the main coding-agent roadmap, M56 proves a deterministic local coding-agent golden path through repo/session diagnostics, edit/diff, command/test evidence, final review, trace/audit, replay, and eval artifacts, M57 adds first-class multi-provider runtime support across OpenAI-compatible, Anthropic, Gemini, and local/Ollama-style providers with typed capability diagnostics and compatible fallback, M58 adds repo-aware project context intelligence with bounded summaries, lexical and hybrid retrieval, pinned context budget planning, quality traces, and deterministic eval coverage, M59 turns CLI/TUI usage into a terminal daily-driver workflow with session restore/switch, slash/status discovery, approval queues, diff and command panels, task status, and documented JSON/batch recipes, M60 delivers a shared-runtime Desktop daily-driver surface, M61 makes plan/todo/task UX first-class with TodoWrite-compatible state, task controls, approval waits, notifications, artifacts, and smoke coverage, M62 productizes recovery with typed snapshots, replay/fork commands, idempotent retry visibility, failed-command retry planning, conflict diagnostics, CLI/TUI/Desktop-safe recovery surfaces, deterministic crash/restart smoke, and recovery workflow docs, and M63 productizes worktree/team workflows with typed handoffs, blackboard evidence, reviewer votes, merge-readiness blockers, UI-safe team panels, CLI/Desktop docs, and default eval smoke. The repository has strong foundations for event-sourced runtime execution, typed storage and replay, tool policy and audit, model streaming, prompt/context management, memory, scheduler tasks, worktree/subagent workflows, plugins, Desktop bridge contracts, observability, evaluations, CI evidence, and a mature MCP extension layer including HTTP OAuth authorization-code token exchange plus P1-P3 MCP hardening for callbacks, protocol event summaries, sampling review contracts, management snapshots, and server export guardrails.
+M01-M65 and the MX01 MCP epilogue are implemented. M55 is complete as the product-baseline reset that re-centers the repository on the main coding-agent roadmap, M56 proves a deterministic local coding-agent golden path through repo/session diagnostics, edit/diff, command/test evidence, final review, trace/audit, replay, and eval artifacts, M57 adds first-class multi-provider runtime support across OpenAI-compatible, Anthropic, Gemini, and local/Ollama-style providers with typed capability diagnostics and compatible fallback, M58 adds repo-aware project context intelligence with bounded summaries, lexical and hybrid retrieval, pinned context budget planning, quality traces, and deterministic eval coverage, M59 turns CLI/TUI usage into a terminal daily-driver workflow with session restore/switch, slash/status discovery, approval queues, diff and command panels, task status, and documented JSON/batch recipes, M60 delivers a shared-runtime Desktop daily-driver surface, M61 makes plan/todo/task UX first-class with TodoWrite-compatible state, task controls, approval waits, notifications, artifacts, and smoke coverage, M62 productizes recovery with typed snapshots, replay/fork commands, idempotent retry visibility, failed-command retry planning, conflict diagnostics, CLI/TUI/Desktop-safe recovery surfaces, deterministic crash/restart smoke, and recovery workflow docs, M63 productizes worktree/team workflows with typed handoffs, blackboard evidence, reviewer votes, merge-readiness blockers, UI-safe team panels, CLI/Desktop docs, and default eval smoke, M64 adds reviewable memory and personalization with deterministic smoke coverage, and M65 adds beta-grade packaging, onboarding readiness, update smoke, support bundle evidence, and release closeout docs. The repository has strong foundations for event-sourced runtime execution, typed storage and replay, tool policy and audit, model streaming, prompt/context management, memory, scheduler tasks, worktree/subagent workflows, plugins, Desktop bridge contracts, observability, evaluations, CI evidence, release packaging, and a mature MCP extension layer including HTTP OAuth authorization-code token exchange plus P1-P3 MCP hardening for callbacks, protocol event summaries, sampling review contracts, management snapshots, and server export guardrails.
 
 The product roadmap is now re-centered on the user-facing goal: a Claude Code / Codex Desktop-class local coding agent with excellent CLI/TUI and Desktop workflows plus first-class multi-provider support. MCP expansion remains parked as a primary track after M54; MX01 is an epilogue track and does not change the M55+ product roadmap priority.
 
-Current implementation focus is M64 Memory and Personalization. See [Product Roadmap](docs/roadmap/PRODUCT_ROADMAP.md) and [Milestones](docs/milestones/README.md) for the current direction.
+Current implementation focus is M66 Extensions and MCP Hardening. See [Product Roadmap](docs/roadmap/PRODUCT_ROADMAP.md) and [Milestones](docs/milestones/README.md) for the current direction.
 
 ## Core Ideas
 
@@ -100,6 +100,7 @@ cargo xtask cli-prompt -- "hello agent"
 cargo xtask cli-json -- "hello agent"
 cargo xtask package-cli --channel dev
 cargo xtask package-desktop --channel dev
+cargo xtask support-bundle --channel dev
 agent-cli --observability-summary
 agent-cli --observability-json
 agent-cli mcp server status
@@ -181,6 +182,20 @@ The gate writes redacted evidence artifacts to `target/agent-ci/`:
 GitHub Actions uploads the same `target/agent-ci` directory for review.
 
 Use `cargo xtask ci` as the release-readiness gate before merge or packaging. Inspect `quality-gate-summary.txt` for the human summary and `quality-gate-report.json` for machine-readable evidence; artifacts are redacted summaries, not raw command logs.
+
+## M65 Beta Release Gate
+
+M65 local release evidence is generated with:
+
+```bash
+cargo xtask package-cli --channel dev
+cargo xtask package-desktop --channel dev
+cargo xtask support-bundle --channel dev
+```
+
+The CLI package smoke writes a packaged binary, checksum, release manifest, and install smoke summary. The Desktop package smoke writes a dev-channel release plan/update manifest unless a real Tauri bundle is requested with `--bundle`. The support bundle writes redacted manifest/summary files under `target/agent-support/`.
+
+Install, upgrade, onboarding diagnostics, and support workflows are documented in [Install, Upgrade, and Support](docs/release/install-upgrade-support.md). The beta gate checklist lives in [Beta Gate](docs/release/beta-gate.md).
 
 ## MCP Client Roots
 

@@ -294,7 +294,7 @@ Acceptance:
 
 ### M65 Packaging, Release, and Beta Gate
 
-Status: In progress. M65 milestone planning, M65-01 release baseline/beta gate contracts, M65-02 CLI package/install smoke, M65-03 Desktop bundle/update smoke, M65-04 settings/secrets/migration onboarding, and M65-05 support bundle evidence are complete. M65-06 Beta Gate Docs and Closeout is the next active slice.
+Status: Complete. M65 milestone planning, M65-01 release baseline/beta gate contracts, M65-02 CLI package/install smoke, M65-03 Desktop bundle/update smoke, M65-04 settings/secrets/migration onboarding, M65-05 support bundle evidence, and M65-06 beta gate docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m65-dev cargo clippy --workspace --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m65-dev cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, `cargo xtask eval`, `cargo xtask package-cli --channel dev`, `cargo xtask package-desktop --channel dev`, `cargo xtask support-bundle --channel dev`, and `git diff --check`. M66 Extensions and MCP Hardening is the next active milestone.
 
 Purpose: prepare a beta users can install, configure, diagnose, and trust.
 
@@ -307,7 +307,7 @@ Initial slices:
 | M65-03 Desktop Bundle and Update Smoke | Complete: Desktop bundle/update smoke with Tauri metadata validation, update manifest checks, release-local root, smoke summary, and bundle-vs-plan evidence. |
 | M65-04 Settings, Secrets, and Migration Onboarding | Complete: typed onboarding readiness snapshot covers settings, paths, keychain/env fallback, startup migrations, provider/model support, CLI JSON/text, UI bridge, and TUI rendering. |
 | M65-05 Support Bundle and Release Evidence | Complete: `cargo xtask support-bundle` writes typed redacted manifest/summary evidence with allowlisted release, Desktop, quality, eval, and onboarding sections. |
-| M65-06 Beta Gate Docs and Closeout | Pending: install/upgrade/support docs, final gates, and M65 closeout status. |
+| M65-06 Beta Gate Docs and Closeout | Complete: install/upgrade/support docs, final dev-channel gates, package/eval/support evidence, and M65 closeout status. |
 
 Acceptance:
 

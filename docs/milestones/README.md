@@ -12,7 +12,6 @@ M30-M54 delivered a deep MCP extension track. That work remains valuable, but MC
 
 Current focus:
 
-- M65 Packaging, Release, and Beta Gate
 - M66 Extensions and MCP Hardening
 
 ## Document Layout
@@ -682,7 +681,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M65-05 slice spec | Complete |
 | M65-05 slice plan | Complete |
 | M65-05 implementation | Complete |
-| M65 implementation | In progress |
+| M65-06 slice spec | Complete |
+| M65-06 slice plan | Complete |
+| M65-06 implementation | Complete |
+| M65 implementation | Complete |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -1457,7 +1459,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M65-03 Desktop Bundle and Update Smoke | `docs/specs/M65-03-desktop-bundle-update-smoke.spec.md` | `docs/plans/M65-03-desktop-bundle-update-smoke.plan.md` | Complete: Desktop release smoke records bundle-vs-plan state, release-local root, Tauri metadata, update manifest checks, and required smoke check ids. |
 | M65-04 Settings, Secrets, and Migration Onboarding | `docs/specs/M65-04-settings-secrets-migration-onboarding.spec.md` | `docs/plans/M65-04-settings-secrets-migration-onboarding.plan.md` | Complete: typed onboarding readiness snapshot covers settings, paths, keychain/env fallback, startup migrations, provider/model support, CLI JSON/text, UI bridge, and TUI rendering. |
 | M65-05 Support Bundle and Release Evidence | `docs/specs/M65-05-support-bundle-release-evidence.spec.md` | `docs/plans/M65-05-support-bundle-release-evidence.plan.md` | Complete: `cargo xtask support-bundle` writes typed redacted manifest/summary evidence with allowlisted release, Desktop, quality, eval, and onboarding sections. |
-| M65-06 Beta Gate Docs and Closeout | `docs/specs/M65-06-beta-gate-docs-closeout.spec.md` | `docs/plans/M65-06-beta-gate-docs-closeout.plan.md` | Pending: install/upgrade/support docs, final gates, and M65 closeout status. |
+| M65-06 Beta Gate Docs and Closeout | `docs/specs/M65-06-beta-gate-docs-closeout.spec.md` | `docs/plans/M65-06-beta-gate-docs-closeout.plan.md` | Complete: install/upgrade/support docs, final dev-channel gates, package/eval/support evidence, and M65 closeout status. |
 
 ## MX01 Slice Index
 
@@ -1472,7 +1474,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M65 Packaging, Release, and Beta Gate, next slice M65-06 Beta Gate Docs and Closeout.
+Current implementation focus: M66 Extensions and MCP Hardening.
 
 Most recent completed or active planning documents:
 
@@ -1488,6 +1490,8 @@ Most recent completed or active planning documents:
 - `docs/plans/M65-04-settings-secrets-migration-onboarding.plan.md`
 - `docs/specs/M65-05-support-bundle-release-evidence.spec.md`
 - `docs/plans/M65-05-support-bundle-release-evidence.plan.md`
+- `docs/specs/M65-06-beta-gate-docs-closeout.spec.md`
+- `docs/plans/M65-06-beta-gate-docs-closeout.plan.md`
 - `docs/specs/M63-05-team-workflow-smoke-closeout.spec.md`
 - `docs/plans/M63-05-team-workflow-smoke-closeout.plan.md`
 - `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md`

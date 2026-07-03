@@ -133,11 +133,11 @@ Generate bounded, redacted evidence. Never include raw secrets, raw prompts, sen
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Modify if needed: `README.md`
 
-- [ ] **Step 1: Add release docs**
+- [x] **Step 1: Add release docs**
 
 Document install, upgrade, provider setup, keychain/env setup, package smoke, Desktop bundle/update smoke, support bundle generation, and failure recovery.
 
-- [ ] **Step 2: Run final M65 gates**
+- [x] **Step 2: Run final M65 gates**
 
 Run:
 
@@ -171,6 +171,6 @@ Suggested commit message:
 docs: add m65 packaging beta gate plan
 ```
 
-- [ ] **Step 2: Commit each implementation slice**
+- [x] **Step 2: Commit each implementation slice**
 
 For each M65 slice, exact-stage the slice spec, slice plan, code, tests, docs, release fixtures, and status files touched by that slice only.

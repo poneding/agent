@@ -670,6 +670,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M65-01 slice spec | Complete |
 | M65-01 slice plan | Complete |
 | M65-01 implementation | Complete |
+| M65-02 slice spec | Complete |
+| M65-02 slice plan | Complete |
+| M65-02 implementation | Complete |
 | M65 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
@@ -1441,7 +1444,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M65-01 Release Baseline and Beta Gate Contracts | `docs/specs/M65-01-release-baseline-beta-gate.spec.md` | `docs/plans/M65-01-release-baseline-beta-gate.plan.md` | Complete: beta artifact matrix, release gate contract shape, support evidence inventory, isolated smoke root rules, and gap mapping for M65 implementation slices. |
-| M65-02 CLI Package and Install Smoke | `docs/specs/M65-02-cli-package-install-smoke.spec.md` | `docs/plans/M65-02-cli-package-install-smoke.plan.md` | Pending: packaged CLI install/run smoke with release-local config, provider diagnostics, manifest, checksum, and startup evidence. |
+| M65-02 CLI Package and Install Smoke | `docs/specs/M65-02-cli-package-install-smoke.spec.md` | `docs/plans/M65-02-cli-package-install-smoke.plan.md` | Complete: packaged CLI install smoke records release-local config, required smoke checks, manifest, checksum, and startup evidence. |
 | M65-03 Desktop Bundle and Update Smoke | `docs/specs/M65-03-desktop-bundle-update-smoke.spec.md` | `docs/plans/M65-03-desktop-bundle-update-smoke.plan.md` | Pending: Desktop bundle/update smoke, Tauri metadata validation, update manifest checks, and Desktop startup diagnostics. |
 | M65-04 Settings, Secrets, and Migration Onboarding | `docs/specs/M65-04-settings-secrets-migration-onboarding.spec.md` | `docs/plans/M65-04-settings-secrets-migration-onboarding.plan.md` | Pending: config migrations, keychain/env secret setup diagnostics, provider onboarding, and CLI/Desktop rendering. |
 | M65-05 Support Bundle and Release Evidence | `docs/specs/M65-05-support-bundle-release-evidence.spec.md` | `docs/plans/M65-05-support-bundle-release-evidence.plan.md` | Pending: redacted support bundles and beta gate reports with bounded logs, diagnostics, eval, and package evidence. |
@@ -1460,7 +1463,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M65 Packaging, Release, and Beta Gate, next slice M65-02 CLI Package and Install Smoke.
+Current implementation focus: M65 Packaging, Release, and Beta Gate, next slice M65-03 Desktop Bundle and Update Smoke.
 
 Most recent completed or active planning documents:
 
@@ -1468,6 +1471,8 @@ Most recent completed or active planning documents:
 - `docs/plans/M65-packaging-release-beta-gate.plan.md`
 - `docs/specs/M65-01-release-baseline-beta-gate.spec.md`
 - `docs/plans/M65-01-release-baseline-beta-gate.plan.md`
+- `docs/specs/M65-02-cli-package-install-smoke.spec.md`
+- `docs/plans/M65-02-cli-package-install-smoke.plan.md`
 - `docs/specs/M63-05-team-workflow-smoke-closeout.spec.md`
 - `docs/plans/M63-05-team-workflow-smoke-closeout.plan.md`
 - `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md`

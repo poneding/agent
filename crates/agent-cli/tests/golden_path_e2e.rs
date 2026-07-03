@@ -93,10 +93,7 @@ fn golden_path_e2e_default_suite_json_includes_m56_evidence() {
     assert_eq!(m63_scenario["evidence_summary"]["replayable"], true);
     let m64_scenario = find_m64_memory_scenario(&value["data"]["report"]);
     assert_eq!(m64_scenario["status"], "passed");
-    assert_eq!(
-        m64_scenario["evidence_summary"]["source"],
-        "memory_smoke"
-    );
+    assert_eq!(m64_scenario["evidence_summary"]["source"], "memory_smoke");
     assert_eq!(m64_scenario["evidence_summary"]["event_count"], 2);
     assert_eq!(m64_scenario["evidence_summary"]["audit_records"], 3);
     assert_eq!(m64_scenario["evidence_summary"]["replayable"], true);

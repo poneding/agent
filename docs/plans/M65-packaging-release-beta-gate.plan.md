@@ -56,11 +56,11 @@ M65-01 is complete as a planning/contracts baseline. Code implementation begins 
 - Modify: `xtask/tests/package_cli.rs`
 - Modify: `docs/cli/`
 
-- [ ] **Step 1: Plan CLI beta package smoke**
+- [x] **Step 1: Plan CLI beta package smoke**
 
 Specify packaged CLI artifact checks, release-local config roots, startup/config/provider diagnostics, manifest/checksum evidence, and failure behavior.
 
-- [ ] **Step 2: Implement CLI package smoke**
+- [x] **Step 2: Implement CLI package smoke**
 
 Extend existing package CLI commands only as needed for beta-grade install/run evidence.
 

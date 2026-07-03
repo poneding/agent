@@ -2,8 +2,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use xtask::{
-    CliReleaseArtifact, CliReleaseManifest, PackageCliOptions, ReleaseChannel, package_cli_plan,
-    sha256_file,
+    CliInstallSmokeCheck, CliInstallSmokeSummary, CliReleaseArtifact, CliReleaseManifest,
+    PackageCliOptions, ReleaseChannel, cli_install_smoke_summary, package_cli_plan, sha256_file,
 };
 
 fn workspace() -> PathBuf {
@@ -76,6 +76,22 @@ fn package_cli_plan_uses_deterministic_artifact_paths() {
             .iter()
             .any(|command| command.args == vec!["--json", "--prompt", "release smoke"])
     );
+
+    let install_smoke = cli_install_smoke_summary(&plan);
+    assert_eq!(install_smoke.smoke_root, PathBuf::from("dist/smoke-root"));
+    assert_eq!(
+        install_smoke.config_path,
+        PathBuf::from("dist/smoke-root/config/agent-release-smoke.toml")
+    );
+    assert_eq!(
+        install_smoke
+            .checks
+            .iter()
+            .map(|check| check.id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["version", "config_check", "startup_check", "json_prompt"]
+    );
+    assert!(install_smoke.checks.iter().all(|check| check.required));
 }
 
 #[test]
@@ -128,6 +144,41 @@ fn release_manifest_serializes_stable_metadata() {
     );
     assert_eq!(value["artifact"]["checksum_sha256"], "abc123");
     assert_eq!(value["smoke_checks"][0], "--version");
+    assert!(value.get("install_smoke").is_none());
+}
+
+#[test]
+fn release_manifest_serializes_install_smoke_summary() {
+    let manifest = CliReleaseManifest::new(
+        ReleaseChannel::Beta,
+        CliReleaseArtifact {
+            name: "agent-1.2.3-aarch64-apple-darwin-beta".to_string(),
+            target_triple: "aarch64-apple-darwin".to_string(),
+            version: "1.2.3".to_string(),
+            path: PathBuf::from("dist/agent-1.2.3-aarch64-apple-darwin-beta"),
+            checksum_sha256: "abc123".to_string(),
+        },
+        vec!["agent --version".to_string()],
+    )
+    .with_install_smoke(CliInstallSmokeSummary {
+        smoke_root: PathBuf::from("dist/smoke-root"),
+        config_path: PathBuf::from("dist/smoke-root/config/agent-release-smoke.toml"),
+        checks: vec![CliInstallSmokeCheck {
+            id: "version".to_string(),
+            command: "agent --version".to_string(),
+            required: true,
+        }],
+    });
+
+    let value = serde_json::to_value(&manifest).expect("serialize manifest");
+
+    assert_eq!(value["install_smoke"]["smoke_root"], "dist/smoke-root");
+    assert_eq!(
+        value["install_smoke"]["config_path"],
+        "dist/smoke-root/config/agent-release-smoke.toml"
+    );
+    assert_eq!(value["install_smoke"]["checks"][0]["id"], "version");
+    assert_eq!(value["install_smoke"]["checks"][0]["required"], true);
 }
 
 #[test]

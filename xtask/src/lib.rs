@@ -636,6 +636,22 @@ pub struct CliReleaseManifest {
     pub channel: ReleaseChannel,
     pub artifact: CliReleaseArtifact,
     pub smoke_checks: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub install_smoke: Option<CliInstallSmokeSummary>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct CliInstallSmokeSummary {
+    pub smoke_root: PathBuf,
+    pub config_path: PathBuf,
+    pub checks: Vec<CliInstallSmokeCheck>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct CliInstallSmokeCheck {
+    pub id: String,
+    pub command: String,
+    pub required: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -666,7 +682,14 @@ impl CliReleaseManifest {
             channel,
             artifact,
             smoke_checks,
+            install_smoke: None,
         }
+    }
+
+    #[must_use]
+    pub fn with_install_smoke(mut self, install_smoke: CliInstallSmokeSummary) -> Self {
+        self.install_smoke = Some(install_smoke);
+        self
     }
 }
 
@@ -988,6 +1011,40 @@ pub fn package_cli_plan(
 }
 
 #[must_use]
+pub fn cli_install_smoke_summary(plan: &PackageCliPlan) -> CliInstallSmokeSummary {
+    CliInstallSmokeSummary {
+        smoke_root: plan.smoke_root_path.clone(),
+        config_path: plan.smoke_config_path.clone(),
+        checks: plan
+            .smoke_commands
+            .iter()
+            .enumerate()
+            .map(|(index, command)| CliInstallSmokeCheck {
+                id: cli_smoke_check_id(index, command).to_string(),
+                command: command.shell_line(),
+                required: true,
+            })
+            .collect(),
+    }
+}
+
+fn cli_smoke_check_id(index: usize, command: &ReleaseCommand) -> &'static str {
+    let args = command.args.iter().map(String::as_str).collect::<Vec<_>>();
+    match args.as_slice() {
+        ["--version"] => "version",
+        ["--config-check", "--config", _] => "config_check",
+        ["startup-check"] => "startup_check",
+        ["--json", "--prompt", "release smoke"] => "json_prompt",
+        _ => match index {
+            0 => "smoke_1",
+            1 => "smoke_2",
+            2 => "smoke_3",
+            _ => "smoke_extra",
+        },
+    }
+}
+
+#[must_use]
 pub fn package_desktop_plan(
     options: &PackageDesktopOptions,
     host_target_triple: &str,
@@ -1202,7 +1259,8 @@ pub fn run_package_cli(options: &PackageCliOptions) -> Result<CliReleaseManifest
             .iter()
             .map(ReleaseCommand::shell_line)
             .collect(),
-    );
+    )
+    .with_install_smoke(cli_install_smoke_summary(&plan));
     let manifest_json = serde_json::to_string_pretty(&manifest)?;
     fs::write(&plan.manifest_path, format!("{manifest_json}\n"))?;
 

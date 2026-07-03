@@ -4,7 +4,8 @@ use std::process::{Command, ExitStatus};
 
 use xtask::{
     QualityGateError, QualityGateOptions, Task, command_plan_for, help_text, parse_args,
-    render_quality_gate_summary, run_package_cli, run_package_desktop, run_quality_gate,
+    render_quality_gate_summary, render_support_bundle_summary, run_package_cli,
+    run_package_desktop, run_quality_gate, run_support_bundle,
 };
 
 fn main() {
@@ -59,6 +60,18 @@ fn main() {
                 }
                 Err(error) => {
                     eprintln!("ci failed: {error}");
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+        Ok(Task::SupportBundle(options)) => {
+            match run_support_bundle(&options) {
+                Ok(summary) => {
+                    print!("{}", render_support_bundle_summary(&summary));
+                }
+                Err(error) => {
+                    eprintln!("support-bundle failed: {error}");
                     std::process::exit(1);
                 }
             }

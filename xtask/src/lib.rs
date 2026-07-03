@@ -23,6 +23,7 @@ pub enum Task {
     CliJson { prompt: String },
     PackageCli(PackageCliOptions),
     PackageDesktop(PackageDesktopOptions),
+    SupportBundle(SupportBundleOptions),
     DesktopTest,
     Eval,
 }
@@ -39,6 +40,10 @@ pub const QUALITY_GATE_REPORT_FILE: &str = "quality-gate-report.json";
 pub const QUALITY_GATE_SUMMARY_FILE: &str = "quality-gate-summary.txt";
 pub const QUALITY_GATE_ARTIFACT_FILES: [&str; 2] =
     [QUALITY_GATE_REPORT_FILE, QUALITY_GATE_SUMMARY_FILE];
+pub const SUPPORT_BUNDLE_SCHEMA_VERSION: u32 = 1;
+pub const SUPPORT_BUNDLE_DIR: &str = "target/agent-support";
+pub const SUPPORT_BUNDLE_MANIFEST_FILE: &str = "support-bundle-manifest.json";
+pub const SUPPORT_BUNDLE_SUMMARY_FILE: &str = "support-bundle-summary.txt";
 const QUALITY_GATE_MAX_MESSAGE_CHARS: usize = 256;
 const QUALITY_GATE_REDACTED: &str = "[redacted]";
 
@@ -537,6 +542,12 @@ pub struct PackageDesktopOptions {
     pub bundle: bool,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SupportBundleOptions {
+    pub channel: ReleaseChannel,
+    pub output_dir: PathBuf,
+}
+
 impl Default for PackageDesktopOptions {
     fn default() -> Self {
         Self {
@@ -554,6 +565,15 @@ impl Default for PackageCliOptions {
             channel: ReleaseChannel::Dev,
             target_triple: None,
             output_dir: PathBuf::from("target/agent-release"),
+        }
+    }
+}
+
+impl Default for SupportBundleOptions {
+    fn default() -> Self {
+        Self {
+            channel: ReleaseChannel::Dev,
+            output_dir: PathBuf::from(SUPPORT_BUNDLE_DIR),
         }
     }
 }
@@ -685,6 +705,56 @@ pub struct DesktopReleaseSmokeCheck {
     pub required: bool,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SupportBundlePlan {
+    pub channel: ReleaseChannel,
+    pub output_dir: PathBuf,
+    pub manifest_path: PathBuf,
+    pub summary_path: PathBuf,
+    pub release_artifact_dir: PathBuf,
+    pub quality_gate_dir: PathBuf,
+    pub eval_report_path: PathBuf,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct SupportBundleManifest {
+    pub schema_version: u32,
+    pub channel: ReleaseChannel,
+    pub sections: Vec<SupportBundleSection>,
+    pub redaction_diagnostics: Vec<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct SupportBundleSection {
+    pub id: String,
+    pub status: SupportBundleSectionStatus,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<PathBuf>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checksum_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diagnostic: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SupportBundleSectionStatus {
+    Included,
+    Omitted,
+    Failed,
+    NotApplicable,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct SupportBundleSummary {
+    pub manifest_path: PathBuf,
+    pub summary_path: PathBuf,
+    pub included_section_count: u32,
+    pub omitted_section_count: u32,
+    pub failed_section_count: u32,
+    pub redaction_diagnostics: Vec<String>,
+}
+
 impl CliReleaseManifest {
     #[must_use]
     pub const fn new(
@@ -764,6 +834,7 @@ where
         }),
         "package-cli" => Ok(Task::PackageCli(parse_package_cli_options(args)?)),
         "package-desktop" => Ok(Task::PackageDesktop(parse_package_desktop_options(args)?)),
+        "support-bundle" => Ok(Task::SupportBundle(parse_support_bundle_options(args)?)),
         _ => Err(XtaskError::UnknownCommand(command)),
     }
 }
@@ -798,6 +869,7 @@ pub fn command_plan_for(task: &Task) -> Vec<CargoCommand> {
                 "update_manifest",
             ])]
         }
+        Task::SupportBundle(_options) => Vec::new(),
         Task::DesktopTest => vec![
             CargoCommand::new(["test", "-p", "agent-desktop"]),
             CargoCommand::new([
@@ -849,6 +921,7 @@ Commands:
   cli-json -- <text>    Run agent-cli with --json --prompt <text>
   package-cli           Build and smoke-test a local CLI release artifact
   package-desktop       Plan or build and smoke-test a local Desktop release
+  support-bundle        Generate a redacted local support bundle manifest
   desktop-test          Run the Desktop Rust, Tauri, frontend test, and build gate
   help                  Print this help
 "#
@@ -921,6 +994,28 @@ where
                 options.output_dir = PathBuf::from(take_value(&mut args, &arg)?);
             }
             "--bundle" => options.bundle = true,
+            other => return Err(XtaskError::UnknownOption(other.to_string())),
+        }
+    }
+
+    Ok(options)
+}
+
+fn parse_support_bundle_options<I>(args: I) -> Result<SupportBundleOptions, XtaskError>
+where
+    I: Iterator<Item = String>,
+{
+    let mut options = SupportBundleOptions::default();
+    let mut args = args.peekable();
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--channel" => {
+                options.channel = ReleaseChannel::parse(&take_value(&mut args, &arg)?)?;
+            }
+            "--out-dir" => {
+                options.output_dir = PathBuf::from(take_value(&mut args, &arg)?);
+            }
             other => return Err(XtaskError::UnknownOption(other.to_string())),
         }
     }
@@ -1152,6 +1247,296 @@ fn desktop_smoke_check_id(index: usize, command: &ReleaseCommand) -> &'static st
     }
 }
 
+#[must_use]
+pub fn support_bundle_plan(
+    options: &SupportBundleOptions,
+    workspace_root: &Path,
+) -> SupportBundlePlan {
+    SupportBundlePlan {
+        channel: options.channel,
+        output_dir: options.output_dir.clone(),
+        manifest_path: options.output_dir.join(SUPPORT_BUNDLE_MANIFEST_FILE),
+        summary_path: options.output_dir.join(SUPPORT_BUNDLE_SUMMARY_FILE),
+        release_artifact_dir: workspace_root.join("target/agent-release"),
+        quality_gate_dir: workspace_root.join(QUALITY_GATE_ARTIFACT_DIR),
+        eval_report_path: workspace_root.join("target/agent-eval/eval-run-report.json"),
+    }
+}
+
+pub fn build_support_bundle_manifest(plan: &SupportBundlePlan) -> SupportBundleManifest {
+    let mut sections = vec![
+        SupportBundleSection::included(
+            "release_metadata",
+            None,
+            None,
+            Some(format!(
+                "channel={} schema_version={}",
+                plan.channel.as_str(),
+                SUPPORT_BUNDLE_SCHEMA_VERSION
+            )),
+        ),
+        SupportBundleSection::omitted(
+            "onboarding_readiness",
+            "Collect via CLI JSON config-check; raw config, environment, and keychain values are intentionally omitted",
+        ),
+    ];
+
+    sections.extend(discover_support_artifacts(
+        "cli_release_manifest",
+        &plan.release_artifact_dir,
+        |path| {
+            let name = path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .unwrap_or("");
+            name.starts_with("agent-")
+                && !name.starts_with("agent-desktop-")
+                && name.ends_with(".json")
+        },
+    ));
+    sections.extend(discover_support_artifacts(
+        "desktop_update_manifest",
+        &plan.release_artifact_dir,
+        |path| {
+            let name = path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .unwrap_or("");
+            name.starts_with("agent-desktop-") && name.ends_with(".update.json")
+        },
+    ));
+    sections.extend(discover_support_artifacts(
+        "desktop_release_plan",
+        &plan.release_artifact_dir,
+        |path| {
+            let name = path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .unwrap_or("");
+            name.starts_with("agent-desktop-") && name.ends_with(".plan.txt")
+        },
+    ));
+    sections.push(section_from_optional_file(
+        "quality_gate_report",
+        &plan.quality_gate_dir.join(QUALITY_GATE_REPORT_FILE),
+    ));
+    sections.push(section_from_optional_file(
+        "quality_gate_summary",
+        &plan.quality_gate_dir.join(QUALITY_GATE_SUMMARY_FILE),
+    ));
+    sections.push(section_from_optional_file(
+        "eval_report",
+        &plan.eval_report_path,
+    ));
+
+    SupportBundleManifest {
+        schema_version: SUPPORT_BUNDLE_SCHEMA_VERSION,
+        channel: plan.channel,
+        sections: sections
+            .into_iter()
+            .map(SupportBundleSection::redacted)
+            .collect(),
+        redaction_diagnostics: vec![
+            "raw_secrets_omitted".to_string(),
+            "raw_environment_omitted".to_string(),
+            "raw_prompts_omitted".to_string(),
+            "unbounded_logs_omitted".to_string(),
+        ],
+    }
+}
+
+#[must_use]
+pub fn summarize_support_bundle(
+    manifest: &SupportBundleManifest,
+    manifest_path: PathBuf,
+    summary_path: PathBuf,
+) -> SupportBundleSummary {
+    let included_section_count = manifest
+        .sections
+        .iter()
+        .filter(|section| section.status == SupportBundleSectionStatus::Included)
+        .count()
+        .try_into()
+        .unwrap_or(u32::MAX);
+    let omitted_section_count = manifest
+        .sections
+        .iter()
+        .filter(|section| {
+            matches!(
+                section.status,
+                SupportBundleSectionStatus::Omitted | SupportBundleSectionStatus::NotApplicable
+            )
+        })
+        .count()
+        .try_into()
+        .unwrap_or(u32::MAX);
+    let failed_section_count = manifest
+        .sections
+        .iter()
+        .filter(|section| section.status == SupportBundleSectionStatus::Failed)
+        .count()
+        .try_into()
+        .unwrap_or(u32::MAX);
+
+    SupportBundleSummary {
+        manifest_path,
+        summary_path,
+        included_section_count,
+        omitted_section_count,
+        failed_section_count,
+        redaction_diagnostics: manifest.redaction_diagnostics.clone(),
+    }
+}
+
+#[must_use]
+pub fn render_support_bundle_summary(summary: &SupportBundleSummary) -> String {
+    format!(
+        "Support bundle\nmanifest={}\nsummary={}\nincluded={}\nomitted={}\nfailed={}\nredaction={}\n",
+        summary.manifest_path.display(),
+        summary.summary_path.display(),
+        summary.included_section_count,
+        summary.omitted_section_count,
+        summary.failed_section_count,
+        summary.redaction_diagnostics.join(",")
+    )
+}
+
+pub fn run_support_bundle(
+    options: &SupportBundleOptions,
+) -> Result<SupportBundleSummary, SupportBundleError> {
+    let workspace_root = std::env::current_dir()?;
+    run_support_bundle_at(options, &workspace_root)
+}
+
+pub fn run_support_bundle_at(
+    options: &SupportBundleOptions,
+    workspace_root: &Path,
+) -> Result<SupportBundleSummary, SupportBundleError> {
+    let plan = support_bundle_plan(options, workspace_root);
+    let manifest = build_support_bundle_manifest(&plan);
+    let summary = summarize_support_bundle(
+        &manifest,
+        plan.manifest_path.clone(),
+        plan.summary_path.clone(),
+    );
+    fs::create_dir_all(&plan.output_dir)?;
+    let manifest_json = serde_json::to_string_pretty(&manifest)?;
+    fs::write(&plan.manifest_path, format!("{manifest_json}\n"))?;
+    fs::write(&plan.summary_path, render_support_bundle_summary(&summary))?;
+    Ok(summary)
+}
+
+impl SupportBundleSection {
+    #[must_use]
+    pub fn included(
+        id: impl Into<String>,
+        path: Option<PathBuf>,
+        checksum_sha256: Option<String>,
+        diagnostic: Option<String>,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            status: SupportBundleSectionStatus::Included,
+            path,
+            checksum_sha256,
+            diagnostic,
+        }
+    }
+
+    #[must_use]
+    pub fn omitted(id: impl Into<String>, diagnostic: impl Into<String>) -> Self {
+        Self {
+            id: id.into(),
+            status: SupportBundleSectionStatus::Omitted,
+            path: None,
+            checksum_sha256: None,
+            diagnostic: Some(diagnostic.into()),
+        }
+    }
+
+    #[must_use]
+    fn failed(id: impl Into<String>, path: PathBuf, diagnostic: impl Into<String>) -> Self {
+        Self {
+            id: id.into(),
+            status: SupportBundleSectionStatus::Failed,
+            path: Some(path),
+            checksum_sha256: None,
+            diagnostic: Some(diagnostic.into()),
+        }
+    }
+
+    #[must_use]
+    fn redacted(self) -> Self {
+        Self {
+            id: redact_support_bundle_text(&self.id),
+            status: self.status,
+            path: self
+                .path
+                .map(|path| PathBuf::from(redact_support_bundle_text(&path.display().to_string()))),
+            checksum_sha256: self
+                .checksum_sha256
+                .map(|checksum| redact_support_bundle_text(&checksum)),
+            diagnostic: self
+                .diagnostic
+                .map(|diagnostic| redact_support_bundle_text(&diagnostic)),
+        }
+    }
+}
+
+fn discover_support_artifacts(
+    section_id: &str,
+    directory: &Path,
+    predicate: impl Fn(&Path) -> bool,
+) -> Vec<SupportBundleSection> {
+    let Ok(entries) = fs::read_dir(directory) else {
+        return vec![SupportBundleSection::omitted(
+            section_id,
+            format!("section unavailable: {}", directory.display()),
+        )];
+    };
+    let mut sections = entries
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.is_file() && predicate(path))
+        .map(|path| section_from_optional_file(section_id, &path))
+        .collect::<Vec<_>>();
+    sections.sort_by(|left, right| left.path.cmp(&right.path));
+    if sections.is_empty() {
+        vec![SupportBundleSection::omitted(
+            section_id,
+            format!("no matching artifacts in {}", directory.display()),
+        )]
+    } else {
+        sections
+    }
+}
+
+fn section_from_optional_file(section_id: &str, path: &Path) -> SupportBundleSection {
+    if !path.exists() {
+        return SupportBundleSection::omitted(
+            section_id,
+            format!("artifact not found: {}", path.display()),
+        );
+    }
+    match sha256_file(path) {
+        Ok(checksum) => SupportBundleSection::included(
+            section_id,
+            Some(path.to_path_buf()),
+            Some(checksum),
+            None,
+        ),
+        Err(error) => SupportBundleSection::failed(
+            section_id,
+            path.to_path_buf(),
+            format!("failed to checksum artifact: {error}"),
+        ),
+    }
+}
+
+fn redact_support_bundle_text(value: &str) -> String {
+    redact_quality_gate_text(value)
+}
+
 #[derive(Debug)]
 pub enum PackageCliError {
     Io(io::Error),
@@ -1175,6 +1560,35 @@ pub enum PackageDesktopError {
     HostTargetUnavailable,
     InvalidTauriConfig(String),
     Json(serde_json::Error),
+}
+
+#[derive(Debug)]
+pub enum SupportBundleError {
+    Io(io::Error),
+    Json(serde_json::Error),
+}
+
+impl fmt::Display for SupportBundleError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(error) => write!(formatter, "{error}"),
+            Self::Json(error) => write!(formatter, "{error}"),
+        }
+    }
+}
+
+impl std::error::Error for SupportBundleError {}
+
+impl From<io::Error> for SupportBundleError {
+    fn from(error: io::Error) -> Self {
+        Self::Io(error)
+    }
+}
+
+impl From<serde_json::Error> for SupportBundleError {
+    fn from(error: serde_json::Error) -> Self {
+        Self::Json(error)
+    }
 }
 
 impl fmt::Display for PackageDesktopError {

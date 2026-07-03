@@ -115,11 +115,11 @@ Runtime crates own decisions. CLI/Desktop render typed snapshots and next action
 - Modify if needed: `crates/agent-ui-bridge/`
 - Modify: `docs/`
 
-- [ ] **Step 1: Plan support bundle contracts**
+- [x] **Step 1: Plan support bundle contracts**
 
 Specify included sections, redaction diagnostics, artifact layout, support commands, and release gate integration.
 
-- [ ] **Step 2: Implement support bundle evidence**
+- [x] **Step 2: Implement support bundle evidence**
 
 Generate bounded, redacted evidence. Never include raw secrets, raw prompts, sensitive memory, embeddings, or unbounded logs.
 
@@ -150,6 +150,7 @@ npm --prefix apps/desktop run build
 cargo xtask eval
 cargo xtask package-cli --channel dev
 cargo xtask package-desktop --channel dev
+cargo xtask support-bundle --channel dev
 git diff --check
 ```
 

@@ -2,6 +2,27 @@
 
 M65 support bundles collect bounded, redacted evidence for beta troubleshooting. A support bundle is not a debug dump; it is an allowlisted artifact that helps maintainers understand installation, provider setup, migration, package, eval, and Desktop health without exposing private user data.
 
+## Command
+
+Generate a local support bundle manifest and summary:
+
+```bash
+cargo xtask support-bundle --channel dev
+```
+
+Optional flags:
+
+```bash
+cargo xtask support-bundle --channel beta --out-dir target/agent-support
+```
+
+Outputs:
+
+- `support-bundle-manifest.json`
+- `support-bundle-summary.txt`
+
+The first implementation records allowlisted artifact references and checksums. It does not copy raw logs or arbitrary files.
+
 ## Required Sections
 
 Support bundles should include these sections when available:
@@ -73,7 +94,7 @@ They should not assemble raw support data themselves.
 
 ## Onboarding Snapshot Input
 
-M65-04 provides `OnboardingReadinessSnapshot` in `agent-core` and a UI-safe bridge frame. M65-05 support bundle generation should include that snapshot directly instead of collecting raw config files, raw environment variables, keychain values, migration text, or provider endpoints.
+M65-04 provides `OnboardingReadinessSnapshot` in `agent-core` and a UI-safe bridge frame. M65-05 support bundle generation records an `onboarding_readiness` section status and must use that typed snapshot when a caller supplies it, instead of collecting raw config files, raw environment variables, keychain values, migration text, or provider endpoints.
 
 The snapshot is already bounded and redacted, but support bundle generation should still treat it as allowlisted evidence and preserve redaction diagnostics.
 
@@ -88,4 +109,4 @@ The snapshot is already bounded and redacted, but support bundle generation shou
 | CLI rendering | `agent-cli` |
 | Desktop rendering | `agent-ui-bridge`, `apps/desktop` |
 
-M65-05 should add the concrete contracts, tests, command path, and release gate integration.
+M65-05 adds the concrete `xtask` contracts, tests, and local command path. M65-06 should fold the command into final beta closeout docs and release evidence.

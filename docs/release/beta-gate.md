@@ -9,6 +9,7 @@ Existing release foundations:
 - `cargo xtask package-cli --channel dev` builds a CLI release artifact, writes a checksum and manifest, and runs release-local CLI smoke commands.
 - `cargo xtask package-desktop --channel dev` validates Tauri release metadata, writes a Desktop release plan/update manifest, and runs Desktop update/settings smoke checks.
 - CLI `--config-check` emits an onboarding readiness snapshot for settings, platform paths, secret store/keychain fallback, startup migrations, and provider/model support.
+- `cargo xtask support-bundle --channel dev` writes a redacted support bundle manifest and summary.
 - `cargo xtask eval` runs the default regression suite with product smokes for local coding, recovery, team workflows, and memory.
 - `npm --prefix apps/desktop test` and `npm --prefix apps/desktop run build` verify Desktop UI tests and production frontend build.
 - storage/config migration tests exist in `agent-storage` and `agent-core`.
@@ -25,7 +26,7 @@ M65 turns these foundations into one beta-grade release workflow with explicit e
 | Default eval report | Yes | `agent-eval`, `xtask` | `target/agent-eval/eval-run-report.json`, summary text |
 | Startup/migration diagnostics | Yes | `agent-core`, `agent-storage` | migrated config/schema report with diagnostics |
 | Provider/keychain diagnostics | Yes | `agent-core`, `agent-model`, CLI/Desktop renderers | onboarding readiness snapshot without raw secret values |
-| Support bundle | Yes by M65-05 | runtime/telemetry/xtask | redacted archive or directory with support summary |
+| Support bundle | Yes | `xtask` | redacted manifest and summary with allowlisted artifact references |
 
 ## Gate Status
 
@@ -49,6 +50,7 @@ npm --prefix apps/desktop run build
 cargo xtask eval
 cargo xtask package-cli --channel dev
 cargo xtask package-desktop --channel dev
+cargo xtask support-bundle --channel dev
 git diff --check
 ```
 
@@ -86,5 +88,5 @@ Readiness status is `ready`, `degraded`, or `blocked`. Diagnostic messages are r
 | CLI package smoke needs beta-grade install/run evidence | M65-02 |
 | Desktop bundle/update smoke needs beta-grade evidence | M65-03 |
 | Settings, secrets, migrations, and provider onboarding need product diagnostics | M65-04 complete |
-| Support bundle generation and release evidence need typed redaction | M65-05 |
+| Support bundle generation and release evidence need typed redaction | M65-05 complete |
 | Install/upgrade/support docs and final status need closeout | M65-06 |

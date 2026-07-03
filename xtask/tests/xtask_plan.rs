@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use xtask::{
-    CargoCommand, PackageCliOptions, PackageDesktopOptions, ReleaseChannel, Task, XtaskError,
-    command_plan_for, help_text, parse_args,
+    CargoCommand, PackageCliOptions, PackageDesktopOptions, ReleaseChannel, SupportBundleOptions,
+    Task, XtaskError, command_plan_for, help_text, parse_args,
 };
 
 fn cmd(program: &str, args: &[&str]) -> CargoCommand {
@@ -38,10 +38,53 @@ fn no_args_and_help_print_the_command_list() {
         "cli-json",
         "package-cli",
         "package-desktop",
+        "support-bundle",
         "desktop-test",
     ] {
         assert!(help.contains(command), "help text should mention {command}");
     }
+}
+
+#[test]
+fn support_bundle_parses_release_arguments() {
+    assert_eq!(
+        parse_args([
+            "support-bundle",
+            "--channel",
+            "beta",
+            "--out-dir",
+            "target/support"
+        ]),
+        Ok(Task::SupportBundle(SupportBundleOptions {
+            channel: ReleaseChannel::Beta,
+            output_dir: PathBuf::from("target/support"),
+        }))
+    );
+
+    assert_eq!(
+        parse_args(["support-bundle"]),
+        Ok(Task::SupportBundle(SupportBundleOptions::default()))
+    );
+    assert_eq!(
+        command_plan_for(&Task::SupportBundle(SupportBundleOptions::default())),
+        Vec::<CargoCommand>::new()
+    );
+}
+
+#[test]
+fn support_bundle_rejects_invalid_arguments() {
+    assert_eq!(
+        parse_args(["support-bundle", "--channel", "nightly"]),
+        Err(XtaskError::InvalidReleaseChannel("nightly".to_string()))
+    );
+    assert_eq!(
+        parse_args(["support-bundle", "--out-dir"]),
+        Err(XtaskError::MissingValue("--out-dir".to_string()))
+    );
+    assert_eq!(
+        parse_args(["support-bundle", "--wat"]),
+        Err(XtaskError::UnknownOption("--wat".to_string()))
+    );
 }
 
 #[test]

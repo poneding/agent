@@ -1,7 +1,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use xtask::{PackageDesktopOptions, ReleaseChannel, package_desktop_plan};
+use xtask::{
+    PackageDesktopOptions, ReleaseChannel, desktop_release_smoke_summary, package_desktop_plan,
+};
 
 fn workspace() -> PathBuf {
     PathBuf::from("/workspace")
@@ -78,6 +80,26 @@ fn package_desktop_plan_uses_deterministic_paths_and_smoke_checks() {
             && command.args == vec!["test", "-p", "agent-desktop", "update_manifest"]
     }));
     assert!(!plan.bundle);
+
+    let smoke = desktop_release_smoke_summary(&plan);
+    assert_eq!(
+        smoke.smoke_root,
+        PathBuf::from("dist/desktop/desktop-smoke-root")
+    );
+    assert_eq!(
+        smoke.tauri_config_path,
+        workspace().join("apps/desktop/src-tauri/tauri.conf.json")
+    );
+    assert!(!smoke.bundle_requested);
+    assert_eq!(
+        smoke
+            .checks
+            .iter()
+            .map(|check| check.id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["update_manifest", "settings"]
+    );
+    assert!(smoke.checks.iter().all(|check| check.required));
 }
 
 #[test]
@@ -95,6 +117,7 @@ fn package_desktop_plan_can_request_real_bundle_build() {
     );
 
     assert!(plan.bundle);
+    assert!(desktop_release_smoke_summary(&plan).bundle_requested);
     assert_eq!(
         plan.bundle_command.args,
         vec!["--prefix", "apps/desktop", "run", "tauri", "--", "build",]

@@ -20,7 +20,7 @@ M65 turns these foundations into one beta-grade release workflow with explicit e
 | Artifact | Required | Owner | Evidence |
 |---|---:|---|---|
 | CLI package | Yes | `xtask`, `agent-cli` | artifact path, manifest, checksum, release-local smoke commands, install smoke summary |
-| Desktop bundle or bundle plan | Yes | `xtask`, Tauri app, `agent-desktop` | bundle metadata, update manifest, Desktop smoke root |
+| Desktop bundle or bundle plan | Yes | `xtask`, Tauri app, `agent-desktop` | bundle metadata, update manifest, Desktop smoke root, Desktop smoke summary |
 | Default eval report | Yes | `agent-eval`, `xtask` | `target/agent-eval/eval-run-report.json`, summary text |
 | Startup/migration diagnostics | Yes | `agent-core`, `agent-storage` | migrated config/schema report with diagnostics |
 | Provider/keychain diagnostics | Yes | `agent-model`, CLI/Desktop renderers | provider readiness without raw secret values |

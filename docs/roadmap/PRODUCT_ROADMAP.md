@@ -294,7 +294,7 @@ Acceptance:
 
 ### M65 Packaging, Release, and Beta Gate
 
-Status: In progress. M65 milestone planning, M65-01 release baseline/beta gate contracts, and M65-02 CLI package/install smoke are complete. M65-03 Desktop Bundle and Update Smoke is the next active slice.
+Status: In progress. M65 milestone planning, M65-01 release baseline/beta gate contracts, M65-02 CLI package/install smoke, and M65-03 Desktop bundle/update smoke are complete. M65-04 Settings, Secrets, and Migration Onboarding is the next active slice.
 
 Purpose: prepare a beta users can install, configure, diagnose, and trust.
 
@@ -304,7 +304,7 @@ Initial slices:
 |---|---|
 | M65-01 Release Baseline and Beta Gate Contracts | Complete: current packaging baseline, beta artifact matrix, gate report shape, support evidence inventory, isolated smoke root rules, and gap mapping. |
 | M65-02 CLI Package and Install Smoke | Complete: packaged CLI artifact smoke with release-local config, startup checks, install smoke summary, checksum, and manifest evidence. |
-| M65-03 Desktop Bundle and Update Smoke | Pending: Desktop bundle/update smoke, Tauri metadata validation, update manifest checks, and Desktop startup diagnostics. |
+| M65-03 Desktop Bundle and Update Smoke | Complete: Desktop bundle/update smoke with Tauri metadata validation, update manifest checks, release-local root, smoke summary, and bundle-vs-plan evidence. |
 | M65-04 Settings, Secrets, and Migration Onboarding | Pending: config migrations, keychain/env secret setup diagnostics, provider onboarding, and CLI/Desktop rendering. |
 | M65-05 Support Bundle and Release Evidence | Pending: redacted support bundles and beta gate reports with bounded logs, diagnostics, eval, and package evidence. |
 | M65-06 Beta Gate Docs and Closeout | Pending: install/upgrade/support docs, final gates, and M65 closeout status. |

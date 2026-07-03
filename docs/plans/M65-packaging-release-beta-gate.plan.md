@@ -75,11 +75,11 @@ Extend existing package CLI commands only as needed for beta-grade install/run e
 - Modify if needed: `apps/desktop/src-tauri/tauri.conf.json`
 - Modify: `docs/desktop/`
 
-- [ ] **Step 1: Plan Desktop beta bundle smoke**
+- [x] **Step 1: Plan Desktop beta bundle smoke**
 
 Specify Tauri metadata validation, update manifest checks, app startup diagnostics, Desktop smoke roots, and bundle-vs-plan behavior.
 
-- [ ] **Step 2: Implement Desktop package smoke**
+- [x] **Step 2: Implement Desktop package smoke**
 
 Keep Desktop smoke deterministic and credential-free. Do not redesign Desktop UI in M65.
 

@@ -670,6 +670,21 @@ pub struct DesktopUpdateArtifact {
     pub signature: Option<String>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DesktopReleaseSmokeSummary {
+    pub smoke_root: PathBuf,
+    pub tauri_config_path: PathBuf,
+    pub bundle_requested: bool,
+    pub checks: Vec<DesktopReleaseSmokeCheck>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct DesktopReleaseSmokeCheck {
+    pub id: String,
+    pub command: String,
+    pub required: bool,
+}
+
 impl CliReleaseManifest {
     #[must_use]
     pub const fn new(
@@ -1105,6 +1120,38 @@ pub fn package_desktop_plan(
     }
 }
 
+#[must_use]
+pub fn desktop_release_smoke_summary(plan: &PackageDesktopPlan) -> DesktopReleaseSmokeSummary {
+    DesktopReleaseSmokeSummary {
+        smoke_root: plan.smoke_root_path.clone(),
+        tauri_config_path: plan.tauri_config_path.clone(),
+        bundle_requested: plan.bundle,
+        checks: plan
+            .smoke_commands
+            .iter()
+            .enumerate()
+            .map(|(index, command)| DesktopReleaseSmokeCheck {
+                id: desktop_smoke_check_id(index, command).to_string(),
+                command: command.shell_line(),
+                required: true,
+            })
+            .collect(),
+    }
+}
+
+fn desktop_smoke_check_id(index: usize, command: &ReleaseCommand) -> &'static str {
+    let args = command.args.iter().map(String::as_str).collect::<Vec<_>>();
+    match args.as_slice() {
+        ["test", "-p", "agent-desktop", "update_manifest"] => "update_manifest",
+        ["test", "-p", "agent-desktop", "settings"] => "settings",
+        _ => match index {
+            0 => "smoke_1",
+            1 => "smoke_2",
+            _ => "smoke_extra",
+        },
+    }
+}
+
 #[derive(Debug)]
 pub enum PackageCliError {
     Io(io::Error),
@@ -1303,7 +1350,7 @@ pub fn run_package_desktop(
     fs::write(
         &plan.plan_artifact_path,
         format!(
-            "agent desktop release plan\nversion={}\ntarget={}\nchannel={}\nbundle={}\nsmoke_root={}\nsmoke_checks={}\n",
+            "agent desktop release plan\nversion={}\ntarget={}\nchannel={}\nbundle={}\nsmoke_root={}\nsmoke_checks={}\nsmoke_summary={}\n",
             env!("CARGO_PKG_VERSION"),
             plan.target_triple,
             plan.channel.as_str(),
@@ -1314,6 +1361,7 @@ pub fn run_package_desktop(
                 .map(ReleaseCommand::shell_line)
                 .collect::<Vec<_>>()
                 .join("; "),
+            serde_json::to_string(&desktop_release_smoke_summary(&plan))?,
         ),
     )?;
     let checksum = sha256_file(&plan.plan_artifact_path)?;

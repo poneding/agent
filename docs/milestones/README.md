@@ -665,6 +665,12 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M64-05 slice plan | Complete |
 | M64-05 implementation | Complete |
 | M64 implementation | Complete |
+| M65 milestone spec | Complete |
+| M65 milestone plan | Complete |
+| M65-01 slice spec | Complete |
+| M65-01 slice plan | Complete |
+| M65-01 implementation | Complete |
+| M65 implementation | In progress |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -743,6 +749,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M62 Reliability and Recovery Productization | `docs/specs/M62-reliability-recovery-productization.spec.md` | `docs/plans/M62-reliability-recovery-productization.plan.md` | Productize checkpoint resume, replay/fork, idempotent recovery visibility, failed-command retry, conflict diagnostics, and crash smoke evidence. |
 | M63 Worktree and Agent Team Workflows | `docs/specs/M63-worktree-agent-team-workflows.spec.md` | `docs/plans/M63-worktree-agent-team-workflows.plan.md` | Productize isolated worktrees, subagent handoff, shared blackboard, reviewer role, merge review, conflict handling, and team-level permission ceilings. |
 | M64 Memory and Personalization | `docs/specs/M64-memory-personalization.spec.md` | `docs/plans/M64-memory-personalization.plan.md` | Productize memory so project/user recall is reviewable, privacy-safe, explainable, and visible in CLI/Desktop. |
+| M65 Packaging, Release, and Beta Gate | `docs/specs/M65-packaging-release-beta-gate.spec.md` | `docs/plans/M65-packaging-release-beta-gate.plan.md` | Prepare a beta users can install and trust with CLI/Desktop packages, config migrations, keychain setup, update channel, release smoke suite, and support bundle evidence. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1429,6 +1436,17 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M64-04 TUI/Desktop Memory Surfaces | `docs/specs/M64-04-tui-desktop-memory-surfaces.spec.md` | `docs/plans/M64-04-tui-desktop-memory-surfaces.plan.md` | Complete: bridge, TUI, and Desktop render memory review, proposal, influence trace, privacy, retention, tombstone, and diagnostic state from shared snapshots. |
 | M64-05 Memory Smoke, Docs, and Closeout | `docs/specs/M64-05-memory-smoke-closeout.spec.md` | `docs/plans/M64-05-memory-smoke-closeout.plan.md` | Complete: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
 
+## M65 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M65-01 Release Baseline and Beta Gate Contracts | `docs/specs/M65-01-release-baseline-beta-gate.spec.md` | `docs/plans/M65-01-release-baseline-beta-gate.plan.md` | Complete: beta artifact matrix, release gate contract shape, support evidence inventory, isolated smoke root rules, and gap mapping for M65 implementation slices. |
+| M65-02 CLI Package and Install Smoke | `docs/specs/M65-02-cli-package-install-smoke.spec.md` | `docs/plans/M65-02-cli-package-install-smoke.plan.md` | Pending: packaged CLI install/run smoke with release-local config, provider diagnostics, manifest, checksum, and startup evidence. |
+| M65-03 Desktop Bundle and Update Smoke | `docs/specs/M65-03-desktop-bundle-update-smoke.spec.md` | `docs/plans/M65-03-desktop-bundle-update-smoke.plan.md` | Pending: Desktop bundle/update smoke, Tauri metadata validation, update manifest checks, and Desktop startup diagnostics. |
+| M65-04 Settings, Secrets, and Migration Onboarding | `docs/specs/M65-04-settings-secrets-migration-onboarding.spec.md` | `docs/plans/M65-04-settings-secrets-migration-onboarding.plan.md` | Pending: config migrations, keychain/env secret setup diagnostics, provider onboarding, and CLI/Desktop rendering. |
+| M65-05 Support Bundle and Release Evidence | `docs/specs/M65-05-support-bundle-release-evidence.spec.md` | `docs/plans/M65-05-support-bundle-release-evidence.plan.md` | Pending: redacted support bundles and beta gate reports with bounded logs, diagnostics, eval, and package evidence. |
+| M65-06 Beta Gate Docs and Closeout | `docs/specs/M65-06-beta-gate-docs-closeout.spec.md` | `docs/plans/M65-06-beta-gate-docs-closeout.plan.md` | Pending: install/upgrade/support docs, final gates, and M65 closeout status. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1442,10 +1460,14 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M65 Packaging, Release, and Beta Gate.
+Current implementation focus: M65 Packaging, Release, and Beta Gate, next slice M65-02 CLI Package and Install Smoke.
 
 Most recent completed or active planning documents:
 
+- `docs/specs/M65-packaging-release-beta-gate.spec.md`
+- `docs/plans/M65-packaging-release-beta-gate.plan.md`
+- `docs/specs/M65-01-release-baseline-beta-gate.spec.md`
+- `docs/plans/M65-01-release-baseline-beta-gate.plan.md`
 - `docs/specs/M63-05-team-workflow-smoke-closeout.spec.md`
 - `docs/plans/M63-05-team-workflow-smoke-closeout.plan.md`
 - `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md`

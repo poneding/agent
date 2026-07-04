@@ -54,11 +54,11 @@ Reuse existing extension registry, plugin, skill, and MCP contracts. Do not crea
 - Create: `docs/plans/M66-02-plugin-skill-management-hardening.plan.md`
 - Modify as needed: `crates/agent-plugin/`, `crates/agent-skill/`, `crates/agent-cli/`, `crates/agent-ui-bridge/`
 
-- [ ] **Step 1: Plan plugin/skill hardening**
+- [x] **Step 1: Plan plugin/skill hardening**
 
 Focus on install/enable/disable/remove, capability acceptance, compatibility, redaction, and stable CLI/JSON outputs.
 
-- [ ] **Step 2: Implement plugin/skill hardening**
+- [x] **Step 2: Implement plugin/skill hardening**
 
 Add only user-visible management polish and tests.
 

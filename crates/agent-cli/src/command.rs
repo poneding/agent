@@ -24,16 +24,16 @@ use agent_core::{
     ConfiguredTurnRunner, ConflictRecoveryMapper, ContextBudget, ContextRetrievalQuery,
     ContextSemanticFallbackPolicy, ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode,
     EditDiffDiagnosticSeverity, EditDiffFlowError, EditDiffFlowInput, EditDiffFlowReport,
-    EffectiveRuntimeConfig, ExtensionCapabilitySummary, ExtensionCompatibility, ExtensionHealth,
-    ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord,
-    ExtensionRegistry, ExtensionRegistryError, ExtensionSource, ExtensionSourceKind,
-    OnboardingReadinessInput, OnboardingReadinessSnapshot, PinnedProjectContextBudgetReport,
-    PinnedProjectContextPin, PinnedProjectContextRequest, PlanTodoOperation, PlanTodoUpdate,
-    PlanTodoUpdateOutcome, PlatformPathOverrides, PlatformPaths, ProjectContextDiagnostic,
-    ProjectContextDiagnosticSeverity, ProjectContextHybridPinnedQualityRetrievalReport,
-    ProjectContextHybridPinnedRetrievalInput, ProjectContextHybridPinnedRetrievalReport,
-    ProjectContextHybridQualityRetrievalReport, ProjectContextHybridRetrievalInput,
-    ProjectContextHybridRetrievalReport, ProjectContextLimits,
+    EffectiveRuntimeConfig, ExtensionCapabilityLease, ExtensionCapabilitySummary,
+    ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind,
+    ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
+    ExtensionSource, ExtensionSourceKind, OnboardingReadinessInput, OnboardingReadinessSnapshot,
+    PinnedProjectContextBudgetReport, PinnedProjectContextPin, PinnedProjectContextRequest,
+    PlanTodoOperation, PlanTodoUpdate, PlanTodoUpdateOutcome, PlatformPathOverrides, PlatformPaths,
+    ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
+    ProjectContextHybridPinnedQualityRetrievalReport, ProjectContextHybridPinnedRetrievalInput,
+    ProjectContextHybridPinnedRetrievalReport, ProjectContextHybridQualityRetrievalReport,
+    ProjectContextHybridRetrievalInput, ProjectContextHybridRetrievalReport, ProjectContextLimits,
     ProjectContextPinnedQualityRetrievalReport, ProjectContextPinnedRetrievalInput,
     ProjectContextPinnedRetrievalReport, ProjectContextQualityRetrievalReport,
     ProjectContextRetrievalError, ProjectContextRetrievalInput, ProjectContextRetrievalReport,
@@ -6988,6 +6988,11 @@ pub struct PluginCommandRuntime {
 
 impl PluginCommandRuntime {
     #[must_use]
+    pub const fn new(registry: ExtensionRegistry) -> Self {
+        Self { registry }
+    }
+
+    #[must_use]
     pub const fn registry(&self) -> &ExtensionRegistry {
         &self.registry
     }
@@ -7079,8 +7084,15 @@ fn run_plugin_command(
                 runtime.registry.get(&id).cloned().ok_or_else(|| {
                     PluginCommandError::new(format!("plugin {id} is not installed"))
                 })?;
+            if !record.compatibility.is_supported() {
+                return Err(PluginCommandError::new(format!(
+                    "plugin {id} cannot be enabled: {}",
+                    record.compatibility.summary()
+                )));
+            }
             record.enabled = true;
             record.health = ExtensionHealth::healthy("enabled");
+            record.granted_leases = plugin_capability_leases(&record)?;
             runtime
                 .registry
                 .upsert(record.clone())
@@ -7140,7 +7152,7 @@ fn install_plugin(
         )));
     }
 
-    let record = plugin_record(&manifest, path, enable, compatibility)?;
+    let record = plugin_record(&manifest, path, enable, accept_capabilities, compatibility)?;
     let report = plugin_install_report(&record, &manifest, accept_capabilities);
     runtime
         .registry
@@ -7172,9 +7184,10 @@ fn plugin_record(
     manifest: &PluginManifest,
     path: &Path,
     enabled: bool,
+    accept_capabilities: bool,
     compatibility: ExtensionCompatibility,
 ) -> Result<ExtensionRecord, PluginCommandError> {
-    ExtensionRecord::new(
+    let mut record = ExtensionRecord::new(
         ExtensionId::new(manifest.name.as_str()).map_err(plugin_registry_error)?,
         ExtensionKind::Plugin,
         ExtensionSource::new(
@@ -7195,7 +7208,11 @@ fn plugin_record(
         Vec::new(),
         ExtensionHealth::healthy("installed"),
     )
-    .map_err(plugin_registry_error)
+    .map_err(plugin_registry_error)?;
+    if accept_capabilities && record.compatibility.is_supported() {
+        record.granted_leases = plugin_capability_leases(&record)?;
+    }
+    Ok(record)
 }
 
 fn plugin_capability_summary(
@@ -7258,7 +7275,122 @@ fn plugin_install_report(
         enabled: record.enabled,
         compatibility: record.compatibility.summary(),
         capability_review_required: !accept_capabilities && !manifest.capabilities.is_empty(),
-        diagnostics: Vec::new(),
+        diagnostics: plugin_install_diagnostics(record, manifest, accept_capabilities),
+    }
+}
+
+fn plugin_install_diagnostics(
+    record: &ExtensionRecord,
+    manifest: &PluginManifest,
+    accept_capabilities: bool,
+) -> Vec<PluginInstallDiagnostic> {
+    let mut diagnostics = Vec::new();
+    if !record.compatibility.is_supported() {
+        diagnostics.push(plugin_install_diagnostic(
+            "error",
+            "plugin.unsupported_compatibility",
+            record.compatibility.summary(),
+        ));
+    }
+    if !accept_capabilities && !manifest.capabilities.is_empty() {
+        diagnostics.push(plugin_install_diagnostic(
+            "warning",
+            "plugin.capability_review_required",
+            "capability review is required before enabling plugin",
+        ));
+    }
+    diagnostics.push(plugin_install_diagnostic(
+        "info",
+        if record.enabled {
+            "plugin.enabled"
+        } else {
+            "plugin.installed_disabled"
+        },
+        if record.enabled {
+            "plugin installed and enabled"
+        } else {
+            "plugin installed disabled"
+        },
+    ));
+    diagnostics
+}
+
+fn plugin_install_diagnostic(
+    severity: impl Into<String>,
+    code: impl Into<String>,
+    message: impl Into<String>,
+) -> PluginInstallDiagnostic {
+    PluginInstallDiagnostic {
+        severity: redact_secret_like_text(&severity.into()),
+        code: redact_secret_like_text(&code.into()),
+        message: redact_secret_like_text(&message.into()),
+    }
+}
+
+fn plugin_capability_leases(
+    record: &ExtensionRecord,
+) -> Result<Vec<ExtensionCapabilityLease>, PluginCommandError> {
+    let mut leases = Vec::new();
+    for (capability_index, capability) in record.declared_capabilities.iter().enumerate() {
+        if capability.permissions.is_empty() {
+            leases.push(
+                ExtensionCapabilityLease::new(
+                    format!(
+                        "plugin.{}.{}.{}",
+                        record.id.as_str(),
+                        plugin_lease_fragment(&capability.name),
+                        capability_index
+                    ),
+                    capability.name.clone(),
+                    ResourceKind::Tool,
+                    CapabilityAction::Execute,
+                    capability.name.clone(),
+                    None,
+                )
+                .map_err(plugin_registry_error)?,
+            );
+            continue;
+        }
+        for (permission_index, permission) in capability.permissions.iter().enumerate() {
+            leases.push(
+                ExtensionCapabilityLease::new(
+                    format!(
+                        "plugin.{}.{}.{}.{}",
+                        record.id.as_str(),
+                        plugin_lease_fragment(&capability.name),
+                        capability_index,
+                        permission_index
+                    ),
+                    capability.name.clone(),
+                    permission.resource_kind,
+                    permission.action,
+                    permission.resource.clone(),
+                    None,
+                )
+                .map_err(plugin_registry_error)?,
+            );
+        }
+    }
+    Ok(leases)
+}
+
+fn plugin_lease_fragment(value: &str) -> String {
+    let value = value
+        .chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() || matches!(ch, '.' | '-' | '_') {
+                ch.to_ascii_lowercase()
+            } else {
+                '-'
+            }
+        })
+        .collect::<String>()
+        .trim_matches('-')
+        .to_string();
+    if value.is_empty() {
+        "capability".to_string()
+    } else {
+        value
     }
 }
 
@@ -7423,7 +7555,12 @@ fn run_skill_root_command(
             upsert_skill_root_record(&mut runtime.registry, &inspection)?;
             Ok(SkillRootCommandResponse::Added(root))
         }
-        SkillRootCommand::List => Ok(SkillRootCommandResponse::List(runtime.roots.list())),
+        SkillRootCommand::List => {
+            for inspection in runtime.roots.inspect_all() {
+                upsert_skill_root_record(&mut runtime.registry, &inspection)?;
+            }
+            Ok(SkillRootCommandResponse::List(runtime.roots.list()))
+        }
         SkillRootCommand::Inspect { id } => {
             let inspection = runtime.roots.inspect(&id).map_err(skill_root_error)?;
             upsert_skill_root_record(&mut runtime.registry, &inspection)?;

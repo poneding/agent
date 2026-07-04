@@ -690,6 +690,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M66-01 slice spec | Complete |
 | M66-01 slice plan | Complete |
 | M66-01 implementation | Complete |
+| M66-02 slice spec | Complete |
+| M66-02 slice plan | Complete |
+| M66-02 implementation | Complete |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -1472,7 +1475,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M66-01 Extension Health Baseline and Smoke | `docs/specs/M66-01-extension-health-baseline-smoke.spec.md` | `docs/plans/M66-01-extension-health-baseline-smoke.plan.md` | Complete: typed, deterministic, redacted extension health smoke report over plugin, skill root, and MCP server records. |
-| M66-02 Plugin and Skill Management Hardening | `docs/specs/M66-02-plugin-skill-management-hardening.spec.md` | `docs/plans/M66-02-plugin-skill-management-hardening.plan.md` | Planned: install/enable/disable/remove polish, capability acceptance, compatibility diagnostics, and stable CLI/JSON docs. |
+| M66-02 Plugin and Skill Management Hardening | `docs/specs/M66-02-plugin-skill-management-hardening.spec.md` | `docs/plans/M66-02-plugin-skill-management-hardening.plan.md` | Complete: accepted plugin capabilities create deterministic leases, incompatible plugin enablement is blocked, install diagnostics are stable, and skill root list refreshes registry health. |
 | M66-03 MCP Management and Compatibility Health | `docs/specs/M66-03-mcp-management-compatibility-health.spec.md` | `docs/plans/M66-03-mcp-management-compatibility-health.plan.md` | Planned: MCP server management snapshots, compatibility diagnostics, exported capability summaries, and support-safe evidence. |
 | M66-04 OAuth Completion for Installable MCP Workflows | `docs/specs/M66-04-mcp-oauth-installable-workflows.spec.md` | `docs/plans/M66-04-mcp-oauth-installable-workflows.plan.md` | Planned: only OAuth completion needed by user-installable MCP server workflows. |
 | M66-05 CLI/Desktop Extension Surfaces and Support Evidence | `docs/specs/M66-05-cli-desktop-extension-support.spec.md` | `docs/plans/M66-05-cli-desktop-extension-support.plan.md` | Planned: shared extension health rendering and redacted support bundle evidence. |
@@ -1499,6 +1502,8 @@ Most recent completed or active planning documents:
 - `docs/plans/M66-extensions-mcp-hardening.plan.md`
 - `docs/specs/M66-01-extension-health-baseline-smoke.spec.md`
 - `docs/plans/M66-01-extension-health-baseline-smoke.plan.md`
+- `docs/specs/M66-02-plugin-skill-management-hardening.spec.md`
+- `docs/plans/M66-02-plugin-skill-management-hardening.plan.md`
 - `docs/specs/M65-packaging-release-beta-gate.spec.md`
 - `docs/plans/M65-packaging-release-beta-gate.plan.md`
 - `docs/specs/M65-01-release-baseline-beta-gate.spec.md`

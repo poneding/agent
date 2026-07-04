@@ -4,7 +4,7 @@ use agent_cli::{
     CliCommand, CliError, ModelSelection, OutputMode, PluginCommand, PluginCommandRuntime,
     render_plugin_command,
 };
-use agent_core::ConfigOverride;
+use agent_core::{ConfigOverride, ExtensionCompatibility, ExtensionHealth, ExtensionId};
 use serde_json::Value;
 
 fn fixture_path(name: &str) -> PathBuf {
@@ -119,6 +119,13 @@ fn plugin_commands_install_enable_list_inspect_disable_and_remove() {
     assert_eq!(value["type"], "plugin_install");
     assert_eq!(value["data"]["extension_id"], "hello-plugin");
     assert_eq!(value["data"]["enabled"], true);
+    assert_eq!(value["data"]["diagnostics"][0]["code"], "plugin.enabled");
+    assert_eq!(
+        runtime.registry().snapshot().records[0]
+            .granted_leases
+            .len(),
+        1
+    );
 
     let list = render_plugin_command(&mut runtime, PluginCommand::List, OutputMode::Text);
     assert!(list.stdout.contains("hello-plugin"));
@@ -147,6 +154,27 @@ fn plugin_commands_install_enable_list_inspect_disable_and_remove() {
     );
     assert!(disabled.stdout.contains("Disabled plugin hello-plugin"));
     assert!(!runtime.registry().snapshot().records[0].enabled);
+    assert!(
+        runtime.registry().snapshot().records[0]
+            .granted_leases
+            .is_empty()
+    );
+
+    let enabled = render_plugin_command(
+        &mut runtime,
+        PluginCommand::Enable {
+            id: "hello-plugin".to_string(),
+            accept_capabilities: true,
+        },
+        OutputMode::Json,
+    );
+    assert_eq!(enabled.status_code, 0);
+    let enabled_value: Value = serde_json::from_str(enabled.stdout.trim()).unwrap();
+    assert_eq!(enabled_value["type"], "plugin_enabled");
+    assert_eq!(
+        enabled_value["data"]["granted_leases"][0]["capability_name"],
+        "hello.read"
+    );
 
     let removed = render_plugin_command(
         &mut runtime,
@@ -197,6 +225,74 @@ fn plugin_commands_reject_invalid_manifest_and_duplicate_install() {
     );
     assert_eq!(duplicate.status_code, 2);
     assert!(duplicate.stdout.contains("already installed"));
+}
+
+#[test]
+fn plugin_commands_render_stable_install_diagnostics() {
+    let mut runtime = PluginCommandRuntime::default();
+    let output = render_plugin_command(
+        &mut runtime,
+        PluginCommand::Install {
+            path: fixture_path("hello-process-plugin"),
+            enable: false,
+            accept_capabilities: false,
+        },
+        OutputMode::Json,
+    );
+
+    assert_eq!(output.status_code, 0);
+    let value: Value = serde_json::from_str(output.stdout.trim()).unwrap();
+    assert_eq!(value["type"], "plugin_install");
+    assert_eq!(
+        value["data"]["diagnostics"][0]["code"],
+        "plugin.capability_review_required"
+    );
+    assert_eq!(
+        value["data"]["diagnostics"][1]["code"],
+        "plugin.installed_disabled"
+    );
+}
+
+#[test]
+fn plugin_commands_reject_enable_for_incompatible_plugin() {
+    let mut runtime = PluginCommandRuntime::default();
+    let install = render_plugin_command(
+        &mut runtime,
+        PluginCommand::Install {
+            path: fixture_path("hello-process-plugin"),
+            enable: false,
+            accept_capabilities: false,
+        },
+        OutputMode::Text,
+    );
+    assert_eq!(install.status_code, 0);
+    let mut record = runtime
+        .registry()
+        .get(&ExtensionId::new("hello-plugin").unwrap())
+        .cloned()
+        .unwrap();
+    record.compatibility =
+        ExtensionCompatibility::unsupported(99, 1, "token sk-secret unsupported");
+    record.health = ExtensionHealth::unhealthy(record.compatibility.summary());
+    let mut registry = runtime.registry().clone();
+    registry.upsert(record).unwrap();
+    let mut runtime = PluginCommandRuntime::new(registry);
+
+    let output = render_plugin_command(
+        &mut runtime,
+        PluginCommand::Enable {
+            id: "hello-plugin".to_string(),
+            accept_capabilities: true,
+        },
+        OutputMode::Json,
+    );
+
+    assert_eq!(output.status_code, 2);
+    assert!(output.stdout.contains("plugin_error"));
+    assert!(output.stdout.contains("cannot be enabled"));
+    assert!(output.stdout.contains("[redacted]"));
+    assert!(!output.stdout.contains("sk-secret"));
+    assert!(!output.stdout.contains("token"));
 }
 
 #[test]

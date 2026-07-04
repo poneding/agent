@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use agent_cli::{
     CliCommand, OutputMode, SkillRootCommand, SkillRootCommandRuntime, render_skill_root_command,
 };
+use agent_core::ExtensionHealthStatus;
 use serde_json::Value;
 
 fn write_skill(root: &Path, name: &str, description: &str, body: &str) {
@@ -167,6 +168,58 @@ fn skill_root_commands_render_diagnostics_and_redacted_errors() {
     assert!(!missing.stdout.contains("sk-secret-token"));
     assert!(!missing.stdout.contains("token"));
     assert!(missing.stdout.contains("[redacted]"));
+}
+
+#[test]
+fn skill_root_commands_list_refreshes_duplicate_skill_health() {
+    let temp = tempfile::tempdir().unwrap();
+    let first = temp.path().join("first");
+    let second = temp.path().join("second");
+    write_skill(
+        &first,
+        "Shared Skill",
+        "Review code changes",
+        "First prompt.",
+    );
+    write_skill(
+        &second,
+        "Shared Skill",
+        "Review code changes differently",
+        "Second prompt.",
+    );
+
+    let mut runtime = SkillRootCommandRuntime::default();
+    for root in [first, second] {
+        let add = render_skill_root_command(
+            &mut runtime,
+            SkillRootCommand::Add {
+                path: root,
+                enable: true,
+            },
+            OutputMode::Json,
+        );
+        assert_eq!(add.status_code, 0);
+    }
+
+    let list = render_skill_root_command(&mut runtime, SkillRootCommand::List, OutputMode::Json);
+    assert_eq!(list.status_code, 0);
+    let value: Value = serde_json::from_str(list.stdout.trim()).unwrap();
+    assert_eq!(value["type"], "skill_root_list");
+    assert_eq!(value["data"]["roots"].as_array().unwrap().len(), 2);
+
+    let snapshot = runtime.registry().snapshot();
+    assert_eq!(snapshot.records.len(), 2);
+    assert!(snapshot.records.iter().all(|record| {
+        record.health.status == ExtensionHealthStatus::Unhealthy
+            && record.health.message == "skill root has diagnostics"
+    }));
+    let report = runtime.registry().health_smoke_report();
+    assert!(
+        report
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "extension.unhealthy")
+    );
 }
 
 #[test]

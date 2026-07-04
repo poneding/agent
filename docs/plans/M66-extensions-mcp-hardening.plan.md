@@ -84,11 +84,11 @@ Keep evidence bounded and redacted. Avoid broad protocol expansion.
 - Create: `docs/plans/M66-04-mcp-oauth-installable-workflows.plan.md`
 - Modify as needed only if installable workflows require it.
 
-- [ ] **Step 1: Confirm OAuth need**
+- [x] **Step 1: Confirm OAuth need**
 
 If no user-installable workflow requires OAuth completion, document deferral and do not implement extra protocol code.
 
-- [ ] **Step 2: Implement only required OAuth completion**
+- [x] **Step 2: Implement only required OAuth completion**
 
 Keep token values out of durable evidence and support bundles.
 

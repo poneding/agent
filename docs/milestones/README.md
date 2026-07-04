@@ -12,7 +12,7 @@ M30-M54 delivered a deep MCP extension track. That work remains valuable, but MC
 
 Current focus:
 
-- M66 Extensions and MCP Hardening
+- MX02 Desktop Productization
 
 ## Document Layout
 
@@ -706,6 +706,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M66-06 slice plan | Complete |
 | M66-06 implementation | Complete |
 | M66 implementation | Complete |
+| MX02 milestone spec | Complete |
+| MX02 milestone plan | Complete |
+| MX02 slice specs | Complete for MX02-01 through MX02-05 |
+| MX02 slice plans | Complete for MX02-01 through MX02-05 |
+| MX02 implementation | Planned |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -786,6 +791,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M64 Memory and Personalization | `docs/specs/M64-memory-personalization.spec.md` | `docs/plans/M64-memory-personalization.plan.md` | Productize memory so project/user recall is reviewable, privacy-safe, explainable, and visible in CLI/Desktop. |
 | M65 Packaging, Release, and Beta Gate | `docs/specs/M65-packaging-release-beta-gate.spec.md` | `docs/plans/M65-packaging-release-beta-gate.plan.md` | Prepare a beta users can install and trust with CLI/Desktop packages, config migrations, keychain setup, update channel, release smoke suite, and support bundle evidence. |
 | M66 Extensions and MCP Hardening | `docs/specs/M66-extensions-mcp-hardening.spec.md` | `docs/plans/M66-extensions-mcp-hardening.plan.md` | Productize extension health, compatibility, safe diagnostics, support evidence, and only the MCP OAuth pieces needed by installable workflows. |
+| MX02 Desktop Productization | `docs/specs/MX02-desktop-productization.spec.md` | `docs/plans/MX02-desktop-productization.plan.md` | Turn Desktop into a modern local coding-agent workspace with thread navigation, composer, command palette, inspector panels, provider/model settings, and product smoke. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1494,6 +1500,16 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M66-05 CLI/Desktop Extension Surfaces and Support Evidence | `docs/specs/M66-05-cli-desktop-extension-support.spec.md` | `docs/plans/M66-05-cli-desktop-extension-support.plan.md` | Complete: support bundle manifests include extension health summary evidence and Desktop diagnostics render severity/truncation from typed snapshots. |
 | M66-06 Hardening Docs and Closeout | `docs/specs/M66-06-hardening-docs-closeout.spec.md` | `docs/plans/M66-06-hardening-docs-closeout.plan.md` | Complete: extension management workflows are documented, support/OAuth boundaries are explicit, final gates passed, and M66 is closed. |
 
+## MX02 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| MX02-01 Desktop App Shell and Navigation | `docs/specs/MX02-01-desktop-app-shell-navigation.spec.md` | `docs/plans/MX02-01-desktop-app-shell-navigation.plan.md` | Planned: three-column Desktop workspace, thread sidebar, inspector tabs, command palette skeleton, keyboard shortcuts, and terminal drawer placeholder. |
+| MX02-02 Thread and Composer Experience | `docs/specs/MX02-02-thread-composer-experience.spec.md` | `docs/plans/MX02-02-thread-composer-experience.plan.md` | Planned: thread lifecycle UI, composer controls, slash and skill hints, send/stop/retry states, goal/progress row, and typed transcript cards. |
+| MX02-03 Provider and Model Configuration | `docs/specs/MX02-03-provider-model-configuration.spec.md` | `docs/plans/MX02-03-provider-model-configuration.plan.md` | Planned: provider/model profiles, multi-provider settings, capability diagnostics, per-thread overrides, and secret-safe snapshots. |
+| MX02-04 Inspector Panels for Changes, Approvals, Tasks, and Artifacts | `docs/specs/MX02-04-inspector-panels.spec.md` | `docs/plans/MX02-04-inspector-panels.plan.md` | Planned: Context, Changes, Approvals, Tasks, Artifacts, and Trace inspector panels backed by typed Desktop/bridge state. |
+| MX02-05 Desktop Product Smoke and Documentation | `docs/specs/MX02-05-desktop-product-smoke-docs.spec.md` | `docs/plans/MX02-05-desktop-product-smoke-docs.plan.md` | Planned: deterministic Desktop product smoke, no-secret fixture checks, `docs/desktop/desktop-productization.md`, and closeout gates. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1507,10 +1523,22 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 ## Active Work
 
-Current implementation focus: M66 Extensions and MCP Hardening is complete; select the next milestone or separate Desktop Productization track explicitly.
+Current implementation focus: MX02 Desktop Productization. M62-M66 are complete; keep new Desktop productization implementation on Desktop-scoped files and typed runtime/bridge contracts.
 
 Most recent completed or active planning documents:
 
+- `docs/specs/MX02-desktop-productization.spec.md`
+- `docs/plans/MX02-desktop-productization.plan.md`
+- `docs/specs/MX02-01-desktop-app-shell-navigation.spec.md`
+- `docs/plans/MX02-01-desktop-app-shell-navigation.plan.md`
+- `docs/specs/MX02-02-thread-composer-experience.spec.md`
+- `docs/plans/MX02-02-thread-composer-experience.plan.md`
+- `docs/specs/MX02-03-provider-model-configuration.spec.md`
+- `docs/plans/MX02-03-provider-model-configuration.plan.md`
+- `docs/specs/MX02-04-inspector-panels.spec.md`
+- `docs/plans/MX02-04-inspector-panels.plan.md`
+- `docs/specs/MX02-05-desktop-product-smoke-docs.spec.md`
+- `docs/plans/MX02-05-desktop-product-smoke-docs.plan.md`
 - `docs/specs/M66-extensions-mcp-hardening.spec.md`
 - `docs/plans/M66-extensions-mcp-hardening.plan.md`
 - `docs/specs/M66-01-extension-health-baseline-smoke.spec.md`
@@ -2057,4 +2085,4 @@ Most recent completed technical design documents:
 
 Next implementation direction:
 
-- Start M63 Worktree and Agent Team Workflows with isolated worktrees, subagent handoff, shared blackboard, reviewer role, merge review, conflict handling, and team-level permission ceilings.
+- Start MX02-01 Desktop App Shell and Navigation on the Desktop Productization branch.

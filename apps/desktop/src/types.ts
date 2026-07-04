@@ -7,6 +7,23 @@ export type DesktopRuntimeState =
 
 export type DesktopRoute = 'dashboard' | 'conversation' | 'tasks' | 'trace' | 'settings';
 export type DesktopShellRoute = DesktopRoute | 'approvals';
+export type DesktopInspectorTab =
+  | 'context'
+  | 'changes'
+  | 'approvals'
+  | 'tasks'
+  | 'artifacts'
+  | 'trace';
+
+export interface DesktopShellUiState {
+  sidebarOpen: boolean;
+  inspectorOpen: boolean;
+  terminalOpen: boolean;
+  commandPaletteOpen: boolean;
+  findOpen: boolean;
+  activeInspectorTab: DesktopInspectorTab;
+  lastCommand: string | null;
+}
 
 export interface DesktopBootstrapDiagnostic {
   severity: string;

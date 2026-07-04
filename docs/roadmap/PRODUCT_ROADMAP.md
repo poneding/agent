@@ -16,7 +16,7 @@ The percentages below are directional planning estimates based on the current re
 | Local coding agent golden path | 60% | M56 repo/session, edit/diff, command/test, final review, and default local-coding eval scenario | Needs daily-driver behavior beyond the deterministic fixture: richer tasks, multi-file edits, retry/recovery UX, and real-provider parity. |
 | Context and memory | 50% | M05, M16, M23, prompt profiles, memory stores, retrieval design | Needs repo-aware context, semantic project indexing, memory review UX, and compaction quality gates. |
 | CLI and TUI product UX | 70% | M06, M20, M59, `agent-cli`, `agent-tui`, JSON mode | Needs deeper live coding-loop soak, retry/recovery polish, and parity with upcoming Desktop flows. |
-| Desktop product UX | 60% | M10, M21, M60, `agent-desktop`, UI bridge contracts, Desktop smoke fixture | Needs live-provider Desktop soak, recovery surfaces, installer/onboarding polish, and beta packaging. |
+| Desktop product UX | 60% | M10, M21, M60, `agent-desktop`, UI bridge contracts, Desktop smoke fixture, MX02 planning | Needs a modern coding workspace shell, thread/composer density, inspector panels, provider/model onboarding, live-provider Desktop soak, recovery surfaces, installer/onboarding polish, and beta packaging. |
 | Background tasks and autonomy | 45% | M08, M24, scheduler/task contracts | Needs long-running task UX, notifications, quota visibility, resume controls, and failure recovery. |
 | Worktree, subagents, teams | 40% | M09, `agent-worktree`, `agent-team` | Needs product workflows for parallel implementation, review, merge, and conflict resolution. |
 | Plugins and skills | 55% | M11, M22, `agent-plugin`, `agent-skill` | Needs marketplace-like management, compatibility checks in UI, and real plugin developer loop. |
@@ -55,6 +55,7 @@ The current MCP baseline is enough to support product discovery, local gateway e
 | M60 | Desktop Daily Driver | Deliver a usable Desktop app over the shared runtime. | Workspace dashboard, conversations, composer, streaming transcript, approvals, diff review, provider settings, logs, and task monitor. |
 | M61 | Plan, Todo, and Task UX | Make plans and tasks first-class across interactive and background work. | TodoWrite-compatible task state, plan updates, task artifacts, background approval waits, pause/resume/cancel, and notifications. |
 | M62 | Reliability and Recovery Productization | Make real work recoverable after interruption, crashes, and conflicts. | Checkpoint resume UX, replay/fork commands, idempotent tool recovery, conflict diagnostics, failed-command retry, and crash smoke tests. |
+| MX02 | Desktop Productization | Turn the Desktop app from a functional validation shell into a polished local coding workspace. | Three-column app shell, thread/composer workflow, provider/model settings, inspector panels, command palette, terminal drawer placeholder, and Desktop product smoke. |
 | M63 | Worktree and Agent Team Workflows | Productize parallel implementation and review. | Isolated worktrees, subagent handoff, shared blackboard, reviewer role, merge review, conflict handling, and team-level permission ceilings. |
 | M64 | Memory and Personalization | Make memory useful, reviewable, and privacy-safe. | Project memory, user preferences, semantic recall, memory proposals, retention controls, import/export, and influence traces in CLI/Desktop. |
 | M65 | Packaging, Release, and Beta Gate | Prepare a beta users can install and trust. | CLI packages, Desktop bundles, config migrations, keychain setup, update channel, release smoke suite, and support bundle generation. |
@@ -341,6 +342,30 @@ Acceptance:
 - CLI/JSON and bridge-facing surfaces render shared extension snapshots instead of duplicating runtime policy.
 - Support evidence includes extension health summaries without raw secrets, raw OAuth material, raw process logs, or unbounded output.
 - MCP OAuth work is limited to installable workflows that need it.
+
+### MX02 Desktop Productization
+
+Status: Planned. The milestone spec/plan and five slice spec/plan pairs are created as a Desktop-focused lane after M66 closeout.
+
+Purpose: make `apps/desktop` feel like a modern daily coding-agent workspace instead of a route-based dashboard demo, while preserving the shared Rust runtime, typed Tauri bridge, and React presentation boundary.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| MX02-01 Desktop App Shell and Navigation | Refactor Desktop into a three-column workspace with thread sidebar, center transcript/composer, inspector tabs, command palette skeleton, keyboard shortcuts, and terminal drawer placeholder. |
+| MX02-02 Thread and Composer Experience | Add thread lifecycle UI, provider/model selectors, Local/Worktree mode, slash and skill hints, send/stop/retry states, goal/progress row, and typed transcript cards. |
+| MX02-03 Provider and Model Configuration | Add provider/model profiles, settings management, capability diagnostics, per-thread overrides, connection diagnostics, and no-secret snapshots. |
+| MX02-04 Inspector Panels for Changes, Approvals, Tasks, and Artifacts | Productize Context, Changes, Approvals, Tasks, Artifacts, and Trace inspector tabs from typed Desktop/bridge state. |
+| MX02-05 Desktop Product Smoke and Documentation | Add credential-free product smoke and `docs/desktop/desktop-productization.md` covering the productized workspace flow. |
+
+Acceptance:
+
+- Desktop opens into a real coding workspace with left navigation, center thread/composer, right inspector, and terminal drawer.
+- Thread, composer, command palette, slash commands, approval, diff, task, artifact, trace, settings, and provider/model workflows are visible and keyboard-friendly.
+- Provider/model settings and React/Tauri snapshots never expose raw secret values.
+- Runtime logic remains in Rust crates, Tauri remains a typed bridge, and React remains presentation state.
+- A deterministic Desktop product smoke proves the workspace flow without provider credentials.
 
 ## Capability Gates
 

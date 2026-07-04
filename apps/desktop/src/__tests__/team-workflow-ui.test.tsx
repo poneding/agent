@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { AppShell } from '../App';
@@ -153,7 +153,7 @@ describe('team workflow UI', () => {
     expect(within(panel).getByText('team.ui.fixture')).toBeInTheDocument();
   });
 
-  it('shows team workflow panel in the tasks route', () => {
+  it('shows team workflow panel in the tasks inspector tab', () => {
     const conversationState = reduceConversationTaskState(createConversationTaskState(workspaceSnapshot), {
       type: 'team_workflow_snapshot',
       data: teamWorkflow,
@@ -169,11 +169,14 @@ describe('team workflow UI', () => {
       />,
     );
 
-    const workspace = screen.getByRole('main', { name: 'Tasks workspace' });
-    const taskList = within(workspace).getByRole('list', { name: 'Tasks' });
-    expect(within(workspace).getByRole('heading', { name: 'Tasks' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Team workflow')).toBeInTheDocument();
+    const inspector = screen.getByRole('complementary', { name: 'Inspector' });
+    fireEvent.click(within(inspector).getByRole('tab', { name: 'Tasks' }));
+    const tasksPanel = within(inspector).getByRole('tabpanel', { name: 'Tasks' });
+    const taskList = within(tasksPanel).getByRole('list', { name: 'Tasks' });
+    expect(within(tasksPanel).getByLabelText('Team workflow')).toBeInTheDocument();
     expect(within(taskList).getByText('Implement team UI')).toBeInTheDocument();
-    expect(within(screen.getByLabelText('Team workflow')).getByText('has_conflict')).toBeInTheDocument();
+    expect(
+      within(within(tasksPanel).getByLabelText('Team workflow')).getByText('has_conflict'),
+    ).toBeInTheDocument();
   });
 });

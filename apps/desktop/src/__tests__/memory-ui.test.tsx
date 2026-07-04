@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { AppShell } from '../App';
@@ -211,7 +211,7 @@ describe('memory UI', () => {
     expect(state.memorySnapshot?.diagnostics[0]?.code).toBe('memory.degraded');
   });
 
-  it('shows memory panel in the tasks route', () => {
+  it('shows memory panel in the tasks inspector tab', () => {
     const conversationState = reduceConversationTaskState(
       createConversationTaskState(workspaceSnapshot),
       {
@@ -230,10 +230,13 @@ describe('memory UI', () => {
       />,
     );
 
-    const workspace = screen.getByRole('main', { name: 'Tasks workspace' });
-    expect(within(workspace).getByRole('heading', { name: 'Tasks' })).toBeInTheDocument();
-    expect(within(workspace).getByLabelText('Memory')).toBeInTheDocument();
-    expect(within(screen.getByLabelText('Memory')).getByText('proposal-review')).toBeInTheDocument();
-    expect(within(workspace).getAllByText('Review memory surface').length).toBeGreaterThan(0);
+    const inspector = screen.getByRole('complementary', { name: 'Inspector' });
+    fireEvent.click(within(inspector).getByRole('tab', { name: 'Tasks' }));
+    const tasksPanel = within(inspector).getByRole('tabpanel', { name: 'Tasks' });
+    expect(within(tasksPanel).getByLabelText('Memory')).toBeInTheDocument();
+    expect(
+      within(within(tasksPanel).getByLabelText('Memory')).getByText('proposal-review'),
+    ).toBeInTheDocument();
+    expect(within(tasksPanel).getAllByText('Review memory surface').length).toBeGreaterThan(0);
   });
 });

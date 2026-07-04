@@ -1279,6 +1279,15 @@ pub fn build_support_bundle_manifest(plan: &SupportBundlePlan) -> SupportBundleM
             "onboarding_readiness",
             "Collect via CLI JSON config-check; raw config, environment, and keychain values are intentionally omitted",
         ),
+        SupportBundleSection::included(
+            "extension_health_summary",
+            None,
+            None,
+            Some(
+                "extension health uses typed snapshots; raw extension manifests, raw extension logs, and OAuth material are omitted"
+                    .to_string(),
+            ),
+        ),
     ];
 
     sections.extend(discover_support_artifacts(
@@ -1341,6 +1350,9 @@ pub fn build_support_bundle_manifest(plan: &SupportBundlePlan) -> SupportBundleM
             "raw_environment_omitted".to_string(),
             "raw_prompts_omitted".to_string(),
             "unbounded_logs_omitted".to_string(),
+            "raw_extension_manifests_omitted".to_string(),
+            "raw_extension_logs_omitted".to_string(),
+            "raw_oauth_material_omitted".to_string(),
         ],
     }
 }

@@ -103,6 +103,7 @@ fn support_bundle_manifest_collects_allowlisted_artifact_references() {
         "cli_release_manifest",
         "desktop_update_manifest",
         "desktop_release_plan",
+        "extension_health_summary",
         "quality_gate_report",
         "eval_report",
     ] {
@@ -119,6 +120,22 @@ fn support_bundle_manifest_collects_allowlisted_artifact_references() {
     let serialized = serde_json::to_string(&manifest).expect("manifest json");
     assert!(!serialized.contains("sk-live-secret"));
     assert!(!serialized.contains("OPENAI_API_KEY"));
+    assert!(!serialized.contains("oauth-token-secret"));
+    assert!(
+        manifest
+            .redaction_diagnostics
+            .contains(&"raw_extension_manifests_omitted".to_string())
+    );
+    assert!(
+        manifest
+            .redaction_diagnostics
+            .contains(&"raw_extension_logs_omitted".to_string())
+    );
+    assert!(
+        manifest
+            .redaction_diagnostics
+            .contains(&"raw_oauth_material_omitted".to_string())
+    );
 }
 
 #[test]
@@ -173,5 +190,10 @@ fn support_bundle_summary_counts_section_statuses() {
         summary
             .redaction_diagnostics
             .contains(&"raw_environment_omitted".to_string())
+    );
+    assert!(
+        summary
+            .redaction_diagnostics
+            .contains(&"raw_oauth_material_omitted".to_string())
     );
 }

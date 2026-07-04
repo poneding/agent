@@ -32,6 +32,10 @@ export function ExtensionHealthView({ snapshot }: { snapshot: UiExtensionSnapsho
             {snapshot.diagnostics.map((diagnostic) => (
               <li key={`${diagnostic.extension_id ?? 'global'}-${diagnostic.code}`}>
                 <strong>{diagnostic.code}</strong>
+                <small>
+                  {diagnostic.severity}
+                  {diagnostic.truncated ? ' / truncated' : ''}
+                </small>
                 <span>{diagnostic.message}</span>
               </li>
             ))}

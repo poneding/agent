@@ -699,6 +699,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M66-04 slice spec | Complete |
 | M66-04 slice plan | Complete |
 | M66-04 implementation | Complete as documented deferral |
+| M66-05 slice spec | Complete |
+| M66-05 slice plan | Complete |
+| M66-05 implementation | Complete |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -1484,7 +1487,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M66-02 Plugin and Skill Management Hardening | `docs/specs/M66-02-plugin-skill-management-hardening.spec.md` | `docs/plans/M66-02-plugin-skill-management-hardening.plan.md` | Complete: accepted plugin capabilities create deterministic leases, incompatible plugin enablement is blocked, install diagnostics are stable, and skill root list refreshes registry health. |
 | M66-03 MCP Management and Compatibility Health | `docs/specs/M66-03-mcp-management-compatibility-health.spec.md` | `docs/plans/M66-03-mcp-management-compatibility-health.plan.md` | Complete: MCP status health report exposes initialization, no-export, and capability/export mismatch diagnostics through typed CLI JSON/text output. |
 | M66-04 OAuth Completion for Installable MCP Workflows | `docs/specs/M66-04-mcp-oauth-installable-workflows.spec.md` | `docs/plans/M66-04-mcp-oauth-installable-workflows.plan.md` | Complete: no new OAuth code is required for current installable workflows; existing OAuth foundations are documented and product UI/token-storage work remains deferred until a workflow needs it. |
-| M66-05 CLI/Desktop Extension Surfaces and Support Evidence | `docs/specs/M66-05-cli-desktop-extension-support.spec.md` | `docs/plans/M66-05-cli-desktop-extension-support.plan.md` | Planned: shared extension health rendering and redacted support bundle evidence. |
+| M66-05 CLI/Desktop Extension Surfaces and Support Evidence | `docs/specs/M66-05-cli-desktop-extension-support.spec.md` | `docs/plans/M66-05-cli-desktop-extension-support.plan.md` | Complete: support bundle manifests include extension health summary evidence and Desktop diagnostics render severity/truncation from typed snapshots. |
 | M66-06 Hardening Docs and Closeout | `docs/specs/M66-06-hardening-docs-closeout.spec.md` | `docs/plans/M66-06-hardening-docs-closeout.plan.md` | Planned: plugin/skill/MCP workflow docs, final gates, and M66 closeout. |
 
 ## MX01 Slice Index
@@ -1514,6 +1517,8 @@ Most recent completed or active planning documents:
 - `docs/plans/M66-03-mcp-management-compatibility-health.plan.md`
 - `docs/specs/M66-04-mcp-oauth-installable-workflows.spec.md`
 - `docs/plans/M66-04-mcp-oauth-installable-workflows.plan.md`
+- `docs/specs/M66-05-cli-desktop-extension-support.spec.md`
+- `docs/plans/M66-05-cli-desktop-extension-support.plan.md`
 - `docs/specs/M65-packaging-release-beta-gate.spec.md`
 - `docs/plans/M65-packaging-release-beta-gate.plan.md`
 - `docs/specs/M65-01-release-baseline-beta-gate.spec.md`

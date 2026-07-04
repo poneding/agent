@@ -37,7 +37,7 @@ Support bundles should include these sections when available:
 - Desktop update manifest validation summary
 - default eval summary and artifact paths
 - recent bounded diagnostics
-- extension health summary when available
+- extension health summary from typed snapshots or metadata-only availability evidence
 - redaction diagnostics explaining omitted or scrubbed fields
 
 ## Forbidden Content
@@ -51,6 +51,9 @@ Support bundles must not include:
 - raw sensitive memory text
 - embeddings
 - unbounded command output, stdout, stderr, or logs
+- raw extension manifests
+- raw extension process logs
+- raw OAuth codes, access tokens, refresh tokens, PKCE verifiers, or bearer headers
 - full environment dumps
 - arbitrary workspace files
 - local keychain values
@@ -66,6 +69,9 @@ Redaction should happen before evidence crosses durable, CLI, Desktop, or suppor
 - `provider_secret_missing`
 - `onboarding_secret_store_unavailable`
 - `onboarding_migration_blocked`
+- `raw_extension_manifests_omitted`
+- `raw_extension_logs_omitted`
+- `raw_oauth_material_omitted`
 
 Redaction diagnostics are useful evidence. They should explain what class of data was omitted without echoing the omitted value.
 
@@ -97,6 +103,12 @@ They should not assemble raw support data themselves.
 M65-04 provides `OnboardingReadinessSnapshot` in `agent-core` and a UI-safe bridge frame. M65-05 support bundle generation records an `onboarding_readiness` section status and must use that typed snapshot when a caller supplies it, instead of collecting raw config files, raw environment variables, keychain values, migration text, or provider endpoints.
 
 The snapshot is already bounded and redacted, but support bundle generation should still treat it as allowlisted evidence and preserve redaction diagnostics.
+
+## Extension Health Evidence
+
+M66 adds an `extension_health_summary` support section. The section is intentionally support-safe: it may reference typed extension health snapshots and stable diagnostic ids, but it must not collect raw plugin manifests, skill prompt bodies, MCP process logs, OAuth callback codes, bearer tokens, refresh tokens, or unbounded output.
+
+When no live extension snapshot is supplied to `xtask`, the support bundle still records metadata-only availability evidence and redaction diagnostics. CLI/Desktop surfaces should render the shared extension snapshot contracts instead of assembling raw support data locally.
 
 ## M65 Ownership
 

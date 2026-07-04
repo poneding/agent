@@ -99,11 +99,11 @@ Keep token values out of durable evidence and support bundles.
 - Create: `docs/plans/M66-05-cli-desktop-extension-support.plan.md`
 - Modify as needed: CLI, TUI, Desktop, bridge, support bundle docs/code.
 
-- [ ] **Step 1: Plan surface/support updates**
+- [x] **Step 1: Plan surface/support updates**
 
 Render shared snapshots and include extension evidence in support bundles without raw logs/manifests/secrets.
 
-- [ ] **Step 2: Implement surface/support updates**
+- [x] **Step 2: Implement surface/support updates**
 
 Presentation layers render typed contracts only.
 

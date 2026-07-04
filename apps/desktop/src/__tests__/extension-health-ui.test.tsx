@@ -40,7 +40,7 @@ const snapshot: UiExtensionSnapshot = {
       code: 'extension.unhealthy',
       message: 'server failed with [redacted]',
       extension_id: 'mcp-filesystem',
-      truncated: false,
+      truncated: true,
     },
   ],
 };
@@ -55,6 +55,7 @@ describe('extension health UI', () => {
     expect(screen.getByText('mcp-filesystem')).toBeInTheDocument();
     expect(screen.getByText('unhealthy')).toBeInTheDocument();
     expect(screen.getByText('extension.unhealthy')).toBeInTheDocument();
+    expect(screen.getByText('error / truncated')).toBeInTheDocument();
     expect(screen.getByText('capability review is required')).toBeInTheDocument();
     expect(within(screen.getByLabelText('Extension health')).getByText('healthy')).toBeInTheDocument();
     expect(screen.queryByText('sk-secret')).not.toBeInTheDocument();

@@ -74,10 +74,13 @@ pub use edit_diff::{
     run_edit_diff_flow,
 };
 pub use extension::{
-    ExtensionCapabilityLease, ExtensionCapabilitySummary, ExtensionCompatibility, ExtensionHealth,
-    ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord,
-    ExtensionRegistry, ExtensionRegistryError, ExtensionRegistrySnapshot, ExtensionSource,
-    ExtensionSourceKind,
+    EXTENSION_HEALTH_SMOKE_SCHEMA_VERSION, ExtensionCapabilityLease, ExtensionCapabilitySummary,
+    ExtensionCompatibility, ExtensionHealth, ExtensionHealthKindCount,
+    ExtensionHealthSmokeDiagnostic, ExtensionHealthSmokeDiagnosticSeverity,
+    ExtensionHealthSmokeReport, ExtensionHealthStatus, ExtensionHealthStatusCount, ExtensionId,
+    ExtensionKind, ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry,
+    ExtensionRegistryError, ExtensionRegistrySnapshot, ExtensionSource, ExtensionSourceKind,
+    MAX_EXTENSION_HEALTH_SMOKE_DIAGNOSTICS, MAX_EXTENSION_HEALTH_SMOKE_MESSAGE_CHARS,
 };
 pub use final_review::{
     CodingFinalReview, FinalReviewCommandResult, FinalReviewDiagnostic,

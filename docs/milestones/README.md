@@ -685,6 +685,11 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M65-06 slice plan | Complete |
 | M65-06 implementation | Complete |
 | M65 implementation | Complete |
+| M66 milestone spec | Complete |
+| M66 milestone plan | Complete |
+| M66-01 slice spec | Complete |
+| M66-01 slice plan | Complete |
+| M66-01 implementation | Complete |
 | MX01 epilogue slice specs | Complete for MX01-01 through MX01-06 |
 | MX01 epilogue slice plans | Complete for MX01-01 through MX01-06 |
 | MX01-01 implementation | Complete |
@@ -764,6 +769,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M63 Worktree and Agent Team Workflows | `docs/specs/M63-worktree-agent-team-workflows.spec.md` | `docs/plans/M63-worktree-agent-team-workflows.plan.md` | Productize isolated worktrees, subagent handoff, shared blackboard, reviewer role, merge review, conflict handling, and team-level permission ceilings. |
 | M64 Memory and Personalization | `docs/specs/M64-memory-personalization.spec.md` | `docs/plans/M64-memory-personalization.plan.md` | Productize memory so project/user recall is reviewable, privacy-safe, explainable, and visible in CLI/Desktop. |
 | M65 Packaging, Release, and Beta Gate | `docs/specs/M65-packaging-release-beta-gate.spec.md` | `docs/plans/M65-packaging-release-beta-gate.plan.md` | Prepare a beta users can install and trust with CLI/Desktop packages, config migrations, keychain setup, update channel, release smoke suite, and support bundle evidence. |
+| M66 Extensions and MCP Hardening | `docs/specs/M66-extensions-mcp-hardening.spec.md` | `docs/plans/M66-extensions-mcp-hardening.plan.md` | Productize extension health, compatibility, safe diagnostics, support evidence, and only the MCP OAuth pieces needed by installable workflows. |
 | MX01 MCP Epilogue Runtime | `docs/specs/MX01-mcp-epilogue.spec.md` | `docs/plans/MX01-mcp-epilogue.plan.md` | Close P1-P3 MCP hardening gaps for callbacks, protocol events, sampling review, management snapshots, and export guardrails without joining the M55-M66 product roadmap or P0 OAuth/Auth closure. |
 
 ## M01 Slice Index
@@ -1461,6 +1467,17 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M65-05 Support Bundle and Release Evidence | `docs/specs/M65-05-support-bundle-release-evidence.spec.md` | `docs/plans/M65-05-support-bundle-release-evidence.plan.md` | Complete: `cargo xtask support-bundle` writes typed redacted manifest/summary evidence with allowlisted release, Desktop, quality, eval, and onboarding sections. |
 | M65-06 Beta Gate Docs and Closeout | `docs/specs/M65-06-beta-gate-docs-closeout.spec.md` | `docs/plans/M65-06-beta-gate-docs-closeout.plan.md` | Complete: install/upgrade/support docs, final dev-channel gates, package/eval/support evidence, and M65 closeout status. |
 
+## M66 Slice Index
+
+| Slice | Spec | Plan | Outcome |
+|---|---|---|---|
+| M66-01 Extension Health Baseline and Smoke | `docs/specs/M66-01-extension-health-baseline-smoke.spec.md` | `docs/plans/M66-01-extension-health-baseline-smoke.plan.md` | Complete: typed, deterministic, redacted extension health smoke report over plugin, skill root, and MCP server records. |
+| M66-02 Plugin and Skill Management Hardening | `docs/specs/M66-02-plugin-skill-management-hardening.spec.md` | `docs/plans/M66-02-plugin-skill-management-hardening.plan.md` | Planned: install/enable/disable/remove polish, capability acceptance, compatibility diagnostics, and stable CLI/JSON docs. |
+| M66-03 MCP Management and Compatibility Health | `docs/specs/M66-03-mcp-management-compatibility-health.spec.md` | `docs/plans/M66-03-mcp-management-compatibility-health.plan.md` | Planned: MCP server management snapshots, compatibility diagnostics, exported capability summaries, and support-safe evidence. |
+| M66-04 OAuth Completion for Installable MCP Workflows | `docs/specs/M66-04-mcp-oauth-installable-workflows.spec.md` | `docs/plans/M66-04-mcp-oauth-installable-workflows.plan.md` | Planned: only OAuth completion needed by user-installable MCP server workflows. |
+| M66-05 CLI/Desktop Extension Surfaces and Support Evidence | `docs/specs/M66-05-cli-desktop-extension-support.spec.md` | `docs/plans/M66-05-cli-desktop-extension-support.plan.md` | Planned: shared extension health rendering and redacted support bundle evidence. |
+| M66-06 Hardening Docs and Closeout | `docs/specs/M66-06-hardening-docs-closeout.spec.md` | `docs/plans/M66-06-hardening-docs-closeout.plan.md` | Planned: plugin/skill/MCP workflow docs, final gates, and M66 closeout. |
+
 ## MX01 Slice Index
 
 | Slice | Spec | Plan | Outcome |
@@ -1478,6 +1495,10 @@ Current implementation focus: M66 Extensions and MCP Hardening.
 
 Most recent completed or active planning documents:
 
+- `docs/specs/M66-extensions-mcp-hardening.spec.md`
+- `docs/plans/M66-extensions-mcp-hardening.plan.md`
+- `docs/specs/M66-01-extension-health-baseline-smoke.spec.md`
+- `docs/plans/M66-01-extension-health-baseline-smoke.plan.md`
 - `docs/specs/M65-packaging-release-beta-gate.spec.md`
 - `docs/plans/M65-packaging-release-beta-gate.plan.md`
 - `docs/specs/M65-01-release-baseline-beta-gate.spec.md`

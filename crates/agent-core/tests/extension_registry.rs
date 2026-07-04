@@ -1,7 +1,9 @@
 use agent_core::{
-    ExtensionCapabilityLease, ExtensionCapabilitySummary, ExtensionCompatibility, ExtensionHealth,
+    EXTENSION_HEALTH_SMOKE_SCHEMA_VERSION, ExtensionCapabilityLease, ExtensionCapabilitySummary,
+    ExtensionCompatibility, ExtensionHealth, ExtensionHealthSmokeDiagnosticSeverity,
     ExtensionHealthStatus, ExtensionId, ExtensionKind, ExtensionPermissionSummary, ExtensionRecord,
     ExtensionRegistry, ExtensionRegistryError, ExtensionSource, ExtensionSourceKind,
+    MAX_EXTENSION_HEALTH_SMOKE_DIAGNOSTICS, MAX_EXTENSION_HEALTH_SMOKE_MESSAGE_CHARS,
 };
 use agent_policy::{CapabilityAction, ResourceKind};
 use agent_types::Timestamp;
@@ -24,6 +26,18 @@ fn lease(id: &str) -> ExtensionCapabilityLease {
     ExtensionCapabilityLease::new(
         id,
         "read",
+        ResourceKind::Tool,
+        CapabilityAction::Execute,
+        "example.read",
+        Some(ts()),
+    )
+    .expect("valid lease")
+}
+
+fn lease_for(id: &str, capability_name: &str) -> ExtensionCapabilityLease {
+    ExtensionCapabilityLease::new(
+        id,
+        capability_name,
         ResourceKind::Tool,
         CapabilityAction::Execute,
         "example.read",
@@ -236,4 +250,159 @@ fn extension_registry_rejects_invalid_capability_summary() {
         ExtensionPermissionSummary::new(ResourceKind::Tool, CapabilityAction::Execute, " ")
             .is_err()
     );
+}
+
+#[test]
+fn extension_health_smoke_report_summarizes_all_kinds_with_stable_actions() {
+    let plugin = ExtensionRecord::new(
+        ExtensionId::new("plugin.alpha").expect("valid id"),
+        ExtensionKind::Plugin,
+        source(ExtensionSourceKind::LocalPath, "/tmp/plugin.alpha"),
+        true,
+        Some("0.1.0".to_string()),
+        ExtensionCompatibility::supported(1),
+        vec![capability("example.read")],
+        vec![lease_for("lease-1", "example.read")],
+        ExtensionHealth::healthy("ready"),
+    )
+    .expect("valid plugin");
+    let skill_root = ExtensionRecord::new(
+        ExtensionId::new("skill.root").expect("valid id"),
+        ExtensionKind::SkillRoot,
+        source(ExtensionSourceKind::LocalPath, "/tmp/skill.root"),
+        true,
+        Some("0.1.0".to_string()),
+        ExtensionCompatibility::supported(1),
+        vec![capability("example.read")],
+        Vec::new(),
+        ExtensionHealth::degraded("review token sk-secret before enablement"),
+    )
+    .expect("valid skill root");
+    let mcp_server = ExtensionRecord::new(
+        ExtensionId::new("mcp.docs").expect("valid id"),
+        ExtensionKind::McpServer,
+        source(ExtensionSourceKind::Config, "mcp.docs"),
+        true,
+        Some("9.0.0".to_string()),
+        ExtensionCompatibility::unsupported(9, 1, "api_key sk-secret is too new"),
+        vec![capability("example.read")],
+        vec![lease_for("lease-2", "example.read")],
+        ExtensionHealth::healthy("ready"),
+    )
+    .expect("valid mcp server");
+    let disabled = record("plugin.disabled", ExtensionKind::Plugin, true).disabled();
+    let registry = ExtensionRegistry::new(vec![skill_root, plugin, mcp_server, disabled])
+        .expect("valid registry");
+
+    let report = registry.health_smoke_report();
+    let serialized = serde_json::to_string(&report).expect("report json");
+
+    assert_eq!(report.schema_version, EXTENSION_HEALTH_SMOKE_SCHEMA_VERSION);
+    assert_eq!(report.total_extensions, 4);
+    assert_eq!(
+        serde_json::to_value(&report.by_kind).expect("kind counts"),
+        json!([
+            { "kind": "plugin", "count": 2 },
+            { "kind": "skill_root", "count": 1 },
+            { "kind": "mcp_server", "count": 1 }
+        ])
+    );
+    assert_eq!(
+        serde_json::to_value(&report.by_status).expect("status counts"),
+        json!([
+            { "status": "healthy", "count": 1 },
+            { "status": "degraded", "count": 1 },
+            { "status": "unhealthy", "count": 1 },
+            { "status": "disabled", "count": 1 },
+            { "status": "unknown", "count": 0 }
+        ])
+    );
+    assert!(
+        report
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "extension.unsupported_compatibility")
+    );
+    assert!(
+        report
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "extension.capability_review_required")
+    );
+    assert_eq!(
+        report.next_actions,
+        vec![
+            "extension.enable_when_ready".to_string(),
+            "extension.inspect_unhealthy".to_string(),
+            "extension.review_capabilities".to_string()
+        ]
+    );
+    assert!(serialized.contains("[redacted]"));
+    assert!(!serialized.contains("sk-secret"));
+    assert!(!serialized.contains("api_key"));
+    assert!(!serialized.contains("token"));
+}
+
+#[test]
+fn extension_health_smoke_report_handles_empty_registry() {
+    let registry = ExtensionRegistry::default();
+
+    let report = registry.health_smoke_report();
+
+    assert_eq!(report.total_extensions, 0);
+    assert_eq!(report.next_actions, vec!["extension.add_first"]);
+    assert_eq!(report.diagnostics.len(), 1);
+    assert_eq!(report.diagnostics[0].code, "extension.none_configured");
+    assert_eq!(
+        report.diagnostics[0].severity,
+        ExtensionHealthSmokeDiagnosticSeverity::Info
+    );
+}
+
+#[test]
+fn extension_health_smoke_report_bounds_diagnostics_and_messages() {
+    let records = (0..24)
+        .map(|index| {
+            ExtensionRecord::new(
+                ExtensionId::new(format!("plugin.noisy-{index:02}")).expect("valid id"),
+                ExtensionKind::Plugin,
+                source(
+                    ExtensionSourceKind::LocalPath,
+                    &format!("/tmp/plugin.noisy-{index:02}"),
+                ),
+                true,
+                Some("0.1.0".to_string()),
+                ExtensionCompatibility::supported(1),
+                vec![capability("example.read")],
+                Vec::new(),
+                ExtensionHealth::unhealthy(format!(
+                    "{} sk-secret token password",
+                    "very long diagnostic message ".repeat(20)
+                )),
+            )
+            .expect("valid noisy record")
+        })
+        .collect::<Vec<_>>();
+    let registry = ExtensionRegistry::new(records).expect("valid registry");
+
+    let report = registry.health_smoke_report();
+    let serialized = serde_json::to_string(&report).expect("report json");
+
+    assert_eq!(
+        report.diagnostics.len(),
+        MAX_EXTENSION_HEALTH_SMOKE_DIAGNOSTICS
+    );
+    assert!(report.diagnostics.iter().any(|diagnostic| diagnostic.code
+        == "extension.diagnostics_truncated"
+        && diagnostic.truncated));
+    assert!(
+        report
+            .diagnostics
+            .iter()
+            .all(|diagnostic| diagnostic.message.chars().count()
+                <= MAX_EXTENSION_HEALTH_SMOKE_MESSAGE_CHARS + 3)
+    );
+    assert!(!serialized.contains("sk-secret"));
+    assert!(!serialized.contains("token"));
+    assert!(!serialized.contains("password"));
 }

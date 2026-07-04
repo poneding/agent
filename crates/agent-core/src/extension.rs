@@ -5,6 +5,10 @@ use agent_types::Timestamp;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+pub const EXTENSION_HEALTH_SMOKE_SCHEMA_VERSION: u32 = 1;
+pub const MAX_EXTENSION_HEALTH_SMOKE_DIAGNOSTICS: usize = 16;
+pub const MAX_EXTENSION_HEALTH_SMOKE_MESSAGE_CHARS: usize = 160;
+
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct ExtensionId(String);
@@ -336,6 +340,205 @@ pub struct ExtensionRegistrySnapshot {
     pub records: Vec<ExtensionRecord>,
 }
 
+impl ExtensionRegistrySnapshot {
+    #[must_use]
+    pub fn health_smoke_report(&self) -> ExtensionHealthSmokeReport {
+        ExtensionHealthSmokeReport::from_records(&self.records)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ExtensionHealthSmokeReport {
+    pub schema_version: u32,
+    pub total_extensions: u32,
+    pub by_kind: Vec<ExtensionHealthKindCount>,
+    pub by_status: Vec<ExtensionHealthStatusCount>,
+    pub diagnostics: Vec<ExtensionHealthSmokeDiagnostic>,
+    pub next_actions: Vec<String>,
+}
+
+impl ExtensionHealthSmokeReport {
+    #[must_use]
+    pub fn from_records(records: &[ExtensionRecord]) -> Self {
+        let mut sorted_records = records.to_vec();
+        sorted_records.sort_by(|left, right| left.id.cmp(&right.id));
+
+        let mut kind_counts = BTreeMap::<ExtensionKind, u32>::new();
+        let mut status_counts = BTreeMap::<ExtensionHealthStatus, u32>::new();
+        for kind in [
+            ExtensionKind::Plugin,
+            ExtensionKind::SkillRoot,
+            ExtensionKind::McpServer,
+        ] {
+            kind_counts.insert(kind, 0);
+        }
+        for status in [
+            ExtensionHealthStatus::Healthy,
+            ExtensionHealthStatus::Degraded,
+            ExtensionHealthStatus::Unhealthy,
+            ExtensionHealthStatus::Disabled,
+            ExtensionHealthStatus::Unknown,
+        ] {
+            status_counts.insert(status, 0);
+        }
+
+        let mut diagnostics = Vec::new();
+        let mut omitted_diagnostics = 0usize;
+        let mut next_actions = BTreeMap::<String, ()>::new();
+
+        if sorted_records.is_empty() {
+            push_extension_health_smoke_diagnostic(
+                &mut diagnostics,
+                &mut omitted_diagnostics,
+                ExtensionHealthSmokeDiagnostic::new(
+                    ExtensionHealthSmokeDiagnosticSeverity::Info,
+                    "extension.none_configured",
+                    "no extensions configured",
+                    None,
+                    false,
+                ),
+            );
+            next_actions.insert("extension.add_first".to_string(), ());
+        }
+
+        for record in &sorted_records {
+            *kind_counts.entry(record.kind).or_insert(0) += 1;
+            *status_counts.entry(record.health.status).or_insert(0) += 1;
+
+            if record.health.status != ExtensionHealthStatus::Healthy {
+                push_extension_health_smoke_diagnostic(
+                    &mut diagnostics,
+                    &mut omitted_diagnostics,
+                    ExtensionHealthSmokeDiagnostic::new(
+                        extension_health_smoke_severity(record.health.status),
+                        format!(
+                            "extension.{}",
+                            extension_health_status_label(record.health.status)
+                        ),
+                        record.health.message.clone(),
+                        Some(record.id.clone()),
+                        false,
+                    ),
+                );
+
+                match record.health.status {
+                    ExtensionHealthStatus::Disabled => {
+                        next_actions.insert("extension.enable_when_ready".to_string(), ());
+                    }
+                    ExtensionHealthStatus::Degraded
+                    | ExtensionHealthStatus::Unhealthy
+                    | ExtensionHealthStatus::Unknown => {
+                        next_actions.insert("extension.inspect_unhealthy".to_string(), ());
+                    }
+                    ExtensionHealthStatus::Healthy => {}
+                }
+            }
+
+            if !record.compatibility.is_supported() {
+                push_extension_health_smoke_diagnostic(
+                    &mut diagnostics,
+                    &mut omitted_diagnostics,
+                    ExtensionHealthSmokeDiagnostic::new(
+                        ExtensionHealthSmokeDiagnosticSeverity::Error,
+                        "extension.unsupported_compatibility",
+                        record.compatibility.summary(),
+                        Some(record.id.clone()),
+                        false,
+                    ),
+                );
+                next_actions.insert("extension.inspect_unhealthy".to_string(), ());
+            }
+
+            for capability in record.declared_capabilities.iter().filter(|capability| {
+                record
+                    .granted_leases
+                    .iter()
+                    .all(|lease| lease.capability_name != capability.name)
+            }) {
+                push_extension_health_smoke_diagnostic(
+                    &mut diagnostics,
+                    &mut omitted_diagnostics,
+                    ExtensionHealthSmokeDiagnostic::new(
+                        ExtensionHealthSmokeDiagnosticSeverity::Warning,
+                        "extension.capability_review_required",
+                        format!(
+                            "capability review required for {} {}",
+                            capability.kind, capability.name
+                        ),
+                        Some(record.id.clone()),
+                        false,
+                    ),
+                );
+                next_actions.insert("extension.review_capabilities".to_string(), ());
+            }
+        }
+
+        append_extension_health_truncation_diagnostic(&mut diagnostics, omitted_diagnostics);
+
+        Self {
+            schema_version: EXTENSION_HEALTH_SMOKE_SCHEMA_VERSION,
+            total_extensions: sorted_records.len() as u32,
+            by_kind: kind_counts
+                .into_iter()
+                .map(|(kind, count)| ExtensionHealthKindCount { kind, count })
+                .collect(),
+            by_status: status_counts
+                .into_iter()
+                .map(|(status, count)| ExtensionHealthStatusCount { status, count })
+                .collect(),
+            diagnostics,
+            next_actions: next_actions.into_keys().collect(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ExtensionHealthKindCount {
+    pub kind: ExtensionKind,
+    pub count: u32,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ExtensionHealthStatusCount {
+    pub status: ExtensionHealthStatus,
+    pub count: u32,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExtensionHealthSmokeDiagnosticSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ExtensionHealthSmokeDiagnostic {
+    pub severity: ExtensionHealthSmokeDiagnosticSeverity,
+    pub code: String,
+    pub message: String,
+    pub extension_id: Option<ExtensionId>,
+    pub truncated: bool,
+}
+
+impl ExtensionHealthSmokeDiagnostic {
+    pub fn new(
+        severity: ExtensionHealthSmokeDiagnosticSeverity,
+        code: impl Into<String>,
+        message: impl Into<String>,
+        extension_id: Option<ExtensionId>,
+        truncated: bool,
+    ) -> Self {
+        Self {
+            severity,
+            code: redact_secret_like_text(&code.into()),
+            message: bound_extension_health_smoke_message(&message.into()),
+            extension_id,
+            truncated,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct ExtensionRegistry {
     records: BTreeMap<ExtensionId, ExtensionRecord>,
@@ -387,6 +590,11 @@ impl ExtensionRegistry {
         ExtensionRegistrySnapshot {
             records: self.list(),
         }
+    }
+
+    #[must_use]
+    pub fn health_smoke_report(&self) -> ExtensionHealthSmokeReport {
+        self.snapshot().health_smoke_report()
     }
 }
 
@@ -452,4 +660,76 @@ fn is_secret_like(value: &str) -> bool {
         || value.contains("password")
         || value.contains("api_key")
         || value.contains("apikey")
+}
+
+fn extension_health_status_label(status: ExtensionHealthStatus) -> &'static str {
+    match status {
+        ExtensionHealthStatus::Healthy => "healthy",
+        ExtensionHealthStatus::Degraded => "degraded",
+        ExtensionHealthStatus::Unhealthy => "unhealthy",
+        ExtensionHealthStatus::Disabled => "disabled",
+        ExtensionHealthStatus::Unknown => "unknown",
+    }
+}
+
+fn extension_health_smoke_severity(
+    status: ExtensionHealthStatus,
+) -> ExtensionHealthSmokeDiagnosticSeverity {
+    match status {
+        ExtensionHealthStatus::Unhealthy => ExtensionHealthSmokeDiagnosticSeverity::Error,
+        ExtensionHealthStatus::Degraded | ExtensionHealthStatus::Unknown => {
+            ExtensionHealthSmokeDiagnosticSeverity::Warning
+        }
+        ExtensionHealthStatus::Disabled | ExtensionHealthStatus::Healthy => {
+            ExtensionHealthSmokeDiagnosticSeverity::Info
+        }
+    }
+}
+
+fn bound_extension_health_smoke_message(value: &str) -> String {
+    let value = redact_secret_like_text(value);
+    let mut chars = value.chars();
+    let bounded = chars
+        .by_ref()
+        .take(MAX_EXTENSION_HEALTH_SMOKE_MESSAGE_CHARS)
+        .collect::<String>();
+    if chars.next().is_some() {
+        format!("{bounded}...")
+    } else {
+        bounded
+    }
+}
+
+fn push_extension_health_smoke_diagnostic(
+    diagnostics: &mut Vec<ExtensionHealthSmokeDiagnostic>,
+    omitted_diagnostics: &mut usize,
+    diagnostic: ExtensionHealthSmokeDiagnostic,
+) {
+    if diagnostics.len() < MAX_EXTENSION_HEALTH_SMOKE_DIAGNOSTICS {
+        diagnostics.push(diagnostic);
+    } else {
+        *omitted_diagnostics += 1;
+    }
+}
+
+fn append_extension_health_truncation_diagnostic(
+    diagnostics: &mut Vec<ExtensionHealthSmokeDiagnostic>,
+    omitted_diagnostics: usize,
+) {
+    if omitted_diagnostics == 0 {
+        return;
+    }
+
+    let mut total_omitted = omitted_diagnostics;
+    if diagnostics.len() == MAX_EXTENSION_HEALTH_SMOKE_DIAGNOSTICS {
+        diagnostics.pop();
+        total_omitted += 1;
+    }
+    diagnostics.push(ExtensionHealthSmokeDiagnostic::new(
+        ExtensionHealthSmokeDiagnosticSeverity::Warning,
+        "extension.diagnostics_truncated",
+        format!("{total_omitted} extension health diagnostics omitted"),
+        None,
+        true,
+    ));
 }

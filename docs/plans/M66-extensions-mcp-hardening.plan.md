@@ -114,11 +114,11 @@ Presentation layers render typed contracts only.
 - Create: `docs/plans/M66-06-hardening-docs-closeout.plan.md`
 - Modify: README, roadmap, milestone docs, extension docs.
 
-- [ ] **Step 1: Document extension workflows**
+- [x] **Step 1: Document extension workflows**
 
 Document plugin, skill, MCP management, health, compatibility, support, and OAuth expectations.
 
-- [ ] **Step 2: Run final M66 gates**
+- [x] **Step 2: Run final M66 gates**
 
 Run repo standard gates plus focused extension/MCP/support checks.
 
@@ -127,7 +127,7 @@ Run repo standard gates plus focused extension/MCP/support checks.
 **Files:**
 - Modify/create only files for the active slice and required status docs.
 
-- [ ] **Step 1: Commit M66 planning**
+- [x] **Step 1: Commit M66 planning**
 
 Suggested commit message:
 
@@ -135,6 +135,6 @@ Suggested commit message:
 docs: add m66 extensions hardening plan
 ```
 
-- [ ] **Step 2: Commit each implementation slice**
+- [x] **Step 2: Commit each implementation slice**
 
 Exact-stage slice files, code, tests, docs, and status updates only.

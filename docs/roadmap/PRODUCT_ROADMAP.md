@@ -221,7 +221,7 @@ Acceptance:
 
 ### M62 Reliability and Recovery Productization
 
-Status: Complete. M62-01 recovery snapshot and resume contracts, M62-02 CLI/JSON replay/resume/fork commands, M62-03 idempotent retry UX, M62-04 conflict diagnostics, and M62-05 deterministic crash smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M63 Worktree and Agent Team Workflows is the next active milestone.
+Status: Complete. M62-01 recovery snapshot and resume contracts, M62-02 CLI/JSON replay/resume/fork commands, M62-03 idempotent retry UX, M62-04 conflict diagnostics, and M62-05 deterministic crash smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M63 Worktree and Agent Team Workflows followed this milestone.
 
 Purpose: make real coding work recoverable after interruption, crashes, conflicts, and retryable failures.
 
@@ -246,7 +246,7 @@ Acceptance:
 
 ### M63 Worktree and Agent Team Workflows
 
-Status: Complete. M63-01 team workflow snapshot/readiness contracts, M63-02 CLI/JSON team workflow commands, M63-03 reviewer/merge-readiness blockers, M63-04 TUI/Desktop team surfaces, and M63-05 team workflow smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M64 Memory and Personalization is the next active milestone.
+Status: Complete. M63-01 team workflow snapshot/readiness contracts, M63-02 CLI/JSON team workflow commands, M63-03 reviewer/merge-readiness blockers, M63-04 TUI/Desktop team surfaces, and M63-05 team workflow smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M64 Memory and Personalization followed this milestone.
 
 Purpose: productize safe parallel implementation and review over the existing M09 worktree/team foundations and the M62 recovery/conflict baseline.
 
@@ -270,7 +270,7 @@ Acceptance:
 
 ### M64 Memory and Personalization
 
-Status: Complete. M64-01 memory product snapshot/privacy contracts, M64-02 CLI/JSON memory review commands, M64-03 runtime memory influence/proposal loop, M64-04 TUI/Desktop memory surfaces, and M64-05 deterministic memory smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m64-dev cargo clippy --workspace --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m64-dev cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M65 Packaging, Release, and Beta Gate is the next active milestone.
+Status: Complete. M64-01 memory product snapshot/privacy contracts, M64-02 CLI/JSON memory review commands, M64-03 runtime memory influence/proposal loop, M64-04 TUI/Desktop memory surfaces, and M64-05 deterministic memory smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m64-dev cargo clippy --workspace --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m64-dev cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M65 Packaging, Release, and Beta Gate followed this milestone.
 
 Purpose: make memory useful, reviewable, privacy-safe, and visible in product workflows rather than only available as lower-level storage/retrieval contracts.
 
@@ -294,7 +294,7 @@ Acceptance:
 
 ### M65 Packaging, Release, and Beta Gate
 
-Status: Complete. M65 milestone planning, M65-01 release baseline/beta gate contracts, M65-02 CLI package/install smoke, M65-03 Desktop bundle/update smoke, M65-04 settings/secrets/migration onboarding, M65-05 support bundle evidence, and M65-06 beta gate docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m65-dev cargo clippy --workspace --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m65-dev cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, `cargo xtask eval`, `cargo xtask package-cli --channel dev`, `cargo xtask package-desktop --channel dev`, `cargo xtask support-bundle --channel dev`, and `git diff --check`. M66 Extensions and MCP Hardening is the next active milestone.
+Status: Complete. M65 milestone planning, M65-01 release baseline/beta gate contracts, M65-02 CLI package/install smoke, M65-03 Desktop bundle/update smoke, M65-04 settings/secrets/migration onboarding, M65-05 support bundle evidence, and M65-06 beta gate docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m65-dev cargo clippy --workspace --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m65-dev cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, `cargo xtask eval`, `cargo xtask package-cli --channel dev`, `cargo xtask package-desktop --channel dev`, `cargo xtask support-bundle --channel dev`, and `git diff --check`. M66 Extensions and MCP Hardening is also complete.
 
 Purpose: prepare a beta users can install, configure, diagnose, and trust.
 
@@ -319,7 +319,7 @@ Acceptance:
 
 ### M66 Extensions and MCP Hardening
 
-Status: Active. M66 milestone planning, M66-01 extension health baseline smoke, M66-02 plugin/skill management hardening, M66-03 MCP management compatibility health, M66-04 OAuth workflow decision, and M66-05 CLI/Desktop extension support evidence are complete after M65 beta gate closeout. M66 resumes extension work only where it improves installable user workflows for plugins, skills, and MCP servers. M66-06 Hardening Docs and Closeout is the next implementation slice.
+Status: Complete. M66 milestone planning, M66-01 extension health baseline smoke, M66-02 plugin/skill management hardening, M66-03 MCP management compatibility health, M66-04 OAuth workflow decision, M66-05 CLI/Desktop extension support evidence, and M66-06 hardening docs/closeout are complete after M65 beta gate closeout. Final closeout gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m66-dev cargo clippy --workspace --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m66-dev cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, `cargo xtask eval`, `cargo xtask support-bundle --channel dev`, and `git diff --check`.
 
 Purpose: make extension management, health, compatibility, and support evidence product-ready without restarting open-ended MCP protocol expansion.
 
@@ -332,7 +332,7 @@ Initial slices:
 | M66-03 MCP Management and Compatibility Health | Complete: MCP status health report exposes initialization, no-export, and capability/export mismatch diagnostics through typed CLI JSON/text output. |
 | M66-04 OAuth Completion for Installable MCP Workflows | Complete: no new OAuth code is required for current installable workflows; existing OAuth foundations are documented and product UI/token-storage work remains deferred until a workflow needs it. |
 | M66-05 CLI/Desktop Extension Surfaces and Support Evidence | Complete: support bundle manifests include extension health summary evidence and Desktop diagnostics render severity/truncation from typed snapshots. |
-| M66-06 Hardening Docs and Closeout | Planned: document plugin, skill, and MCP workflows, run final gates, and close M66. |
+| M66-06 Hardening Docs and Closeout | Complete: extension management workflows are documented, support/OAuth boundaries are explicit, final gates passed, and M66 is closed. |
 
 Acceptance:
 

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "id": "default-regression",
+  "name": "Default regression",
+  "default_strictness": "strict",
+  "scenarios": [
+    {
+      "path": "scenarios/m04-replay.eval.json",
+      "alias": "m04-replay",
+      "labels": ["default", "replay", "smoke"]
+    },
+    {
+      "path": "scenarios/m04-evidence.eval.json",
+      "alias": "m04-evidence",
+      "labels": ["default", "evidence", "smoke"]
+    },
+    {
+      "path": "scenarios/m56-golden-path.eval.json",
+      "alias": "m56-golden-path",
+      "labels": ["default", "coding", "m56", "smoke"]
+    },
+    {
+      "path": "scenarios/m58-context-quality.eval.json",
+      "alias": "m58-context-quality",
+      "labels": ["default", "context", "m58", "smoke"]
+    },
+    {
+      "path": "scenarios/m62-recovery-crash-smoke.eval.json",
+      "alias": "m62-recovery-crash-smoke",
+      "labels": ["default", "recovery", "m62", "smoke"]
+    },
+    {
+      "path": "scenarios/m63-team-workflow-smoke.eval.json",
+      "alias": "m63-team-workflow-smoke",
+      "labels": ["default", "team", "m63", "smoke"]
+    },
+    {
+      "path": "scenarios/m64-memory-smoke.eval.json",
+      "alias": "m64-memory-smoke",
+      "labels": ["default", "memory", "m64", "smoke"]
+    }
+  ]
+}

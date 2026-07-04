@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "default-m63-team-workflow-smoke",
+  "name": "M63 team workflow smoke",
+  "kind": "team_workflow_smoke",
+  "fixtures": {},
+  "permissions": {
+    "allow_network": false,
+    "allow_writes": false,
+    "allowed_commands": [],
+    "env": []
+  },
+  "expectations": {
+    "expected_status": "passed",
+    "team_workflow": {
+      "min_worktree_count": 4,
+      "min_handoff_count": 4,
+      "min_blackboard_entry_count": 8,
+      "min_conflict_count": 1,
+      "min_merge_blocker_count": 3,
+      "require_capability_reduction": true,
+      "require_policy_blocked": true,
+      "require_conflict_blocker": true,
+      "require_review_blocker": true,
+      "require_redaction": true
+    },
+    "golden": "goldens/default-m63-team-workflow-smoke.golden.json"
+  },
+  "metadata": {
+    "milestone": "M63",
+    "surface": "team-workflow"
+  }
+}

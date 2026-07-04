@@ -1,0 +1,40 @@
+[workspace]
+members = [
+    "crates/agent-types",
+    "crates/agent-model",
+    "crates/agent-storage",
+    "crates/agent-telemetry",
+    "crates/agent-eval",
+    "crates/agent-core",
+    "crates/agent-tool",
+    "crates/agent-policy",
+    "crates/agent-sandbox",
+    "crates/agent-scheduler",
+    "crates/agent-worktree",
+    "crates/agent-team",
+    "crates/agent-context",
+    "crates/agent-memory",
+    "crates/agent-mcp",
+    "crates/agent-skill",
+    "crates/agent-plugin",
+    "crates/agent-ui-bridge",
+    "crates/agent-desktop",
+    "crates/agent-cli",
+    "crates/agent-tui",
+    "apps/desktop/src-tauri",
+    "xtask",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+authors = ["Pone Ding <poneding@gmail.com>"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"

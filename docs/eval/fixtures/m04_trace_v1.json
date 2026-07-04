@@ -1,0 +1,269 @@
+{
+  "fixture_schema_version": 1,
+  "fixture_name": "m04_trace_v1",
+  "description": "M04 trace with a permissioned tool call, checkpoint, final response, and turn completion.",
+  "events": [
+    {
+      "schema_version": 1,
+      "id": "00000000-0000-0000-0000-000000000101",
+      "seq": 1,
+      "occurred_at": "2026-06-25T00:00:00Z",
+      "workspace_id": "00000000-0000-0000-0000-000000000201",
+      "conversation_id": "00000000-0000-0000-0000-000000000301",
+      "turn_id": "00000000-0000-0000-0000-000000000401",
+      "task_id": null,
+      "agent_id": null,
+      "team_id": null,
+      "actor": {
+        "kind": "system",
+        "id": "system",
+        "display_name": "system"
+      },
+      "correlation_id": "00000000-0000-0000-0000-000000000501",
+      "causation_id": null,
+      "payload": {
+        "type": "user_input_received",
+        "data": {
+          "message": "Inspect README.md"
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "00000000-0000-0000-0000-000000000102",
+      "seq": 2,
+      "occurred_at": "2026-06-25T00:00:01Z",
+      "workspace_id": "00000000-0000-0000-0000-000000000201",
+      "conversation_id": "00000000-0000-0000-0000-000000000301",
+      "turn_id": "00000000-0000-0000-0000-000000000401",
+      "task_id": null,
+      "agent_id": null,
+      "team_id": null,
+      "actor": {
+        "kind": "system",
+        "id": "system",
+        "display_name": "system"
+      },
+      "correlation_id": "00000000-0000-0000-0000-000000000501",
+      "causation_id": "00000000-0000-0000-0000-000000000101",
+      "payload": {
+        "type": "tool_call_proposed",
+        "data": {
+          "call_id": "call-readme",
+          "tool_name": "workspace.read_file",
+          "input_json": {
+            "path": "README.md"
+          }
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "00000000-0000-0000-0000-000000000103",
+      "seq": 3,
+      "occurred_at": "2026-06-25T00:00:02Z",
+      "workspace_id": "00000000-0000-0000-0000-000000000201",
+      "conversation_id": "00000000-0000-0000-0000-000000000301",
+      "turn_id": "00000000-0000-0000-0000-000000000401",
+      "task_id": null,
+      "agent_id": null,
+      "team_id": null,
+      "actor": {
+        "kind": "system",
+        "id": "system",
+        "display_name": "system"
+      },
+      "correlation_id": "00000000-0000-0000-0000-000000000501",
+      "causation_id": "00000000-0000-0000-0000-000000000102",
+      "payload": {
+        "type": "permission_decision_recorded",
+        "data": {
+          "request_id": "request-readme",
+          "decision": "allow",
+          "reason": "read-only workspace path"
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "00000000-0000-0000-0000-000000000104",
+      "seq": 4,
+      "occurred_at": "2026-06-25T00:00:03Z",
+      "workspace_id": "00000000-0000-0000-0000-000000000201",
+      "conversation_id": "00000000-0000-0000-0000-000000000301",
+      "turn_id": "00000000-0000-0000-0000-000000000401",
+      "task_id": null,
+      "agent_id": null,
+      "team_id": null,
+      "actor": {
+        "kind": "system",
+        "id": "system",
+        "display_name": "system"
+      },
+      "correlation_id": "00000000-0000-0000-0000-000000000501",
+      "causation_id": "00000000-0000-0000-0000-000000000103",
+      "payload": {
+        "type": "tool_execution_started",
+        "data": {
+          "call_id": "call-readme",
+          "tool_name": "workspace.read_file"
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "00000000-0000-0000-0000-000000000105",
+      "seq": 5,
+      "occurred_at": "2026-06-25T00:00:04Z",
+      "workspace_id": "00000000-0000-0000-0000-000000000201",
+      "conversation_id": "00000000-0000-0000-0000-000000000301",
+      "turn_id": "00000000-0000-0000-0000-000000000401",
+      "task_id": null,
+      "agent_id": null,
+      "team_id": null,
+      "actor": {
+        "kind": "system",
+        "id": "system",
+        "display_name": "system"
+      },
+      "correlation_id": "00000000-0000-0000-0000-000000000501",
+      "causation_id": "00000000-0000-0000-0000-000000000104",
+      "payload": {
+        "type": "tool_execution_completed",
+        "data": {
+          "call_id": "call-readme",
+          "output_json": {
+            "content": "# agent\n"
+          }
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "00000000-0000-0000-0000-000000000106",
+      "seq": 6,
+      "occurred_at": "2026-06-25T00:00:05Z",
+      "workspace_id": "00000000-0000-0000-0000-000000000201",
+      "conversation_id": "00000000-0000-0000-0000-000000000301",
+      "turn_id": "00000000-0000-0000-0000-000000000401",
+      "task_id": null,
+      "agent_id": null,
+      "team_id": null,
+      "actor": {
+        "kind": "system",
+        "id": "system",
+        "display_name": "system"
+      },
+      "correlation_id": "00000000-0000-0000-0000-000000000501",
+      "causation_id": "00000000-0000-0000-0000-000000000105",
+      "payload": {
+        "type": "tool_observation_recorded",
+        "data": {
+          "call_id": "call-readme",
+          "observation": "read README.md"
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "00000000-0000-0000-0000-000000000107",
+      "seq": 7,
+      "occurred_at": "2026-06-25T00:00:06Z",
+      "workspace_id": "00000000-0000-0000-0000-000000000201",
+      "conversation_id": "00000000-0000-0000-0000-000000000301",
+      "turn_id": "00000000-0000-0000-0000-000000000401",
+      "task_id": null,
+      "agent_id": null,
+      "team_id": null,
+      "actor": {
+        "kind": "system",
+        "id": "system",
+        "display_name": "system"
+      },
+      "correlation_id": "00000000-0000-0000-0000-000000000501",
+      "causation_id": "00000000-0000-0000-0000-000000000106",
+      "payload": {
+        "type": "checkpoint_recorded",
+        "data": {
+          "checkpoint_id": "00000000-0000-0000-0000-000000000601",
+          "label": "after read"
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "00000000-0000-0000-0000-000000000108",
+      "seq": 8,
+      "occurred_at": "2026-06-25T00:00:07Z",
+      "workspace_id": "00000000-0000-0000-0000-000000000201",
+      "conversation_id": "00000000-0000-0000-0000-000000000301",
+      "turn_id": "00000000-0000-0000-0000-000000000401",
+      "task_id": null,
+      "agent_id": null,
+      "team_id": null,
+      "actor": {
+        "kind": "system",
+        "id": "system",
+        "display_name": "system"
+      },
+      "correlation_id": "00000000-0000-0000-0000-000000000501",
+      "causation_id": "00000000-0000-0000-0000-000000000107",
+      "payload": {
+        "type": "final_response_produced",
+        "data": {
+          "message": "README inspected."
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "00000000-0000-0000-0000-000000000109",
+      "seq": 9,
+      "occurred_at": "2026-06-25T00:00:08Z",
+      "workspace_id": "00000000-0000-0000-0000-000000000201",
+      "conversation_id": "00000000-0000-0000-0000-000000000301",
+      "turn_id": "00000000-0000-0000-0000-000000000401",
+      "task_id": null,
+      "agent_id": null,
+      "team_id": null,
+      "actor": {
+        "kind": "system",
+        "id": "system",
+        "display_name": "system"
+      },
+      "correlation_id": "00000000-0000-0000-0000-000000000501",
+      "causation_id": "00000000-0000-0000-0000-000000000108",
+      "payload": {
+        "type": "turn_completed",
+        "data": {
+          "final_state": "done",
+          "summary": "README inspected with permissioned tool call."
+        }
+      }
+    }
+  ],
+  "checkpoints": [
+    {
+      "checkpoint_id": "00000000-0000-0000-0000-000000000601",
+      "conversation_id": "00000000-0000-0000-0000-000000000301",
+      "turn_id": "00000000-0000-0000-0000-000000000401",
+      "label": "after read",
+      "event_seq": 7,
+      "state_json": {
+        "turn_state": "observed",
+        "completed_call_ids": ["call-readme"]
+      },
+      "schema_version": 1,
+      "created_at": "2026-06-25T00:00:06Z"
+    }
+  ],
+  "expected": {
+    "conversation_id": "00000000-0000-0000-0000-000000000301",
+    "turn_id": "00000000-0000-0000-0000-000000000401",
+    "event_count": 9,
+    "checkpoint_count": 1,
+    "final_response": "README inspected.",
+    "final_summary": "README inspected with permissioned tool call.",
+    "audit_event_count": 5
+  }
+}

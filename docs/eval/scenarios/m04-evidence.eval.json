@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "default-m04-evidence",
+  "name": "Default M04 evidence bundle",
+  "kind": "evidence_only",
+  "fixtures": {
+    "evidence_bundle": "fixtures/m04_evidence.json"
+  },
+  "permissions": {},
+  "expectations": {
+    "expected_status": "passed",
+    "golden": "goldens/default-m04-evidence.golden.json"
+  },
+  "metadata": {
+    "corpus": "default",
+    "milestone": "m04"
+  }
+}

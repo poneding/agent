@@ -1,0 +1,15 @@
+{
+  "diagnostics": [],
+  "evidence_summary": {
+    "audit_records": 4,
+    "checkpoint_count": 4,
+    "diagnostics": 0,
+    "event_count": 4,
+    "replayable": true,
+    "source": "team_workflow_smoke",
+    "telemetry_records": 4,
+    "trace_entries": 8
+  },
+  "scenario_id": "default-m63-team-workflow-smoke",
+  "status": "passed"
+}

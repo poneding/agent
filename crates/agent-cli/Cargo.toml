@@ -1,0 +1,45 @@
+[package]
+name = "agent-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "agent"
+path = "src/bin/agent.rs"
+
+[[bin]]
+name = "agent-cli"
+path = "src/bin/agent-cli.rs"
+
+[dependencies]
+agent-context = { path = "../agent-context" }
+agent-core = { path = "../agent-core" }
+agent-eval = { path = "../agent-eval" }
+agent-memory = { path = "../agent-memory" }
+agent-mcp = { path = "../agent-mcp" }
+agent-model = { path = "../agent-model" }
+agent-plugin = { path = "../agent-plugin" }
+agent-policy = { path = "../agent-policy" }
+agent-scheduler = { path = "../agent-scheduler" }
+agent-skill = { path = "../agent-skill" }
+agent-storage = { path = "../agent-storage" }
+agent-team = { path = "../agent-team" }
+agent-types = { path = "../agent-types" }
+agent-tui = { path = "../agent-tui" }
+agent-ui-bridge = { path = "../agent-ui-bridge" }
+agent-worktree = { path = "../agent-worktree" }
+camino = { version = "1" }
+futures-util = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["rt"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

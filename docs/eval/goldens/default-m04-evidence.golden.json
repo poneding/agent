@@ -1,0 +1,14 @@
+{
+  "scenario_id": "default-m04-evidence",
+  "status": "passed",
+  "evidence_summary": {
+    "source": "evidence_bundle",
+    "event_count": 9,
+    "checkpoint_count": 1,
+    "trace_entries": 0,
+    "audit_records": 0,
+    "telemetry_records": 0,
+    "replayable": true,
+    "diagnostics": 0
+  }
+}

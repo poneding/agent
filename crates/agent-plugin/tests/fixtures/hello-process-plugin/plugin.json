@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "name": "hello-plugin",
+  "version": "0.1.0",
+  "runtime_compatibility": {
+    "min_agent_version": "0.1.0",
+    "api_version": 1
+  },
+  "isolation": {
+    "mode": "process",
+    "entrypoint": "plugin.sh"
+  },
+  "capabilities": [
+    {
+      "kind": "tool",
+      "name": "hello.read",
+      "permissions": ["fs.read"]
+    }
+  ],
+  "tools": [
+    {
+      "name": "hello.read",
+      "description": "Read hello fixture data.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" }
+        },
+        "required": ["path"],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "content": { "type": "string" }
+        },
+        "required": ["content"],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "hooks": [],
+  "configuration_schema": {
+    "type": "object",
+    "additionalProperties": false
+  }
+}

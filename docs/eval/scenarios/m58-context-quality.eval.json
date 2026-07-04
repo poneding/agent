@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "id": "default-m58-context-quality",
+  "name": "Default M58 context quality",
+  "kind": "context_quality",
+  "fixtures": {
+    "workspace": "fixtures/m58-context-quality-workspace"
+  },
+  "permissions": {},
+  "expectations": {
+    "expected_status": "passed",
+    "context_quality": {
+      "task": "command palette",
+      "required_selected_paths": [
+        "src/command.rs"
+      ],
+      "required_pinned_paths": [
+        "README.md"
+      ],
+      "max_diagnostics": 0,
+      "require_retrieval_included": true
+    },
+    "golden": "goldens/default-m58-context-quality.golden.json"
+  },
+  "metadata": {
+    "corpus": "default",
+    "milestone": "m58"
+  }
+}

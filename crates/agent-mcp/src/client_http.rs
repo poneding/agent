@@ -1,0 +1,3927 @@
+use std::collections::{BTreeMap, VecDeque};
+use std::fmt;
+use std::time::Duration;
+
+use async_trait::async_trait;
+use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
+use tokio::sync::Mutex;
+use url::Url;
+
+use crate::{
+    MCP_SERVER_PROTOCOL_VERSION, McpClient, McpClientRootProvider, McpEnvValue, McpError,
+    McpGatewayClient, McpInitializeResult, McpJsonRpcFailure, McpJsonRpcId, McpJsonRpcSuccess,
+    McpRootListResult, McpServerCapabilities, McpServerConfig, McpServerId, McpServerMethod,
+    McpToolCallRequest, McpToolCallResult, McpToolDescriptor, McpToolListResult,
+    McpTransportConfig,
+};
+
+const MAX_CLIENT_HTTP_BODY_BYTES: usize = 256 * 1024;
+const MAX_CLIENT_HTTP_MESSAGE_CHARS: usize = 256;
+const MAX_CLIENT_HTTP_METADATA_VALUE_CHARS: usize = 256;
+const MAX_CLIENT_HTTP_SSE_EVENT_DATA_BYTES: usize = 64 * 1024;
+const MIN_CLIENT_HTTP_OAUTH_PKCE_VERIFIER_CHARS: usize = 43;
+const MAX_CLIENT_HTTP_OAUTH_PKCE_VERIFIER_CHARS: usize = 128;
+const MIN_CLIENT_HTTP_OAUTH_STATE_CHARS: usize = 16;
+const MAX_CLIENT_HTTP_OAUTH_STATE_CHARS: usize = 256;
+
+const MCP_CLIENT_HTTP_SESSION_ID_HEADER_CANONICAL: &str = "Mcp-Session-Id";
+const MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER_CANONICAL: &str = "MCP-Protocol-Version";
+const MCP_CLIENT_HTTP_LAST_EVENT_ID_HEADER_CANONICAL: &str = "Last-Event-ID";
+const MCP_CLIENT_HTTP_SESSION_ID_HEADER: &str = "mcp-session-id";
+const MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER: &str = "mcp-protocol-version";
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpResponseFrame {
+    Success(McpJsonRpcSuccess),
+    Failure(McpJsonRpcFailure),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpSseEvent {
+    pub event: Option<String>,
+    pub id: Option<String>,
+    pub retry_ms: Option<u64>,
+    pub data: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpSseResponse {
+    pub events: Vec<McpClientHttpSseEvent>,
+}
+
+impl McpClientHttpSseResponse {
+    #[must_use]
+    pub const fn new(events: Vec<McpClientHttpSseEvent>) -> Self {
+        Self { events }
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpSessionMetadata {
+    pub session_id: Option<String>,
+    pub protocol_version: Option<String>,
+    pub last_event_id: Option<String>,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthMetadata {
+    pub issuer: Option<String>,
+    pub authorization_endpoint: Option<String>,
+    pub token_endpoint: Option<String>,
+    pub registration_endpoint: Option<String>,
+    pub scopes_supported: Vec<String>,
+    pub token_endpoint_auth_methods_supported: Vec<String>,
+}
+
+impl McpClientHttpOAuthMetadata {
+    pub fn validate(&self) -> Result<(), McpError> {
+        validate_optional_mcp_client_http_oauth_url(self.issuer.as_deref())
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        validate_optional_mcp_client_http_oauth_url(self.authorization_endpoint.as_deref())
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        validate_optional_mcp_client_http_oauth_url(self.token_endpoint.as_deref())
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        validate_optional_mcp_client_http_oauth_url(self.registration_endpoint.as_deref())
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        validate_mcp_client_http_oauth_tokens(&self.scopes_supported)
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        validate_mcp_client_http_oauth_tokens(&self.token_endpoint_auth_methods_supported)
+            .map_err(|_| invalid_mcp_client_http_oauth_metadata())?;
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpProtectedResourceMetadata {
+    pub resource: Option<String>,
+    pub authorization_servers: Vec<String>,
+    pub scopes_supported: Vec<String>,
+}
+
+impl McpClientHttpProtectedResourceMetadata {
+    pub fn validate(&self) -> Result<(), McpError> {
+        validate_optional_mcp_client_http_oauth_url(self.resource.as_deref())
+            .map_err(|_| invalid_mcp_client_http_protected_resource_metadata())?;
+        for authorization_server in &self.authorization_servers {
+            validate_mcp_client_http_oauth_url(authorization_server)
+                .map_err(|_| invalid_mcp_client_http_protected_resource_metadata())?;
+        }
+        validate_mcp_client_http_oauth_tokens(&self.scopes_supported)
+            .map_err(|_| invalid_mcp_client_http_protected_resource_metadata())?;
+        Ok(())
+    }
+}
+
+pub fn parse_mcp_client_http_oauth_metadata_json(
+    value: &Value,
+) -> Result<McpClientHttpOAuthMetadata, McpError> {
+    let value = value
+        .as_object()
+        .ok_or_else(invalid_mcp_client_http_oauth_metadata)?;
+    let metadata = McpClientHttpOAuthMetadata {
+        issuer: optional_mcp_client_http_oauth_string_field(
+            value,
+            "issuer",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+        authorization_endpoint: optional_mcp_client_http_oauth_string_field(
+            value,
+            "authorization_endpoint",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+        token_endpoint: optional_mcp_client_http_oauth_string_field(
+            value,
+            "token_endpoint",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+        registration_endpoint: optional_mcp_client_http_oauth_string_field(
+            value,
+            "registration_endpoint",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+        scopes_supported: optional_mcp_client_http_oauth_string_array_field(
+            value,
+            "scopes_supported",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+        token_endpoint_auth_methods_supported: optional_mcp_client_http_oauth_string_array_field(
+            value,
+            "token_endpoint_auth_methods_supported",
+            invalid_mcp_client_http_oauth_metadata,
+        )?,
+    };
+    metadata.validate()?;
+    Ok(metadata)
+}
+
+pub fn parse_mcp_client_http_protected_resource_metadata_json(
+    value: &Value,
+) -> Result<McpClientHttpProtectedResourceMetadata, McpError> {
+    let value = value
+        .as_object()
+        .ok_or_else(invalid_mcp_client_http_protected_resource_metadata)?;
+    let metadata = McpClientHttpProtectedResourceMetadata {
+        resource: optional_mcp_client_http_oauth_string_field(
+            value,
+            "resource",
+            invalid_mcp_client_http_protected_resource_metadata,
+        )?,
+        authorization_servers: optional_mcp_client_http_oauth_string_array_field(
+            value,
+            "authorization_servers",
+            invalid_mcp_client_http_protected_resource_metadata,
+        )?,
+        scopes_supported: optional_mcp_client_http_oauth_string_array_field(
+            value,
+            "scopes_supported",
+            invalid_mcp_client_http_protected_resource_metadata,
+        )?,
+    };
+    metadata.validate()?;
+    Ok(metadata)
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpAuthorizationDiagnosticSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpAuthorizationDiagnosticCode {
+    AuthorizationReady,
+    AuthorizationHeaderConflict,
+    StreamableHttpRequired,
+    MissingProtectedResourceMetadata,
+    MissingOAuthMetadata,
+    MissingTokenEndpoint,
+    MissingProtectedResourceScopes,
+    MissingOAuthScopes,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpAuthorizationDiagnostic {
+    pub severity: McpClientHttpAuthorizationDiagnosticSeverity,
+    pub code: McpClientHttpAuthorizationDiagnosticCode,
+    pub message: String,
+}
+
+impl McpClientHttpAuthorizationDiagnostic {
+    #[must_use]
+    pub fn new(
+        severity: McpClientHttpAuthorizationDiagnosticSeverity,
+        code: McpClientHttpAuthorizationDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            severity,
+            code,
+            message: message.into(),
+        }
+    }
+
+    #[must_use]
+    pub fn info(
+        code: McpClientHttpAuthorizationDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpAuthorizationDiagnosticSeverity::Info,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn warning(
+        code: McpClientHttpAuthorizationDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpAuthorizationDiagnosticSeverity::Warning,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn error(
+        code: McpClientHttpAuthorizationDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpAuthorizationDiagnosticSeverity::Error,
+            code,
+            message,
+        )
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpAuthorizationReport {
+    pub authorized: bool,
+    pub diagnostics: Vec<McpClientHttpAuthorizationDiagnostic>,
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpAuthorization {
+    pub bearer_token: String,
+}
+
+impl McpClientHttpAuthorization {
+    pub fn new(bearer_token: impl Into<String>) -> Result<Self, McpError> {
+        let bearer_token = bearer_token.into();
+        let bearer_token = bearer_token.trim();
+        if bearer_token.is_empty() || bearer_token.chars().any(char::is_control) {
+            return Err(invalid_mcp_client_http_authorization());
+        }
+        Ok(Self {
+            bearer_token: bearer_token.to_string(),
+        })
+    }
+
+    fn bearer_header_value(&self) -> Result<String, McpError> {
+        Self::new(self.bearer_token.as_str())
+            .map(|authorization| format!("Bearer {}", authorization.bearer_token))
+    }
+}
+
+impl fmt::Debug for McpClientHttpAuthorization {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpAuthorization")
+            .field("bearer_token", &"[redacted]")
+            .finish()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthPkceVerifier {
+    pub verifier: String,
+}
+
+impl McpClientHttpOAuthPkceVerifier {
+    pub fn new(verifier: impl Into<String>) -> Result<Self, McpError> {
+        let verifier = validate_mcp_client_http_oauth_pkce_verifier(&verifier.into())?;
+        Ok(Self { verifier })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(self.verifier.as_str()).map(|_| ())
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthPkceVerifier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthPkceVerifier")
+            .field("verifier", &"[redacted]")
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthPkceChallenge {
+    pub challenge: String,
+    pub method: String,
+}
+
+impl McpClientHttpOAuthPkceChallenge {
+    pub fn s256(verifier: &McpClientHttpOAuthPkceVerifier) -> Result<Self, McpError> {
+        verifier.validate()?;
+        let digest = Sha256::digest(verifier.verifier.as_bytes());
+        Ok(Self {
+            challenge: URL_SAFE_NO_PAD.encode(digest),
+            method: "S256".to_string(),
+        })
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthState {
+    pub state: String,
+}
+
+impl McpClientHttpOAuthState {
+    pub fn new(state: impl Into<String>) -> Result<Self, McpError> {
+        let state = validate_mcp_client_http_oauth_state(&state.into())?;
+        Ok(Self { state })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(self.state.as_str()).map(|_| ())
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthState")
+            .field("state", &"[redacted]")
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthAuthorizationRequestInput {
+    pub client_id: String,
+    pub redirect_uri: String,
+    pub scopes: Vec<String>,
+}
+
+impl McpClientHttpOAuthAuthorizationRequestInput {
+    pub fn new(
+        client_id: impl Into<String>,
+        redirect_uri: impl Into<String>,
+        scopes: Vec<String>,
+    ) -> Result<Self, McpError> {
+        let client_id = validate_mcp_client_http_oauth_client_id(&client_id.into())?;
+        let redirect_uri = validate_mcp_client_http_oauth_redirect_uri(&redirect_uri.into())?;
+        validate_mcp_client_http_oauth_tokens(&scopes)
+            .map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+        Ok(Self {
+            client_id,
+            redirect_uri,
+            scopes,
+        })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(
+            self.client_id.as_str(),
+            self.redirect_uri.as_str(),
+            self.scopes.clone(),
+        )
+        .map(|_| ())
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthAuthorizationRequestPlan {
+    pub authorization_url: String,
+    pub state_id: String,
+    pub code_challenge_method: String,
+    pub scopes: Vec<String>,
+}
+
+pub fn build_mcp_client_http_oauth_authorization_request_plan(
+    metadata: &McpClientHttpOAuthMetadata,
+    input: &McpClientHttpOAuthAuthorizationRequestInput,
+    pkce_challenge: &McpClientHttpOAuthPkceChallenge,
+    state: &McpClientHttpOAuthState,
+) -> Result<McpClientHttpOAuthAuthorizationRequestPlan, McpError> {
+    metadata
+        .validate()
+        .map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+    input.validate()?;
+    validate_mcp_client_http_oauth_pkce_challenge(pkce_challenge)?;
+    state.validate()?;
+
+    let endpoint = metadata
+        .authorization_endpoint
+        .as_deref()
+        .ok_or_else(invalid_mcp_client_http_oauth_flow)?;
+    let mut url = Url::parse(endpoint).map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+    url.set_query(None);
+    url.set_fragment(None);
+    {
+        let mut pairs = url.query_pairs_mut();
+        pairs.append_pair("response_type", "code");
+        pairs.append_pair("client_id", &input.client_id);
+        pairs.append_pair("redirect_uri", &input.redirect_uri);
+        pairs.append_pair("scope", &input.scopes.join(" "));
+        pairs.append_pair("state", &state.state);
+        pairs.append_pair("code_challenge", &pkce_challenge.challenge);
+        pairs.append_pair("code_challenge_method", &pkce_challenge.method);
+    }
+
+    Ok(McpClientHttpOAuthAuthorizationRequestPlan {
+        authorization_url: url.to_string(),
+        state_id: state.state.clone(),
+        code_challenge_method: pkce_challenge.method.clone(),
+        scopes: input.scopes.clone(),
+    })
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthFlowDiagnosticSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthFlowDiagnosticCode {
+    AuthorizationRequestReady,
+    CallbackAccepted,
+    StateMismatch,
+    ProviderError,
+    InvalidCallback,
+    TokenExchangeReady,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthFlowDiagnostic {
+    pub severity: McpClientHttpOAuthFlowDiagnosticSeverity,
+    pub code: McpClientHttpOAuthFlowDiagnosticCode,
+    pub message: String,
+}
+
+impl McpClientHttpOAuthFlowDiagnostic {
+    #[must_use]
+    pub fn new(
+        severity: McpClientHttpOAuthFlowDiagnosticSeverity,
+        code: McpClientHttpOAuthFlowDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            severity,
+            code,
+            message: message.into(),
+        }
+    }
+
+    #[must_use]
+    pub fn info(code: McpClientHttpOAuthFlowDiagnosticCode, message: impl Into<String>) -> Self {
+        Self::new(
+            McpClientHttpOAuthFlowDiagnosticSeverity::Info,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn warning(code: McpClientHttpOAuthFlowDiagnosticCode, message: impl Into<String>) -> Self {
+        Self::new(
+            McpClientHttpOAuthFlowDiagnosticSeverity::Warning,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn error(code: McpClientHttpOAuthFlowDiagnosticCode, message: impl Into<String>) -> Self {
+        Self::new(
+            McpClientHttpOAuthFlowDiagnosticSeverity::Error,
+            code,
+            message,
+        )
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthFlowReport {
+    pub ready: bool,
+    pub diagnostics: Vec<McpClientHttpOAuthFlowDiagnostic>,
+}
+
+#[must_use]
+pub fn build_mcp_client_http_oauth_authorization_flow_report(
+    _plan: &McpClientHttpOAuthAuthorizationRequestPlan,
+) -> McpClientHttpOAuthFlowReport {
+    McpClientHttpOAuthFlowReport {
+        ready: true,
+        diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::info(
+            McpClientHttpOAuthFlowDiagnosticCode::AuthorizationRequestReady,
+            "MCP HTTP OAuth authorization request is ready",
+        )],
+    }
+}
+
+#[must_use]
+pub fn build_mcp_client_http_oauth_token_exchange_flow_report(
+    _request: &McpClientHttpOAuthTokenExchangeRequest,
+) -> McpClientHttpOAuthFlowReport {
+    McpClientHttpOAuthFlowReport {
+        ready: true,
+        diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::info(
+            McpClientHttpOAuthFlowDiagnosticCode::TokenExchangeReady,
+            "MCP HTTP OAuth token exchange request is ready",
+        )],
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthCallbackInput {
+    pub code: Option<String>,
+    pub state: Option<String>,
+    pub error: Option<String>,
+    pub error_description: Option<String>,
+}
+
+impl McpClientHttpOAuthCallbackInput {
+    pub fn new<C, S, E, D>(
+        code: Option<C>,
+        state: Option<S>,
+        error: Option<E>,
+        error_description: Option<D>,
+    ) -> Result<Self, McpError>
+    where
+        C: Into<String>,
+        S: Into<String>,
+        E: Into<String>,
+        D: Into<String>,
+    {
+        Ok(Self {
+            code: normalize_mcp_client_http_oauth_callback_value(code)?,
+            state: normalize_mcp_client_http_oauth_callback_value(state)?,
+            error: normalize_mcp_client_http_oauth_callback_value(error)?,
+            error_description: normalize_mcp_client_http_oauth_callback_value(error_description)?,
+        })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        normalize_mcp_client_http_oauth_callback_value(self.code.as_deref())?;
+        normalize_mcp_client_http_oauth_callback_value(self.state.as_deref())?;
+        normalize_mcp_client_http_oauth_callback_value(self.error.as_deref())?;
+        normalize_mcp_client_http_oauth_callback_value(self.error_description.as_deref())?;
+        Ok(())
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthCallbackInput {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthCallbackInput")
+            .field("code", &redacted_optional_value(self.code.as_ref()))
+            .field("state", &redacted_optional_value(self.state.as_ref()))
+            .field("error", &redacted_optional_value(self.error.as_ref()))
+            .field(
+                "error_description",
+                &redacted_optional_value(self.error_description.as_ref()),
+            )
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum McpClientHttpOAuthCallbackOutcome {
+    Success,
+    ProviderError,
+    StateMismatch,
+    Invalid,
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthCallbackValidation {
+    pub accepted: bool,
+    pub outcome: McpClientHttpOAuthCallbackOutcome,
+    pub code: Option<String>,
+    pub diagnostics: Vec<McpClientHttpOAuthFlowDiagnostic>,
+}
+
+impl fmt::Debug for McpClientHttpOAuthCallbackValidation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthCallbackValidation")
+            .field("accepted", &self.accepted)
+            .field("outcome", &self.outcome)
+            .field("code", &redacted_optional_value(self.code.as_ref()))
+            .field("diagnostics", &self.diagnostics)
+            .finish()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenExchangeRequest {
+    pub token_endpoint: String,
+    pub form: Vec<(String, String)>,
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenExchangeRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let redacted_form = self
+            .form
+            .iter()
+            .map(|(name, _)| (name.as_str(), "[redacted]"))
+            .collect::<Vec<_>>();
+        f.debug_struct("McpClientHttpOAuthTokenExchangeRequest")
+            .field("token_endpoint", &self.token_endpoint)
+            .field("form", &redacted_form)
+            .finish()
+    }
+}
+
+pub fn validate_mcp_client_http_oauth_callback(
+    input: &McpClientHttpOAuthCallbackInput,
+    expected_state: &McpClientHttpOAuthState,
+) -> Result<McpClientHttpOAuthCallbackValidation, McpError> {
+    input.validate()?;
+    expected_state.validate()?;
+
+    if input.state.as_deref() != Some(expected_state.state.as_str()) {
+        return Ok(McpClientHttpOAuthCallbackValidation {
+            accepted: false,
+            outcome: McpClientHttpOAuthCallbackOutcome::StateMismatch,
+            code: None,
+            diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::error(
+                McpClientHttpOAuthFlowDiagnosticCode::StateMismatch,
+                "MCP HTTP OAuth callback state did not match",
+            )],
+        });
+    }
+
+    if input.error.is_some() {
+        return Ok(McpClientHttpOAuthCallbackValidation {
+            accepted: false,
+            outcome: McpClientHttpOAuthCallbackOutcome::ProviderError,
+            code: None,
+            diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::error(
+                McpClientHttpOAuthFlowDiagnosticCode::ProviderError,
+                "MCP HTTP OAuth provider returned an authorization error",
+            )],
+        });
+    }
+
+    let Some(code) = input.code.clone() else {
+        return Ok(McpClientHttpOAuthCallbackValidation {
+            accepted: false,
+            outcome: McpClientHttpOAuthCallbackOutcome::Invalid,
+            code: None,
+            diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::error(
+                McpClientHttpOAuthFlowDiagnosticCode::InvalidCallback,
+                "MCP HTTP OAuth callback did not include an authorization code",
+            )],
+        });
+    };
+
+    Ok(McpClientHttpOAuthCallbackValidation {
+        accepted: true,
+        outcome: McpClientHttpOAuthCallbackOutcome::Success,
+        code: Some(code),
+        diagnostics: vec![McpClientHttpOAuthFlowDiagnostic::info(
+            McpClientHttpOAuthFlowDiagnosticCode::CallbackAccepted,
+            "MCP HTTP OAuth callback was accepted",
+        )],
+    })
+}
+
+pub fn build_mcp_client_http_oauth_token_exchange_request(
+    metadata: &McpClientHttpOAuthMetadata,
+    input: &McpClientHttpOAuthAuthorizationRequestInput,
+    pkce_verifier: &McpClientHttpOAuthPkceVerifier,
+    validation: &McpClientHttpOAuthCallbackValidation,
+) -> Result<McpClientHttpOAuthTokenExchangeRequest, McpError> {
+    metadata
+        .validate()
+        .map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+    input.validate()?;
+    pkce_verifier.validate()?;
+    let token_endpoint = metadata
+        .token_endpoint
+        .as_deref()
+        .ok_or_else(invalid_mcp_client_http_oauth_flow)?;
+    validate_mcp_client_http_oauth_url(token_endpoint)
+        .map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+    let Some(code) = validation.code.as_deref() else {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    };
+    if !validation.accepted || validation.outcome != McpClientHttpOAuthCallbackOutcome::Success {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+
+    Ok(McpClientHttpOAuthTokenExchangeRequest {
+        token_endpoint: token_endpoint.to_string(),
+        form: vec![
+            ("grant_type".to_string(), "authorization_code".to_string()),
+            ("code".to_string(), code.to_string()),
+            ("redirect_uri".to_string(), input.redirect_uri.clone()),
+            ("client_id".to_string(), input.client_id.clone()),
+            ("code_verifier".to_string(), pkce_verifier.verifier.clone()),
+        ],
+    })
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenExchangeHttpRequest {
+    pub token_endpoint: String,
+    pub form: Vec<(String, String)>,
+}
+
+impl McpClientHttpOAuthTokenExchangeHttpRequest {
+    pub fn new(
+        token_endpoint: impl Into<String>,
+        form: Vec<(String, String)>,
+    ) -> Result<Self, McpError> {
+        let token_endpoint = token_endpoint.into();
+        validate_mcp_client_http_oauth_token_exchange_endpoint(&token_endpoint)?;
+        validate_mcp_client_http_oauth_token_exchange_form(&form)?;
+        Ok(Self {
+            token_endpoint: token_endpoint.trim().to_string(),
+            form,
+        })
+    }
+
+    pub fn from_exchange_request(
+        request: &McpClientHttpOAuthTokenExchangeRequest,
+    ) -> Result<Self, McpError> {
+        Self::new(request.token_endpoint.as_str(), request.form.clone())
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(self.token_endpoint.as_str(), self.form.clone()).map(|_| ())
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenExchangeHttpRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let redacted_form = self
+            .form
+            .iter()
+            .map(|(name, _)| (name.as_str(), "[redacted]"))
+            .collect::<Vec<_>>();
+        f.debug_struct("McpClientHttpOAuthTokenExchangeHttpRequest")
+            .field("token_endpoint", &self.token_endpoint)
+            .field("form", &redacted_form)
+            .finish()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenExchangeHttpResponse {
+    pub status: u16,
+    pub body: String,
+}
+
+impl McpClientHttpOAuthTokenExchangeHttpResponse {
+    pub fn new(status: u16, body: impl Into<String>) -> Result<Self, McpError> {
+        validate_mcp_client_http_oauth_token_exchange_status(status)?;
+        Ok(Self {
+            status,
+            body: body.into(),
+        })
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenExchangeHttpResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthTokenExchangeHttpResponse")
+            .field("status", &self.status)
+            .field("body", &"[redacted]")
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthTokenExchangeDiagnosticSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthTokenExchangeDiagnosticCode {
+    TokenExchangeSucceeded,
+    ProviderError,
+    InvalidResponse,
+    TransportFailed,
+    RetryableStatus,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthTokenExchangeDiagnostic {
+    pub severity: McpClientHttpOAuthTokenExchangeDiagnosticSeverity,
+    pub code: McpClientHttpOAuthTokenExchangeDiagnosticCode,
+    pub message: String,
+}
+
+impl McpClientHttpOAuthTokenExchangeDiagnostic {
+    #[must_use]
+    pub fn new(
+        severity: McpClientHttpOAuthTokenExchangeDiagnosticSeverity,
+        code: McpClientHttpOAuthTokenExchangeDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            severity,
+            code,
+            message: message.into(),
+        }
+    }
+
+    #[must_use]
+    pub fn info(
+        code: McpClientHttpOAuthTokenExchangeDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenExchangeDiagnosticSeverity::Info,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn warning(
+        code: McpClientHttpOAuthTokenExchangeDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenExchangeDiagnosticSeverity::Warning,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn error(
+        code: McpClientHttpOAuthTokenExchangeDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenExchangeDiagnosticSeverity::Error,
+            code,
+            message,
+        )
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthTokenExchangeReport {
+    pub exchanged: bool,
+    pub diagnostics: Vec<McpClientHttpOAuthTokenExchangeDiagnostic>,
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenExchangeOutcome {
+    pub report: McpClientHttpOAuthTokenExchangeReport,
+    pub response: Option<McpClientHttpOAuthTokenResponse>,
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenExchangeOutcome {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthTokenExchangeOutcome")
+            .field("report", &self.report)
+            .field("response", &self.response.as_ref().map(|_| "[redacted]"))
+            .finish()
+    }
+}
+
+pub async fn exchange_mcp_client_http_oauth_token<T>(
+    transport: &mut T,
+    request: &McpClientHttpOAuthTokenExchangeRequest,
+) -> Result<McpClientHttpOAuthTokenExchangeOutcome, McpError>
+where
+    T: McpClientHttpOAuthTokenExchangeTransport,
+{
+    let http_request = McpClientHttpOAuthTokenExchangeHttpRequest::from_exchange_request(request)?;
+    let http_response = match transport.exchange_token(http_request).await {
+        Ok(response) => response,
+        Err(_) => {
+            return Ok(McpClientHttpOAuthTokenExchangeOutcome {
+                report: McpClientHttpOAuthTokenExchangeReport {
+                    exchanged: false,
+                    diagnostics: vec![McpClientHttpOAuthTokenExchangeDiagnostic::warning(
+                        McpClientHttpOAuthTokenExchangeDiagnosticCode::TransportFailed,
+                        "MCP HTTP OAuth token exchange transport failed",
+                    )],
+                },
+                response: None,
+            });
+        }
+    };
+
+    if (200..300).contains(&http_response.status) {
+        return match parse_mcp_client_http_oauth_token_response_json(&http_response.body) {
+            Ok(response) => Ok(McpClientHttpOAuthTokenExchangeOutcome {
+                report: McpClientHttpOAuthTokenExchangeReport {
+                    exchanged: true,
+                    diagnostics: vec![McpClientHttpOAuthTokenExchangeDiagnostic::info(
+                        McpClientHttpOAuthTokenExchangeDiagnosticCode::TokenExchangeSucceeded,
+                        "MCP HTTP OAuth token exchange succeeded",
+                    )],
+                },
+                response: Some(response),
+            }),
+            Err(_) => Ok(invalid_mcp_client_http_oauth_token_exchange_outcome()),
+        };
+    }
+
+    if (400..500).contains(&http_response.status) {
+        return if parse_mcp_client_http_oauth_token_error_response_json(&http_response.body).is_ok()
+        {
+            Ok(McpClientHttpOAuthTokenExchangeOutcome {
+                report: McpClientHttpOAuthTokenExchangeReport {
+                    exchanged: false,
+                    diagnostics: vec![McpClientHttpOAuthTokenExchangeDiagnostic::error(
+                        McpClientHttpOAuthTokenExchangeDiagnosticCode::ProviderError,
+                        "MCP HTTP OAuth token endpoint returned an OAuth error",
+                    )],
+                },
+                response: None,
+            })
+        } else {
+            Ok(invalid_mcp_client_http_oauth_token_exchange_outcome())
+        };
+    }
+
+    if (500..600).contains(&http_response.status) {
+        return Ok(McpClientHttpOAuthTokenExchangeOutcome {
+            report: McpClientHttpOAuthTokenExchangeReport {
+                exchanged: false,
+                diagnostics: vec![McpClientHttpOAuthTokenExchangeDiagnostic::warning(
+                    McpClientHttpOAuthTokenExchangeDiagnosticCode::RetryableStatus,
+                    "MCP HTTP OAuth token endpoint returned a retryable status",
+                )],
+            },
+            response: None,
+        });
+    }
+
+    Ok(invalid_mcp_client_http_oauth_token_exchange_outcome())
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenResponse {
+    pub access_token: String,
+    pub token_type: String,
+    pub expires_in_seconds: Option<u64>,
+    pub refresh_token: Option<String>,
+    pub scope: Vec<String>,
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthTokenResponse")
+            .field("access_token", &"[redacted]")
+            .field("token_type", &self.token_type)
+            .field("expires_in_seconds", &self.expires_in_seconds)
+            .field(
+                "refresh_token",
+                &redacted_optional_value(self.refresh_token.as_ref()),
+            )
+            .field("scope", &redacted_scope_values(&self.scope))
+            .finish()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenErrorResponse {
+    pub error: String,
+    pub error_description: Option<String>,
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenErrorResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthTokenErrorResponse")
+            .field("error", &self.error)
+            .field(
+                "error_description",
+                &redacted_optional_value(self.error_description.as_ref()),
+            )
+            .finish()
+    }
+}
+
+pub fn parse_mcp_client_http_oauth_token_response_json(
+    json_text: &str,
+) -> Result<McpClientHttpOAuthTokenResponse, McpError> {
+    let value = serde_json::from_str::<Value>(json_text)
+        .map_err(|_| invalid_mcp_client_http_oauth_token_response())?;
+    let value = value
+        .as_object()
+        .ok_or_else(invalid_mcp_client_http_oauth_token_response)?;
+
+    let access_token = required_mcp_client_http_oauth_token_response_string_field(
+        value,
+        "access_token",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+    if access_token.chars().any(char::is_control) {
+        return Err(invalid_mcp_client_http_oauth_token_response());
+    }
+
+    let token_type = required_mcp_client_http_oauth_token_response_string_field(
+        value,
+        "token_type",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+    validate_mcp_client_http_oauth_token_response_public_token(&token_type)?;
+
+    let expires_in_seconds = optional_mcp_client_http_oauth_token_response_u64_field(
+        value,
+        "expires_in",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+
+    let refresh_token = optional_mcp_client_http_oauth_string_field(
+        value,
+        "refresh_token",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+    if refresh_token
+        .as_deref()
+        .is_some_and(|token| token.chars().any(char::is_control))
+    {
+        return Err(invalid_mcp_client_http_oauth_token_response());
+    }
+
+    let scope = optional_mcp_client_http_oauth_scope_string_field(value, "scope")?;
+
+    Ok(McpClientHttpOAuthTokenResponse {
+        access_token,
+        token_type,
+        expires_in_seconds,
+        refresh_token,
+        scope,
+    })
+}
+
+pub fn parse_mcp_client_http_oauth_token_error_response_json(
+    json_text: &str,
+) -> Result<McpClientHttpOAuthTokenErrorResponse, McpError> {
+    let value = serde_json::from_str::<Value>(json_text)
+        .map_err(|_| invalid_mcp_client_http_oauth_token_response())?;
+    let value = value
+        .as_object()
+        .ok_or_else(invalid_mcp_client_http_oauth_token_response)?;
+
+    let error = required_mcp_client_http_oauth_token_response_string_field(
+        value,
+        "error",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+    validate_mcp_client_http_oauth_token_response_public_token(&error)?;
+
+    let error_description = optional_mcp_client_http_oauth_string_field(
+        value,
+        "error_description",
+        invalid_mcp_client_http_oauth_token_response,
+    )?;
+    if error_description.as_deref().is_some_and(|description| {
+        description.chars().any(char::is_control)
+            || description.chars().count() > MAX_CLIENT_HTTP_MESSAGE_CHARS
+    }) {
+        return Err(invalid_mcp_client_http_oauth_token_response());
+    }
+
+    Ok(McpClientHttpOAuthTokenErrorResponse {
+        error,
+        error_description,
+    })
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub struct McpClientHttpOAuthTokenLease {
+    pub access_token: String,
+    pub expires_at_unix_ms: Option<u64>,
+    pub scopes: Vec<String>,
+}
+
+impl McpClientHttpOAuthTokenLease {
+    pub fn new(
+        access_token: impl Into<String>,
+        expires_at_unix_ms: Option<u64>,
+        scopes: Vec<String>,
+    ) -> Result<Self, McpError> {
+        let access_token = access_token.into();
+        let access_token = access_token.trim();
+        if access_token.is_empty() || access_token.chars().any(char::is_control) {
+            return Err(invalid_mcp_client_http_oauth_token_lease());
+        }
+        validate_mcp_client_http_oauth_tokens(&scopes)
+            .map_err(|_| invalid_mcp_client_http_oauth_token_lease())?;
+        Ok(Self {
+            access_token: access_token.to_string(),
+            expires_at_unix_ms,
+            scopes,
+        })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(
+            self.access_token.as_str(),
+            self.expires_at_unix_ms,
+            self.scopes.clone(),
+        )
+        .map(|_| ())
+    }
+}
+
+impl fmt::Debug for McpClientHttpOAuthTokenLease {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpOAuthTokenLease")
+            .field("access_token", &"[redacted]")
+            .field("expires_at_unix_ms", &self.expires_at_unix_ms)
+            .field("scopes", &redacted_scope_values(&self.scopes))
+            .finish()
+    }
+}
+
+pub fn build_mcp_client_http_oauth_token_lease_from_exchange_response(
+    response: &McpClientHttpOAuthTokenResponse,
+    now_unix_ms: u64,
+) -> Result<McpClientHttpOAuthTokenLease, McpError> {
+    if !response.token_type.eq_ignore_ascii_case("bearer") {
+        return Err(invalid_mcp_client_http_oauth_token_lease());
+    }
+
+    let expires_at_unix_ms = response.expires_in_seconds.map(|expires_in_seconds| {
+        now_unix_ms.saturating_add(expires_in_seconds.saturating_mul(1000))
+    });
+    let scopes = response
+        .scope
+        .iter()
+        .map(|scope| scope.trim().to_string())
+        .collect::<Vec<_>>();
+
+    McpClientHttpOAuthTokenLease::new(response.access_token.as_str(), expires_at_unix_ms, scopes)
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthTokenDiagnosticSeverity {
+    Info,
+    Warning,
+    Error,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthTokenDiagnosticCode {
+    TokenUsable,
+    TokenExpiryUnknown,
+    TokenExpired,
+    TokenRefreshRecommended,
+    RequiredScopeMissing,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthTokenDiagnostic {
+    pub severity: McpClientHttpOAuthTokenDiagnosticSeverity,
+    pub code: McpClientHttpOAuthTokenDiagnosticCode,
+    pub message: String,
+}
+
+impl McpClientHttpOAuthTokenDiagnostic {
+    #[must_use]
+    pub fn new(
+        severity: McpClientHttpOAuthTokenDiagnosticSeverity,
+        code: McpClientHttpOAuthTokenDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            severity,
+            code,
+            message: message.into(),
+        }
+    }
+
+    #[must_use]
+    pub fn info(code: McpClientHttpOAuthTokenDiagnosticCode, message: impl Into<String>) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenDiagnosticSeverity::Info,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn warning(
+        code: McpClientHttpOAuthTokenDiagnosticCode,
+        message: impl Into<String>,
+    ) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenDiagnosticSeverity::Warning,
+            code,
+            message,
+        )
+    }
+
+    #[must_use]
+    pub fn error(code: McpClientHttpOAuthTokenDiagnosticCode, message: impl Into<String>) -> Self {
+        Self::new(
+            McpClientHttpOAuthTokenDiagnosticSeverity::Error,
+            code,
+            message,
+        )
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthTokenStatus {
+    pub usable: bool,
+    pub diagnostics: Vec<McpClientHttpOAuthTokenDiagnostic>,
+}
+
+#[must_use]
+pub fn build_mcp_client_http_oauth_token_status(
+    lease: &McpClientHttpOAuthTokenLease,
+) -> McpClientHttpOAuthTokenStatus {
+    let diagnostics = if lease.expires_at_unix_ms.is_some() {
+        vec![McpClientHttpOAuthTokenDiagnostic::info(
+            McpClientHttpOAuthTokenDiagnosticCode::TokenUsable,
+            "MCP HTTP OAuth token lease is usable",
+        )]
+    } else {
+        vec![McpClientHttpOAuthTokenDiagnostic::warning(
+            McpClientHttpOAuthTokenDiagnosticCode::TokenExpiryUnknown,
+            "MCP HTTP OAuth token lease expiry is unknown",
+        )]
+    };
+
+    McpClientHttpOAuthTokenStatus {
+        usable: true,
+        diagnostics,
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpOAuthRefreshAction {
+    UseToken,
+    RefreshSoon,
+    Expired,
+    ScopeMismatch,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthRefreshPlan {
+    pub action: McpClientHttpOAuthRefreshAction,
+    pub diagnostics: Vec<McpClientHttpOAuthTokenDiagnostic>,
+}
+
+pub fn build_mcp_client_http_oauth_refresh_plan(
+    lease: &McpClientHttpOAuthTokenLease,
+    now_unix_ms: u64,
+    refresh_skew_ms: u64,
+    required_scopes: &[String],
+) -> Result<McpClientHttpOAuthRefreshPlan, McpError> {
+    lease.validate()?;
+    validate_mcp_client_http_oauth_tokens(required_scopes)
+        .map_err(|_| invalid_mcp_client_http_oauth_token_lease())?;
+
+    if required_scopes
+        .iter()
+        .any(|required_scope| !lease.scopes.iter().any(|scope| scope == required_scope))
+    {
+        return Ok(McpClientHttpOAuthRefreshPlan {
+            action: McpClientHttpOAuthRefreshAction::ScopeMismatch,
+            diagnostics: vec![McpClientHttpOAuthTokenDiagnostic::error(
+                McpClientHttpOAuthTokenDiagnosticCode::RequiredScopeMissing,
+                "Required MCP HTTP OAuth token scope is missing",
+            )],
+        });
+    }
+
+    let Some(expires_at_unix_ms) = lease.expires_at_unix_ms else {
+        return Ok(McpClientHttpOAuthRefreshPlan {
+            action: McpClientHttpOAuthRefreshAction::UseToken,
+            diagnostics: vec![McpClientHttpOAuthTokenDiagnostic::warning(
+                McpClientHttpOAuthTokenDiagnosticCode::TokenExpiryUnknown,
+                "MCP HTTP OAuth token lease expiry is unknown",
+            )],
+        });
+    };
+
+    if expires_at_unix_ms <= now_unix_ms {
+        return Ok(McpClientHttpOAuthRefreshPlan {
+            action: McpClientHttpOAuthRefreshAction::Expired,
+            diagnostics: vec![McpClientHttpOAuthTokenDiagnostic::error(
+                McpClientHttpOAuthTokenDiagnosticCode::TokenExpired,
+                "MCP HTTP OAuth token lease is expired",
+            )],
+        });
+    }
+
+    if expires_at_unix_ms <= now_unix_ms.saturating_add(refresh_skew_ms) {
+        return Ok(McpClientHttpOAuthRefreshPlan {
+            action: McpClientHttpOAuthRefreshAction::RefreshSoon,
+            diagnostics: vec![McpClientHttpOAuthTokenDiagnostic::warning(
+                McpClientHttpOAuthTokenDiagnosticCode::TokenRefreshRecommended,
+                "MCP HTTP OAuth token lease should be refreshed soon",
+            )],
+        });
+    }
+
+    Ok(McpClientHttpOAuthRefreshPlan {
+        action: McpClientHttpOAuthRefreshAction::UseToken,
+        diagnostics: vec![McpClientHttpOAuthTokenDiagnostic::info(
+            McpClientHttpOAuthTokenDiagnosticCode::TokenUsable,
+            "MCP HTTP OAuth token lease is usable",
+        )],
+    })
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpOAuthTokenSourceRef {
+    pub source_id: String,
+    pub account_hint: Option<String>,
+    pub resource: Option<String>,
+}
+
+impl McpClientHttpOAuthTokenSourceRef {
+    pub fn new(
+        source_id: impl Into<String>,
+        account_hint: Option<impl Into<String>>,
+        resource: Option<impl Into<String>>,
+    ) -> Result<Self, McpError> {
+        let source_id = validate_mcp_client_http_oauth_token_source_id(&source_id.into())?;
+        let account_hint = normalize_mcp_client_http_oauth_token_source_hint(account_hint)?;
+        let resource = normalize_mcp_client_http_oauth_token_source_hint(resource)?;
+        Ok(Self {
+            source_id,
+            account_hint,
+            resource,
+        })
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        Self::new(
+            self.source_id.as_str(),
+            self.account_hint.as_deref(),
+            self.resource.as_deref(),
+        )
+        .map(|_| ())
+    }
+}
+
+pub fn build_mcp_client_http_authorization_report(
+    config: &McpServerConfig,
+    oauth_metadata: Option<&McpClientHttpOAuthMetadata>,
+    protected_resource_metadata: Option<&McpClientHttpProtectedResourceMetadata>,
+) -> McpClientHttpAuthorizationReport {
+    let mut diagnostics = Vec::new();
+    let mut metadata_usable = true;
+
+    let McpTransportConfig::StreamableHttp { headers, .. } = &config.transport else {
+        diagnostics.push(McpClientHttpAuthorizationDiagnostic::error(
+            McpClientHttpAuthorizationDiagnosticCode::StreamableHttpRequired,
+            "MCP HTTP authorization requires streamable HTTP transport",
+        ));
+        return McpClientHttpAuthorizationReport {
+            authorized: false,
+            diagnostics,
+        };
+    };
+
+    if has_mcp_client_http_authorization_header(headers) {
+        diagnostics.push(McpClientHttpAuthorizationDiagnostic::error(
+            McpClientHttpAuthorizationDiagnosticCode::AuthorizationHeaderConflict,
+            "Configured authorization header conflicts with MCP HTTP authorization",
+        ));
+    }
+
+    match protected_resource_metadata {
+        Some(metadata) if metadata.scopes_supported.is_empty() => {
+            diagnostics.push(McpClientHttpAuthorizationDiagnostic::warning(
+                McpClientHttpAuthorizationDiagnosticCode::MissingProtectedResourceScopes,
+                "Protected resource metadata does not list supported scopes",
+            ));
+        }
+        Some(_) => {}
+        None => {
+            metadata_usable = false;
+            diagnostics.push(McpClientHttpAuthorizationDiagnostic::warning(
+                McpClientHttpAuthorizationDiagnosticCode::MissingProtectedResourceMetadata,
+                "Protected resource metadata is missing",
+            ));
+        }
+    }
+
+    match oauth_metadata {
+        Some(metadata) => {
+            if metadata.token_endpoint.is_none() {
+                metadata_usable = false;
+                diagnostics.push(McpClientHttpAuthorizationDiagnostic::warning(
+                    McpClientHttpAuthorizationDiagnosticCode::MissingTokenEndpoint,
+                    "OAuth metadata does not include a token endpoint",
+                ));
+            }
+            if metadata.scopes_supported.is_empty() {
+                diagnostics.push(McpClientHttpAuthorizationDiagnostic::warning(
+                    McpClientHttpAuthorizationDiagnosticCode::MissingOAuthScopes,
+                    "OAuth metadata does not list supported scopes",
+                ));
+            }
+        }
+        None => {
+            metadata_usable = false;
+            diagnostics.push(McpClientHttpAuthorizationDiagnostic::warning(
+                McpClientHttpAuthorizationDiagnosticCode::MissingOAuthMetadata,
+                "OAuth authorization server metadata is missing",
+            ));
+        }
+    }
+
+    let authorized = metadata_usable
+        && !diagnostics.iter().any(|diagnostic| {
+            diagnostic.severity == McpClientHttpAuthorizationDiagnosticSeverity::Error
+        });
+
+    if authorized && diagnostics.is_empty() {
+        diagnostics.push(McpClientHttpAuthorizationDiagnostic::info(
+            McpClientHttpAuthorizationDiagnosticCode::AuthorizationReady,
+            "MCP HTTP authorization metadata is usable",
+        ));
+    }
+
+    McpClientHttpAuthorizationReport {
+        authorized,
+        diagnostics,
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpResponseEnvelope {
+    pub mode: McpClientHttpResponseMode,
+    pub metadata: McpClientHttpSessionMetadata,
+}
+
+impl McpClientHttpResponseEnvelope {
+    #[must_use]
+    pub const fn new(
+        mode: McpClientHttpResponseMode,
+        metadata: McpClientHttpSessionMetadata,
+    ) -> Self {
+        Self { mode, metadata }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "kind", content = "response")]
+pub enum McpClientHttpResponseMode {
+    Json(McpClientHttpResponse),
+    Sse(McpClientHttpSseResponse),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpRequest {
+    pub url: String,
+    pub headers: BTreeMap<String, String>,
+    pub body_json: Value,
+    pub timeout_ms: u64,
+}
+
+impl McpClientHttpRequest {
+    pub fn new(
+        url: impl Into<String>,
+        headers: BTreeMap<String, String>,
+        body_json: Value,
+        timeout_ms: u64,
+    ) -> Result<Self, McpError> {
+        let url = url.into();
+        if !(url.starts_with("http://") || url.starts_with("https://")) {
+            return Err(McpError::InvalidConfig(
+                "streamable http url must start with http:// or https://".to_string(),
+            ));
+        }
+        if timeout_ms == 0 {
+            return Err(McpError::InvalidConfig(
+                "timeout_ms must be greater than zero".to_string(),
+            ));
+        }
+
+        Ok(Self {
+            url,
+            headers,
+            body_json,
+            timeout_ms,
+        })
+    }
+
+    pub fn from_config(config: &McpServerConfig, body_json: Value) -> Result<Self, McpError> {
+        Self::from_config_with_session_metadata(config, body_json, None)
+    }
+
+    pub fn from_config_with_authorization(
+        config: &McpServerConfig,
+        body_json: Value,
+        authorization: &McpClientHttpAuthorization,
+    ) -> Result<Self, McpError> {
+        Self::from_config_with_session_metadata_and_authorization(
+            config,
+            body_json,
+            None,
+            authorization,
+        )
+    }
+
+    pub fn from_config_with_session_metadata(
+        config: &McpServerConfig,
+        body_json: Value,
+        session_metadata: Option<&McpClientHttpSessionMetadata>,
+    ) -> Result<Self, McpError> {
+        if !config.enabled {
+            return Err(McpError::InvalidConfig(
+                "MCP client HTTP server is disabled".to_string(),
+            ));
+        }
+
+        let McpTransportConfig::StreamableHttp { url, headers } = &config.transport else {
+            return Err(McpError::InvalidConfig(
+                "MCP client HTTP transport requires streamable http config".to_string(),
+            ));
+        };
+
+        let mut resolved_headers = BTreeMap::new();
+        for (key, value) in headers {
+            match value {
+                McpEnvValue::Literal(value) => {
+                    resolved_headers.insert(key.clone(), value.clone());
+                }
+                McpEnvValue::SecretRef(_) => {
+                    return Err(McpError::InvalidConfig(
+                        "MCP client HTTP headers contain unresolved secret ref".to_string(),
+                    ));
+                }
+            }
+        }
+        if let Some(metadata) = session_metadata {
+            insert_mcp_client_http_metadata_header(
+                &mut resolved_headers,
+                MCP_CLIENT_HTTP_SESSION_ID_HEADER_CANONICAL,
+                metadata.session_id.as_deref(),
+            )?;
+            insert_mcp_client_http_metadata_header(
+                &mut resolved_headers,
+                MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER_CANONICAL,
+                metadata.protocol_version.as_deref(),
+            )?;
+        }
+
+        Self::new(url.clone(), resolved_headers, body_json, config.timeout_ms)
+    }
+
+    pub fn from_config_with_session_metadata_and_authorization(
+        config: &McpServerConfig,
+        body_json: Value,
+        session_metadata: Option<&McpClientHttpSessionMetadata>,
+        authorization: &McpClientHttpAuthorization,
+    ) -> Result<Self, McpError> {
+        reject_mcp_client_http_authorization_header_conflict(config)?;
+        let mut request =
+            Self::from_config_with_session_metadata(config, body_json, session_metadata)?;
+        insert_mcp_client_http_authorization_header(&mut request.headers, authorization)?;
+        Ok(request)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamRequest {
+    pub url: String,
+    pub headers: BTreeMap<String, String>,
+    pub timeout_ms: u64,
+}
+
+impl McpClientHttpStreamRequest {
+    pub fn new(
+        url: impl Into<String>,
+        headers: BTreeMap<String, String>,
+        timeout_ms: u64,
+    ) -> Result<Self, McpError> {
+        let url = url.into();
+        if !(url.starts_with("http://") || url.starts_with("https://")) {
+            return Err(McpError::InvalidConfig(
+                "streamable http url must start with http:// or https://".to_string(),
+            ));
+        }
+        if timeout_ms == 0 {
+            return Err(McpError::InvalidConfig(
+                "timeout_ms must be greater than zero".to_string(),
+            ));
+        }
+
+        Ok(Self {
+            url,
+            headers,
+            timeout_ms,
+        })
+    }
+
+    pub fn from_config(config: &McpServerConfig) -> Result<Self, McpError> {
+        Self::from_config_with_session_metadata(config, &McpClientHttpSessionMetadata::default())
+    }
+
+    pub fn from_config_with_authorization(
+        config: &McpServerConfig,
+        authorization: &McpClientHttpAuthorization,
+    ) -> Result<Self, McpError> {
+        Self::from_config_with_session_metadata_and_authorization(
+            config,
+            &McpClientHttpSessionMetadata::default(),
+            authorization,
+        )
+    }
+
+    pub fn from_config_with_session_metadata(
+        config: &McpServerConfig,
+        session_metadata: &McpClientHttpSessionMetadata,
+    ) -> Result<Self, McpError> {
+        if !config.enabled {
+            return Err(McpError::InvalidConfig(
+                "MCP client HTTP server is disabled".to_string(),
+            ));
+        }
+
+        let McpTransportConfig::StreamableHttp { url, headers } = &config.transport else {
+            return Err(McpError::InvalidConfig(
+                "MCP client HTTP transport requires streamable http config".to_string(),
+            ));
+        };
+
+        let mut resolved_headers = BTreeMap::new();
+        for (key, value) in headers {
+            match value {
+                McpEnvValue::Literal(value) => {
+                    resolved_headers.insert(key.clone(), value.clone());
+                }
+                McpEnvValue::SecretRef(_) => {
+                    return Err(McpError::InvalidConfig(
+                        "MCP client HTTP headers contain unresolved secret ref".to_string(),
+                    ));
+                }
+            }
+        }
+
+        insert_mcp_client_http_metadata_header(
+            &mut resolved_headers,
+            MCP_CLIENT_HTTP_SESSION_ID_HEADER_CANONICAL,
+            session_metadata.session_id.as_deref(),
+        )?;
+        insert_mcp_client_http_metadata_header(
+            &mut resolved_headers,
+            MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER_CANONICAL,
+            session_metadata.protocol_version.as_deref(),
+        )?;
+        insert_mcp_client_http_metadata_header(
+            &mut resolved_headers,
+            MCP_CLIENT_HTTP_LAST_EVENT_ID_HEADER_CANONICAL,
+            session_metadata.last_event_id.as_deref(),
+        )?;
+
+        Self::new(url.clone(), resolved_headers, config.timeout_ms)
+    }
+
+    pub fn from_config_with_session_metadata_and_authorization(
+        config: &McpServerConfig,
+        session_metadata: &McpClientHttpSessionMetadata,
+        authorization: &McpClientHttpAuthorization,
+    ) -> Result<Self, McpError> {
+        reject_mcp_client_http_authorization_header_conflict(config)?;
+        let mut request = Self::from_config_with_session_metadata(config, session_metadata)?;
+        insert_mcp_client_http_authorization_header(&mut request.headers, authorization)?;
+        Ok(request)
+    }
+}
+
+pub fn build_mcp_client_http_request_with_oauth_token(
+    config: &McpServerConfig,
+    body_json: Value,
+    lease: &McpClientHttpOAuthTokenLease,
+    now_unix_ms: u64,
+) -> Result<McpClientHttpRequest, McpError> {
+    let authorization = mcp_client_http_authorization_from_oauth_token_lease(lease, now_unix_ms)?;
+    McpClientHttpRequest::from_config_with_authorization(config, body_json, &authorization)
+}
+
+pub fn build_mcp_client_http_stream_request_with_oauth_token(
+    config: &McpServerConfig,
+    session_metadata: &McpClientHttpSessionMetadata,
+    lease: &McpClientHttpOAuthTokenLease,
+    now_unix_ms: u64,
+) -> Result<McpClientHttpStreamRequest, McpError> {
+    let authorization = mcp_client_http_authorization_from_oauth_token_lease(lease, now_unix_ms)?;
+    McpClientHttpStreamRequest::from_config_with_session_metadata_and_authorization(
+        config,
+        session_metadata,
+        &authorization,
+    )
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamOpen {
+    pub metadata: McpClientHttpSessionMetadata,
+    pub events: Vec<McpClientHttpSseEvent>,
+}
+
+impl McpClientHttpStreamOpen {
+    #[must_use]
+    pub const fn new(
+        metadata: McpClientHttpSessionMetadata,
+        events: Vec<McpClientHttpSseEvent>,
+    ) -> Self {
+        Self { metadata, events }
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamDrainReport {
+    pub accepted_events: usize,
+    pub last_event_id: Option<String>,
+}
+
+impl McpClientHttpStreamDrainReport {
+    #[must_use]
+    pub const fn new(accepted_events: usize, last_event_id: Option<String>) -> Self {
+        Self {
+            accepted_events,
+            last_event_id,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpCheckpointSummary {
+    pub event_id_present: bool,
+}
+
+impl McpClientHttpCheckpointSummary {
+    #[must_use]
+    pub const fn new(event_id_present: bool) -> Self {
+        Self { event_id_present }
+    }
+
+    #[must_use]
+    pub fn from_session_metadata(metadata: &McpClientHttpSessionMetadata) -> Self {
+        Self::new(metadata.last_event_id.is_some())
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpReplayStatus {
+    NotRequested,
+    Requested,
+    CheckpointAdvanced,
+    Unknown,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpReplayDiagnostic {
+    pub requested_resume: bool,
+    pub checkpoint_advanced: bool,
+    pub checkpoint_before: McpClientHttpCheckpointSummary,
+    pub requested_checkpoint: McpClientHttpCheckpointSummary,
+    pub checkpoint_after: McpClientHttpCheckpointSummary,
+    pub replay_status: McpClientHttpReplayStatus,
+}
+
+impl McpClientHttpReplayDiagnostic {
+    #[must_use]
+    pub fn from_reconnect_attempt(
+        checkpoint_before: &McpClientHttpSessionMetadata,
+        request: &McpClientHttpStreamRequest,
+        checkpoint_after: Option<&McpClientHttpSessionMetadata>,
+    ) -> Self {
+        let requested_resume = mcp_client_http_stream_request_has_resume_checkpoint(request);
+        let checkpoint_advanced = checkpoint_after.is_some_and(|checkpoint_after| {
+            checkpoint_after.last_event_id.is_some()
+                && checkpoint_before.last_event_id != checkpoint_after.last_event_id
+        });
+        let replay_status = match (
+            checkpoint_after.is_some(),
+            checkpoint_advanced,
+            requested_resume,
+        ) {
+            (false, _, _) => McpClientHttpReplayStatus::Unknown,
+            (true, true, _) => McpClientHttpReplayStatus::CheckpointAdvanced,
+            (true, false, true) => McpClientHttpReplayStatus::Requested,
+            (true, false, false) => McpClientHttpReplayStatus::NotRequested,
+        };
+
+        Self {
+            requested_resume,
+            checkpoint_advanced,
+            checkpoint_before: McpClientHttpCheckpointSummary::from_session_metadata(
+                checkpoint_before,
+            ),
+            requested_checkpoint: McpClientHttpCheckpointSummary::new(requested_resume),
+            checkpoint_after: checkpoint_after
+                .map(McpClientHttpCheckpointSummary::from_session_metadata)
+                .unwrap_or_default(),
+            replay_status,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamReconnectReport {
+    pub drain_report: McpClientHttpStreamDrainReport,
+    pub replay_diagnostic: McpClientHttpReplayDiagnostic,
+    pub reconnect_report: McpClientHttpReconnectReport,
+}
+
+impl McpClientHttpStreamReconnectReport {
+    #[must_use]
+    pub const fn new(
+        drain_report: McpClientHttpStreamDrainReport,
+        replay_diagnostic: McpClientHttpReplayDiagnostic,
+        reconnect_report: McpClientHttpReconnectReport,
+    ) -> Self {
+        Self {
+            drain_report,
+            replay_diagnostic,
+            reconnect_report,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpReconnectAttemptOutcome {
+    Success,
+    Retry,
+    Failed,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpReconnectAttempt {
+    pub attempt: u32,
+    pub outcome: McpClientHttpReconnectAttemptOutcome,
+    pub failure_summary: Option<String>,
+    pub backoff_ms: Option<u64>,
+    pub replay_diagnostic: McpClientHttpReplayDiagnostic,
+}
+
+impl McpClientHttpReconnectAttempt {
+    #[must_use]
+    pub fn success(attempt: u32, replay_diagnostic: McpClientHttpReplayDiagnostic) -> Self {
+        Self {
+            attempt,
+            outcome: McpClientHttpReconnectAttemptOutcome::Success,
+            failure_summary: None,
+            backoff_ms: None,
+            replay_diagnostic,
+        }
+    }
+
+    #[must_use]
+    pub fn retry(
+        attempt: u32,
+        backoff_ms: u64,
+        failure_kind: McpClientHttpReconnectFailureKind,
+        replay_diagnostic: McpClientHttpReplayDiagnostic,
+    ) -> Self {
+        Self {
+            attempt,
+            outcome: McpClientHttpReconnectAttemptOutcome::Retry,
+            failure_summary: Some(failure_kind.public_reason().to_string()),
+            backoff_ms: Some(backoff_ms),
+            replay_diagnostic,
+        }
+    }
+
+    #[must_use]
+    pub fn failed(
+        attempt: u32,
+        failure_kind: McpClientHttpReconnectFailureKind,
+        replay_diagnostic: McpClientHttpReplayDiagnostic,
+    ) -> Self {
+        Self {
+            attempt,
+            outcome: McpClientHttpReconnectAttemptOutcome::Failed,
+            failure_summary: Some(failure_kind.public_reason().to_string()),
+            backoff_ms: None,
+            replay_diagnostic,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpReconnectReport {
+    pub attempts: Vec<McpClientHttpReconnectAttempt>,
+    pub succeeded: bool,
+    pub final_failure: Option<String>,
+}
+
+impl McpClientHttpReconnectReport {
+    #[must_use]
+    pub fn from_attempts(attempts: Vec<McpClientHttpReconnectAttempt>) -> Self {
+        let succeeded = attempts.last().is_some_and(|attempt| {
+            attempt.outcome == McpClientHttpReconnectAttemptOutcome::Success
+        });
+        let final_failure = attempts
+            .last()
+            .filter(|_| !succeeded)
+            .and_then(|attempt| attempt.failure_summary.clone());
+
+        Self {
+            attempts,
+            succeeded,
+            final_failure,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamSupervisorConfig {
+    pub server_id: McpServerId,
+    pub reconnect_policy: McpClientHttpReconnectPolicy,
+    pub max_ticks: u32,
+}
+
+impl McpClientHttpStreamSupervisorConfig {
+    #[must_use]
+    pub fn new(server_id: McpServerId) -> Self {
+        Self {
+            server_id,
+            reconnect_policy: McpClientHttpReconnectPolicy::default(),
+            max_ticks: 1,
+        }
+    }
+
+    pub fn validate(&self) -> Result<(), McpError> {
+        if self.max_ticks == 0 {
+            return Err(invalid_mcp_client_http_stream_supervisor_config());
+        }
+        self.reconnect_policy.validate()
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpStreamSupervisorStatus {
+    Idle,
+    Running,
+    WaitingRetry,
+    Cancelled,
+    Failed,
+    Completed,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamSupervisorControl {
+    pub cancelled: bool,
+    pub lease_valid: bool,
+}
+
+impl Default for McpClientHttpStreamSupervisorControl {
+    fn default() -> Self {
+        Self {
+            cancelled: false,
+            lease_valid: true,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamSupervisorTick {
+    pub status: McpClientHttpStreamSupervisorStatus,
+    pub ticks_completed: u32,
+    pub reconnect_report: Option<McpClientHttpStreamReconnectReport>,
+    pub stop_reason: Option<String>,
+}
+
+impl McpClientHttpStreamSupervisorTick {
+    #[must_use]
+    pub const fn new(
+        status: McpClientHttpStreamSupervisorStatus,
+        ticks_completed: u32,
+        reconnect_report: Option<McpClientHttpStreamReconnectReport>,
+    ) -> Self {
+        Self {
+            status,
+            ticks_completed,
+            reconnect_report,
+            stop_reason: None,
+        }
+    }
+
+    #[must_use]
+    pub fn stopped(
+        status: McpClientHttpStreamSupervisorStatus,
+        ticks_completed: u32,
+        stop_reason: impl Into<String>,
+    ) -> Self {
+        Self {
+            status,
+            ticks_completed,
+            reconnect_report: None,
+            stop_reason: Some(stop_reason.into()),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpStreamSupervisorReport {
+    pub status: McpClientHttpStreamSupervisorStatus,
+    pub ticks_completed: u32,
+    pub terminal_summary: Option<String>,
+    pub reconnect: Option<McpClientHttpReconnectReport>,
+}
+
+impl McpClientHttpStreamSupervisorReport {
+    #[must_use]
+    pub fn from_tick(tick: &McpClientHttpStreamSupervisorTick) -> Self {
+        Self {
+            status: tick.status,
+            ticks_completed: tick.ticks_completed,
+            terminal_summary: tick.stop_reason.as_deref().map(public_http_message),
+            reconnect: tick
+                .reconnect_report
+                .as_ref()
+                .map(|report| report.reconnect_report.clone()),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpReconnectPolicy {
+    pub max_attempts: u32,
+    pub initial_backoff_ms: u64,
+    pub max_backoff_ms: u64,
+}
+
+impl Default for McpClientHttpReconnectPolicy {
+    fn default() -> Self {
+        Self {
+            max_attempts: 3,
+            initial_backoff_ms: 250,
+            max_backoff_ms: 4_000,
+        }
+    }
+}
+
+impl McpClientHttpReconnectPolicy {
+    pub fn validate(&self) -> Result<(), McpError> {
+        if self.max_attempts == 0
+            || self.initial_backoff_ms == 0
+            || self.max_backoff_ms == 0
+            || self.initial_backoff_ms > self.max_backoff_ms
+        {
+            return Err(invalid_mcp_client_http_reconnect_policy());
+        }
+        Ok(())
+    }
+
+    pub fn decision_for_attempt(
+        &self,
+        attempt: u32,
+        retryable: bool,
+    ) -> Result<McpClientHttpReconnectDecision, McpError> {
+        self.validate()?;
+        if !retryable || attempt >= self.max_attempts {
+            return Ok(McpClientHttpReconnectDecision::Stop);
+        }
+
+        Ok(McpClientHttpReconnectDecision::Retry {
+            backoff_ms: self.backoff_for_attempt(attempt),
+        })
+    }
+
+    #[must_use]
+    pub fn backoff_for_attempt(&self, attempt: u32) -> u64 {
+        let multiplier = attempt.saturating_sub(1);
+        let mut backoff_ms = self.initial_backoff_ms;
+        for _ in 0..multiplier {
+            backoff_ms = backoff_ms.saturating_mul(2).min(self.max_backoff_ms);
+        }
+        backoff_ms.min(self.max_backoff_ms)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpReconnectDecision {
+    Retry { backoff_ms: u64 },
+    Stop,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum McpClientHttpReconnectFailureKind {
+    RetryableTransport,
+    RetryableStatus,
+    NonRetryableConfig,
+    NonRetryableValidation,
+    NonRetryableOther,
+}
+
+impl McpClientHttpReconnectFailureKind {
+    #[must_use]
+    pub const fn is_retryable(self) -> bool {
+        matches!(self, Self::RetryableTransport | Self::RetryableStatus)
+    }
+
+    #[must_use]
+    pub const fn public_reason(self) -> &'static str {
+        match self {
+            Self::RetryableTransport => "retryable MCP client HTTP transport failure",
+            Self::RetryableStatus => "retryable MCP client HTTP status failure",
+            Self::NonRetryableConfig => "non-retryable MCP client HTTP config failure",
+            Self::NonRetryableValidation => "non-retryable MCP client HTTP validation failure",
+            Self::NonRetryableOther => "non-retryable MCP client HTTP failure",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct McpClientHttpResponse {
+    pub status: u16,
+    pub body_json: Value,
+}
+
+impl McpClientHttpResponse {
+    pub fn new(status: u16, body_json: Value) -> Result<Self, McpError> {
+        validate_mcp_client_http_status(status)?;
+        Ok(Self { status, body_json })
+    }
+}
+
+impl From<McpClientHttpResponse> for McpClientHttpResponseMode {
+    fn from(response: McpClientHttpResponse) -> Self {
+        Self::Json(response)
+    }
+}
+
+impl From<McpClientHttpResponse> for McpClientHttpResponseEnvelope {
+    fn from(response: McpClientHttpResponse) -> Self {
+        Self::new(response.into(), McpClientHttpSessionMetadata::default())
+    }
+}
+
+impl From<McpClientHttpSseResponse> for McpClientHttpResponseMode {
+    fn from(response: McpClientHttpSseResponse) -> Self {
+        Self::Sse(response)
+    }
+}
+
+impl From<McpClientHttpSseResponse> for McpClientHttpResponseEnvelope {
+    fn from(response: McpClientHttpSseResponse) -> Self {
+        Self::new(response.into(), McpClientHttpSessionMetadata::default())
+    }
+}
+
+impl From<McpClientHttpResponseMode> for McpClientHttpResponseEnvelope {
+    fn from(mode: McpClientHttpResponseMode) -> Self {
+        Self::new(mode, McpClientHttpSessionMetadata::default())
+    }
+}
+
+#[async_trait]
+pub trait McpClientHttpTransport: Send {
+    async fn send_request(
+        &mut self,
+        request: McpClientHttpRequest,
+    ) -> Result<McpClientHttpResponseEnvelope, McpError>;
+}
+
+#[async_trait]
+pub trait McpClientHttpStreamTransport: Send {
+    async fn open_stream(
+        &mut self,
+        request: McpClientHttpStreamRequest,
+    ) -> Result<McpClientHttpStreamOpen, McpError>;
+}
+
+#[async_trait]
+pub trait McpClientHttpOAuthTokenExchangeTransport: Send {
+    async fn exchange_token(
+        &mut self,
+        request: McpClientHttpOAuthTokenExchangeHttpRequest,
+    ) -> Result<McpClientHttpOAuthTokenExchangeHttpResponse, McpError>;
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct FixtureMcpClientHttpTransport {
+    inbound_responses: VecDeque<Result<McpClientHttpResponseEnvelope, McpError>>,
+    sent_requests: Vec<McpClientHttpRequest>,
+}
+
+impl FixtureMcpClientHttpTransport {
+    #[must_use]
+    pub fn from_responses<I, R>(responses: I) -> Self
+    where
+        I: IntoIterator<Item = Result<R, McpError>>,
+        R: Into<McpClientHttpResponseEnvelope>,
+    {
+        Self {
+            inbound_responses: responses
+                .into_iter()
+                .map(|response| response.map(Into::into))
+                .collect(),
+            sent_requests: Vec::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn sent_requests(&self) -> &[McpClientHttpRequest] {
+        &self.sent_requests
+    }
+}
+
+#[async_trait]
+impl McpClientHttpTransport for FixtureMcpClientHttpTransport {
+    async fn send_request(
+        &mut self,
+        request: McpClientHttpRequest,
+    ) -> Result<McpClientHttpResponseEnvelope, McpError> {
+        self.sent_requests.push(request);
+        self.inbound_responses.pop_front().unwrap_or_else(|| {
+            Err(McpError::Client(
+                "MCP client HTTP fixture response missing".to_string(),
+            ))
+        })
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct FixtureMcpClientHttpOAuthTokenExchangeTransport {
+    inbound_responses: VecDeque<Result<McpClientHttpOAuthTokenExchangeHttpResponse, McpError>>,
+    sent_requests: Vec<McpClientHttpOAuthTokenExchangeHttpRequest>,
+}
+
+impl FixtureMcpClientHttpOAuthTokenExchangeTransport {
+    #[must_use]
+    pub fn from_responses<I>(responses: I) -> Self
+    where
+        I: IntoIterator<Item = Result<McpClientHttpOAuthTokenExchangeHttpResponse, McpError>>,
+    {
+        Self {
+            inbound_responses: responses.into_iter().collect(),
+            sent_requests: Vec::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn sent_requests(&self) -> &[McpClientHttpOAuthTokenExchangeHttpRequest] {
+        &self.sent_requests
+    }
+}
+
+#[async_trait]
+impl McpClientHttpOAuthTokenExchangeTransport for FixtureMcpClientHttpOAuthTokenExchangeTransport {
+    async fn exchange_token(
+        &mut self,
+        request: McpClientHttpOAuthTokenExchangeHttpRequest,
+    ) -> Result<McpClientHttpOAuthTokenExchangeHttpResponse, McpError> {
+        request.validate()?;
+        self.sent_requests.push(request);
+        self.inbound_responses.pop_front().unwrap_or_else(|| {
+            Err(McpError::Client(
+                "MCP client HTTP OAuth token exchange fixture response missing".to_string(),
+            ))
+        })
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct FixtureMcpClientHttpStreamTransport {
+    inbound_streams: VecDeque<Result<McpClientHttpStreamOpen, McpError>>,
+    sent_requests: Vec<McpClientHttpStreamRequest>,
+}
+
+impl FixtureMcpClientHttpStreamTransport {
+    #[must_use]
+    pub fn from_streams<I>(streams: I) -> Self
+    where
+        I: IntoIterator<Item = Result<McpClientHttpStreamOpen, McpError>>,
+    {
+        Self {
+            inbound_streams: streams.into_iter().collect(),
+            sent_requests: Vec::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn sent_requests(&self) -> &[McpClientHttpStreamRequest] {
+        &self.sent_requests
+    }
+}
+
+#[async_trait]
+impl McpClientHttpStreamTransport for FixtureMcpClientHttpStreamTransport {
+    async fn open_stream(
+        &mut self,
+        request: McpClientHttpStreamRequest,
+    ) -> Result<McpClientHttpStreamOpen, McpError> {
+        self.sent_requests.push(request);
+        self.inbound_streams.pop_front().unwrap_or_else(|| {
+            Err(McpError::Client(
+                "MCP client HTTP fixture stream missing".to_string(),
+            ))
+        })
+    }
+}
+
+#[derive(Clone)]
+pub struct McpClientHttpReqwestTransport {
+    client: reqwest::Client,
+}
+
+impl McpClientHttpReqwestTransport {
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            client: reqwest::Client::new(),
+        }
+    }
+
+    #[must_use]
+    pub const fn with_client(client: reqwest::Client) -> Self {
+        Self { client }
+    }
+}
+
+impl Default for McpClientHttpReqwestTransport {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl fmt::Debug for McpClientHttpReqwestTransport {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("McpClientHttpReqwestTransport")
+            .field("client", &"<reqwest client>")
+            .finish()
+    }
+}
+
+#[async_trait]
+impl McpClientHttpTransport for McpClientHttpReqwestTransport {
+    async fn send_request(
+        &mut self,
+        request: McpClientHttpRequest,
+    ) -> Result<McpClientHttpResponseEnvelope, McpError> {
+        let mut builder = self
+            .client
+            .post(&request.url)
+            .timeout(Duration::from_millis(request.timeout_ms))
+            .json(&request.body_json);
+        for (key, value) in &request.headers {
+            builder = builder.header(key, value);
+        }
+
+        let response = builder.send().await.map_err(|_| {
+            McpError::Client("MCP client HTTP request transport failed".to_string())
+        })?;
+        let status = response.status().as_u16();
+        validate_mcp_client_http_status(status)?;
+        let content_type = response
+            .headers()
+            .get(reqwest::header::CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .map(ToString::to_string);
+        let metadata_headers = mcp_client_http_metadata_headers(response.headers());
+
+        let body = response
+            .text()
+            .await
+            .map_err(|_| McpError::Client("MCP client HTTP response read failed".to_string()))?;
+        if body.len() > MAX_CLIENT_HTTP_BODY_BYTES {
+            return Err(McpError::InvalidServerRequest(
+                "MCP client HTTP response body too large".to_string(),
+            ));
+        }
+
+        if content_type
+            .as_deref()
+            .is_some_and(is_mcp_client_http_sse_content_type)
+        {
+            let events = parse_mcp_client_http_sse_events(&body)?;
+            let mode = McpClientHttpResponseMode::Sse(McpClientHttpSseResponse::new(events));
+            let metadata = parse_mcp_client_http_session_metadata(&metadata_headers, &mode)?;
+            return Ok(McpClientHttpResponseEnvelope::new(mode, metadata));
+        }
+        if content_type
+            .as_deref()
+            .is_some_and(|content_type| !is_mcp_client_http_json_content_type(content_type))
+        {
+            return Err(McpError::InvalidServerRequest(
+                "unsupported MCP client HTTP response content type".to_string(),
+            ));
+        }
+
+        let body_json = serde_json::from_str::<Value>(&body).map_err(|_| {
+            McpError::InvalidServerRequest("invalid MCP client HTTP response body".to_string())
+        })?;
+
+        let mode = McpClientHttpResponseMode::Json(McpClientHttpResponse { status, body_json });
+        let metadata = parse_mcp_client_http_session_metadata(&metadata_headers, &mode)?;
+
+        Ok(McpClientHttpResponseEnvelope::new(mode, metadata))
+    }
+}
+
+#[async_trait]
+impl McpClientHttpOAuthTokenExchangeTransport for McpClientHttpReqwestTransport {
+    async fn exchange_token(
+        &mut self,
+        request: McpClientHttpOAuthTokenExchangeHttpRequest,
+    ) -> Result<McpClientHttpOAuthTokenExchangeHttpResponse, McpError> {
+        request.validate()?;
+        let response = self
+            .client
+            .post(request.token_endpoint)
+            .form(&request.form)
+            .send()
+            .await
+            .map_err(|_| mcp_client_http_oauth_token_exchange_transport_failed())?;
+        let status = response.status().as_u16();
+        let body = response
+            .text()
+            .await
+            .map_err(|_| mcp_client_http_oauth_token_exchange_transport_failed())?;
+        McpClientHttpOAuthTokenExchangeHttpResponse::new(status, body)
+            .map_err(|_| mcp_client_http_oauth_token_exchange_transport_failed())
+    }
+}
+
+#[async_trait]
+impl McpClientHttpStreamTransport for McpClientHttpReqwestTransport {
+    async fn open_stream(
+        &mut self,
+        request: McpClientHttpStreamRequest,
+    ) -> Result<McpClientHttpStreamOpen, McpError> {
+        let mut builder = self
+            .client
+            .get(&request.url)
+            .timeout(Duration::from_millis(request.timeout_ms));
+        for (key, value) in &request.headers {
+            builder = builder.header(key, value);
+        }
+
+        let response = builder
+            .send()
+            .await
+            .map_err(|_| McpError::Client("MCP client HTTP stream transport failed".to_string()))?;
+        let status = response.status().as_u16();
+        validate_mcp_client_http_status(status)?;
+        let content_type = response
+            .headers()
+            .get(reqwest::header::CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .map(ToString::to_string);
+        let metadata_headers = mcp_client_http_metadata_headers(response.headers());
+
+        if !content_type
+            .as_deref()
+            .is_some_and(is_mcp_client_http_sse_content_type)
+        {
+            return Err(McpError::InvalidServerRequest(
+                "unsupported MCP client HTTP stream content type".to_string(),
+            ));
+        }
+
+        let body = response
+            .text()
+            .await
+            .map_err(|_| McpError::Client("MCP client HTTP stream read failed".to_string()))?;
+        if body.len() > MAX_CLIENT_HTTP_BODY_BYTES {
+            return Err(McpError::InvalidServerRequest(
+                "MCP client HTTP stream body too large".to_string(),
+            ));
+        }
+
+        let events = parse_mcp_client_http_sse_events(&body)?;
+        let mode = McpClientHttpResponseMode::Sse(McpClientHttpSseResponse::new(events.clone()));
+        let metadata = parse_mcp_client_http_session_metadata(&metadata_headers, &mode)?;
+
+        Ok(McpClientHttpStreamOpen::new(metadata, events))
+    }
+}
+
+pub struct McpHttpClient<T> {
+    state: Mutex<McpHttpClientState<T>>,
+}
+
+struct McpHttpClientState<T> {
+    transport: T,
+    server_id: Option<McpServerId>,
+    config: Option<McpServerConfig>,
+    next_request_id: i64,
+    session_metadata: McpClientHttpSessionMetadata,
+}
+
+impl<T> McpHttpClient<T> {
+    #[must_use]
+    pub fn new(transport: T) -> Self {
+        Self {
+            state: Mutex::new(McpHttpClientState {
+                transport,
+                server_id: None,
+                config: None,
+                next_request_id: 1,
+                session_metadata: McpClientHttpSessionMetadata::default(),
+            }),
+        }
+    }
+
+    pub async fn session_metadata_snapshot(&self) -> McpClientHttpSessionMetadata {
+        let state = self.state.lock().await;
+        state.session_metadata.clone()
+    }
+
+    pub async fn stream_request_snapshot(
+        &self,
+        server_id: &McpServerId,
+    ) -> Result<McpClientHttpStreamRequest, McpError> {
+        let state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(server_id) {
+            return Err(McpError::Client(
+                "MCP client HTTP session is not initialized".to_string(),
+            ));
+        }
+        let config = state.config.clone().ok_or_else(|| {
+            McpError::Client("MCP client HTTP session is not initialized".to_string())
+        })?;
+        McpClientHttpStreamRequest::from_config_with_session_metadata(
+            &config,
+            &state.session_metadata,
+        )
+    }
+
+    pub async fn record_stream_open(
+        &self,
+        server_id: &McpServerId,
+        stream: McpClientHttpStreamOpen,
+    ) -> Result<McpClientHttpStreamDrainReport, McpError> {
+        let mut state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(server_id) {
+            return Err(McpError::Client(
+                "MCP client HTTP session is not initialized".to_string(),
+            ));
+        }
+
+        let mut accepted_events = 0usize;
+        let mut last_event_id = None;
+        for event in &stream.events {
+            let _frame = parse_mcp_client_http_response_text(&event.data)?;
+            if let Some(event_id) = &event.id {
+                last_event_id = Some(validate_mcp_client_http_metadata_value(event_id)?);
+            }
+            accepted_events += 1;
+        }
+
+        if let Some(event_id) = &last_event_id {
+            state.session_metadata.last_event_id = Some(event_id.clone());
+        }
+
+        Ok(McpClientHttpStreamDrainReport::new(
+            accepted_events,
+            last_event_id,
+        ))
+    }
+
+    pub async fn reconnect_stream<S>(
+        &self,
+        server_id: &McpServerId,
+        stream_transport: &mut S,
+        policy: McpClientHttpReconnectPolicy,
+    ) -> Result<McpClientHttpStreamDrainReport, McpError>
+    where
+        S: McpClientHttpStreamTransport,
+    {
+        self.reconnect_stream_with_replay_diagnostic(server_id, stream_transport, policy)
+            .await
+            .map(|report| report.drain_report)
+    }
+
+    pub async fn reconnect_stream_with_replay_diagnostic<S>(
+        &self,
+        server_id: &McpServerId,
+        stream_transport: &mut S,
+        policy: McpClientHttpReconnectPolicy,
+    ) -> Result<McpClientHttpStreamReconnectReport, McpError>
+    where
+        S: McpClientHttpStreamTransport,
+    {
+        policy.validate()?;
+        let mut attempt = 1u32;
+        let mut attempts = Vec::new();
+        loop {
+            let checkpoint_before = self.session_metadata_snapshot().await;
+            let request = self.stream_request_snapshot(server_id).await?;
+            let diagnostic_request = request.clone();
+            match stream_transport.open_stream(request).await {
+                Ok(stream) => {
+                    let drain_report = self.record_stream_open(server_id, stream).await?;
+                    let checkpoint_after = self.session_metadata_snapshot().await;
+                    let replay_diagnostic = McpClientHttpReplayDiagnostic::from_reconnect_attempt(
+                        &checkpoint_before,
+                        &diagnostic_request,
+                        Some(&checkpoint_after),
+                    );
+                    attempts.push(McpClientHttpReconnectAttempt::success(
+                        attempt,
+                        replay_diagnostic.clone(),
+                    ));
+                    let reconnect_report = McpClientHttpReconnectReport::from_attempts(attempts);
+                    return Ok(McpClientHttpStreamReconnectReport::new(
+                        drain_report,
+                        replay_diagnostic,
+                        reconnect_report,
+                    ));
+                }
+                Err(error) => {
+                    let failure_kind = classify_mcp_client_http_reconnect_error(&error);
+                    let replay_diagnostic = McpClientHttpReplayDiagnostic::from_reconnect_attempt(
+                        &checkpoint_before,
+                        &diagnostic_request,
+                        None,
+                    );
+                    match policy.decision_for_attempt(attempt, failure_kind.is_retryable())? {
+                        McpClientHttpReconnectDecision::Retry { backoff_ms } => {
+                            attempts.push(McpClientHttpReconnectAttempt::retry(
+                                attempt,
+                                backoff_ms,
+                                failure_kind,
+                                replay_diagnostic,
+                            ));
+                            tokio::time::sleep(Duration::from_millis(backoff_ms)).await;
+                            attempt += 1;
+                        }
+                        McpClientHttpReconnectDecision::Stop => {
+                            attempts.push(McpClientHttpReconnectAttempt::failed(
+                                attempt,
+                                failure_kind,
+                                replay_diagnostic,
+                            ));
+                            return Err(mcp_client_http_stream_reconnect_failed(
+                                attempt,
+                                failure_kind,
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    pub async fn supervise_stream_tick<S>(
+        &self,
+        supervisor: &McpClientHttpStreamSupervisorConfig,
+        stream_transport: &mut S,
+        ticks_completed: u32,
+    ) -> Result<McpClientHttpStreamSupervisorTick, McpError>
+    where
+        S: McpClientHttpStreamTransport,
+    {
+        let control = McpClientHttpStreamSupervisorControl::default();
+        self.supervise_stream_tick_with_control(
+            supervisor,
+            stream_transport,
+            ticks_completed,
+            &control,
+        )
+        .await
+    }
+
+    pub async fn supervise_stream_tick_with_control<S>(
+        &self,
+        supervisor: &McpClientHttpStreamSupervisorConfig,
+        stream_transport: &mut S,
+        ticks_completed: u32,
+        control: &McpClientHttpStreamSupervisorControl,
+    ) -> Result<McpClientHttpStreamSupervisorTick, McpError>
+    where
+        S: McpClientHttpStreamTransport,
+    {
+        supervisor.validate()?;
+        if control.cancelled {
+            return Ok(McpClientHttpStreamSupervisorTick::stopped(
+                McpClientHttpStreamSupervisorStatus::Cancelled,
+                ticks_completed.min(supervisor.max_ticks),
+                "MCP client HTTP stream supervision cancelled",
+            ));
+        }
+        if !control.lease_valid {
+            return Ok(McpClientHttpStreamSupervisorTick::stopped(
+                McpClientHttpStreamSupervisorStatus::Failed,
+                ticks_completed.min(supervisor.max_ticks),
+                "MCP client HTTP stream supervisor lease is invalid",
+            ));
+        }
+        if ticks_completed >= supervisor.max_ticks {
+            return Ok(McpClientHttpStreamSupervisorTick::new(
+                McpClientHttpStreamSupervisorStatus::Completed,
+                supervisor.max_ticks,
+                None,
+            ));
+        }
+
+        let reconnect_report = self
+            .reconnect_stream_with_replay_diagnostic(
+                &supervisor.server_id,
+                stream_transport,
+                supervisor.reconnect_policy,
+            )
+            .await?;
+        let ticks_completed = ticks_completed + 1;
+        let status = if ticks_completed >= supervisor.max_ticks {
+            McpClientHttpStreamSupervisorStatus::Completed
+        } else {
+            McpClientHttpStreamSupervisorStatus::Running
+        };
+
+        Ok(McpClientHttpStreamSupervisorTick::new(
+            status,
+            ticks_completed,
+            Some(reconnect_report),
+        ))
+    }
+}
+
+impl McpHttpClient<McpClientHttpReqwestTransport> {
+    #[must_use]
+    pub fn reqwest() -> Self {
+        Self::new(McpClientHttpReqwestTransport::new())
+    }
+}
+
+impl<T> McpHttpClientState<T>
+where
+    T: McpClientHttpTransport,
+{
+    async fn send_request(
+        &mut self,
+        config: &McpServerConfig,
+        method: &str,
+        params: Value,
+    ) -> Result<McpClientHttpDispatchResult, McpError> {
+        let id = self.allocate_request_id()?;
+        let body = render_mcp_client_http_request_body(id.clone(), method, params)?;
+        let request = McpClientHttpRequest::from_config_with_session_metadata(
+            config,
+            body,
+            Some(&self.session_metadata),
+        )?;
+        let envelope = self.transport.send_request(request).await?;
+        let frame = find_mcp_client_http_response_frame(&envelope.mode, &id)?;
+        Ok(McpClientHttpDispatchResult {
+            frame,
+            metadata: envelope.metadata,
+        })
+    }
+
+    fn allocate_request_id(&mut self) -> Result<McpJsonRpcId, McpError> {
+        let id = self.next_request_id;
+        self.next_request_id = self.next_request_id.checked_add(1).ok_or_else(|| {
+            McpError::InvalidServerRequest("MCP client HTTP request id exhausted".to_string())
+        })?;
+        Ok(McpJsonRpcId::Number(id))
+    }
+
+    fn record_accepted_response_metadata(&mut self, metadata: &McpClientHttpSessionMetadata) {
+        if let Some(last_event_id) = &metadata.last_event_id {
+            self.session_metadata.last_event_id = Some(last_event_id.clone());
+        }
+    }
+}
+
+#[async_trait]
+impl<T> McpClient for McpHttpClient<T>
+where
+    T: McpClientHttpTransport,
+{
+    async fn initialize(&self, config: &McpServerConfig) -> Result<McpInitializeResult, McpError> {
+        let mut state = self.state.lock().await;
+        let dispatch = state
+            .send_request(
+                config,
+                McpServerMethod::Initialize.as_str(),
+                json!({
+                    "protocolVersion": MCP_SERVER_PROTOCOL_VERSION,
+                    "clientInfo": {
+                        "name": "agent",
+                        "version": env!("CARGO_PKG_VERSION"),
+                    },
+                    "capabilities": {},
+                }),
+            )
+            .await?;
+        let result = mcp_client_http_success_result(dispatch.frame, "initialize")?;
+        let initialize = map_mcp_client_http_initialize_result(config.id.clone(), &result)?;
+        state.server_id = Some(config.id.clone());
+        state.config = Some(config.clone());
+        state.session_metadata = dispatch.metadata;
+        Ok(initialize)
+    }
+
+    async fn list_tools(&self, server_id: &McpServerId) -> Result<McpToolListResult, McpError> {
+        let mut state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(server_id) {
+            return Err(McpError::Client(
+                "MCP client HTTP session is not initialized".to_string(),
+            ));
+        }
+        let config = state.config.clone().ok_or_else(|| {
+            McpError::Client("MCP client HTTP session is not initialized".to_string())
+        })?;
+
+        let dispatch = state
+            .send_request(&config, McpServerMethod::ToolsList.as_str(), json!({}))
+            .await?;
+        let result = mcp_client_http_success_result(dispatch.frame, "tools/list")?;
+        let tools = map_mcp_client_http_tool_list_result(server_id.clone(), &result)?;
+        state.record_accepted_response_metadata(&dispatch.metadata);
+        Ok(tools)
+    }
+}
+
+#[async_trait]
+impl<T> McpClientRootProvider for McpHttpClient<T>
+where
+    T: McpClientHttpTransport,
+{
+    async fn list_roots(&self, server_id: &McpServerId) -> Result<McpRootListResult, McpError> {
+        let state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(server_id) {
+            return Err(McpError::Client(
+                "MCP client HTTP session is not initialized".to_string(),
+            ));
+        }
+        Ok(McpRootListResult::empty())
+    }
+}
+
+#[async_trait]
+impl<T> McpGatewayClient for McpHttpClient<T>
+where
+    T: McpClientHttpTransport,
+{
+    async fn call_tool(&self, request: McpToolCallRequest) -> Result<McpToolCallResult, McpError> {
+        let mut state = self.state.lock().await;
+        if state.server_id.as_ref() != Some(&request.server_id) {
+            return Err(McpError::Client(
+                "MCP client HTTP session is not initialized".to_string(),
+            ));
+        }
+        let config = state.config.clone().ok_or_else(|| {
+            McpError::Client("MCP client HTTP session is not initialized".to_string())
+        })?;
+
+        let dispatch = state
+            .send_request(
+                &config,
+                McpServerMethod::ToolsCall.as_str(),
+                json!({
+                    "name": request.remote_tool_name,
+                    "arguments": request.input_json,
+                }),
+            )
+            .await?;
+        let result = mcp_client_http_success_result(dispatch.frame, "tools/call")?;
+        let output = map_mcp_client_http_tool_call_result(&result)?;
+        state.record_accepted_response_metadata(&dispatch.metadata);
+        Ok(output)
+    }
+}
+
+impl McpClientHttpResponseFrame {
+    #[must_use]
+    pub const fn id(&self) -> &McpJsonRpcId {
+        match self {
+            Self::Success(success) => &success.id,
+            Self::Failure(failure) => &failure.id,
+        }
+    }
+}
+
+pub fn render_mcp_client_http_request_body(
+    id: McpJsonRpcId,
+    method: impl Into<String>,
+    params: Value,
+) -> Result<Value, McpError> {
+    if matches!(id, McpJsonRpcId::Null) {
+        return Err(McpError::InvalidServerRequest(
+            "MCP client HTTP request id cannot be null".to_string(),
+        ));
+    }
+
+    let method = method.into();
+    if method.trim().is_empty() {
+        return Err(McpError::InvalidServerRequest(
+            "MCP client HTTP method cannot be empty".to_string(),
+        ));
+    }
+
+    Ok(json!({
+        "jsonrpc": "2.0",
+        "id": id,
+        "method": method,
+        "params": params,
+    }))
+}
+
+pub fn parse_mcp_client_http_response_text(
+    body: &str,
+) -> Result<McpClientHttpResponseFrame, McpError> {
+    if body.len() > MAX_CLIENT_HTTP_BODY_BYTES {
+        return Err(McpError::InvalidServerRequest(
+            "MCP client HTTP response body too large".to_string(),
+        ));
+    }
+
+    let value = serde_json::from_str::<Value>(body).map_err(|_| {
+        McpError::InvalidServerRequest("invalid MCP client HTTP response body".to_string())
+    })?;
+    parse_mcp_client_http_response_body(&value)
+}
+
+pub fn parse_mcp_client_http_response_body(
+    body: &Value,
+) -> Result<McpClientHttpResponseFrame, McpError> {
+    if body.get("jsonrpc").and_then(Value::as_str) != Some("2.0") {
+        return Err(McpError::InvalidServerRequest(
+            "MCP client HTTP response JSON-RPC version must be 2.0".to_string(),
+        ));
+    }
+    if body.get("id").is_none() {
+        return Err(McpError::InvalidServerRequest(
+            "MCP client HTTP response id missing".to_string(),
+        ));
+    }
+
+    match (body.get("result").is_some(), body.get("error").is_some()) {
+        (true, false) => serde_json::from_value::<McpJsonRpcSuccess>(body.clone())
+            .map(McpClientHttpResponseFrame::Success)
+            .map_err(|_| {
+                McpError::InvalidServerRequest(
+                    "invalid MCP client HTTP success response".to_string(),
+                )
+            }),
+        (false, true) => {
+            let mut failure =
+                serde_json::from_value::<McpJsonRpcFailure>(body.clone()).map_err(|_| {
+                    McpError::InvalidServerRequest(
+                        "invalid MCP client HTTP failure response".to_string(),
+                    )
+                })?;
+            failure.error.message = public_http_message(&failure.error.message);
+            Ok(McpClientHttpResponseFrame::Failure(failure))
+        }
+        _ => Err(McpError::InvalidServerRequest(
+            "MCP client HTTP response must contain exactly one result or error".to_string(),
+        )),
+    }
+}
+
+pub fn validate_mcp_client_http_status(status: u16) -> Result<(), McpError> {
+    if (200..300).contains(&status) {
+        return Ok(());
+    }
+
+    Err(McpError::Client(format!(
+        "MCP client HTTP request failed with HTTP status {status}"
+    )))
+}
+
+#[must_use]
+pub fn classify_mcp_client_http_reconnect_error(
+    error: &McpError,
+) -> McpClientHttpReconnectFailureKind {
+    match error {
+        McpError::InvalidConfig(_) => McpClientHttpReconnectFailureKind::NonRetryableConfig,
+        McpError::InvalidServerRequest(_) => {
+            McpClientHttpReconnectFailureKind::NonRetryableValidation
+        }
+        McpError::Client(message) if is_retryable_mcp_client_http_transport_error(message) => {
+            McpClientHttpReconnectFailureKind::RetryableTransport
+        }
+        McpError::Client(message) if retryable_mcp_client_http_status(message) => {
+            McpClientHttpReconnectFailureKind::RetryableStatus
+        }
+        McpError::Client(_) => McpClientHttpReconnectFailureKind::NonRetryableOther,
+        McpError::InvalidToolDescriptor(_) | McpError::ServerNotFound(_) => {
+            McpClientHttpReconnectFailureKind::NonRetryableOther
+        }
+    }
+}
+
+pub fn parse_mcp_client_http_sse_events(
+    body: &str,
+) -> Result<Vec<McpClientHttpSseEvent>, McpError> {
+    if body.len() > MAX_CLIENT_HTTP_BODY_BYTES {
+        return Err(McpError::InvalidServerRequest(
+            "MCP client HTTP SSE response body too large".to_string(),
+        ));
+    }
+
+    let mut events = Vec::new();
+    let mut pending = PendingMcpClientHttpSseEvent::default();
+    for raw_line in body.lines() {
+        let line = raw_line.strip_suffix('\r').unwrap_or(raw_line);
+        if line.is_empty() {
+            flush_mcp_client_http_sse_event(&mut pending, &mut events)?;
+            continue;
+        }
+        if line.starts_with(':') {
+            continue;
+        }
+
+        let (field, value) = line.split_once(':').map_or((line, ""), |(field, value)| {
+            (field, value.strip_prefix(' ').unwrap_or(value))
+        });
+        match field {
+            "data" => pending.push_data(value)?,
+            "event" => pending.event = non_empty_sse_value(value),
+            "id" => pending.id = non_empty_sse_value(value),
+            "retry" => {
+                if let Ok(retry_ms) = value.parse::<u64>() {
+                    pending.retry_ms = Some(retry_ms);
+                }
+            }
+            _ => {}
+        }
+    }
+    flush_mcp_client_http_sse_event(&mut pending, &mut events)?;
+
+    Ok(events)
+}
+
+pub fn parse_mcp_client_http_response_mode_frames(
+    response: &McpClientHttpResponseMode,
+) -> Result<Vec<McpClientHttpResponseFrame>, McpError> {
+    match response {
+        McpClientHttpResponseMode::Json(response) => {
+            parse_mcp_client_http_response_body(&response.body_json).map(|frame| vec![frame])
+        }
+        McpClientHttpResponseMode::Sse(response) => response
+            .events
+            .iter()
+            .map(|event| parse_mcp_client_http_response_text(&event.data))
+            .collect(),
+    }
+}
+
+pub fn find_mcp_client_http_response_frame(
+    response: &McpClientHttpResponseMode,
+    id: &McpJsonRpcId,
+) -> Result<McpClientHttpResponseFrame, McpError> {
+    parse_mcp_client_http_response_mode_frames(response)?
+        .into_iter()
+        .find(|frame| frame.id() == id)
+        .ok_or_else(|| {
+            McpError::InvalidServerRequest(
+                "MCP client HTTP matching response id missing".to_string(),
+            )
+        })
+}
+
+pub fn parse_mcp_client_http_session_metadata(
+    headers: &BTreeMap<String, String>,
+    response: &McpClientHttpResponseMode,
+) -> Result<McpClientHttpSessionMetadata, McpError> {
+    Ok(McpClientHttpSessionMetadata {
+        session_id: parse_mcp_client_http_metadata_header(
+            headers,
+            MCP_CLIENT_HTTP_SESSION_ID_HEADER,
+        )?,
+        protocol_version: parse_mcp_client_http_metadata_header(
+            headers,
+            MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER,
+        )?,
+        last_event_id: parse_mcp_client_http_last_sse_event_id(response)?,
+    })
+}
+
+fn mcp_client_http_success_result(
+    response: McpClientHttpResponseFrame,
+    operation: &str,
+) -> Result<Value, McpError> {
+    match response {
+        McpClientHttpResponseFrame::Success(success) => Ok(success.result),
+        McpClientHttpResponseFrame::Failure(failure) => Err(McpError::Client(format!(
+            "MCP client HTTP {operation} failed with code {}",
+            failure.error.code
+        ))),
+    }
+}
+
+fn map_mcp_client_http_initialize_result(
+    server_id: McpServerId,
+    result: &Value,
+) -> Result<McpInitializeResult, McpError> {
+    let protocol_version = string_field_any(
+        result,
+        &["protocol_version", "protocolVersion"],
+        "initialize",
+    )?;
+    let server_info = object_field_any(result, &["server_info", "serverInfo"], "initialize")?;
+    let server_name = string_field(server_info, "name", "initialize")?;
+    let server_version = optional_string_field(server_info, "version", "initialize")?;
+    let capabilities = object_field(result, "capabilities", "initialize")?;
+
+    Ok(McpInitializeResult::new(
+        server_id,
+        protocol_version,
+        server_name,
+        server_version,
+        McpServerCapabilities {
+            tools: capability_enabled(capabilities.get("tools")),
+            prompts: capability_enabled(capabilities.get("prompts")),
+            resources: capability_enabled(capabilities.get("resources")),
+        },
+    ))
+}
+
+fn map_mcp_client_http_tool_list_result(
+    server_id: McpServerId,
+    result: &Value,
+) -> Result<McpToolListResult, McpError> {
+    let tools = result
+        .get("tools")
+        .and_then(Value::as_array)
+        .ok_or_else(|| invalid_mcp_client_http_result("tools/list"))?;
+    let mut descriptors = Vec::with_capacity(tools.len());
+    for tool in tools {
+        let tool = tool
+            .as_object()
+            .ok_or_else(|| invalid_mcp_client_http_result("tools/list"))?;
+        let name = string_field(tool, "name", "tools/list")?;
+        let title = optional_string_field(tool, "title", "tools/list")?;
+        let description = string_field(tool, "description", "tools/list")?;
+        let input_schema = value_field_any(tool, &["input_schema", "inputSchema"], "tools/list")?;
+        descriptors.push(McpToolDescriptor::new(
+            server_id.clone(),
+            name,
+            title,
+            description,
+            input_schema.clone(),
+        )?);
+    }
+    Ok(McpToolListResult::new(server_id, descriptors))
+}
+
+fn map_mcp_client_http_tool_call_result(result: &Value) -> Result<McpToolCallResult, McpError> {
+    let result_object = result
+        .as_object()
+        .ok_or_else(|| invalid_mcp_client_http_result("tools/call"))?;
+
+    if result_object.contains_key("output_json") {
+        return serde_json::from_value::<McpToolCallResult>(result.clone())
+            .map_err(|_| invalid_mcp_client_http_result("tools/call"));
+    }
+
+    Ok(McpToolCallResult::new(result.clone()))
+}
+
+fn object_field<'a>(
+    value: &'a Value,
+    field: &str,
+    operation: &str,
+) -> Result<&'a serde_json::Map<String, Value>, McpError> {
+    value
+        .get(field)
+        .and_then(Value::as_object)
+        .ok_or_else(|| invalid_mcp_client_http_result(operation))
+}
+
+fn object_field_any<'a>(
+    value: &'a Value,
+    fields: &[&str],
+    operation: &str,
+) -> Result<&'a serde_json::Map<String, Value>, McpError> {
+    fields
+        .iter()
+        .find_map(|field| value.get(*field).and_then(Value::as_object))
+        .ok_or_else(|| invalid_mcp_client_http_result(operation))
+}
+
+fn value_field_any<'a>(
+    value: &'a serde_json::Map<String, Value>,
+    fields: &[&str],
+    operation: &str,
+) -> Result<&'a Value, McpError> {
+    fields
+        .iter()
+        .find_map(|field| value.get(*field))
+        .ok_or_else(|| invalid_mcp_client_http_result(operation))
+}
+
+fn string_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    operation: &str,
+) -> Result<String, McpError> {
+    value
+        .get(field)
+        .and_then(Value::as_str)
+        .filter(|text| !text.trim().is_empty())
+        .map(ToString::to_string)
+        .ok_or_else(|| invalid_mcp_client_http_result(operation))
+}
+
+fn string_field_any(value: &Value, fields: &[&str], operation: &str) -> Result<String, McpError> {
+    fields
+        .iter()
+        .find_map(|field| value.get(*field).and_then(Value::as_str))
+        .filter(|text| !text.trim().is_empty())
+        .map(ToString::to_string)
+        .ok_or_else(|| invalid_mcp_client_http_result(operation))
+}
+
+fn optional_string_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    operation: &str,
+) -> Result<Option<String>, McpError> {
+    match value.get(field) {
+        Some(Value::String(text)) if !text.trim().is_empty() => Ok(Some(text.clone())),
+        Some(Value::String(_)) | Some(Value::Null) | None => Ok(None),
+        Some(_) => Err(invalid_mcp_client_http_result(operation)),
+    }
+}
+
+fn optional_mcp_client_http_oauth_string_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    invalid: fn() -> McpError,
+) -> Result<Option<String>, McpError> {
+    match value.get(field) {
+        Some(Value::String(text)) if !text.trim().is_empty() => Ok(Some(text.clone())),
+        Some(Value::String(_)) | Some(Value::Null) | None => Ok(None),
+        Some(_) => Err(invalid()),
+    }
+}
+
+fn optional_mcp_client_http_oauth_string_array_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    invalid: fn() -> McpError,
+) -> Result<Vec<String>, McpError> {
+    match value.get(field) {
+        Some(Value::Array(values)) => values
+            .iter()
+            .map(|value| match value {
+                Value::String(text) if !text.trim().is_empty() => Ok(text.clone()),
+                _ => Err(invalid()),
+            })
+            .collect(),
+        Some(Value::Null) | None => Ok(Vec::new()),
+        Some(_) => Err(invalid()),
+    }
+}
+
+fn required_mcp_client_http_oauth_token_response_string_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    invalid: fn() -> McpError,
+) -> Result<String, McpError> {
+    match value.get(field) {
+        Some(Value::String(text)) if !text.trim().is_empty() => Ok(text.trim().to_string()),
+        _ => Err(invalid()),
+    }
+}
+
+fn optional_mcp_client_http_oauth_token_response_u64_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+    invalid: fn() -> McpError,
+) -> Result<Option<u64>, McpError> {
+    match value.get(field) {
+        Some(Value::Number(number)) => number.as_u64().map(Some).ok_or_else(invalid),
+        Some(Value::Null) | None => Ok(None),
+        Some(_) => Err(invalid()),
+    }
+}
+
+fn optional_mcp_client_http_oauth_scope_string_field(
+    value: &serde_json::Map<String, Value>,
+    field: &str,
+) -> Result<Vec<String>, McpError> {
+    match value.get(field) {
+        Some(Value::String(text)) if !text.trim().is_empty() => {
+            let scopes = text
+                .split_whitespace()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>();
+            validate_mcp_client_http_oauth_tokens(&scopes)
+                .map_err(|_| invalid_mcp_client_http_oauth_token_response())?;
+            Ok(scopes)
+        }
+        Some(Value::String(_)) | Some(Value::Null) | None => Ok(Vec::new()),
+        Some(_) => Err(invalid_mcp_client_http_oauth_token_response()),
+    }
+}
+
+fn validate_mcp_client_http_oauth_token_response_public_token(value: &str) -> Result<(), McpError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+        || value.chars().any(char::is_whitespace)
+        || is_secret_like(value)
+    {
+        return Err(invalid_mcp_client_http_oauth_token_response());
+    }
+    Ok(())
+}
+
+fn validate_mcp_client_http_oauth_token_exchange_endpoint(value: &str) -> Result<(), McpError> {
+    validate_mcp_client_http_oauth_url(value)
+        .map_err(|_| invalid_mcp_client_http_oauth_token_exchange())
+}
+
+fn validate_mcp_client_http_oauth_token_exchange_form(
+    form: &[(String, String)],
+) -> Result<(), McpError> {
+    if form.is_empty() {
+        return Err(invalid_mcp_client_http_oauth_token_exchange());
+    }
+    for (name, value) in form {
+        validate_mcp_client_http_oauth_token_exchange_form_name(name)?;
+        validate_mcp_client_http_oauth_token_exchange_form_value(value)?;
+    }
+    Ok(())
+}
+
+fn validate_mcp_client_http_oauth_token_exchange_form_name(value: &str) -> Result<(), McpError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+        || value.chars().any(char::is_whitespace)
+    {
+        return Err(invalid_mcp_client_http_oauth_token_exchange());
+    }
+    Ok(())
+}
+
+fn validate_mcp_client_http_oauth_token_exchange_form_value(value: &str) -> Result<(), McpError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_BODY_BYTES
+        || value.chars().any(char::is_control)
+    {
+        return Err(invalid_mcp_client_http_oauth_token_exchange());
+    }
+    Ok(())
+}
+
+fn validate_mcp_client_http_oauth_token_exchange_status(status: u16) -> Result<(), McpError> {
+    if (100..600).contains(&status) {
+        return Ok(());
+    }
+    Err(invalid_mcp_client_http_oauth_token_exchange())
+}
+
+fn invalid_mcp_client_http_oauth_token_exchange_outcome() -> McpClientHttpOAuthTokenExchangeOutcome
+{
+    McpClientHttpOAuthTokenExchangeOutcome {
+        report: McpClientHttpOAuthTokenExchangeReport {
+            exchanged: false,
+            diagnostics: vec![McpClientHttpOAuthTokenExchangeDiagnostic::error(
+                McpClientHttpOAuthTokenExchangeDiagnosticCode::InvalidResponse,
+                "MCP HTTP OAuth token endpoint returned an invalid response",
+            )],
+        },
+        response: None,
+    }
+}
+
+fn has_mcp_client_http_authorization_header(headers: &BTreeMap<String, McpEnvValue>) -> bool {
+    headers
+        .keys()
+        .any(|key| key.eq_ignore_ascii_case("authorization"))
+}
+
+fn validate_mcp_client_http_oauth_token_source_id(value: &str) -> Result<String, McpError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+        || value.chars().any(char::is_whitespace)
+        || !value
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.'))
+        || is_secret_like(value)
+    {
+        return Err(invalid_mcp_client_http_oauth_token_source());
+    }
+    Ok(value.to_string())
+}
+
+fn validate_mcp_client_http_oauth_pkce_verifier(value: &str) -> Result<String, McpError> {
+    let value = value.trim();
+    if !(MIN_CLIENT_HTTP_OAUTH_PKCE_VERIFIER_CHARS..=MAX_CLIENT_HTTP_OAUTH_PKCE_VERIFIER_CHARS)
+        .contains(&value.chars().count())
+        || !value.chars().all(is_mcp_client_http_oauth_unreserved_char)
+    {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    Ok(value.to_string())
+}
+
+fn validate_mcp_client_http_oauth_state(value: &str) -> Result<String, McpError> {
+    let value = value.trim();
+    if !(MIN_CLIENT_HTTP_OAUTH_STATE_CHARS..=MAX_CLIENT_HTTP_OAUTH_STATE_CHARS)
+        .contains(&value.chars().count())
+        || !value.chars().all(is_mcp_client_http_oauth_unreserved_char)
+    {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    Ok(value.to_string())
+}
+
+fn validate_mcp_client_http_oauth_client_id(value: &str) -> Result<String, McpError> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+        || value.chars().any(char::is_whitespace)
+        || is_secret_like(value)
+    {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    Ok(value.to_string())
+}
+
+fn validate_mcp_client_http_oauth_redirect_uri(value: &str) -> Result<String, McpError> {
+    let value = value.trim();
+    if value.is_empty() || is_secret_like(value) {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    validate_mcp_client_http_oauth_url(value).map_err(|_| invalid_mcp_client_http_oauth_flow())?;
+    Ok(value.to_string())
+}
+
+fn validate_mcp_client_http_oauth_pkce_challenge(
+    challenge: &McpClientHttpOAuthPkceChallenge,
+) -> Result<(), McpError> {
+    if challenge.method != "S256"
+        || challenge.challenge.chars().count() != MIN_CLIENT_HTTP_OAUTH_PKCE_VERIFIER_CHARS
+        || !challenge
+            .challenge
+            .chars()
+            .all(is_mcp_client_http_oauth_unreserved_char)
+    {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    Ok(())
+}
+
+fn normalize_mcp_client_http_oauth_callback_value(
+    value: Option<impl Into<String>>,
+) -> Result<Option<String>, McpError> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    let value = value.into();
+    let value = value.trim();
+    if value.is_empty() {
+        return Ok(None);
+    }
+    if value.chars().count() > MAX_CLIENT_HTTP_MESSAGE_CHARS || value.chars().any(char::is_control)
+    {
+        return Err(invalid_mcp_client_http_oauth_flow());
+    }
+    Ok(Some(value.to_string()))
+}
+
+fn redacted_optional_value(value: Option<&String>) -> Option<&'static str> {
+    value.map(|_| "[redacted]")
+}
+
+fn redacted_scope_values(values: &[String]) -> Vec<String> {
+    values
+        .iter()
+        .map(|value| redact_secret_like_text(value))
+        .collect()
+}
+
+fn is_mcp_client_http_oauth_unreserved_char(value: char) -> bool {
+    value.is_ascii_alphanumeric() || matches!(value, '-' | '.' | '_' | '~')
+}
+
+fn normalize_mcp_client_http_oauth_token_source_hint(
+    value: Option<impl Into<String>>,
+) -> Result<Option<String>, McpError> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    let value = value.into();
+    let value = value.trim();
+    if value.is_empty() {
+        return Ok(None);
+    }
+    if value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+        || is_secret_like(value)
+    {
+        return Err(invalid_mcp_client_http_oauth_token_source());
+    }
+    Ok(Some(value.to_string()))
+}
+
+fn reject_mcp_client_http_authorization_header_conflict(
+    config: &McpServerConfig,
+) -> Result<(), McpError> {
+    if let McpTransportConfig::StreamableHttp { headers, .. } = &config.transport
+        && has_mcp_client_http_authorization_header(headers)
+    {
+        return Err(mcp_client_http_authorization_header_conflict());
+    }
+    Ok(())
+}
+
+fn insert_mcp_client_http_authorization_header(
+    headers: &mut BTreeMap<String, String>,
+    authorization: &McpClientHttpAuthorization,
+) -> Result<(), McpError> {
+    if headers
+        .keys()
+        .any(|key| key.eq_ignore_ascii_case("authorization"))
+    {
+        return Err(mcp_client_http_authorization_header_conflict());
+    }
+    headers.insert(
+        "Authorization".to_string(),
+        authorization.bearer_header_value()?,
+    );
+    Ok(())
+}
+
+fn mcp_client_http_authorization_from_oauth_token_lease(
+    lease: &McpClientHttpOAuthTokenLease,
+    now_unix_ms: u64,
+) -> Result<McpClientHttpAuthorization, McpError> {
+    lease.validate()?;
+    if lease
+        .expires_at_unix_ms
+        .is_some_and(|expires_at_unix_ms| expires_at_unix_ms <= now_unix_ms)
+    {
+        return Err(mcp_client_http_oauth_token_expired());
+    }
+    McpClientHttpAuthorization::new(lease.access_token.as_str())
+        .map_err(|_| invalid_mcp_client_http_oauth_token_lease())
+}
+
+fn capability_enabled(value: Option<&Value>) -> bool {
+    match value {
+        Some(Value::Bool(enabled)) => *enabled,
+        Some(Value::Object(_)) => true,
+        _ => false,
+    }
+}
+
+fn invalid_mcp_client_http_result(operation: &str) -> McpError {
+    McpError::Client(format!("invalid MCP client HTTP {operation} result"))
+}
+
+fn public_http_message(value: &str) -> String {
+    truncate_chars(
+        &redact_secret_like_text(value),
+        MAX_CLIENT_HTTP_MESSAGE_CHARS,
+    )
+}
+
+struct McpClientHttpDispatchResult {
+    frame: McpClientHttpResponseFrame,
+    metadata: McpClientHttpSessionMetadata,
+}
+
+fn is_mcp_client_http_sse_content_type(content_type: &str) -> bool {
+    content_type
+        .split(';')
+        .next()
+        .is_some_and(|value| value.trim().eq_ignore_ascii_case("text/event-stream"))
+}
+
+fn is_mcp_client_http_json_content_type(content_type: &str) -> bool {
+    content_type.split(';').next().is_some_and(|value| {
+        let value = value.trim().to_ascii_lowercase();
+        value == "application/json" || value.ends_with("+json")
+    })
+}
+
+fn truncate_chars(value: &str, max_chars: usize) -> String {
+    if value.chars().count() <= max_chars {
+        return value.to_string();
+    }
+    if max_chars <= 3 {
+        return value.chars().take(max_chars).collect();
+    }
+
+    let prefix = value.chars().take(max_chars - 3).collect::<String>();
+    format!("{prefix}...")
+}
+
+fn redact_secret_like_text(value: &str) -> String {
+    if is_secret_like(value) {
+        "[redacted]".to_string()
+    } else {
+        value.to_string()
+    }
+}
+
+fn is_secret_like(value: &str) -> bool {
+    let normalized = value.to_ascii_lowercase().replace(['-', '.'], "_");
+    normalized.contains("secret")
+        || normalized.contains("token")
+        || normalized.contains("password")
+        || normalized.contains("credential")
+        || normalized.contains("private_key")
+        || normalized.contains("api_key")
+        || normalized.contains("apikey")
+        || normalized.contains("sk_")
+}
+
+fn mcp_client_http_metadata_headers(
+    headers: &reqwest::header::HeaderMap,
+) -> BTreeMap<String, String> {
+    [
+        MCP_CLIENT_HTTP_SESSION_ID_HEADER,
+        MCP_CLIENT_HTTP_PROTOCOL_VERSION_HEADER,
+    ]
+    .into_iter()
+    .filter_map(|name| {
+        headers
+            .get(name)
+            .and_then(|value| value.to_str().ok())
+            .map(|value| (name.to_string(), value.to_string()))
+    })
+    .collect()
+}
+
+fn insert_mcp_client_http_metadata_header(
+    headers: &mut BTreeMap<String, String>,
+    name: &str,
+    value: Option<&str>,
+) -> Result<(), McpError> {
+    let Some(value) = value else {
+        return Ok(());
+    };
+    if headers.keys().any(|key| key.eq_ignore_ascii_case(name)) {
+        return Err(McpError::InvalidConfig(
+            "MCP client HTTP session header conflicts with configured header".to_string(),
+        ));
+    }
+    headers.insert(
+        name.to_string(),
+        validate_mcp_client_http_metadata_value(value)?,
+    );
+    Ok(())
+}
+
+fn parse_mcp_client_http_metadata_header(
+    headers: &BTreeMap<String, String>,
+    expected_name: &str,
+) -> Result<Option<String>, McpError> {
+    headers
+        .iter()
+        .find(|(name, _)| name.eq_ignore_ascii_case(expected_name))
+        .map(|(_, value)| validate_mcp_client_http_metadata_value(value))
+        .transpose()
+}
+
+fn parse_mcp_client_http_last_sse_event_id(
+    response: &McpClientHttpResponseMode,
+) -> Result<Option<String>, McpError> {
+    let McpClientHttpResponseMode::Sse(response) = response else {
+        return Ok(None);
+    };
+
+    response
+        .events
+        .iter()
+        .rev()
+        .find_map(|event| event.id.as_deref())
+        .map(validate_mcp_client_http_metadata_value)
+        .transpose()
+}
+
+fn validate_mcp_client_http_metadata_value(value: &str) -> Result<String, McpError> {
+    if value.chars().any(char::is_control) {
+        return Err(invalid_mcp_client_http_session_metadata());
+    }
+
+    let value = value.trim();
+    if value.is_empty()
+        || value.chars().count() > MAX_CLIENT_HTTP_METADATA_VALUE_CHARS
+        || value.chars().any(char::is_control)
+    {
+        return Err(invalid_mcp_client_http_session_metadata());
+    }
+
+    Ok(value.to_string())
+}
+
+fn invalid_mcp_client_http_session_metadata() -> McpError {
+    McpError::InvalidServerRequest("invalid MCP client HTTP session metadata".to_string())
+}
+
+fn invalid_mcp_client_http_reconnect_policy() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP reconnect policy".to_string())
+}
+
+fn invalid_mcp_client_http_stream_supervisor_config() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP stream supervisor config".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_metadata() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth metadata".to_string())
+}
+
+fn invalid_mcp_client_http_protected_resource_metadata() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP protected resource metadata".to_string())
+}
+
+fn invalid_mcp_client_http_authorization() -> McpError {
+    McpError::InvalidConfig("MCP client HTTP bearer authorization is empty".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_token_lease() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth token lease".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_token_source() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth token source".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_flow() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth flow".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_token_response() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth token response".to_string())
+}
+
+fn invalid_mcp_client_http_oauth_token_exchange() -> McpError {
+    McpError::InvalidConfig("invalid MCP client HTTP OAuth token exchange".to_string())
+}
+
+fn mcp_client_http_oauth_token_exchange_transport_failed() -> McpError {
+    McpError::Client("MCP client HTTP OAuth token exchange transport failed".to_string())
+}
+
+fn mcp_client_http_oauth_token_expired() -> McpError {
+    McpError::InvalidConfig("MCP client HTTP OAuth token lease is expired".to_string())
+}
+
+fn mcp_client_http_authorization_header_conflict() -> McpError {
+    McpError::InvalidConfig(
+        "MCP client HTTP authorization header conflicts with configured header".to_string(),
+    )
+}
+
+fn validate_optional_mcp_client_http_oauth_url(value: Option<&str>) -> Result<(), McpError> {
+    match value {
+        Some(value) => validate_mcp_client_http_oauth_url(value),
+        None => Ok(()),
+    }
+}
+
+fn validate_mcp_client_http_oauth_url(value: &str) -> Result<(), McpError> {
+    let value = value.trim();
+    if value.is_empty() || !(value.starts_with("http://") || value.starts_with("https://")) {
+        return Err(invalid_mcp_client_http_oauth_metadata());
+    }
+    Ok(())
+}
+
+fn validate_mcp_client_http_oauth_tokens(values: &[String]) -> Result<(), McpError> {
+    for value in values {
+        let value = value.trim();
+        if value.is_empty() || value.chars().any(char::is_whitespace) {
+            return Err(invalid_mcp_client_http_oauth_metadata());
+        }
+    }
+    Ok(())
+}
+
+fn mcp_client_http_stream_reconnect_failed(
+    attempts: u32,
+    failure_kind: McpClientHttpReconnectFailureKind,
+) -> McpError {
+    McpError::Client(format!(
+        "MCP client HTTP stream reconnect failed after {attempts} attempt(s): {}",
+        failure_kind.public_reason()
+    ))
+}
+
+fn mcp_client_http_stream_request_has_resume_checkpoint(
+    request: &McpClientHttpStreamRequest,
+) -> bool {
+    request.headers.iter().any(|(key, value)| {
+        key.eq_ignore_ascii_case(MCP_CLIENT_HTTP_LAST_EVENT_ID_HEADER_CANONICAL)
+            && !value.trim().is_empty()
+    })
+}
+
+fn is_retryable_mcp_client_http_transport_error(message: &str) -> bool {
+    let message = message.to_ascii_lowercase();
+    message.contains("transport failed") || message.contains("stream read failed")
+}
+
+fn retryable_mcp_client_http_status(message: &str) -> bool {
+    let Some(status) = parse_mcp_client_http_status_from_message(message) else {
+        return false;
+    };
+    status == 408 || status == 429 || status >= 500
+}
+
+fn parse_mcp_client_http_status_from_message(message: &str) -> Option<u16> {
+    let (_, suffix) = message.rsplit_once("HTTP status ")?;
+    suffix
+        .split_whitespace()
+        .next()
+        .and_then(|status| status.parse::<u16>().ok())
+}
+
+#[derive(Default)]
+struct PendingMcpClientHttpSseEvent {
+    event: Option<String>,
+    id: Option<String>,
+    retry_ms: Option<u64>,
+    data_lines: Vec<String>,
+    data_bytes: usize,
+}
+
+impl PendingMcpClientHttpSseEvent {
+    fn push_data(&mut self, value: &str) -> Result<(), McpError> {
+        let separator_bytes = usize::from(!self.data_lines.is_empty());
+        self.data_bytes = self
+            .data_bytes
+            .checked_add(separator_bytes)
+            .and_then(|bytes| bytes.checked_add(value.len()))
+            .ok_or_else(mcp_client_http_sse_event_too_large)?;
+        if self.data_bytes > MAX_CLIENT_HTTP_SSE_EVENT_DATA_BYTES {
+            return Err(mcp_client_http_sse_event_too_large());
+        }
+        self.data_lines.push(value.to_string());
+        Ok(())
+    }
+
+    fn reset(&mut self) {
+        self.event = None;
+        self.id = None;
+        self.retry_ms = None;
+        self.data_lines.clear();
+        self.data_bytes = 0;
+    }
+}
+
+fn flush_mcp_client_http_sse_event(
+    pending: &mut PendingMcpClientHttpSseEvent,
+    events: &mut Vec<McpClientHttpSseEvent>,
+) -> Result<(), McpError> {
+    if pending.data_lines.is_empty() {
+        pending.reset();
+        return Ok(());
+    }
+
+    let data = pending.data_lines.join("\n");
+    if data.len() > MAX_CLIENT_HTTP_SSE_EVENT_DATA_BYTES {
+        return Err(mcp_client_http_sse_event_too_large());
+    }
+
+    events.push(McpClientHttpSseEvent {
+        event: pending.event.take(),
+        id: pending.id.take(),
+        retry_ms: pending.retry_ms.take(),
+        data,
+    });
+    pending.reset();
+    Ok(())
+}
+
+fn non_empty_sse_value(value: &str) -> Option<String> {
+    if value.is_empty() {
+        None
+    } else {
+        Some(value.to_string())
+    }
+}
+
+fn mcp_client_http_sse_event_too_large() -> McpError {
+    McpError::InvalidServerRequest("MCP client HTTP SSE event data too large".to_string())
+}

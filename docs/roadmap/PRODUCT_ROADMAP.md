@@ -1,0 +1,365 @@
+# Product Roadmap
+
+This roadmap recenters `agent` on the product goal: a Claude Code / Codex Desktop-class local agent with one Rust runtime, strong safety, CLI and Desktop surfaces, and first-class support for multiple model providers.
+
+## Current Product Assessment
+
+The project has built a strong runtime and protocol foundation, but the recent milestone sequence over-invested in MCP details. M30-M54 should be treated as a completed extension track after M54 closeout, not the default direction for the next product work.
+
+The percentages below are directional planning estimates based on the current repository docs, crate layout, tests, and milestone status. They must be validated by running real CLI/Desktop product workflows and end-to-end evaluations.
+
+| Capability Domain | Current Completion | Evidence | Product Gap |
+|---|---:|---|---|
+| Runtime spine, typed events, replay, checkpoints | 80% | `agent-core`, `agent-types`, `agent-storage`, M01-M04, M26-M29 | Needs product-level recovery UX and larger replay scenarios. |
+| Tool, policy, audit, sandbox foundations | 75% | M02, M03, M18, M19, `agent-tool`, `agent-policy`, `agent-sandbox` | Needs polished coding workflow defaults, stronger command streaming, and approval ergonomics. |
+| Model provider abstraction | 70% | M13-M17, M57, fake provider, OpenAI-compatible, Anthropic, Gemini, local/Ollama-style providers, typed capabilities, fallback, config, and secrets | Needs broader live-provider smoke evidence, account setup UX, and Desktop provider onboarding. |
+| Local coding agent golden path | 60% | M56 repo/session, edit/diff, command/test, final review, and default local-coding eval scenario | Needs daily-driver behavior beyond the deterministic fixture: richer tasks, multi-file edits, retry/recovery UX, and real-provider parity. |
+| Context and memory | 50% | M05, M16, M23, prompt profiles, memory stores, retrieval design | Needs repo-aware context, semantic project indexing, memory review UX, and compaction quality gates. |
+| CLI and TUI product UX | 70% | M06, M20, M59, `agent-cli`, `agent-tui`, JSON mode | Needs deeper live coding-loop soak, retry/recovery polish, and parity with upcoming Desktop flows. |
+| Desktop product UX | 60% | M10, M21, M60, `agent-desktop`, UI bridge contracts, Desktop smoke fixture | Needs live-provider Desktop soak, recovery surfaces, installer/onboarding polish, and beta packaging. |
+| Background tasks and autonomy | 45% | M08, M24, scheduler/task contracts | Needs long-running task UX, notifications, quota visibility, resume controls, and failure recovery. |
+| Worktree, subagents, teams | 40% | M09, `agent-worktree`, `agent-team` | Needs product workflows for parallel implementation, review, merge, and conflict resolution. |
+| Plugins and skills | 55% | M11, M22, `agent-plugin`, `agent-skill` | Needs marketplace-like management, compatibility checks in UI, and real plugin developer loop. |
+| MCP extension layer | 85% | M07, M22, M30-M54, `agent-mcp` | Sufficient for now. Remaining OAuth/token polish should be backlog unless unblocking product scenarios. |
+| Observability, evals, CI gates | 80% | M26-M29, `agent-eval`, `xtask`, M56 local-coding golden path, M60 Desktop product smoke gate | Needs broader coding eval corpus, recovery/crash smoke evidence, and beta release smoke artifacts. |
+| Packaging, settings, updates | 50% | M25, settings/update crates and tests | Needs beta-grade install, upgrade, config migration, secrets setup, and provider onboarding. |
+
+Overall status: the runtime platform is ahead of the product. The next milestones should deliver vertical product value, not more extension protocol depth.
+
+## Roadmap Principles
+
+- Build vertical slices that a developer can actually use in a repository.
+- Keep CLI, TUI, and Desktop as clients of the same runtime events and commands.
+- Treat model provider diversity as a core product requirement, not an adapter afterthought.
+- Use MCP, plugins, and skills as extension surfaces after the core coding loop is excellent.
+- Every milestone needs a concrete acceptance demo, product E2E test, and trace/audit evidence.
+- Prefer fewer, larger product milestones with clear slices over long runs of narrow protocol milestones.
+
+## MCP Track Decision
+
+MCP work is paused as a primary roadmap track after M54 completion. Future MCP slices are product backlog unless a near-term CLI/Desktop workflow requires them.
+
+MX01 is an MCP epilogue track for P1-P3 protocol hardening and bridge-safe contracts; the product roadmap remains M55+ and P0 OAuth/Auth product closure remains outside MX01.
+
+The current MCP baseline is enough to support product discovery, local gateway execution, stdio/HTTP clients, server exports, sampling foundations, stream supervision, OAuth planning, and authorization-code token exchange into token leases. Further MCP OAuth lifecycle polish is valuable, but it does not improve the main product experience as much as coding-loop, provider, CLI, and Desktop work.
+
+## Product Milestone Roadmap
+
+| Milestone | Name | Goal | Key Acceptance |
+|---|---|---|---|
+| M55 | Product Baseline and Roadmap Reset | Convert the current repo into a measurable product baseline and freeze MCP expansion. | Capability audit report, golden-path smoke matrix, milestone index updated, and next specs/plans created from product priorities. |
+| M56 | Coding Agent Golden Path v1 | Make `agent` useful as a local coding assistant in one repository session. | Deterministic CLI/JSON eval proves repo/session, edit/diff, command/test, final review, trace, audit, and replay evidence. |
+| M57 | Multi-Provider Runtime | Support real provider choice across OpenAI, Anthropic, Gemini, OpenAI-compatible, and local/Ollama-style endpoints. | Provider capability matrix, account diagnostics, model selection, streaming, tool-call compatibility, fallback, and redacted error reporting. |
+| M58 | Project Context Intelligence | Build repo-aware context assembly for coding tasks. | File tree summaries, relevant-file retrieval, semantic/lexical search, pinned context, budget planning, and context quality traces. |
+| M59 | CLI/TUI Daily Driver | Turn terminal usage into a polished developer workflow. | Slash commands, session restore, approval queue, diff viewer, command streaming/cancel, task status, and JSON/batch stability. |
+| M60 | Desktop Daily Driver | Deliver a usable Desktop app over the shared runtime. | Workspace dashboard, conversations, composer, streaming transcript, approvals, diff review, provider settings, logs, and task monitor. |
+| M61 | Plan, Todo, and Task UX | Make plans and tasks first-class across interactive and background work. | TodoWrite-compatible task state, plan updates, task artifacts, background approval waits, pause/resume/cancel, and notifications. |
+| M62 | Reliability and Recovery Productization | Make real work recoverable after interruption, crashes, and conflicts. | Checkpoint resume UX, replay/fork commands, idempotent tool recovery, conflict diagnostics, failed-command retry, and crash smoke tests. |
+| M63 | Worktree and Agent Team Workflows | Productize parallel implementation and review. | Isolated worktrees, subagent handoff, shared blackboard, reviewer role, merge review, conflict handling, and team-level permission ceilings. |
+| M64 | Memory and Personalization | Make memory useful, reviewable, and privacy-safe. | Project memory, user preferences, semantic recall, memory proposals, retention controls, import/export, and influence traces in CLI/Desktop. |
+| M65 | Packaging, Release, and Beta Gate | Prepare a beta users can install and trust. | CLI packages, Desktop bundles, config migrations, keychain setup, update channel, release smoke suite, and support bundle generation. |
+| M66 | Extensions and MCP Hardening | Return to plugin/MCP polish after product beta paths are credible. | Finish only extension work that improves installable user workflows: MCP OAuth completion, plugin management, compatibility, and extension health. |
+
+## Near-Term Implementation Focus
+
+### M55 Product Baseline and Roadmap Reset
+
+Status: Complete. The baseline, smoke matrix, product backlog, and M56 bootstrap docs now define the mainline product direction.
+
+Purpose: stop roadmap drift and produce a clear baseline before new feature work.
+
+Required slices:
+
+| Slice | Outcome |
+|---|---|
+| M55-01 Capability Inventory | Map crates, tests, commands, and docs into product capability domains. |
+| M55-02 Golden Path Smoke Matrix | Define current CLI, TUI, Desktop, provider, coding-loop, and recovery smoke checks. |
+| M55-03 Product Gap Backlog | Convert gaps into prioritized product backlog items with owners by crate/surface. |
+| M55-04 M56 Bootstrap | Update milestone docs, reconcile roadmap status, and create M56 milestone spec/plan plus the first implementation slice spec/plan. |
+
+Acceptance:
+
+- The milestone index no longer points to MCP as the next implementation track.
+- MCP is explicitly marked as parked after M54 unless product scenarios require it.
+- M56 has implementation-ready spec and plan files.
+- Product acceptance tests are defined before code changes resume.
+
+### M56 Coding Agent Golden Path v1
+
+Status: Complete. `cargo xtask eval` now runs the default suite with the deterministic `default-m56-golden-path` local-coding scenario.
+
+Purpose: prove the project can behave like a real coding agent, not only a runtime library.
+
+Required slices:
+
+| Slice | Outcome |
+|---|---|
+| M56-01 Repo Session Bootstrap | Open a workspace, load config, detect Git state, and start a durable conversation. |
+| M56-02 Edit and Diff Flow | Strengthen file edit previews, apply flow, diff summaries, and approval payloads. |
+| M56-03 Command/Test Loop | Stream shell output, cancel commands, classify failures, and feed bounded observations back to the model. |
+| M56-04 Final Review Summary | Produce changed-file summary, test evidence, unresolved risks, and next actions. |
+| M56-05 Golden Path E2E | Run deterministic coding-agent scenarios through CLI/JSON with trace and audit evidence. |
+| M56-06 Hardening Docs and Verification | Document the acceptance command, run final gates, and hand off to M57. |
+
+Acceptance:
+
+- A developer can run one command to verify the deterministic local coding path and inspect redacted eval artifacts.
+- The fixture-driven turn is event-sourced, permissioned, auditable, replayable, and summarized.
+- Provider capability diagnostics and fallback behavior are implemented in M57; broader live-provider smoke coverage remains future product hardening.
+
+### M57 Multi-Provider Runtime
+
+Status: Complete. Final closeout gates passed with provider diagnostics redacted, including `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, and `cargo xtask eval`.
+
+Purpose: make provider choice a product feature.
+
+Required slices:
+
+| Slice | Outcome |
+|---|---|
+| M57-01 Provider Capability Matrix | Model streaming, tool calling, structured output, context limits, image support, and cost metadata. |
+| M57-02 Anthropic Adapter | Native Claude adapter with streaming and tool-use mapping. |
+| M57-03 Gemini Adapter | Native Gemini adapter with streaming and tool-use mapping. |
+| M57-04 Local Provider Adapter | Ollama/OpenAI-compatible local endpoint profile with diagnostics. |
+| M57-05 Provider UX and Fallback | CLI/Desktop account diagnostics, model selection, fallback policy, and redacted support output. |
+
+Acceptance:
+
+- Users can configure and switch providers without runtime changes.
+- Provider capability mismatches are diagnosed before a turn fails.
+- Tool-calling models can run the same coding golden path where supported.
+
+### M58 Project Context Intelligence
+
+Status: Complete. M58 now includes bounded project summaries, lexical retrieval, optional semantic/hybrid retrieval, pinned context budget planning, context quality traces, and deterministic default-suite eval coverage.
+
+Purpose: build repo-aware context assembly for coding tasks.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M58-01 Repo Map and File Tree Summaries | Build typed project structure summaries that are bounded, redacted, and usable by CLI/Desktop. |
+| M58-02 Relevant File Retrieval | Select likely relevant files for a task using lexical signals and workspace metadata. |
+| M58-03 Semantic and Hybrid Search | Add embedding-backed retrieval where configured, with deterministic fixture coverage. |
+| M58-04 Pinned Context and Budget Planning | Let users pin context and fit selected material into prompt budgets with diagnostics. |
+| M58-05 Context Quality Traces and Eval | Add context assembly traces and product eval coverage for coding tasks. |
+
+Acceptance:
+
+- File tree summaries and relevant-file retrieval improve coding prompts without exposing raw secrets.
+- Pinned context and budget planning are typed and visible through CLI/JSON and bridge contracts.
+- Context quality is covered by deterministic tests and at least one eval scenario.
+
+### M59 CLI/TUI Daily Driver
+
+Status: Complete. M59-01 session restore/switch, M59-02 slash command/status hub, M59-03 approval queue and permission review, M59-04 diff viewer and command streaming controls, and M59-05 task status and JSON/batch recipes are complete. M60 Desktop Daily Driver milestone planning is ready.
+
+Purpose: make terminal use feel like a coherent daily coding workflow instead of separate command demos.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M59-01 Session Restore and Switch | Complete: typed terminal session directory, CLI/JSON list/resume commands, bridge switch command, and TUI session panel state. |
+| M59-02 Slash Command Catalog and Status Hub | Complete: common terminal actions are discoverable and consistent through typed slash command descriptors and status output. |
+| M59-03 Approval Queue and Permission Review | Complete: typed approval queue snapshots, safe CLI/JSON inspection, TUI queue rendering, focus movement, lease display, and typed decisions. |
+| M59-04 Diff Viewer and Command Streaming Controls | Complete: typed diff review evidence, command/test panel state, cancellation readiness, TUI navigation/output controls, and stable CLI/JSON/TUI rendering. |
+| M59-05 Task Status and JSON/Batch Recipes | Complete: polished task status visibility, documented stable JSON/batch workflows, deterministic recipe tests, and final M59 closeout gates. |
+
+Acceptance:
+
+- A developer can restore or switch recent sessions from CLI/JSON and TUI.
+- Slash commands, approvals, diffs, command/test status, and tasks are visible and actionable in terminal workflows.
+- JSON and batch recipes are documented, deterministic, bounded, and redacted.
+
+### M60 Desktop Daily Driver
+
+Status: Complete. M60-01 workspace dashboard/session readiness, M60-02 conversation/composer/transcript flow, M60-03 approval popup/visual diff review, M60-04 provider settings/task/log surfaces, and M60-05 Desktop golden path smoke and closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M61 Plan, Todo, and Task UX planning is ready.
+
+Purpose: make Desktop a usable product surface over the shared runtime rather than a separate presentation demo.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M60-01 Workspace Dashboard and Session Readiness | Complete: workspace/session dashboard, runtime status, provider readiness, task counts, pending approvals, and safe diagnostics. |
+| M60-02 Conversation, Composer, and Transcript Flow | Complete: typed Desktop turn submission, bridge frame draining, transcript updates, command acknowledgements, and recoverable bridge errors. |
+| M60-03 Approval Popup and Visual Diff Review | Complete: explicit approval decisions, lease display, policy rationale, redacted preview text, file summaries, hunks, and diff review state. |
+| M60-04 Provider Settings, Task Monitor, and Logs | Complete: provider/model diagnostics, settings validation, task monitor summaries, bounded runtime logs, and redacted trace evidence. |
+| M60-05 Desktop Golden Path Smoke and Closeout | Complete: credential-free M56-equivalent Desktop bridge simulation/UI-safe fixture, Desktop docs, final gates, and milestone status updates. |
+
+Acceptance:
+
+- Desktop can start or resume a workspace session and show runtime readiness.
+- Conversation, composer, transcript, approvals, diffs, provider settings, task monitor, logs, and trace evidence are visible through shared bridge/runtime contracts.
+- Approval and diff decisions remain explicit, typed, bounded, redacted, and policy-backed.
+- A deterministic Desktop smoke path proves the M56 golden-path shape or an equivalent UI-safe bridge simulation.
+
+### M61 Plan, Todo, and Task UX
+
+Status: Complete. M61-01 shared plan/todo state contracts, M61-02 CLI/JSON plan/todo commands, M61-03 TUI/Desktop plan/task surfaces, M61-04 background wait controls and notifications, and M61-05 artifacts, smoke, docs, and closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M62 Reliability and Recovery Productization planning is ready.
+
+Purpose: make plan, todo, and task state one first-class product surface across interactive and background work.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M61-01 Shared Plan/Todo State Contracts | Complete: TodoWrite-compatible typed state, progress counts, revision checks, evidence links, redaction, runtime event payloads, and validation in shared crates. |
+| M61-02 CLI and JSON Plan/Todo Commands | Complete: stable text/JSON commands, typed bridge commands, plan/todo snapshot frames, revision-aware updates, replacement, redaction, and focused tests. |
+| M61-03 TUI and Desktop Plan/Task Surfaces | Complete: TUI and Desktop render plan progress, active todo, waiting state, latest notification, and artifact counts from shared snapshots. |
+| M61-04 Background Wait Controls and Notifications | Complete: approval-wait ids, pause/resume/cancel and schedule control evidence, latest notification metadata, CLI/JSON output, Desktop task models, redaction, and focused tests. |
+| M61-05 Artifacts, Smoke, Docs, and Closeout | Complete: task review/artifact evidence links into plan/todo state, CLI/Desktop smoke docs, credential-free smoke coverage, final gates, and milestone closeout status updates. |
+
+Acceptance:
+
+- CLI/JSON can show and update shared plan/todo state with stable bounded output.
+- TUI and Desktop render the same plan/todo/task truth from bridge snapshots.
+- Background tasks expose waiting approval, pause/resume/cancel state, notifications, and artifact evidence.
+- TodoWrite-compatible state is typed, serializable, validated, redacted, and covered by tests.
+
+### M62 Reliability and Recovery Productization
+
+Status: Complete. M62-01 recovery snapshot and resume contracts, M62-02 CLI/JSON replay/resume/fork commands, M62-03 idempotent retry UX, M62-04 conflict diagnostics, and M62-05 deterministic crash smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M63 Worktree and Agent Team Workflows followed this milestone.
+
+Purpose: make real coding work recoverable after interruption, crashes, conflicts, and retryable failures.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M62-01 Recovery Snapshot and Resume Contracts | Complete: typed recovery snapshots, readiness, diagnostics, pending tool/idempotency/approval evidence, and resume dry-run behavior. |
+| M62-02 CLI/JSON Replay, Resume, and Fork Commands | Complete: stable recovery status/resume and replay inspect/fork dry-run commands through CLI/JSON and bridge contracts. |
+| M62-03 Idempotent Recovery and Failed Command Retry UX | Complete: replayed/skipped side-effect disposition, retryable command/test classification, retry attempt linkage, bridge frames, and CLI dry-run retry planning. |
+| M62-04 Conflict Diagnostics and Recovery Surfacing | Complete: typed conflict diagnostics surface through recovery snapshots, bridge frames, CLI/JSON, TUI task summaries, and Desktop-safe views. |
+| M62-05 Crash Smoke, Docs, and Closeout | Complete: deterministic crash/restart recovery smoke, default eval coverage, CLI/Desktop recovery workflow docs, final gates, and status updates. |
+
+Acceptance:
+
+- CLI/JSON can inspect recovery readiness and resume from checkpoint/replay state with stable bounded output.
+- Replay/fork commands produce redacted trace/audit/replay evidence.
+- Idempotent tool recovery makes duplicated side-effect prevention visible.
+- Failed command/test retry is explicit, evidence-linked, and policy-backed.
+- Conflict diagnostics are typed, safe, actionable, and available to CLI/Desktop-facing consumers.
+- A deterministic crash smoke proves a coding workflow can recover after interruption without provider credentials.
+
+### M63 Worktree and Agent Team Workflows
+
+Status: Complete. M63-01 team workflow snapshot/readiness contracts, M63-02 CLI/JSON team workflow commands, M63-03 reviewer/merge-readiness blockers, M63-04 TUI/Desktop team surfaces, and M63-05 team workflow smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M64 Memory and Personalization followed this milestone.
+
+Purpose: productize safe parallel implementation and review over the existing M09 worktree/team foundations and the M62 recovery/conflict baseline.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M63-01 Team Workflow Snapshot and Readiness Contracts | Complete: typed snapshots that compose worktree leases, handoff summaries, blackboard entries, reviewer votes, conflict summaries, merge readiness, capability ceilings, and readiness diagnostics. |
+| M63-02 CLI and JSON Team Workflow Commands | Complete: stable `team` CLI commands, JSON `team_workflow_snapshot` bridge frame, deterministic fixtures, dry-run guards, and focused CLI/bridge/TUI coverage. |
+| M63-03 Reviewer Role and Merge Readiness | Complete: typed merge readiness reports with blocker reasons for policy, conflicts, pending approvals, stale worktrees, handoff state, review votes, and missing artifacts. |
+| M63-04 TUI/Desktop Team Surfaces | Complete: TUI and Desktop render team workflow state from shared bridge snapshots without local readiness logic. |
+| M63-05 Team Workflow Smoke, Docs, and Closeout | Complete: deterministic team workflow smoke, CLI/Desktop workflow docs, final gates, and M63 closeout status. |
+
+Acceptance:
+
+- A user can inspect isolated worktree and subagent status through shared runtime/bridge contracts.
+- Handoffs show reduced capabilities and cannot exceed the parent/task/team ceiling.
+- Subagent results are represented as blackboard entries, artifacts, review votes, and trace links.
+- Merge readiness blocks on conflicts, missing review, policy denial, stale leases, or incomplete handoff state.
+- A credential-free smoke proves the isolated worktree to review and merge-readiness workflow.
+
+### M64 Memory and Personalization
+
+Status: Complete. M64-01 memory product snapshot/privacy contracts, M64-02 CLI/JSON memory review commands, M64-03 runtime memory influence/proposal loop, M64-04 TUI/Desktop memory surfaces, and M64-05 deterministic memory smoke/docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m64-dev cargo clippy --workspace --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m64-dev cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`. M65 Packaging, Release, and Beta Gate followed this milestone.
+
+Purpose: make memory useful, reviewable, privacy-safe, and visible in product workflows rather than only available as lower-level storage/retrieval contracts.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M64-01 Memory Product Snapshot and Privacy Contracts | Complete: typed memory snapshots for records, proposals, retrieval previews, influence summaries, retention controls, tombstones, and privacy diagnostics. |
+| M64-02 CLI and JSON Memory Review Commands | Complete: stable memory review, retrieval preview, proposal decision, import/export, delete, and rebuild commands over shared contracts. |
+| M64-03 Runtime Memory Influence and Proposal Loop | Complete: selected memories enter prompt assembly with influence traces, and turn evidence can create reviewable write proposals. |
+| M64-04 TUI/Desktop Memory Surfaces | Complete: TUI/Desktop render memory records, proposals, influence traces, privacy controls, retention/tombstones, diagnostics, and settings from bridge snapshots. |
+| M64-05 Memory Smoke, Docs, and Closeout | Complete: deterministic memory smoke, CLI/Desktop docs, final gates, and M64 closeout status. |
+
+Acceptance:
+
+- Users can inspect which memories exist, which memories influenced a turn, and why.
+- Memory writes are proposed, reviewed, and committed through explicit typed states.
+- Sensitive memories, secret-like text, embeddings, raw prompts, and archive payloads do not leak through default summaries.
+- Import/export, deletion, tombstones, retention controls, and index rebuild evidence are documented and test-covered.
+- A credential-free smoke proves retrieval, influence traces, proposals, privacy controls, and redaction.
+
+### M65 Packaging, Release, and Beta Gate
+
+Status: Complete. M65 milestone planning, M65-01 release baseline/beta gate contracts, M65-02 CLI package/install smoke, M65-03 Desktop bundle/update smoke, M65-04 settings/secrets/migration onboarding, M65-05 support bundle evidence, and M65-06 beta gate docs/closeout are complete. Final closeout gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m65-dev cargo clippy --workspace --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m65-dev cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, `cargo xtask eval`, `cargo xtask package-cli --channel dev`, `cargo xtask package-desktop --channel dev`, `cargo xtask support-bundle --channel dev`, and `git diff --check`. M66 Extensions and MCP Hardening is also complete.
+
+Purpose: prepare a beta users can install, configure, diagnose, and trust.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M65-01 Release Baseline and Beta Gate Contracts | Complete: current packaging baseline, beta artifact matrix, gate report shape, support evidence inventory, isolated smoke root rules, and gap mapping. |
+| M65-02 CLI Package and Install Smoke | Complete: packaged CLI artifact smoke with release-local config, startup checks, install smoke summary, checksum, and manifest evidence. |
+| M65-03 Desktop Bundle and Update Smoke | Complete: Desktop bundle/update smoke with Tauri metadata validation, update manifest checks, release-local root, smoke summary, and bundle-vs-plan evidence. |
+| M65-04 Settings, Secrets, and Migration Onboarding | Complete: typed onboarding readiness snapshot covers settings, paths, keychain/env fallback, startup migrations, provider/model support, CLI JSON/text, UI bridge, and TUI rendering. |
+| M65-05 Support Bundle and Release Evidence | Complete: `cargo xtask support-bundle` writes typed redacted manifest/summary evidence with allowlisted release, Desktop, quality, eval, and onboarding sections. |
+| M65-06 Beta Gate Docs and Closeout | Complete: install/upgrade/support docs, final dev-channel gates, package/eval/support evidence, and M65 closeout status. |
+
+Acceptance:
+
+- CLI and Desktop release artifacts or plan-equivalent dev-channel artifacts are generated through documented commands.
+- Release smokes use isolated roots and do not read or write production user config.
+- Default eval, package, migration, provider, and Desktop smoke evidence are part of the beta gate.
+- Support bundles are bounded, redacted, and explain omitted sections through diagnostics.
+- M65 is marked complete only after final Rust, Desktop, eval, package, and whitespace gates pass.
+
+### M66 Extensions and MCP Hardening
+
+Status: Complete. M66 milestone planning, M66-01 extension health baseline smoke, M66-02 plugin/skill management hardening, M66-03 MCP management compatibility health, M66-04 OAuth workflow decision, M66-05 CLI/Desktop extension support evidence, and M66-06 hardening docs/closeout are complete after M65 beta gate closeout. Final closeout gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m66-dev cargo clippy --workspace --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m66-dev cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, `cargo xtask eval`, `cargo xtask support-bundle --channel dev`, and `git diff --check`.
+
+Purpose: make extension management, health, compatibility, and support evidence product-ready without restarting open-ended MCP protocol expansion.
+
+Initial slices:
+
+| Slice | Outcome |
+|---|---|
+| M66-01 Extension Health Baseline and Smoke | Complete: typed extension health smoke report and deterministic tests over plugin, skill root, and MCP server records. |
+| M66-02 Plugin and Skill Management Hardening | Complete: accepted plugin capabilities grant deterministic leases, incompatible plugin enablement is blocked, install diagnostics are stable, and skill root list refreshes registry health. |
+| M66-03 MCP Management and Compatibility Health | Complete: MCP status health report exposes initialization, no-export, and capability/export mismatch diagnostics through typed CLI JSON/text output. |
+| M66-04 OAuth Completion for Installable MCP Workflows | Complete: no new OAuth code is required for current installable workflows; existing OAuth foundations are documented and product UI/token-storage work remains deferred until a workflow needs it. |
+| M66-05 CLI/Desktop Extension Surfaces and Support Evidence | Complete: support bundle manifests include extension health summary evidence and Desktop diagnostics render severity/truncation from typed snapshots. |
+| M66-06 Hardening Docs and Closeout | Complete: extension management workflows are documented, support/OAuth boundaries are explicit, final gates passed, and M66 is closed. |
+
+Acceptance:
+
+- Users can inspect plugin, skill root, and MCP server health without reading raw manifests or logs.
+- Extension compatibility and capability-review blockers are typed, bounded, redacted, and test-covered.
+- CLI/JSON and bridge-facing surfaces render shared extension snapshots instead of duplicating runtime policy.
+- Support evidence includes extension health summaries without raw secrets, raw OAuth material, raw process logs, or unbounded output.
+- MCP OAuth work is limited to installable workflows that need it.
+
+## Capability Gates
+
+Each future milestone should ship with:
+
+- A milestone spec in `docs/specs/` and implementation plan in `docs/plans/`.
+- At least one user-visible workflow acceptance test or smoke script.
+- Runtime trace, permission trace, and audit evidence where side effects occur.
+- CLI/JSON coverage for every new runtime command.
+- Desktop bridge contracts when the behavior should appear in Desktop.
+- Documentation updates that describe product usage, not only internal contracts.
+
+## Success Definition
+
+The roadmap is on track when `agent` can:
+
+- Run as a daily coding assistant from CLI/TUI.
+- Run the same workflow from Desktop with visual approvals and diffs.
+- Use multiple model providers through a shared capability model.
+- Recover interrupted work without losing traceability.
+- Explain what it did, what it changed, what it ran, and why permissions were required.
+- Extend through MCP/plugins/skills without making extension work dominate the product roadmap.

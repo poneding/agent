@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-25T00:00:00Z",
+  "summary": {
+    "total_events": 9,
+    "trace_entries": 0,
+    "audit_records": 0,
+    "telemetry_records": 0,
+    "replayable": true,
+    "diagnostics": 0
+  },
+  "trace": [],
+  "audit": {
+    "schema_version": 1,
+    "generated_at": "2026-06-25T00:00:00Z",
+    "records": [],
+    "summary": {
+      "total_events": 0,
+      "audit_records": 0,
+      "tool_events": 0,
+      "permission_events": 0,
+      "lifecycle_events": 0,
+      "model_events": 0,
+      "external_events": 0,
+      "diagnostic_events": 0,
+      "other_events": 0
+    }
+  },
+  "telemetry": {
+    "schema_version": 1,
+    "generated_at": "2026-06-25T00:00:00Z",
+    "records": [],
+    "summary": {
+      "total_input_records": 0,
+      "exported_records": 0,
+      "span_records": 0,
+      "metric_records": 0,
+      "filtered_records": 0,
+      "truncated_attributes": 0
+    }
+  },
+  "replay": {
+    "replayable": true,
+    "event_count": 9,
+    "checkpoint_count": 1,
+    "replay_started_count": 0,
+    "replay_completed_count": 0,
+    "diagnostics": []
+  },
+  "diagnostics": []
+}

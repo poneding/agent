@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "command_id": "00000000-0000-0000-0000-000000000100",
+  "client": {
+    "kind": "desktop",
+    "version": "0.1.0"
+  },
+  "command": {
+    "type": "start_turn",
+    "data": {
+      "workspace_id": "00000000-0000-0000-0000-000000000001",
+      "conversation_id": "00000000-0000-0000-0000-000000000002",
+      "prompt": "Summarize the project"
+    }
+  }
+}

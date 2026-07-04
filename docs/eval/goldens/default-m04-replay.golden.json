@@ -1,0 +1,11 @@
+{
+  "scenario_id": "default-m04-replay",
+  "status": "passed",
+  "evidence_summary": {
+    "source": "replay_trace",
+    "event_count": 9,
+    "checkpoint_count": 1,
+    "replayable": true,
+    "diagnostics": 0
+  }
+}

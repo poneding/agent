@@ -51,6 +51,7 @@ fn mcp_server_commands_render_text_status_without_starting_server() {
 
     assert_eq!(output.status_code, 0);
     assert!(output.stdout.contains("MCP server status: available"));
+    assert!(output.stdout.contains("health=degraded"));
     assert!(output.stdout.contains("stdio_fixture=available"));
     assert!(output.stdout.contains("exported_tools=1 test.echo"));
     assert!(
@@ -71,6 +72,41 @@ fn mcp_server_commands_render_json_status() {
     assert_eq!(value["type"], "mcp_server_status");
     assert_eq!(value["data"]["capabilities"]["tools"], true);
     assert_eq!(value["data"]["exported_tool_names"][0], "test.echo");
+    assert_eq!(value["data"]["health"]["status"], "degraded");
+    assert_eq!(
+        value["data"]["health"]["diagnostics"][0]["code"],
+        "mcp.server.not_initialized"
+    );
+}
+
+#[test]
+fn mcp_server_commands_render_json_health_for_capability_mismatch() {
+    let mut summary = summary();
+    summary.initialized = true;
+    summary.capabilities.tools = false;
+    summary.capabilities.resources = false;
+    let mut runtime = McpServerCommandRuntime::new(summary);
+
+    let output =
+        render_mcp_server_command(&mut runtime, McpServerCommand::Status, OutputMode::Json);
+    let value: Value = serde_json::from_str(output.stdout.trim()).expect("status json");
+
+    assert_eq!(output.status_code, 0);
+    assert_eq!(value["data"]["health"]["status"], "unhealthy");
+    assert!(
+        value["data"]["health"]["next_actions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|action| action == "mcp.server.fix_capabilities")
+    );
+    assert!(
+        value["data"]["health"]["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|diagnostic| diagnostic["code"] == "mcp.server.tool_exports_without_capability")
+    );
 }
 
 #[test]
@@ -84,6 +120,7 @@ fn mcp_server_commands_default_json_invocation_is_parseable() {
     assert_eq!(value["data"]["available"], true);
     assert_eq!(value["data"]["exported_tool_count"], 0);
     assert_eq!(value["data"]["exported_resource_count"], 0);
+    assert_eq!(value["data"]["health"]["status"], "degraded");
 }
 
 #[test]

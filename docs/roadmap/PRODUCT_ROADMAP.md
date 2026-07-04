@@ -319,7 +319,7 @@ Acceptance:
 
 ### M66 Extensions and MCP Hardening
 
-Status: Active. M66 milestone planning, M66-01 extension health baseline smoke, and M66-02 plugin/skill management hardening are complete after M65 beta gate closeout. M66 resumes extension work only where it improves installable user workflows for plugins, skills, and MCP servers. M66-03 MCP Management and Compatibility Health is the next implementation slice.
+Status: Active. M66 milestone planning, M66-01 extension health baseline smoke, M66-02 plugin/skill management hardening, and M66-03 MCP management compatibility health are complete after M65 beta gate closeout. M66 resumes extension work only where it improves installable user workflows for plugins, skills, and MCP servers. M66-04 OAuth Completion for Installable MCP Workflows is the next implementation slice.
 
 Purpose: make extension management, health, compatibility, and support evidence product-ready without restarting open-ended MCP protocol expansion.
 
@@ -329,7 +329,7 @@ Initial slices:
 |---|---|
 | M66-01 Extension Health Baseline and Smoke | Complete: typed extension health smoke report and deterministic tests over plugin, skill root, and MCP server records. |
 | M66-02 Plugin and Skill Management Hardening | Complete: accepted plugin capabilities grant deterministic leases, incompatible plugin enablement is blocked, install diagnostics are stable, and skill root list refreshes registry health. |
-| M66-03 MCP Management and Compatibility Health | Planned: MCP server management snapshots, exported capability summaries, compatibility diagnostics, and support-safe evidence. |
+| M66-03 MCP Management and Compatibility Health | Complete: MCP status health report exposes initialization, no-export, and capability/export mismatch diagnostics through typed CLI JSON/text output. |
 | M66-04 OAuth Completion for Installable MCP Workflows | Planned: complete only OAuth pieces required by user-installable MCP server workflows. |
 | M66-05 CLI/Desktop Extension Surfaces and Support Evidence | Planned: render shared extension health snapshots and include extension evidence in support bundles without raw logs, manifests, or secrets. |
 | M66-06 Hardening Docs and Closeout | Planned: document plugin, skill, and MCP workflows, run final gates, and close M66. |

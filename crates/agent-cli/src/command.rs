@@ -65,7 +65,8 @@ use agent_mcp::{
     McpServerSessionConfig, McpServerSessionSummary, McpServerState, McpServerStatusSummary,
     McpServerToolExportCatalog, McpToolExportRegistry,
     build_mcp_server_builtin_tool_export_catalog, build_mcp_server_profile_from_manifest,
-    empty_mcp_server_export_profile, inspect_mcp_server_export_profile, mcp_server_status_summary,
+    empty_mcp_server_export_profile, inspect_mcp_server_export_profile,
+    mcp_server_status_health_report, mcp_server_status_summary,
     parse_mcp_server_export_manifest_json, select_mcp_server_export_profile,
 };
 use agent_memory::{
@@ -6771,19 +6772,21 @@ fn render_mcp_server_status(
         OutputMode::Text => CliOutput::exit(render_mcp_server_status_text(summary)),
         OutputMode::Json => CliOutput::exit(json_value_frame_line(serde_json::json!({
             "type": "mcp_server_status",
-            "data": summary,
+            "data": mcp_server_status_json(summary),
         }))),
     }
 }
 
 fn render_mcp_server_status_text(summary: &McpServerStatusSummary) -> String {
+    let health = mcp_server_status_health_report(summary);
     format!(
-        "MCP server status: {}\nserver={} version={}\nprotocol={}\ninitialized={}\ncapabilities: tools={} prompts={} resources={}\nstdio_fixture={}\nexported_tools={} {}\nexported_resources={} {}\n",
+        "MCP server status: {}\nhealth={}\nserver={} version={}\nprotocol={}\ninitialized={}\ncapabilities: tools={} prompts={} resources={}\nstdio_fixture={}\nexported_tools={} {}\nexported_resources={} {}\n",
         if summary.available {
             "available"
         } else {
             "unavailable"
         },
+        mcp_server_status_health_label(health.status),
         summary.server_name,
         summary.server_version,
         summary.protocol_version,
@@ -6801,6 +6804,26 @@ fn render_mcp_server_status_text(summary: &McpServerStatusSummary) -> String {
         summary.exported_resource_count,
         status_list(&summary.exported_resource_uris),
     )
+}
+
+fn mcp_server_status_json(summary: &McpServerStatusSummary) -> serde_json::Value {
+    let mut value = serde_json::to_value(summary).expect("MCP server status summary serializes");
+    if let Some(object) = value.as_object_mut() {
+        object.insert(
+            "health".to_string(),
+            serde_json::to_value(mcp_server_status_health_report(summary))
+                .expect("MCP server status health serializes"),
+        );
+    }
+    value
+}
+
+fn mcp_server_status_health_label(status: agent_mcp::McpServerStatusHealth) -> &'static str {
+    match status {
+        agent_mcp::McpServerStatusHealth::Healthy => "healthy",
+        agent_mcp::McpServerStatusHealth::Degraded => "degraded",
+        agent_mcp::McpServerStatusHealth::Unhealthy => "unhealthy",
+    }
 }
 
 fn status_list(items: &[String]) -> String {

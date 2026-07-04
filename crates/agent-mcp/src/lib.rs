@@ -178,7 +178,10 @@ pub use server_session::{
     McpServerSession, McpServerSessionConfig, McpServerSessionStatus, McpServerSessionSummary,
 };
 pub use server_status::{
-    McpServerStatusCapabilities, McpServerStatusSummary, mcp_server_status_summary,
+    MCP_SERVER_STATUS_HEALTH_SCHEMA_VERSION, McpServerStatusCapabilities, McpServerStatusHealth,
+    McpServerStatusHealthDiagnostic, McpServerStatusHealthDiagnosticSeverity,
+    McpServerStatusHealthReport, McpServerStatusSummary, mcp_server_status_health_report,
+    mcp_server_status_summary,
 };
 pub use server_stdio::{McpServerFixture, handle_mcp_server_frame};
 pub use server_tool::{McpToolExport, McpToolExportRegistry, exported_tool_from_definition};

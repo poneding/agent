@@ -69,11 +69,11 @@ Add only user-visible management polish and tests.
 - Create: `docs/plans/M66-03-mcp-management-compatibility-health.plan.md`
 - Modify as needed: `crates/agent-mcp/`, `crates/agent-core/`, `crates/agent-ui-bridge/`, `crates/agent-cli/`
 
-- [ ] **Step 1: Plan MCP management health**
+- [x] **Step 1: Plan MCP management health**
 
 Define compatibility, server status, exported capabilities, roots/auth/stream state, and diagnostics from existing contracts.
 
-- [ ] **Step 2: Implement MCP management health**
+- [x] **Step 2: Implement MCP management health**
 
 Keep evidence bounded and redacted. Avoid broad protocol expansion.
 

@@ -30,7 +30,7 @@ Owned by implementation slices:
 
 ## Architecture
 
-`ruse-model` adds a `secrets` module with provider-neutral secret reference resolution. It does not read config files and does not emit runtime events. `ruse-core` adds a `config` module that resolves the default `~/.config/agent/config.yaml` path, parses YAML or explicit legacy TOML, validates model settings, layers sources, converts direct provider `apiKey` values into an in-memory resolver, and emits diagnostics. `ruse-cli`, `ruse-ui-bridge`, and `ruse-desktop` render or transport summaries only.
+`ruse-model` adds a `secrets` module with provider-neutral secret reference resolution. It does not read config files and does not emit runtime events. `ruse-core` adds a `config` module that resolves the default `~/.ruse/config.yaml` path, parses YAML or explicit legacy TOML, validates model settings, layers sources, converts direct provider `apiKey` values into an in-memory resolver, and emits diagnostics. `ruse-cli`, `ruse-ui-bridge`, and `ruse-desktop` render or transport summaries only.
 
 ```mermaid
 flowchart TD
@@ -69,7 +69,7 @@ M14 provides:
 
 ## Runtime Config Schema
 
-M14 uses schema version 1 and YAML for the default local config at `~/.config/agent/config.yaml`:
+M14 uses schema version 1 and YAML for the default local config at `~/.ruse/config.yaml`:
 
 ```yaml
 schemaVersion: 1
@@ -89,7 +89,7 @@ model:
       apiKey: "sk-..."
 ```
 
-Legacy `~/.config/agent/agent.toml` and explicit `--config path/to/file.toml` remain readable for compatibility. When no explicit path is supplied, `config.yaml` wins; if it is absent and legacy `agent.toml` exists, the loader uses it and emits a migration diagnostic.
+Legacy `~/.ruse/agent.toml` and explicit `--config path/to/file.toml` remain readable for compatibility. When no explicit path is supplied, `config.yaml` wins; if it is absent and legacy `agent.toml` exists, the loader uses it and emits a migration diagnostic.
 
 The loader maps this into M13 contracts:
 

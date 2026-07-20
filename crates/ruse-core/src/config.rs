@@ -246,16 +246,12 @@ pub fn load_agent_config_file_with_secrets(
 
 #[must_use]
 pub fn default_agent_config_path_for_home(home: &Path) -> PathBuf {
-    home.join(".config")
-        .join("agent")
-        .join(AGENT_CONFIG_FILE_NAME)
+    home.join(".ruse").join(AGENT_CONFIG_FILE_NAME)
 }
 
 #[must_use]
 pub fn legacy_agent_config_path_for_home(home: &Path) -> PathBuf {
-    home.join(".config")
-        .join("agent")
-        .join(AGENT_LEGACY_CONFIG_FILE_NAME)
+    home.join(".ruse").join(AGENT_LEGACY_CONFIG_FILE_NAME)
 }
 
 #[must_use]
@@ -281,7 +277,7 @@ pub fn resolve_agent_config_path(
 
     let Some(default_path) = default_agent_config_path() else {
         return Err(AgentConfigError::FileRead {
-            path: "~/.config/agent/config.yaml".to_string(),
+            path: "~/.ruse/config.yaml".to_string(),
             message: "home directory could not be resolved".to_string(),
         });
     };

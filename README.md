@@ -122,7 +122,7 @@ Run `cargo xtask help` for the full command list.
 
 ## Default Configuration
 
-The default user config path is `~/.config/agent/config.yaml`. Provider API keys can be configured directly with `apiKey`, which is the recommended local setup path; the runtime converts the value into a redacted secret resolver before model requests. Environment-backed secret refs remain supported for advanced setups.
+The default user config path is `~/.ruse/config.yaml`. Provider API keys can be configured directly with `apiKey`, which is the recommended local setup path; the runtime converts the value into a redacted secret resolver before model requests. Environment-backed secret refs remain supported for advanced setups.
 
 ```yaml
 schemaVersion: 1
@@ -144,7 +144,7 @@ terminal:
   theme: system
 ```
 
-If `config.yaml` is absent, legacy `~/.config/agent/agent.toml` is still loaded as a compatibility fallback with a migration diagnostic. New docs, examples, and generated config should use `config.yaml`.
+If `config.yaml` is absent, legacy `~/.ruse/agent.toml` is still loaded as a compatibility fallback with a migration diagnostic. New docs, examples, and generated config should use `config.yaml`.
 
 ## M56 Golden Path
 

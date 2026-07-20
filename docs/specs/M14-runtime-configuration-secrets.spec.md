@@ -74,7 +74,7 @@ flowchart TD
 Contract rules:
 
 - raw secret values never implement normal `Debug`, `Display`, `Serialize`, or UI conversion
-- the default config file is `~/.config/agent/config.yaml`; legacy `~/.config/agent/agent.toml` is a compatibility fallback with diagnostics
+- the default config file is `~/.ruse/config.yaml`; legacy `~/.ruse/agent.toml` is a compatibility fallback with diagnostics
 - config files may contain direct provider `apiKey` values for local setup or `SecretRef` handles for advanced setups
 - direct `apiKey` values are converted into redacted in-memory secret resolver entries before runtime invocation
 - config diagnostics use field paths and provider ids, not credential contents

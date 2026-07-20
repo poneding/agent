@@ -17,8 +17,8 @@ This spec delivers:
 - `RuntimeModelConfig`
 - `RuntimeTerminalConfig`
 - YAML parsing from string and file path
-- legacy TOML parsing for explicit files and `~/.config/agent/agent.toml` fallback
-- default path resolution for `~/.config/agent/config.yaml`
+- legacy TOML parsing for explicit files and `~/.ruse/agent.toml` fallback
+- default path resolution for `~/.ruse/config.yaml`
 - schema version validation
 - unknown-key rejection
 - config diagnostics

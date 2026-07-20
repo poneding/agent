@@ -164,7 +164,7 @@ fn cli_prompt_runtime_uses_configured_fake_provider() {
 #[test]
 fn cli_prompt_runtime_uses_default_config_yaml_without_flag() {
     let home = tempfile::tempdir().expect("home");
-    let config_dir = home.path().join(".config/agent");
+    let config_dir = home.path().join(".ruse");
     fs::create_dir_all(&config_dir).expect("config dir");
     let missing_secret = format!(
         "AGENT_TEST_DEFAULT_CONFIG_YAML_MISSING_{}",

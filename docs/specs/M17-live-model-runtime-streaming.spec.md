@@ -85,7 +85,7 @@ Contract rules:
 
 ## Acceptance Criteria
 
-- `ruse-cli --config path/to/config.yaml --prompt "..."` and the default `~/.config/agent/config.yaml` path can run against a real OpenAI-compatible provider when `apiKey` is configured or an advanced secret reference resolves.
+- `ruse-cli --config path/to/config.yaml --prompt "..."` and the default `~/.ruse/config.yaml` path can run against a real OpenAI-compatible provider when `apiKey` is configured or an advanced secret reference resolves.
 - `--json` emits model delta frames as the stream arrives.
 - No live-network test is required for workspace verification.
 - Provider retry/fallback behavior works with streaming transports.

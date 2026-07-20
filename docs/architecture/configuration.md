@@ -32,7 +32,7 @@ Narrower scopes override broader scopes only for keys they explicitly set.
 
 ## Format
 
-Use human-editable config files for local scopes. The default user config path is `~/.config/agent/config.yaml`; legacy `~/.config/agent/agent.toml` may be loaded as a fallback with a migration diagnostic, but new docs and generated examples should use YAML. Use JSON for wire/config exchange with external systems.
+Use human-editable config files for local scopes. The default user config path is `~/.ruse/config.yaml`; legacy `~/.ruse/agent.toml` may be loaded as a fallback with a migration diagnostic, but new docs and generated examples should use YAML. Use JSON for wire/config exchange with external systems.
 
 Config values that cross process boundaries must have typed serde structs.
 

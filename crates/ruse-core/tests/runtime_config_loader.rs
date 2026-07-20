@@ -144,18 +144,18 @@ fn runtime_config_loader_default_path_is_config_yaml_with_legacy_toml_path() {
 
     assert_eq!(
         default_agent_config_path_for_home(&home),
-        home.join(".config/agent/config.yaml")
+        home.join(".ruse/config.yaml")
     );
     assert_eq!(
         legacy_agent_config_path_for_home(&home),
-        home.join(".config/agent/agent.toml")
+        home.join(".ruse/agent.toml")
     );
 }
 
 #[test]
 fn runtime_config_loader_default_resolution_prefers_config_yaml() {
     let temp = tempfile::tempdir().expect("tempdir");
-    let config_dir = temp.path().join(".config/agent");
+    let config_dir = temp.path().join(".ruse");
     std::fs::create_dir_all(&config_dir).expect("config dir");
     let default_path = config_dir.join("config.yaml");
     let legacy_path = config_dir.join("agent.toml");
@@ -175,7 +175,7 @@ fn runtime_config_loader_default_resolution_prefers_config_yaml() {
 #[test]
 fn runtime_config_loader_default_resolution_falls_back_to_legacy_toml_with_diagnostic() {
     let temp = tempfile::tempdir().expect("tempdir");
-    let config_dir = temp.path().join(".config/agent");
+    let config_dir = temp.path().join(".ruse");
     std::fs::create_dir_all(&config_dir).expect("config dir");
     let default_path = config_dir.join("config.yaml");
     let legacy_path = config_dir.join("agent.toml");

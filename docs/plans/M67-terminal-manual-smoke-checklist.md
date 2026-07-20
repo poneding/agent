@@ -5,7 +5,7 @@ Use this checklist before declaring M67 terminal UX production-ready. Prefer a r
 ## Setup
 
 - Build the local CLI with `cargo build -p ruse-cli --bin agent`.
-- Use a workspace with a valid `~/.config/agent/config.yaml`.
+- Use a workspace with a valid `~/.ruse/config.yaml`.
 - Keep one run with the normal terminal and one run with `AGENT_NO_EMOJI=1`.
 - Keep one narrow terminal run around 60 columns and one wide run around 120 columns.
 

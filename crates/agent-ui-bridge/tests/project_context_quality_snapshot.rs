@@ -1,3 +1,4 @@
+use agent_ui_bridge::UiProjectContextDetail;
 use agent_core::{
     ContextQualityBudgetPressure, ContextQualityDiagnostic, ContextQualityDiagnosticSeverity,
     ContextQualityRetrievalKind, ContextQualitySignal, ContextQualitySignalKind,
@@ -90,7 +91,7 @@ fn project_context_quality_snapshot_serializes_stable_safe_shape() {
 #[test]
 fn project_context_quality_snapshot_json_frame_is_single_line() {
     let snapshot = UiProjectContextQualityTraceSnapshot::from_trace(&trace()).expect("snapshot");
-    let line = encode_json_frame(&UiJsonFrame::ProjectContextQualityTraceSnapshot(snapshot))
+    let line = encode_json_frame(&UiJsonFrame::project_context_quality(snapshot))
         .expect("encode");
 
     assert!(line.ends_with('\n'));
@@ -98,7 +99,7 @@ fn project_context_quality_snapshot_json_frame_is_single_line() {
     let frame = serde_json::from_str::<UiJsonFrame>(line.trim_end()).expect("parse frame");
     assert!(matches!(
         frame,
-        UiJsonFrame::ProjectContextQualityTraceSnapshot(_)
+        UiJsonFrame::ProjectContextDetail(UiProjectContextDetail::Quality(_))
     ));
 }
 

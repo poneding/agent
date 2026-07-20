@@ -91,6 +91,7 @@ fn effective_config(config: ModelProviderConfig) -> agent_core::EffectiveRuntime
                 catalog: ModelProviderCatalog::new(vec![config]).expect("valid catalog"),
                 invocation_policy: invocation_policy(),
             },
+            terminal: Default::default(),
         },
     };
 
@@ -100,7 +101,7 @@ fn effective_config(config: ModelProviderConfig) -> agent_core::EffectiveRuntime
 
 fn loop_budget() -> AgentLoopBudget {
     AgentLoopBudget {
-        max_model_turns: 4,
+        model_turn_checkpoint_interval: 4,
         max_tool_calls: 4,
         max_wall_time_ms: 30_000,
         max_observation_bytes: 4096,
@@ -112,7 +113,8 @@ fn input(ids: RuntimeIds, config: ModelProviderConfig) -> ComprehensiveTurnInput
     ComprehensiveTurnInput {
         ids,
         user_message: "edit README".to_string(),
-        effective_config: effective_config(config),
+        conversation_history: std::sync::Arc::new(Vec::new()),
+        effective_config: std::sync::Arc::new(effective_config(config)),
         requirements: requirements(),
         loop_budget: loop_budget(),
     }
@@ -133,7 +135,7 @@ fn edit_registry() -> (TempDir, ToolRegistry) {
 
 fn policy() -> StaticPolicyEngine {
     StaticPolicyEngine::default().with_decision(
-        CapabilityAction::Read,
+        CapabilityAction::Execute,
         ResourceScope::new(ResourceKind::Tool, "workspace.edit_file").expect("scope"),
         PolicyDecision::Allow {
             reason: "allow edit fixture".to_string(),

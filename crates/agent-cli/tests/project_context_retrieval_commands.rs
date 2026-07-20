@@ -1,3 +1,4 @@
+use agent_ui_bridge::UiProjectContextDetail;
 use std::fs;
 use std::process::Command;
 
@@ -113,7 +114,7 @@ fn project_context_select_json_emits_retrieval_snapshot_and_done() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         frames.first(),
-        Some(UiJsonFrame::ProjectContextRetrievalSnapshot(snapshot))
+        Some(UiJsonFrame::ProjectContextDetail(agent_ui_bridge::UiProjectContextDetail::Retrieval(snapshot)))
             if snapshot.workspace_root_display == "."
                 && snapshot.task == "update [redacted] CLI context command"
                 && snapshot.selected.iter().any(|file| file.path == "crates/agent-cli/src/command.rs")
@@ -148,7 +149,7 @@ fn project_context_select_pin_boosts_matching_path() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         frames.first(),
-        Some(UiJsonFrame::ProjectContextRetrievalSnapshot(snapshot))
+        Some(UiJsonFrame::ProjectContextDetail(agent_ui_bridge::UiProjectContextDetail::Retrieval(snapshot)))
             if snapshot.selected.first().map(|file| file.path.as_str()) == Some("README.md")
                 && snapshot.selected.first().expect("selected").reasons.contains(&"pinned_path".to_string())
     ));

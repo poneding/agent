@@ -82,7 +82,7 @@ pub struct ComprehensiveTurnInput {
 }
 
 pub struct AgentLoopBudget {
-    pub max_model_turns: u32,
+    pub model_turn_checkpoint_interval: u32,
     pub max_tool_calls: u32,
     pub max_wall_time_ms: u64,
     pub max_observation_bytes: u64,
@@ -128,13 +128,13 @@ Tool outputs are untrusted. Before re-entering model context:
 - secret-like values are redacted
 - prompt injection warning metadata is attached for file, shell, MCP, browser, plugin, and memory sources
 
-Continuation prompts include original pinned instructions, prior relevant conversation state, and new observations.
+Continuation requests retain original pinned instructions and prior relevant conversation state, then append typed assistant tool-call and tool-result messages. They do not synthesize a new user message from the latest observation. When one model response proposes multiple tool calls, the runner drains the complete response, preserves proposal order, executes every queued call before the next model invocation, and carries any unprocessed calls across approval suspension.
 
 ## Guards, Idempotency, and Recovery
 
-Loop guards are mandatory:
+Loop controls are mandatory:
 
-- max model turns
+- soft model-turn progress checkpoints that do not interrupt long tasks
 - max tool calls
 - max wall-clock time
 - max observation bytes
@@ -150,7 +150,7 @@ Every tool call routes through policy and sandboxing. Model output is untrusted 
 
 Required coverage:
 
-- fake model multi-step tool loop tests
+- fake model multi-step tool loop tests, including multiple tool calls in one model response
 - invalid tool call and unknown tool tests
 - allow, deny, and ask policy paths
 - loop guard terminal state tests

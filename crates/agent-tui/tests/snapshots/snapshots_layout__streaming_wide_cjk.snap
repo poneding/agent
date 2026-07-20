@@ -1,0 +1,45 @@
+---
+source: crates/agent-tui/tests/snapshots_layout.rs
+assertion_line: 158
+expression: "snapshot(&app, WIDE)"
+---
+                                                                                                                        
+ ❯ 请 解 释 这 个 项 目 的 架 构 和 主 要 模 块                                                                                        
+                                                                                                                        
+                                                                                                                        
+ 这 个 项 目 分 为 多 个  crate： 终 端 界 面 、 核 心 运 行 时 、 桥 接 层 。                                                                  
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+ ⠴ Responding… · 12s · esc/Ctrl+C to interrupt                                                                          
+ ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+ ❯ type a message — / for commands · Enter to send                                                                      
+ ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+openai / gpt-5.5 · effort xhigh · idle · normal                                                ctx pending/128k  ~/agent

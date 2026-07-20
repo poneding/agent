@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use agent_model::{
     FakeModelProvider, FakeModelScript, ModelCapabilities, ModelCapability, ModelEndpointConfig,
-    ModelProviderConfig, ModelProviderKind, ModelProviderRegistry, ModelRegistryError,
-    ModelRequest, ModelRequestRequirements, ModelStreamEvent, RegisteredModelProvider,
-    collect_model_event_stream,
+    ModelMessage, ModelProviderConfig, ModelProviderKind, ModelProviderRegistry,
+    ModelRegistryError, ModelRequest, ModelRequestRequirements, ModelStreamEvent,
+    RegisteredModelProvider, collect_model_event_stream,
 };
 use agent_types::{ConversationId, CorrelationId, TurnId};
 
@@ -48,7 +48,9 @@ fn model_request() -> ModelRequest {
         conversation_id: ConversationId::new(),
         turn_id: TurnId::new(),
         correlation_id: CorrelationId::new(),
-        messages: vec!["hello".to_string()],
+        messages: vec![ModelMessage::user("hello")],
+        reasoning_effort: None,
+        tools: Vec::new(),
     }
 }
 

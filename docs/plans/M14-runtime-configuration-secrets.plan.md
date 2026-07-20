@@ -6,7 +6,7 @@
 
 **Architecture:** Treat this file as the M14 coordination plan. Each slice owns its own spec and plan, lands in a focused commit, and follows `docs/specs/M14-00-runtime-configuration-secrets-technical-design.spec.md`.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, serde contracts, TOML config parsing, thiserror error types, deterministic fixture tests, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, serde contracts, YAML config parsing, legacy TOML compatibility, thiserror error types, deterministic fixture tests, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -18,7 +18,7 @@
 
 - [x] **Step 1: Write the M14 technical design baseline**
 
-Define secret resolver boundaries, redacted secret values, config schema version 1, TOML parsing, layer precedence, CLI diagnostics, UI snapshots, privacy rules, and verification gates.
+Define secret resolver boundaries, redacted secret values, config schema version 1, YAML parsing, legacy TOML compatibility, layer precedence, CLI diagnostics, UI snapshots, privacy rules, and verification gates.
 
 - [x] **Step 2: Create the M14 design execution plan**
 
@@ -100,7 +100,7 @@ Complete redacted secret value and resolver contracts, then commit `feat: add m1
 
 - [x] **Step 2: Implement M14-02 config file loader**
 
-Complete schema version 1 TOML loading and validation, then commit `feat: add m14 runtime config loader`.
+Complete schema version 1 YAML loading, direct `apiKey`, legacy TOML fallback, and validation, then commit `feat: add m14 runtime config loader`.
 
 - [x] **Step 3: Implement M14-03 config layering**
 

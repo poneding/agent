@@ -1,3 +1,4 @@
+use agent_ui_bridge::UiProjectContextDetail;
 use std::fs;
 use std::process::Command;
 
@@ -147,7 +148,7 @@ fn project_context_select_semantic_fixture_json_emits_hybrid_snapshot() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         frames.first(),
-        Some(UiJsonFrame::ProjectContextHybridRetrievalSnapshot(snapshot))
+        Some(UiJsonFrame::ProjectContextDetail(agent_ui_bridge::UiProjectContextDetail::Hybrid(snapshot)))
             if snapshot.workspace_root_display == "."
                 && snapshot.task == "command [redacted] palette"
                 && snapshot.semantic.status == "completed"

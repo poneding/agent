@@ -3,12 +3,15 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use agent_model::{ModelProvider, ModelRequest, ModelStreamEvent};
+use agent_context::PromptMessage;
+use agent_model::{
+    ModelMessage, ModelProvider, ModelRequest, ModelStreamEvent, ModelToolDefinition,
+};
 use agent_types::{
     ActorKind, ActorRef, AgentError, ContextAssembled, FinalResponseProduced, ModelFinishReason,
-    ModelOutputDelta, ModelStreamCompleted, ModelStreamStarted, RuntimeEvent, RuntimeEventPayload,
-    SchemaVersion, Timestamp, ToolCallProposed, TurnCompleted, TurnFailed, TurnStarted, TurnState,
-    TurnStateChanged, UserInputReceived,
+    ModelOutputDelta, ModelReasoningSummaryDelta, ModelStreamCompleted, ModelStreamStarted,
+    ReasoningEffort, RuntimeEvent, RuntimeEventPayload, SchemaVersion, Timestamp, ToolCallProposed,
+    TurnCompleted, TurnFailed, TurnStarted, TurnState, TurnStateChanged, UserInputReceived,
 };
 use futures_util::{Stream, StreamExt, stream};
 use thiserror::Error;
@@ -20,6 +23,8 @@ use crate::runtime::RuntimeIds;
 pub struct TurnInput {
     pub ids: RuntimeIds,
     pub user_message: String,
+    pub conversation_history: Vec<PromptMessage>,
+    pub continuation_messages: Vec<ModelMessage>,
     pub provider: String,
     pub model: String,
 }
@@ -56,6 +61,8 @@ impl CancellationToken {
 #[derive(Clone, Debug, Default)]
 pub struct TurnStreamOptions {
     pub cancellation: CancellationToken,
+    pub tools: Vec<ModelToolDefinition>,
+    pub reasoning_effort: Option<ReasoningEffort>,
 }
 
 #[derive(Debug, Error, Eq, PartialEq)]
@@ -76,6 +83,14 @@ impl TurnEngine {
     #[must_use]
     pub const fn new(context: ContextAssembler) -> Self {
         Self { context }
+    }
+
+    /// Coding-agent defaults: AGENTS.md/CLAUDE.md + git status when present.
+    #[must_use]
+    pub fn for_workspace(workspace_root: &std::path::Path) -> Self {
+        Self {
+            context: crate::context::coding_context_assembler(workspace_root),
+        }
     }
 
     pub async fn run<P>(
@@ -109,7 +124,13 @@ impl TurnEngine {
             ),
         ];
 
-        let messages = self.context.assemble(&input.user_message);
+        let mut messages = self
+            .context
+            .assemble_messages_with_history(&input.user_message, &input.conversation_history)
+            .into_iter()
+            .map(model_message_from_prompt)
+            .collect::<Vec<_>>();
+        messages.extend(input.continuation_messages.clone());
         events.push(event(
             input.ids,
             ActorRef::system(),
@@ -132,6 +153,8 @@ impl TurnEngine {
             turn_id: input.ids.turn_id,
             correlation_id: input.ids.correlation_id,
             messages,
+            reasoning_effort: None,
+            tools: Vec::new(),
         };
 
         let stream = match model_provider.stream(request).await {
@@ -189,6 +212,13 @@ impl TurnEngine {
                         provider: input.provider.clone(),
                         model: input.model.clone(),
                         request_id,
+                    }),
+                )),
+                ModelStreamEvent::ReasoningSummaryDelta { text } => events.push(event(
+                    input.ids,
+                    ActorRef::system(),
+                    RuntimeEventPayload::ModelReasoningSummaryDelta(ModelReasoningSummaryDelta {
+                        delta: text,
                     }),
                 )),
                 ModelStreamEvent::Delta { text } => {
@@ -299,7 +329,13 @@ impl TurnEngine {
             ),
         ]);
 
-        let messages = self.context.assemble(&input.user_message);
+        let mut messages = self
+            .context
+            .assemble_messages_with_history(&input.user_message, &input.conversation_history)
+            .into_iter()
+            .map(model_message_from_prompt)
+            .collect::<Vec<_>>();
+        messages.extend(input.continuation_messages);
         pending.push_back(event(
             input.ids,
             ActorRef::system(),
@@ -322,6 +358,8 @@ impl TurnEngine {
             turn_id: input.ids.turn_id,
             correlation_id: input.ids.correlation_id,
             messages,
+            reasoning_effort: options.reasoning_effort,
+            tools: options.tools,
         };
         let state = TurnStreamState {
             ids: input.ids,
@@ -449,6 +487,13 @@ fn handle_model_stream_event(state: &mut TurnStreamState, stream_event: ModelStr
                 request_id,
             }),
         )),
+        ModelStreamEvent::ReasoningSummaryDelta { text } => state.pending.push_back(event(
+            state.ids,
+            ActorRef::system(),
+            RuntimeEventPayload::ModelReasoningSummaryDelta(ModelReasoningSummaryDelta {
+                delta: text,
+            }),
+        )),
         ModelStreamEvent::Delta { text } => {
             state.final_message.push_str(&text);
             state.pending.push_back(event(
@@ -573,8 +618,20 @@ fn user_actor() -> ActorRef {
     }
 }
 
-fn estimate_tokens(messages: &[String]) -> u32 {
-    messages.iter().map(|message| message.len() as u32).sum()
+fn model_message_from_prompt(message: PromptMessage) -> ModelMessage {
+    match message.role.as_str() {
+        "user" => ModelMessage::user(message.content),
+        "assistant" => ModelMessage::assistant(message.content),
+        _ => ModelMessage::system(message.content),
+    }
+}
+
+fn estimate_tokens(messages: &[ModelMessage]) -> u32 {
+    messages
+        .iter()
+        .filter_map(ModelMessage::text_content)
+        .map(|message| message.len() as u32)
+        .sum()
 }
 
 fn model_finish_reason(reason: &str) -> ModelFinishReason {

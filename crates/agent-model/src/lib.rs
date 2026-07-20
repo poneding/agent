@@ -39,21 +39,23 @@ pub use local::{
     parse_local_jsonl,
 };
 pub use openai_compatible::{
-    FixtureOpenAiCompatibleTransport, OpenAiCompatibleError, OpenAiCompatibleHttpRequest,
-    OpenAiCompatibleHttpResponse, OpenAiCompatibleProvider, OpenAiCompatibleTransport,
-    ReqwestOpenAiCompatibleTransport, build_openai_compatible_request_body,
-    parse_openai_compatible_sse,
+    FixtureOpenAiCompatibleTransport, OpenAiCompatibleChunkStream, OpenAiCompatibleError,
+    OpenAiCompatibleHttpRequest, OpenAiCompatibleHttpResponse, OpenAiCompatibleHttpStreamResponse,
+    OpenAiCompatibleProvider, OpenAiCompatibleTransport, ReqwestOpenAiCompatibleTransport,
+    build_openai_compatible_chat_request_body, build_openai_compatible_request_body,
+    parse_openai_compatible_chat_sse, parse_openai_compatible_sse,
 };
 pub use provider::{ModelError, ModelProvider};
 pub use registry::{
     ModelCapabilities, ModelCapability, ModelCapabilityProfileError, ModelCostProfile,
     ModelProviderRegistry, ModelRegistryError, ModelRequestRequirements, RegisteredModelProvider,
 };
-pub use request::ModelRequest;
+pub use request::{ModelMessage, ModelRequest, ModelToolDefinition};
 pub use secrets::{
-    EnvSecretResolver, EnvSecretStore, InMemorySecretResolver, InMemorySecretStore,
-    OsKeychainSecretStore, SecretResolutionError, SecretResolver, SecretStoreBackend,
-    SecretStoreDiagnostic, SecretStoreError, SecretStoreHealth, SecretStoreKind, SecretValue,
+    CompositeSecretResolver, EnvSecretResolver, EnvSecretStore, InMemorySecretResolver,
+    InMemorySecretStore, OsKeychainSecretStore, SecretResolutionError, SecretResolver,
+    SecretStoreBackend, SecretStoreDiagnostic, SecretStoreError, SecretStoreHealth,
+    SecretStoreKind, SecretValue,
 };
 pub use stream::{
     ModelEventStream, ModelStreamEvent, ModelStreamResult, collect_model_event_stream,

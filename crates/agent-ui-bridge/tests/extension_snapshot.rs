@@ -101,7 +101,7 @@ fn extension_snapshot_redacts_secret_like_values() {
 fn extension_snapshot_json_frame_is_single_line() {
     let snapshot = UiExtensionSnapshot::new(Vec::new(), Vec::new(), Vec::new()).unwrap();
 
-    let line = encode_json_frame(&UiJsonFrame::ExtensionSnapshot(snapshot)).unwrap();
+    let line = encode_json_frame(&UiJsonFrame::extension_snapshot(snapshot)).unwrap();
     let value: serde_json::Value = serde_json::from_str(line.trim()).unwrap();
 
     assert!(line.ends_with('\n'));

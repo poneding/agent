@@ -70,6 +70,7 @@ fn tool_completed_event(
         RuntimeEventPayload::ToolExecutionCompleted(ToolExecutionCompleted {
             call_id: call_id.to_string(),
             output_json: json!({ "applied": true }),
+            elapsed_ms: None,
         }),
     )
 }
@@ -176,6 +177,34 @@ fn recovery_flow_replays_from_checkpoint_tail() {
     assert!(outcome.resumed);
     assert_eq!(outcome.plan.replay_from.get(), 2);
     assert_eq!(outcome.replayed_event_count, 2);
+}
+
+#[test]
+fn recovery_flow_resume_reports_runtime_owned_resume() {
+    let mut store = InMemoryEventStore::default();
+    let conversation_id = ConversationId::new();
+    let turn_id = TurnId::new();
+
+    store
+        .append(user_event(
+            conversation_id,
+            turn_id,
+            "resume me with api_key=secret-value",
+        ))
+        .expect("append event");
+
+    let report = RecoveryEngine.resume(&store, &store, conversation_id, Some(turn_id));
+
+    assert!(report.resumed);
+    assert!(!report.blocked);
+    assert_eq!(report.replayed_event_count, 1);
+    assert_eq!(report.snapshot.conversation_id, conversation_id);
+    let continuation = report.continuation.expect("resume continuation");
+    assert!(continuation.can_start_turn);
+    assert!(continuation.next_prompt.contains("resume me"));
+    assert!(continuation.next_prompt.contains("[redacted]"));
+    assert!(!continuation.next_prompt.contains("secret-value"));
+    assert_eq!(continuation.replayed_event_count, 1);
 }
 
 #[test]

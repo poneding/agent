@@ -66,6 +66,7 @@ pub enum RuntimeEventPayload {
     ContextAssembled(ContextAssembled),
     PromptSnapshotRecorded(PromptSnapshotRecorded),
     ModelStreamStarted(ModelStreamStarted),
+    ModelReasoningSummaryDelta(ModelReasoningSummaryDelta),
     ModelOutputDelta(ModelOutputDelta),
     ModelStreamCompleted(ModelStreamCompleted),
     FinalResponseProduced(FinalResponseProduced),
@@ -162,6 +163,11 @@ pub struct ModelStreamStarted {
     pub provider: String,
     pub model: String,
     pub request_id: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ModelReasoningSummaryDelta {
+    pub delta: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

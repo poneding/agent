@@ -83,6 +83,28 @@ fn tool_loop_allow_executes_tool_and_records_audit_order() {
         names,
         vec!["proposed", "decision", "started", "completed", "observed"]
     );
+    let started = outcome
+        .events
+        .iter()
+        .find_map(|event| match &event.payload {
+            RuntimeEventPayload::ToolExecutionStarted(started) => Some(started),
+            _ => None,
+        })
+        .expect("tool started event");
+    assert_eq!(started.policy_decision.as_deref(), Some("allow"));
+    assert_eq!(started.action.as_deref(), Some("read"));
+    assert_eq!(started.resource_kind.as_deref(), Some("tool"));
+    assert_eq!(started.resource.as_deref(), Some("workspace.read_file"));
+    assert_eq!(started.sandbox_profile.as_deref(), Some("workspace_fs"));
+    let completed = outcome
+        .events
+        .iter()
+        .find_map(|event| match &event.payload {
+            RuntimeEventPayload::ToolExecutionCompleted(completed) => Some(completed),
+            _ => None,
+        })
+        .expect("tool completed event");
+    assert!(completed.elapsed_ms.is_some());
 }
 
 #[test]

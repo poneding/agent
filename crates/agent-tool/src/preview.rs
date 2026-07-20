@@ -198,6 +198,7 @@ pub fn preview_tool_call(
 ) -> Result<ToolPreview, ToolError> {
     match tool_name.as_str() {
         "workspace.edit_file" => preview_file_edit(input, require_sandbox(sandbox)?),
+        "workspace.write_file" => preview_write_file(input, sandbox),
         "workspace.shell_command" => preview_shell_command(input, sandbox),
         "workspace.git_status" => preview_git_status(input, sandbox),
         "workspace.git_diff" => preview_git_diff(input, sandbox),
@@ -206,6 +207,30 @@ pub fn preview_tool_call(
         value if value.starts_with("background.") => Ok(preview_background_task(value, input)),
         value => Ok(preview_generic(value, input)),
     }
+}
+
+fn preview_write_file(
+    input: &ToolInput,
+    sandbox: Option<&WorkspaceSandbox>,
+) -> Result<ToolPreview, ToolError> {
+    let path = string_field(&input.value, "path")?;
+    let content = string_field(&input.value, "content")?;
+    if let Some(sandbox) = sandbox {
+        sandbox
+            .resolve_write_path(&path)
+            .map_err(|error| ToolError::Validation(error.to_string()))?;
+    }
+    let diff = format!("--- {path}\n+++ {path}\n@@\n{}", added_lines(&content));
+
+    Ok(ToolPreview::FileEdit(FileEditPreview {
+        path,
+        content_hash: stable_hash(&diff),
+        diff,
+        added_lines: content.lines().count() as u32,
+        removed_lines: 0,
+        apply: true,
+        truncated: false,
+    }))
 }
 
 fn preview_file_edit(
@@ -572,11 +597,15 @@ fn simple_diff(path: &str, current: &str, replacement: &str) -> String {
             .lines()
             .map(|line| format!("-{line}\n"))
             .collect::<String>(),
-        replacement
-            .lines()
-            .map(|line| format!("+{line}\n"))
-            .collect::<String>()
+        added_lines(replacement)
     )
+}
+
+fn added_lines(value: &str) -> String {
+    value
+        .lines()
+        .map(|line| format!("+{line}\n"))
+        .collect::<String>()
 }
 
 fn canonical_json(value: &serde_json::Value) -> String {

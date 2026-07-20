@@ -1,7 +1,14 @@
+use std::fs;
+
+use agent_storage::SqliteEventStore;
+
 use crate::{
     DesktopCommandError, DesktopRuntimeSession, DesktopRuntimeState, DesktopStartSessionRequest,
 };
-use agent_types::{ClientKind, ConversationId, CorrelationId, SchemaVersion, WorkspaceId};
+use agent_types::{
+    ActorRef, ClientKind, ConversationId, CorrelationId, EventId, RuntimeEvent,
+    RuntimeEventPayload, SchemaVersion, Timestamp, UserInputReceived, WorkspaceId,
+};
 use agent_ui_bridge::{UiClientInfo, UiCommand, UiCommandEnvelope, UiJsonFrame};
 
 fn id<T>(value: &str) -> T
@@ -12,10 +19,53 @@ where
     value.parse().expect("valid deterministic id")
 }
 
+fn user_event(
+    workspace_id: WorkspaceId,
+    conversation_id: ConversationId,
+    message: &str,
+) -> RuntimeEvent {
+    RuntimeEvent {
+        schema_version: SchemaVersion::current(),
+        id: EventId::new(),
+        seq: None,
+        occurred_at: Timestamp::now_utc(),
+        workspace_id,
+        conversation_id,
+        turn_id: None,
+        task_id: None,
+        agent_id: None,
+        team_id: None,
+        actor: ActorRef::system(),
+        correlation_id: CorrelationId::new(),
+        causation_id: None,
+        payload: RuntimeEventPayload::UserInputReceived(UserInputReceived {
+            message: message.to_string(),
+        }),
+    }
+}
+
 fn start_request() -> DesktopStartSessionRequest {
     DesktopStartSessionRequest {
         workspace_path: Some("/tmp/agent".to_string()),
         client_version: "0.1.0".to_string(),
+    }
+}
+
+fn switch_session_command(
+    workspace_id: WorkspaceId,
+    conversation_id: ConversationId,
+) -> UiCommandEnvelope {
+    UiCommandEnvelope {
+        schema_version: SchemaVersion::current(),
+        command_id: id::<CorrelationId>("00000000-0000-0000-0000-000000000101"),
+        client: UiClientInfo {
+            kind: ClientKind::Desktop,
+            version: "0.1.0".to_string(),
+        },
+        command: UiCommand::SwitchSession {
+            workspace_id,
+            conversation_id,
+        },
     }
 }
 
@@ -74,6 +124,7 @@ fn stop_session_is_idempotent_after_start_or_before_start() {
 fn send_ui_command_validates_before_acknowledging() {
     let mut session = DesktopRuntimeSession::new_for_tests(8);
     session.start(start_request()).expect("session starts");
+    session.clear_frames_for_tests();
 
     let ack = session
         .send_ui_command(start_turn_command("Summarize this workspace"))
@@ -89,6 +140,142 @@ fn send_ui_command_validates_before_acknowledging() {
         .expect_err("empty prompt is rejected");
     assert_eq!(error.code, "desktop.bridge.command_invalid");
     assert!(error.message.contains("start_turn prompt cannot be empty"));
+}
+
+#[test]
+fn switch_session_command_updates_desktop_runtime_identity() {
+    let mut session = DesktopRuntimeSession::new_for_tests(8);
+    session.start(start_request()).expect("session starts");
+    let workspace_id = WorkspaceId::new();
+    let conversation_id = ConversationId::new();
+
+    let ack = session
+        .send_ui_command(switch_session_command(workspace_id, conversation_id))
+        .expect("switch session accepted");
+    let identity = session.workspace_snapshot_identity();
+
+    assert!(ack.accepted);
+    assert_eq!(identity, (workspace_id, Some(conversation_id)));
+}
+
+#[test]
+fn switch_session_replays_persisted_history_and_lists_generated_title() {
+    let mut session = DesktopRuntimeSession::new_for_tests(8);
+    session.start(start_request()).expect("session starts");
+    session.clear_frames_for_tests();
+    let workspace_id = WorkspaceId::new();
+    let conversation_id = ConversationId::new();
+    session
+        .append_event_for_tests(user_event(
+            workspace_id,
+            conversation_id,
+            "Investigate Desktop session history. Later details",
+        ))
+        .expect("append history");
+
+    let ack = session
+        .send_ui_command(switch_session_command(workspace_id, conversation_id))
+        .expect("switch session accepted");
+    let frames = session.drain_ui_frames(8).expect("drain replay");
+    let conversations = session
+        .persisted_conversations()
+        .expect("persisted conversations");
+
+    assert_eq!(ack.pending_frame_count, 2);
+    assert!(frames.iter().any(|frame| matches!(
+        frame,
+        UiJsonFrame::Event(event)
+            if event.conversation_id == conversation_id
+                && matches!(
+                    &event.payload,
+                    agent_ui_bridge::UiEventPayload::UserMessage { message }
+                        if message == "Investigate Desktop session history. Later details"
+                )
+    )));
+    assert!(
+        frames
+            .iter()
+            .any(|frame| matches!(frame, UiJsonFrame::Done { event_count: 1 }))
+    );
+    assert_eq!(conversations.len(), 1);
+    assert_eq!(
+        conversations[0].title,
+        "Investigate Desktop session history"
+    );
+}
+
+#[test]
+fn desktop_start_turn_persists_user_history_across_store_reopen() {
+    let path =
+        std::env::temp_dir().join(format!("agent-desktop-bridge-{}.sqlite3", EventId::new()));
+    let workspace_id = id::<WorkspaceId>("00000000-0000-0000-0000-000000000001");
+    let conversation_id = id::<ConversationId>("00000000-0000-0000-0000-000000000002");
+    let prompt = "Persist this Desktop conversation across restart";
+
+    {
+        let store = SqliteEventStore::open(&path).expect("open event store");
+        let mut session = DesktopRuntimeSession::new_with_event_store_for_tests(8, store);
+        session.start(start_request()).expect("session starts");
+        session.clear_frames_for_tests();
+
+        let ack = session
+            .send_ui_command(start_turn_command(prompt))
+            .expect("turn accepted");
+        let frames = session.drain_ui_frames(8).expect("drain start turn");
+
+        assert_eq!(ack.pending_frame_count, 2);
+        assert!(frames.iter().any(|frame| matches!(
+            frame,
+            UiJsonFrame::Event(event)
+                if matches!(
+                    &event.payload,
+                    agent_ui_bridge::UiEventPayload::UserMessage { message }
+                        if message == prompt
+                )
+        )));
+        assert!(
+            frames
+                .iter()
+                .any(|frame| matches!(frame, UiJsonFrame::Done { event_count: 1 }))
+        );
+    }
+
+    {
+        let store = SqliteEventStore::open(&path).expect("reopen event store");
+        let mut session = DesktopRuntimeSession::new_with_event_store_for_tests(8, store);
+        session.start(start_request()).expect("session restarts");
+        session.clear_frames_for_tests();
+
+        let conversations = session.persisted_conversations().expect("list history");
+        assert_eq!(conversations.len(), 1);
+        assert_eq!(conversations[0].conversation_id, conversation_id);
+        assert_eq!(
+            conversations[0].title,
+            "Persist this Desktop conversation across restart"
+        );
+
+        let ack = session
+            .send_ui_command(switch_session_command(workspace_id, conversation_id))
+            .expect("switch persisted session");
+        let frames = session.drain_ui_frames(8).expect("drain replay");
+        assert_eq!(ack.pending_frame_count, 2);
+        assert!(frames.iter().any(|frame| matches!(
+            frame,
+            UiJsonFrame::Event(event)
+                if matches!(
+                    &event.payload,
+                    agent_ui_bridge::UiEventPayload::UserMessage { message }
+                        if message == prompt
+                )
+        )));
+        assert!(
+            frames
+                .iter()
+                .any(|frame| matches!(frame, UiJsonFrame::Done { event_count: 1 }))
+        );
+    }
+
+    let _ = fs::remove_file(path);
 }
 
 #[test]

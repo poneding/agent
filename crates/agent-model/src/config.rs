@@ -1,12 +1,23 @@
 use std::collections::BTreeSet;
+use std::fmt;
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SecretRef {
     pub provider: String,
     pub name: String,
+}
+
+impl fmt::Debug for SecretRef {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("SecretRef")
+            .field("provider", &self.provider)
+            .field("name", &"<redacted>")
+            .finish()
+    }
 }
 
 impl SecretRef {
@@ -43,6 +54,7 @@ impl SecretRef {
 #[serde(rename_all = "snake_case")]
 pub enum ModelProviderKind {
     Fake,
+    #[serde(alias = "openai-compatible", alias = "openai")]
     OpenAiCompatible,
     Anthropic,
     Gemini,
@@ -82,7 +94,7 @@ impl ModelEndpointConfig {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ModelProviderConfig {
     pub id: String,
     pub kind: ModelProviderKind,
@@ -90,6 +102,20 @@ pub struct ModelProviderConfig {
     pub endpoint: ModelEndpointConfig,
     pub api_key: Option<SecretRef>,
     pub enabled: bool,
+}
+
+impl fmt::Debug for ModelProviderConfig {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ModelProviderConfig")
+            .field("id", &self.id)
+            .field("kind", &self.kind)
+            .field("default_model", &self.default_model)
+            .field("endpoint", &self.endpoint)
+            .field("credential_configured", &self.api_key.is_some())
+            .field("enabled", &self.enabled)
+            .finish()
+    }
 }
 
 impl ModelProviderConfig {

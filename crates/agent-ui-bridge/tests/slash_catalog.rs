@@ -15,7 +15,27 @@ fn slash_catalog_is_deterministic_and_covers_aliases() {
     assert_eq!(
         names,
         vec![
-            "help", "status", "sessions", "tasks", "trace", "clear", "quit", "settings"
+            "help",
+            "memory",
+            "model",
+            "permissions",
+            "status",
+            "resume",
+            "sessions",
+            "diff",
+            "plan",
+            "tasks",
+            "trace",
+            "mcp",
+            "tools",
+            "clear",
+            "compact",
+            "copy",
+            "quit",
+            "retry",
+            "settings",
+            "theme",
+            "thinking"
         ]
     );
     let quit = catalog
@@ -36,10 +56,24 @@ fn slash_catalog_is_deterministic_and_covers_aliases() {
 fn slash_catalog_resolves_canonical_names_and_aliases() {
     let quit = resolve_slash_command(" /exit ").expect("alias resolves");
     let sessions = resolve_slash_command("/sessions").expect("sessions resolves");
+    let resume = resolve_slash_command("/resume").expect("resume resolves");
+    let model = resolve_slash_command("/model").expect("model resolves");
+    let permissions = resolve_slash_command("/permission").expect("permission alias resolves");
+    let retry = resolve_slash_command("/retry").expect("retry resolves");
+    let copy = resolve_slash_command("/copy").expect("copy resolves");
+    let theme = resolve_slash_command("/theme").expect("theme resolves");
+    let thinking = resolve_slash_command("/thinking hide-all").expect("thinking resolves");
 
     assert_eq!(quit.name, "quit");
     assert_eq!(quit.effect, UiSlashCommandEffect::Quit);
     assert_eq!(sessions.effect, UiSlashCommandEffect::OpenSessions);
+    assert_eq!(resume.effect, UiSlashCommandEffect::ResumeSession);
+    assert_eq!(model.effect, UiSlashCommandEffect::ShowModel);
+    assert_eq!(permissions.effect, UiSlashCommandEffect::ShowPermissions);
+    assert_eq!(retry.effect, UiSlashCommandEffect::RetryLastTurn);
+    assert_eq!(copy.effect, UiSlashCommandEffect::CopyLatestOutput);
+    assert_eq!(theme.effect, UiSlashCommandEffect::OpenTheme);
+    assert_eq!(thinking.effect, UiSlashCommandEffect::ConfigureThinking);
     assert!(resolve_slash_command("status").is_err());
     assert!(resolve_slash_command("/unknown-secret-token").is_err());
 }

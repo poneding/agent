@@ -1,3 +1,4 @@
+use agent_ui_bridge::UiProjectContextDetail;
 use std::fs;
 use std::process::Command;
 
@@ -107,11 +108,11 @@ fn project_context_select_quality_trace_json_emits_snapshot_and_done() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         frames.first(),
-        Some(UiJsonFrame::ProjectContextRetrievalSnapshot(_))
+        Some(UiJsonFrame::ProjectContextDetail(UiProjectContextDetail::Retrieval(_)))
     ));
     assert!(matches!(
         frames.get(1),
-        Some(UiJsonFrame::ProjectContextQualityTraceSnapshot(snapshot))
+        Some(UiJsonFrame::ProjectContextDetail(agent_ui_bridge::UiProjectContextDetail::Quality(snapshot)))
             if snapshot.retrieval_kind == "lexical"
                 && snapshot.task == "command [redacted] palette"
                 && snapshot.selected_count > 0
@@ -156,12 +157,12 @@ fn project_context_select_quality_trace_json_covers_pinned_hybrid() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         frames.first(),
-        Some(UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(snapshot))
+        Some(UiJsonFrame::ProjectContextDetail(agent_ui_bridge::UiProjectContextDetail::Pinned(snapshot)))
             if snapshot.retrieval_kind == "hybrid"
     ));
     assert!(matches!(
         frames.get(1),
-        Some(UiJsonFrame::ProjectContextQualityTraceSnapshot(snapshot))
+        Some(UiJsonFrame::ProjectContextDetail(agent_ui_bridge::UiProjectContextDetail::Quality(snapshot)))
             if snapshot.retrieval_kind == "pinned_hybrid"
                 && snapshot.pinned_included_count == 1
                 && snapshot.signals.iter().any(|signal| signal.kind == "semantic_completed")

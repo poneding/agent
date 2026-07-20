@@ -22,8 +22,16 @@ export function ConversationList({
             type="button"
             onClick={() => onSelect(conversation.conversation_id)}
           >
-            <span>{conversation.title}</span>
-            {conversation.unread_count > 0 ? <strong>{conversation.unread_count}</strong> : null}
+            <span className="thread-title">{conversation.title}</span>
+            <span className="thread-meta">
+              <time dateTime={conversation.last_activity_at}>
+                {new Date(conversation.last_activity_at).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </time>
+              {conversation.unread_count > 0 ? <strong>{conversation.unread_count}</strong> : null}
+            </span>
           </button>
         </li>
       ))}

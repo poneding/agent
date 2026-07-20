@@ -1,6 +1,10 @@
+use std::sync::Mutex;
+
+use agent_context::PromptMessage;
 use agent_core::{RuntimeIds, TurnEngine, TurnError, TurnInput};
 use agent_model::{
-    FakeModelProvider, FakeModelScript, ModelError, ModelEventStream, ModelProvider, ModelRequest,
+    FakeModelProvider, FakeModelScript, ModelError, ModelEventStream, ModelMessage, ModelProvider,
+    ModelRequest, ModelStreamEvent, model_events_to_stream,
 };
 use agent_types::{
     ConversationId, CorrelationId, RuntimeEvent, RuntimeEventPayload, TurnId, TurnState,
@@ -21,6 +25,8 @@ fn turn_input(ids: RuntimeIds) -> TurnInput {
     TurnInput {
         ids,
         user_message: "build a tiny runtime".to_string(),
+        conversation_history: Vec::new(),
+        continuation_messages: Vec::new(),
         provider: "fake".to_string(),
         model: "fake-scripted".to_string(),
     }
@@ -123,6 +129,86 @@ impl ModelProvider for FailingProvider {
     async fn stream(&self, _request: ModelRequest) -> Result<ModelEventStream, ModelError> {
         Err(ModelError::Script("provider unavailable".to_string()))
     }
+}
+
+#[derive(Debug, Default)]
+struct RecordingProvider {
+    request: Mutex<Option<ModelRequest>>,
+}
+
+#[async_trait]
+impl ModelProvider for RecordingProvider {
+    async fn stream(&self, request: ModelRequest) -> Result<ModelEventStream, ModelError> {
+        *self.request.lock().expect("request lock") = Some(request);
+        Ok(model_events_to_stream(vec![
+            ModelStreamEvent::Started {
+                request_id: "recorded-request".to_string(),
+            },
+            ModelStreamEvent::ReasoningSummaryDelta {
+                text: "checking history".to_string(),
+            },
+            ModelStreamEvent::Delta {
+                text: "done".to_string(),
+            },
+            ModelStreamEvent::Completed {
+                finish_reason: "stop".to_string(),
+                output_token_count: 1,
+            },
+        ]))
+    }
+}
+
+#[tokio::test]
+async fn turn_engine_emits_reasoning_summary_without_final_answer_leakage() {
+    let provider = RecordingProvider::default();
+    let outcome = TurnEngine::default()
+        .run(turn_input(runtime_ids()), &provider)
+        .await
+        .expect("run turn");
+
+    assert!(outcome.events.iter().any(|event| matches!(
+        &event.payload,
+        RuntimeEventPayload::ModelReasoningSummaryDelta(delta)
+            if delta.delta == "checking history"
+    )));
+    assert_eq!(outcome.final_message, "done");
+}
+
+#[tokio::test]
+async fn turn_engine_includes_prior_conversation_history_in_model_request() {
+    let mut input = turn_input(runtime_ids());
+    input.user_message = "what is the project name?".to_string();
+    input.conversation_history = vec![
+        PromptMessage {
+            role: "user".to_string(),
+            content: "my project is called Atlas".to_string(),
+        },
+        PromptMessage {
+            role: "assistant".to_string(),
+            content: "I will remember Atlas.".to_string(),
+        },
+    ];
+    let provider = RecordingProvider::default();
+
+    TurnEngine::default()
+        .run(input, &provider)
+        .await
+        .expect("run turn");
+
+    let request = provider
+        .request
+        .lock()
+        .expect("request lock")
+        .clone()
+        .expect("model request");
+    assert_eq!(
+        request.messages,
+        vec![
+            ModelMessage::user("my project is called Atlas"),
+            ModelMessage::assistant("I will remember Atlas."),
+            ModelMessage::user("what is the project name?"),
+        ]
+    );
 }
 
 #[tokio::test]

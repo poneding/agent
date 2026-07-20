@@ -15,10 +15,12 @@ use crate::{RuntimeIds, ToolCallRequest, ToolLoop, ToolLoopStatus};
 
 const COMMAND_OUTPUT_LIMIT: usize = 4_000;
 const OBSERVATION_LIMIT: usize = 4_000;
+pub const DEFAULT_COMMAND_TEST_TIMEOUT_MS: u64 = 30_000;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandTestLoopInput {
     pub workspace_root: PathBuf,
+    pub command_run_id: Option<String>,
     pub program: String,
     pub args: Vec<String>,
     pub cwd: String,
@@ -31,6 +33,8 @@ pub struct CommandTestLoopInput {
 pub struct CommandTestLoopReport {
     pub workspace_id: WorkspaceId,
     pub conversation_id: ConversationId,
+    #[serde(default = "legacy_command_run_id")]
+    pub command_run_id: String,
     pub command: CommandIntentSummary,
     pub status: CommandExecutionStatus,
     pub classification: CommandFailureClassification,
@@ -44,11 +48,25 @@ pub struct CommandTestLoopReport {
     pub diagnostics: Vec<CommandTestDiagnostic>,
 }
 
+fn legacy_command_run_id() -> String {
+    "legacy-command-run".to_string()
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CommandIntentSummary {
     pub display: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub program: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub args: Vec<String>,
+    #[serde(default = "default_command_timeout_ms")]
+    pub timeout_ms: u64,
     pub cwd: String,
     pub classify_as_test: bool,
+}
+
+fn default_command_timeout_ms() -> u64 {
+    DEFAULT_COMMAND_TEST_TIMEOUT_MS
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -173,6 +191,13 @@ pub fn run_command_test_loop(
 
     let command = CommandIntentSummary {
         display: command_display(&input.program, &input.args),
+        program: Some(redact_secret_like_text(&input.program)),
+        args: input
+            .args
+            .iter()
+            .map(|arg| redact_secret_like_text(arg))
+            .collect(),
+        timeout_ms: input.timeout_ms,
         cwd: redact_secret_like_text(&input.cwd),
         classify_as_test: input.classify_as_test,
     };
@@ -227,12 +252,20 @@ pub fn run_command_test_loop(
                 input.ids,
                 command,
                 input.classify_as_test,
+                input
+                    .command_run_id
+                    .clone()
+                    .unwrap_or_else(|| input.ids.correlation_id.to_string()),
                 shell,
                 events,
             ))
         }
         ToolLoopStatus::Denied => Ok(policy_report(
             input.ids,
+            input
+                .command_run_id
+                .clone()
+                .unwrap_or_else(|| input.ids.correlation_id.to_string()),
             command,
             CommandExecutionStatus::Denied,
             CommandFailureClassification::PolicyDenied,
@@ -241,6 +274,10 @@ pub fn run_command_test_loop(
         )),
         ToolLoopStatus::WaitingApproval => Ok(policy_report(
             input.ids,
+            input
+                .command_run_id
+                .clone()
+                .unwrap_or_else(|| input.ids.correlation_id.to_string()),
             command,
             CommandExecutionStatus::WaitingApproval,
             CommandFailureClassification::WaitingApproval,
@@ -284,6 +321,7 @@ fn report_from_shell_result(
     ids: RuntimeIds,
     command: CommandIntentSummary,
     classify_as_test: bool,
+    command_run_id: String,
     shell: ShellCommandResult,
     events: Vec<RuntimeEvent>,
 ) -> CommandTestLoopReport {
@@ -314,6 +352,7 @@ fn report_from_shell_result(
     CommandTestLoopReport {
         workspace_id: ids.workspace_id,
         conversation_id: ids.conversation_id,
+        command_run_id,
         command,
         status,
         classification,
@@ -330,6 +369,7 @@ fn report_from_shell_result(
 
 fn policy_report(
     ids: RuntimeIds,
+    command_run_id: String,
     command: CommandIntentSummary,
     status: CommandExecutionStatus,
     classification: CommandFailureClassification,
@@ -340,6 +380,7 @@ fn policy_report(
     CommandTestLoopReport {
         workspace_id: ids.workspace_id,
         conversation_id: ids.conversation_id,
+        command_run_id,
         command,
         status,
         classification,

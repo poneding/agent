@@ -49,7 +49,7 @@ pub struct UiConfigSnapshot {
 ## Security And Privacy
 
 - snapshots contain no secret values
-- snapshots do not expose raw TOML
+- snapshots do not expose raw YAML/TOML or direct `apiKey` values
 - tests include secret-like strings and assert absence after serialization
 
 ## Testing Strategy

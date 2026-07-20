@@ -1,7 +1,36 @@
 use agent_cli::{
-    CliCommand, CliError, ModelSelection, OutputMode, parse_cli_command, parse_cli_invocation,
-    render_cli_command,
+    CliCommand, CliError, CliInvocation, ModelSelection, OutputMode, parse_cli_command,
+    parse_cli_invocation, render_cli_invocation,
 };
+use agent_core::ConfigOverride;
+
+fn fake_config_path() -> std::path::PathBuf {
+    let path = std::env::temp_dir().join(format!(
+        "agent-cli-modes-fake-config-{}.yaml",
+        std::process::id()
+    ));
+    std::fs::write(
+        &path,
+        r#"
+schemaVersion: 1
+model:
+  defaultProvider: fake
+  invocation:
+    timeoutMs: 30000
+    maxAttempts: 1
+    retryableFailures: []
+    fallbackProviderIds: []
+  providers:
+    - id: fake
+      kind: fake
+      defaultModel: fake-scripted
+      enabled: true
+      timeoutMs: 1000
+"#,
+    )
+    .expect("write fake config");
+    path
+}
 
 #[test]
 fn cli_modes_parse_version_flag() {
@@ -98,8 +127,14 @@ fn cli_modes_reject_unknown_flag() {
 
 #[test]
 fn cli_modes_render_deterministic_output() {
-    let output = render_cli_command(CliCommand::BatchPrompt {
-        prompt: "hello".to_string(),
+    let output = render_cli_invocation(CliInvocation {
+        command: CliCommand::BatchPrompt {
+            prompt: "hello".to_string(),
+        },
+        output_mode: OutputMode::Text,
+        model_selection: ModelSelection::default(),
+        config_path: Some(fake_config_path()),
+        config_override: ConfigOverride::default(),
     });
 
     assert_eq!(output.stdout, "fake response: hello\n");

@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use agent_types::{
     CheckpointId, ConversationId, EventId, EventSeq, RuntimeEvent, SchemaVersion, TurnId,
 };
@@ -14,6 +16,21 @@ pub struct SqliteEventStore {
 }
 
 impl SqliteEventStore {
+    pub fn open(path: impl AsRef<Path>) -> Result<Self, StorageError> {
+        let path = path.as_ref();
+        if let Some(parent) = path
+            .parent()
+            .filter(|parent| !parent.as_os_str().is_empty())
+        {
+            std::fs::create_dir_all(parent)
+                .map_err(|error| StorageError::Backend(error.to_string()))?;
+        }
+        let conn = Connection::open(path).map_err(backend)?;
+        let store = Self { conn };
+        store.init_schema()?;
+        Ok(store)
+    }
+
     pub fn open_in_memory() -> Result<Self, StorageError> {
         let conn = Connection::open_in_memory().map_err(backend)?;
         let store = Self { conn };
@@ -280,6 +297,30 @@ impl EventStore for SqliteEventStore {
         tx.commit().map_err(backend)?;
 
         Ok(StoredEvent { event: sequenced })
+    }
+
+    fn list_conversation_ids(&self) -> Result<Vec<ConversationId>, StorageError> {
+        let mut stmt = self
+            .conn
+            .prepare(
+                r"
+                SELECT conversation_id
+                FROM runtime_events
+                GROUP BY conversation_id
+                ORDER BY MAX(occurred_at) DESC, conversation_id ASC
+                ",
+            )
+            .map_err(backend)?;
+        let mut rows = stmt.query([]).map_err(backend)?;
+        let mut conversation_ids = Vec::new();
+        while let Some(row) = rows.next().map_err(backend)? {
+            let value: String = row.get(0).map_err(backend)?;
+            let conversation_id = value.parse().map_err(|error| {
+                StorageError::Serialization(format!("invalid conversation id: {error}"))
+            })?;
+            conversation_ids.push(conversation_id);
+        }
+        Ok(conversation_ids)
     }
 
     fn list_by_conversation(

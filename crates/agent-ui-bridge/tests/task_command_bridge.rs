@@ -67,7 +67,7 @@ fn task_command_bridge_serializes_ui_safe_task_snapshot() {
     .expect("summary");
     let snapshot = UiTaskSnapshot::new(vec![summary], Vec::new()).expect("snapshot");
     let serialized =
-        serde_json::to_string(&UiJsonFrame::TaskSnapshot(snapshot)).expect("serialize");
+        serde_json::to_string(&UiJsonFrame::task_snapshot(snapshot)).expect("serialize");
 
     assert!(serialized.contains("\"type\":\"task_snapshot\""));
     assert!(serialized.contains("\"state\":\"queued\""));
@@ -210,7 +210,7 @@ fn task_command_bridge_serializes_wait_control_evidence() {
         Some("needs approval for [redacted]")
     );
 
-    let serialized = serde_json::to_string(&UiJsonFrame::TaskSnapshot(
+    let serialized = serde_json::to_string(&UiJsonFrame::task_snapshot(
         UiTaskSnapshot::new(vec![summary], Vec::new()).expect("snapshot"),
     ))
     .expect("serialize");
@@ -244,7 +244,7 @@ fn task_command_bridge_serializes_plan_fields_redacted() {
 
     let snapshot = UiTaskSnapshot::new(vec![summary], Vec::new()).expect("snapshot");
     let serialized =
-        serde_json::to_string(&UiJsonFrame::TaskSnapshot(snapshot)).expect("serialize");
+        serde_json::to_string(&UiJsonFrame::task_snapshot(snapshot)).expect("serialize");
 
     assert!(serialized.contains("\"plan_progress\""));
     assert!(serialized.contains("\"active_todo\""));

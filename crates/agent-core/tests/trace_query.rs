@@ -67,6 +67,9 @@ fn trace_query_filters_tool_and_policy_events() {
                     request_id: "request-1".to_string(),
                     decision: "allow".to_string(),
                     reason: "read-only".to_string(),
+                    action: None,
+                    resource_kind: None,
+                    resource: None,
                 },
             ),
         ))

@@ -4,7 +4,7 @@
 
 **Goal:** Add CLI config-check behavior and UI-safe JSON diagnostics.
 
-**Architecture:** `agent-cli` parses config flags and delegates validation to `agent-core::config`. JSON output uses `agent-ui-bridge` frames; CLI does not parse TOML internals directly.
+**Architecture:** `agent-cli` parses config flags and delegates validation to `agent-core::config`. JSON output uses `agent-ui-bridge` frames; CLI does not parse YAML/TOML internals directly.
 
 **Tech Stack:** Rust 2024 edition, existing CLI parser style, tempfile for tests if already available, serde_json, Cargo fmt, Cargo clippy, Cargo test.
 

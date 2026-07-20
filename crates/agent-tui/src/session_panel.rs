@@ -4,6 +4,9 @@ use crate::TuiEffect;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SessionPanelAction {
+    Open,
+    NewSession,
+    Dismiss,
     FocusNext,
     FocusPrevious,
     SwitchFocused,
@@ -14,11 +17,29 @@ pub struct SessionPanelState {
     pub sessions: Vec<UiTerminalSessionSummary>,
     pub diagnostics: Vec<UiTerminalSessionDiagnostic>,
     pub focused_index: Option<usize>,
+    pub open: bool,
 }
 
 impl SessionPanelState {
+    #[must_use]
+    pub fn is_open(&self) -> bool {
+        self.open
+    }
+
     pub fn reduce(&mut self, action: SessionPanelAction) -> TuiEffect {
         match action {
+            SessionPanelAction::Open => {
+                self.open = true;
+                TuiEffect::None
+            }
+            SessionPanelAction::Dismiss => {
+                self.open = false;
+                TuiEffect::None
+            }
+            SessionPanelAction::NewSession => {
+                self.open = false;
+                TuiEffect::NewSession
+            }
             SessionPanelAction::FocusNext => {
                 self.focus_next();
                 TuiEffect::None
@@ -112,7 +133,10 @@ impl SessionPanelState {
                 workspace_id: session.workspace_id,
                 conversation_id: session.conversation_id,
             },
-            None => TuiEffect::LocalDiagnostic("no terminal session is focused".to_string()),
+            None => TuiEffect::LocalDiagnostic {
+                message: "no terminal session is focused".to_string(),
+                severity: crate::LocalDiagnosticSeverity::Note,
+            },
         }
     }
 

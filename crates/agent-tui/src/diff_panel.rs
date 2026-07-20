@@ -35,6 +35,7 @@ impl DiffPanelState {
 
     pub fn reduce(&mut self, action: DiffPanelAction) {
         match action {
+            DiffPanelAction::ToggleFold => {}
             DiffPanelAction::NextFile => self.focus_next_file(),
             DiffPanelAction::PreviousFile => self.focus_previous_file(),
             DiffPanelAction::ScrollDown => {
@@ -174,6 +175,7 @@ impl DiffPanelState {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DiffPanelAction {
+    ToggleFold,
     NextFile,
     PreviousFile,
     ScrollDown,

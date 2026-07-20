@@ -6,6 +6,7 @@ use agent_types::{
     WorkspaceTrustLevel,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::frame::{UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary};
 
@@ -43,17 +44,36 @@ pub enum UiEventPayload {
     ModelDelta {
         delta: String,
     },
+    ReasoningSummaryDelta {
+        delta: String,
+    },
     FinalResponse {
         message: String,
     },
     ToolCall {
         call_id: String,
         tool_name: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        preview: Option<String>,
+    },
+    ToolStarted {
+        call_id: String,
+        tool_name: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        policy: Option<UiToolPolicySummary>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        sandbox: Option<UiToolSandboxSummary>,
+    },
+    ToolObservation {
+        call_id: String,
+        observation: String,
     },
     ToolResult {
         call_id: String,
         ok: bool,
         summary: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        elapsed_ms: Option<u64>,
     },
     Permission {
         request_id: String,
@@ -78,6 +98,10 @@ pub enum UiEventPayload {
         recoverable: bool,
     },
     PromptSummary(UiPromptSummary),
+    ContextStatus {
+        message_count: u32,
+        estimated_tokens: u32,
+    },
     Progress {
         message: String,
     },
@@ -126,6 +150,20 @@ pub struct UiTaskNotification {
     pub summary: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub approval_id: Option<ApprovalRequestId>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiToolPolicySummary {
+    pub decision: String,
+    pub reason: String,
+    pub action: String,
+    pub resource_kind: String,
+    pub resource: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiToolSandboxSummary {
+    pub profile: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -194,22 +232,30 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
         RuntimeEventPayload::ModelOutputDelta(delta) => UiEventPayload::ModelDelta {
             delta: delta.delta.clone(),
         },
+        RuntimeEventPayload::ModelReasoningSummaryDelta(delta) => {
+            UiEventPayload::ReasoningSummaryDelta {
+                delta: delta.delta.clone(),
+            }
+        }
         RuntimeEventPayload::FinalResponseProduced(response) => UiEventPayload::FinalResponse {
             message: response.message.clone(),
         },
         RuntimeEventPayload::ToolCallProposed(call) => UiEventPayload::ToolCall {
             call_id: call.call_id.clone(),
             tool_name: call.tool_name.clone(),
+            preview: tool_call_preview(&call.tool_name, &call.input_json),
         },
         RuntimeEventPayload::ToolExecutionCompleted(completed) => UiEventPayload::ToolResult {
             call_id: completed.call_id.clone(),
             ok: true,
-            summary: "completed".to_string(),
+            summary: tool_output_summary(&completed.output_json),
+            elapsed_ms: completed.elapsed_ms,
         },
         RuntimeEventPayload::ToolExecutionFailed(failed) => UiEventPayload::ToolResult {
             call_id: failed.call_id.clone(),
             ok: false,
             summary: failed.message.clone(),
+            elapsed_ms: failed.elapsed_ms,
         },
         RuntimeEventPayload::PermissionDecisionRecorded(decision) => UiEventPayload::Permission {
             request_id: decision.request_id.clone(),
@@ -282,11 +328,9 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
         RuntimeEventPayload::TurnStarted(started) => UiEventPayload::Progress {
             message: started.input_summary.clone(),
         },
-        RuntimeEventPayload::ContextAssembled(context) => UiEventPayload::Progress {
-            message: format!(
-                "context assembled: {} messages, {} estimated tokens",
-                context.message_count, context.estimated_tokens
-            ),
+        RuntimeEventPayload::ContextAssembled(context) => UiEventPayload::ContextStatus {
+            message_count: context.message_count,
+            estimated_tokens: context.estimated_tokens,
         },
         RuntimeEventPayload::PromptSnapshotRecorded(snapshot) => {
             UiEventPayload::PromptSummary(prompt_summary_from_snapshot(snapshot))
@@ -332,14 +376,20 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
                 approval_id: recorded.approval_id,
             })
         }
-        RuntimeEventPayload::ToolExecutionStarted(started) => UiEventPayload::Progress {
-            message: format!(
-                "tool execution started: {} {}",
-                started.tool_name, started.call_id
-            ),
+        RuntimeEventPayload::ToolExecutionStarted(started) => UiEventPayload::ToolStarted {
+            call_id: started.call_id.clone(),
+            tool_name: started.tool_name.clone(),
+            policy: tool_policy_summary(started),
+            sandbox: started
+                .sandbox_profile
+                .as_deref()
+                .map(|profile| UiToolSandboxSummary {
+                    profile: bounded_ui_summary(profile),
+                }),
         },
-        RuntimeEventPayload::ToolObservationRecorded(observed) => UiEventPayload::Progress {
-            message: format!("tool observation recorded: {}", observed.call_id),
+        RuntimeEventPayload::ToolObservationRecorded(observed) => UiEventPayload::ToolObservation {
+            call_id: observed.call_id.clone(),
+            observation: bounded_ui_summary(&observed.observation),
         },
         RuntimeEventPayload::ReplayStarted(replay) => UiEventPayload::Progress {
             message: format!("replay started: {}", replay.source_turn_id),
@@ -413,6 +463,83 @@ fn normalize_payload(payload: &RuntimeEventPayload) -> UiEventPayload {
     }
 }
 
+fn tool_policy_summary(started: &agent_types::ToolExecutionStarted) -> Option<UiToolPolicySummary> {
+    let decision = started.policy_decision.as_deref()?;
+    Some(UiToolPolicySummary {
+        decision: bounded_ui_summary(decision),
+        reason: started
+            .policy_reason
+            .as_deref()
+            .map(bounded_ui_summary)
+            .unwrap_or_else(|| "policy decision recorded".to_string()),
+        action: started
+            .action
+            .as_deref()
+            .map(bounded_ui_summary)
+            .unwrap_or_else(|| "unknown".to_string()),
+        resource_kind: started
+            .resource_kind
+            .as_deref()
+            .map(bounded_ui_summary)
+            .unwrap_or_else(|| "unknown".to_string()),
+        resource: started
+            .resource
+            .as_deref()
+            .map(bounded_ui_summary)
+            .unwrap_or_else(|| "unknown".to_string()),
+    })
+}
+
+fn tool_call_preview(tool_name: &str, input: &Value) -> Option<String> {
+    let preview = match tool_name {
+        "workspace.read_file" | "workspace.write_file" | "workspace.edit_file" => {
+            input.get("path").and_then(Value::as_str).map(|path| {
+                let action = tool_name
+                    .strip_prefix("workspace.")
+                    .unwrap_or(tool_name)
+                    .replace('_', " ");
+                format!("{action} {}", bounded_ui_summary(path))
+            })
+        }
+        "workspace.search_text" => {
+            let path = input.get("path").and_then(Value::as_str).unwrap_or(".");
+            let query = input.get("query").and_then(Value::as_str).unwrap_or("");
+            Some(format!(
+                "search {} for {}",
+                bounded_ui_summary(path),
+                bounded_ui_summary(query)
+            ))
+        }
+        "workspace.git_status" => Some(format!(
+            "git status {}",
+            bounded_ui_summary(input.get("cwd").and_then(Value::as_str).unwrap_or("."))
+        )),
+        "workspace.git_diff" => Some(format!(
+            "git diff {}",
+            bounded_ui_summary(input.get("path").and_then(Value::as_str).unwrap_or("."))
+        )),
+        "workspace.shell_command" => input.get("program").and_then(Value::as_str).map(|program| {
+            let args = input
+                .get("args")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .collect::<Vec<_>>()
+                .join(" ");
+            let command = if args.is_empty() {
+                program.to_string()
+            } else {
+                format!("{program} {args}")
+            };
+            format!("run {}", bounded_ui_summary(&command))
+        }),
+        _ => None,
+    }?;
+    let preview = preview.trim();
+    (!preview.is_empty()).then(|| preview.to_string())
+}
+
 fn bounded_ui_summary(value: &str) -> String {
     let redacted = redact_task_text(value);
     let trimmed = redacted.trim();
@@ -420,6 +547,46 @@ fn bounded_ui_summary(value: &str) -> String {
         trimmed.chars().take(160).collect()
     } else {
         trimmed.to_string()
+    }
+}
+
+fn tool_output_summary(value: &serde_json::Value) -> String {
+    let mut parts = Vec::new();
+
+    if let Some(status) = value.get("status").and_then(serde_json::Value::as_i64) {
+        parts.push(format!("exit={status}"));
+    }
+    if let Some(timed_out) = value.get("timed_out").and_then(serde_json::Value::as_bool)
+        && timed_out
+    {
+        parts.push("timed_out=true".to_string());
+    }
+    if let Some(path) = value.get("path").and_then(serde_json::Value::as_str) {
+        parts.push(format!("resource={}", bounded_ui_summary(path)));
+    }
+    if let Some(applied) = value.get("applied").and_then(serde_json::Value::as_bool) {
+        parts.push(format!("applied={applied}"));
+    }
+    if let Some(files) = value.get("files").and_then(serde_json::Value::as_array) {
+        parts.push(format!("files={}", files.len()));
+    }
+    if let Some(stdout) = value.get("stdout").and_then(serde_json::Value::as_str) {
+        let stdout = stdout.trim();
+        if !stdout.is_empty() {
+            parts.push(format!("stdout={}", bounded_ui_summary(stdout)));
+        }
+    }
+    if let Some(stderr) = value.get("stderr").and_then(serde_json::Value::as_str) {
+        let stderr = stderr.trim();
+        if !stderr.is_empty() {
+            parts.push(format!("stderr={}", bounded_ui_summary(stderr)));
+        }
+    }
+
+    if parts.is_empty() {
+        "completed".to_string()
+    } else {
+        parts.join(" ")
     }
 }
 

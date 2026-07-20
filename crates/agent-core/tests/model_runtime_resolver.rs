@@ -110,6 +110,7 @@ fn runtime_config_with_policy(
             catalog: ModelProviderCatalog::new(providers).expect("valid catalog"),
             invocation_policy,
         },
+        terminal: Default::default(),
     }
 }
 
@@ -205,8 +206,8 @@ fn provider_support_report_marks_selected_and_fallback_compatibility() {
         .find(|provider| provider.provider_id == "openai")
         .expect("selected provider summary");
     assert_eq!(selected.role, ProviderSupportRole::Selected);
-    assert!(!selected.compatible);
-    assert_eq!(selected.missing, vec![ModelCapability::ToolCalls]);
+    assert!(selected.compatible);
+    assert!(selected.missing.is_empty());
 
     let fake = report
         .providers

@@ -82,6 +82,7 @@ fn runtime_config(
             catalog: ModelProviderCatalog::new(providers).expect("valid catalog"),
             invocation_policy: invocation_policy(),
         },
+        terminal: Default::default(),
     }
 }
 
@@ -105,7 +106,8 @@ fn configured_input(
     ConfiguredTurnInput {
         ids: runtime_ids(),
         user_message: user_message.to_string(),
-        effective_config,
+        conversation_history: std::sync::Arc::new(Vec::new()),
+        effective_config: std::sync::Arc::new(effective_config),
         requirements: requirements(),
     }
 }
@@ -182,6 +184,11 @@ async fn configured_turn_runner_uses_effective_provider_and_model() {
     assert_eq!(outcome.selected_model, "primary-model");
     assert_eq!(outcome.final_message, "ready");
     assert_eq!(outcome.attempts.len(), 1);
+    assert_eq!(
+        outcome.attempts[0].request_id.as_deref(),
+        Some("request-ready")
+    );
+    assert!(outcome.attempts[0].elapsed_ms.is_some());
 
     let requests = requests.lock().expect("requests");
     assert_eq!(requests.len(), 1);

@@ -86,7 +86,7 @@ fn snapshot() -> TeamWorkflowSnapshot {
 
 #[test]
 fn team_workflow_snapshot_frame_has_stable_json_tag() {
-    let frame = UiJsonFrame::TeamWorkflowSnapshot(
+    let frame = UiJsonFrame::team_workflow_snapshot(
         UiTeamWorkflowSnapshot::new("merge_readiness_dry_run", true, snapshot(), Vec::new())
             .expect("valid ui frame"),
     );
@@ -106,7 +106,7 @@ fn team_workflow_snapshot_frame_has_stable_json_tag() {
     let decoded: UiJsonFrame = serde_json::from_str(&encoded).expect("decode frame");
     assert!(matches!(
         decoded,
-        UiJsonFrame::TeamWorkflowSnapshot(frame)
+        UiJsonFrame::team_workflow_snapshot(frame)
             if frame.snapshot.readiness == TeamWorkflowReadiness::MergeReady
                 && frame.errors.is_empty()
     ));

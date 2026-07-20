@@ -232,7 +232,21 @@ fn export_payload(payload: &RuntimeEventPayload) -> PayloadExport {
             action: "tool.started".to_string(),
             resource: Some(started.tool_name.clone()),
             decision: None,
-            summary: format!("tool {} started {}", started.tool_name, started.call_id),
+            summary: format!(
+                "tool {} started {}{}{}",
+                started.tool_name,
+                started.call_id,
+                started
+                    .policy_decision
+                    .as_ref()
+                    .map(|decision| format!(" policy={decision}"))
+                    .unwrap_or_default(),
+                started
+                    .sandbox_profile
+                    .as_ref()
+                    .map(|sandbox| format!(" sandbox={sandbox}"))
+                    .unwrap_or_default()
+            ),
         },
         RuntimeEventPayload::ToolExecutionCompleted(completed) => PayloadExport {
             category: AuditEventCategory::Tool,
@@ -240,8 +254,12 @@ fn export_payload(payload: &RuntimeEventPayload) -> PayloadExport {
             resource: Some(completed.call_id.clone()),
             decision: None,
             summary: format!(
-                "tool completed {} output {}",
+                "tool completed {}{} output {}",
                 completed.call_id,
+                completed
+                    .elapsed_ms
+                    .map(|elapsed| format!(" elapsed_ms={elapsed}"))
+                    .unwrap_or_default(),
                 json_summary(&completed.output_json)
             ),
         },
@@ -251,10 +269,14 @@ fn export_payload(payload: &RuntimeEventPayload) -> PayloadExport {
             resource: Some(failed.call_id.clone()),
             decision: None,
             summary: format!(
-                "tool failed {} {} recoverable={}: {}",
+                "tool failed {} {} recoverable={}{}: {}",
                 failed.call_id,
                 failed.error_code,
                 failed.recoverable,
+                failed
+                    .elapsed_ms
+                    .map(|elapsed| format!(" elapsed_ms={elapsed}"))
+                    .unwrap_or_default(),
                 redact_text(&failed.message)
             ),
         },
@@ -285,6 +307,13 @@ fn export_payload(payload: &RuntimeEventPayload) -> PayloadExport {
             resource: None,
             decision: None,
             summary: format!("model output delta bytes={}", delta.delta.len()),
+        },
+        RuntimeEventPayload::ModelReasoningSummaryDelta(delta) => PayloadExport {
+            category: AuditEventCategory::Model,
+            action: "model.reasoning_summary_delta".to_string(),
+            resource: None,
+            decision: None,
+            summary: format!("model reasoning summary delta bytes={}", delta.delta.len()),
         },
         RuntimeEventPayload::ModelStreamCompleted(completed) => PayloadExport {
             category: AuditEventCategory::Model,

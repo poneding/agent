@@ -1,6 +1,9 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
-use agent_types::{ClientKind, ConversationId, Timestamp, WorkspaceId};
+use agent_storage::{EventStore, StorageError};
+use agent_types::{
+    ClientKind, ConversationId, RuntimeEvent, RuntimeEventPayload, Timestamp, WorkspaceId,
+};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -30,6 +33,128 @@ pub struct TerminalSessionRecord {
 pub struct TerminalSessionDirectoryReport {
     pub sessions: Vec<TerminalSessionSummary>,
     pub diagnostics: Vec<TerminalSessionDiagnostic>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct TerminalSessionCatalog {
+    records: BTreeMap<(WorkspaceId, ConversationId), TerminalSessionRecord>,
+    titled_conversations: BTreeSet<ConversationId>,
+}
+
+impl TerminalSessionCatalog {
+    #[must_use]
+    pub fn new(records: Vec<TerminalSessionRecord>) -> Self {
+        let mut catalog = Self::default();
+        for record in records {
+            if !is_placeholder_title(&record.title) {
+                catalog.titled_conversations.insert(record.conversation_id);
+            }
+            catalog
+                .records
+                .insert((record.workspace_id, record.conversation_id), record);
+        }
+        catalog
+    }
+
+    #[must_use]
+    pub fn from_report(report: &TerminalSessionDirectoryReport) -> Self {
+        Self::new(report.sessions.iter().map(record_from_summary).collect())
+    }
+
+    pub fn hydrate_from_store<E>(&mut self, store: &E) -> Result<(), StorageError>
+    where
+        E: EventStore + ?Sized,
+    {
+        for conversation_id in store.list_conversation_ids()? {
+            for stored in store.list_by_conversation(conversation_id)? {
+                self.apply_event(&stored.event);
+            }
+        }
+        Ok(())
+    }
+
+    pub fn report(&self) -> Result<TerminalSessionDirectoryReport, TerminalSessionDirectoryError> {
+        build_terminal_session_directory(self.records.values().cloned().collect())
+    }
+
+    #[must_use]
+    pub fn start_new_conversation(
+        &mut self,
+        current: ConversationId,
+        conversation_id: ConversationId,
+        created_at: Timestamp,
+    ) -> Option<TerminalSessionRecord> {
+        let mut record = self
+            .records
+            .values()
+            .find(|record| record.conversation_id == current)
+            .cloned()
+            .or_else(|| self.records.values().next().cloned())?;
+        record.conversation_id = conversation_id;
+        record.title = "New session".to_string();
+        record.last_event_at = created_at;
+        record.pending_approval_count = 0;
+        record.running_command_count = 0;
+        record.task_count = 0;
+        record.failed = false;
+        self.records.insert(
+            (record.workspace_id, record.conversation_id),
+            record.clone(),
+        );
+        Some(record)
+    }
+
+    pub fn apply_event(&mut self, event: &RuntimeEvent) {
+        let key = (event.workspace_id, event.conversation_id);
+        if !self.records.contains_key(&key) {
+            let mut record = self
+                .records
+                .values()
+                .find(|record| record.workspace_id == event.workspace_id)
+                .cloned()
+                .or_else(|| self.records.values().next().cloned())
+                .unwrap_or_else(|| record_from_event(event));
+            record.workspace_id = event.workspace_id;
+            record.conversation_id = event.conversation_id;
+            record.title = "New session".to_string();
+            record.last_event_at = event.occurred_at;
+            record.pending_approval_count = 0;
+            record.running_command_count = 0;
+            record.task_count = 0;
+            record.failed = false;
+            self.records.insert(key, record);
+        }
+
+        let Some(record) = self.records.get_mut(&key) else {
+            return;
+        };
+        record.last_event_at = event.occurred_at;
+        match &event.payload {
+            RuntimeEventPayload::ConversationStarted(started) => {
+                record.title = bounded_public_text(&started.title);
+                if is_placeholder_title(&record.title) {
+                    self.titled_conversations.remove(&event.conversation_id);
+                } else {
+                    self.titled_conversations.insert(event.conversation_id);
+                }
+            }
+            RuntimeEventPayload::UserInputReceived(input)
+                if !self.titled_conversations.contains(&event.conversation_id) =>
+            {
+                record.title = summarize_terminal_session_title(&input.message);
+                self.titled_conversations.insert(event.conversation_id);
+            }
+            RuntimeEventPayload::ModelStreamStarted(started) => {
+                record.provider_id = bounded_public_text(&started.provider);
+                record.model_id = bounded_public_text(&started.model);
+            }
+            RuntimeEventPayload::TurnFailed(_) => record.failed = true,
+            RuntimeEventPayload::RuntimeError(error) if !error.recoverable => {
+                record.failed = true;
+            }
+            _ => {}
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -160,6 +285,68 @@ pub fn validate_terminal_session_restore(
         .find(|session| session.conversation_id == conversation_id)
         .cloned()
         .ok_or(TerminalSessionRestoreError::NotFound { conversation_id })
+}
+
+fn record_from_event(event: &RuntimeEvent) -> TerminalSessionRecord {
+    TerminalSessionRecord {
+        workspace_id: event.workspace_id,
+        conversation_id: event.conversation_id,
+        workspace_root_display: ".".to_string(),
+        title: "New session".to_string(),
+        client_kind: ClientKind::Cli,
+        client_version: "unknown".to_string(),
+        provider_id: "unknown".to_string(),
+        model_id: "unknown".to_string(),
+        git_state: RepoGitState::Unavailable,
+        last_event_at: event.occurred_at,
+        pending_approval_count: 0,
+        running_command_count: 0,
+        task_count: 0,
+        failed: false,
+    }
+}
+
+fn record_from_summary(summary: &TerminalSessionSummary) -> TerminalSessionRecord {
+    TerminalSessionRecord {
+        workspace_id: summary.workspace_id,
+        conversation_id: summary.conversation_id,
+        workspace_root_display: summary.workspace_root_display.clone(),
+        title: summary.title.clone(),
+        client_kind: summary.client_kind.clone(),
+        client_version: summary.client_version.clone(),
+        provider_id: summary.provider_id.clone(),
+        model_id: summary.model_id.clone(),
+        git_state: summary.git_state,
+        last_event_at: summary.last_event_at,
+        pending_approval_count: summary.pending_approval_count,
+        running_command_count: summary.running_command_count,
+        task_count: summary.task_count,
+        failed: summary.status == TerminalSessionStatus::Failed,
+    }
+}
+
+#[must_use]
+pub fn summarize_terminal_session_title(message: &str) -> String {
+    let redacted = redact_secret_like_text(message);
+    let normalized = redacted.split_whitespace().collect::<Vec<_>>().join(" ");
+    let sentence = normalized
+        .split(['\n', '.', '!', '?', '。', '！', '？'])
+        .next()
+        .unwrap_or_default()
+        .trim();
+    if sentence.is_empty() {
+        return "New session".to_string();
+    }
+
+    let mut title = sentence.chars().take(56).collect::<String>();
+    if sentence.chars().count() > 56 {
+        title.push_str("...");
+    }
+    title
+}
+
+fn is_placeholder_title(title: &str) -> bool {
+    matches!(title.trim(), "" | "Repo session" | "New session")
 }
 
 fn safe_summary(record: TerminalSessionRecord) -> TerminalSessionSummary {

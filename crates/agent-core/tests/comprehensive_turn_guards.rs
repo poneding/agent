@@ -4,9 +4,9 @@ use std::sync::{Arc, Mutex};
 
 use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentLoopBudget, AgentLoopFailureReason, AgentLoopTerminalState,
-    AgentRuntimeConfig, ComprehensiveTurnInput, ComprehensiveTurnResources,
-    ComprehensiveTurnRunner, ConfigLayer, ConfigLayerKind, ConfigOverride, RuntimeIds,
-    RuntimeModelConfig, build_effective_runtime_config,
+    AgentRuntimeConfig, CancellationToken, ComprehensiveTurnInput, ComprehensiveTurnResources,
+    ComprehensiveTurnRunner, ComprehensiveTurnStreamOptions, ConfigLayer, ConfigLayerKind,
+    ConfigOverride, RuntimeIds, RuntimeModelConfig, build_effective_runtime_config,
 };
 use agent_model::{
     ModelCapabilities, ModelEndpointConfig, ModelError, ModelEventStream, ModelFallbackChain,
@@ -90,6 +90,7 @@ fn effective_config(config: ModelProviderConfig) -> agent_core::EffectiveRuntime
                 catalog: ModelProviderCatalog::new(vec![config]).expect("valid catalog"),
                 invocation_policy: invocation_policy(),
             },
+            terminal: Default::default(),
         },
     };
 
@@ -99,7 +100,7 @@ fn effective_config(config: ModelProviderConfig) -> agent_core::EffectiveRuntime
 
 fn loop_budget() -> AgentLoopBudget {
     AgentLoopBudget {
-        max_model_turns: 4,
+        model_turn_checkpoint_interval: 4,
         max_tool_calls: 4,
         max_wall_time_ms: 30_000,
         max_observation_bytes: 4096,
@@ -111,7 +112,8 @@ fn input(config: ModelProviderConfig) -> ComprehensiveTurnInput {
     ComprehensiveTurnInput {
         ids: runtime_ids(),
         user_message: "read README".to_string(),
-        effective_config: effective_config(config),
+        conversation_history: std::sync::Arc::new(Vec::new()),
+        effective_config: std::sync::Arc::new(effective_config(config)),
         requirements: requirements(),
         loop_budget: loop_budget(),
     }
@@ -217,7 +219,7 @@ fn registry(
 async fn comprehensive_turn_rejects_invalid_loop_budget_before_model_call() {
     let config = provider_config();
     let mut input = input(config.clone());
-    input.loop_budget.max_model_turns = 0;
+    input.loop_budget.model_turn_checkpoint_interval = 0;
     let (provider, requests) = RecordingProvider::scripted(vec![final_stream()]);
     let models = registry(config, provider);
     let (_temp, tools) = read_file_registry();
@@ -243,10 +245,10 @@ async fn comprehensive_turn_rejects_invalid_loop_budget_before_model_call() {
 }
 
 #[tokio::test]
-async fn comprehensive_turn_fails_when_model_turn_budget_is_exhausted() {
+async fn comprehensive_turn_continues_after_model_turn_soft_limit() {
     let config = provider_config();
     let mut input = input(config.clone());
-    input.loop_budget.max_model_turns = 1;
+    input.loop_budget.model_turn_checkpoint_interval = 1;
     let (provider, requests) =
         RecordingProvider::scripted(vec![tool_call_stream("call-1"), final_stream()]);
     let models = registry(config, provider);
@@ -264,18 +266,51 @@ async fn comprehensive_turn_fails_when_model_turn_budget_is_exhausted() {
     .await
     .expect("guarded turn");
 
-    assert_eq!(outcome.terminal_state, AgentLoopTerminalState::Failed);
-    assert_eq!(
-        outcome.failure_reason,
-        Some(AgentLoopFailureReason::MaxModelTurnsExceeded)
-    );
-    assert_eq!(requests.lock().expect("requests").len(), 1);
-    assert!(
-        outcome
-            .events
-            .iter()
-            .any(|event| matches!(event.payload, RuntimeEventPayload::RuntimeError(_)))
-    );
+    assert_eq!(outcome.terminal_state, AgentLoopTerminalState::Done);
+    assert_eq!(outcome.failure_reason, None);
+    assert_eq!(requests.lock().expect("requests").len(), 2);
+    assert!(outcome.events.iter().any(|event| matches!(
+        &event.payload,
+        RuntimeEventPayload::RuntimeWarning(warning)
+            if warning.code == "model_turn_budget_extended"
+    )));
+}
+
+#[tokio::test]
+async fn comprehensive_turn_reports_cancelled_instead_of_done() {
+    let config = provider_config();
+    let input = input(config.clone());
+    let (provider, requests) = RecordingProvider::scripted(vec![final_stream()]);
+    let models = registry(config, provider);
+    let (_temp, tools) = read_file_registry();
+    let policy = policy();
+    let cancellation = CancellationToken::new();
+    cancellation.cancel();
+
+    let outcome = ComprehensiveTurnRunner::run_with_resources_streaming(
+        input,
+        &models,
+        ComprehensiveTurnResources {
+            tools: &tools,
+            policy: &policy,
+        },
+        ComprehensiveTurnStreamOptions {
+            cancellation,
+            reasoning_effort: None,
+        },
+        |_event| Ok(()),
+    )
+    .await
+    .expect("cancelled turn");
+
+    assert_eq!(outcome.terminal_state, AgentLoopTerminalState::Cancelled);
+    assert_eq!(outcome.failure_reason, None);
+    assert!(requests.lock().expect("requests").is_empty());
+    assert!(outcome.events.iter().any(|event| matches!(
+        &event.payload,
+        RuntimeEventPayload::TurnCompleted(completed)
+            if completed.final_state == agent_types::TurnState::Cancelled
+    )));
 }
 
 #[tokio::test]

@@ -53,7 +53,7 @@ flowchart TD
 
 Contract rules:
 
-- config files store references and settings, never raw secret values
+- local `config.yaml` may store direct provider `apiKey` values for setup convenience, but release artifacts, migrations, logs, snapshots, and support exports must redact them; advanced secret references remain supported
 - migrations are versioned, idempotent, and audited
 - CLI and Desktop use the same platform path resolver
 - release artifacts are verified before publish

@@ -1,20 +1,21 @@
+use std::collections::{BTreeMap, VecDeque};
 use std::fmt;
+use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use futures_util::StreamExt;
+use futures_core::Stream;
+use futures_util::{StreamExt, stream};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use thiserror::Error;
 
 use crate::config::{ModelProviderConfig, ModelProviderKind, SecretRef};
 use crate::provider::{ModelError, ModelProvider};
-use crate::request::ModelRequest;
+use crate::request::{ModelMessage, ModelRequest};
 use crate::secrets::SecretResolver;
-use crate::stream::{
-    ModelEventStream, ModelStreamEvent, ModelStreamResult, model_events_to_stream,
-};
+use crate::stream::{ModelEventStream, ModelStreamEvent, ModelStreamResult};
 
 const DEFAULT_OPENAI_COMPATIBLE_BASE_URL: &str = "https://api.openai.com/v1";
 
@@ -32,12 +33,39 @@ pub struct OpenAiCompatibleHttpResponse {
     pub sse_chunks: Vec<String>,
 }
 
+pub type OpenAiCompatibleChunkStream =
+    Pin<Box<dyn Stream<Item = Result<String, OpenAiCompatibleError>> + Send>>;
+
+pub struct OpenAiCompatibleHttpStreamResponse {
+    pub request_id: String,
+    pub sse_chunks: OpenAiCompatibleChunkStream,
+}
+
+impl OpenAiCompatibleHttpStreamResponse {
+    #[must_use]
+    pub fn from_response(response: OpenAiCompatibleHttpResponse) -> Self {
+        Self {
+            request_id: response.request_id,
+            sse_chunks: Box::pin(stream::iter(response.sse_chunks.into_iter().map(Ok))),
+        }
+    }
+}
+
 #[async_trait]
 pub trait OpenAiCompatibleTransport: Send + Sync {
     async fn send(
         &self,
         request: OpenAiCompatibleHttpRequest,
     ) -> Result<OpenAiCompatibleHttpResponse, OpenAiCompatibleError>;
+
+    async fn send_stream(
+        &self,
+        request: OpenAiCompatibleHttpRequest,
+    ) -> Result<OpenAiCompatibleHttpStreamResponse, OpenAiCompatibleError> {
+        self.send(request)
+            .await
+            .map(OpenAiCompatibleHttpStreamResponse::from_response)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -113,6 +141,24 @@ impl OpenAiCompatibleTransport for ReqwestOpenAiCompatibleTransport {
         &self,
         request: OpenAiCompatibleHttpRequest,
     ) -> Result<OpenAiCompatibleHttpResponse, OpenAiCompatibleError> {
+        let response = self.send_stream(request).await?;
+        let request_id = response.request_id;
+        let mut sse_chunks = Vec::new();
+        let mut chunks = response.sse_chunks;
+        while let Some(chunk) = chunks.next().await {
+            sse_chunks.push(chunk?);
+        }
+
+        Ok(OpenAiCompatibleHttpResponse {
+            request_id,
+            sse_chunks,
+        })
+    }
+
+    async fn send_stream(
+        &self,
+        request: OpenAiCompatibleHttpRequest,
+    ) -> Result<OpenAiCompatibleHttpStreamResponse, OpenAiCompatibleError> {
         let secret = self
             .secret_resolver
             .resolve(&request.secret_ref)
@@ -149,18 +195,17 @@ impl OpenAiCompatibleTransport for ReqwestOpenAiCompatibleTransport {
             ));
         }
 
-        let mut sse_chunks = Vec::new();
-        let mut bytes = response.bytes_stream();
-        while let Some(chunk) = bytes.next().await {
-            let chunk = chunk.map_err(|error| OpenAiCompatibleError::Transport {
-                message: redact_secret_like(&sanitize_url_in_message(&error.to_string())),
-            })?;
-            sse_chunks.push(String::from_utf8_lossy(&chunk).to_string());
-        }
+        let sse_chunks = response.bytes_stream().map(|chunk| {
+            chunk
+                .map(|chunk| String::from_utf8_lossy(&chunk).to_string())
+                .map_err(|error| OpenAiCompatibleError::Transport {
+                    message: redact_secret_like(&sanitize_url_in_message(&error.to_string())),
+                })
+        });
 
-        Ok(OpenAiCompatibleHttpResponse {
+        Ok(OpenAiCompatibleHttpStreamResponse {
             request_id,
-            sse_chunks,
+            sse_chunks: Box::pin(sse_chunks),
         })
     }
 }
@@ -216,15 +261,27 @@ impl fmt::Debug for OpenAiCompatibleProvider {
 #[async_trait]
 impl ModelProvider for OpenAiCompatibleProvider {
     async fn stream(&self, request: ModelRequest) -> Result<ModelEventStream, ModelError> {
-        let http_request = OpenAiCompatibleHttpRequest {
+        let responses_request = OpenAiCompatibleHttpRequest {
             url: openai_compatible_responses_url(&self.config),
             secret_ref: self.secret_ref.clone(),
             body: build_openai_compatible_request_body(&request),
             timeout_ms: self.config.endpoint.timeout_ms,
         };
-        let response = self.transport.send(http_request).await?;
-        let events = parse_openai_compatible_sse(&response.request_id, &response)?;
-        Ok(model_events_to_stream(events))
+        let response = match self.transport.send_stream(responses_request).await {
+            Ok(response) => response,
+            Err(error) if should_try_chat_completions_fallback(&error) => {
+                let chat_request = OpenAiCompatibleHttpRequest {
+                    url: openai_compatible_chat_completions_url(&self.config),
+                    secret_ref: self.secret_ref.clone(),
+                    body: build_openai_compatible_chat_request_body(&request),
+                    timeout_ms: self.config.endpoint.timeout_ms,
+                };
+                let chat_response = self.transport.send_stream(chat_request).await?;
+                return Ok(openai_compatible_chat_stream(chat_response));
+            }
+            Err(error) => return Err(error.into()),
+        };
+        Ok(openai_compatible_response_stream(response))
     }
 }
 
@@ -233,19 +290,144 @@ pub fn build_openai_compatible_request_body(request: &ModelRequest) -> Value {
     let input = request
         .messages
         .iter()
-        .map(|message| {
-            json!({
-                "role": "user",
-                "content": message,
-            })
-        })
+        .map(openai_responses_message)
         .collect::<Vec<_>>();
 
-    json!({
+    let mut body = json!({
         "model": request.model,
         "input": input,
         "stream": true,
-    })
+    });
+    if let Some(effort) = request.reasoning_effort {
+        body["reasoning"] = json!({ "effort": effort.label() });
+    }
+    if !request.tools.is_empty() {
+        body["tools"] = json!(
+            request
+                .tools
+                .iter()
+                .map(|tool| json!({
+                    "type": "function",
+                    "name": openai_compatible_tool_name(&tool.name),
+                    "description": tool.description.clone(),
+                    "parameters": tool.input_schema.clone(),
+                }))
+                .collect::<Vec<_>>()
+        );
+    }
+    body
+}
+
+#[must_use]
+pub fn build_openai_compatible_chat_request_body(request: &ModelRequest) -> Value {
+    let messages = request
+        .messages
+        .iter()
+        .map(openai_chat_message)
+        .collect::<Vec<_>>();
+
+    let mut body = json!({
+        "model": request.model,
+        "messages": messages,
+        "stream": true,
+    });
+    if let Some(effort) = request.reasoning_effort {
+        body["reasoning_effort"] = json!(effort.label());
+    }
+    if !request.tools.is_empty() {
+        body["tools"] = json!(
+            request
+                .tools
+                .iter()
+                .map(|tool| json!({
+                    "type": "function",
+                    "function": {
+                        "name": openai_compatible_tool_name(&tool.name),
+                        "description": tool.description.clone(),
+                        "parameters": tool.input_schema.clone(),
+                    }
+                }))
+                .collect::<Vec<_>>()
+        );
+    }
+    body
+}
+
+fn openai_responses_message(message: &ModelMessage) -> Value {
+    match message {
+        ModelMessage::System { content } => json!({
+            "role": "system",
+            "content": content,
+        }),
+        ModelMessage::User { content } => json!({
+            "role": "user",
+            "content": content,
+        }),
+        ModelMessage::Assistant { content } => json!({
+            "role": "assistant",
+            "content": content,
+        }),
+        ModelMessage::AssistantToolCall {
+            call_id,
+            tool_name,
+            input_json,
+        } => json!({
+            "type": "function_call",
+            "call_id": call_id,
+            "name": openai_compatible_tool_name(tool_name),
+            "arguments": input_json.to_string(),
+        }),
+        ModelMessage::ToolResult {
+            call_id, content, ..
+        } => json!({
+            "type": "function_call_output",
+            "call_id": call_id,
+            "output": content,
+        }),
+    }
+}
+
+fn openai_chat_message(message: &ModelMessage) -> Value {
+    match message {
+        ModelMessage::System { content } => json!({
+            "role": "system",
+            "content": content,
+        }),
+        ModelMessage::User { content } => json!({
+            "role": "user",
+            "content": content,
+        }),
+        ModelMessage::Assistant { content } => json!({
+            "role": "assistant",
+            "content": content,
+        }),
+        ModelMessage::AssistantToolCall {
+            call_id,
+            tool_name,
+            input_json,
+        } => json!({
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [{
+                "id": call_id,
+                "type": "function",
+                "function": {
+                    "name": openai_compatible_tool_name(tool_name),
+                    "arguments": input_json.to_string(),
+                }
+            }],
+        }),
+        ModelMessage::ToolResult {
+            call_id,
+            tool_name,
+            content,
+        } => json!({
+            "role": "tool",
+            "tool_call_id": call_id,
+            "name": openai_compatible_tool_name(tool_name),
+            "content": content,
+        }),
+    }
 }
 
 pub fn parse_openai_compatible_sse(
@@ -255,54 +437,585 @@ pub fn parse_openai_compatible_sse(
     let mut events = vec![ModelStreamEvent::Started {
         request_id: request_id.to_string(),
     }];
+    let mut buffer = String::new();
+    let mut tool_calls = BTreeMap::new();
 
     for chunk in &response.sse_chunks {
-        for frame in chunk.split("\n\n") {
-            let frame = frame.trim();
-            if frame.is_empty() {
-                continue;
-            }
-            let Some((event_name, data)) = parse_sse_frame(frame) else {
-                continue;
-            };
-            if data == "[DONE]" {
-                continue;
-            }
-            let value: Value = serde_json::from_str(&data).map_err(|err| {
-                OpenAiCompatibleError::InvalidStreamEvent {
-                    message: format!("invalid JSON stream data: {err}"),
-                }
-            })?;
-
-            match event_name.as_deref() {
-                Some("response.output_text.delta") => {
-                    if let Some(delta) = value.get("delta").and_then(Value::as_str) {
-                        events.push(ModelStreamEvent::Delta {
-                            text: delta.to_string(),
-                        });
-                    }
-                }
-                Some("response.completed") => {
-                    events.push(ModelStreamEvent::Completed {
-                        finish_reason: value
-                            .get("finish_reason")
-                            .and_then(Value::as_str)
-                            .unwrap_or("stop")
-                            .to_string(),
-                        output_token_count: value
-                            .get("output_token_count")
-                            .and_then(Value::as_u64)
-                            .unwrap_or(0)
-                            .min(u64::from(u32::MAX))
-                            as u32,
-                    });
-                }
-                _ => {}
-            }
+        buffer.push_str(chunk);
+        while let Some((frame_end, drain_to)) = next_sse_frame_boundary(&buffer) {
+            let frame = buffer[..frame_end].trim().to_string();
+            buffer.drain(..drain_to);
+            handle_openai_compatible_sse_frame(&frame, &mut events, &mut tool_calls)?;
         }
     }
 
+    let trailing = buffer.trim();
+    if !trailing.is_empty() {
+        match handle_openai_compatible_sse_frame(trailing, &mut events, &mut tool_calls) {
+            Ok(()) => {}
+            Err(error) if is_incomplete_json_stream_event(&error) => {}
+            Err(error) => return Err(error),
+        }
+    }
+    flush_openai_response_tool_calls(&mut tool_calls, &mut events)?;
+
     Ok(events)
+}
+
+pub fn parse_openai_compatible_chat_sse(
+    request_id: &str,
+    response: &OpenAiCompatibleHttpResponse,
+) -> Result<ModelStreamResult, OpenAiCompatibleError> {
+    let mut events = vec![ModelStreamEvent::Started {
+        request_id: request_id.to_string(),
+    }];
+    let mut buffer = String::new();
+    let mut tool_calls = BTreeMap::new();
+
+    for chunk in &response.sse_chunks {
+        buffer.push_str(chunk);
+        while let Some((frame_end, drain_to)) = next_sse_frame_boundary(&buffer) {
+            let frame = buffer[..frame_end].trim().to_string();
+            buffer.drain(..drain_to);
+            handle_openai_compatible_chat_sse_frame(&frame, &mut events, &mut tool_calls)?;
+        }
+    }
+
+    let trailing = buffer.trim();
+    if !trailing.is_empty() {
+        match handle_openai_compatible_chat_sse_frame(trailing, &mut events, &mut tool_calls) {
+            Ok(()) => {}
+            Err(error) if is_incomplete_json_stream_event(&error) => {}
+            Err(error) => return Err(error),
+        }
+    }
+    flush_openai_chat_tool_calls(&mut tool_calls, &mut events)?;
+
+    Ok(events)
+}
+
+fn openai_compatible_response_stream(
+    response: OpenAiCompatibleHttpStreamResponse,
+) -> ModelEventStream {
+    let state = OpenAiResponseStreamState {
+        request_id: response.request_id,
+        sse_chunks: response.sse_chunks,
+        buffer: String::new(),
+        tool_calls: BTreeMap::new(),
+        pending: VecDeque::new(),
+        started: false,
+        done: false,
+    };
+    Box::pin(stream::unfold(state, next_openai_response_stream_item))
+}
+
+fn openai_compatible_chat_stream(response: OpenAiCompatibleHttpStreamResponse) -> ModelEventStream {
+    let state = OpenAiChatStreamState {
+        request_id: response.request_id,
+        sse_chunks: response.sse_chunks,
+        buffer: String::new(),
+        tool_calls: BTreeMap::new(),
+        pending: VecDeque::new(),
+        started: false,
+        done: false,
+    };
+    Box::pin(stream::unfold(state, next_openai_chat_stream_item))
+}
+
+struct OpenAiResponseStreamState {
+    request_id: String,
+    sse_chunks: OpenAiCompatibleChunkStream,
+    buffer: String,
+    tool_calls: BTreeMap<String, OpenAiResponseToolCallState>,
+    pending: VecDeque<ModelStreamEvent>,
+    started: bool,
+    done: bool,
+}
+
+struct OpenAiChatStreamState {
+    request_id: String,
+    sse_chunks: OpenAiCompatibleChunkStream,
+    buffer: String,
+    tool_calls: BTreeMap<u64, OpenAiChatToolCallState>,
+    pending: VecDeque<ModelStreamEvent>,
+    started: bool,
+    done: bool,
+}
+
+async fn next_openai_response_stream_item(
+    mut state: OpenAiResponseStreamState,
+) -> Option<(
+    Result<ModelStreamEvent, ModelError>,
+    OpenAiResponseStreamState,
+)> {
+    if !state.started {
+        state.started = true;
+        return Some((
+            Ok(ModelStreamEvent::Started {
+                request_id: state.request_id.clone(),
+            }),
+            state,
+        ));
+    }
+
+    loop {
+        if let Some(event) = state.pending.pop_front() {
+            return Some((Ok(event), state));
+        }
+        if state.done {
+            return None;
+        }
+
+        match state.sse_chunks.next().await {
+            Some(Ok(chunk)) => {
+                if let Err(error) = push_openai_response_chunk(&mut state, &chunk) {
+                    state.done = true;
+                    return Some((Err(error.into()), state));
+                }
+            }
+            Some(Err(error)) => {
+                state.done = true;
+                return Some((Err(error.into()), state));
+            }
+            None => {
+                if let Err(error) = finish_openai_response_stream(&mut state) {
+                    state.done = true;
+                    return Some((Err(error.into()), state));
+                }
+                state.done = true;
+            }
+        }
+    }
+}
+
+async fn next_openai_chat_stream_item(
+    mut state: OpenAiChatStreamState,
+) -> Option<(Result<ModelStreamEvent, ModelError>, OpenAiChatStreamState)> {
+    if !state.started {
+        state.started = true;
+        return Some((
+            Ok(ModelStreamEvent::Started {
+                request_id: state.request_id.clone(),
+            }),
+            state,
+        ));
+    }
+
+    loop {
+        if let Some(event) = state.pending.pop_front() {
+            return Some((Ok(event), state));
+        }
+        if state.done {
+            return None;
+        }
+
+        match state.sse_chunks.next().await {
+            Some(Ok(chunk)) => {
+                if let Err(error) = push_openai_chat_chunk(&mut state, &chunk) {
+                    state.done = true;
+                    return Some((Err(error.into()), state));
+                }
+            }
+            Some(Err(error)) => {
+                state.done = true;
+                return Some((Err(error.into()), state));
+            }
+            None => {
+                if let Err(error) = finish_openai_chat_stream(&mut state) {
+                    state.done = true;
+                    return Some((Err(error.into()), state));
+                }
+                state.done = true;
+            }
+        }
+    }
+}
+
+fn push_openai_response_chunk(
+    state: &mut OpenAiResponseStreamState,
+    chunk: &str,
+) -> Result<(), OpenAiCompatibleError> {
+    state.buffer.push_str(chunk);
+    while let Some((frame_end, drain_to)) = next_sse_frame_boundary(&state.buffer) {
+        let frame = state.buffer[..frame_end].trim().to_string();
+        state.buffer.drain(..drain_to);
+        let mut events = Vec::new();
+        handle_openai_compatible_sse_frame(&frame, &mut events, &mut state.tool_calls)?;
+        state.pending.extend(events);
+    }
+    Ok(())
+}
+
+fn push_openai_chat_chunk(
+    state: &mut OpenAiChatStreamState,
+    chunk: &str,
+) -> Result<(), OpenAiCompatibleError> {
+    state.buffer.push_str(chunk);
+    while let Some((frame_end, drain_to)) = next_sse_frame_boundary(&state.buffer) {
+        let frame = state.buffer[..frame_end].trim().to_string();
+        state.buffer.drain(..drain_to);
+        let mut events = Vec::new();
+        handle_openai_compatible_chat_sse_frame(&frame, &mut events, &mut state.tool_calls)?;
+        state.pending.extend(events);
+    }
+    Ok(())
+}
+
+fn finish_openai_response_stream(
+    state: &mut OpenAiResponseStreamState,
+) -> Result<(), OpenAiCompatibleError> {
+    let trailing = state.buffer.trim().to_string();
+    state.buffer.clear();
+    if !trailing.is_empty() {
+        let mut events = Vec::new();
+        match handle_openai_compatible_sse_frame(&trailing, &mut events, &mut state.tool_calls) {
+            Ok(()) => state.pending.extend(events),
+            Err(error) if is_incomplete_json_stream_event(&error) => {}
+            Err(error) => return Err(error),
+        }
+    }
+    let mut events = Vec::new();
+    flush_openai_response_tool_calls(&mut state.tool_calls, &mut events)?;
+    state.pending.extend(events);
+    Ok(())
+}
+
+fn finish_openai_chat_stream(
+    state: &mut OpenAiChatStreamState,
+) -> Result<(), OpenAiCompatibleError> {
+    let trailing = state.buffer.trim().to_string();
+    state.buffer.clear();
+    if !trailing.is_empty() {
+        let mut events = Vec::new();
+        match handle_openai_compatible_chat_sse_frame(&trailing, &mut events, &mut state.tool_calls)
+        {
+            Ok(()) => state.pending.extend(events),
+            Err(error) if is_incomplete_json_stream_event(&error) => {}
+            Err(error) => return Err(error),
+        }
+    }
+    let mut events = Vec::new();
+    flush_openai_chat_tool_calls(&mut state.tool_calls, &mut events)?;
+    state.pending.extend(events);
+    Ok(())
+}
+
+fn handle_openai_compatible_sse_frame(
+    frame: &str,
+    events: &mut ModelStreamResult,
+    tool_calls: &mut BTreeMap<String, OpenAiResponseToolCallState>,
+) -> Result<(), OpenAiCompatibleError> {
+    if frame.is_empty() {
+        return Ok(());
+    }
+    let Some((event_name, data)) = parse_sse_frame(frame) else {
+        return Ok(());
+    };
+    if data == "[DONE]" {
+        return Ok(());
+    }
+    let value: Value =
+        serde_json::from_str(&data).map_err(|err| OpenAiCompatibleError::InvalidStreamEvent {
+            message: format!("invalid JSON stream data: {err}"),
+        })?;
+
+    match event_name.as_deref() {
+        Some("response.reasoning_summary_text.delta")
+        | Some("response.reasoning_summary.delta")
+        | Some("response.reasoning.delta") => {
+            if let Some(delta) = value.get("delta").and_then(Value::as_str) {
+                events.push(ModelStreamEvent::ReasoningSummaryDelta {
+                    text: delta.to_string(),
+                });
+            }
+        }
+        Some("response.output_text.delta") => {
+            if let Some(delta) = value.get("delta").and_then(Value::as_str) {
+                events.push(ModelStreamEvent::Delta {
+                    text: delta.to_string(),
+                });
+            }
+        }
+        Some("response.output_item.added") => {
+            if let Some(item) = value.get("item") {
+                record_openai_response_tool_item(item, tool_calls);
+            }
+        }
+        Some("response.function_call_arguments.delta") => {
+            let key = response_tool_call_key(&value);
+            if let Some(delta) = value.get("delta").and_then(Value::as_str) {
+                tool_calls.entry(key).or_default().arguments.push_str(delta);
+            }
+        }
+        Some("response.output_item.done") => {
+            if let Some(item) = value.get("item") {
+                if let Some(event) = openai_response_tool_event_from_item(item)? {
+                    events.push(event);
+                    if let Some(key) = item.get("id").and_then(Value::as_str) {
+                        tool_calls.remove(key);
+                    }
+                }
+            }
+        }
+        Some("response.completed") => {
+            flush_openai_response_tool_calls(tool_calls, events)?;
+            events.push(ModelStreamEvent::Completed {
+                finish_reason: value
+                    .get("finish_reason")
+                    .and_then(Value::as_str)
+                    .unwrap_or("stop")
+                    .to_string(),
+                output_token_count: value
+                    .get("output_token_count")
+                    .and_then(Value::as_u64)
+                    .unwrap_or(0)
+                    .min(u64::from(u32::MAX)) as u32,
+            });
+        }
+        _ => {}
+    }
+
+    Ok(())
+}
+
+fn handle_openai_compatible_chat_sse_frame(
+    frame: &str,
+    events: &mut ModelStreamResult,
+    tool_calls: &mut BTreeMap<u64, OpenAiChatToolCallState>,
+) -> Result<(), OpenAiCompatibleError> {
+    if frame.is_empty() {
+        return Ok(());
+    }
+    let Some((_event_name, data)) = parse_sse_frame(frame) else {
+        return Ok(());
+    };
+    if data == "[DONE]" {
+        return Ok(());
+    }
+    let value: Value =
+        serde_json::from_str(&data).map_err(|err| OpenAiCompatibleError::InvalidStreamEvent {
+            message: format!("invalid JSON chat stream data: {err}"),
+        })?;
+
+    for choice in value
+        .get("choices")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        if let Some(delta) = choice.get("delta") {
+            record_openai_chat_tool_deltas(delta, tool_calls);
+            if let Some(reasoning) = chat_reasoning_delta(delta) {
+                events.push(ModelStreamEvent::ReasoningSummaryDelta {
+                    text: reasoning.to_string(),
+                });
+            }
+        }
+        if let Some(delta) = choice
+            .get("delta")
+            .and_then(|delta| delta.get("content"))
+            .and_then(Value::as_str)
+        {
+            events.push(ModelStreamEvent::Delta {
+                text: delta.to_string(),
+            });
+        }
+        if let Some(finish_reason) = choice.get("finish_reason").and_then(Value::as_str) {
+            flush_openai_chat_tool_calls(tool_calls, events)?;
+            let output_token_count = value
+                .get("usage")
+                .and_then(|usage| usage.get("completion_tokens"))
+                .and_then(Value::as_u64)
+                .unwrap_or(0)
+                .min(u64::from(u32::MAX)) as u32;
+            events.push(ModelStreamEvent::Completed {
+                finish_reason: finish_reason.to_string(),
+                output_token_count,
+            });
+        }
+    }
+
+    Ok(())
+}
+
+fn chat_reasoning_delta(delta: &Value) -> Option<&str> {
+    delta
+        .get("reasoning_content")
+        .or_else(|| delta.get("reasoning"))
+        .or_else(|| delta.get("thinking"))
+        .and_then(Value::as_str)
+        .filter(|value| !value.is_empty())
+}
+
+#[derive(Clone, Debug, Default)]
+struct OpenAiChatToolCallState {
+    call_id: Option<String>,
+    tool_name: Option<String>,
+    arguments: String,
+}
+
+#[derive(Clone, Debug, Default)]
+struct OpenAiResponseToolCallState {
+    call_id: Option<String>,
+    tool_name: Option<String>,
+    arguments: String,
+}
+
+fn record_openai_chat_tool_deltas(
+    delta: &Value,
+    tool_calls: &mut BTreeMap<u64, OpenAiChatToolCallState>,
+) {
+    for tool_call in delta
+        .get("tool_calls")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        let index = tool_call.get("index").and_then(Value::as_u64).unwrap_or(0);
+        let state = tool_calls.entry(index).or_default();
+        if let Some(call_id) = tool_call.get("id").and_then(Value::as_str) {
+            state.call_id = Some(call_id.to_string());
+        }
+        if let Some(function) = tool_call.get("function") {
+            if let Some(name) = function.get("name").and_then(Value::as_str) {
+                state.tool_name = Some(internal_tool_name_from_openai(name));
+            }
+            if let Some(arguments) = function.get("arguments").and_then(Value::as_str) {
+                state.arguments.push_str(arguments);
+            }
+        }
+    }
+}
+
+fn flush_openai_chat_tool_calls(
+    tool_calls: &mut BTreeMap<u64, OpenAiChatToolCallState>,
+    events: &mut ModelStreamResult,
+) -> Result<(), OpenAiCompatibleError> {
+    let pending = std::mem::take(tool_calls);
+    for (index, state) in pending {
+        let Some(tool_name) = state.tool_name else {
+            continue;
+        };
+        events.push(ModelStreamEvent::ToolCall {
+            call_id: state
+                .call_id
+                .unwrap_or_else(|| format!("openai-chat-call-{index}")),
+            tool_name,
+            input_json: parse_tool_arguments(&state.arguments)?,
+        });
+    }
+    Ok(())
+}
+
+fn record_openai_response_tool_item(
+    item: &Value,
+    tool_calls: &mut BTreeMap<String, OpenAiResponseToolCallState>,
+) {
+    if item.get("type").and_then(Value::as_str) != Some("function_call") {
+        return;
+    }
+    let key = item
+        .get("id")
+        .or_else(|| item.get("call_id"))
+        .and_then(Value::as_str)
+        .unwrap_or("response-call-0")
+        .to_string();
+    let state = tool_calls.entry(key).or_default();
+    if let Some(call_id) = item.get("call_id").and_then(Value::as_str) {
+        state.call_id = Some(call_id.to_string());
+    }
+    if let Some(name) = item.get("name").and_then(Value::as_str) {
+        state.tool_name = Some(internal_tool_name_from_openai(name));
+    }
+    if let Some(arguments) = item.get("arguments").and_then(Value::as_str) {
+        state.arguments.push_str(arguments);
+    }
+}
+
+fn response_tool_call_key(value: &Value) -> String {
+    value
+        .get("item_id")
+        .or_else(|| value.get("id"))
+        .and_then(Value::as_str)
+        .map(str::to_string)
+        .unwrap_or_else(|| {
+            value
+                .get("output_index")
+                .and_then(Value::as_u64)
+                .map(|index| format!("output-{index}"))
+                .unwrap_or_else(|| "response-call-0".to_string())
+        })
+}
+
+fn openai_response_tool_event_from_item(
+    item: &Value,
+) -> Result<Option<ModelStreamEvent>, OpenAiCompatibleError> {
+    if item.get("type").and_then(Value::as_str) != Some("function_call") {
+        return Ok(None);
+    }
+    let Some(tool_name) = item.get("name").and_then(Value::as_str) else {
+        return Ok(None);
+    };
+    let call_id = item
+        .get("call_id")
+        .or_else(|| item.get("id"))
+        .and_then(Value::as_str)
+        .unwrap_or("response-call-0")
+        .to_string();
+    let arguments = item
+        .get("arguments")
+        .and_then(Value::as_str)
+        .unwrap_or("{}");
+    Ok(Some(ModelStreamEvent::ToolCall {
+        call_id,
+        tool_name: internal_tool_name_from_openai(tool_name),
+        input_json: parse_tool_arguments(arguments)?,
+    }))
+}
+
+fn flush_openai_response_tool_calls(
+    tool_calls: &mut BTreeMap<String, OpenAiResponseToolCallState>,
+    events: &mut ModelStreamResult,
+) -> Result<(), OpenAiCompatibleError> {
+    let pending = std::mem::take(tool_calls);
+    for (key, state) in pending {
+        let Some(tool_name) = state.tool_name else {
+            continue;
+        };
+        events.push(ModelStreamEvent::ToolCall {
+            call_id: state.call_id.unwrap_or(key),
+            tool_name,
+            input_json: parse_tool_arguments(&state.arguments)?,
+        });
+    }
+    Ok(())
+}
+
+fn parse_tool_arguments(arguments: &str) -> Result<Value, OpenAiCompatibleError> {
+    let arguments = if arguments.trim().is_empty() {
+        "{}"
+    } else {
+        arguments
+    };
+    let value: Value = serde_json::from_str(arguments).map_err(|err| {
+        OpenAiCompatibleError::InvalidStreamEvent {
+            message: format!("invalid tool arguments JSON: {err}"),
+        }
+    })?;
+    if !value.is_object() {
+        return Err(OpenAiCompatibleError::InvalidStreamEvent {
+            message: "tool arguments JSON must be an object".to_string(),
+        });
+    }
+    Ok(value)
+}
+
+fn openai_compatible_tool_name(name: &str) -> String {
+    name.replace('.', "__")
+}
+
+fn internal_tool_name_from_openai(name: &str) -> String {
+    name.replace("__", ".")
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -378,6 +1091,34 @@ fn openai_compatible_responses_url(config: &ModelProviderConfig) -> String {
     format!("{base_url}/responses")
 }
 
+fn openai_compatible_chat_completions_url(config: &ModelProviderConfig) -> String {
+    let base_url = config
+        .endpoint
+        .base_url
+        .as_deref()
+        .unwrap_or(DEFAULT_OPENAI_COMPATIBLE_BASE_URL)
+        .trim_end_matches('/');
+    if base_url.ends_with("/v1") {
+        format!("{base_url}/chat/completions")
+    } else {
+        format!("{base_url}/v1/chat/completions")
+    }
+}
+
+fn should_try_chat_completions_fallback(error: &OpenAiCompatibleError) -> bool {
+    match error {
+        OpenAiCompatibleError::Transport { .. }
+        | OpenAiCompatibleError::InvalidStreamEvent { .. } => true,
+        OpenAiCompatibleError::ProviderResponse { status, .. } => {
+            matches!(*status, 404 | 405 | 503) || *status >= 500
+        }
+        OpenAiCompatibleError::MissingSecretRef { .. }
+        | OpenAiCompatibleError::InvalidProviderKind { .. }
+        | OpenAiCompatibleError::InvalidConfig { .. }
+        | OpenAiCompatibleError::SecretResolution { .. } => false,
+    }
+}
+
 fn parse_sse_frame(frame: &str) -> Option<(Option<String>, String)> {
     let mut event_name = None;
     let mut data_lines = Vec::new();
@@ -394,6 +1135,25 @@ fn parse_sse_frame(frame: &str) -> Option<(Option<String>, String)> {
     } else {
         Some((event_name, data_lines.join("\n")))
     }
+}
+
+fn next_sse_frame_boundary(input: &str) -> Option<(usize, usize)> {
+    let lf = input.find("\n\n").map(|index| (index, index + 2));
+    let crlf = input.find("\r\n\r\n").map(|index| (index, index + 4));
+
+    match (lf, crlf) {
+        (Some(lf), Some(crlf)) => Some(if lf.0 < crlf.0 { lf } else { crlf }),
+        (Some(boundary), None) | (None, Some(boundary)) => Some(boundary),
+        (None, None) => None,
+    }
+}
+
+fn is_incomplete_json_stream_event(error: &OpenAiCompatibleError) -> bool {
+    matches!(
+        error,
+        OpenAiCompatibleError::InvalidStreamEvent { message }
+            if message.contains("EOF while parsing")
+    )
 }
 
 fn redact_secret_like(input: &str) -> String {

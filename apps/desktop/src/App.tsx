@@ -1,4 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
+import {
+  Archive,
+  Command,
+  FolderOpen,
+  PanelLeftClose,
+  PanelRightClose,
+  Pin,
+  Plus,
+  Search,
+  Terminal,
+  X,
+} from 'lucide-react';
 
 import {
   desktopBootstrap,
@@ -33,10 +45,12 @@ import {
 import {
   createConversationTaskState,
   createStartTurnEnvelope,
+  createSwitchSessionEnvelope,
   recordTurnSubmission,
   reduceBridgeError,
   reduceCommandAck,
   reduceConversationTaskFrames,
+  selectConversation,
 } from './state/conversation';
 import {
   createSettingsState,
@@ -84,6 +98,7 @@ export function AppShell({
   conversationState = null,
   sessionSnapshot,
   onSubmitPrompt = () => undefined,
+  onSelectConversation = () => undefined,
   approvalState = createApprovalState(),
   onSelectApproval = () => undefined,
   onAllowApproval = () => undefined,
@@ -106,6 +121,7 @@ export function AppShell({
   conversationState?: ConversationTaskState | null;
   sessionSnapshot?: DesktopSessionSnapshot | null;
   onSubmitPrompt?: (prompt: string) => void;
+  onSelectConversation?: (conversationId: string) => void;
   approvalState?: ApprovalUiState;
   onSelectApproval?: (requestId: string) => void;
   onAllowApproval?: (requestId: string) => void;
@@ -160,6 +176,16 @@ export function AppShell({
     sessionSnapshot?.state !== 'connected' || conversationTaskState.activeConversationId === null;
   const filteredConversations = conversationTaskState.conversations.filter((conversation) =>
     conversation.title.toLowerCase().includes(threadSearch.trim().toLowerCase()),
+  );
+  const activeConversationTitle =
+    conversationTaskState.conversations.find(
+      (conversation) => conversation.conversation_id === conversationTaskState.activeConversationId,
+    )?.title ?? 'Untitled thread';
+  const selectedProvider =
+    configSnapshot?.snapshot.selected_provider ?? settings.model.provider ?? 'provider';
+  const selectedModel = configSnapshot?.snapshot.selected_model ?? settings.model.model ?? 'model';
+  const activeProvider = configSnapshot?.snapshot.providers.find(
+    (provider) => provider.id === selectedProvider,
   );
 
   function updateShellState(update: Partial<DesktopShellUiState>) {
@@ -260,40 +286,43 @@ export function AppShell({
         <div className="command-overlay" role="dialog" aria-label="Command palette">
           <section className="command-palette">
             <header>
-              <span>Command Palette</span>
+              <span>
+                <Command aria-hidden="true" size={16} />
+                Command Palette
+              </span>
               <button
                 aria-label="Close command palette"
                 className="icon-button"
                 type="button"
                 onClick={() => updateShellState({ commandPaletteOpen: false })}
               >
-                x
+                <X aria-hidden="true" size={16} />
               </button>
             </header>
-            <input aria-label="Command search" autoFocus placeholder="Type a command" />
+            <input aria-label="Command search" autoFocus placeholder="Search commands" />
             <div className="command-list" role="list">
               <button type="button" onClick={() => recordCommand('New thread')}>
-                New thread
+                <span>New thread</span>
                 <kbd>Cmd N</kbd>
               </button>
               <button type="button" onClick={() => toggleShellFlag('sidebarOpen')}>
-                Toggle sidebar
+                <span>Toggle sidebar</span>
                 <kbd>Cmd B</kbd>
               </button>
               <button type="button" onClick={() => toggleShellFlag('inspectorOpen')}>
-                Toggle inspector
+                <span>Toggle inspector</span>
                 <kbd>Cmd I</kbd>
               </button>
               <button type="button" onClick={() => toggleShellFlag('terminalOpen')}>
-                Toggle terminal
+                <span>Toggle terminal</span>
                 <kbd>Cmd J</kbd>
               </button>
               <button type="button" onClick={() => toggleShellFlag('findOpen')}>
-                Find in thread
+                <span>Find in thread</span>
                 <kbd>Cmd F</kbd>
               </button>
               <button type="button" onClick={() => recordCommand('Settings')}>
-                Settings
+                <span>Settings</span>
                 <kbd>Cmd ,</kbd>
               </button>
             </div>
@@ -302,34 +331,45 @@ export function AppShell({
       ) : null}
 
       <nav className="left-rail" aria-label="Workspace and thread navigation">
-        <div className="brand">
-          <span className="brand-name">{bootstrap?.app_name ?? 'agent'}</span>
-          <span className="brand-version">{bootstrap?.app_version ?? 'starting'}</span>
+        <div className="brand" aria-label="Application identity">
+          <span className="brand-mark">A</span>
+          <div>
+            <span className="brand-name">{bootstrap?.app_name ?? 'agent'}</span>
+            <span className="brand-version">{bootstrap?.app_version ?? 'starting'}</span>
+          </div>
         </div>
         <button className="workspace-switcher" type="button">
-          <span>Workspace</span>
-          <strong>{dashboardSnapshot?.workspace_root_display ?? 'Local workspace'}</strong>
+          <FolderOpen aria-hidden="true" size={16} />
+          <span>
+            <small>Workspace</small>
+            <strong>{dashboardSnapshot?.workspace_root_display ?? 'Local workspace'}</strong>
+          </span>
         </button>
         <button
+          aria-label="+ New Thread"
           className="primary-action"
           type="button"
           onClick={() => recordCommand('New thread')}
         >
-          + New Thread
+          <Plus aria-hidden="true" size={16} />
+          New Thread
         </button>
-        <input
-          aria-label="Search threads"
-          className="thread-search"
-          placeholder="Search threads"
-          value={threadSearch}
-          onChange={(event) => setThreadSearch(event.currentTarget.value)}
-        />
+        <label className="thread-search-shell">
+          <Search aria-hidden="true" size={15} />
+          <input
+            aria-label="Search threads"
+            className="thread-search"
+            placeholder="Search threads"
+            value={threadSearch}
+            onChange={(event) => setThreadSearch(event.currentTarget.value)}
+          />
+        </label>
         <ThreadSection
           activeConversationId={conversationTaskState.activeConversationId}
           conversations={filteredConversations}
           emptyLabel="No recent threads"
           label="Recent"
-          onSelect={() => undefined}
+          onSelect={onSelectConversation}
         />
         <ThreadSection
           activeConversationId={conversationTaskState.activeConversationId}
@@ -350,7 +390,7 @@ export function AppShell({
       <main className="workspace" aria-label="Active thread workspace">
         <header className="workspace-toolbar">
           <div>
-            <h1>Thread</h1>
+            <h1>{activeConversationTitle}</h1>
             <p>
               {conversationTaskState.activeConversationId ?? 'No active thread'} ·{' '}
               {sessionSnapshot?.state ?? bootstrap?.runtime_state ?? 'loading'}
@@ -363,7 +403,7 @@ export function AppShell({
               type="button"
               onClick={() => toggleShellFlag('sidebarOpen')}
             >
-              ||
+              <PanelLeftClose aria-hidden="true" size={17} />
             </button>
             <button
               aria-label="Open command palette"
@@ -371,7 +411,7 @@ export function AppShell({
               type="button"
               onClick={() => updateShellState({ commandPaletteOpen: true })}
             >
-              K
+              <Command aria-hidden="true" size={17} />
             </button>
             <button
               aria-label="Toggle inspector"
@@ -379,7 +419,7 @@ export function AppShell({
               type="button"
               onClick={() => toggleShellFlag('inspectorOpen')}
             >
-              []
+              <PanelRightClose aria-hidden="true" size={17} />
             </button>
             <button
               aria-label="Toggle terminal"
@@ -387,14 +427,26 @@ export function AppShell({
               type="button"
               onClick={() => toggleShellFlag('terminalOpen')}
             >
-              _
+              <Terminal aria-hidden="true" size={17} />
             </button>
           </div>
         </header>
+        <section className="thread-control-strip" aria-label="Thread controls">
+          <div>
+            <span className="status-dot" aria-hidden="true" />
+            <strong>{selectedProvider}</strong>
+            <span>{selectedModel}</span>
+          </div>
+          <div>
+            <span>{activeProvider?.kind ?? 'configured'}</span>
+            <span>{activeProvider?.capabilities?.max_context_tokens ?? 'context'} tokens</span>
+          </div>
+        </section>
         {shellState.findOpen ? (
           <div className="find-bar">
             <input aria-label="Find in thread" placeholder="Find in thread" />
             <button type="button" onClick={() => updateShellState({ findOpen: false })}>
+              <X aria-hidden="true" size={15} />
               Close
             </button>
           </div>
@@ -427,6 +479,7 @@ export function AppShell({
             <header>
               <span>Terminal</span>
               <button type="button" onClick={() => toggleShellFlag('terminalOpen')}>
+                <X aria-hidden="true" size={15} />
                 Hide
               </button>
             </header>
@@ -438,13 +491,14 @@ export function AppShell({
       <aside className="context-panel" aria-label="Inspector">
         <header className="inspector-header">
           <h2>Inspector</h2>
+          <span>{approvalState.pending.length} pending</span>
           <button
             aria-label="Collapse inspector"
             className="icon-button"
             type="button"
             onClick={() => toggleShellFlag('inspectorOpen')}
           >
-            x
+            <X aria-hidden="true" size={16} />
           </button>
         </header>
         <div className="inspector-tabs" role="tablist" aria-label="Inspector tabs">
@@ -562,6 +616,7 @@ export function AppShell({
         <span>{bootstrap?.app_name ?? 'agent'}</span>
         <span>{bootstrap?.app_version ?? '0.1.0'}</span>
         <span>{bootstrap?.runtime_state ?? 'loading'}</span>
+        <span>{selectedProvider}</span>
       </footer>
     </div>
   );
@@ -583,6 +638,10 @@ function ThreadSection({
   return (
     <section className="thread-section" aria-label={`${label} threads`}>
       <h2>{label}</h2>
+      {label === 'Pinned' ? <Pin aria-hidden="true" className="thread-section-icon" size={13} /> : null}
+      {label === 'Archived' ? (
+        <Archive aria-hidden="true" className="thread-section-icon" size={13} />
+      ) : null}
       {conversations.length === 0 ? (
         <div className="empty-list">{emptyLabel}</div>
       ) : (
@@ -692,19 +751,52 @@ export default function App() {
     };
   }, []);
 
+  async function handleSelectConversation(conversationId: string) {
+    if (workspaceSnapshot === null || bootstrap === null) {
+      return;
+    }
+
+    setConversationState((state) => selectConversation(state, conversationId));
+    setWorkspaceSnapshot((snapshot) =>
+      snapshot === null
+        ? snapshot
+        : {
+            ...snapshot,
+            active_conversation_id: conversationId,
+          },
+    );
+
+    try {
+      const envelope = createSwitchSessionEnvelope({
+        workspaceId: workspaceSnapshot.workspace_id,
+        conversationId,
+        clientVersion: bootstrap.app_version,
+      });
+      const ack = await sendUiCommand(envelope);
+      setConversationState((state) => reduceCommandAck(state, ack));
+      await drainBridgeFrames(32);
+      const timeline = await loadTrace(conversationId);
+      setTraceState(
+        reduceTraceLoaded(createTraceState(conversationId), timeline),
+      );
+      setBootstrapError(null);
+    } catch (error) {
+      const normalized = normalizeBridgeError(error);
+      setConversationState((state) => reduceBridgeError(state, normalized));
+      setBootstrapError(normalized.message);
+    }
+  }
+
   async function handleSubmitPrompt(prompt: string) {
-    if (
-      workspaceSnapshot?.active_conversation_id === null ||
-      workspaceSnapshot?.active_conversation_id === undefined ||
-      bootstrap === null
-    ) {
+    const activeConversationId = conversationState.activeConversationId;
+    if (workspaceSnapshot === null || activeConversationId === null || bootstrap === null) {
       return;
     }
 
     try {
       const envelope = createStartTurnEnvelope({
         workspaceId: workspaceSnapshot.workspace_id,
-        conversationId: workspaceSnapshot.active_conversation_id,
+        conversationId: activeConversationId,
         prompt,
         clientVersion: bootstrap.app_version,
       });
@@ -816,6 +908,13 @@ export default function App() {
       onSubmitPrompt={(prompt) => {
         void handleSubmitPrompt(prompt);
       }}
+      onSelectConversation={(conversationId) => {
+        void handleSelectConversation(conversationId);
+      }}
+      configSnapshot={settingsState.snapshot}
+      settings={settingsState.settings}
+      settingsDiagnostics={settingsState.validationDiagnostics}
+      settingsError={settingsState.error}
     />
   );
 }

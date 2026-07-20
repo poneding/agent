@@ -40,7 +40,7 @@ fn task_review_snapshot_serializes_safe_review_and_artifacts() {
         .expect("ui review");
     let snapshot = UiTaskReviewSnapshot::new(vec![ui_review], Vec::new()).expect("snapshot");
     let serialized =
-        serde_json::to_string(&UiJsonFrame::TaskReviewSnapshot(snapshot)).expect("serialize");
+        serde_json::to_string(&UiJsonFrame::task_review_snapshot(snapshot)).expect("serialize");
 
     assert!(serialized.contains("\"type\":\"task_review_snapshot\""));
     assert!(serialized.contains("\"final_state\":\"succeeded\""));

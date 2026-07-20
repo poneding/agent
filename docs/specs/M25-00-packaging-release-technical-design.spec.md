@@ -48,7 +48,7 @@ flowchart TD
 Dependency rules:
 
 - platform path resolution is shared by CLI, TUI, Desktop, and background tasks
-- config files store secret references, not raw values
+- local `config.yaml` may contain direct provider `apiKey` values or advanced secret references, but migrations and release tooling must never copy raw values into logs, artifacts, snapshots, or support bundles
 - migrations run before runtime side effects
 - release tooling does not store signing keys in repository config
 

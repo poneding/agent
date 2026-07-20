@@ -5,6 +5,7 @@ use agent_mcp::{
     McpCreateMessageRequestParams, McpModelHint, McpModelPreferences, McpSamplingContent,
     McpSamplingMessage,
 };
+use agent_model::ModelMessage;
 use agent_types::{ConversationId, CorrelationId, TurnId};
 
 fn bridge_config() -> McpSamplingModelBridgeConfig {
@@ -43,7 +44,10 @@ fn mcp_sampling_model_mapping_builds_text_model_request() {
     assert_eq!(mapped.correlation_id, ids.correlation_id);
     assert_eq!(
         mapped.messages,
-        ["user: hello", "assistant: previous answer"]
+        [
+            ModelMessage::user("hello"),
+            ModelMessage::assistant("previous answer"),
+        ]
     );
 }
 
@@ -62,7 +66,10 @@ fn mcp_sampling_model_mapping_includes_system_prompt() {
 
     assert_eq!(
         mapped.messages,
-        ["system: answer tersely", "user: summarize this"]
+        [
+            ModelMessage::system("answer tersely"),
+            ModelMessage::user("summarize this"),
+        ]
     );
 }
 

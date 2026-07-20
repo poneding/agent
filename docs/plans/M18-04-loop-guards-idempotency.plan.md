@@ -16,31 +16,9 @@
 - Create: `crates/agent-core/tests/comprehensive_turn_guards.rs`
 - Modify: `crates/agent-core/src/model_runtime.rs`
 
-- [x] **Step 1: Add max model turns test**
+- [x] **Step 1: Add model-turn checkpoint test**
 
-Add `comprehensive_turn_fails_when_model_turn_budget_is_exhausted`.
-
-```rust
-#[tokio::test]
-async fn comprehensive_turn_fails_when_model_turn_budget_is_exhausted() {
-    let (mut input, registry, resources) = fixture_looping_tool_then_text();
-    input.loop_budget.max_model_turns = 1;
-
-    let outcome = ComprehensiveTurnRunner::run_with_resources(input, &registry, resources)
-        .await
-        .expect("guarded turn");
-
-    assert_eq!(outcome.terminal_state, AgentLoopTerminalState::Failed);
-    assert_eq!(
-        outcome.failure_reason,
-        Some(AgentLoopFailureReason::MaxModelTurnsExceeded)
-    );
-    assert!(outcome.events.iter().any(|event| matches!(
-        event.payload,
-        RuntimeEventPayload::RuntimeError(_)
-    )));
-}
-```
+Add `comprehensive_turn_continues_after_model_turn_soft_limit`. The test sets `model_turn_checkpoint_interval = 1`, proves the second model call runs, and requires a `model_turn_budget_extended` warning instead of a failed outcome. This supersedes the original hard `max_model_turns` design so long tasks are not interrupted solely because they needed more model/tool rounds.
 
 - [x] **Step 2: Add max tool calls test**
 
@@ -93,7 +71,7 @@ Add `max_wall_time_ms` and `max_consecutive_invalid_tool_calls` to `AgentLoopBud
 ```rust
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AgentLoopBudget {
-    pub max_model_turns: u32,
+    pub model_turn_checkpoint_interval: u32,
     pub max_tool_calls: u32,
     pub max_wall_time_ms: u64,
     pub max_observation_bytes: u64,
@@ -108,7 +86,6 @@ Add `AgentLoopFailureReason` and extend `AgentLoopOutcome`.
 ```rust
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum AgentLoopFailureReason {
-    MaxModelTurnsExceeded,
     MaxToolCallsExceeded,
     MaxWallTimeExceeded,
     MaxObservationBytesExceeded,
@@ -161,9 +138,9 @@ struct AgentLoopGuardState {
 
 Return `AgentLoopTerminalState::Failed` with `AgentLoopFailureReason::InvalidBudget` when any budget value is zero.
 
-- [x] **Step 3: Check model turn budget**
+- [x] **Step 3: Checkpoint long model loops**
 
-Before each model stream invocation, increment the model-turn count and fail with `MaxModelTurnsExceeded` when the next invocation would exceed the budget.
+Before each model stream invocation, count model turns and emit `model_turn_budget_extended` at each `model_turn_checkpoint_interval`. Continue while wall-time, tool-call, observation, invalid-call, and cancellation guards permit it.
 
 - [x] **Step 4: Check tool call budget**
 

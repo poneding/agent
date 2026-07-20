@@ -96,6 +96,7 @@ fn effective_config(
                     catalog: ModelProviderCatalog::new(providers).expect("valid catalog"),
                     invocation_policy,
                 },
+                terminal: Default::default(),
             },
         }],
         ConfigOverride::default(),
@@ -110,7 +111,8 @@ fn configured_input(
     ConfiguredTurnInput {
         ids,
         user_message: "stream with policy".to_string(),
-        effective_config,
+        conversation_history: std::sync::Arc::new(Vec::new()),
+        effective_config: std::sync::Arc::new(effective_config),
         requirements: requirements(),
     }
 }
@@ -378,7 +380,10 @@ async fn streaming_cancellation_emits_cancelled_state() {
         configured_input(runtime_ids(), effective),
         &registry,
         ConfiguredTurnStreamOptions {
+            coding_context: false,
             cancellation: cancellation.clone(),
+            tools: std::sync::Arc::new(Vec::new()),
+            reasoning_effort: None,
         },
     )
     .await

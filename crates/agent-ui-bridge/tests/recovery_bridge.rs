@@ -3,12 +3,13 @@ use agent_types::{
     CommandRetryFailureClassification, CommandRetryPlan, CommandRetryReadiness, ConversationId,
     CorrelationId, EventSeq, IdempotentRecoverySummary, RecoveryConflictKind,
     RecoveryConflictNextAction, RecoveryConflictSide, RecoveryConflictSummary,
-    RecoveryReplaySummary, RecoverySnapshot, ResumeDryRunReport, SchemaVersion, TurnId,
+    RecoveryReplaySummary, RecoverySnapshot, ResumeDryRunReport, ResumeReport, SchemaVersion,
+    TurnId,
 };
 use agent_ui_bridge::{
     UiClientInfo, UiCommand, UiCommandEnvelope, UiCommandRetryPlan, UiConflictInspectReport,
     UiIdempotentRecoverySummary, UiJsonFrame, UiRecoverySnapshot, UiReplayForkReport,
-    UiReplayInspectReport, UiResumeDryRunReport, validate_ui_command,
+    UiReplayInspectReport, UiResumeDryRunReport, UiResumeReport, validate_ui_command,
 };
 
 fn conversation_id(value: &str) -> ConversationId {
@@ -112,7 +113,7 @@ fn recovery_frames_serialize_typed_payloads() {
     let turn_id = turn_id("00000000-0000-0000-0000-000000006216");
     let snapshot = snapshot(conversation_id, Some(turn_id));
 
-    let recovery_frame = UiJsonFrame::RecoverySnapshot(UiRecoverySnapshot::new(snapshot.clone()));
+    let recovery_frame = UiJsonFrame::recovery_snapshot(UiRecoverySnapshot::new(snapshot.clone()));
     let recovery_value = serde_json::to_value(&recovery_frame).expect("serialize frame");
     assert_eq!(recovery_value["type"], "recovery_snapshot");
     assert_eq!(
@@ -121,19 +122,33 @@ fn recovery_frames_serialize_typed_payloads() {
     );
 
     let dry_run = ResumeDryRunReport {
-        snapshot,
+        snapshot: snapshot.clone(),
         will_replay_event_count: 2,
         will_resume_pending_tool_count: 1,
         will_reuse_idempotent_effect_count: 1,
         blocked: false,
     };
-    let dry_run_frame = UiJsonFrame::ResumeDryRun(UiResumeDryRunReport::new(dry_run));
+    let dry_run_frame = UiJsonFrame::resume_dry_run(UiResumeDryRunReport::new(dry_run));
     let dry_run_value = serde_json::to_value(&dry_run_frame).expect("serialize dry run frame");
     assert_eq!(dry_run_value["type"], "resume_dry_run");
     assert_eq!(
         dry_run_value["data"]["report"]["will_resume_pending_tool_count"],
         1
     );
+
+    let resume = ResumeReport {
+        snapshot,
+        replayed_event_count: 2,
+        resumed_pending_tool_count: 1,
+        reused_idempotent_effect_count: 1,
+        resumed: true,
+        blocked: false,
+        continuation: None,
+    };
+    let resume_frame = UiJsonFrame::recovery_resume(UiResumeReport::new(resume));
+    let resume_value = serde_json::to_value(&resume_frame).expect("serialize resume frame");
+    assert_eq!(resume_value["type"], "recovery_resume");
+    assert_eq!(resume_value["data"]["report"]["resumed"], true);
 }
 
 #[test]
@@ -150,7 +165,7 @@ fn replay_reports_are_bounded_and_redacted() {
         Vec::new(),
     );
     let inspect_value =
-        serde_json::to_value(UiJsonFrame::ReplayInspect(inspect)).expect("serialize inspect");
+        serde_json::to_value(UiJsonFrame::replay_inspect(inspect)).expect("serialize inspect");
     assert_eq!(inspect_value["type"], "replay_inspect");
     assert_eq!(inspect_value["data"]["replayed_event_count"], 4);
 
@@ -165,7 +180,7 @@ fn replay_reports_are_bounded_and_redacted() {
     )
     .expect("valid fork report");
     let fork_json =
-        serde_json::to_string(&UiJsonFrame::ReplayFork(fork)).expect("serialize fork report");
+        serde_json::to_string(&UiJsonFrame::replay_fork(fork)).expect("serialize fork report");
     assert!(fork_json.contains("replay_fork"));
     assert!(!fork_json.contains("sk-secret-token"));
     assert!(!fork_json.contains("api_key"));
@@ -192,7 +207,7 @@ fn command_retry_command_validates_dry_run_shape() {
     assert_eq!(value["type"], "command_retry_plan");
     assert_eq!(value["data"]["command_run_id"], "command-run-1");
 
-    let invalid = UiCommandEnvelope {
+    let executable = UiCommandEnvelope {
         command: UiCommand::CommandRetryPlan {
             command_run_id: "command-run-1".to_string(),
             reason: "rerun".to_string(),
@@ -200,8 +215,7 @@ fn command_retry_command_validates_dry_run_shape() {
         },
         ..envelope
     };
-    let error = validate_ui_command(&invalid).expect_err("real retry not wired");
-    assert!(error.to_string().contains("requires dry_run"));
+    validate_ui_command(&executable).expect("valid executable retry command");
 }
 
 #[test]
@@ -216,6 +230,9 @@ fn command_retry_and_idempotent_recovery_frames_serialize() {
         classification: CommandRetryFailureClassification::TestFailure,
         command: CommandRetryCommandSummary {
             display: "cargo test".to_string(),
+            program: Some("cargo".to_string()),
+            args: vec!["test".to_string()],
+            timeout_ms: 30_000,
             cwd: ".".to_string(),
             classify_as_test: true,
         },
@@ -224,14 +241,14 @@ fn command_retry_and_idempotent_recovery_frames_serialize() {
         dry_run: true,
         diagnostics: Vec::new(),
     };
-    let retry_json = serde_json::to_string(&UiJsonFrame::CommandRetryPlan(
+    let retry_json = serde_json::to_string(&UiJsonFrame::command_retry_plan(
         UiCommandRetryPlan::new(plan),
     ))
     .expect("serialize retry frame");
     assert!(retry_json.contains("command_retry_plan"));
     assert!(!retry_json.contains("sk-secret-token"));
 
-    let idempotent_json = serde_json::to_string(&UiJsonFrame::IdempotentRecovery(
+    let idempotent_json = serde_json::to_string(&UiJsonFrame::idempotent_recovery(
         UiIdempotentRecoverySummary::new(IdempotentRecoverySummary {
             reusable_effect_count: 1,
             pending_tool_count: 0,
@@ -264,7 +281,7 @@ fn conflict_inspect_frame_serializes_safe_shape() {
         diagnostics: Vec::new(),
     };
     let frame =
-        UiJsonFrame::ConflictInspect(UiConflictInspectReport::new(vec![conflict], Vec::new()));
+        UiJsonFrame::conflict_inspect(UiConflictInspectReport::new(vec![conflict], Vec::new()));
     let value = serde_json::to_value(frame).expect("serialize conflict frame");
 
     assert_eq!(value["type"], "conflict_inspect");

@@ -81,7 +81,7 @@ OpenAI-compatible providers can be selected by core only if a caller registers a
 - no raw secret values are accepted by M15 APIs
 - provider ids and model ids may appear in diagnostics
 - transport-backed providers are injected through registry handles, not constructed from raw secrets by CLI
-- tests assert JSON prompt output excludes `sk-test-secret`, `api_key`, `token`, `password`, and raw TOML bodies
+- tests assert JSON prompt output excludes `sk-test-secret`, `api_key`, `token`, `password`, and raw config bodies
 
 ## Testing Strategy
 

@@ -61,6 +61,7 @@ impl CommandPanelState {
 
     pub fn reduce(&mut self, action: CommandPanelAction) {
         match action {
+            CommandPanelAction::ToggleFold => {}
             CommandPanelAction::ShowStdout => self.active_output = CommandPanelOutput::Stdout,
             CommandPanelAction::ShowStderr => self.active_output = CommandPanelOutput::Stderr,
             CommandPanelAction::ToggleOutput => {
@@ -134,6 +135,7 @@ pub enum CommandPanelOutput {
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum CommandPanelAction {
+    ToggleFold,
     ShowStdout,
     ShowStderr,
     ToggleOutput,

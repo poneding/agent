@@ -1,8 +1,13 @@
 use agent_core::{
-    RepoGitState, TerminalSessionRecord, TerminalSessionStatus, build_terminal_session_directory,
+    RepoGitState, TerminalSessionCatalog, TerminalSessionRecord, TerminalSessionStatus,
+    build_terminal_session_directory, summarize_terminal_session_title,
     validate_terminal_session_restore,
 };
-use agent_types::{ClientKind, ConversationId, Timestamp, WorkspaceId};
+use agent_storage::{EventStore, InMemoryEventStore};
+use agent_types::{
+    ActorRef, ClientKind, ConversationId, CorrelationId, EventId, RuntimeEvent,
+    RuntimeEventPayload, SchemaVersion, Timestamp, UserInputReceived, WorkspaceId,
+};
 
 fn ts(day: u8) -> Timestamp {
     serde_json::from_str(&format!("\"2026-07-{day:02}T00:00:00Z\"")).expect("timestamp")
@@ -29,6 +34,32 @@ fn record(
         running_command_count: 0,
         task_count: 0,
         failed: false,
+    }
+}
+
+fn user_event(
+    workspace_id: WorkspaceId,
+    conversation_id: ConversationId,
+    message: &str,
+    occurred_at: Timestamp,
+) -> RuntimeEvent {
+    RuntimeEvent {
+        schema_version: SchemaVersion::current(),
+        id: EventId::new(),
+        seq: None,
+        occurred_at,
+        workspace_id,
+        conversation_id,
+        turn_id: None,
+        task_id: None,
+        agent_id: None,
+        team_id: None,
+        actor: ActorRef::system(),
+        correlation_id: CorrelationId::new(),
+        causation_id: None,
+        payload: RuntimeEventPayload::UserInputReceived(UserInputReceived {
+            message: message.to_string(),
+        }),
     }
 }
 
@@ -106,6 +137,110 @@ fn terminal_session_restore_validates_target_conversation() {
 
     assert_eq!(restored.conversation_id, conversation);
     assert!(validate_terminal_session_restore(&report, ConversationId::new()).is_err());
+}
+
+#[test]
+fn terminal_session_catalog_titles_first_user_message_and_preserves_it() {
+    let workspace_id = WorkspaceId::new();
+    let conversation_id = ConversationId::new();
+    let mut catalog = TerminalSessionCatalog::new(vec![record(
+        workspace_id,
+        conversation_id,
+        "Repo session",
+        ts(1),
+    )]);
+
+    catalog.apply_event(&user_event(
+        workspace_id,
+        conversation_id,
+        "修复会话切换时没有加载消息历史。后面是无关细节 sk-title-secret",
+        ts(2),
+    ));
+    catalog.apply_event(&user_event(
+        workspace_id,
+        conversation_id,
+        "this later message must not replace the title",
+        ts(3),
+    ));
+
+    let report = catalog.report().expect("catalog report");
+    assert_eq!(report.sessions.len(), 1);
+    assert_eq!(report.sessions[0].title, "修复会话切换时没有加载消息历史");
+    assert!(!report.sessions[0].title.contains("sk-title-secret"));
+    assert_eq!(report.sessions[0].last_event_at, ts(3));
+}
+
+#[test]
+fn terminal_session_catalog_rebuilds_title_from_persisted_events() {
+    let workspace_id = WorkspaceId::new();
+    let active_conversation_id = ConversationId::new();
+    let persisted_conversation_id = ConversationId::new();
+    let mut store = InMemoryEventStore::default();
+    let mut started = user_event(
+        workspace_id,
+        persisted_conversation_id,
+        "placeholder",
+        ts(1),
+    );
+    started.payload = RuntimeEventPayload::ConversationStarted(agent_types::ConversationStarted {
+        title: "Repo session".to_string(),
+    });
+    store.append(started).expect("append conversation start");
+    store
+        .append(user_event(
+            workspace_id,
+            persisted_conversation_id,
+            "Investigate persisted session history. Include later details",
+            ts(2),
+        ))
+        .expect("append persisted user message");
+
+    let mut catalog = TerminalSessionCatalog::new(vec![record(
+        workspace_id,
+        active_conversation_id,
+        "New session",
+        ts(3),
+    )]);
+    catalog
+        .hydrate_from_store(&store)
+        .expect("hydrate persisted sessions");
+
+    let report = catalog.report().expect("catalog report");
+    let restored = report
+        .sessions
+        .iter()
+        .find(|session| session.conversation_id == persisted_conversation_id)
+        .expect("persisted session");
+    assert_eq!(restored.title, "Investigate persisted session history");
+}
+
+#[test]
+fn terminal_session_catalog_new_conversation_stays_in_workspace() {
+    let workspace_id = WorkspaceId::new();
+    let current = ConversationId::new();
+    let next = ConversationId::new();
+    let mut catalog =
+        TerminalSessionCatalog::new(vec![record(workspace_id, current, "Current", ts(1))]);
+
+    let created = catalog
+        .start_new_conversation(current, next, ts(2))
+        .expect("new conversation");
+    let report = catalog.report().expect("catalog report");
+
+    assert_eq!(created.workspace_id, workspace_id);
+    assert_eq!(created.conversation_id, next);
+    assert_eq!(created.title, "New session");
+    assert_eq!(report.sessions.len(), 2);
+}
+
+#[test]
+fn terminal_session_title_is_bounded_and_redacted() {
+    let title = summarize_terminal_session_title(
+        "sk-title-secret please investigate this very long conversation title that should be bounded before it reaches a terminal session picker",
+    );
+
+    assert!(!title.contains("sk-title-secret"));
+    assert!(title.chars().count() <= 59);
 }
 
 #[test]

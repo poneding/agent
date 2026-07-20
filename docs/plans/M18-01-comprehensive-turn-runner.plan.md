@@ -74,7 +74,7 @@ Add `ComprehensiveTurnInput`, `AgentLoopBudget`, `AgentLoopTerminalState`, and `
 ```rust
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AgentLoopBudget {
-    pub max_model_turns: u32,
+    pub model_turn_checkpoint_interval: u32,
     pub max_tool_calls: u32,
     pub max_observation_bytes: u64,
 }

@@ -1,6 +1,7 @@
 use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigLayer,
-    ConfigLayerKind, ConfigOverride, RuntimeModelConfig, build_effective_runtime_config,
+    ConfigLayerKind, ConfigOverride, RuntimeModelConfig, RuntimeTerminalConfig,
+    RuntimeTerminalTheme, build_effective_runtime_config,
 };
 use agent_model::{
     ModelEndpointConfig, ModelFallbackChain, ModelInvocationPolicy, ModelProviderCatalog,
@@ -23,6 +24,7 @@ fn runtime_config(
             )
             .expect("valid invocation policy"),
         },
+        terminal: RuntimeTerminalConfig::default(),
     }
 }
 
@@ -36,6 +38,25 @@ fn fake_provider(id: &str, model: &str, enabled: bool) -> ModelProviderConfig {
         enabled,
     )
     .expect("valid fake provider")
+}
+
+#[test]
+fn config_layering_higher_priority_terminal_theme_wins() {
+    let mut built_in_config = runtime_config("fake", vec![fake_provider("fake", "fake", true)]);
+    built_in_config.terminal.theme = RuntimeTerminalTheme::System;
+    let mut user_config = runtime_config("fake", vec![fake_provider("fake", "fake-user", true)]);
+    user_config.terminal.theme = RuntimeTerminalTheme::Dark;
+
+    let effective = build_effective_runtime_config(
+        vec![
+            layer(ConfigLayerKind::User, "user", user_config),
+            layer(ConfigLayerKind::BuiltIn, "built-in", built_in_config),
+        ],
+        ConfigOverride::default(),
+    )
+    .expect("effective config");
+
+    assert_eq!(effective.config.terminal.theme, RuntimeTerminalTheme::Dark);
 }
 
 fn openai_provider(id: &str, model: &str, enabled: bool) -> ModelProviderConfig {

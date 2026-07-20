@@ -13,7 +13,7 @@ use agent_mcp::{
 };
 use agent_model::{
     ModelCapabilities, ModelEndpointConfig, ModelError, ModelEventStream, ModelFallbackChain,
-    ModelInvocationPolicy, ModelProvider, ModelProviderCatalog, ModelProviderConfig,
+    ModelInvocationPolicy, ModelMessage, ModelProvider, ModelProviderCatalog, ModelProviderConfig,
     ModelProviderKind, ModelProviderRegistry, ModelRequest, ModelRequestRequirements,
     ModelRetryPolicy, ModelStreamEvent, ModelStreamResult, RegisteredModelProvider,
     model_events_to_stream,
@@ -90,6 +90,7 @@ fn effective_config(config: ModelProviderConfig) -> agent_core::EffectiveRuntime
                 catalog: ModelProviderCatalog::new(vec![config]).expect("valid catalog"),
                 invocation_policy: invocation_policy(),
             },
+            terminal: Default::default(),
         },
     };
 
@@ -101,10 +102,11 @@ fn input(config: ModelProviderConfig) -> ComprehensiveTurnInput {
     ComprehensiveTurnInput {
         ids: runtime_ids(),
         user_message: "use mcp".to_string(),
-        effective_config: effective_config(config),
+        conversation_history: std::sync::Arc::new(Vec::new()),
+        effective_config: std::sync::Arc::new(effective_config(config)),
         requirements: requirements(),
         loop_budget: AgentLoopBudget {
-            max_model_turns: 4,
+            model_turn_checkpoint_interval: 4,
             max_tool_calls: 4,
             max_wall_time_ms: 30_000,
             max_observation_bytes: 4096,
@@ -172,7 +174,7 @@ fn mcp_client() -> Arc<FixtureMcpClient> {
 
 fn policy(decision: PolicyDecision) -> StaticPolicyEngine {
     StaticPolicyEngine::default().with_decision(
-        CapabilityAction::Read,
+        CapabilityAction::Network,
         ResourceScope::new(ResourceKind::Tool, "mcp.filesystem.read_file").expect("scope"),
         decision,
     )
@@ -282,7 +284,10 @@ async fn mcp_gateway_tool_runs_through_comprehensive_turn_policy_and_events() {
         requests.lock().unwrap()[1]
             .messages
             .iter()
-            .any(|message| message.contains("hello from mcp"))
+            .any(|message| matches!(
+                message,
+                ModelMessage::ToolResult { content, .. } if content.contains("hello from mcp")
+            ))
     );
     assert!(outcome.events.iter().any(|event| matches!(
         event.payload,
@@ -323,7 +328,10 @@ async fn denied_mcp_gateway_tool_never_calls_remote_client() {
         requests.lock().unwrap()[1]
             .messages
             .iter()
-            .any(|message| message.contains("denied by policy"))
+            .any(|message| matches!(
+                message,
+                ModelMessage::ToolResult { content, .. } if content.contains("denied by policy")
+            ))
     );
     assert_eq!(client.call_count("filesystem", "read_file"), 0);
 }

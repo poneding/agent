@@ -429,7 +429,7 @@ impl BackgroundTaskRunner {
 
 #[derive(Clone, Debug)]
 pub struct ComprehensiveBackgroundTurnExecutor {
-    effective_config: EffectiveRuntimeConfig,
+    effective_config: std::sync::Arc<EffectiveRuntimeConfig>,
     requirements: ModelRequestRequirements,
     loop_budget: AgentLoopBudget,
     registry: ModelProviderRegistry,
@@ -444,7 +444,7 @@ impl ComprehensiveBackgroundTurnExecutor {
         registry: ModelProviderRegistry,
     ) -> Self {
         Self {
-            effective_config,
+            effective_config: std::sync::Arc::new(effective_config),
             requirements,
             loop_budget,
             registry,
@@ -466,7 +466,8 @@ impl BackgroundTaskTurnExecutor for ComprehensiveBackgroundTurnExecutor {
                 correlation_id: CorrelationId::new(),
             },
             user_message: task.summary.clone(),
-            effective_config: self.effective_config.clone(),
+            conversation_history: std::sync::Arc::new(Vec::new()),
+            effective_config: std::sync::Arc::clone(&self.effective_config),
             requirements: self.requirements.clone(),
             loop_budget: self.loop_budget.clone(),
         };

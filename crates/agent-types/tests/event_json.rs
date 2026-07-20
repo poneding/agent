@@ -1,6 +1,7 @@
 use agent_types::{
-    ActorRef, ConversationId, CorrelationId, EventId, FinalResponseProduced, RuntimeEvent,
-    RuntimeEventPayload, SchemaVersion, Timestamp, TurnId, UserInputReceived, WorkspaceId,
+    ActorRef, ConversationId, CorrelationId, EventId, FinalResponseProduced,
+    ModelReasoningSummaryDelta, RuntimeEvent, RuntimeEventPayload, SchemaVersion, Timestamp,
+    TurnId, UserInputReceived, WorkspaceId,
 };
 use time::macros::datetime;
 use uuid::Uuid;
@@ -51,4 +52,18 @@ fn final_response_event_has_stable_shape() {
     assert_eq!(value["payload"]["type"], "final_response_produced");
     assert_eq!(value["payload"]["data"]["message"], "done");
     assert_eq!(value["occurred_at"], "2026-06-25T00:00:00Z");
+}
+
+#[test]
+fn reasoning_summary_delta_event_has_stable_shape() {
+    let event = fixed_event(RuntimeEventPayload::ModelReasoningSummaryDelta(
+        ModelReasoningSummaryDelta {
+            delta: "checking context".to_string(),
+        },
+    ));
+
+    let value = serde_json::to_value(event).expect("event json value");
+
+    assert_eq!(value["payload"]["type"], "model_reasoning_summary_delta");
+    assert_eq!(value["payload"]["data"]["delta"], "checking context");
 }

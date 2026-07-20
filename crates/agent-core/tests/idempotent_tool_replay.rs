@@ -53,7 +53,7 @@ fn edit_call_with_expected(expected: &str, replacement: &str) -> ToolCallRequest
 
 fn edit_policy() -> StaticPolicyEngine {
     StaticPolicyEngine::default().with_decision(
-        CapabilityAction::Read,
+        CapabilityAction::Execute,
         ResourceScope::new(ResourceKind::Tool, "workspace.edit_file").expect("scope"),
         PolicyDecision::Allow {
             reason: "allow edit fixture".to_string(),

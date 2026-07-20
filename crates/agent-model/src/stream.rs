@@ -12,6 +12,9 @@ pub enum ModelStreamEvent {
     Started {
         request_id: String,
     },
+    ReasoningSummaryDelta {
+        text: String,
+    },
     Delta {
         text: String,
     },

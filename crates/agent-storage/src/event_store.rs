@@ -37,6 +37,8 @@ pub struct StoredEvent {
 pub trait EventStore {
     fn append(&mut self, event: RuntimeEvent) -> Result<StoredEvent, StorageError>;
 
+    fn list_conversation_ids(&self) -> Result<Vec<ConversationId>, StorageError>;
+
     fn list_by_conversation(
         &self,
         conversation_id: ConversationId,

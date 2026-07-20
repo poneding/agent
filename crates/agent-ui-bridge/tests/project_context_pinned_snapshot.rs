@@ -1,3 +1,4 @@
+use agent_ui_bridge::UiProjectContextDetail;
 use agent_core::{
     ContextBudget, ContextCandidate, ContextRetrievalDiagnostic,
     ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery, ContextRetrievalReport,
@@ -186,7 +187,7 @@ fn project_context_pinned_snapshot_serializes_stable_safe_shape() {
 fn project_context_pinned_snapshot_json_frame_is_single_line() {
     let snapshot = UiProjectContextPinnedRetrievalSnapshot::from_retrieval_report(&report())
         .expect("snapshot");
-    let line = encode_json_frame(&UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(
+    let line = encode_json_frame(&UiJsonFrame::project_context_pinned(
         snapshot,
     ))
     .expect("encode");
@@ -196,7 +197,7 @@ fn project_context_pinned_snapshot_json_frame_is_single_line() {
     let frame = serde_json::from_str::<UiJsonFrame>(line.trim_end()).expect("parse frame");
     assert!(matches!(
         frame,
-        UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(_)
+        UiJsonFrame::ProjectContextDetail(UiProjectContextDetail::Pinned(_))
     ));
 }
 

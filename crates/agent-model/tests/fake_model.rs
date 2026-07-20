@@ -1,6 +1,6 @@
 use agent_model::{
-    FakeModelProvider, FakeModelScript, ModelProvider, ModelRequest, ModelStreamEvent,
-    collect_model_event_stream,
+    FakeModelProvider, FakeModelScript, ModelMessage, ModelProvider, ModelRequest,
+    ModelStreamEvent, collect_model_event_stream,
 };
 use agent_types::{ConversationId, CorrelationId, TurnId};
 
@@ -11,7 +11,9 @@ fn model_request() -> ModelRequest {
         conversation_id: ConversationId::new(),
         turn_id: TurnId::new(),
         correlation_id: CorrelationId::new(),
-        messages: vec!["hello".to_string()],
+        messages: vec![ModelMessage::user("hello")],
+        reasoning_effort: None,
+        tools: Vec::new(),
     }
 }
 
@@ -102,7 +104,9 @@ fn model_request_preserves_metadata() {
         conversation_id,
         turn_id,
         correlation_id,
-        messages: vec!["first".to_string(), "second".to_string()],
+        messages: vec![ModelMessage::system("first"), ModelMessage::user("second")],
+        reasoning_effort: None,
+        tools: Vec::new(),
     };
 
     assert_eq!(request.provider, "fake");
@@ -110,5 +114,8 @@ fn model_request_preserves_metadata() {
     assert_eq!(request.conversation_id, conversation_id);
     assert_eq!(request.turn_id, turn_id);
     assert_eq!(request.correlation_id, correlation_id);
-    assert_eq!(request.messages, vec!["first", "second"]);
+    assert_eq!(
+        request.messages,
+        vec![ModelMessage::system("first"), ModelMessage::user("second")]
+    );
 }

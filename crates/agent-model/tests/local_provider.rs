@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use agent_model::{
     FixtureLocalTransport, LocalError, LocalHttpResponse, LocalProvider, ModelEndpointConfig,
-    ModelError, ModelProvider, ModelProviderConfig, ModelProviderKind, ModelRequest,
-    ModelStreamEvent, build_local_request_body, collect_model_event_stream, local_chat_url,
-    parse_local_jsonl,
+    ModelError, ModelMessage, ModelProvider, ModelProviderConfig, ModelProviderKind, ModelRequest,
+    ModelStreamEvent, ModelToolDefinition, build_local_request_body, collect_model_event_stream,
+    local_chat_url, parse_local_jsonl,
 };
-use agent_types::{ConversationId, CorrelationId, TurnId};
+use agent_types::{ConversationId, CorrelationId, ReasoningEffort, TurnId};
 use serde_json::json;
 
 fn model_request() -> ModelRequest {
@@ -16,8 +16,38 @@ fn model_request() -> ModelRequest {
         conversation_id: ConversationId::new(),
         turn_id: TurnId::new(),
         correlation_id: CorrelationId::new(),
-        messages: vec!["hello".to_string(), "summarize this".to_string()],
+        messages: vec![
+            ModelMessage::system("follow project instructions"),
+            ModelMessage::user("summarize this"),
+        ],
+        reasoning_effort: None,
+        tools: Vec::new(),
     }
+}
+
+fn tool_request() -> ModelRequest {
+    let mut request = model_request();
+    request.messages.extend([
+        ModelMessage::assistant_tool_call(
+            "call-1",
+            "workspace.read_file",
+            json!({ "path": "README.md" }),
+        ),
+        ModelMessage::tool_result("call-1", "workspace.read_file", "hello from tool"),
+    ]);
+    request.tools = vec![ModelToolDefinition {
+        name: "workspace.read_file".to_string(),
+        description: "Read a workspace file".to_string(),
+        input_schema: json!({
+            "type": "object",
+            "required": ["path"],
+            "properties": {
+                "path": { "type": "string" }
+            },
+            "additionalProperties": false
+        }),
+    }];
+    request
 }
 
 fn provider_config(base_url: Option<&str>) -> ModelProviderConfig {
@@ -40,11 +70,50 @@ fn local_provider_request_builder_emits_chat_payload() {
         json!({
             "model": "llama3.1",
             "messages": [
-                { "role": "user", "content": "hello" },
+                { "role": "system", "content": "follow project instructions" },
                 { "role": "user", "content": "summarize this" }
             ],
             "stream": true
         })
+    );
+}
+
+#[test]
+fn local_provider_request_builder_ignores_unsupported_reasoning_effort() {
+    let mut request = model_request();
+    request.reasoning_effort = Some(ReasoningEffort::High);
+
+    let body = build_local_request_body(&request);
+
+    assert!(body.get("reasoning_effort").is_none());
+    assert!(body.get("think").is_none());
+}
+
+#[test]
+fn local_provider_request_builder_emits_tools_payload() {
+    let body = build_local_request_body(&tool_request());
+
+    assert_eq!(body["messages"][2]["role"], "assistant");
+    assert_eq!(body["messages"][3]["role"], "tool");
+    assert_eq!(
+        body["tools"],
+        json!([
+            {
+                "type": "function",
+                "function": {
+                    "name": "workspace.read_file",
+                    "description": "Read a workspace file",
+                    "parameters": {
+                        "type": "object",
+                        "required": ["path"],
+                        "properties": {
+                            "path": { "type": "string" }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            }
+        ])
     );
 }
 

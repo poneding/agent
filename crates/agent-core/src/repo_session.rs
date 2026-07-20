@@ -249,6 +249,7 @@ fn built_in_runtime_config() -> Result<AgentRuntimeConfig, AgentConfigError> {
             catalog,
             invocation_policy,
         },
+        terminal: Default::default(),
     })
 }
 
@@ -521,9 +522,19 @@ fn safe_config_error(error: AgentConfigError) -> RepoSessionDiagnostic {
             "config file could not be read",
             false,
         ),
+        AgentConfigError::FileWrite { .. } => RepoSessionDiagnostic::error(
+            "repo_session.config.write_failed",
+            "config file could not be written",
+            false,
+        ),
         AgentConfigError::Parse { .. } => RepoSessionDiagnostic::error(
             "repo_session.config.parse_failed",
             "config file could not be parsed",
+            false,
+        ),
+        AgentConfigError::Serialize { .. } => RepoSessionDiagnostic::error(
+            "repo_session.config.serialize_failed",
+            "config file could not be serialized",
             false,
         ),
         AgentConfigError::UnsupportedSchemaVersion { found, supported } => {

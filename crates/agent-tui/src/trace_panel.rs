@@ -63,87 +63,26 @@ impl TracePanelState {
         }
     }
 
-    pub fn reduce_frame(&mut self, frame: &UiJsonFrame) {
+        pub fn reduce_frame(&mut self, frame: &UiJsonFrame) {
         match frame {
             UiJsonFrame::Event(event) => self.reduce_event_payload(&event.payload),
-            UiJsonFrame::ConfigDiagnostic {
-                severity,
-                code,
-                message,
-                ..
-            } => self.push(TracePanelEntry::new(
-                TraceEntryKind::Diagnostic,
-                code,
-                format!("{severity}: {message}"),
-            )),
-            UiJsonFrame::Error {
-                code,
-                message,
-                recoverable,
-            } => self.push(TracePanelEntry::new(
-                TraceEntryKind::Diagnostic,
-                code,
-                format!(
-                    "{} ({})",
-                    message,
-                    if *recoverable {
-                        "recoverable"
-                    } else {
-                        "terminal"
-                    }
-                ),
-            )),
-            UiJsonFrame::ModelSelection { provider, model } => {
-                self.push(TracePanelEntry::new(
-                    TraceEntryKind::Runtime,
-                    "model",
-                    format!("{provider}/{model}"),
-                ));
-            }
-            UiJsonFrame::ConfigSummary {
-                selected_provider,
-                selected_model,
-                ..
-            } => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "config",
-                format!("{selected_provider}/{selected_model}"),
-            )),
             UiJsonFrame::ConfigSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "config",
-                format!("{}/{}", snapshot.selected_provider, snapshot.selected_model),
-            )),
-            UiJsonFrame::RepoSessionSnapshot(snapshot) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "repo-session",
                 format!(
-                    "{} git={} provider={}/{} diagnostics={}",
-                    snapshot.workspace_root_display,
-                    snapshot.git_state,
-                    snapshot.selected_provider,
-                    snapshot.selected_model,
-                    snapshot.diagnostic_count
+                    "{}/{}",
+                    snapshot.selected_provider, snapshot.selected_model
                 ),
             )),
             UiJsonFrame::TerminalSessionSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "terminal-sessions",
-                format!(
-                    "{} sessions diagnostics={}",
-                    snapshot.sessions.len(),
-                    snapshot.diagnostics.len()
-                ),
+                format!("{} sessions", snapshot.sessions.len()),
             )),
             UiJsonFrame::ApprovalQueueSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "approvals",
-                format!(
-                    "{} pending groups={} diagnostics={}",
-                    snapshot.pending_count,
-                    snapshot.groups.len(),
-                    snapshot.diagnostic_count
-                ),
+                format!("{} pending", snapshot.pending_count),
             )),
             UiJsonFrame::SlashCommandCatalogSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
@@ -153,336 +92,75 @@ impl TracePanelState {
             UiJsonFrame::TerminalStatusSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "status",
-                format!(
-                    "{}/{} workspace={} mode={} connection={} panel={}",
-                    snapshot.provider,
-                    snapshot.model,
-                    snapshot.workspace,
-                    snapshot.mode,
-                    snapshot.connection,
-                    snapshot.focused_panel
-                ),
+                format!("{}/{}", snapshot.provider, snapshot.model),
             )),
             UiJsonFrame::EditDiffSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "edit-diff",
-                format!(
-                    "{} state={} +{} -{} files={}",
-                    snapshot.path,
-                    snapshot.diff_state,
-                    snapshot.added_line_count,
-                    snapshot.removed_line_count,
-                    snapshot.changed_file_count
-                ),
+                snapshot.path.clone(),
             )),
-            UiJsonFrame::CommandTestSnapshot(snapshot) => self.push(TracePanelEntry::new(
+            UiJsonFrame::ModelSelection { provider, model } => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
-                "command-test",
-                format!(
-                    "{} status={} classification={} exit={}",
-                    snapshot.command,
-                    snapshot.status,
-                    snapshot.classification,
-                    snapshot
-                        .exit_code
-                        .map_or_else(|| "none".to_string(), |code| code.to_string())
-                ),
+                "model",
+                format!("{provider}/{model}"),
             )),
-            UiJsonFrame::FinalReviewSnapshot(snapshot) => self.push(TracePanelEntry::new(
+            UiJsonFrame::ModelInvocationAttempts(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
-                "final-review",
-                format!(
-                    "files={} commands={} risks={} next={} replay={}",
-                    snapshot.changed_files.len(),
-                    snapshot.command_results.len(),
-                    snapshot.unresolved_risks.len(),
-                    snapshot.next_actions.len(),
-                    snapshot.replay_reconstructed
-                ),
+                "model-attempts",
+                snapshot.status.clone(),
             )),
-            UiJsonFrame::PromptSummary(summary) => self.push(TracePanelEntry::new(
+            UiJsonFrame::ConfigSummary {
+                selected_provider,
+                selected_model,
+                ..
+            } => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
-                "prompt",
-                format!(
-                    "{} v{} ({} messages)",
-                    summary.display_name, summary.profile_version, summary.message_count
-                ),
+                "config",
+                format!("{selected_provider}/{selected_model}"),
+            )),
+            UiJsonFrame::ConfigDiagnostic {
+                severity,
+                code,
+                message,
+                ..
+            } => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "config-diagnostic",
+                format!("{severity} {code}: {message}"),
+            )),
+            UiJsonFrame::PlanTodoSnapshot(snapshot) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "plan",
+                format!("{} items", snapshot.snapshot.items.len()),
             )),
             UiJsonFrame::ProjectContextSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "project-context",
-                format!(
-                    "{} files={} dirs={} omitted={} diagnostics={}",
-                    snapshot.workspace_root_display,
-                    snapshot.file_count,
-                    snapshot.directory_count,
-                    snapshot.omitted_count,
-                    snapshot.diagnostic_count
-                ),
+                snapshot.workspace_root_display.clone(),
             )),
-            UiJsonFrame::ProjectContextRetrievalSnapshot(snapshot) => {
-                self.push(TracePanelEntry::new(
-                    TraceEntryKind::Runtime,
-                    "project-context-retrieval",
-                    format!(
-                        "{} selected={} omitted={} diagnostics={} tokens={}/{}",
-                        snapshot.workspace_root_display,
-                        snapshot.selected_count,
-                        snapshot.omitted_count,
-                        snapshot.diagnostic_count,
-                        snapshot.used_tokens,
-                        snapshot.budget_tokens
-                    ),
-                ));
-            }
-            UiJsonFrame::ProjectContextHybridRetrievalSnapshot(snapshot) => {
-                self.push(TracePanelEntry::new(
-                    TraceEntryKind::Runtime,
-                    "project-context-hybrid-retrieval",
-                    format!(
-                        "{} semantic={} provider={} selected={} omitted={} diagnostics={} tokens={}/{}",
-                        snapshot.workspace_root_display,
-                        snapshot.semantic.status,
-                        snapshot.semantic.provider_id.as_deref().unwrap_or("none"),
-                        snapshot.selected_count,
-                        snapshot.omitted_count,
-                        snapshot.diagnostic_count,
-                        snapshot.used_tokens,
-                        snapshot.budget_tokens
-                    ),
-                ));
-            }
-            UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(snapshot) => {
-                self.push(TracePanelEntry::new(
-                    TraceEntryKind::Runtime,
-                    "project-context-pinned-retrieval",
-                    format!(
-                        "{} kind={} pins={} omitted={} retrieval={} diagnostics={} tokens={}/{}",
-                        snapshot.workspace_root_display,
-                        snapshot.retrieval_kind,
-                        snapshot.included_count,
-                        snapshot.omitted_count,
-                        if snapshot.retrieval_included {
-                            "included"
-                        } else {
-                            "omitted"
-                        },
-                        snapshot.diagnostic_count,
-                        snapshot.used_tokens,
-                        snapshot.available_tokens
-                    ),
-                ));
-            }
-            UiJsonFrame::ProjectContextQualityTraceSnapshot(snapshot) => {
-                self.push(TracePanelEntry::new(
-                    TraceEntryKind::Runtime,
-                    "project-context-quality",
-                    format!(
-                        "{} kind={} pressure={} selected={} omitted={} pins={}/{} diagnostics={} tokens={}/{}",
-                        snapshot.workspace_root_display,
-                        snapshot.retrieval_kind,
-                        snapshot.budget_pressure,
-                        snapshot.selected_count,
-                        snapshot.omitted_count,
-                        snapshot.pinned_included_count,
-                        snapshot.pinned_omitted_count,
-                        snapshot.diagnostic_count,
-                        snapshot.used_tokens,
-                        snapshot.available_tokens
-                    ),
-                ));
-            }
-            UiJsonFrame::ExtensionSnapshot(snapshot) => self.push(TracePanelEntry::new(
+            UiJsonFrame::ProjectContextDetail(detail) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
-                "extensions",
-                format!(
-                    "{} installed, {} reviews",
-                    snapshot.extensions.len(),
-                    snapshot.capability_reviews.len()
-                ),
-            )),
-            UiJsonFrame::PlanTodoSnapshot(snapshot) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "plan-todo",
-                format!(
-                    "{} todos, {} in_progress, {} errors, revision {}",
-                    snapshot.progress.total,
-                    snapshot.progress.in_progress,
-                    snapshot.errors.len(),
-                    snapshot.snapshot.revision
-                ),
-            )),
-            UiJsonFrame::RecoverySnapshot(snapshot) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "recovery",
-                format!(
-                    "{} readiness={:?} replay={} pending_tools={} effects={} approvals={} diagnostics={}",
-                    snapshot.snapshot.conversation_id,
-                    snapshot.snapshot.readiness,
-                    snapshot.snapshot.replay.replayed_event_count,
-                    snapshot.snapshot.pending_tool_calls.len(),
-                    snapshot.snapshot.idempotent_effects.len(),
-                    snapshot.snapshot.pending_approvals.len(),
-                    snapshot.snapshot.diagnostics.len()
-                ),
-            )),
-            UiJsonFrame::ResumeDryRun(report) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "recovery-resume",
-                format!(
-                    "{} blocked={} replay={} pending_tools={} effects={}",
-                    report.report.snapshot.conversation_id,
-                    report.report.blocked,
-                    report.report.will_replay_event_count,
-                    report.report.will_resume_pending_tool_count,
-                    report.report.will_reuse_idempotent_effect_count
-                ),
-            )),
-            UiJsonFrame::IdempotentRecovery(summary) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "idempotent-recovery",
-                format!(
-                    "reusable={} pending={} conflicts={} effects={} diagnostics={}",
-                    summary.summary.reusable_effect_count,
-                    summary.summary.pending_tool_count,
-                    summary.summary.conflict_count,
-                    summary.summary.effects.len(),
-                    summary.summary.diagnostics.len()
-                ),
-            )),
-            UiJsonFrame::ReplayInspect(report) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "replay-inspect",
-                format!(
-                    "{} replay_from={} replayed={} diagnostics={}",
-                    report.conversation_id,
-                    report.replay_from,
-                    report.replayed_event_count,
-                    report.diagnostics.len()
-                ),
-            )),
-            UiJsonFrame::ReplayFork(report) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "replay-fork",
-                format!(
-                    "{} label={} replay_from={} dry_run={} diagnostics={}",
-                    report.conversation_id,
-                    report.fork_label,
-                    report.replay_from,
-                    report.dry_run,
-                    report.diagnostics.len()
-                ),
-            )),
-            UiJsonFrame::CommandRetryPlan(plan) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "command-retry",
-                format!(
-                    "{} readiness={:?} classification={:?} dry_run={} diagnostics={}",
-                    plan.plan.command_run_id,
-                    plan.plan.readiness,
-                    plan.plan.classification,
-                    plan.plan.dry_run,
-                    plan.plan.diagnostics.len()
-                ),
-            )),
-            UiJsonFrame::ConflictInspect(report) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "conflicts",
-                format!(
-                    "{} conflicts diagnostics={}",
-                    report.conflicts.len(),
-                    report.diagnostics.len()
-                ),
-            )),
-            UiJsonFrame::TeamWorkflowSnapshot(snapshot) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "team-workflow",
-                format!(
-                    "{} status={:?} readiness={:?} dry_run={} handoffs={} conflicts={} errors={}",
-                    snapshot.operation,
-                    snapshot.snapshot.status,
-                    snapshot.snapshot.readiness,
-                    snapshot.dry_run,
-                    snapshot.snapshot.handoffs.len(),
-                    snapshot.snapshot.conflicts.len(),
-                    snapshot.errors.len()
-                ),
-            )),
-            UiJsonFrame::MemorySnapshot(snapshot) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "memory",
-                format!(
-                    "enabled={} records={} proposals={} selected={} rejected={} diagnostics={}",
-                    snapshot.enabled,
-                    snapshot.record_count,
-                    snapshot.proposal_count,
-                    snapshot.selected_count,
-                    snapshot.rejected_count,
-                    snapshot.diagnostics.len()
-                ),
-            )),
-            UiJsonFrame::TaskSnapshot(snapshot) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "tasks",
-                format!(
-                    "{} tasks, {} errors",
-                    snapshot.tasks.len(),
-                    snapshot.errors.len()
-                ),
-            )),
-            UiJsonFrame::TaskReviewSnapshot(snapshot) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "task-reviews",
-                format!(
-                    "{} reviews, {} errors",
-                    snapshot.reviews.len(),
-                    snapshot.errors.len()
-                ),
-            )),
-            UiJsonFrame::StartupMigrationSnapshot(snapshot) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "startup",
-                format!(
-                    "runtime_allowed={} steps={} applied={} diagnostics={}",
-                    snapshot.runtime_allowed,
-                    snapshot.step_count,
-                    snapshot.applied_count,
-                    snapshot.diagnostic_count
-                ),
-            )),
-            UiJsonFrame::OnboardingReadinessSnapshot(snapshot) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "onboarding",
-                format!(
-                    "status={} provider={}/{} secrets={} migration={} diagnostics={}",
-                    snapshot.status,
-                    snapshot.selected_provider,
-                    snapshot.selected_model,
-                    snapshot.secret_store_available,
-                    snapshot.migration_runtime_allowed,
-                    snapshot.diagnostics.len()
-                ),
-            )),
-            UiJsonFrame::ObservabilitySnapshot(snapshot) => self.push(TracePanelEntry::new(
-                TraceEntryKind::Runtime,
-                "observability",
-                format!(
-                    "events={} trace={} audit={} telemetry={} replayable={} diagnostics={}",
-                    snapshot.event_count,
-                    snapshot.trace_count,
-                    snapshot.audit_count,
-                    snapshot.telemetry_count,
-                    snapshot.replayable,
-                    snapshot.diagnostics.len()
-                ),
+                "project-context-detail",
+                detail.kind_label().to_string(),
             )),
             UiJsonFrame::Done { event_count } => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "done",
                 format!("{event_count} events"),
             )),
+            UiJsonFrame::Error { code, message, .. } => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                code.clone(),
+                message.clone(),
+            )),
+            UiJsonFrame::Admin(admin) => self.push(TracePanelEntry::new(
+                TraceEntryKind::Runtime,
+                "admin",
+                admin.kind.clone(),
+            )),
         }
     }
+
 
     #[must_use]
     pub fn visible_entries(&self) -> Vec<&TracePanelEntry> {
@@ -518,7 +196,7 @@ impl TracePanelState {
                 "turn",
                 format!("{state:?}: {reason}"),
             )),
-            UiEventPayload::ToolCall { call_id, tool_name } => self.push(TracePanelEntry::new(
+            UiEventPayload::ToolCall { call_id, tool_name, .. } => self.push(TracePanelEntry::new(
                 TraceEntryKind::Tool,
                 "tool call",
                 format!("{tool_name} ({call_id})"),
@@ -527,6 +205,7 @@ impl TracePanelState {
                 call_id,
                 ok,
                 summary,
+                ..
             } => self.push(TracePanelEntry::new(
                 TraceEntryKind::Tool,
                 "tool result",

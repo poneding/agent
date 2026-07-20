@@ -76,6 +76,7 @@ fn tool_completed_event(
         RuntimeEventPayload::ToolExecutionCompleted(ToolExecutionCompleted {
             call_id: call_id.to_string(),
             output_json: json!({ "raw": "must-not-appear" }),
+            elapsed_ms: None,
         }),
     )
 }

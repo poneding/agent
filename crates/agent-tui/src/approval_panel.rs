@@ -15,9 +15,18 @@ const TUI_ALLOW_REASON: &str = "approved from TUI";
 pub struct ApprovalPanelState {
     pub pending: Vec<UiApprovalRequest>,
     pub groups: Vec<UiApprovalQueueGroup>,
+    pub recent_resolutions: Vec<ApprovalResolutionRecord>,
     pub expired_count: u32,
     pub diagnostic_count: u32,
     pub focused_index: Option<usize>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ApprovalResolutionRecord {
+    pub request_id: String,
+    pub status: String,
+    pub decision: Option<String>,
+    pub reason: Option<String>,
 }
 
 impl ApprovalPanelState {
@@ -28,8 +37,19 @@ impl ApprovalPanelState {
                 UiEventPayload::ApprovalRequested(request) => {
                     self.upsert_pending((**request).clone());
                 }
-                UiEventPayload::ApprovalResolved { request_id, .. } => {
-                    self.remove_pending(request_id)
+                UiEventPayload::ApprovalResolved {
+                    request_id,
+                    status,
+                    decision,
+                    reason,
+                } => {
+                    self.record_resolution(
+                        request_id.clone(),
+                        status.clone(),
+                        decision.clone(),
+                        reason.clone(),
+                    );
+                    self.remove_pending(request_id);
                 }
                 _ => {}
             },
@@ -47,7 +67,11 @@ impl ApprovalPanelState {
                 self.focus_previous();
                 TuiEffect::None
             }
-            ApprovalPanelAction::Allow => self.resolve_focused(
+            // `Allow` and `AllowAlways` both resolve the focused request as an
+            // allow here; `AllowAlways` additionally records a session rule, which
+            // is handled one level up in `TuiApp::handle_approval_action` before it
+            // forwards the allow. The arm is kept for exhaustiveness/defensive use.
+            ApprovalPanelAction::Allow | ApprovalPanelAction::AllowAlways => self.resolve_focused(
                 UiApprovalDecision::Allow,
                 TUI_ALLOW_REASON.to_string(),
                 self.focused_request()
@@ -56,14 +80,14 @@ impl ApprovalPanelState {
             ApprovalPanelAction::Deny { reason } => {
                 let reason = reason.trim();
                 if reason.is_empty() {
-                    TuiEffect::LocalDiagnostic("deny requires a reason".to_string())
+                    TuiEffect::LocalDiagnostic { message: "deny requires a reason".to_string(), severity: crate::LocalDiagnosticSeverity::Note }
                 } else {
                     self.resolve_focused(UiApprovalDecision::Deny, reason.to_string(), None)
                 }
             }
             ApprovalPanelAction::Abort => match self.focused_request() {
                 Some(request) => TuiEffect::ApprovalAborted(request.request_id.clone()),
-                None => TuiEffect::LocalDiagnostic("no approval is focused".to_string()),
+                None => TuiEffect::LocalDiagnostic { message: "no approval is focused".to_string(), severity: crate::LocalDiagnosticSeverity::Note },
             },
         }
     }
@@ -83,8 +107,10 @@ impl ApprovalPanelState {
         let mut lines = Vec::new();
         if self.pending.is_empty() {
             lines.push("Approval queue: empty".to_string());
+            lines.push("Controls disabled: no pending approval".to_string());
         } else {
             lines.push(format!("Approval queue: {} pending", self.pending.len()));
+            lines.push("Controls: Enter/a allow, d deny, Esc abort, Tab focus".to_string());
         }
         if self.expired_count > 0 {
             lines.push(format!("Expired: {}", self.expired_count));
@@ -95,6 +121,22 @@ impl ApprovalPanelState {
                 group.resource_kind, group.action, group.status, group.count
             ));
         }
+        if !self.recent_resolutions.is_empty() {
+            lines.push("Recent decisions:".to_string());
+            lines.push("Resolved approvals are read-only".to_string());
+            for record in &self.recent_resolutions {
+                let decision = record.decision.as_deref().unwrap_or("no_decision");
+                let reason = record
+                    .reason
+                    .as_ref()
+                    .map(|reason| format!(": {reason}"))
+                    .unwrap_or_default();
+                lines.push(format!(
+                    "{} {} {}{}",
+                    record.request_id, record.status, decision, reason
+                ));
+            }
+        }
 
         let Some(request) = self.focused_request() else {
             return lines.join("\n");
@@ -103,6 +145,9 @@ impl ApprovalPanelState {
         let focus = self.focused_index.unwrap_or(0) + 1;
         lines.push(format!("focus {focus}/{}", self.pending.len()));
         lines.push(format!("{} {}", request.action, request.resource_kind));
+        if request.status != "pending" {
+            lines.push(format!("Controls disabled: status={}", request.status));
+        }
         lines.push(request.resource.clone());
         lines.push(request.reason.clone());
         lines.push(request.preview.summary.clone());
@@ -153,6 +198,27 @@ impl ApprovalPanelState {
             .retain(|request| request.request_id != request_id);
         self.refresh_snapshot(focused_request_id);
         self.clamp_focus();
+    }
+
+    fn record_resolution(
+        &mut self,
+        request_id: String,
+        status: String,
+        decision: Option<String>,
+        reason: Option<String>,
+    ) {
+        self.recent_resolutions
+            .retain(|record| record.request_id != request_id);
+        self.recent_resolutions.insert(
+            0,
+            ApprovalResolutionRecord {
+                request_id,
+                status,
+                decision,
+                reason,
+            },
+        );
+        self.recent_resolutions.truncate(5);
     }
 
     fn refresh_snapshot(&mut self, focused_request_id: Option<String>) {
@@ -219,13 +285,15 @@ impl ApprovalPanelState {
         lease_duration_seconds: Option<u64>,
     ) -> TuiEffect {
         let Some(request) = self.focused_request() else {
-            return TuiEffect::LocalDiagnostic("no approval is focused".to_string());
+            return TuiEffect::LocalDiagnostic { message: "no approval is focused".to_string(), severity: crate::LocalDiagnosticSeverity::Note };
         };
+        if request.status != "pending" {
+            return TuiEffect::LocalDiagnostic { message: format!("approval is not pending: {}", request.status
+            ), severity: crate::LocalDiagnosticSeverity::Note };
+        }
         let Ok(request_id) = ApprovalRequestId::from_str(&request.request_id) else {
-            return TuiEffect::LocalDiagnostic(format!(
-                "invalid approval request id: {}",
-                request.request_id
-            ));
+            return TuiEffect::LocalDiagnostic { message: format!("invalid approval request id: {}", request.request_id
+            ), severity: crate::LocalDiagnosticSeverity::Note };
         };
 
         TuiEffect::ResolveApproval {
@@ -251,7 +319,11 @@ impl ApprovalPanelState {
 pub enum ApprovalPanelAction {
     FocusNext,
     FocusPrevious,
+    /// Allow the focused request once (this action only).
     Allow,
+    /// Allow the focused request and record a session-scoped allow-always rule so
+    /// matching future requests (same tool + resource prefix) auto-approve.
+    AllowAlways,
     Deny { reason: String },
     Abort,
 }

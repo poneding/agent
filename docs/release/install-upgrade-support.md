@@ -46,8 +46,8 @@ The default dev-channel path may produce a plan-equivalent artifact instead of a
 Run config diagnostics before using a release artifact against real work:
 
 ```bash
-agent --config-check --config path/to/agent.toml
-agent --json --config-check --config path/to/agent.toml
+agent --config-check --config path/to/config.yaml
+agent --json --config-check --config path/to/config.yaml
 ```
 
 JSON mode emits an onboarding readiness snapshot with:
@@ -75,11 +75,11 @@ Provider setup is validated before release evidence or support artifacts should 
 
 - provider id and model id must be valid
 - selected provider must be enabled
-- remote providers must use secret references, not raw secret values
+- remote providers may use direct `apiKey` values in local `config.yaml`, or secret references for advanced setups
 - capability mismatches are reported before a coding-agent turn depends on them
 - missing credentials should fail before network access
 
-Use env or keychain-backed secret references according to the configured provider. Do not paste raw API keys into support reports or release docs.
+Do not paste raw API keys into support reports, issue text, or release docs. Config diagnostics and support bundles must redact direct `apiKey` values and secret references.
 
 ## Support Bundle
 

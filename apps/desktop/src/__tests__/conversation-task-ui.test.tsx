@@ -10,11 +10,13 @@ import { TranscriptView } from '../components/TranscriptView';
 import {
   createConversationTaskState,
   createStartTurnEnvelope,
+  createSwitchSessionEnvelope,
   recordTurnSubmission,
   reduceBridgeError,
   reduceCommandAck,
   reduceConversationTaskFrames,
   reduceConversationTaskState,
+  selectConversation,
 } from '../state/conversation';
 import type { DesktopWorkspaceSnapshot, UiJsonFrame } from '../types';
 
@@ -26,6 +28,12 @@ const snapshot: DesktopWorkspaceSnapshot = {
       conversation_id: 'conversation-1',
       title: 'Main thread',
       last_activity_at: '2026-06-27T00:00:00Z',
+      unread_count: 0,
+    },
+    {
+      conversation_id: 'conversation-2',
+      title: 'New session',
+      last_activity_at: '2026-06-26T00:00:00Z',
       unread_count: 0,
     },
   ],
@@ -42,14 +50,18 @@ const snapshot: DesktopWorkspaceSnapshot = {
 };
 
 function eventFrame(payload: unknown): UiJsonFrame {
+  return eventFrameFor('conversation-1', payload);
+}
+
+function eventFrameFor(conversationId: string, payload: unknown): UiJsonFrame {
   return {
     type: 'event',
     data: {
       schema_version: 1,
-      event_id: 'event-1',
+      event_id: `event-${conversationId}`,
       seq: null,
       occurred_at: '2026-06-27T00:00:00Z',
-      conversation_id: 'conversation-1',
+      conversation_id: conversationId,
       turn_id: null,
       task_id: null,
       correlation_id: 'correlation-1',
@@ -100,6 +112,58 @@ describe('conversation task UI state', () => {
 
     expect(state.transcript.map((entry) => entry.content)).toEqual(['hello', 'hi']);
     expect(state.tasks.map((task) => task.task_id)).toContain('task-2');
+  });
+
+  it('keeps transcript history and generated titles scoped by conversation', () => {
+    let state = createConversationTaskState(snapshot);
+    state = reduceConversationTaskState(
+      state,
+      eventFrameFor('conversation-1', {
+        type: 'user_message',
+        data: { message: 'message in the main thread' },
+      }),
+    );
+    state = reduceConversationTaskState(
+      state,
+      eventFrameFor('conversation-2', {
+        type: 'user_message',
+        data: { message: 'Investigate session switching. Later details' },
+      }),
+    );
+
+    expect(state.transcript.map((entry) => entry.content)).toEqual([
+      'message in the main thread',
+    ]);
+    expect(
+      state.conversations.find(
+        (conversation) => conversation.conversation_id === 'conversation-2',
+      )?.title,
+    ).toBe('Investigate session switching');
+
+    state = selectConversation(state, 'conversation-2');
+    expect(state.transcript.map((entry) => entry.content)).toEqual([
+      'Investigate session switching. Later details',
+    ]);
+    state = selectConversation(state, 'conversation-1');
+    expect(state.transcript.map((entry) => entry.content)).toEqual([
+      'message in the main thread',
+    ]);
+  });
+
+  it('builds a typed switch-session command', () => {
+    const envelope = createSwitchSessionEnvelope({
+      workspaceId: 'workspace-1',
+      conversationId: 'conversation-2',
+      clientVersion: '0.1.0',
+    });
+
+    expect(envelope.command).toEqual({
+      type: 'switch_session',
+      data: {
+        workspace_id: 'workspace-1',
+        conversation_id: 'conversation-2',
+      },
+    });
   });
 
   it('reduces plan todo snapshots into matching tasks', () => {

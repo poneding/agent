@@ -2,8 +2,8 @@ use async_trait::async_trait;
 use futures_util::stream;
 
 use agent_model::{
-    FakeModelProvider, FakeModelScript, ModelError, ModelEventStream, ModelProvider, ModelRequest,
-    ModelStreamEvent, collect_model_event_stream,
+    FakeModelProvider, FakeModelScript, ModelError, ModelEventStream, ModelMessage, ModelProvider,
+    ModelRequest, ModelStreamEvent, collect_model_event_stream,
 };
 use agent_types::{ConversationId, CorrelationId, TurnId};
 
@@ -14,7 +14,9 @@ fn model_request() -> ModelRequest {
         conversation_id: ConversationId::new(),
         turn_id: TurnId::new(),
         correlation_id: CorrelationId::new(),
-        messages: vec!["hello".to_string()],
+        messages: vec![ModelMessage::user("hello")],
+        reasoning_effort: None,
+        tools: Vec::new(),
     }
 }
 
@@ -40,6 +42,28 @@ async fn model_event_stream_collects_fake_events_in_order() {
             },
         ]
     );
+}
+
+#[tokio::test]
+async fn model_event_stream_collects_reasoning_summary_events() {
+    let stream = Box::pin(stream::iter(vec![
+        Ok(ModelStreamEvent::Started {
+            request_id: "request-1".to_string(),
+        }),
+        Ok(ModelStreamEvent::ReasoningSummaryDelta {
+            text: "checking fixture".to_string(),
+        }),
+        Ok(ModelStreamEvent::Delta {
+            text: "answer".to_string(),
+        }),
+    ]));
+
+    let events = collect_model_event_stream(stream).await.expect("collect");
+
+    assert!(matches!(
+        &events[1],
+        ModelStreamEvent::ReasoningSummaryDelta { text } if text == "checking fixture"
+    ));
 }
 
 #[derive(Debug)]

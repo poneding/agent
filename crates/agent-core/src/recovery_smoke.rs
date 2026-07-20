@@ -268,8 +268,17 @@ fn failed_command_report(
     CommandTestLoopReport {
         workspace_id,
         conversation_id,
+        command_run_id: "recovery-smoke-command-failed".to_string(),
         command: CommandIntentSummary {
             display: format!("cargo test recovery -- {SECRET_VALUE}"),
+            program: Some("cargo".to_string()),
+            args: vec![
+                "test".to_string(),
+                "recovery".to_string(),
+                "--".to_string(),
+                "[redacted]".to_string(),
+            ],
+            timeout_ms: 30_000,
             cwd: ".".to_string(),
             classify_as_test: true,
         },

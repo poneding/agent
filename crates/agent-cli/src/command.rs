@@ -1,8 +1,11 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::io::{self, BufRead, Write};
+use std::io::{self, BufRead, IsTerminal, Write};
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 
 use serde::Serialize;
 use thiserror::Error;
@@ -15,19 +18,23 @@ use agent_context::{
     PromptProfileId, PromptRuntime, PromptSnapshot,
 };
 use agent_core::{
-    AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, BoundedCommandOutput,
+    AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentLoopBudget, AgentLoopTerminalState,
+    AgentRuntimeConfig, ApprovalCoordinator, BoundedCommandOutput, CancellationToken,
     CommandCancellationState, CommandExecutionStatus, CommandFailureClassification,
-    CommandIntentSummary, CommandObservationSummary, CommandRetryPlanner,
-    CommandTestDiagnosticSeverity, CommandTestLoopError, CommandTestLoopInput,
-    CommandTestLoopReport, ConfigDiagnostic, ConfigDiagnosticSeverity, ConfigLayer,
-    ConfigLayerKind, ConfigOverride, ConfiguredTurnError, ConfiguredTurnInput,
-    ConfiguredTurnRunner, ConflictRecoveryMapper, ContextBudget, ContextRetrievalQuery,
-    ContextSemanticFallbackPolicy, ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode,
+    CommandIntentSummary, CommandObservationSummary, CommandRetryExecutionInput,
+    CommandRetryPlanner, CommandTestDiagnosticSeverity, CommandTestLoopError, CommandTestLoopInput,
+    CommandTestLoopReport, ComprehensiveApprovalContinuation, ComprehensiveTurnInput,
+    ComprehensiveTurnResources, ComprehensiveTurnRunner, ComprehensiveTurnStreamOptions,
+    ConfigDiagnostic, ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigOverride,
+    ConfiguredTurnError, ConfiguredTurnInput, ConfiguredTurnRunner, ConfiguredTurnStreamOptions,
+    ConflictRecoveryMapper, ContextBudget, ContextRetrievalQuery, ContextSemanticFallbackPolicy,
+    ContextSemanticRetrievalConfig, ContextSemanticRetrievalMode, ConversationCompactionInput,
     EditDiffDiagnosticSeverity, EditDiffFlowError, EditDiffFlowInput, EditDiffFlowReport,
     EffectiveRuntimeConfig, ExtensionCapabilityLease, ExtensionCapabilitySummary,
     ExtensionCompatibility, ExtensionHealth, ExtensionHealthStatus, ExtensionId, ExtensionKind,
     ExtensionPermissionSummary, ExtensionRecord, ExtensionRegistry, ExtensionRegistryError,
-    ExtensionSource, ExtensionSourceKind, OnboardingReadinessInput, OnboardingReadinessSnapshot,
+    ExtensionSource, ExtensionSourceKind, ModelInvocationAttempt, ModelRuntimeError,
+    ModelRuntimeResolver, OnboardingReadinessInput, OnboardingReadinessSnapshot,
     PinnedProjectContextBudgetReport, PinnedProjectContextPin, PinnedProjectContextRequest,
     PlanTodoOperation, PlanTodoUpdate, PlanTodoUpdateOutcome, PlatformPathOverrides, PlatformPaths,
     ProjectContextDiagnostic, ProjectContextDiagnosticSeverity,
@@ -40,16 +47,18 @@ use agent_core::{
     ProjectContextScanError, ProjectContextScanInput, ProjectContextScanReport,
     ProviderSupportReport, ProviderSupportRole, RecoveryEngine, RepoGitState,
     RepoSessionBootstrapError, RepoSessionBootstrapInput, RepoSessionBootstrapReport, RuntimeIds,
-    RuntimeModelConfig, SettingsError, SettingsProfile, StartupMigrationRunner,
-    TerminalSessionDirectoryReport, TerminalSessionRecord, TerminalSessionRestoreError,
-    TerminalSessionStatus, TerminalSessionSummary, apply_plan_todo_update, bootstrap_repo_session,
-    build_terminal_session_directory, coding_agent_model_requirements, replay_final_review,
+    RuntimeModelConfig, RuntimeTerminalTheme, SettingsError, SettingsProfile,
+    StartupMigrationRunner, TerminalSessionCatalog, TerminalSessionDirectoryReport,
+    TerminalSessionRecord, TerminalSessionRestoreError, TerminalSessionStatus,
+    TerminalSessionSummary, apply_plan_todo_update, bootstrap_repo_session,
+    build_terminal_session_directory, coding_agent_model_requirements, compact_conversation_events,
+    conversation_history_messages, replay_final_review, resolve_agent_config_path,
     retrieve_project_context, retrieve_project_context_hybrid,
     retrieve_project_context_hybrid_pinned, retrieve_project_context_hybrid_pinned_quality,
     retrieve_project_context_hybrid_quality, retrieve_project_context_pinned,
     retrieve_project_context_pinned_quality, retrieve_project_context_quality,
     run_command_test_loop, run_edit_diff_flow, scan_project_context,
-    validate_terminal_session_restore,
+    validate_terminal_session_restore, write_agent_config_terminal_theme_atomic,
 };
 use agent_eval::{
     EvalArtifactOptions, EvalArtifactSet, EvalRunReport, EvalRunnerOptions, EvalScenarioKind,
@@ -80,17 +89,22 @@ use agent_memory::{
     MemorySensitivity, MemorySource, MemoryTombstone, MemoryWriteProposal,
 };
 use agent_model::{
-    EnvSecretResolver, ModelCapabilities, ModelConfigError, ModelCostProfile, ModelEndpointConfig,
-    ModelFallbackChain, ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig,
-    ModelProviderKind, ModelProviderRegistry, ModelRequestRequirements, ModelRetryPolicy,
-    OsKeychainSecretStore, SecretStoreBackend,
+    CompositeSecretResolver, EnvSecretResolver, ModelCapabilities, ModelCapability,
+    ModelConfigError, ModelCostProfile, ModelEndpointConfig, ModelFallbackChain,
+    ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig, ModelProviderKind,
+    ModelProviderRegistry, ModelRequestRequirements, ModelRetryPolicy, OsKeychainSecretStore,
+    SecretResolver, SecretStoreBackend,
 };
 use agent_plugin::{
     PLUGIN_RUNTIME_API_VERSION, PluginManifest, PluginManifestError, PluginPermission,
     check_plugin_compatibility, parse_plugin_manifest_json, validate_plugin_capabilities,
     validate_plugin_manifest,
 };
-use agent_policy::{CapabilityAction, PolicyDecision, ResourceKind, ResourceScope};
+use agent_policy::{
+    ApprovalResponse, CapabilityAction, PolicyDecision, ResourceKind, ResourceScope,
+    StaticPolicyEngine,
+};
+use agent_sandbox::WorkspaceSandbox;
 use agent_scheduler::{
     InMemoryTaskCommandService, SchedulerError, TaskCommand as SchedulerTaskCommand,
     TaskCommandResponse, TaskCreateRequest, TaskPriority, TaskSchedule, TaskScheduleUpdate,
@@ -100,7 +114,7 @@ use agent_skill::{
 };
 use agent_storage::{
     CheckpointRecord, CheckpointStore, EventStore, IdempotencyKey, IdempotencyStore,
-    InMemoryEventStore, ToolEffectRecord,
+    InMemoryEventStore, SqliteEventStore, ToolEffectRecord,
 };
 use agent_team::{
     BlackboardEntryKind, CapabilityGrant, CapabilitySet, HandoffStatus, ReviewVote, SubagentRole,
@@ -109,6 +123,12 @@ use agent_team::{
     TeamWorkflowDiagnosticSeverity, TeamWorkflowReadiness, TeamWorkflowSnapshot,
     TeamWorkflowStatus, TeamWorktreeState, TeamWorktreeSummary,
 };
+use agent_tool::ToolRegistry;
+use agent_tool::builtins::{
+    FileEditTool, GitDiffTool, GitStatusTool, ReadFileTool, SearchTextTool, ShellCommandTool,
+    WriteFileTool,
+};
+use agent_tui::{TerminalTurnOptions, TuiEffect};
 use agent_types::{
     ActorRef, AgentId, ApprovalPreviewRecorded, ApprovalRequested, CheckpointId, ClientKind,
     CommandRetryDiagnostic, CommandRetryDiagnosticSeverity, CommandRetryPlan,
@@ -121,28 +141,31 @@ use agent_types::{
     ToolEffectDisposition, ToolExecutionCompleted, TurnId, UserInputReceived, WorkspaceId,
 };
 use agent_ui_bridge::{
-    UiApprovalPreviewSummary, UiApprovalQueueSnapshot, UiApprovalRequest, UiBridgeError,
-    UiCommandRetryPlan, UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity,
-    UiConfigSnapshot, UiConflictInspectReport, UiEditDiffSnapshot, UiExtensionCapabilityReview,
+    UiApprovalDecision, UiApprovalPreviewSummary, UiApprovalQueueSnapshot, UiApprovalRequest,
+    UiBridgeError, UiCommandRetryPlan, UiCommandTestSnapshot, UiConfigDiagnostic,
+    UiConfigDiagnosticSeverity, UiConfigSnapshot, UiConflictInspectReport,
+    UiConversationCompactionReport, UiEditDiffSnapshot, UiExtensionCapabilityReview,
     UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewSnapshot,
-    UiJsonFrame, UiModelCostProfile, UiModelProviderCapabilities, UiModelProviderSummary,
-    UiOnboardingReadinessSnapshot, UiPlanTodoCommandError, UiPlanTodoSnapshot,
-    UiPlatformPathsSummary, UiProjectContextHybridRetrievalSnapshot,
+    UiJsonFrame, UiModelCostProfile, UiModelInvocationAttemptSnapshot, UiModelProviderCapabilities,
+    UiModelProviderSummary, UiOnboardingReadinessSnapshot, UiPlanTodoCommandError,
+    UiPlanTodoSnapshot, UiPlatformPathsSummary, UiProjectContextHybridRetrievalSnapshot,
     UiProjectContextPinnedRetrievalSnapshot, UiProjectContextQualityTraceSnapshot,
     UiProjectContextRetrievalSnapshot, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
     UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
     UiRecoverySnapshot, UiReplayForkReport, UiReplayInspectReport, UiRepoSessionSnapshot,
-    UiResumeDryRunReport, UiSettingsProfileSummary, UiSlashCommandEffect, UiSlashCommandSurface,
-    UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary, UiTaskSnapshot,
-    UiTaskSummary, UiTeamWorkflowSnapshot, UiTerminalSessionSnapshot, UiTerminalStatusSnapshot,
-    approval_queue_snapshot_from_requests, default_slash_command_catalog, encode_json_frame,
-    normalize_runtime_event, resolve_slash_command,
+    UiResumeDryRunReport, UiResumeReport, UiSettingsProfileSummary, UiSlashCommandEffect,
+    UiSlashCommandSurface, UiStartupMigrationSnapshot, UiTaskCommandError, UiTaskReviewSummary,
+    UiTaskSnapshot, UiTaskSummary, UiTeamWorkflowSnapshot, UiTerminalSessionSnapshot,
+    UiTerminalStatusSnapshot, approval_queue_snapshot_from_requests, default_slash_command_catalog,
+    encode_json_frame, normalize_runtime_event, resolve_slash_command,
 };
 use agent_worktree::{ChangeKind, FileChange, detect_conflicts};
 use futures_util::StreamExt;
 
 use crate::providers::{build_model_provider_registry, redact_secret_like_text};
-use crate::repl::{PlainReplRuntimeError, render_plain_repl_prompt, run_plain_repl_io};
+use crate::repl::{
+    PlainReplRuntimeError, render_plain_repl_frame, run_plain_repl_io_with_status_mode,
+};
 
 const DEFAULT_MODEL_PROVIDER: &str = "fake";
 const DEFAULT_MODEL_NAME: &str = "fake-scripted";
@@ -841,7 +864,7 @@ pub fn render_cli_command(command: CliCommand) -> CliOutput {
             CliOutput::keep_running(agent_tui::launch_message())
         }
         CliCommand::PlainRepl => {
-            CliOutput::keep_running(format!("agent plain repl\n{}", render_plain_repl_prompt()))
+            CliOutput::keep_running(render_plain_repl_frame("GPT 5.5 xhigh", 80))
         }
         CliCommand::LocalSummary => match agent_core::run_local_coding_fixture() {
             Ok(run) => CliOutput::exit(render_local_coding_summary(&run.outcome)),
@@ -1104,20 +1127,1601 @@ pub fn render_cli_invocation(invocation: CliInvocation) -> CliOutput {
 pub fn run_plain_repl_stdio(config_path: Option<PathBuf>, config_override: ConfigOverride) -> i32 {
     let stdin = io::stdin();
     let stdout = io::stdout();
-    run_plain_repl_io(stdin.lock(), stdout.lock(), |prompt| {
-        let output = render_prompt_runtime(
-            prompt.to_string(),
-            config_path.clone(),
-            config_override.clone(),
-        );
-        if output.status_code == 0 {
-            Ok(output.stdout)
+    let interactive = stdin.is_terminal() && stdout.is_terminal();
+    let status = plain_repl_status(config_path.clone(), config_override.clone());
+    run_plain_repl_io_with_status_mode(
+        stdin.lock(),
+        stdout.lock(),
+        &status,
+        interactive,
+        |prompt| {
+            let output = render_prompt_runtime(
+                prompt.to_string(),
+                config_path.clone(),
+                config_override.clone(),
+            );
+            if output.status_code == 0 {
+                Ok(output.stdout)
+            } else {
+                Err(PlainReplRuntimeError::recoverable(
+                    output.stdout.trim().to_string(),
+                ))
+            }
+        },
+    )
+}
+
+pub fn run_terminal_app_stdio(
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> i32 {
+    let theme_config_path = terminal_theme_write_path(config_path.clone());
+    let status = terminal_app_status(config_path.clone(), config_override.clone());
+    let mut terminal_config = agent_tui::TerminalAppConfig::new(status);
+    terminal_config.theme = terminal_app_theme(config_path.clone(), config_override.clone());
+    let initial_session_report =
+        current_terminal_session_report(config_path.clone(), config_override.clone()).ok();
+    let identity = initial_session_report
+        .as_ref()
+        .and_then(terminal_runtime_identity_from_report)
+        .unwrap_or_else(new_terminal_runtime_identity);
+    let session_store = match open_terminal_event_store() {
+        Ok(store) => store,
+        Err(error) => {
+            eprintln!("terminal event store failed: {error}");
+            return 1;
+        }
+    };
+    let mut session_catalog = initial_session_report
+        .as_ref()
+        .map(TerminalSessionCatalog::from_report)
+        .unwrap_or_default();
+    if let Err(error) = session_catalog.hydrate_from_store(&session_store) {
+        eprintln!("terminal session history failed: {error}");
+        return 1;
+    }
+    let session_report = match session_catalog.report() {
+        Ok(report) => Some(report),
+        Err(error) => {
+            eprintln!("terminal session directory failed: {error}");
+            return 1;
+        }
+    };
+    terminal_config.startup_frames =
+        terminal_app_startup_frames(config_path.clone(), config_override.clone(), session_report);
+    let session_catalog = Arc::new(Mutex::new(session_catalog));
+    let session_store = Arc::new(Mutex::new(session_store));
+    let approval_coordinator = Arc::new(Mutex::new(ApprovalCoordinator::default()));
+    let approval_continuations = Arc::new(Mutex::new(BTreeMap::new()));
+    // Shared, mutable model selection: `/model` (SwitchModel) updates this in
+    // place so every subsequent turn — served by either runtime — picks up the
+    // new provider/model without restarting the app.
+    let shared_config_override = Arc::new(Mutex::new(config_override));
+    // Shared, mutable conversation identity: switching or creating a session
+    // (SwitchSession / NewSession) re-points this in place so subsequent turns —
+    // served by either runtime — target the new conversation.
+    let shared_identity = Arc::new(Mutex::new(identity));
+    let active_cancellation: SharedTerminalCancellation = Arc::new(Mutex::new(None));
+    let turn_runtime = Arc::new(CliTerminalTurnRuntime {
+        config_path: config_path.clone(),
+        config_override: Arc::clone(&shared_config_override),
+        identity: Arc::clone(&shared_identity),
+        session_store: Arc::clone(&session_store),
+        session_catalog: Arc::clone(&session_catalog),
+        approval_coordinator: Arc::clone(&approval_coordinator),
+        approval_continuations: Arc::clone(&approval_continuations),
+        active_cancellation: Arc::clone(&active_cancellation),
+    });
+    let command_runtime = Arc::new(CliTerminalCommandRuntime {
+        config_path,
+        theme_config_path,
+        config_override: shared_config_override,
+        identity: shared_identity,
+        session_store,
+        session_catalog,
+        approval_coordinator,
+        approval_continuations,
+        active_cancellation,
+    });
+    match agent_tui::run_terminal_app_stdio_with_runtimes(
+        terminal_config,
+        turn_runtime,
+        command_runtime,
+    ) {
+        Ok(()) => 0,
+        Err(error) => {
+            eprintln!("terminal app failed: {error}");
+            1
+        }
+    }
+}
+
+#[derive(Clone)]
+struct CliTerminalCommandRuntime {
+    config_path: Option<PathBuf>,
+    theme_config_path: Option<PathBuf>,
+    config_override: SharedConfigOverride,
+    identity: SharedTerminalIdentity,
+    session_store: Arc<Mutex<TerminalEventStore>>,
+    session_catalog: Arc<Mutex<TerminalSessionCatalog>>,
+    approval_coordinator: Arc<Mutex<ApprovalCoordinator>>,
+    approval_continuations: TerminalApprovalContinuationStore,
+    /// Shared with the turn runtime so approval resume observes Esc/Ctrl+C.
+    active_cancellation: SharedTerminalCancellation,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct TerminalRuntimeIdentity {
+    workspace_id: WorkspaceId,
+    conversation_id: ConversationId,
+}
+
+type TerminalApprovalContinuationStore =
+    Arc<Mutex<BTreeMap<agent_types::ApprovalRequestId, ComprehensiveApprovalContinuation>>>;
+
+/// Shared cancel handle so approval-resume turns observe the same Esc/Ctrl+C
+/// token the interactive turn registered with the TUI loop.
+type SharedTerminalCancellation = Arc<Mutex<Option<agent_tui::TerminalCancellationToken>>>;
+
+/// The live model-selection override, shared between the turn runtime and the
+/// command runtime. `/model` (the model picker) mutates it via a `SwitchModel`
+/// effect so subsequent turns pick up the new provider/model; both runtimes read
+/// a clone at call time, keeping the many by-value config functions unchanged.
+type SharedConfigOverride = Arc<Mutex<ConfigOverride>>;
+
+/// Read the current shared config override, cloning it for the many by-value
+/// config functions. If the lock is poisoned we fall back to a default override
+/// rather than panicking — a model switch is best-effort and must never take
+/// down the terminal.
+fn shared_config_override_snapshot(shared: &SharedConfigOverride) -> ConfigOverride {
+    shared.lock().map(|guard| guard.clone()).unwrap_or_default()
+}
+
+/// Shared, mutable terminal identity (workspace + conversation). Both runtimes
+/// hold a clone of this `Arc` so a session switch or new-session updates the
+/// identity that every subsequent turn reads.
+type SharedTerminalIdentity = Arc<Mutex<TerminalRuntimeIdentity>>;
+
+/// Read the current shared terminal identity. If the lock is poisoned we fall
+/// back to a fresh identity rather than panicking; a session switch is
+/// best-effort and must never take down the terminal.
+fn shared_terminal_identity_snapshot(shared: &SharedTerminalIdentity) -> TerminalRuntimeIdentity {
+    shared
+        .lock()
+        .map(|guard| *guard)
+        .unwrap_or_else(|_| new_terminal_runtime_identity())
+}
+
+struct TerminalTurnSinks<'a> {
+    sender: &'a agent_tui::TerminalFrameSender,
+    session_store: &'a Mutex<TerminalEventStore>,
+    session_catalog: &'a Mutex<TerminalSessionCatalog>,
+    approval_coordinator: &'a Mutex<ApprovalCoordinator>,
+    approval_continuations:
+        &'a Mutex<BTreeMap<agent_types::ApprovalRequestId, ComprehensiveApprovalContinuation>>,
+    event_count: &'a mut u64,
+}
+
+struct TerminalApprovalRuntime<'a> {
+    approval_coordinator: &'a Mutex<ApprovalCoordinator>,
+    approval_continuations:
+        &'a Mutex<BTreeMap<agent_types::ApprovalRequestId, ComprehensiveApprovalContinuation>>,
+    session_store: &'a Mutex<TerminalEventStore>,
+    session_catalog: &'a Mutex<TerminalSessionCatalog>,
+    sender: &'a agent_tui::TerminalFrameSender,
+    config_path: &'a Option<PathBuf>,
+    config_override: &'a SharedConfigOverride,
+    active_cancellation: &'a SharedTerminalCancellation,
+}
+
+impl agent_tui::TerminalCommandRuntime for CliTerminalCommandRuntime {
+    fn handle_effect(&self, effect: TuiEffect, sender: agent_tui::TerminalFrameSender) {
+        match effect {
+            TuiEffect::SwitchSession {
+                workspace_id,
+                conversation_id,
+            } => {
+                terminal_switch_session(
+                    &self.identity,
+                    &self.session_store,
+                    &sender,
+                    workspace_id,
+                    conversation_id,
+                );
+            }
+            TuiEffect::NewSession => {
+                terminal_new_session(&self.identity, &self.session_catalog, &sender);
+            }
+            TuiEffect::SwitchModel {
+                provider_id,
+                model_id,
+            } => {
+                let frame = terminal_switch_model_frame(
+                    &self.config_override,
+                    self.config_path.clone(),
+                    provider_id,
+                    model_id,
+                );
+                let _ = sender.send(frame);
+            }
+            TuiEffect::ResolveApproval {
+                request_id,
+                decision,
+                reason,
+                lease_duration_seconds,
+            } => {
+                let frame = terminal_resolve_approval(
+                    TerminalApprovalRuntime {
+                        approval_coordinator: &self.approval_coordinator,
+                        approval_continuations: &self.approval_continuations,
+                        session_store: &self.session_store,
+                        session_catalog: &self.session_catalog,
+                        sender: &sender,
+                        config_path: &self.config_path,
+                        config_override: &self.config_override,
+                        active_cancellation: &self.active_cancellation,
+                    },
+                    request_id,
+                    decision,
+                    reason,
+                    lease_duration_seconds,
+                );
+                if let Err(error) = frame {
+                    let _ = sender.send(UiJsonFrame::Error {
+                        code: "terminal_approval_resolution_failed".to_string(),
+                        message: error.to_string(),
+                        recoverable: true,
+                    });
+                    // The turn was paused waiting on this approval; the continuation
+                    // failed, so emit the end-of-turn marker or the TUI would spin on
+                    // "Responding" forever (it ends a turn only on `Done`).
+                    let _ = sender.send(UiJsonFrame::Done { event_count: 0 });
+                }
+            }
+            TuiEffect::ApprovalAborted(request_id) => {
+                let Ok(request_id) = request_id.parse::<agent_types::ApprovalRequestId>() else {
+                    let _ = sender.send(UiJsonFrame::Error {
+                        code: "terminal_approval_abort_invalid_request_id".to_string(),
+                        message: format!("approval abort request id is invalid: {request_id}"),
+                        recoverable: true,
+                    });
+                    let _ = sender.send(UiJsonFrame::Done { event_count: 0 });
+                    return;
+                };
+                let result = terminal_resolve_approval(
+                    TerminalApprovalRuntime {
+                        approval_coordinator: &self.approval_coordinator,
+                        approval_continuations: &self.approval_continuations,
+                        session_store: &self.session_store,
+                        session_catalog: &self.session_catalog,
+                        sender: &sender,
+                        config_path: &self.config_path,
+                        config_override: &self.config_override,
+                        active_cancellation: &self.active_cancellation,
+                    },
+                    request_id,
+                    UiApprovalDecision::Deny,
+                    "aborted from TUI".to_string(),
+                    None,
+                );
+                if let Err(error) = result {
+                    let _ = sender.send(UiJsonFrame::Error {
+                        code: "terminal_approval_abort_failed".to_string(),
+                        message: error.to_string(),
+                        recoverable: true,
+                    });
+                    // End the turn: without a Done frame the TUI would keep the
+                    // "Responding…" indicator spinning forever after the failure.
+                    let _ = sender.send(UiJsonFrame::Done { event_count: 0 });
+                }
+            }
+            TuiEffect::CommandRetryPlan {
+                command_run_id,
+                reason,
+                dry_run,
+                evidence,
+            } => {
+                if let Err(error) = terminal_handle_command_retry(
+                    &self.session_store,
+                    command_run_id,
+                    reason,
+                    dry_run,
+                    evidence,
+                    &sender,
+                ) {
+                    let _ = sender.send(UiJsonFrame::Error {
+                        code: "terminal_command_retry_failed".to_string(),
+                        message: error.to_string(),
+                        recoverable: true,
+                    });
+                }
+            }
+            TuiEffect::ConversationCompact { max_summary_tokens } => {
+                let frame = terminal_conversation_compaction_frame(
+                    &self.session_store,
+                    shared_terminal_identity_snapshot(&self.identity),
+                    max_summary_tokens,
+                );
+                let _ = sender.send(frame);
+            }
+            TuiEffect::PersistTerminalTheme { theme } => {
+                let frame = terminal_persist_theme_frame(self.theme_config_path.as_deref(), &theme);
+                let _ = sender.send(frame);
+            }
+            TuiEffect::RecoveryStatus { turn_id } => {
+                let frame = terminal_recovery_status_frame(
+                    &self.session_store,
+                    shared_terminal_identity_snapshot(&self.identity),
+                    turn_id,
+                );
+                let _ = sender.send(frame);
+            }
+            TuiEffect::RecoveryResumeDryRun {
+                turn_id,
+                checkpoint_id,
+            } => {
+                let frame = terminal_recovery_resume_dry_run_frame(
+                    &self.session_store,
+                    shared_terminal_identity_snapshot(&self.identity),
+                    turn_id,
+                    checkpoint_id,
+                );
+                let _ = sender.send(frame);
+            }
+            TuiEffect::RecoveryResume {
+                turn_id,
+                checkpoint_id,
+            } => {
+                let frame = terminal_recovery_resume_frame(
+                    &self.session_store,
+                    shared_terminal_identity_snapshot(&self.identity),
+                    turn_id,
+                    checkpoint_id,
+                );
+                let _ = sender.send(frame);
+            }
+            TuiEffect::RunSlashCommand(_)
+            | TuiEffect::None
+            | TuiEffect::SubmitPrompt(_)
+            | TuiEffect::SubmitRecoveryContinuation { .. }
+            | TuiEffect::LocalDiagnostic { .. }
+            | TuiEffect::CopyToClipboard { .. }
+            | TuiEffect::ComposerBlurred => {
+                let _ = sender.send(UiJsonFrame::Error {
+                    code: "terminal_command_unsupported".to_string(),
+                    message: "terminal command is not supported in this runtime path".to_string(),
+                    recoverable: true,
+                });
+            }
+        }
+    }
+}
+
+#[derive(Clone)]
+struct CliTerminalTurnRuntime {
+    config_path: Option<PathBuf>,
+    config_override: SharedConfigOverride,
+    identity: SharedTerminalIdentity,
+    session_store: Arc<Mutex<TerminalEventStore>>,
+    session_catalog: Arc<Mutex<TerminalSessionCatalog>>,
+    approval_coordinator: Arc<Mutex<ApprovalCoordinator>>,
+    approval_continuations: TerminalApprovalContinuationStore,
+    /// Latest turn cancel token; approval resume bridges Esc to the same handle.
+    active_cancellation: SharedTerminalCancellation,
+}
+
+impl agent_tui::TerminalTurnRuntime for CliTerminalTurnRuntime {
+    fn run_turn(
+        &self,
+        prompt: String,
+        sender: agent_tui::TerminalFrameSender,
+        cancellation: agent_tui::TerminalCancellationToken,
+    ) {
+        self.run_turn_with_options(prompt, sender, cancellation, TerminalTurnOptions::default());
+    }
+
+    fn run_turn_with_options(
+        &self,
+        prompt: String,
+        sender: agent_tui::TerminalFrameSender,
+        cancellation: agent_tui::TerminalCancellationToken,
+        options: TerminalTurnOptions,
+    ) {
+        if let Ok(mut guard) = self.active_cancellation.lock() {
+            *guard = Some(cancellation.clone());
+        }
+        let mut event_count = 0;
+        match run_terminal_turn_stream(TerminalTurnStreamRequest {
+            prompt,
+            config_path: self.config_path.clone(),
+            config_override: shared_config_override_snapshot(&self.config_override),
+            identity: shared_terminal_identity_snapshot(&self.identity),
+            session_store: Arc::clone(&self.session_store),
+            session_catalog: Arc::clone(&self.session_catalog),
+            approval_coordinator: Arc::clone(&self.approval_coordinator),
+            approval_continuations: Arc::clone(&self.approval_continuations),
+            cancellation,
+            reasoning_effort: options.reasoning_effort,
+            sender: &sender,
+            event_count: &mut event_count,
+        }) {
+            Ok(completion) => {
+                if completion.should_send_done() {
+                    let _ = sender.send(UiJsonFrame::Done { event_count });
+                }
+            }
+            Err(error) => {
+                let code = terminal_turn_error_code(&error);
+                let _ = sender.send(UiJsonFrame::Error {
+                    code,
+                    message: error.to_string(),
+                    recoverable: true,
+                });
+                let _ = sender.send(UiJsonFrame::Done { event_count });
+            }
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum TerminalTurnCompletion {
+    Complete,
+    WaitingApproval,
+}
+
+impl TerminalTurnCompletion {
+    fn should_send_done(self) -> bool {
+        self == Self::Complete
+    }
+}
+
+struct TerminalTurnStreamRequest<'a> {
+    prompt: String,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    identity: TerminalRuntimeIdentity,
+    session_store: Arc<Mutex<TerminalEventStore>>,
+    session_catalog: Arc<Mutex<TerminalSessionCatalog>>,
+    approval_coordinator: Arc<Mutex<ApprovalCoordinator>>,
+    approval_continuations: TerminalApprovalContinuationStore,
+    cancellation: agent_tui::TerminalCancellationToken,
+    reasoning_effort: agent_types::ReasoningEffort,
+    sender: &'a agent_tui::TerminalFrameSender,
+    event_count: &'a mut u64,
+}
+
+const TERMINAL_HISTORY_MESSAGE_LIMIT: usize = 48;
+const TERMINAL_EVENT_STORE_FILE: &str = "terminal-events.sqlite3";
+
+type TerminalEventStore = SqliteEventStore;
+
+fn run_terminal_turn_stream(
+    request: TerminalTurnStreamRequest<'_>,
+) -> Result<TerminalTurnCompletion, CliError> {
+    let ids = terminal_runtime_ids(request.identity);
+    let prompt = request.prompt;
+    let session_store = request.session_store;
+    let (input, registry) = build_terminal_comprehensive_input_with_ids(
+        prompt,
+        request.config_path,
+        request.config_override,
+        ids,
+        &session_store,
+    )?;
+    let runtime = cli_runtime()?;
+
+    let reasoning_effort = request.reasoning_effort;
+    let core_cancellation = CancellationToken::new();
+    let stop_bridge =
+        spawn_terminal_cancellation_bridge(request.cancellation, core_cancellation.clone());
+    let sender = request.sender;
+    let session_catalog = request.session_catalog;
+    let approval_coordinator = request.approval_coordinator;
+    let approval_continuations = request.approval_continuations;
+    let event_count = request.event_count;
+    let result = runtime.block_on(async move {
+        match ModelRuntimeResolver::resolve(
+            &input.effective_config,
+            &registry,
+            &input.requirements,
+        ) {
+            Ok(model_runtime) => {
+                sender
+                    .send(UiJsonFrame::ModelSelection {
+                        provider: model_runtime.provider_id,
+                        model: model_runtime.model,
+                    })
+                    .map_err(|error| CliError::PromptRuntimeFailed {
+                        message: error.to_string(),
+                    })?;
+                run_terminal_comprehensive_turn_stream(
+                    input,
+                    registry,
+                    TerminalTurnSinks {
+                        sender,
+                        session_store: &session_store,
+                        session_catalog: &session_catalog,
+                        approval_coordinator: &approval_coordinator,
+                        approval_continuations: &approval_continuations,
+                        event_count,
+                    },
+                    core_cancellation,
+                    reasoning_effort,
+                )
+                .await
+            }
+            Err(error) if should_fallback_to_model_only_terminal_stream(&error) => {
+                sender
+                    .send(UiJsonFrame::Error {
+                        code: "terminal_turn.tool_loop_unavailable".to_string(),
+                        message: format!(
+                            "selected model runtime does not advertise tool calls ({error}); falling back to model-only streaming"
+                        ),
+                        recoverable: true,
+                    })
+                    .map_err(|send_error| CliError::PromptRuntimeFailed {
+                        message: send_error.to_string(),
+                    })?;
+                let input = ConfiguredTurnInput {
+                    ids,
+                    user_message: input.user_message.clone(),
+                    conversation_history: std::sync::Arc::clone(&input.conversation_history),
+                    effective_config: std::sync::Arc::clone(&input.effective_config),
+                    requirements: prompt_requirements(),
+                };
+                run_terminal_model_only_turn_stream(
+                    input,
+                    registry,
+                    sender,
+                    &session_store,
+                    &session_catalog,
+                    event_count,
+                    TerminalModelOnlyTurnOptions {
+                        cancellation: core_cancellation,
+                        reasoning_effort,
+                    },
+                )
+                .await?;
+                Ok(TerminalTurnCompletion::Complete)
+            }
+            Err(error) => Err(map_configured_turn_error(ConfiguredTurnError::Runtime(error))),
+        }
+    });
+    stop_bridge.store(true, Ordering::SeqCst);
+    result
+}
+
+#[derive(Clone)]
+struct TerminalModelOnlyTurnOptions {
+    cancellation: CancellationToken,
+    reasoning_effort: agent_types::ReasoningEffort,
+}
+
+async fn run_terminal_model_only_turn_stream(
+    input: ConfiguredTurnInput,
+    registry: ModelProviderRegistry,
+    sender: &agent_tui::TerminalFrameSender,
+    session_store: &Mutex<TerminalEventStore>,
+    session_catalog: &Mutex<TerminalSessionCatalog>,
+    event_count: &mut u64,
+    options: TerminalModelOnlyTurnOptions,
+) -> Result<(), CliError> {
+    let turn_stream = ConfiguredTurnRunner::run_stream_with_options(
+        input,
+        &registry,
+        ConfiguredTurnStreamOptions {
+            coding_context: false,
+            cancellation: options.cancellation,
+            tools: std::sync::Arc::new(Vec::new()),
+            reasoning_effort: Some(options.reasoning_effort),
+        },
+    )
+    .await
+    .map_err(map_configured_turn_error)?;
+
+    sender
+        .send(UiJsonFrame::ModelSelection {
+            provider: turn_stream.selected_provider.clone(),
+            model: turn_stream.selected_model.clone(),
+        })
+        .map_err(|error| CliError::PromptRuntimeFailed {
+            message: error.to_string(),
+        })?;
+    send_terminal_model_invocation_attempts(sender, "started", &turn_stream.attempts, None)?;
+
+    let mut events = turn_stream.events;
+    while let Some(event) = events.next().await {
+        match event {
+            Ok(event) => send_terminal_runtime_event(
+                sender,
+                session_store,
+                Some(session_catalog),
+                event_count,
+                event,
+            )?,
+            Err(error) => {
+                send_terminal_model_attempt_error(sender, &error)?;
+                return Err(map_configured_turn_error(error));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+async fn run_terminal_comprehensive_turn_stream(
+    input: ComprehensiveTurnInput,
+    registry: ModelProviderRegistry,
+    sinks: TerminalTurnSinks<'_>,
+    cancellation: CancellationToken,
+    reasoning_effort: agent_types::ReasoningEffort,
+) -> Result<TerminalTurnCompletion, CliError> {
+    let tools = terminal_tool_registry_for_current_dir()?;
+    let policy = terminal_tool_policy()?;
+    // Prefer the session facade so interactive hosts share one prompt entrypoint.
+    let session = agent_core::AgentSession::with_shared_config(
+        input.ids,
+        Arc::clone(&input.effective_config),
+        input.requirements.clone(),
+        input.loop_budget.clone(),
+    );
+    let history = input.conversation_history.as_ref().clone();
+    let outcome = session
+        .prompt_with_tools(
+            input.user_message,
+            history,
+            &registry,
+            &tools,
+            &policy,
+            agent_core::SessionAgentOptions {
+                cancellation,
+                reasoning_effort: Some(reasoning_effort),
+                loop_budget: None,
+                coding_context: true,
+            },
+            |event| {
+                send_terminal_runtime_event(
+                    sinks.sender,
+                    sinks.session_store,
+                    Some(sinks.session_catalog),
+                    sinks.event_count,
+                    event,
+                )
+                .map_err(terminal_event_sink_error)
+            },
+            |pending| {
+                let request_id = pending.suspended.approval.id;
+                sinks
+                    .approval_coordinator
+                    .lock()
+                    .map_err(|_| {
+                        terminal_event_sink_error(CliError::PromptRuntimeFailed {
+                            message: "terminal approval coordinator is unavailable".to_string(),
+                        })
+                    })?
+                    .register_suspended_tool(
+                        pending.suspended.ids,
+                        pending.suspended.model_turn_index,
+                        pending.suspended.call,
+                        pending.suspended.approval,
+                    )
+                    .map_err(|error| {
+                        terminal_event_sink_error(CliError::PromptRuntimeFailed {
+                            message: format!("terminal approval registration failed: {error}"),
+                        })
+                    })?;
+                sinks
+                    .approval_continuations
+                    .lock()
+                    .map_err(|_| {
+                        terminal_event_sink_error(CliError::PromptRuntimeFailed {
+                            message: "terminal approval continuation store is unavailable"
+                                .to_string(),
+                        })
+                    })?
+                    .insert(request_id, pending.continuation);
+                Ok(())
+            },
+        )
+        .await
+        .map_err(|error| {
+            let _ = send_terminal_model_attempt_error(sinks.sender, &error);
+            map_configured_turn_error(error)
+        })?;
+    send_terminal_model_invocation_attempts(
+        sinks.sender,
+        terminal_model_attempt_status(outcome.terminal_state.clone()),
+        &outcome.attempts,
+        None,
+    )?;
+
+    if outcome.terminal_state == AgentLoopTerminalState::WaitingApproval {
+        Ok(TerminalTurnCompletion::WaitingApproval)
+    } else {
+        Ok(TerminalTurnCompletion::Complete)
+    }
+}
+
+fn send_terminal_runtime_event(
+    sender: &agent_tui::TerminalFrameSender,
+    session_store: &Mutex<TerminalEventStore>,
+    session_catalog: Option<&Mutex<TerminalSessionCatalog>>,
+    event_count: &mut u64,
+    event: RuntimeEvent,
+) -> Result<(), CliError> {
+    let event = persist_terminal_runtime_event(session_store, event)?;
+    let session_frame = session_catalog
+        .filter(|_| should_refresh_terminal_session_snapshot(&event.payload))
+        .map(|catalog| terminal_session_catalog_frame(catalog, &event))
+        .transpose()?;
+    sender
+        .send(UiJsonFrame::Event(normalize_runtime_event(&event)))
+        .map_err(|error| CliError::PromptRuntimeFailed {
+            message: error.to_string(),
+        })?;
+    if let Some(frame) = session_frame {
+        sender
+            .send(frame)
+            .map_err(|error| CliError::PromptRuntimeFailed {
+                message: error.to_string(),
+            })?;
+    }
+    *event_count += 1;
+    Ok(())
+}
+
+fn should_refresh_terminal_session_snapshot(payload: &RuntimeEventPayload) -> bool {
+    matches!(
+        payload,
+        RuntimeEventPayload::UserInputReceived(_)
+            | RuntimeEventPayload::TurnCompleted(_)
+            | RuntimeEventPayload::TurnFailed(_)
+            | RuntimeEventPayload::RuntimeError(_)
+    )
+}
+
+fn terminal_session_catalog_frame(
+    catalog: &Mutex<TerminalSessionCatalog>,
+    event: &RuntimeEvent,
+) -> Result<UiJsonFrame, CliError> {
+    let mut catalog = catalog.lock().map_err(|_| CliError::PromptRuntimeFailed {
+        message: "terminal session catalog is unavailable".to_string(),
+    })?;
+    catalog.apply_event(event);
+    let report = catalog
+        .report()
+        .map_err(|error| CliError::PromptRuntimeFailed {
+            message: format!("terminal session catalog failed: {error}"),
+        })?;
+    Ok(terminal_session_snapshot_frame_from_report(report))
+}
+
+fn send_terminal_model_attempt_error(
+    sender: &agent_tui::TerminalFrameSender,
+    error: &ConfiguredTurnError,
+) -> Result<(), CliError> {
+    let attempts = configured_turn_error_attempts(error);
+    if attempts.is_empty() {
+        return Ok(());
+    }
+    send_terminal_model_invocation_attempts(sender, "failed", attempts, Some(error.to_string()))
+}
+
+fn terminal_model_attempt_status(state: AgentLoopTerminalState) -> &'static str {
+    match state {
+        AgentLoopTerminalState::Done => "succeeded",
+        AgentLoopTerminalState::WaitingApproval => "waiting_approval",
+        AgentLoopTerminalState::Failed => "failed",
+        AgentLoopTerminalState::Cancelled => "cancelled",
+    }
+}
+
+fn configured_turn_error_attempts(error: &ConfiguredTurnError) -> &[ModelInvocationAttempt] {
+    match error {
+        ConfiguredTurnError::Model { attempts, .. } => attempts,
+        ConfiguredTurnError::Runtime(_) | ConfiguredTurnError::InvalidInput { .. } => &[],
+    }
+}
+
+fn send_terminal_model_invocation_attempts(
+    sender: &agent_tui::TerminalFrameSender,
+    status: &str,
+    attempts: &[ModelInvocationAttempt],
+    message: Option<String>,
+) -> Result<(), CliError> {
+    let snapshot = UiModelInvocationAttemptSnapshot::new(status, attempts, message)
+        .map_err(map_ui_bridge_error)?;
+    sender
+        .send(UiJsonFrame::ModelInvocationAttempts(snapshot))
+        .map_err(|error| CliError::PromptRuntimeFailed {
+            message: error.to_string(),
+        })
+}
+
+fn terminal_resolve_approval(
+    runtime: TerminalApprovalRuntime<'_>,
+    request_id: agent_types::ApprovalRequestId,
+    decision: UiApprovalDecision,
+    reason: String,
+    lease_duration_seconds: Option<u64>,
+) -> Result<(), CliError> {
+    let resolved_at = Timestamp::now_utc();
+    let response = match decision {
+        UiApprovalDecision::Allow => {
+            ApprovalResponse::allow(request_id, reason, lease_duration_seconds, resolved_at)
+        }
+        UiApprovalDecision::Deny => ApprovalResponse::deny(request_id, reason, resolved_at),
+    }
+    .map_err(|error| CliError::PromptRuntimeFailed {
+        message: format!("approval response failed: {error}"),
+    })?;
+    let tools = terminal_tool_registry_for_current_dir()?;
+    let continuation = runtime
+        .approval_continuations
+        .lock()
+        .map_err(|_| CliError::PromptRuntimeFailed {
+            message: "terminal approval continuation store is unavailable".to_string(),
+        })?
+        .remove(&request_id);
+    let outcome = {
+        let mut coordinator =
+            runtime
+                .approval_coordinator
+                .lock()
+                .map_err(|_| CliError::PromptRuntimeFailed {
+                    message: "terminal approval coordinator is unavailable".to_string(),
+                })?;
+        let mut store =
+            runtime
+                .session_store
+                .lock()
+                .map_err(|_| CliError::PromptRuntimeFailed {
+                    message: "terminal recovery store is unavailable".to_string(),
+                })?;
+        coordinator
+            .resume_tool_approval(response, &tools, &mut *store)
+            .map_err(|error| CliError::PromptRuntimeFailed {
+                message: format!("terminal approval resume failed: {error}"),
+            })?
+    };
+
+    let mut event_count = 0;
+    for event in outcome.events.iter().cloned() {
+        send_terminal_runtime_event(
+            runtime.sender,
+            runtime.session_store,
+            Some(runtime.session_catalog),
+            &mut event_count,
+            event,
+        )?;
+    }
+    let sinks = TerminalTurnSinks {
+        sender: runtime.sender,
+        session_store: runtime.session_store,
+        session_catalog: runtime.session_catalog,
+        approval_coordinator: runtime.approval_coordinator,
+        approval_continuations: runtime.approval_continuations,
+        event_count: &mut event_count,
+    };
+    let completion = if let Some(continuation) = continuation {
+        continue_terminal_turn_after_approval(
+            continuation,
+            outcome,
+            sinks,
+            runtime.config_path,
+            runtime.config_override,
+            runtime.active_cancellation,
+        )?
+    } else {
+        TerminalTurnCompletion::Complete
+    };
+    if completion.should_send_done() {
+        runtime
+            .sender
+            .send(UiJsonFrame::Done { event_count })
+            .map_err(|error| CliError::PromptRuntimeFailed {
+                message: error.to_string(),
+            })?;
+    }
+    Ok(())
+}
+
+fn continue_terminal_turn_after_approval(
+    continuation: ComprehensiveApprovalContinuation,
+    approval_outcome: agent_core::ApprovalResumeOutcome,
+    sinks: TerminalTurnSinks<'_>,
+    config_path: &Option<PathBuf>,
+    config_override: &SharedConfigOverride,
+    active_cancellation: &SharedTerminalCancellation,
+) -> Result<TerminalTurnCompletion, CliError> {
+    let tools = terminal_tool_registry_for_current_dir()?;
+    let policy = terminal_tool_policy()?;
+    // Rebuild the full secret resolver (inline config + env) rather than an
+    // env-only resolver; otherwise inline `apiKey` values configured directly in
+    // the config file fail to resolve on the approval-resume path, even though
+    // they resolved fine on the initial turn.
+    let evaluated = evaluate_runtime_config_with_secrets(
+        config_path.clone(),
+        shared_config_override_snapshot(config_override),
+    )?;
+    let registry = build_model_provider_registry(
+        &continuation.input.effective_config,
+        &continuation.input.user_message,
+        evaluated.secret_resolver,
+    )?;
+    // Reuse the interactive turn's cancel token so Esc/Ctrl+C during resume
+    // stops the continued model/tool loop (previously a fresh token ignored Esc).
+    let terminal_cancellation = active_cancellation
+        .lock()
+        .ok()
+        .and_then(|guard| guard.clone())
+        .unwrap_or_default();
+    let core_cancellation = CancellationToken::new();
+    let stop_bridge =
+        spawn_terminal_cancellation_bridge(terminal_cancellation, core_cancellation.clone());
+    let runtime = cli_runtime()?;
+    let result = runtime.block_on(async {
+        let outcome = ComprehensiveTurnRunner::continue_after_approval_streaming(
+            continuation,
+            approval_outcome,
+            &registry,
+            ComprehensiveTurnResources {
+                tools: &tools,
+                policy: &policy,
+            },
+            ComprehensiveTurnStreamOptions {
+                coding_context: true,
+                cancellation: core_cancellation,
+                reasoning_effort: None,
+            },
+            |event| {
+                send_terminal_runtime_event(
+                    sinks.sender,
+                    sinks.session_store,
+                    Some(sinks.session_catalog),
+                    sinks.event_count,
+                    event,
+                )
+                .map_err(terminal_event_sink_error)
+            },
+            |pending| {
+                let request_id = pending.suspended.approval.id;
+                sinks
+                    .approval_coordinator
+                    .lock()
+                    .map_err(|_| {
+                        terminal_event_sink_error(CliError::PromptRuntimeFailed {
+                            message: "terminal approval coordinator is unavailable".to_string(),
+                        })
+                    })?
+                    .register_suspended_tool(
+                        pending.suspended.ids,
+                        pending.suspended.model_turn_index,
+                        pending.suspended.call,
+                        pending.suspended.approval,
+                    )
+                    .map_err(|error| {
+                        terminal_event_sink_error(CliError::PromptRuntimeFailed {
+                            message: format!("terminal approval registration failed: {error}"),
+                        })
+                    })?;
+                sinks
+                    .approval_continuations
+                    .lock()
+                    .map_err(|_| {
+                        terminal_event_sink_error(CliError::PromptRuntimeFailed {
+                            message: "terminal approval continuation store is unavailable"
+                                .to_string(),
+                        })
+                    })?
+                    .insert(request_id, pending.continuation);
+                Ok(())
+            },
+        )
+        .await
+        .map_err(|error| {
+            let _ = send_terminal_model_attempt_error(sinks.sender, &error);
+            map_configured_turn_error(error)
+        })?;
+        send_terminal_model_invocation_attempts(
+            sinks.sender,
+            terminal_model_attempt_status(outcome.terminal_state.clone()),
+            &outcome.attempts,
+            None,
+        )?;
+        if outcome.terminal_state == AgentLoopTerminalState::WaitingApproval {
+            Ok(TerminalTurnCompletion::WaitingApproval)
         } else {
-            Err(PlainReplRuntimeError::recoverable(
-                output.stdout.trim().to_string(),
-            ))
+            Ok(TerminalTurnCompletion::Complete)
+        }
+    });
+    stop_bridge.store(true, Ordering::SeqCst);
+    result
+}
+
+fn terminal_event_sink_error(error: CliError) -> ConfiguredTurnError {
+    ConfiguredTurnError::InvalidInput {
+        field: "terminal_event_sink".to_string(),
+        message: error.to_string(),
+    }
+}
+
+fn should_fallback_to_model_only_terminal_stream(error: &ModelRuntimeError) -> bool {
+    matches!(
+        error,
+        ModelRuntimeError::MissingCapabilities { missing, .. }
+            if missing.contains(&ModelCapability::ToolCalls)
+    )
+}
+
+fn persist_terminal_runtime_event(
+    session_store: &Mutex<TerminalEventStore>,
+    event: RuntimeEvent,
+) -> Result<RuntimeEvent, CliError> {
+    let mut store = session_store
+        .lock()
+        .map_err(|_| CliError::PromptRuntimeFailed {
+            message: "terminal recovery store is unavailable".to_string(),
+        })?;
+    store
+        .append(event)
+        .map(|stored| stored.event)
+        .map_err(|error| CliError::PromptRuntimeFailed {
+            message: format!("terminal event persistence failed: {error}"),
+        })
+}
+
+fn terminal_turn_error_code(error: &CliError) -> String {
+    let message = error.to_string().to_ascii_lowercase();
+    if message.contains("invalid_stream_event")
+        || message.contains("invalid stream event")
+        || message.contains("invalid json stream")
+        || message.contains("invalid stream data")
+    {
+        "terminal_turn.invalid_stream_event".to_string()
+    } else if message.contains("transport")
+        || message.contains("network")
+        || message.contains("connection")
+        || message.contains("error sending request")
+    {
+        "terminal_turn.transport".to_string()
+    } else if message.contains("fallback") {
+        "terminal_turn.fallback".to_string()
+    } else if message.contains("rate limit") || message.contains("rate_limited") {
+        "terminal_turn.rate_limited".to_string()
+    } else if message.contains("timeout") || message.contains("timed out") {
+        "terminal_turn.timeout".to_string()
+    } else {
+        "terminal_turn.failed".to_string()
+    }
+}
+
+fn spawn_terminal_cancellation_bridge(
+    terminal_cancellation: agent_tui::TerminalCancellationToken,
+    core_cancellation: CancellationToken,
+) -> Arc<AtomicBool> {
+    let stop = Arc::new(AtomicBool::new(false));
+    let stop_thread = Arc::clone(&stop);
+    thread::spawn(move || {
+        while !stop_thread.load(Ordering::SeqCst) && !terminal_cancellation.is_cancelled() {
+            thread::sleep(Duration::from_millis(10));
+        }
+        if terminal_cancellation.is_cancelled() {
+            core_cancellation.cancel();
+        }
+    });
+    stop
+}
+
+fn terminal_theme_write_path(config_path: Option<PathBuf>) -> Option<PathBuf> {
+    resolve_agent_config_path(config_path)
+        .ok()
+        .map(|resolution| resolution.write_path)
+}
+
+fn plain_repl_status(config_path: Option<PathBuf>, config_override: ConfigOverride) -> String {
+    evaluate_runtime_config(config_path, config_override)
+        .map(|effective| format_plain_repl_model_status(&effective.selected_model))
+        .unwrap_or_else(|_| "GPT 5.5 xhigh".to_string())
+}
+
+fn terminal_app_status(
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> agent_tui::StatusBarState {
+    let workspace = std::env::current_dir()
+        .map(|path| path.display().to_string())
+        .unwrap_or_else(|_| ".".to_string());
+
+    match evaluate_runtime_config(config_path, config_override) {
+        Ok(effective) => {
+            let context_total = selected_provider_context_limit(&effective);
+            agent_tui::StatusBarState::new(
+                effective.selected_provider,
+                effective.selected_model,
+                workspace,
+                "tui",
+                "local",
+                "manual",
+            )
+            .with_context_total(context_total)
+        }
+        Err(_) => agent_tui::StatusBarState::new(
+            DEFAULT_MODEL_PROVIDER,
+            DEFAULT_MODEL_NAME,
+            workspace,
+            "tui",
+            "config-error",
+            "manual",
+        ),
+    }
+}
+
+fn selected_provider_context_limit(effective: &EffectiveRuntimeConfig) -> Option<u32> {
+    effective
+        .config
+        .model
+        .catalog
+        .providers
+        .iter()
+        .find(|provider| provider.id == effective.selected_provider)
+        .and_then(|provider| {
+            ModelCapabilities::default_for_provider_kind(provider.kind).max_context_tokens
+        })
+}
+
+fn terminal_app_theme(
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> agent_tui::TerminalTheme {
+    evaluate_runtime_config(config_path, config_override)
+        .map(|effective| terminal_theme_from_runtime(effective.config.terminal.theme))
+        .unwrap_or(agent_tui::TerminalTheme::System)
+}
+
+fn terminal_theme_from_runtime(theme: RuntimeTerminalTheme) -> agent_tui::TerminalTheme {
+    match theme {
+        RuntimeTerminalTheme::System => agent_tui::TerminalTheme::System,
+        RuntimeTerminalTheme::Light => agent_tui::TerminalTheme::Light,
+        RuntimeTerminalTheme::Dark => agent_tui::TerminalTheme::Dark,
+        RuntimeTerminalTheme::HighContrast => agent_tui::TerminalTheme::HighContrast,
+    }
+}
+
+fn terminal_runtime_identity_from_report(
+    report: &TerminalSessionDirectoryReport,
+) -> Option<TerminalRuntimeIdentity> {
+    report
+        .sessions
+        .first()
+        .map(|session| TerminalRuntimeIdentity {
+            workspace_id: session.workspace_id,
+            conversation_id: session.conversation_id,
+        })
+}
+
+fn new_terminal_runtime_identity() -> TerminalRuntimeIdentity {
+    TerminalRuntimeIdentity {
+        workspace_id: WorkspaceId::new(),
+        conversation_id: ConversationId::new(),
+    }
+}
+
+fn terminal_runtime_ids(identity: TerminalRuntimeIdentity) -> RuntimeIds {
+    RuntimeIds {
+        workspace_id: identity.workspace_id,
+        conversation_id: identity.conversation_id,
+        turn_id: TurnId::new(),
+        correlation_id: CorrelationId::new(),
+    }
+}
+
+fn terminal_recovery_status_frame(
+    session_store: &Mutex<TerminalEventStore>,
+    identity: TerminalRuntimeIdentity,
+    turn_id: Option<TurnId>,
+) -> UiJsonFrame {
+    let Ok(store) = session_store.lock() else {
+        return UiJsonFrame::Error {
+            code: "terminal_recovery.store_unavailable".to_string(),
+            message: "terminal recovery store is unavailable".to_string(),
+            recoverable: true,
+        };
+    };
+    let snapshot = RecoveryEngine.snapshot(&*store, &*store, identity.conversation_id, turn_id);
+    UiJsonFrame::recovery_snapshot(UiRecoverySnapshot::new(snapshot)).expect("admin frame")
+}
+
+fn terminal_recovery_resume_dry_run_frame(
+    session_store: &Mutex<TerminalEventStore>,
+    identity: TerminalRuntimeIdentity,
+    turn_id: Option<TurnId>,
+    checkpoint_id: Option<CheckpointId>,
+) -> UiJsonFrame {
+    let Ok(store) = session_store.lock() else {
+        return UiJsonFrame::Error {
+            code: "terminal_recovery.store_unavailable".to_string(),
+            message: "terminal recovery store is unavailable".to_string(),
+            recoverable: true,
+        };
+    };
+    let mut report =
+        RecoveryEngine.resume_dry_run(&*store, &*store, identity.conversation_id, turn_id);
+    if let Some(checkpoint_id) = checkpoint_id {
+        report
+            .snapshot
+            .diagnostics
+            .push(recovery_checkpoint_argument_diagnostic(checkpoint_id));
+    }
+    UiJsonFrame::resume_dry_run(UiResumeDryRunReport::new(report)).expect("admin frame")
+}
+
+fn terminal_recovery_resume_frame(
+    session_store: &Mutex<TerminalEventStore>,
+    identity: TerminalRuntimeIdentity,
+    turn_id: Option<TurnId>,
+    checkpoint_id: Option<CheckpointId>,
+) -> UiJsonFrame {
+    let Ok(store) = session_store.lock() else {
+        return UiJsonFrame::Error {
+            code: "terminal_recovery.store_unavailable".to_string(),
+            message: "terminal recovery store is unavailable".to_string(),
+            recoverable: true,
+        };
+    };
+    let mut report = RecoveryEngine.resume(&*store, &*store, identity.conversation_id, turn_id);
+    if let Some(checkpoint_id) = checkpoint_id {
+        report
+            .snapshot
+            .diagnostics
+            .push(recovery_checkpoint_argument_diagnostic(checkpoint_id));
+    }
+    UiJsonFrame::recovery_resume(UiResumeReport::new(report)).expect("admin frame")
+}
+
+fn terminal_conversation_compaction_frame(
+    session_store: &Mutex<TerminalEventStore>,
+    identity: TerminalRuntimeIdentity,
+    max_summary_tokens: u32,
+) -> UiJsonFrame {
+    let Ok(store) = session_store.lock() else {
+        return UiJsonFrame::Error {
+            code: "terminal_compaction.store_unavailable".to_string(),
+            message: "terminal compaction store is unavailable".to_string(),
+            recoverable: true,
+        };
+    };
+    match compact_conversation_events(
+        &*store,
+        ConversationCompactionInput {
+            conversation_id: identity.conversation_id,
+            max_summary_tokens,
+        },
+    ) {
+        Ok(report) => UiJsonFrame::conversation_compaction(
+            UiConversationCompactionReport::from_report(&report),
+        ).expect("admin frame"),
+        Err(error) => UiJsonFrame::Error {
+            code: "terminal_compaction.failed".to_string(),
+            message: error,
+            recoverable: true,
+        },
+    }
+}
+
+fn terminal_persist_theme_frame(config_path: Option<&Path>, theme: &str) -> UiJsonFrame {
+    let Some(config_path) = config_path else {
+        return UiJsonFrame::ConfigDiagnostic {
+            severity: "warning".to_string(),
+            code: "terminal_theme.config_unavailable".to_string(),
+            message: "terminal theme changed for this session, but no writable config.yaml path is configured".to_string(),
+            field_path: Some("terminal.theme".to_string()),
+            source: None,
+        };
+    };
+    let Some(theme) = runtime_terminal_theme_from_label(theme) else {
+        return UiJsonFrame::ConfigDiagnostic {
+            severity: "error".to_string(),
+            code: "terminal_theme.invalid".to_string(),
+            message: format!("terminal theme {theme} is not supported"),
+            field_path: Some("terminal.theme".to_string()),
+            source: Some(config_path.display().to_string()),
+        };
+    };
+    match write_agent_config_terminal_theme_atomic(config_path, theme) {
+        Ok(()) => UiJsonFrame::ConfigDiagnostic {
+            severity: "info".to_string(),
+            code: "terminal_theme.persisted".to_string(),
+            message: format!("terminal theme persisted as {}", theme.as_str()),
+            field_path: Some("terminal.theme".to_string()),
+            source: Some(config_path.display().to_string()),
+        },
+        Err(error) => UiJsonFrame::ConfigDiagnostic {
+            severity: "warning".to_string(),
+            code: "terminal_theme.persist_failed".to_string(),
+            message: error.to_string(),
+            field_path: Some("terminal.theme".to_string()),
+            source: Some(config_path.display().to_string()),
+        },
+    }
+}
+
+fn runtime_terminal_theme_from_label(theme: &str) -> Option<RuntimeTerminalTheme> {
+    match theme {
+        "system" => Some(RuntimeTerminalTheme::System),
+        "light" => Some(RuntimeTerminalTheme::Light),
+        "dark" => Some(RuntimeTerminalTheme::Dark),
+        "high-contrast" => Some(RuntimeTerminalTheme::HighContrast),
+        _ => None,
+    }
+}
+
+fn terminal_app_startup_frames(
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    session_report: Option<TerminalSessionDirectoryReport>,
+) -> Vec<UiJsonFrame> {
+    let mut frames = Vec::new();
+    match evaluate_runtime_config(config_path.clone(), config_override.clone()) {
+        Ok(effective) => {
+            frames.push(config_summary_frame(&effective));
+            match ui_config_snapshot_from_effective(&effective) {
+                Ok(snapshot) => frames.push(UiJsonFrame::ConfigSnapshot(snapshot)),
+                Err(error) => frames.push(UiJsonFrame::ConfigDiagnostic {
+                    severity: "error".to_string(),
+                    code: "terminal_config.snapshot_failed".to_string(),
+                    message: redact_secret_like_text(&error.to_string()),
+                    field_path: None,
+                    source: None,
+                }),
+            }
+            frames.extend(effective.diagnostics.iter().map(config_diagnostic_frame));
+        }
+        Err(error) => frames.push(UiJsonFrame::ConfigDiagnostic {
+            severity: "error".to_string(),
+            code: "terminal_config.invalid".to_string(),
+            message: redact_secret_like_text(&error.to_string()),
+            field_path: None,
+            source: None,
+        }),
+    }
+    frames.push(terminal_app_extension_snapshot_frame());
+    if let Some(report) = session_report
+        .or_else(|| current_terminal_session_report(config_path, config_override).ok())
+    {
+        frames.push(terminal_session_snapshot_frame_from_report(report));
+    }
+    frames
+}
+
+fn terminal_app_extension_snapshot_frame() -> UiJsonFrame {
+    let runtime = ExtensionCommandRuntime::default();
+    match ui_extension_snapshot_from_records(runtime.registry().list()) {
+        Ok(snapshot) => UiJsonFrame::extension_snapshot(snapshot).expect("admin frame"),
+        Err(error) => UiJsonFrame::ConfigDiagnostic {
+            severity: "warning".to_string(),
+            code: "terminal_extensions.snapshot_failed".to_string(),
+            message: redact_secret_like_text(&error.to_string()),
+            field_path: None,
+            source: None,
+        },
+    }
+}
+
+/// Apply a model switch requested from the TUI picker: update the shared config
+/// override so every subsequent turn selects the new provider/model, then
+/// validate the resulting selection by re-evaluating the effective config. On
+/// success we echo a `ModelSelection` frame so the footer and status panel
+/// update immediately; on failure we roll the override back and report the error
+/// rather than leaving the runtime pointed at an unusable provider.
+fn terminal_switch_model_frame(
+    shared_override: &SharedConfigOverride,
+    config_path: Option<PathBuf>,
+    provider_id: String,
+    model_id: String,
+) -> UiJsonFrame {
+    let previous = {
+        let Ok(mut guard) = shared_override.lock() else {
+            return UiJsonFrame::Error {
+                code: "terminal_switch_model.lock_poisoned".to_string(),
+                message: "model override state is unavailable".to_string(),
+                recoverable: true,
+            };
+        };
+        let previous = guard.clone();
+        guard.provider = Some(provider_id.clone());
+        guard.model = Some(model_id.clone());
+        previous
+    };
+
+    match evaluate_runtime_config(
+        config_path,
+        shared_config_override_snapshot(shared_override),
+    ) {
+        Ok(effective) => UiJsonFrame::ModelSelection {
+            provider: effective.selected_provider,
+            model: effective.selected_model,
+        },
+        Err(error) => {
+            // Roll the override back so a rejected switch never leaves the
+            // runtime pointed at a provider it cannot use.
+            if let Ok(mut guard) = shared_override.lock() {
+                *guard = previous;
+            }
+            UiJsonFrame::Error {
+                code: "terminal_switch_model.invalid".to_string(),
+                message: redact_secret_like_text(&error.to_string()),
+                recoverable: true,
+            }
+        }
+    }
+}
+
+/// Switch the active terminal session in place: re-point the shared identity at
+/// the target workspace/conversation and replay that conversation's history from
+/// the persistent event store so the TUI transcript rebuilds. The TUI clears its
+/// transcript before this runs (see the `SessionPanel` reducer), so the replayed
+/// frames land on a clean slate.
+fn terminal_switch_session(
+    shared_identity: &SharedTerminalIdentity,
+    session_store: &Mutex<TerminalEventStore>,
+    sender: &agent_tui::TerminalFrameSender,
+    workspace_id: WorkspaceId,
+    conversation_id: ConversationId,
+) {
+    // Replay the target conversation's stored events as UI frames. A conversation
+    // with no stored history (e.g. one only known from the session directory)
+    // simply replays nothing, leaving a clean transcript.
+    let events = {
+        let Ok(store) = session_store.lock() else {
+            let _ = sender.send(UiJsonFrame::Error {
+                code: "terminal_switch_session.store_unavailable".to_string(),
+                message: "terminal session store is unavailable".to_string(),
+                recoverable: true,
+            });
+            let _ = sender.send(UiJsonFrame::Done { event_count: 0 });
+            return;
+        };
+        match store.list_by_conversation(conversation_id) {
+            Ok(stored) => stored,
+            Err(error) => {
+                let _ = sender.send(UiJsonFrame::Error {
+                    code: "terminal_switch_session.replay_failed".to_string(),
+                    message: redact_secret_like_text(&error.to_string()),
+                    recoverable: true,
+                });
+                let _ = sender.send(UiJsonFrame::Done { event_count: 0 });
+                return;
+            }
+        }
+    };
+
+    if let Ok(mut guard) = shared_identity.lock() {
+        *guard = TerminalRuntimeIdentity {
+            workspace_id,
+            conversation_id,
+        };
+    }
+
+    let event_count = u64::try_from(events.len()).unwrap_or(u64::MAX);
+    for stored in events {
+        let frame = UiJsonFrame::Event(normalize_runtime_event(&stored.event));
+        if sender.send(frame).is_err() {
+            return;
+        }
+    }
+    let _ = sender.send(UiJsonFrame::Done { event_count });
+}
+
+/// Start a fresh conversation in the current workspace and publish the updated
+/// session directory immediately so it can be selected again later.
+fn terminal_new_session(
+    shared_identity: &SharedTerminalIdentity,
+    session_catalog: &Mutex<TerminalSessionCatalog>,
+    sender: &agent_tui::TerminalFrameSender,
+) {
+    let current = shared_terminal_identity_snapshot(shared_identity);
+    let identity = TerminalRuntimeIdentity {
+        workspace_id: current.workspace_id,
+        conversation_id: ConversationId::new(),
+    };
+    let frame = {
+        let Ok(mut catalog) = session_catalog.lock() else {
+            let _ = sender.send(UiJsonFrame::Error {
+                code: "terminal_new_session.catalog_unavailable".to_string(),
+                message: "terminal session catalog is unavailable".to_string(),
+                recoverable: true,
+            });
+            return;
+        };
+        let _ = catalog.start_new_conversation(
+            current.conversation_id,
+            identity.conversation_id,
+            Timestamp::now_utc(),
+        );
+        catalog
+            .report()
+            .map(terminal_session_snapshot_frame_from_report)
+    };
+    if let Ok(mut guard) = shared_identity.lock() {
+        *guard = identity;
+    }
+    match frame {
+        Ok(frame) => {
+            let _ = sender.send(frame);
+        }
+        Err(error) => {
+            let _ = sender.send(UiJsonFrame::Error {
+                code: "terminal_new_session.catalog_failed".to_string(),
+                message: redact_secret_like_text(&error.to_string()),
+                recoverable: true,
+            });
+        }
+    }
+}
+
+fn terminal_session_snapshot_frame_from_report(
+    report: TerminalSessionDirectoryReport,
+) -> UiJsonFrame {
+    match UiTerminalSessionSnapshot::from_report(&report) {
+        Ok(snapshot) => UiJsonFrame::TerminalSessionSnapshot(snapshot),
+        Err(error) => UiJsonFrame::Error {
+            code: "terminal_session_snapshot_failed".to_string(),
+            message: redact_secret_like_text(&error.to_string()),
+            recoverable: true,
+        },
+    }
+}
+
+fn open_terminal_event_store() -> Result<TerminalEventStore, CliError> {
+    let paths = PlatformPaths::current(PlatformPathOverrides::default()).map_err(|error| {
+        CliError::PromptRuntimeFailed {
+            message: format!("terminal data directory failed: {error}"),
+        }
+    })?;
+    TerminalEventStore::open(paths.data_dir.join(TERMINAL_EVENT_STORE_FILE)).map_err(|error| {
+        CliError::PromptRuntimeFailed {
+            message: format!("terminal event database failed: {error}"),
         }
     })
+}
+
+fn current_terminal_session_report(
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> Result<TerminalSessionDirectoryReport, TerminalSessionCliError> {
+    let workspace_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    evaluate_terminal_session_directory(workspace_root, config_path, config_override, None)
+}
+
+fn format_plain_repl_model_status(model: &str) -> String {
+    let label = model
+        .split(['-', '_'])
+        .filter(|part| !part.trim().is_empty())
+        .map(format_model_status_part)
+        .collect::<Vec<_>>()
+        .join(" ");
+    if label.is_empty() {
+        "GPT 5.5 xhigh".to_string()
+    } else {
+        format!("{label} xhigh")
+    }
+}
+
+fn format_model_status_part(part: &str) -> String {
+    if part.eq_ignore_ascii_case("gpt") {
+        "GPT".to_string()
+    } else {
+        let mut chars = part.chars();
+        let Some(first) = chars.next() else {
+            return String::new();
+        };
+        format!(
+            "{}{}",
+            first.to_uppercase(),
+            chars.as_str().to_ascii_lowercase()
+        )
+    }
 }
 
 fn render_json_invocation(invocation: CliInvocation) -> CliOutput {
@@ -3959,7 +5563,7 @@ pub fn render_recovery_command(
             match output_mode {
                 OutputMode::Text => CliOutput::exit(render_recovery_snapshot_text(&snapshot)),
                 OutputMode::Json => CliOutput::exit(json_frame_line(
-                    UiJsonFrame::RecoverySnapshot(UiRecoverySnapshot::new(snapshot)),
+                    UiJsonFrame::recovery_snapshot(UiRecoverySnapshot::new(snapshot)).expect("admin frame"),
                 )),
             }
         }
@@ -3985,9 +5589,9 @@ pub fn render_recovery_command(
             }
             match output_mode {
                 OutputMode::Text => CliOutput::exit(render_resume_dry_run_text(&report)),
-                OutputMode::Json => CliOutput::exit(json_frame_line(UiJsonFrame::ResumeDryRun(
+                OutputMode::Json => CliOutput::exit(json_frame_line(UiJsonFrame::resume_dry_run(
                     UiResumeDryRunReport::new(report),
-                ))),
+                ).expect("admin frame"))),
             }
         }
     }
@@ -4009,7 +5613,7 @@ pub fn render_replay_command(
             match output_mode {
                 OutputMode::Text => CliOutput::exit(render_replay_inspect_text(&report)),
                 OutputMode::Json => {
-                    CliOutput::exit(json_frame_line(UiJsonFrame::ReplayInspect(report)))
+                    CliOutput::exit(json_frame_line(UiJsonFrame::replay_inspect(report).expect("admin frame")))
                 }
             }
         }
@@ -4060,7 +5664,7 @@ pub fn render_replay_command(
             match output_mode {
                 OutputMode::Text => CliOutput::exit(render_replay_fork_text(&report)),
                 OutputMode::Json => {
-                    CliOutput::exit(json_frame_line(UiJsonFrame::ReplayFork(report)))
+                    CliOutput::exit(json_frame_line(UiJsonFrame::replay_fork(report).expect("admin frame")))
                 }
             }
         }
@@ -4069,6 +5673,205 @@ pub fn render_replay_command(
 
 pub struct CommandRetryRuntime {
     reports: Vec<(String, CommandTestLoopReport)>,
+}
+
+fn command_retry_plan_from_snapshot(
+    snapshot: &UiCommandTestSnapshot,
+    reason: String,
+    dry_run: bool,
+) -> Option<CommandRetryPlan> {
+    let report = command_retry_report_from_snapshot(snapshot)?;
+    let request = CommandRetryRequest {
+        command_run_id: report.command_run_id.clone(),
+        reason,
+        dry_run,
+    };
+    Some(CommandRetryPlanner.plan_from_report(request, &report))
+}
+
+fn command_retry_report_from_snapshot(
+    snapshot: &UiCommandTestSnapshot,
+) -> Option<CommandTestLoopReport> {
+    let command_run_id = snapshot.command_run_id.trim();
+    if command_run_id.is_empty() {
+        return None;
+    }
+
+    Some(CommandTestLoopReport {
+        workspace_id: snapshot.workspace_id,
+        conversation_id: snapshot.conversation_id,
+        command_run_id: command_run_id.to_string(),
+        command: CommandIntentSummary {
+            display: snapshot.command.clone(),
+            program: snapshot.program.clone(),
+            args: snapshot.args.clone(),
+            timeout_ms: snapshot.timeout_ms,
+            cwd: snapshot.cwd.clone(),
+            classify_as_test: snapshot.classify_as_test,
+        },
+        status: command_execution_status_from_label(&snapshot.status)?,
+        classification: command_failure_classification_from_label(&snapshot.classification)?,
+        exit_code: snapshot.exit_code,
+        stdout: BoundedCommandOutput {
+            text: snapshot.stdout.clone(),
+            byte_count: snapshot.stdout_byte_count,
+            truncated: snapshot.truncated,
+            redacted: snapshot.redacted,
+        },
+        stderr: BoundedCommandOutput {
+            text: snapshot.stderr.clone(),
+            byte_count: snapshot.stderr_byte_count,
+            truncated: snapshot.truncated,
+            redacted: snapshot.redacted,
+        },
+        timed_out: snapshot.timed_out,
+        cancellation: CommandCancellationState {
+            cancellable: snapshot.cancellable,
+            reason: snapshot.cancellation_reason.clone(),
+        },
+        observation: CommandObservationSummary {
+            message: snapshot.observation.clone(),
+            truncated: snapshot.truncated,
+            redacted: snapshot.redacted,
+        },
+        events: Vec::new(),
+        diagnostics: Vec::new(),
+    })
+}
+
+fn terminal_command_retry_plan(
+    command_run_id: String,
+    reason: String,
+    dry_run: bool,
+    evidence: Option<Box<UiCommandTestSnapshot>>,
+) -> CommandRetryPlan {
+    if let Some(snapshot) = evidence.as_ref() {
+        if let Some(plan) = command_retry_plan_from_snapshot(snapshot, reason.clone(), dry_run) {
+            return plan;
+        }
+    }
+
+    CommandRetryPlanner.missing_evidence_plan(CommandRetryRequest {
+        command_run_id,
+        reason,
+        dry_run,
+    })
+}
+
+fn terminal_handle_command_retry(
+    session_store: &Mutex<TerminalEventStore>,
+    command_run_id: String,
+    reason: String,
+    dry_run: bool,
+    evidence: Option<Box<UiCommandTestSnapshot>>,
+    sender: &agent_tui::TerminalFrameSender,
+) -> Result<(), CliError> {
+    if dry_run {
+        let plan = terminal_command_retry_plan(command_run_id, reason, true, evidence);
+        sender
+            .send(UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan)).expect("admin frame"))
+            .map_err(|error| CliError::PromptRuntimeFailed {
+                message: error.to_string(),
+            })?;
+        return Ok(());
+    }
+
+    let Some(snapshot) = evidence.as_ref() else {
+        let plan = CommandRetryPlanner.missing_evidence_plan(CommandRetryRequest {
+            command_run_id,
+            reason,
+            dry_run,
+        });
+        sender
+            .send(UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan)).expect("admin frame"))
+            .map_err(|error| CliError::PromptRuntimeFailed {
+                message: error.to_string(),
+            })?;
+        return Ok(());
+    };
+
+    let Some(report) = command_retry_report_from_snapshot(snapshot) else {
+        let plan = CommandRetryPlanner.missing_evidence_plan(CommandRetryRequest {
+            command_run_id,
+            reason,
+            dry_run,
+        });
+        sender
+            .send(UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan)).expect("admin frame"))
+            .map_err(|error| CliError::PromptRuntimeFailed {
+                message: error.to_string(),
+            })?;
+        return Ok(());
+    };
+
+    let execution = CommandRetryPlanner
+        .execute_from_report(CommandRetryExecutionInput {
+            workspace_root: std::env::current_dir().map_err(|error| {
+                CliError::PromptRuntimeFailed {
+                    message: format!("terminal retry workspace failed: {error}"),
+                }
+            })?,
+            request: CommandRetryRequest {
+                command_run_id: report.command_run_id.clone(),
+                reason,
+                dry_run,
+            },
+            evidence: report,
+        })
+        .map_err(|error| CliError::PromptRuntimeFailed {
+            message: format!("terminal retry execution failed: {error}"),
+        })?;
+
+    sender
+        .send(UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(
+            execution.plan,
+        )).expect("admin frame"))
+        .map_err(|error| CliError::PromptRuntimeFailed {
+            message: error.to_string(),
+        })?;
+
+    let Some(retry_report) = execution.retry_report else {
+        return Ok(());
+    };
+
+    let mut event_count = 0;
+    for event in retry_report.events.iter().cloned() {
+        send_terminal_runtime_event(sender, session_store, None, &mut event_count, event)?;
+    }
+    let snapshot =
+        UiCommandTestSnapshot::from_report(&retry_report).map_err(map_ui_bridge_error)?;
+    sender
+        .send(UiJsonFrame::command_test_snapshot(snapshot).expect("admin frame"))
+        .map_err(|error| CliError::PromptRuntimeFailed {
+            message: error.to_string(),
+        })?;
+    Ok(())
+}
+
+fn command_execution_status_from_label(label: &str) -> Option<CommandExecutionStatus> {
+    match label {
+        "succeeded" => Some(CommandExecutionStatus::Succeeded),
+        "failed" => Some(CommandExecutionStatus::Failed),
+        "timed_out" => Some(CommandExecutionStatus::TimedOut),
+        "waiting_approval" => Some(CommandExecutionStatus::WaitingApproval),
+        "denied" => Some(CommandExecutionStatus::Denied),
+        "tool_failed" => Some(CommandExecutionStatus::ToolFailed),
+        _ => None,
+    }
+}
+
+fn command_failure_classification_from_label(label: &str) -> Option<CommandFailureClassification> {
+    match label {
+        "none" => Some(CommandFailureClassification::None),
+        "test_failure" => Some(CommandFailureClassification::TestFailure),
+        "command_failure" => Some(CommandFailureClassification::CommandFailure),
+        "timeout" => Some(CommandFailureClassification::Timeout),
+        "policy_denied" => Some(CommandFailureClassification::PolicyDenied),
+        "waiting_approval" => Some(CommandFailureClassification::WaitingApproval),
+        "tool_failure" => Some(CommandFailureClassification::ToolFailure),
+        "invalid_input" => Some(CommandFailureClassification::InvalidInput),
+        _ => None,
+    }
 }
 
 impl CommandRetryRuntime {
@@ -4129,6 +5932,17 @@ impl CommandRetryRuntime {
     }
 
     #[must_use]
+    pub fn plan_from_snapshot(
+        &self,
+        snapshot: &UiCommandTestSnapshot,
+        reason: String,
+        dry_run: bool,
+    ) -> CommandRetryPlan {
+        command_retry_plan_from_snapshot(snapshot, reason.clone(), dry_run)
+            .unwrap_or_else(|| self.plan(snapshot.command_run_id.clone(), reason, dry_run))
+    }
+
+    #[must_use]
     pub fn plan(&self, command_run_id: String, reason: String, dry_run: bool) -> CommandRetryPlan {
         let request = CommandRetryRequest {
             command_run_id: command_run_id.clone(),
@@ -4172,7 +5986,7 @@ pub fn render_command_retry_command(
             match output_mode {
                 OutputMode::Text => CliOutput::exit(render_command_retry_plan_text(&plan)),
                 OutputMode::Json => CliOutput::exit(json_frame_line(
-                    UiJsonFrame::CommandRetryPlan(UiCommandRetryPlan::new(plan)),
+                    UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan)).expect("admin frame"),
                 )),
             }
         }
@@ -4189,12 +6003,37 @@ fn command_retry_fixture_report(
         conversation_id: "00000000-0000-0000-0000-000000006304"
             .parse()
             .expect("fixture conversation id is valid"),
+        command_run_id: match status {
+            CommandExecutionStatus::Failed if classify_as_test => "test-failed",
+            CommandExecutionStatus::Failed => "command-failed",
+            CommandExecutionStatus::TimedOut => "timeout",
+            CommandExecutionStatus::Succeeded => "success",
+            CommandExecutionStatus::WaitingApproval => "waiting-approval",
+            CommandExecutionStatus::Denied => "denied",
+            CommandExecutionStatus::ToolFailed => "tool-failed",
+        }
+        .to_string(),
         command: CommandIntentSummary {
             display: if classify_as_test {
                 "cargo test -p agent-core".to_string()
             } else {
                 "cargo check -p agent-core".to_string()
             },
+            program: Some("cargo".to_string()),
+            args: if classify_as_test {
+                vec![
+                    "test".to_string(),
+                    "-p".to_string(),
+                    "agent-core".to_string(),
+                ]
+            } else {
+                vec![
+                    "check".to_string(),
+                    "-p".to_string(),
+                    "agent-core".to_string(),
+                ]
+            },
+            timeout_ms: 30_000,
             cwd: ".".to_string(),
             classify_as_test,
         },
@@ -4297,7 +6136,7 @@ pub fn render_conflict_command(command: ConflictCliCommand, output_mode: OutputM
                 match output_mode {
                     OutputMode::Text => CliOutput::exit(render_conflict_inspect_text(&report)),
                     OutputMode::Json => {
-                        CliOutput::exit(json_frame_line(UiJsonFrame::ConflictInspect(report)))
+                        CliOutput::exit(json_frame_line(UiJsonFrame::conflict_inspect(report).expect("admin frame")))
                     }
                 }
             }
@@ -4693,6 +6532,7 @@ fn recovery_tool_completed_event(
         RuntimeEventPayload::ToolExecutionCompleted(ToolExecutionCompleted {
             call_id: call_id.to_string(),
             output_json: serde_json::json!({ "raw": "must-not-appear" }),
+            elapsed_ms: None,
         }),
     )
 }
@@ -5020,7 +6860,7 @@ pub fn render_team_command(
         Ok(frame) => match output_mode {
             OutputMode::Text => CliOutput::exit(render_team_workflow_text(&frame)),
             OutputMode::Json => {
-                CliOutput::exit(json_frame_line(UiJsonFrame::TeamWorkflowSnapshot(frame)))
+                CliOutput::exit(json_frame_line(UiJsonFrame::team_workflow_snapshot(frame).expect("admin frame")))
             }
         },
         Err(error) => render_team_cli_error("team_workflow_failed", &error, output_mode),
@@ -5554,7 +7394,7 @@ fn render_task_json_response(response: TaskCommandResponse) -> CliOutput {
     };
 
     match task_snapshot(tasks, Vec::new()) {
-        Ok(snapshot) => CliOutput::exit(json_frame_line(UiJsonFrame::TaskSnapshot(snapshot))),
+        Ok(snapshot) => CliOutput::exit(json_frame_line(UiJsonFrame::task_snapshot(snapshot).expect("admin frame"))),
         Err(error) => CliOutput::failure(format!("{error}\n"), 2),
     }
 }
@@ -5567,7 +7407,7 @@ fn render_task_error(error: SchedulerError, output_mode: OutputMode) -> CliOutpu
                 UiTaskCommandError::recoverable("task_command_failed", error.to_string());
             match ui_error.and_then(|error| UiTaskSnapshot::new(Vec::new(), vec![error])) {
                 Ok(snapshot) => {
-                    CliOutput::failure(json_frame_line(UiJsonFrame::TaskSnapshot(snapshot)), 2)
+                    CliOutput::failure(json_frame_line(UiJsonFrame::task_snapshot(snapshot).expect("admin frame")), 2)
                 }
                 Err(error) => CliOutput::failure(format!("{error}\n"), 2),
             }
@@ -6409,7 +8249,7 @@ fn render_extension_json_response(response: ExtensionCommandResponse) -> CliOutp
         ExtensionCommandResponse::Inspect(record) => vec![*record],
     };
     match ui_extension_snapshot_from_records(records) {
-        Ok(snapshot) => CliOutput::exit(json_frame_line(UiJsonFrame::ExtensionSnapshot(snapshot))),
+        Ok(snapshot) => CliOutput::exit(json_frame_line(UiJsonFrame::extension_snapshot(snapshot).expect("admin frame"))),
         Err(error) => CliOutput::failure(
             json_value_frame_line(serde_json::json!({
                 "type": "extension_error",
@@ -8588,22 +10428,179 @@ fn build_prompt_runtime_input(
     config_path: Option<PathBuf>,
     config_override: ConfigOverride,
 ) -> Result<(ConfiguredTurnInput, ModelProviderRegistry), CliError> {
+    build_prompt_runtime_input_with_ids(prompt, config_path, config_override, runtime_ids())
+}
+
+fn build_prompt_runtime_input_with_ids(
+    prompt: String,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    ids: RuntimeIds,
+) -> Result<(ConfiguredTurnInput, ModelProviderRegistry), CliError> {
     let safe_prompt = redact_secret_like_text(&prompt);
-    let effective = evaluate_runtime_config(config_path, config_override)?;
-    let registry =
-        build_model_provider_registry(&effective, &safe_prompt, Arc::new(EnvSecretResolver))?;
+    let evaluated = evaluate_runtime_config_with_secrets(config_path, config_override)?;
+    let registry = build_model_provider_registry(
+        &evaluated.effective,
+        &safe_prompt,
+        evaluated.secret_resolver,
+    )?;
     let input = ConfiguredTurnInput {
-        ids: runtime_ids(),
+        ids,
         user_message: safe_prompt,
-        effective_config: effective,
+        conversation_history: std::sync::Arc::new(Vec::new()),
+        effective_config: std::sync::Arc::new(evaluated.effective),
         requirements: prompt_requirements(),
     };
 
     Ok((input, registry))
 }
 
+fn build_terminal_comprehensive_input_with_ids(
+    prompt: String,
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+    ids: RuntimeIds,
+    session_store: &Mutex<TerminalEventStore>,
+) -> Result<(ComprehensiveTurnInput, ModelProviderRegistry), CliError> {
+    let safe_prompt = redact_secret_like_text(&prompt);
+    let conversation_history = terminal_conversation_history(session_store, ids.conversation_id)?;
+    let evaluated = evaluate_runtime_config_with_secrets(config_path, config_override)?;
+    let registry = build_model_provider_registry(
+        &evaluated.effective,
+        &safe_prompt,
+        evaluated.secret_resolver,
+    )?;
+    let input = ComprehensiveTurnInput {
+        ids,
+        user_message: safe_prompt,
+        conversation_history: std::sync::Arc::new(conversation_history),
+        effective_config: std::sync::Arc::new(evaluated.effective),
+        requirements: coding_agent_model_requirements(),
+        loop_budget: terminal_agent_loop_budget(),
+    };
+
+    Ok((input, registry))
+}
+
+fn terminal_conversation_history(
+    session_store: &Mutex<TerminalEventStore>,
+    conversation_id: ConversationId,
+) -> Result<Vec<agent_context::PromptMessage>, CliError> {
+    let store = session_store
+        .lock()
+        .map_err(|_| CliError::PromptRuntimeFailed {
+            message: "terminal conversation history store is unavailable".to_string(),
+        })?;
+    conversation_history_messages(&*store, conversation_id, TERMINAL_HISTORY_MESSAGE_LIMIT).map_err(
+        |error| CliError::PromptRuntimeFailed {
+            message: format!("terminal conversation history failed: {error}"),
+        },
+    )
+}
+
+fn terminal_agent_loop_budget() -> AgentLoopBudget {
+    AgentLoopBudget {
+        model_turn_checkpoint_interval: 8,
+        max_tool_calls: 16,
+        max_wall_time_ms: 10 * 60 * 1000,
+        max_observation_bytes: 256 * 1024,
+        max_consecutive_invalid_tool_calls: 3,
+    }
+}
+
+fn terminal_tool_registry_for_current_dir() -> Result<ToolRegistry, CliError> {
+    let cwd = std::env::current_dir().map_err(|error| CliError::PromptRuntimeFailed {
+        message: format!("terminal workspace root is unavailable: {error}"),
+    })?;
+    let sandbox = WorkspaceSandbox::new(&cwd).map_err(|error| CliError::PromptRuntimeFailed {
+        message: format!("terminal workspace sandbox failed: {error}"),
+    })?;
+
+    let mut registry = ToolRegistry::default();
+    registry
+        .register(ReadFileTool::new(sandbox.clone()))
+        .map_err(terminal_tool_registration_error)?;
+    registry
+        .register(SearchTextTool::new(sandbox.clone()))
+        .map_err(terminal_tool_registration_error)?;
+    registry
+        .register(GitStatusTool::new(sandbox.clone()))
+        .map_err(terminal_tool_registration_error)?;
+    registry
+        .register(GitDiffTool::new(sandbox.clone()))
+        .map_err(terminal_tool_registration_error)?;
+    registry
+        .register(FileEditTool::new(sandbox.clone()))
+        .map_err(terminal_tool_registration_error)?;
+    registry
+        .register(WriteFileTool::new(sandbox.clone()))
+        .map_err(terminal_tool_registration_error)?;
+    registry
+        .register(ShellCommandTool::new(sandbox))
+        .map_err(terminal_tool_registration_error)?;
+
+    Ok(registry)
+}
+
+fn terminal_tool_registration_error(error: agent_tool::ToolRegistryError) -> CliError {
+    CliError::PromptRuntimeFailed {
+        message: format!("terminal tool registration failed: {error}"),
+    }
+}
+
+fn terminal_tool_policy() -> Result<StaticPolicyEngine, CliError> {
+    let allow = PolicyDecision::Allow {
+        reason: "terminal policy allows read-only workspace tool".to_string(),
+    };
+    let ask = PolicyDecision::Ask {
+        reason: "terminal policy requires approval for side-effecting workspace tool".to_string(),
+    };
+    let mut policy = StaticPolicyEngine::default();
+    for tool_name in [
+        "workspace.read_file",
+        "workspace.git_status",
+        "workspace.git_diff",
+    ] {
+        policy = policy.with_decision(
+            CapabilityAction::Read,
+            ResourceScope::new(ResourceKind::Tool, tool_name)
+                .map_err(terminal_tool_policy_error)?,
+            allow.clone(),
+        );
+    }
+    policy = policy.with_decision(
+        CapabilityAction::Search,
+        ResourceScope::new(ResourceKind::Tool, "workspace.search_text")
+            .map_err(terminal_tool_policy_error)?,
+        allow.clone(),
+    );
+    for tool_name in [
+        "workspace.edit_file",
+        "workspace.write_file",
+        "workspace.shell_command",
+    ] {
+        policy = policy.with_decision(
+            CapabilityAction::Execute,
+            ResourceScope::new(ResourceKind::Tool, tool_name)
+                .map_err(terminal_tool_policy_error)?,
+            ask.clone(),
+        );
+    }
+    Ok(policy)
+}
+
+fn terminal_tool_policy_error(error: agent_policy::PolicyError) -> CliError {
+    CliError::PromptRuntimeFailed {
+        message: format!("terminal tool policy failed: {error}"),
+    }
+}
+
 fn cli_runtime() -> Result<tokio::runtime::Runtime, CliError> {
-    tokio::runtime::Builder::new_current_thread()
+    // Multi-thread so tool spawn_blocking work (shell/fs) does not stall the
+    // agent loop / streaming event path on the interactive TUI runtime.
+    tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(2)
+        .enable_all()
         .build()
         .map_err(|error| CliError::PromptRuntimeFailed {
             message: error.to_string(),
@@ -8690,7 +10687,7 @@ fn render_prompt_inspection_json() -> CliOutput {
                 Ok(summary) => summary,
                 Err(error) => return render_prompt_inspection_json_error(error),
             };
-            let mut stdout = json_frame_line(UiJsonFrame::PromptSummary(summary));
+            let mut stdout = json_frame_line(UiJsonFrame::prompt_summary(summary).expect("admin frame"));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
         }
@@ -9002,6 +10999,618 @@ fn runtime_ids() -> RuntimeIds {
     }
 }
 
+#[cfg(test)]
+mod terminal_runtime_identity_tests {
+    use super::*;
+
+    fn terminal_store() -> TerminalEventStore {
+        TerminalEventStore::open_in_memory().expect("open terminal test store")
+    }
+
+    #[test]
+    fn terminal_runtime_ids_keep_session_identity_and_rotate_turn_identity() {
+        let identity = new_terminal_runtime_identity();
+
+        let first = terminal_runtime_ids(identity);
+        let second = terminal_runtime_ids(identity);
+
+        assert_eq!(first.workspace_id, identity.workspace_id);
+        assert_eq!(first.conversation_id, identity.conversation_id);
+        assert_eq!(second.workspace_id, identity.workspace_id);
+        assert_eq!(second.conversation_id, identity.conversation_id);
+        assert_ne!(first.turn_id, second.turn_id);
+        assert_ne!(first.correlation_id, second.correlation_id);
+    }
+
+    #[test]
+    fn terminal_runtime_identity_prefers_latest_session_summary() {
+        let report = build_terminal_session_directory(sample_terminal_session_records())
+            .expect("valid sample terminal session directory");
+        let latest = report.sessions.first().expect("latest session");
+
+        let identity =
+            terminal_runtime_identity_from_report(&report).expect("identity from report");
+
+        assert_eq!(identity.workspace_id, latest.workspace_id);
+        assert_eq!(identity.conversation_id, latest.conversation_id);
+    }
+
+    #[test]
+    fn terminal_recovery_frames_use_current_session_store() {
+        let identity = new_terminal_runtime_identity();
+        let turn_id = TurnId::new();
+        let store = Mutex::new(terminal_store());
+        store
+            .lock()
+            .expect("store lock")
+            .append(recovery_user_event(
+                identity.conversation_id,
+                turn_id,
+                "terminal recovery smoke",
+            ))
+            .expect("append event");
+
+        let status = terminal_recovery_status_frame(&store, identity, None);
+        match status {
+            UiJsonFrame::Admin(admin) if admin.kind == "recovery_snapshot" => {
+                let snapshot: UiRecoverySnapshot = admin.decode_as().expect("decode recovery");
+                assert_eq!(snapshot.snapshot.conversation_id, identity.conversation_id);
+                assert_eq!(snapshot.snapshot.replay.replayed_event_count, 1);
+            }
+            other => panic!("expected recovery snapshot admin frame, got {other:?}"),
+        }
+
+        let resume = terminal_recovery_resume_dry_run_frame(&store, identity, None, None);
+        match resume {
+            UiJsonFrame::Admin(admin) if admin.kind == "resume_dry_run" => {
+                let report: UiResumeDryRunReport = admin.decode_as().expect("decode dry run");
+                assert_eq!(report.report.snapshot.conversation_id, identity.conversation_id);
+                assert_eq!(report.report.will_replay_event_count, 1);
+            }
+            other => panic!("expected resume dry-run admin frame, got {other:?}"),
+        }
+
+        let resume = terminal_recovery_resume_frame(&store, identity, None, None);
+        match resume {
+            UiJsonFrame::Admin(admin) if admin.kind == "recovery_resume" => {
+                let report: UiResumeReport = admin.decode_as().expect("decode resume");
+                assert_eq!(
+                    report.report.snapshot.conversation_id,
+                    identity.conversation_id
+                );
+                assert_eq!(report.report.replayed_event_count, 1);
+                assert!(report.report.resumed);
+                let continuation = report.report.continuation.expect("continuation");
+                assert!(continuation.next_prompt.contains("terminal recovery smoke"));
+            }
+            other => panic!("expected recovery resume frame, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn terminal_compaction_frame_uses_current_session_store() {
+        let identity = new_terminal_runtime_identity();
+        let turn_id = TurnId::new();
+        let store = Mutex::new(terminal_store());
+        store
+            .lock()
+            .expect("store lock")
+            .append(recovery_user_event(
+                identity.conversation_id,
+                turn_id,
+                "summarize this token sk-terminal-secret",
+            ))
+            .expect("append event");
+
+        let frame = terminal_conversation_compaction_frame(&store, identity, 8);
+
+        match frame {
+            UiJsonFrame::Admin(admin) if admin.kind == "conversation_compaction" => {
+                let report: UiConversationCompactionReport =
+                    admin.decode_as().expect("decode compaction");
+                assert_eq!(report.conversation_id, identity.conversation_id);
+                assert_eq!(report.source_message_count, 1);
+                assert_eq!(report.summary_message_count, 1);
+                assert_eq!(report.dropped_message_count, 1);
+                assert!(
+                    report.summary.as_deref().is_some_and(|summary| {
+                        summary.contains("[redacted]") && !summary.contains("sk-terminal-secret")
+                    })
+                );
+            }
+            other => panic!("expected compaction admin frame, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn terminal_model_attempt_frame_uses_typed_attempts() {
+        let (sender, receiver) = std::sync::mpsc::channel();
+        let attempts = vec![
+            ModelInvocationAttempt {
+                provider_id: "freemodel".to_string(),
+                model: "gpt-5.5".to_string(),
+                attempt_index: 1,
+                request_id: Some("request-1".to_string()),
+                elapsed_ms: Some(10),
+            },
+            ModelInvocationAttempt {
+                provider_id: "fallback".to_string(),
+                model: "gpt-5.5".to_string(),
+                attempt_index: 2,
+                request_id: None,
+                elapsed_ms: Some(20),
+            },
+        ];
+
+        send_terminal_model_invocation_attempts(
+            &sender,
+            "failed",
+            &attempts,
+            Some("invalid stream event token sk-secret".to_string()),
+        )
+        .expect("send attempts");
+
+        let frame = receiver.recv().expect("attempt frame");
+        assert!(matches!(
+            frame,
+            UiJsonFrame::ModelInvocationAttempts(snapshot)
+                if snapshot.status == "failed"
+                    && snapshot.attempts.len() == 2
+                    && snapshot.attempts[0].provider_id == "freemodel"
+                    && snapshot.attempts[0].request_id.as_deref() == Some("request-1")
+                    && snapshot.attempts[0].elapsed_ms == Some(10)
+                    && snapshot.message.as_deref().is_some_and(|message|
+                        message.contains("[redacted]") && !message.contains("sk-secret")
+            )
+        ));
+    }
+
+    #[test]
+    fn terminal_startup_frames_include_extension_snapshot() {
+        let frames = terminal_app_startup_frames(None, ConfigOverride::default(), None);
+
+        assert!(frames.iter().any(|frame| match frame {
+            UiJsonFrame::Admin(admin) if admin.kind == "extension_snapshot" => admin
+                .decode_as::<UiExtensionSnapshot>()
+                .map(|snapshot| snapshot.extensions.is_empty())
+                .unwrap_or(false),
+            _ => false,
+        }));
+    }
+
+    #[test]
+    fn terminal_approval_abort_routes_through_resolution_path() {
+        let runtime = CliTerminalCommandRuntime {
+            config_path: None,
+            theme_config_path: None,
+            config_override: Arc::new(Mutex::new(ConfigOverride::default())),
+            identity: Arc::new(Mutex::new(new_terminal_runtime_identity())),
+            session_store: Arc::new(Mutex::new(terminal_store())),
+            session_catalog: Arc::new(Mutex::new(TerminalSessionCatalog::default())),
+            approval_coordinator: Arc::new(Mutex::new(ApprovalCoordinator::default())),
+            approval_continuations: Arc::new(Mutex::new(BTreeMap::new())),
+            active_cancellation: Arc::new(Mutex::new(None)),
+        };
+
+        let (sender, receiver) = std::sync::mpsc::channel();
+        agent_tui::TerminalCommandRuntime::handle_effect(
+            &runtime,
+            TuiEffect::ApprovalAborted("not-a-request-id".to_string()),
+            sender.clone(),
+        );
+        assert!(matches!(
+            receiver.recv().expect("invalid abort frame"),
+            UiJsonFrame::Error { code, .. }
+                if code == "terminal_approval_abort_invalid_request_id"
+        ));
+        // Every approval error path now emits a `Done` after the `Error` so the
+        // paused turn actually ends instead of spinning on the activity line.
+        assert!(matches!(
+            receiver.recv().expect("invalid abort done frame"),
+            UiJsonFrame::Done { .. }
+        ));
+
+        agent_tui::TerminalCommandRuntime::handle_effect(
+            &runtime,
+            TuiEffect::ApprovalAborted("00000000-0000-0000-0000-000000000001".to_string()),
+            sender,
+        );
+        assert!(matches!(
+            receiver.recv().expect("valid abort frame"),
+            UiJsonFrame::Error { code, message, .. }
+                if code == "terminal_approval_abort_failed"
+                    && !message.contains("not yet wired")
+                    && !message.contains("unimplemented")
+        ));
+        assert!(matches!(
+            receiver.recv().expect("valid abort done frame"),
+            UiJsonFrame::Done { .. }
+        ));
+    }
+
+    #[test]
+    fn terminal_persist_theme_frame_writes_config() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join("agent.toml");
+        std::fs::write(
+            &path,
+            r#"
+schema_version = 1
+
+[model]
+default_provider = "fake"
+
+[model.invocation]
+timeout_ms = 30000
+max_attempts = 1
+retryable_failures = []
+fallback_provider_ids = []
+
+[[model.providers]]
+id = "fake"
+kind = "fake"
+default_model = "fake-scripted"
+enabled = true
+timeout_ms = 1000
+"#,
+        )
+        .expect("write config");
+
+        let frame = terminal_persist_theme_frame(Some(&path), "dark");
+
+        assert!(matches!(
+            frame,
+            UiJsonFrame::ConfigDiagnostic { code, severity, .. }
+                if code == "terminal_theme.persisted" && severity == "info"
+        ));
+        let config = agent_core::load_agent_config_file(&path).expect("load updated config");
+        assert_eq!(config.terminal.theme, RuntimeTerminalTheme::Dark);
+    }
+
+    fn two_provider_config(path: &Path) {
+        std::fs::write(
+            path,
+            r#"
+schema_version = 1
+
+[model]
+default_provider = "fake"
+
+[[model.providers]]
+id = "fake"
+kind = "fake"
+default_model = "fake-scripted"
+enabled = true
+
+[[model.providers]]
+id = "fake-alt"
+kind = "fake"
+default_model = "fake-alt-scripted"
+enabled = true
+
+[model.invocation]
+timeout_ms = 3000
+max_attempts = 1
+retryable_failures = []
+fallback_provider_ids = []
+"#,
+        )
+        .expect("write config");
+    }
+
+    #[test]
+    fn terminal_switch_model_frame_updates_shared_override_on_success() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join("agent.toml");
+        two_provider_config(&path);
+        let shared = Arc::new(Mutex::new(ConfigOverride::default()));
+
+        let frame = terminal_switch_model_frame(
+            &shared,
+            Some(path.clone()),
+            "fake-alt".to_string(),
+            "fake-alt-scripted".to_string(),
+        );
+
+        assert!(matches!(
+            frame,
+            UiJsonFrame::ModelSelection { provider, model }
+                if provider == "fake-alt" && model == "fake-alt-scripted"
+        ));
+        // The shared override now points at the new provider, so subsequent
+        // turns select it.
+        let snapshot = shared_config_override_snapshot(&shared);
+        assert_eq!(snapshot.provider.as_deref(), Some("fake-alt"));
+        assert_eq!(snapshot.model.as_deref(), Some("fake-alt-scripted"));
+    }
+
+    #[test]
+    fn terminal_switch_model_frame_rolls_back_on_invalid_provider() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join("agent.toml");
+        two_provider_config(&path);
+        let shared = Arc::new(Mutex::new(ConfigOverride::default()));
+
+        let frame = terminal_switch_model_frame(
+            &shared,
+            Some(path.clone()),
+            "does-not-exist".to_string(),
+            "ghost-model".to_string(),
+        );
+
+        assert!(matches!(
+            frame,
+            UiJsonFrame::Error { code, .. } if code == "terminal_switch_model.invalid"
+        ));
+        // A rejected switch leaves the override untouched (still the default).
+        let snapshot = shared_config_override_snapshot(&shared);
+        assert_eq!(snapshot.provider, None);
+        assert_eq!(snapshot.model, None);
+    }
+
+    #[test]
+    fn terminal_new_session_repoints_shared_identity() {
+        let record = sample_terminal_session_records()
+            .into_iter()
+            .next()
+            .expect("sample session");
+        let original = TerminalRuntimeIdentity {
+            workspace_id: record.workspace_id,
+            conversation_id: record.conversation_id,
+        };
+        let shared = Arc::new(Mutex::new(original));
+        let catalog = Mutex::new(TerminalSessionCatalog::new(vec![record]));
+        let (sender, receiver) = std::sync::mpsc::channel();
+
+        terminal_new_session(&shared, &catalog, &sender);
+
+        let updated = shared_terminal_identity_snapshot(&shared);
+        assert_ne!(updated.conversation_id, original.conversation_id);
+        assert_eq!(updated.workspace_id, original.workspace_id);
+        assert!(matches!(
+            receiver.recv().expect("session snapshot"),
+            UiJsonFrame::TerminalSessionSnapshot(snapshot) if snapshot.sessions.len() == 2
+        ));
+    }
+
+    #[test]
+    fn terminal_switch_session_replays_history_after_store_reopen() {
+        let target = new_terminal_runtime_identity();
+        let turn = TurnId::new();
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join("terminal-events.sqlite3");
+        {
+            let mut store = TerminalEventStore::open(&path).expect("open terminal store");
+            store
+                .append(recovery_user_event(
+                    target.conversation_id,
+                    turn,
+                    "restore me",
+                ))
+                .expect("append user");
+        }
+        let store = Arc::new(Mutex::new(
+            TerminalEventStore::open(&path).expect("reopen terminal store"),
+        ));
+        let shared = Arc::new(Mutex::new(new_terminal_runtime_identity()));
+        let (sender, receiver) = std::sync::mpsc::channel();
+
+        terminal_switch_session(
+            &shared,
+            &store,
+            &sender,
+            target.workspace_id,
+            target.conversation_id,
+        );
+
+        let now = shared_terminal_identity_snapshot(&shared);
+        assert_eq!(now.conversation_id, target.conversation_id);
+        assert_eq!(now.workspace_id, target.workspace_id);
+        let frames: Vec<_> = receiver.try_iter().collect();
+        assert!(frames.iter().any(|frame| matches!(
+            frame,
+            UiJsonFrame::Event(event)
+                if matches!(
+                    &event.payload,
+                    agent_ui_bridge::UiEventPayload::UserMessage { message }
+                        if message == "restore me"
+                )
+        )));
+        assert!(
+            frames
+                .iter()
+                .any(|frame| matches!(frame, UiJsonFrame::Done { event_count: 1 }))
+        );
+    }
+
+    #[test]
+    fn terminal_tool_loop_missing_tool_calls_uses_model_only_fallback() {
+        assert!(should_fallback_to_model_only_terminal_stream(
+            &ModelRuntimeError::MissingCapabilities {
+                provider_id: "openai-compatible".to_string(),
+                missing: vec![ModelCapability::ToolCalls],
+            }
+        ));
+        assert!(!should_fallback_to_model_only_terminal_stream(
+            &ModelRuntimeError::ProviderDisabled {
+                provider_id: "disabled".to_string(),
+            }
+        ));
+    }
+
+    #[test]
+    fn terminal_conversation_history_reads_prior_user_and_assistant_messages() {
+        let identity = new_terminal_runtime_identity();
+        let first_turn = TurnId::new();
+        let second_turn = TurnId::new();
+        let store = Mutex::new(terminal_store());
+        {
+            let mut store = store.lock().expect("store lock");
+            store
+                .append(recovery_user_event(
+                    identity.conversation_id,
+                    first_turn,
+                    "my project is called Atlas",
+                ))
+                .expect("append user");
+            store
+                .append(recovery_runtime_event(
+                    identity.conversation_id,
+                    first_turn,
+                    RuntimeEventPayload::FinalResponseProduced(
+                        agent_types::FinalResponseProduced {
+                            message: "I will remember Atlas.".to_string(),
+                        },
+                    ),
+                ))
+                .expect("append assistant");
+            store
+                .append(recovery_user_event(
+                    ConversationId::new(),
+                    second_turn,
+                    "unrelated conversation",
+                ))
+                .expect("append other conversation");
+        }
+
+        let history = terminal_conversation_history(&store, identity.conversation_id)
+            .expect("conversation history");
+
+        assert_eq!(history.len(), 2);
+        assert_eq!(history[0].role, "user");
+        assert_eq!(history[0].content, "my project is called Atlas");
+        assert_eq!(history[1].role, "assistant");
+        assert_eq!(history[1].content, "I will remember Atlas.");
+    }
+
+    #[test]
+    fn terminal_conversation_history_includes_tool_calls_and_results() {
+        let identity = new_terminal_runtime_identity();
+        let turn = TurnId::new();
+        let store = Mutex::new(terminal_store());
+        {
+            let mut store = store.lock().expect("store lock");
+            store
+                .append(recovery_user_event(
+                    identity.conversation_id,
+                    turn,
+                    "edit the file",
+                ))
+                .expect("user");
+            store
+                .append(recovery_runtime_event(
+                    identity.conversation_id,
+                    turn,
+                    RuntimeEventPayload::ToolCallProposed(agent_types::ToolCallProposed {
+                        call_id: "c1".to_string(),
+                        tool_name: "workspace.edit_file".to_string(),
+                        input_json: serde_json::json!({"path": "notes.txt"}),
+                    }),
+                ))
+                .expect("tool proposed");
+            store
+                .append(recovery_runtime_event(
+                    identity.conversation_id,
+                    turn,
+                    RuntimeEventPayload::ToolObservationRecorded(
+                        agent_types::ToolObservationRecorded {
+                            call_id: "c1".to_string(),
+                            observation: "edited".to_string(),
+                        },
+                    ),
+                ))
+                .expect("tool obs");
+            store
+                .append(recovery_runtime_event(
+                    identity.conversation_id,
+                    turn,
+                    RuntimeEventPayload::FinalResponseProduced(
+                        agent_types::FinalResponseProduced {
+                            message: "done".to_string(),
+                        },
+                    ),
+                ))
+                .expect("final");
+        }
+
+        let history = terminal_conversation_history(&store, identity.conversation_id)
+            .expect("conversation history");
+        assert!(
+            history.iter().any(|m| m.content.contains("workspace.edit_file")),
+            "expected tool call in history: {history:?}"
+        );
+        assert!(
+            history.iter().any(|m| m.content.contains("tool_result") && m.content.contains("edited")),
+            "expected tool result in history: {history:?}"
+        );
+        assert_eq!(history.last().map(|m| m.content.as_str()), Some("done"));
+    }
+
+    #[test]
+    fn terminal_tool_registry_exposes_core_workspace_tools() {
+        let registry = terminal_tool_registry_for_current_dir().expect("tool registry");
+        let names = registry
+            .definitions()
+            .into_iter()
+            .map(|definition| definition.name.as_str().to_string())
+            .collect::<Vec<_>>();
+
+        for expected in [
+            "workspace.read_file",
+            "workspace.search_text",
+            "workspace.write_file",
+            "workspace.edit_file",
+            "workspace.shell_command",
+        ] {
+            assert!(names.contains(&expected.to_string()), "missing {expected}");
+        }
+    }
+
+    #[test]
+    fn terminal_tool_policy_allows_read_tools_and_asks_for_side_effects() {
+        let policy = terminal_tool_policy().expect("tool policy");
+
+        for (tool_name, action) in [
+            ("workspace.read_file", CapabilityAction::Read),
+            ("workspace.search_text", CapabilityAction::Search),
+            ("workspace.git_status", CapabilityAction::Read),
+            ("workspace.git_diff", CapabilityAction::Read),
+        ] {
+            let request = agent_policy::PermissionRequest::new(
+                ActorRef::system(),
+                action,
+                ResourceScope::new(ResourceKind::Tool, tool_name).expect("scope"),
+                "test policy",
+                CorrelationId::new(),
+            )
+            .expect("permission request");
+            assert!(matches!(
+                agent_policy::PolicyEngine::decide(&policy, &request).expect("decision"),
+                PolicyDecision::Allow { .. }
+            ));
+        }
+
+        for tool_name in [
+            "workspace.edit_file",
+            "workspace.write_file",
+            "workspace.shell_command",
+        ] {
+            let request = agent_policy::PermissionRequest::new(
+                ActorRef::system(),
+                CapabilityAction::Execute,
+                ResourceScope::new(ResourceKind::Tool, tool_name).expect("scope"),
+                "test policy",
+                CorrelationId::new(),
+            )
+            .expect("permission request");
+            assert!(matches!(
+                agent_policy::PolicyEngine::decide(&policy, &request).expect("decision"),
+                PolicyDecision::Ask { .. }
+            ));
+        }
+    }
+}
+
 fn render_text_config_check(
     config_path: Option<PathBuf>,
     config_override: ConfigOverride,
@@ -9031,9 +11640,9 @@ fn render_json_config_check(
                 stdout.push_str(&json_frame_line(config_diagnostic_frame(diagnostic)));
             }
             stdout.push_str(&json_frame_line(UiJsonFrame::ConfigSnapshot(snapshot)));
-            stdout.push_str(&json_frame_line(UiJsonFrame::OnboardingReadinessSnapshot(
+            stdout.push_str(&json_frame_line(UiJsonFrame::onboarding_readiness_snapshot(
                 onboarding,
-            )));
+            ).expect("admin frame")));
             stdout.push_str(&json_frame_line(config_summary_frame(&report.effective)));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
@@ -9467,7 +12076,7 @@ fn render_json_repo_session(
                     return CliOutput::failure(stdout, 2);
                 }
             };
-            let mut stdout = json_frame_line(UiJsonFrame::RepoSessionSnapshot(snapshot));
+            let mut stdout = json_frame_line(UiJsonFrame::repo_session_snapshot(snapshot).expect("admin frame"));
             let mut event_count = 0;
             for event in &report.events {
                 stdout.push_str(&json_frame_line(UiJsonFrame::Event(
@@ -9505,6 +12114,9 @@ fn evaluate_repo_session(
     config_path: Option<PathBuf>,
     config_override: ConfigOverride,
 ) -> Result<RepoSessionBootstrapReport, RepoSessionBootstrapError> {
+    let config_path = resolve_agent_config_path(config_path)
+        .ok()
+        .and_then(|resolution| resolution.load_path);
     bootstrap_repo_session(RepoSessionBootstrapInput {
         workspace_root,
         config_path,
@@ -9835,7 +12447,7 @@ fn render_json_project_context_select(input: ProjectContextSelectCliInput) -> Cl
                         }
                     };
                     let mut stdout = json_frame_line(
-                        UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(snapshot),
+                        UiJsonFrame::project_context_pinned(snapshot),
                     );
                     stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
                     CliOutput::exit(stdout)
@@ -9868,7 +12480,7 @@ fn render_json_project_context_select(input: ProjectContextSelectCliInput) -> Cl
                         }
                     };
                 let mut stdout =
-                    json_frame_line(UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(snapshot));
+                    json_frame_line(UiJsonFrame::project_context_pinned(snapshot));
                 stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
                 CliOutput::exit(stdout)
             }
@@ -9899,7 +12511,7 @@ fn render_json_project_context_select(input: ProjectContextSelectCliInput) -> Cl
                     }
                 };
                 let mut stdout =
-                    json_frame_line(UiJsonFrame::ProjectContextHybridRetrievalSnapshot(snapshot));
+                    json_frame_line(UiJsonFrame::project_context_hybrid(snapshot));
                 stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
                 CliOutput::exit(stdout)
             }
@@ -9928,7 +12540,7 @@ fn render_json_project_context_select(input: ProjectContextSelectCliInput) -> Cl
                 }
             };
             let mut stdout =
-                json_frame_line(UiJsonFrame::ProjectContextRetrievalSnapshot(snapshot));
+                json_frame_line(UiJsonFrame::project_context_retrieval(snapshot));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
         }
@@ -10017,7 +12629,7 @@ fn render_json_project_context_quality(report: &ProjectContextQualityRetrievalRe
             return CliOutput::failure(stdout, 2);
         }
     };
-    let mut stdout = json_frame_line(UiJsonFrame::ProjectContextRetrievalSnapshot(snapshot));
+    let mut stdout = json_frame_line(UiJsonFrame::project_context_retrieval(snapshot));
     if let Err(output) = append_project_context_quality_trace_json(&mut stdout, &report.quality) {
         return output;
     }
@@ -10044,7 +12656,7 @@ fn render_json_project_context_hybrid_quality(
             return CliOutput::failure(stdout, 2);
         }
     };
-    let mut stdout = json_frame_line(UiJsonFrame::ProjectContextHybridRetrievalSnapshot(snapshot));
+    let mut stdout = json_frame_line(UiJsonFrame::project_context_hybrid(snapshot));
     if let Err(output) = append_project_context_quality_trace_json(&mut stdout, &report.quality) {
         return output;
     }
@@ -10073,7 +12685,7 @@ fn render_json_project_context_pinned_quality(
                 return CliOutput::failure(stdout, 2);
             }
         };
-    let mut stdout = json_frame_line(UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(snapshot));
+    let mut stdout = json_frame_line(UiJsonFrame::project_context_pinned(snapshot));
     if let Err(output) = append_project_context_quality_trace_json(&mut stdout, &report.quality) {
         return output;
     }
@@ -10102,7 +12714,7 @@ fn render_json_project_context_hybrid_pinned_quality(
                 return CliOutput::failure(stdout, 2);
             }
         };
-    let mut stdout = json_frame_line(UiJsonFrame::ProjectContextPinnedRetrievalSnapshot(snapshot));
+    let mut stdout = json_frame_line(UiJsonFrame::project_context_pinned(snapshot));
     if let Err(output) = append_project_context_quality_trace_json(&mut stdout, &report.quality) {
         return output;
     }
@@ -10127,7 +12739,7 @@ fn append_project_context_quality_trace_json(
         }
     };
     stdout.push_str(&json_frame_line(
-        UiJsonFrame::ProjectContextQualityTraceSnapshot(snapshot),
+        UiJsonFrame::project_context_quality(snapshot),
     ));
     Ok(())
 }
@@ -11209,7 +13821,7 @@ fn render_json_repo_command(
                     return CliOutput::failure(stdout, 2);
                 }
             };
-            let mut stdout = json_frame_line(UiJsonFrame::CommandTestSnapshot(snapshot));
+            let mut stdout = json_frame_line(UiJsonFrame::command_test_snapshot(snapshot).expect("admin frame"));
             let mut event_count = 0;
             for event in &report.events {
                 stdout.push_str(&json_frame_line(UiJsonFrame::Event(
@@ -11260,6 +13872,7 @@ fn evaluate_repo_command(
 ) -> Result<CommandTestLoopReport, CommandTestLoopError> {
     run_command_test_loop(CommandTestLoopInput {
         workspace_root,
+        command_run_id: None,
         program,
         args,
         cwd,
@@ -11315,8 +13928,9 @@ fn render_repo_command_summary_text(report: &CommandTestLoopReport) -> String {
         "no"
     };
     format!(
-        "Repo command: {}\nMode: {}\nCommand: {}\nCwd: {}\nClassification: {}\nExit: {}\nTimed out: {}\nCancellable: {}\nCancellation: {}\nStdout bytes: {}\nStderr bytes: {}\nTruncated: {}\nRedacted: {}\nStdout:\n{}\nStderr:\n{}\nDiagnostics: {}\nWorkspace ID: {}\nConversation ID: {}\n",
+        "Repo command: {}\nRun ID: {}\nMode: {}\nCommand: {}\nCwd: {}\nClassification: {}\nExit: {}\nTimed out: {}\nCancellable: {}\nCancellation: {}\nStdout bytes: {}\nStderr bytes: {}\nTruncated: {}\nRedacted: {}\nStdout:\n{}\nStderr:\n{}\nDiagnostics: {}\nWorkspace ID: {}\nConversation ID: {}\n",
         command_status_label(report.status),
+        report.command_run_id,
         mode,
         redact_secret_like_text(&report.command.display),
         redact_secret_like_text(&report.command.cwd),
@@ -11407,7 +14021,7 @@ fn render_json_final_review(fixture: FinalReviewFixture) -> CliOutput {
                     return CliOutput::failure(stdout, 2);
                 }
             };
-            let mut stdout = json_frame_line(UiJsonFrame::FinalReviewSnapshot(snapshot));
+            let mut stdout = json_frame_line(UiJsonFrame::final_review_snapshot(snapshot).expect("admin frame"));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
         }
@@ -11521,9 +14135,9 @@ fn render_json_startup_check() -> CliOutput {
         Ok(outcome) => match UiStartupMigrationSnapshot::from_outcome(&outcome) {
             Ok(snapshot) => {
                 let mut stdout = String::new();
-                stdout.push_str(&json_frame_line(UiJsonFrame::StartupMigrationSnapshot(
+                stdout.push_str(&json_frame_line(UiJsonFrame::startup_migration_snapshot(
                     snapshot,
-                )));
+                ).expect("admin frame")));
                 stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
                 CliOutput::exit(stdout)
             }
@@ -11583,24 +14197,49 @@ fn evaluate_runtime_config(
     config_path: Option<PathBuf>,
     config_override: ConfigOverride,
 ) -> Result<EffectiveRuntimeConfig, CliError> {
+    Ok(evaluate_runtime_config_with_secrets(config_path, config_override)?.effective)
+}
+
+struct EvaluatedRuntimeConfig {
+    effective: EffectiveRuntimeConfig,
+    secret_resolver: Arc<dyn SecretResolver>,
+}
+
+fn evaluate_runtime_config_with_secrets(
+    config_path: Option<PathBuf>,
+    config_override: ConfigOverride,
+) -> Result<EvaluatedRuntimeConfig, CliError> {
     let mut layers = vec![ConfigLayer {
         kind: ConfigLayerKind::BuiltIn,
         source: "built-in".to_string(),
         config: built_in_runtime_config()?,
     }];
+    let mut diagnostics = Vec::new();
+    let mut secret_resolvers: Vec<Arc<dyn SecretResolver>> = Vec::new();
 
-    if let Some(path) = config_path {
+    let resolution = resolve_agent_config_path(config_path).map_err(map_agent_config_error)?;
+    diagnostics.extend(resolution.diagnostics);
+    if let Some(path) = resolution.load_path {
         let source = path.display().to_string();
-        let config = agent_core::load_agent_config_file(&path).map_err(map_agent_config_error)?;
+        let loaded = agent_core::load_agent_config_file_with_secrets(&path)
+            .map_err(map_agent_config_error)?;
+        diagnostics.extend(loaded.diagnostics);
+        secret_resolvers.push(Arc::new(loaded.inline_secret_resolver));
         layers.push(ConfigLayer {
             kind: ConfigLayerKind::User,
             source,
-            config,
+            config: loaded.config,
         });
     }
+    secret_resolvers.push(Arc::new(EnvSecretResolver));
 
-    agent_core::build_effective_runtime_config(layers, config_override)
-        .map_err(map_agent_config_error)
+    let mut effective = agent_core::build_effective_runtime_config(layers, config_override)
+        .map_err(map_agent_config_error)?;
+    effective.diagnostics.extend(diagnostics);
+    Ok(EvaluatedRuntimeConfig {
+        effective,
+        secret_resolver: Arc::new(CompositeSecretResolver::new(secret_resolvers)),
+    })
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -11640,6 +14279,7 @@ fn built_in_runtime_config() -> Result<AgentRuntimeConfig, CliError> {
             catalog,
             invocation_policy,
         },
+        terminal: Default::default(),
     })
 }
 
@@ -11786,8 +14426,26 @@ fn config_provider_ids(effective: &EffectiveRuntimeConfig) -> Vec<String> {
 }
 
 fn ui_config_snapshot(report: &ConfigCheckReport) -> Result<UiConfigSnapshot, CliError> {
-    let providers = report
-        .effective
+    let mut snapshot = ui_config_snapshot_from_effective(&report.effective)?;
+    let platform_paths = ui_platform_paths_summary(&report.platform_paths)?;
+    let settings = UiSettingsProfileSummary::new(
+        report.settings.profile_id.clone(),
+        report.settings.selected_provider.clone(),
+        report.settings.selected_model.clone(),
+        report.settings.policy_profile.clone(),
+        report.settings.release_channel.as_str(),
+    )
+    .map_err(map_ui_bridge_error)?;
+    snapshot = snapshot
+        .with_platform_paths(platform_paths)
+        .with_settings(settings);
+    Ok(snapshot)
+}
+
+fn ui_config_snapshot_from_effective(
+    effective: &EffectiveRuntimeConfig,
+) -> Result<UiConfigSnapshot, CliError> {
+    let providers = effective
         .config
         .model
         .catalog
@@ -11805,39 +14463,26 @@ fn ui_config_snapshot(report: &ConfigCheckReport) -> Result<UiConfigSnapshot, Cl
             .map_err(map_ui_bridge_error)
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let diagnostics = report
-        .effective
+    let diagnostics = effective
         .diagnostics
         .iter()
         .map(ui_config_diagnostic)
         .collect::<Result<Vec<_>, _>>()?;
 
     let snapshot = UiConfigSnapshot::new(
-        report.effective.selected_provider.clone(),
-        report.effective.selected_model.clone(),
+        effective.selected_provider.clone(),
+        effective.selected_model.clone(),
         providers,
         diagnostics,
     )
     .map_err(map_ui_bridge_error)?;
-    let provider_support = report
-        .provider_support
-        .providers
-        .iter()
-        .map(ui_provider_support_summary)
-        .collect::<Result<Vec<_>, _>>()?;
-    let platform_paths = ui_platform_paths_summary(&report.platform_paths)?;
-    let settings = UiSettingsProfileSummary::new(
-        report.settings.profile_id.clone(),
-        report.settings.selected_provider.clone(),
-        report.settings.selected_model.clone(),
-        report.settings.policy_profile.clone(),
-        report.settings.release_channel.as_str(),
-    )
-    .map_err(map_ui_bridge_error)?;
-    Ok(snapshot
-        .with_provider_support(provider_support)
-        .with_platform_paths(platform_paths)
-        .with_settings(settings))
+    let provider_support =
+        ProviderSupportReport::from_effective_config(effective, &coding_agent_model_requirements())
+            .providers
+            .iter()
+            .map(ui_provider_support_summary)
+            .collect::<Result<Vec<_>, _>>()?;
+    Ok(snapshot.with_provider_support(provider_support))
 }
 
 fn ui_onboarding_readiness_snapshot(
@@ -12201,7 +14846,20 @@ pub fn render_local_coding_summary(outcome: &agent_core::LocalCodingOutcome) -> 
 pub enum SlashCommand {
     Help,
     Status,
+    Model,
+    Permissions,
+    Plan,
+    Diff,
+    Tools,
+    Mcp,
+    Memory,
+    Theme,
+    Thinking,
+    Copy,
+    Compact,
+    Retry,
     Sessions,
+    Resume,
     Trace,
     Tasks,
     Clear,
@@ -12219,7 +14877,20 @@ impl SlashCommand {
         match effect {
             UiSlashCommandEffect::OpenHelp => Some(Self::Help),
             UiSlashCommandEffect::ShowStatus => Some(Self::Status),
+            UiSlashCommandEffect::ShowModel => Some(Self::Model),
+            UiSlashCommandEffect::ShowPermissions => Some(Self::Permissions),
+            UiSlashCommandEffect::OpenPlan => Some(Self::Plan),
+            UiSlashCommandEffect::OpenDiff => Some(Self::Diff),
+            UiSlashCommandEffect::OpenTools => Some(Self::Tools),
+            UiSlashCommandEffect::OpenMcp => Some(Self::Mcp),
+            UiSlashCommandEffect::OpenMemory => Some(Self::Memory),
+            UiSlashCommandEffect::OpenTheme => Some(Self::Theme),
+            UiSlashCommandEffect::ConfigureThinking => Some(Self::Thinking),
+            UiSlashCommandEffect::CopyLatestOutput => Some(Self::Copy),
+            UiSlashCommandEffect::CompactConversation => Some(Self::Compact),
+            UiSlashCommandEffect::RetryLastTurn => Some(Self::Retry),
             UiSlashCommandEffect::OpenSessions => Some(Self::Sessions),
+            UiSlashCommandEffect::ResumeSession => Some(Self::Resume),
             UiSlashCommandEffect::OpenTrace => Some(Self::Trace),
             UiSlashCommandEffect::OpenTasks => Some(Self::Tasks),
             UiSlashCommandEffect::ClearTranscript => Some(Self::Clear),
@@ -12236,8 +14907,47 @@ pub fn handle_slash_command(input: &str) -> CliOutput {
         Some(SlashCommand::Status) => CliOutput::keep_running(render_slash_status_text(
             &default_cli_terminal_status_snapshot(),
         )),
+        Some(SlashCommand::Model) => CliOutput::keep_running(
+            "Model: run `config show` or open TUI /model for live provider state\n",
+        ),
+        Some(SlashCommand::Permissions) => CliOutput::keep_running(
+            "Permissions: open TUI /permissions for approval and policy state\n",
+        ),
+        Some(SlashCommand::Plan) => {
+            CliOutput::keep_running("Plan: open TUI /plan for live task progress\n")
+        }
+        Some(SlashCommand::Diff) => {
+            CliOutput::keep_running("Diff: run `git diff` or open TUI /diff\n")
+        }
+        Some(SlashCommand::Tools) => {
+            CliOutput::keep_running("Tools: open TUI /tools for tool activity\n")
+        }
+        Some(SlashCommand::Mcp) => CliOutput::keep_running(
+            "MCP: run `mcp server list` or open TUI /mcp for server activity\n",
+        ),
+        Some(SlashCommand::Memory) => {
+            CliOutput::keep_running("Memory: open TUI /memory for memory state\n")
+        }
+        Some(SlashCommand::Theme) => {
+            CliOutput::keep_running("Theme: open TUI /theme for terminal theme status\n")
+        }
+        Some(SlashCommand::Thinking) => CliOutput::keep_running(
+            "Thinking: use `/thinking show-all` or `/thinking hide-all` in the TUI\n",
+        ),
+        Some(SlashCommand::Copy) => CliOutput::keep_running(
+            "Copy: open TUI /copy to copy the latest completed assistant output\n",
+        ),
+        Some(SlashCommand::Compact) => CliOutput::keep_running(
+            "Compact: conversation compaction is available in the TUI runtime path\n",
+        ),
+        Some(SlashCommand::Retry) => CliOutput::keep_running(
+            "Retry: failed-turn retry is available in the TUI runtime path\n",
+        ),
         Some(SlashCommand::Sessions) => {
             CliOutput::keep_running("Sessions: run `repo session list` or open TUI /sessions\n")
+        }
+        Some(SlashCommand::Resume) => {
+            CliOutput::keep_running("Resume: run `repo session resume` or open TUI /resume\n")
         }
         Some(SlashCommand::Trace) => {
             CliOutput::keep_running("Trace: run `--trace-summary` or open TUI /trace\n")
@@ -12313,4 +15023,121 @@ fn render_slash_status_text(snapshot: &UiTerminalStatusSnapshot) -> String {
         snapshot.session_count,
         snapshot.diagnostic_count
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn terminal_app_theme_reads_runtime_config() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let path = dir.path().join("agent.toml");
+        std::fs::write(
+            &path,
+            r#"
+schema_version = 1
+
+[terminal]
+theme = "high-contrast"
+
+[model]
+default_provider = "fake"
+
+[model.invocation]
+timeout_ms = 30000
+max_attempts = 1
+retryable_failures = []
+fallback_provider_ids = []
+
+[[model.providers]]
+id = "fake"
+kind = "fake"
+default_model = "fake-scripted"
+enabled = true
+timeout_ms = 30000
+"#,
+        )
+        .expect("write config");
+
+        assert_eq!(
+            terminal_app_theme(Some(path), ConfigOverride::default()),
+            agent_tui::TerminalTheme::HighContrast
+        );
+    }
+
+    #[test]
+    fn terminal_command_retry_missing_evidence_does_not_use_fixture_runtime() {
+        let plan = terminal_command_retry_plan(
+            "missing-run".to_string(),
+            "retry from TUI".to_string(),
+            true,
+            None,
+        );
+
+        assert_eq!(plan.readiness, CommandRetryReadiness::MissingEvidence);
+        assert_eq!(plan.command.display, "unknown");
+        assert!(
+            plan.diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "command_retry.evidence.missing")
+        );
+        assert!(
+            !plan
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "command_retry.fixture")
+        );
+    }
+
+    #[test]
+    fn terminal_command_retry_uses_ui_snapshot_evidence() {
+        let snapshot = UiCommandTestSnapshot {
+            workspace_id: WorkspaceId::new(),
+            conversation_id: ConversationId::new(),
+            command_run_id: "terminal-run".to_string(),
+            command: "cargo test -p agent-core".to_string(),
+            program: Some("cargo".to_string()),
+            args: vec![
+                "test".to_string(),
+                "-p".to_string(),
+                "agent-core".to_string(),
+            ],
+            timeout_ms: 30_000,
+            cwd: ".".to_string(),
+            classify_as_test: true,
+            status: "failed".to_string(),
+            classification: "test_failure".to_string(),
+            exit_code: Some(101),
+            stdout: "running tests".to_string(),
+            stderr: "test failed".to_string(),
+            stdout_byte_count: 13,
+            stderr_byte_count: 11,
+            timed_out: false,
+            cancellable: true,
+            cancellation_reason: "command can be cancelled before completion".to_string(),
+            observation: "terminal command failed".to_string(),
+            truncated: false,
+            redacted: false,
+            diagnostic_count: 0,
+        };
+
+        let plan = terminal_command_retry_plan(
+            "ignored-when-evidence-is-valid".to_string(),
+            "retry from TUI evidence".to_string(),
+            true,
+            Some(Box::new(snapshot)),
+        );
+
+        assert_eq!(plan.command_run_id, "terminal-run");
+        assert_eq!(plan.readiness, CommandRetryReadiness::Retryable);
+        assert_eq!(
+            plan.classification,
+            agent_types::CommandRetryFailureClassification::TestFailure
+        );
+        assert_eq!(plan.command.display, "cargo test -p agent-core");
+        assert_eq!(plan.command.program.as_deref(), Some("cargo"));
+        assert_eq!(plan.command.args, vec!["test", "-p", "agent-core"]);
+        assert!(plan.diagnostics.is_empty());
+    }
 }

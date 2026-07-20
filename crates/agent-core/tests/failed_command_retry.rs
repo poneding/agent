@@ -24,8 +24,16 @@ fn report(
     CommandTestLoopReport {
         workspace_id: WorkspaceId::new(),
         conversation_id: ConversationId::new(),
+        command_run_id: "command-run-1".to_string(),
         command: CommandIntentSummary {
             display: "cargo test --package agent-core".to_string(),
+            program: Some("cargo".to_string()),
+            args: vec![
+                "test".to_string(),
+                "--package".to_string(),
+                "agent-core".to_string(),
+            ],
+            timeout_ms: 30_000,
             cwd: ".".to_string(),
             classify_as_test,
         },
@@ -103,6 +111,8 @@ fn retry_planner_preserves_test_failure_intent() {
         CommandRetryFailureClassification::TestFailure
     );
     assert!(plan.command.classify_as_test);
+    assert_eq!(plan.command.program.as_deref(), Some("cargo"));
+    assert_eq!(plan.command.args, vec!["test", "--package", "agent-core"]);
 }
 
 #[test]

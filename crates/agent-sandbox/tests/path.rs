@@ -52,6 +52,39 @@ fn sandbox_rejects_parent_traversal_outside_root() {
     assert!(matches!(error, SandboxError::PathEscape(_)));
 }
 
+#[test]
+fn sandbox_resolves_new_write_path_inside_root() {
+    let temp = tempdir().expect("tempdir");
+    let root = temp.path().join("workspace");
+    fs::create_dir(&root).expect("workspace");
+    let sandbox = WorkspaceSandbox::new(&root).expect("sandbox");
+
+    let resolved = sandbox
+        .resolve_write_path("notes/new.txt")
+        .expect("resolve write path");
+
+    assert_eq!(
+        resolved,
+        root.canonicalize()
+            .expect("canonical root")
+            .join("notes/new.txt")
+    );
+}
+
+#[test]
+fn sandbox_rejects_write_parent_traversal_outside_root() {
+    let temp = tempdir().expect("tempdir");
+    let root = temp.path().join("workspace");
+    fs::create_dir(&root).expect("workspace");
+    let sandbox = WorkspaceSandbox::new(&root).expect("sandbox");
+
+    let error = sandbox
+        .resolve_write_path("../secret.txt")
+        .expect_err("write escape rejected");
+
+    assert!(matches!(error, SandboxError::PathEscape(_)));
+}
+
 #[cfg(unix)]
 #[test]
 fn sandbox_rejects_symlink_escape() {

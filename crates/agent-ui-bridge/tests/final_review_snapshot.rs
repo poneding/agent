@@ -78,10 +78,10 @@ fn final_review_snapshot_redacts_secret_like_content() {
 fn final_review_snapshot_json_frame_is_single_line() {
     let snapshot = UiFinalReviewSnapshot::from_review(&review()).expect("snapshot");
 
-    let line = encode_json_frame(&UiJsonFrame::FinalReviewSnapshot(snapshot)).expect("encode");
+    let line = encode_json_frame(&UiJsonFrame::final_review_snapshot(snapshot)).expect("encode");
 
     assert!(line.ends_with('\n'));
     assert_eq!(line.matches('\n').count(), 1);
     let frame = serde_json::from_str::<UiJsonFrame>(line.trim_end()).expect("parse frame");
-    assert!(matches!(frame, UiJsonFrame::FinalReviewSnapshot(_)));
+    assert!(matches!(frame, UiJsonFrame::final_review_snapshot(_)));
 }

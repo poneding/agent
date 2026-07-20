@@ -1,6 +1,6 @@
 use agent_model::{
-    FakeModelProvider, FakeModelScript, ModelProvider, ModelRequest, ModelStreamEvent,
-    collect_model_event_stream,
+    FakeModelProvider, FakeModelScript, ModelMessage, ModelProvider, ModelRequest,
+    ModelStreamEvent, collect_model_event_stream,
 };
 use agent_types::{ConversationId, CorrelationId, TurnId};
 use serde_json::json;
@@ -12,7 +12,9 @@ fn model_request() -> ModelRequest {
         conversation_id: ConversationId::new(),
         turn_id: TurnId::new(),
         correlation_id: CorrelationId::new(),
-        messages: vec!["read README".to_string()],
+        messages: vec![ModelMessage::user("read README")],
+        reasoning_effort: None,
+        tools: Vec::new(),
     }
 }
 

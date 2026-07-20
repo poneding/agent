@@ -640,6 +640,13 @@ export type UiCommand =
       };
     }
   | {
+      type: 'switch_session';
+      data: {
+        workspace_id: string;
+        conversation_id: string;
+      };
+    }
+  | {
       type: 'ping';
     };
 
@@ -801,6 +808,7 @@ export interface ConversationTaskState {
   conversations: DesktopConversationItem[];
   tasks: DesktopTaskItem[];
   transcript: TranscriptEntry[];
+  transcriptsByConversation: Record<string, TranscriptEntry[]>;
   activeConversationId: string | null;
   activeTaskId: string | null;
   composerText: string;

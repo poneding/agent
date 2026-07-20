@@ -1,10 +1,16 @@
 use std::cell::RefCell;
 
 use agent_cli::{
-    CliCommand, CliInvocation, OutputMode, PlainReplEvent, PlainReplRuntimeError, StdioProfile,
-    parse_cli_command, parse_cli_invocation, parse_plain_repl_line, render_approval_prompt,
-    render_cli_invocation_with_stdio, render_plain_repl_approval_prompt, render_plain_repl_prompt,
-    render_plain_repl_script,
+    CliCommand, CliInvocation, OutputMode, PlainReplEvent, PlainReplRuntimeError,
+    PlainReplSymbolMode, StdioProfile, parse_cli_command, parse_cli_invocation,
+    parse_plain_repl_line, render_approval_prompt, render_cli_invocation_with_stdio,
+    render_plain_repl_approval_prompt, render_plain_repl_footer,
+    render_plain_repl_footer_with_width, render_plain_repl_footer_with_width_and_symbols,
+    render_plain_repl_frame, render_plain_repl_frame_with_symbols,
+    render_plain_repl_interactive_frame, render_plain_repl_interactive_frame_with_symbols,
+    render_plain_repl_interactive_screen, render_plain_repl_prompt,
+    render_plain_repl_prompt_with_width, render_plain_repl_script, render_plain_repl_separator,
+    run_plain_repl_io_with_status_mode,
 };
 use agent_ui_bridge::{UiApprovalPreviewSummary, UiApprovalRequest};
 
@@ -43,7 +49,53 @@ fn plain_repl_command_parsing_is_script_safe() {
 
 #[test]
 fn plain_repl_line_parser_classifies_prompt_slash_empty_and_exit() {
-    assert_eq!(render_plain_repl_prompt(), "agent> ");
+    assert_eq!(render_plain_repl_separator(12), "────────────");
+    assert_eq!(render_plain_repl_separator(0), "─");
+    assert_eq!(render_plain_repl_prompt_with_width(12), "────────────\n❯ ");
+    assert_eq!(
+        render_plain_repl_prompt(),
+        format!("{}\n❯ ", "─".repeat(80))
+    );
+    assert_eq!(
+        render_plain_repl_footer_with_width("GPT 5.5 xhigh", 12),
+        "────────────\n 🧠 GPT 5.5 xhigh\n"
+    );
+    assert_eq!(
+        render_plain_repl_footer("GPT 5.5 xhigh"),
+        format!("{}\n 🧠 GPT 5.5 xhigh\n", "─".repeat(80))
+    );
+    assert_eq!(
+        render_plain_repl_frame("GPT 5.5 xhigh", 12),
+        "────────────\n❯ \n────────────\n 🧠 GPT 5.5 xhigh\n"
+    );
+    assert_eq!(
+        render_plain_repl_footer_with_width_and_symbols(
+            "GPT 5.5 xhigh",
+            12,
+            PlainReplSymbolMode::NoEmoji
+        ),
+        "────────────\n [model] GPT 5.5 xhigh\n"
+    );
+    assert_eq!(
+        render_plain_repl_frame_with_symbols("GPT 5.5 xhigh", 12, PlainReplSymbolMode::NoEmoji),
+        "────────────\n❯ \n────────────\n [model] GPT 5.5 xhigh\n"
+    );
+    assert_eq!(
+        render_plain_repl_interactive_frame("GPT 5.5 xhigh", 12),
+        "────────────\n❯ \u{1b}[s\n────────────\n 🧠 GPT 5.5 xhigh\n\u{1b}[u"
+    );
+    assert_eq!(
+        render_plain_repl_interactive_frame_with_symbols(
+            "GPT 5.5 xhigh",
+            12,
+            PlainReplSymbolMode::NoEmoji
+        ),
+        "────────────\n❯ \u{1b}[s\n────────────\n [model] GPT 5.5 xhigh\n\u{1b}[u"
+    );
+    assert_eq!(
+        render_plain_repl_interactive_screen("GPT 5.5 xhigh", 12),
+        "\u{1b}[2J\u{1b}[H────────────\n❯ \u{1b}[s\n────────────\n 🧠 GPT 5.5 xhigh\n\u{1b}[u"
+    );
     assert_eq!(parse_plain_repl_line("   "), None);
     assert_eq!(
         parse_plain_repl_line("hello agent"),
@@ -68,10 +120,34 @@ fn plain_repl_fixture_submits_prompts_and_exits_on_slash_exit() {
     assert!(output.exit);
     assert_eq!(output.status_code, 0);
     assert_eq!(seen_prompts.into_inner(), vec!["hello"]);
-    assert!(output.stdout.contains("agent plain repl"));
-    assert!(output.stdout.contains("agent> "));
+    assert!(!output.stdout.contains("agent plain repl"));
+    assert!(output.stdout.contains(&"─".repeat(80)));
+    assert!(output.stdout.contains("❯ "));
+    assert!(output.stdout.contains("🧠 GPT 5.5 xhigh"));
     assert!(output.stdout.contains("fake response: hello"));
     assert!(output.stdout.contains("Bye"));
+}
+
+#[test]
+fn plain_repl_interactive_mode_uses_alternate_screen_and_transcript_records() {
+    let mut stdout = Vec::new();
+    let status_code = run_plain_repl_io_with_status_mode(
+        std::io::Cursor::new("hello\n/exit\n"),
+        &mut stdout,
+        "GPT 5.5 xhigh",
+        true,
+        |prompt| Ok(format!("fake response: {prompt}\n")),
+    );
+    let stdout = String::from_utf8(stdout).expect("utf-8 output");
+
+    assert_eq!(status_code, 0);
+    assert!(stdout.starts_with("\u{1b}[?1049h"));
+    assert!(stdout.contains("\u{1b}[2J\u{1b}[H"));
+    assert!(stdout.contains("\u{1b}[48;5;236m\u{1b}[38;5;231m You \u{1b}[0m"));
+    assert!(stdout.contains("hello"));
+    assert!(stdout.contains("Agent\nfake response: hello"));
+    assert!(stdout.ends_with("\u{1b}[?1049l"));
+    assert!(!stdout.contains("Bye\n"));
 }
 
 #[test]

@@ -47,7 +47,11 @@ impl ModelCapabilities {
     pub fn openai_compatible_default() -> Self {
         Self {
             streaming: true,
-            tool_calls: false,
+            // OpenAI-compatible chat/completions and Responses APIs both expose
+            // function/tool calling. Advertise it so coding-agent turns can
+            // register workspace tools instead of falling back to model-only
+            // streaming.
+            tool_calls: true,
             structured_outputs: false,
             image_input: false,
             max_context_tokens: Some(128_000),

@@ -1,0 +1,15 @@
+---
+source: crates/agent-tui/tests/snapshots_layout.rs
+assertion_line: 139
+expression: "snapshot(&approval_app(), NARROW)"
+---
+ I                                      
+    ┌ Approval required ───────────┐    
+    │execute command               │    
+    │cargo test --all              │    
+    │run the suite                 │    
+    │                              │    
+ ── │Run cargo test --all          │ ── 
+ ❯  │                              │ En 
+ ── └──────────────────────────────┘ ── 
+ope                                  g ·

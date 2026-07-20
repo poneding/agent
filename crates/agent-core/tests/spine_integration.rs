@@ -19,6 +19,8 @@ async fn spine_integration_persists_fake_turn_events() {
     let input = TurnInput {
         ids,
         user_message: "say hello".to_string(),
+        conversation_history: Vec::new(),
+        continuation_messages: Vec::new(),
         provider: "fake".to_string(),
         model: "fake-scripted".to_string(),
     };

@@ -97,7 +97,7 @@ fn memory_snapshot_frame_has_stable_json_tag_and_redacted_runtime_evidence() {
     .expect("runtime memory")
     .evidence;
 
-    let frame = UiJsonFrame::MemorySnapshot(
+    let frame = UiJsonFrame::memory_snapshot(
         UiMemorySnapshot::from_runtime_evidence(&evidence).expect("ui memory snapshot"),
     );
     let encoded = encode_json_frame(&frame).expect("encode frame");
@@ -141,7 +141,7 @@ fn memory_snapshot_frame_has_stable_json_tag_and_redacted_runtime_evidence() {
     let decoded: UiJsonFrame = serde_json::from_str(&encoded).expect("decode frame");
     assert!(matches!(
         decoded,
-        UiJsonFrame::MemorySnapshot(snapshot)
+        UiJsonFrame::memory_snapshot(snapshot)
             if snapshot.enabled
                 && snapshot.records.len() == 2
                 && snapshot.proposals.len() == 1

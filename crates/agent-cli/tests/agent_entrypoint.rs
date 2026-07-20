@@ -1,3 +1,5 @@
+use std::fs;
+use std::path::PathBuf;
 use std::process::Command;
 
 use agent_cli::{
@@ -12,6 +14,34 @@ fn parse_frames(output: &str) -> Vec<UiJsonFrame> {
         .lines()
         .map(|line| serde_json::from_str(line).expect("valid json frame line"))
         .collect()
+}
+
+fn fake_config_path() -> PathBuf {
+    let path = std::env::temp_dir().join(format!(
+        "agent-entrypoint-fake-config-{}.yaml",
+        std::process::id()
+    ));
+    fs::write(
+        &path,
+        r#"
+schemaVersion: 1
+model:
+  defaultProvider: fake
+  invocation:
+    timeoutMs: 30000
+    maxAttempts: 1
+    retryableFailures: []
+    fallbackProviderIds: []
+  providers:
+    - id: fake
+      kind: fake
+      defaultModel: fake-scripted
+      enabled: true
+      timeoutMs: 1000
+"#,
+    )
+    .expect("write fake config");
+    path
 }
 
 #[test]
@@ -39,7 +69,9 @@ fn agent_entrypoint_selects_tui_for_interactive_no_args() {
 
     assert!(!output.exit);
     assert_eq!(output.status_code, 0);
-    assert!(output.stdout.contains("agent tui"));
+    assert!(output.stdout.contains("agent tui shell ready"));
+    assert!(!output.stdout.contains("GPT 5.5 xhigh"));
+    assert!(!output.stdout.contains("❯ "));
 }
 
 #[test]
@@ -77,6 +109,8 @@ fn agent_entrypoint_preserves_json_prompt_script_mode() {
         }
     );
 
+    let mut invocation = invocation;
+    invocation.config_path = Some(fake_config_path());
     let output = render_cli_invocation_with_stdio(
         invocation,
         StdioProfile {
@@ -105,6 +139,135 @@ fn agent_binary_runs_version_command() {
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.starts_with("agent "));
+}
+
+#[cfg(unix)]
+#[test]
+fn agent_binary_no_args_enters_and_restores_alternate_screen_under_pty() {
+    if Command::new("python3").arg("--version").output().is_err() {
+        return;
+    }
+
+    let home = tempfile::tempdir().expect("temp home");
+    let script = r#"
+import os
+import pty
+import selectors
+import struct
+import subprocess
+import sys
+import time
+import fcntl
+import termios
+
+agent = sys.argv[1]
+master, slave = pty.openpty()
+fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 24, 100, 0, 0))
+env = os.environ.copy()
+env["TERM"] = "xterm-256color"
+
+process = subprocess.Popen(
+    [agent],
+    stdin=slave,
+    stdout=slave,
+    stderr=slave,
+    env=env,
+    close_fds=True,
+)
+os.close(slave)
+
+selector = selectors.DefaultSelector()
+selector.register(master, selectors.EVENT_READ)
+output = bytearray()
+started = time.monotonic()
+deadline = started + 6.0
+sent_exit = False
+alternate_screen_seen_at = None
+
+while time.monotonic() < deadline:
+    if alternate_screen_seen_at is None and b"\x1b[?1049h" in output:
+        alternate_screen_seen_at = time.monotonic()
+    if (
+        not sent_exit
+        and (
+            alternate_screen_seen_at is not None
+            and time.monotonic() - alternate_screen_seen_at >= 0.25
+            or time.monotonic() - started >= 2.0
+        )
+    ):
+        os.write(master, b"/exit\r")
+        sent_exit = True
+
+    for key, _ in selector.select(0.05):
+        try:
+            chunk = os.read(master, 8192)
+        except OSError:
+            chunk = b""
+        if not chunk:
+            break
+        output.extend(chunk)
+
+    if process.poll() is not None:
+        break
+
+if process.poll() is None:
+    try:
+        os.write(master, b"\x03")
+    except OSError:
+        pass
+    try:
+        process.wait(timeout=1)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=1)
+
+try:
+    while True:
+        chunk = os.read(master, 8192)
+        if not chunk:
+            break
+        output.extend(chunk)
+except OSError:
+    pass
+os.close(master)
+
+sys.stdout.buffer.write(output)
+sys.exit(process.returncode if process.returncode is not None else 124)
+"#;
+
+    let output = Command::new("python3")
+        .arg("-c")
+        .arg(script)
+        .arg(env!("CARGO_BIN_EXE_agent"))
+        .env("HOME", home.path())
+        .env_remove("AGENT_CONFIG")
+        .env_remove("OPENAI_API_KEY")
+        .env_remove("ANTHROPIC_API_KEY")
+        .env_remove("GEMINI_API_KEY")
+        .output()
+        .expect("pty smoke should run");
+
+    assert!(
+        output.status.success(),
+        "pty smoke exited with {status:?}; stdout={stdout:?}; stderr={stderr:?}",
+        status = output.status.code(),
+        stdout = String::from_utf8_lossy(&output.stdout),
+        stderr = String::from_utf8_lossy(&output.stderr)
+    );
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("\u{1b}[?1049h"),
+        "alternate screen enter sequence missing from pty output: {stdout:?}"
+    );
+    assert!(
+        stdout.contains("\u{1b}[?1049l"),
+        "alternate screen leave sequence missing from pty output: {stdout:?}"
+    );
+    assert!(
+        stdout.contains("fake-scripted") || stdout.contains("agent"),
+        "terminal app did not render recognizable status text: {stdout:?}"
+    );
 }
 
 #[test]

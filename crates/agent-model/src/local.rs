@@ -10,7 +10,7 @@ use thiserror::Error;
 
 use crate::config::{ModelProviderConfig, ModelProviderKind};
 use crate::provider::{ModelError, ModelProvider};
-use crate::request::ModelRequest;
+use crate::request::{ModelMessage, ModelRequest};
 use crate::stream::{
     ModelEventStream, ModelStreamEvent, ModelStreamResult, model_events_to_stream,
 };
@@ -198,19 +198,74 @@ pub fn build_local_request_body(request: &ModelRequest) -> Value {
     let messages = request
         .messages
         .iter()
-        .map(|message| {
-            json!({
-                "role": "user",
-                "content": message,
-            })
-        })
+        .map(local_chat_message)
         .collect::<Vec<_>>();
 
-    json!({
+    let mut body = json!({
         "model": request.model,
         "messages": messages,
         "stream": true,
-    })
+    });
+    if !request.tools.is_empty() {
+        body["tools"] = json!(
+            request
+                .tools
+                .iter()
+                .map(|tool| json!({
+                    "type": "function",
+                    "function": {
+                        "name": tool.name.clone(),
+                        "description": tool.description.clone(),
+                        "parameters": tool.input_schema.clone(),
+                    }
+                }))
+                .collect::<Vec<_>>()
+        );
+    }
+    body
+}
+
+fn local_chat_message(message: &ModelMessage) -> Value {
+    match message {
+        ModelMessage::System { content } => json!({
+            "role": "system",
+            "content": content,
+        }),
+        ModelMessage::User { content } => json!({
+            "role": "user",
+            "content": content,
+        }),
+        ModelMessage::Assistant { content } => json!({
+            "role": "assistant",
+            "content": content,
+        }),
+        ModelMessage::AssistantToolCall {
+            call_id,
+            tool_name,
+            input_json,
+        } => json!({
+            "role": "assistant",
+            "content": null,
+            "tool_calls": [{
+                "id": call_id,
+                "type": "function",
+                "function": {
+                    "name": tool_name,
+                    "arguments": input_json.to_string(),
+                }
+            }],
+        }),
+        ModelMessage::ToolResult {
+            call_id,
+            tool_name,
+            content,
+        } => json!({
+            "role": "tool",
+            "tool_call_id": call_id,
+            "name": tool_name,
+            "content": content,
+        }),
+    }
 }
 
 #[must_use]

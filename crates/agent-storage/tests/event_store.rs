@@ -122,6 +122,68 @@ fn sqlite_rejects_duplicate_event_id() {
 }
 
 #[test]
+fn event_stores_enumerate_conversations() {
+    let first = ConversationId::new();
+    let second = ConversationId::new();
+    let mut memory = InMemoryEventStore::default();
+    memory
+        .append(runtime_event(first, "first conversation"))
+        .expect("append first conversation");
+    memory
+        .append(runtime_event(second, "second conversation"))
+        .expect("append second conversation");
+    let memory_ids = memory
+        .list_conversation_ids()
+        .expect("list in-memory conversations");
+    assert_eq!(memory_ids.len(), 2);
+    assert!(memory_ids.contains(&first));
+    assert!(memory_ids.contains(&second));
+
+    let mut sqlite = SqliteEventStore::open_in_memory().expect("open sqlite store");
+    sqlite
+        .append(runtime_event(first, "first conversation"))
+        .expect("append first conversation");
+    sqlite
+        .append(runtime_event(second, "second conversation"))
+        .expect("append second conversation");
+    let sqlite_ids = sqlite
+        .list_conversation_ids()
+        .expect("list sqlite conversations");
+    assert_eq!(sqlite_ids.len(), 2);
+    assert!(sqlite_ids.contains(&first));
+    assert!(sqlite_ids.contains(&second));
+}
+
+#[test]
+fn sqlite_file_store_reopens_conversation_history() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let path = temp.path().join("runtime/events.sqlite3");
+    let conversation_id = ConversationId::new();
+    {
+        let mut store = SqliteEventStore::open(&path).expect("open file store");
+        store
+            .append(runtime_event(conversation_id, "persisted message"))
+            .expect("append persisted event");
+    }
+
+    let reopened = SqliteEventStore::open(&path).expect("reopen file store");
+    assert_eq!(
+        reopened
+            .list_conversation_ids()
+            .expect("list persisted conversations"),
+        vec![conversation_id]
+    );
+    let events = reopened
+        .list_by_conversation(conversation_id)
+        .expect("replay persisted conversation");
+    assert_eq!(events.len(), 1);
+    assert!(matches!(
+        &events[0].event.payload,
+        RuntimeEventPayload::UserInputReceived(input) if input.message == "persisted message"
+    ));
+}
+
+#[test]
 fn in_memory_replay_returns_ordered_events() {
     let mut store = InMemoryEventStore::default();
     assert_replay_returns_ordered_events(&mut store);

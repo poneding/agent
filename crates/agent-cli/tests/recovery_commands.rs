@@ -1,10 +1,10 @@
 use agent_cli::{
-    CliCommand, CliError, CommandRetryCliCommand, ConflictCliCommand, ConflictFixture, OutputMode,
-    RecoveryCliCommand, ReplayCliCommand, parse_cli_command, parse_cli_invocation,
-    render_cli_invocation,
+    CliCommand, CliError, CommandRetryCliCommand, CommandRetryRuntime, ConflictCliCommand,
+    ConflictFixture, OutputMode, RecoveryCliCommand, ReplayCliCommand, parse_cli_command,
+    parse_cli_invocation, render_cli_invocation,
 };
 use agent_types::{CheckpointId, ConversationId, TurnId};
-use agent_ui_bridge::UiJsonFrame;
+use agent_ui_bridge::{UiCommandTestSnapshot, UiJsonFrame};
 
 const CONVERSATION: &str = "00000000-0000-0000-0000-000000006301";
 const TURN: &str = "00000000-0000-0000-0000-000000006302";
@@ -206,7 +206,7 @@ fn recovery_status_renders_json_frame() {
     assert_eq!(frames.len(), 1);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::RecoverySnapshot(snapshot)
+        UiJsonFrame::recovery_snapshot(snapshot)
             if snapshot.snapshot.conversation_id == conversation_id()
                 && snapshot.snapshot.replay.replayed_event_count == 4
                 && snapshot.snapshot.pending_tool_calls.len() == 1
@@ -264,11 +264,61 @@ fn command_retry_renders_text_and_json_plans() {
     let frames = parse_frames(&json.stdout);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::CommandRetryPlan(plan)
+        UiJsonFrame::command_retry_plan(plan)
             if plan.plan.command_run_id == "command-failed"
                 && plan.plan.readiness == agent_types::CommandRetryReadiness::Retryable
                 && plan.plan.dry_run
     ));
+}
+
+#[test]
+fn command_retry_runtime_plans_from_ui_snapshot_evidence() {
+    let runtime = CommandRetryRuntime::fixture();
+    let snapshot = UiCommandTestSnapshot {
+        workspace_id: agent_types::WorkspaceId::new(),
+        conversation_id: conversation_id(),
+        command_run_id: "live-command-run".to_string(),
+        command: "cargo test -p agent-core".to_string(),
+        program: Some("cargo".to_string()),
+        args: vec![
+            "test".to_string(),
+            "-p".to_string(),
+            "agent-core".to_string(),
+        ],
+        timeout_ms: 30_000,
+        cwd: ".".to_string(),
+        classify_as_test: true,
+        status: "failed".to_string(),
+        classification: "test_failure".to_string(),
+        exit_code: Some(101),
+        stdout: "running tests".to_string(),
+        stderr: "test failed".to_string(),
+        stdout_byte_count: 13,
+        stderr_byte_count: 11,
+        timed_out: false,
+        cancellable: true,
+        cancellation_reason: "command can be cancelled before completion".to_string(),
+        observation: "test failure evidence from terminal UI".to_string(),
+        truncated: false,
+        redacted: false,
+        diagnostic_count: 0,
+    };
+
+    let plan = runtime.plan_from_snapshot(&snapshot, "rerun live evidence".to_string(), true);
+
+    assert_eq!(plan.command_run_id, "live-command-run");
+    assert_eq!(
+        plan.readiness,
+        agent_types::CommandRetryReadiness::Retryable
+    );
+    assert_eq!(
+        plan.classification,
+        agent_types::CommandRetryFailureClassification::TestFailure
+    );
+    assert_eq!(plan.command.display, "cargo test -p agent-core");
+    assert_eq!(plan.command.program.as_deref(), Some("cargo"));
+    assert_eq!(plan.command.args, vec!["test", "-p", "agent-core"]);
+    assert!(plan.diagnostics.is_empty());
 }
 
 #[test]
@@ -303,7 +353,7 @@ fn command_retry_reports_blocked_and_missing_targets() {
     let frames = parse_frames(&missing.stdout);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::CommandRetryPlan(plan)
+        UiJsonFrame::command_retry_plan(plan)
             if plan.plan.readiness == agent_types::CommandRetryReadiness::MissingEvidence
     ));
 }
@@ -342,7 +392,7 @@ fn conflict_inspect_renders_text_and_json() {
     let frames = parse_frames(&json.stdout);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::ConflictInspect(report)
+        UiJsonFrame::conflict_inspect(report)
             if report.conflicts.len() == 2
                 && report.conflicts.iter().any(|conflict|
                     conflict.path == "src/lib.rs"
@@ -414,7 +464,7 @@ fn replay_inspect_and_fork_render_json_reports() {
     let frames = parse_frames(&inspect.stdout);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::ReplayInspect(report)
+        UiJsonFrame::replay_inspect(report)
             if report.conversation_id == conversation_id()
                 && report.replayed_event_count == 4
                 && report.checkpoint_id == Some(checkpoint_id())
@@ -437,7 +487,7 @@ fn replay_inspect_and_fork_render_json_reports() {
     let frames = parse_frames(&fork.stdout);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::ReplayFork(report)
+        UiJsonFrame::replay_fork(report)
             if report.conversation_id == conversation_id()
                 && report.dry_run
                 && report.fork_label == "branch [redacted]"

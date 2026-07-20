@@ -3,10 +3,14 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use agent_core::{
-    CommandExecutionStatus, CommandFailureClassification, CommandTestLoopError,
-    CommandTestLoopInput, RuntimeIds, run_command_test_loop,
+    CommandExecutionStatus, CommandFailureClassification, CommandRetryExecutionInput,
+    CommandRetryPlanner, CommandTestLoopError, CommandTestLoopInput, RuntimeIds,
+    run_command_test_loop,
 };
-use agent_types::{ConversationId, CorrelationId, RuntimeEventPayload, TurnId, WorkspaceId};
+use agent_types::{
+    CommandRetryReadiness, CommandRetryRequest, ConversationId, CorrelationId, RuntimeEventPayload,
+    TurnId, WorkspaceId,
+};
 use tempfile::TempDir;
 
 fn runtime_ids() -> RuntimeIds {
@@ -79,6 +83,7 @@ fn input(
 ) -> CommandTestLoopInput {
     CommandTestLoopInput {
         workspace_root: root.to_path_buf(),
+        command_run_id: None,
         program: helper.display().to_string(),
         args: args.iter().map(|arg| (*arg).to_string()).collect(),
         cwd: ".".to_string(),
@@ -178,6 +183,43 @@ fn command_test_loop_classifies_non_zero_test_failure() {
         CommandFailureClassification::TestFailure
     );
     assert!(report.command.classify_as_test);
+}
+
+#[test]
+fn command_retry_executor_reruns_from_typed_command_evidence() {
+    let (temp, helper) = workspace();
+    let report =
+        run_command_test_loop(input(temp.path(), &helper, &["exit7"], true)).expect("command");
+
+    let execution = CommandRetryPlanner
+        .execute_from_report(CommandRetryExecutionInput {
+            workspace_root: temp.path().to_path_buf(),
+            request: CommandRetryRequest {
+                command_run_id: report.command_run_id.clone(),
+                reason: "rerun failed helper".to_string(),
+                dry_run: false,
+            },
+            evidence: report,
+        })
+        .expect("retry execution");
+
+    assert_eq!(execution.plan.readiness, CommandRetryReadiness::Retryable);
+    assert!(!execution.plan.dry_run);
+    let retry_report = execution.retry_report.expect("retry report");
+    assert_eq!(
+        retry_report.command_run_id,
+        execution.plan.attempt.next_attempt_id
+    );
+    assert_eq!(retry_report.status, CommandExecutionStatus::Failed);
+    assert_eq!(
+        retry_report.classification,
+        CommandFailureClassification::TestFailure
+    );
+    assert_eq!(
+        retry_report.command.program.as_deref(),
+        Some(helper.to_str().expect("utf8"))
+    );
+    assert_eq!(retry_report.command.args, vec!["exit7"]);
 }
 
 #[test]

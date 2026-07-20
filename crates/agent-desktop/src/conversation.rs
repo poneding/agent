@@ -351,6 +351,9 @@ fn transcript_payload(payload: &UiEventPayload) -> Option<(DesktopTranscriptRole
         UiEventPayload::ModelDelta { delta } => {
             Some((DesktopTranscriptRole::Assistant, delta.clone()))
         }
+        UiEventPayload::ReasoningSummaryDelta { delta } => {
+            Some((DesktopTranscriptRole::Progress, delta.clone()))
+        }
         UiEventPayload::FinalResponse { message } => {
             Some((DesktopTranscriptRole::Assistant, message.clone()))
         }

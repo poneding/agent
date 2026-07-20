@@ -28,6 +28,12 @@ interface StartTurnInput {
   clientVersion: string;
 }
 
+interface SwitchConversationInput {
+  workspaceId: string;
+  conversationId: string;
+  clientVersion: string;
+}
+
 export function createConversationTaskState(
   snapshot: DesktopWorkspaceSnapshot,
 ): ConversationTaskState {
@@ -36,6 +42,7 @@ export function createConversationTaskState(
     conversations: snapshot.conversations,
     tasks: snapshot.tasks,
     transcript: [],
+    transcriptsByConversation: {},
     activeConversationId: snapshot.active_conversation_id ?? null,
     activeTaskId: snapshot.tasks[0]?.task_id ?? null,
     composerText: '',
@@ -92,14 +99,45 @@ export function reduceConversationTaskState(
     return reduceTaskNotification(state, frame.data, payload.data);
   }
 
-  const transcriptEntry = transcriptEntryFromPayload(payload.type, payload.data, state.transcript);
-  if (transcriptEntry === null) {
-    return state;
+  const conversationId =
+    typeof frame.data.conversation_id === 'string'
+      ? frame.data.conversation_id
+      : state.activeConversationId;
+  const conversations =
+    payload.type === 'user_message' && isRecord(payload.data) && typeof payload.data.message === 'string'
+      ? upsertConversationFromUserMessage(
+          state.conversations,
+          conversationId,
+          payload.data.message,
+          typeof frame.data.occurred_at === 'string'
+            ? frame.data.occurred_at
+            : new Date().toISOString(),
+        )
+      : state.conversations;
+  if (conversationId === null) {
+    return conversations === state.conversations ? state : { ...state, conversations };
   }
 
+  const conversationTranscript = state.transcriptsByConversation[conversationId] ?? [];
+  const transcriptEntry = transcriptEntryFromPayload(
+    payload.type,
+    payload.data,
+    conversationTranscript,
+  );
+  if (transcriptEntry === null) {
+    return conversations === state.conversations ? state : { ...state, conversations };
+  }
+
+  const nextTranscript = [...conversationTranscript, transcriptEntry];
   return {
     ...state,
-    transcript: [...state.transcript, transcriptEntry],
+    conversations,
+    transcriptsByConversation: {
+      ...state.transcriptsByConversation,
+      [conversationId]: nextTranscript,
+    },
+    transcript:
+      conversationId === state.activeConversationId ? nextTranscript : state.transcript,
   };
 }
 
@@ -126,6 +164,42 @@ export function createStartTurnEnvelope(input: StartTurnInput): UiCommandEnvelop
         prompt: input.prompt,
       },
     },
+  };
+}
+
+export function createSwitchSessionEnvelope(
+  input: SwitchConversationInput,
+): UiCommandEnvelope {
+  return {
+    schema_version: 1,
+    command_id: createCommandId(),
+    client: {
+      kind: 'desktop',
+      version: input.clientVersion,
+    },
+    command: {
+      type: 'switch_session',
+      data: {
+        workspace_id: input.workspaceId,
+        conversation_id: input.conversationId,
+      },
+    },
+  };
+}
+
+export function selectConversation(
+  state: ConversationTaskState,
+  conversationId: string,
+): ConversationTaskState {
+  if (!state.conversations.some((conversation) => conversation.conversation_id === conversationId)) {
+    return state;
+  }
+  return {
+    ...state,
+    activeConversationId: conversationId,
+    transcript: state.transcriptsByConversation[conversationId] ?? [],
+    currentSubmission: null,
+    pendingFrameCount: 0,
   };
 }
 
@@ -311,6 +385,16 @@ function markSubmissionCompleted(
       ? transcriptEntry(state.transcript, 'system', `${eventCount} frame events processed`)
       : null;
 
+  const transcript =
+    completionEntry === null ? state.transcript : [...state.transcript, completionEntry];
+  const transcriptsByConversation =
+    state.activeConversationId === null
+      ? state.transcriptsByConversation
+      : {
+          ...state.transcriptsByConversation,
+          [state.activeConversationId]: transcript,
+        };
+
   return {
     ...state,
     pendingFrameCount: 0,
@@ -321,9 +405,65 @@ function markSubmissionCompleted(
             ...state.currentSubmission,
             status: 'completed',
           },
-    transcript:
-      completionEntry === null ? state.transcript : [...state.transcript, completionEntry],
+    transcript,
+    transcriptsByConversation,
   };
+}
+
+function upsertConversationFromUserMessage(
+  conversations: ConversationTaskState['conversations'],
+  conversationId: string | null,
+  message: string,
+  occurredAt: string,
+): ConversationTaskState['conversations'] {
+  if (conversationId === null) {
+    return conversations;
+  }
+  const index = conversations.findIndex(
+    (conversation) => conversation.conversation_id === conversationId,
+  );
+  const title = summarizeConversationTitle(message);
+  if (index < 0) {
+    return [
+      {
+        conversation_id: conversationId,
+        title,
+        last_activity_at: occurredAt,
+        unread_count: 0,
+      },
+      ...conversations,
+    ];
+  }
+
+  const current = conversations[index];
+  const next = {
+    ...current,
+    title: isPlaceholderConversationTitle(current.title) ? title : current.title,
+    last_activity_at: occurredAt,
+  };
+  return conversations.map((conversation, conversationIndex) =>
+    conversationIndex === index ? next : conversation,
+  );
+}
+
+function summarizeConversationTitle(message: string): string {
+  const redacted = boundConversationText(message).text;
+  const sentence = redacted.split(/[.!?。！？\n]/u)[0]?.trim() ?? '';
+  if (sentence.length === 0) {
+    return 'New session';
+  }
+  const chars = Array.from(sentence);
+  return chars.length > 56 ? `${chars.slice(0, 56).join('')}...` : sentence;
+}
+
+function isPlaceholderConversationTitle(title: string): boolean {
+  const normalized = title.trim().toLowerCase();
+  return (
+    normalized.length === 0 ||
+    normalized === 'untitled thread' ||
+    normalized === 'new session' ||
+    normalized === 'repo session'
+  );
 }
 
 function transcriptEntry(

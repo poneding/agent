@@ -137,3 +137,28 @@ pub struct ResumeDryRunReport {
     pub will_reuse_idempotent_effect_count: u32,
     pub blocked: bool,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ResumeReport {
+    pub snapshot: RecoverySnapshot,
+    pub replayed_event_count: u32,
+    pub resumed_pending_tool_count: u32,
+    pub reused_idempotent_effect_count: u32,
+    pub resumed: bool,
+    pub blocked: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub continuation: Option<RecoveryContinuation>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct RecoveryContinuation {
+    pub summary: String,
+    pub next_prompt: String,
+    pub can_start_turn: bool,
+    pub replayed_event_count: u32,
+    pub pending_tool_count: u32,
+    pub reused_effect_count: u32,
+    pub pending_approval_count: u32,
+    pub summary_truncated: bool,
+    pub prompt_truncated: bool,
+}

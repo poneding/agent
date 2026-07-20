@@ -6,7 +6,9 @@ pub mod command;
 pub mod error;
 pub mod event;
 pub mod frame;
+pub mod frame_core;
 pub mod slash;
+pub mod transcript_kind;
 
 pub use approval_queue::{
     UiApprovalQueueDiagnostic, UiApprovalQueueDiagnosticSeverity, UiApprovalQueueError,
@@ -20,36 +22,40 @@ pub use command::{
 pub use error::UiBridgeError;
 pub use event::{
     UiApprovalPreviewSummary, UiApprovalRequest, UiDiagnosticLevel, UiEventEnvelope,
-    UiEventPayload, UiTaskNotification, normalize_runtime_event,
+    UiEventPayload, UiTaskNotification, UiToolPolicySummary, UiToolSandboxSummary,
+    normalize_runtime_event,
 };
+pub use frame_core::{CoreUiFrameKind, core_ui_frame_kind, is_core_ui_frame};
+pub use transcript_kind::UiTranscriptKind;
 pub use frame::{
     UiCommandRetryPlan, UiCommandTestSnapshot, UiConfigDiagnostic, UiConfigDiagnosticSeverity,
     UiConfigSnapshot, UiConflictInspectReport, UiContextQualityDiagnosticSummary,
-    UiContextQualitySignalSummary, UiEditDiffSnapshot, UiExtensionCapabilityReview,
-    UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary, UiFinalReviewCommandResult,
-    UiFinalReviewSnapshot, UiIdempotentRecoverySummary, UiJsonFrame, UiMcpManagementDiagnostic,
-    UiMcpManagementSnapshot, UiMcpServerManagementSummary, UiMemoryDiagnostic,
-    UiMemoryInfluenceEntrySummary, UiMemoryInfluenceSummary, UiMemoryProposalSummary,
-    UiMemoryRecordSummary, UiMemoryRetentionSummary, UiMemoryRetrievalCandidateSummary,
-    UiMemoryRetrievalPreview, UiMemorySnapshot, UiModelCostProfile, UiModelProviderCapabilities,
-    UiModelProviderSummary, UiObservabilitySnapshot, UiOnboardingDiagnostic,
-    UiOnboardingNextAction, UiOnboardingReadinessSnapshot, UiPinnedContextItemSummary,
-    UiPinnedContextOmissionSummary, UiPlanTodoCommandError, UiPlanTodoSnapshot,
-    UiPlatformPathsSummary, UiProjectContextDiagnosticSummary, UiProjectContextFileSummary,
-    UiProjectContextHybridCandidateSummary, UiProjectContextHybridOmissionSummary,
-    UiProjectContextHybridRetrievalSnapshot, UiProjectContextOmissionSummary,
-    UiProjectContextPinnedRetrievalSnapshot, UiProjectContextQualityTraceSnapshot,
-    UiProjectContextRetrievalCandidateSummary, UiProjectContextRetrievalDiagnosticSummary,
-    UiProjectContextRetrievalOmissionSummary, UiProjectContextRetrievalScore,
-    UiProjectContextRetrievalSnapshot, UiProjectContextSemanticRetrievalSummary,
-    UiProjectContextSnapshot, UiPromptDiagnosticSummary, UiPromptLayerSummary, UiPromptSummary,
-    UiProviderSupportRole, UiProviderSupportSummary, UiRecoverySnapshot, UiReplayForkReport,
-    UiReplayInspectReport, UiRepoSessionDiagnostic, UiRepoSessionSnapshot, UiResumeDryRunReport,
-    UiSettingsProfileSummary, UiStartupMigrationSnapshot, UiTaskActiveTodoSummary,
-    UiTaskCommandError, UiTaskReviewSnapshot, UiTaskReviewSummary, UiTaskReviewSummaryArtifact,
-    UiTaskScheduleSummary, UiTaskSnapshot, UiTaskSummary, UiTeamWorkflowCommandError,
-    UiTeamWorkflowSnapshot, UiTerminalSessionDiagnostic, UiTerminalSessionSnapshot,
-    UiTerminalSessionSummary, encode_json_frame,
+    UiContextQualitySignalSummary, UiConversationCompactionReport, UiEditDiffSnapshot,
+    UiExtensionCapabilityReview, UiExtensionDiagnostic, UiExtensionSnapshot, UiExtensionSummary,
+    UiFinalReviewCommandResult, UiFinalReviewSnapshot, UiIdempotentRecoverySummary, UiJsonFrame,
+    UiMcpManagementDiagnostic, UiMcpManagementSnapshot, UiMcpServerManagementSummary,
+    UiMemoryDiagnostic, UiMemoryInfluenceEntrySummary, UiMemoryInfluenceSummary,
+    UiMemoryProposalSummary, UiMemoryRecordSummary, UiMemoryRetentionSummary,
+    UiMemoryRetrievalCandidateSummary, UiMemoryRetrievalPreview, UiMemorySnapshot,
+    UiModelCostProfile, UiModelInvocationAttempt, UiModelInvocationAttemptSnapshot,
+    UiModelProviderCapabilities, UiModelProviderSummary, UiObservabilitySnapshot,
+    UiOnboardingDiagnostic, UiOnboardingNextAction, UiOnboardingReadinessSnapshot,
+    UiPinnedContextItemSummary, UiPinnedContextOmissionSummary, UiPlanTodoCommandError,
+    UiPlanTodoSnapshot, UiPlatformPathsSummary, UiProjectContextDiagnosticSummary,
+    UiProjectContextFileSummary, UiProjectContextHybridCandidateSummary,
+    UiProjectContextHybridOmissionSummary, UiProjectContextHybridRetrievalSnapshot,
+    UiProjectContextOmissionSummary, UiProjectContextPinnedRetrievalSnapshot,
+    UiProjectContextQualityTraceSnapshot, UiProjectContextRetrievalCandidateSummary,
+    UiProjectContextRetrievalDiagnosticSummary, UiProjectContextRetrievalOmissionSummary,
+    UiProjectContextRetrievalScore, UiProjectContextRetrievalSnapshot,
+    UiProjectContextSemanticRetrievalSummary, UiAdminFrame, UiProjectContextDetail, UiProjectContextSnapshot, UiPromptDiagnosticSummary,
+    UiPromptLayerSummary, UiPromptSummary, UiProviderSupportRole, UiProviderSupportSummary,
+    UiRecoverySnapshot, UiReplayForkReport, UiReplayInspectReport, UiRepoSessionDiagnostic,
+    UiRepoSessionSnapshot, UiResumeDryRunReport, UiResumeReport, UiSettingsProfileSummary,
+    UiStartupMigrationSnapshot, UiTaskActiveTodoSummary, UiTaskCommandError, UiTaskReviewSnapshot,
+    UiTaskReviewSummary, UiTaskReviewSummaryArtifact, UiTaskScheduleSummary, UiTaskSnapshot,
+    UiTaskSummary, UiTeamWorkflowCommandError, UiTeamWorkflowSnapshot, UiTerminalSessionDiagnostic,
+    UiTerminalSessionSnapshot, UiTerminalSessionSummary, encode_json_frame,
 };
 pub use slash::{
     UiSlashCommandCatalogSnapshot, UiSlashCommandCategory, UiSlashCommandDescriptor,

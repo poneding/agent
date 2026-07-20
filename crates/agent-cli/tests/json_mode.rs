@@ -1,3 +1,5 @@
+use std::fs;
+use std::path::PathBuf;
 use std::process::Command;
 
 use agent_cli::{
@@ -19,6 +21,66 @@ fn parse_value_frames(output: &str) -> Vec<serde_json::Value> {
         .lines()
         .map(|line| serde_json::from_str(line).expect("valid json frame line"))
         .collect()
+}
+
+fn fake_config_path() -> PathBuf {
+    let path = std::env::temp_dir().join(format!(
+        "agent-cli-json-mode-fake-config-{}.yaml",
+        std::process::id()
+    ));
+    fs::write(
+        &path,
+        r#"
+schemaVersion: 1
+model:
+  defaultProvider: fake
+  invocation:
+    timeoutMs: 30000
+    maxAttempts: 1
+    retryableFailures: []
+    fallbackProviderIds: []
+  providers:
+    - id: fake
+      kind: fake
+      defaultModel: fake-scripted
+      enabled: true
+      timeoutMs: 1000
+"#,
+    )
+    .expect("write fake config");
+    path
+}
+
+fn openai_config_with_inline_key_path(secret_value: &str, base_url: &str) -> PathBuf {
+    let path = std::env::temp_dir().join(format!(
+        "agent-cli-json-mode-openai-config-{}.yaml",
+        std::process::id()
+    ));
+    fs::write(
+        &path,
+        format!(
+            r#"
+schemaVersion: 1
+model:
+  defaultProvider: openai
+  invocation:
+    timeoutMs: 1000
+    maxAttempts: 1
+    retryableFailures: []
+    fallbackProviderIds: []
+  providers:
+    - id: openai
+      kind: openai-compatible
+      defaultModel: gpt-4.1-mini
+      enabled: true
+      baseUrl: {base_url}
+      timeoutMs: 1000
+      apiKey: "{secret_value}"
+"#
+        ),
+    )
+    .expect("write openai config");
+    path
 }
 
 #[test]
@@ -60,18 +122,18 @@ fn json_mode_renders_parseable_bridge_frames() {
 
 #[test]
 fn json_mode_renders_selected_provider_and_model() {
-    let output = render_cli_invocation(
-        parse_cli_invocation([
-            "--json",
-            "--provider",
-            "fake",
-            "--model",
-            "fake-custom",
-            "--prompt",
-            "hello",
-        ])
-        .expect("parse json prompt"),
-    );
+    let mut invocation = parse_cli_invocation([
+        "--json",
+        "--provider",
+        "fake",
+        "--model",
+        "fake-custom",
+        "--prompt",
+        "hello",
+    ])
+    .expect("parse json prompt");
+    invocation.config_path = Some(fake_config_path());
+    let output = render_cli_invocation(invocation);
 
     let frames = parse_frames(&output.stdout);
 
@@ -90,6 +152,11 @@ fn json_mode_renders_selected_provider_and_model() {
 
 #[test]
 fn json_mode_does_not_render_secret_references() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind local port");
+    let base_url = format!("http://{}", listener.local_addr().expect("local addr"));
+    drop(listener);
+    let secret_value = "sk-json-mode-secret-redaction";
+
     let output = render_cli_invocation(CliInvocation {
         command: CliCommand::BatchPrompt {
             prompt: "hello".to_string(),
@@ -97,18 +164,20 @@ fn json_mode_does_not_render_secret_references() {
         output_mode: OutputMode::Json,
         model_selection: ModelSelection::new("openai", "gpt-4.1-mini")
             .expect("valid model selection"),
-        config_path: None,
+        config_path: Some(openai_config_with_inline_key_path(secret_value, &base_url)),
         config_override: ConfigOverride::default(),
     });
 
     assert!(!output.stdout.contains("OPENAI_API_KEY"));
-    assert!(!output.stdout.contains("secret"));
-    assert!(!output.stdout.contains("sk-"));
+    assert!(!output.stdout.contains(secret_value));
+    assert!(!output.stdout.contains("sk-json-mode"));
 }
 
 #[test]
 fn json_mode_binary_prints_ndjson_frames() {
+    let home = tempfile::tempdir().expect("home");
     let output = Command::new(env!("CARGO_BIN_EXE_agent-cli"))
+        .env("HOME", home.path())
         .args(["--json", "--local-summary"])
         .output()
         .expect("agent-cli binary should run");
@@ -132,9 +201,10 @@ fn json_mode_binary_prints_ndjson_frames() {
 
 #[test]
 fn json_mode_prompt_runtime_emits_event_frames() {
-    let output = render_cli_invocation(
-        parse_cli_invocation(["--json", "--prompt", "hello"]).expect("parse json prompt"),
-    );
+    let mut invocation =
+        parse_cli_invocation(["--json", "--prompt", "hello"]).expect("parse json prompt");
+    invocation.config_path = Some(fake_config_path());
+    let output = render_cli_invocation(invocation);
 
     assert_eq!(output.status_code, 0);
     let frames = parse_frames(&output.stdout);
@@ -161,9 +231,10 @@ fn json_mode_prompt_runtime_emits_event_frames() {
 
 #[test]
 fn json_mode_prompt_runtime_emits_delta_frames_before_done() {
-    let output = render_cli_invocation(
-        parse_cli_invocation(["--json", "--prompt", "hello"]).expect("parse json prompt"),
-    );
+    let mut invocation =
+        parse_cli_invocation(["--json", "--prompt", "hello"]).expect("parse json prompt");
+    invocation.config_path = Some(fake_config_path());
+    let output = render_cli_invocation(invocation);
 
     assert_eq!(output.status_code, 0);
     let frames = parse_frames(&output.stdout);
@@ -200,14 +271,14 @@ fn json_mode_prompt_runtime_emits_delta_frames_before_done() {
 
 #[test]
 fn json_mode_prompt_runtime_excludes_secret_like_values() {
-    let output = render_cli_invocation(
-        parse_cli_invocation([
-            "--json",
-            "--prompt",
-            "hello sk-test-secret api_key token password",
-        ])
-        .expect("parse json prompt"),
-    );
+    let mut invocation = parse_cli_invocation([
+        "--json",
+        "--prompt",
+        "hello sk-test-secret api_key token password",
+    ])
+    .expect("parse json prompt");
+    invocation.config_path = Some(fake_config_path());
+    let output = render_cli_invocation(invocation);
 
     let frames = parse_frames(&output.stdout);
 

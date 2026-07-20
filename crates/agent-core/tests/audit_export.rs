@@ -45,6 +45,9 @@ fn audit_export_serializes_stable_bundle_shape() {
             request_id: "request-1".to_string(),
             decision: "allow".to_string(),
             reason: "read-only file inspection".to_string(),
+            action: None,
+            resource_kind: None,
+            resource: None,
         }),
     );
     let generated_at = Timestamp::now_utc();
@@ -97,6 +100,9 @@ fn audit_export_maps_permission_and_tool_events() {
             request_id: "request-1".to_string(),
             decision: "deny".to_string(),
             reason: "outside workspace".to_string(),
+            action: None,
+            resource_kind: None,
+            resource: None,
         }),
     );
     let tool = runtime_event(

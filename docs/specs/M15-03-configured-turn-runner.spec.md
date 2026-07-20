@@ -58,7 +58,7 @@ pub struct ConfiguredTurnOutcome {
 
 - outcome events follow existing runtime-event redaction rules
 - selected provider/model can be surfaced to CLI/Desktop
-- raw config TOML and secrets are never included in outcome errors
+- raw config files and secrets are never included in outcome errors
 
 ## Testing Strategy
 

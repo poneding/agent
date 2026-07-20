@@ -538,7 +538,7 @@ mod tests {
     #[test]
     fn onboarding_snapshot_degrades_for_keychain_fallback_and_provider_gap() {
         let input = fixture_input(
-            ModelProviderKind::OpenAiCompatible,
+            ModelProviderKind::Fake,
             true,
             SecretStoreHealth::unavailable(
                 SecretStoreKind::OsKeychain,
@@ -645,6 +645,7 @@ mod tests {
                 catalog,
                 invocation_policy,
             },
+            terminal: Default::default(),
         };
         let effective = build_effective_runtime_config(
             vec![ConfigLayer {

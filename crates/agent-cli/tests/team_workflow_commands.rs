@@ -121,7 +121,7 @@ fn team_status_renders_json_frame() {
     assert_eq!(frames.len(), 1);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::TeamWorkflowSnapshot(frame)
+        UiJsonFrame::team_workflow_snapshot(frame)
             if frame.operation == "status"
                 && !frame.dry_run
                 && frame.snapshot.readiness == TeamWorkflowReadiness::MergeReady
@@ -151,7 +151,7 @@ fn team_handoff_dry_run_uses_reduced_snapshot() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::TeamWorkflowSnapshot(frame)
+        UiJsonFrame::team_workflow_snapshot(frame)
             if frame.operation == "handoff_dry_run"
                 && frame.dry_run
                 && frame.snapshot.readiness == TeamWorkflowReadiness::WaitingOnSubagent
@@ -180,7 +180,7 @@ fn team_review_block_dry_run_blocks_merge_readiness() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::TeamWorkflowSnapshot(frame)
+        UiJsonFrame::team_workflow_snapshot(frame)
             if frame.operation == "review_vote_dry_run"
                 && frame.dry_run
                 && frame.snapshot.readiness == TeamWorkflowReadiness::Blocked
@@ -205,7 +205,7 @@ fn team_merge_readiness_reports_conflict_and_policy_blocked() {
     let frames = parse_frames(&conflict.stdout);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::TeamWorkflowSnapshot(frame)
+        UiJsonFrame::team_workflow_snapshot(frame)
             if frame.operation == "merge_readiness_dry_run"
                 && frame.snapshot.readiness == TeamWorkflowReadiness::HasConflict
                 && frame.snapshot.conflicts.len() == 1
@@ -225,7 +225,7 @@ fn team_merge_readiness_reports_conflict_and_policy_blocked() {
     let frames = parse_frames(&policy.stdout);
     assert!(matches!(
         &frames[0],
-        UiJsonFrame::TeamWorkflowSnapshot(frame)
+        UiJsonFrame::team_workflow_snapshot(frame)
             if frame.snapshot.readiness == TeamWorkflowReadiness::PolicyBlocked
                 && frame.snapshot.capability_ceiling.policy_blocked
                 && frame.snapshot.capability_ceiling.grant_count == 0

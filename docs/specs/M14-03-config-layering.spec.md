@@ -62,6 +62,8 @@ pub struct EffectiveRuntimeConfig {
 }
 ```
 
+`config.terminal.theme` is selected through the same layer precedence as the model domain, so higher-priority user/workspace/session layers can override lower-priority terminal defaults without CLI presentation code parsing YAML or legacy TOML directly.
+
 ## State And Failure Handling
 
 - higher-priority provider entries replace lower-priority entries by id
@@ -80,6 +82,7 @@ pub struct EffectiveRuntimeConfig {
 
 - higher-priority layer overrides default provider
 - provider entries merge by id deterministically
+- higher-priority layer overrides terminal theme
 - explicit provider/model overrides win
 - selecting disabled provider fails
 - layer summaries serialize without secret values

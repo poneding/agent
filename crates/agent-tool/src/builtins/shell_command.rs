@@ -1,10 +1,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitStatus, Stdio};
+use std::process::{ExitStatus, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use agent_sandbox::WorkspaceSandbox;
+use agent_sandbox::{ProcessSandboxMode, ProcessSandboxPlan, WorkspaceSandbox};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -17,6 +17,8 @@ const POLL_INTERVAL: Duration = Duration::from_millis(5);
 pub struct ShellCommandTool {
     sandbox: WorkspaceSandbox,
     allowed_env: BTreeSet<String>,
+    process_mode: ProcessSandboxMode,
+    allow_network: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -25,6 +27,8 @@ pub struct ShellCommandResult {
     pub stdout: String,
     pub stderr: String,
     pub timed_out: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sandbox_profile: Option<String>,
 }
 
 #[derive(Debug)]
@@ -42,6 +46,9 @@ impl ShellCommandTool {
         Self {
             sandbox,
             allowed_env: BTreeSet::new(),
+            // Prefer real process confinement on macOS; other OSes keep path-only.
+            process_mode: ProcessSandboxMode::PreferSeatbelt,
+            allow_network: false,
         }
     }
 
@@ -55,7 +62,22 @@ impl ShellCommandTool {
                 .into_iter()
                 .map(std::string::ToString::to_string)
                 .collect(),
+            process_mode: ProcessSandboxMode::PreferSeatbelt,
+            allow_network: false,
         }
+    }
+
+    /// Override process confinement (tests may force path-only).
+    #[must_use]
+    pub fn with_process_mode(mut self, mode: ProcessSandboxMode) -> Self {
+        self.process_mode = mode;
+        self
+    }
+
+    #[must_use]
+    pub fn with_network_allowed(mut self, allow_network: bool) -> Self {
+        self.allow_network = allow_network;
+        self
     }
 }
 
@@ -101,8 +123,16 @@ impl Tool for ShellCommandTool {
             )));
         }
         self.validate_env(&input.env)?;
+        if has_path_separator(&input.program) {
+            validate_program_path_confined(&self.sandbox, &input.program)?;
+        }
 
-        let output = execute_command(input, &cwd)?;
+        let plan = ProcessSandboxPlan::for_workspace(
+            &self.sandbox,
+            self.process_mode,
+            self.allow_network,
+        );
+        let output = execute_command(input, &cwd, &plan)?;
         Ok(ToolOutput {
             value: serde_json::to_value(output)
                 .map_err(|error| ToolError::Execution(error.to_string()))?,
@@ -193,11 +223,14 @@ fn parse_env(value: Option<&serde_json::Value>) -> Result<BTreeMap<String, Strin
         .collect()
 }
 
-fn execute_command(input: ShellCommandInput, cwd: &Path) -> Result<ShellCommandResult, ToolError> {
+fn execute_command(
+    input: ShellCommandInput,
+    cwd: &Path,
+    plan: &ProcessSandboxPlan,
+) -> Result<ShellCommandResult, ToolError> {
     let program = resolve_program(&input.program);
-    let mut command = Command::new(program);
+    let mut command = plan.wrap_command(&program, &input.args);
     command
-        .args(&input.args)
         .current_dir(cwd)
         .env_clear()
         .envs(&input.env)
@@ -223,6 +256,7 @@ fn execute_command(input: ShellCommandInput, cwd: &Path) -> Result<ShellCommandR
                 stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
                 stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
                 timed_out: false,
+                sandbox_profile: Some(plan.profile_label.to_string()),
             });
         }
 
@@ -236,6 +270,7 @@ fn execute_command(input: ShellCommandInput, cwd: &Path) -> Result<ShellCommandR
                 stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
                 stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
                 timed_out: true,
+                sandbox_profile: Some(plan.profile_label.to_string()),
             });
         }
 
@@ -286,4 +321,58 @@ fn executable_candidates(path: &Path, program: &str) -> Vec<PathBuf> {
 
 fn has_path_separator(program: &str) -> bool {
     program.contains('/') || program.contains('\\')
+}
+
+/// Reject absolute program paths outside the workspace root. Relative paths
+/// with `..` that escape are also rejected. Bare PATH names (`git`) are allowed.
+fn validate_program_path_confined(
+    sandbox: &WorkspaceSandbox,
+    program: &str,
+) -> Result<(), ToolError> {
+    let path = Path::new(program);
+    if !path.is_absolute() {
+        if let Ok(resolved) = sandbox.resolve_read_path(program) {
+            let _ = resolved;
+            return Ok(());
+        }
+        // Relative path that does not resolve yet — still reject obvious `..` escapes.
+        let joined = sandbox.root().join(path);
+        let normalized = {
+            let mut out = PathBuf::new();
+            for component in joined.components() {
+                match component {
+                    std::path::Component::ParentDir => {
+                        if !out.pop() {
+                            return Err(ToolError::Validation(format!(
+                                "program path is outside the workspace sandbox: {program}"
+                            )));
+                        }
+                    }
+                    std::path::Component::CurDir => {}
+                    other => out.push(other.as_os_str()),
+                }
+            }
+            out
+        };
+        if !normalized.starts_with(sandbox.root()) {
+            return Err(ToolError::Validation(format!(
+                "program path is outside the workspace sandbox: {program}"
+            )));
+        }
+        return Ok(());
+    }
+
+    // Absolute path: must be under workspace root (helpers compiled next to
+    // the workspace temp root in tests will fail this — tests should use
+    // workspace-relative helper paths). Coding agents typically pass bare
+    // names (`cargo`, `git`) or in-repo scripts.
+    if path.starts_with(sandbox.root()) {
+        return Ok(());
+    }
+    match path.canonicalize() {
+        Ok(canonical) if canonical.starts_with(sandbox.root()) => Ok(()),
+        Ok(_) | Err(_) => Err(ToolError::Validation(format!(
+            "program path is outside the workspace sandbox: {program}"
+        ))),
+    }
 }

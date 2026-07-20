@@ -31,6 +31,12 @@ pub struct CommandRetryAttemptLink {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CommandRetryCommandSummary {
     pub display: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub program: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub args: Vec<String>,
+    #[serde(default)]
+    pub timeout_ms: u64,
     pub cwd: String,
     pub classify_as_test: bool,
 }

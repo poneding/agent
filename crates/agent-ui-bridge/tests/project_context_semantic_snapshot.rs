@@ -1,3 +1,4 @@
+use agent_ui_bridge::UiProjectContextDetail;
 use agent_core::{
     ContextCandidate, ContextCandidateOmissionReason, ContextHybridCandidate,
     ContextHybridCandidateOmission, ContextHybridRetrievalReport, ContextRetrievalDiagnostic,
@@ -214,7 +215,7 @@ fn project_context_hybrid_snapshot_serializes_stable_safe_shape() {
 fn project_context_hybrid_snapshot_json_frame_is_single_line() {
     let snapshot =
         UiProjectContextHybridRetrievalSnapshot::from_report(&report()).expect("snapshot");
-    let line = encode_json_frame(&UiJsonFrame::ProjectContextHybridRetrievalSnapshot(
+    let line = encode_json_frame(&UiJsonFrame::project_context_hybrid(
         snapshot,
     ))
     .expect("encode");
@@ -224,7 +225,7 @@ fn project_context_hybrid_snapshot_json_frame_is_single_line() {
     let frame = serde_json::from_str::<UiJsonFrame>(line.trim_end()).expect("parse frame");
     assert!(matches!(
         frame,
-        UiJsonFrame::ProjectContextHybridRetrievalSnapshot(_)
+        UiJsonFrame::ProjectContextDetail(UiProjectContextDetail::Hybrid(_))
     ));
 }
 

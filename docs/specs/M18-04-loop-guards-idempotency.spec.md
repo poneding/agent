@@ -12,8 +12,9 @@ M18-03 gives the comprehensive runner the ability to execute tools and continue 
 
 This slice delivers:
 
-- guard enforcement for model turns, tool calls, wall-clock time, observation bytes, and consecutive invalid tool calls
-- terminal failure reasons for guard exhaustion
+- progress checkpoints for long-running model/tool loops
+- hard guard enforcement for tool calls, wall-clock time, observation bytes, and consecutive invalid tool calls
+- terminal failure reasons for hard guard exhaustion
 - idempotency key assignment for executable tool calls
 - integration with the existing `IdempotentToolExecutor`
 - replay behavior that returns completed tool observations without executing side effects again
@@ -41,7 +42,7 @@ flowchart TD
 
 ```rust
 pub struct AgentLoopBudget {
-    pub max_model_turns: u32,
+    pub model_turn_checkpoint_interval: u32,
     pub max_tool_calls: u32,
     pub max_wall_time_ms: u64,
     pub max_observation_bytes: u64,
@@ -49,7 +50,6 @@ pub struct AgentLoopBudget {
 }
 
 pub enum AgentLoopFailureReason {
-    MaxModelTurnsExceeded,
     MaxToolCallsExceeded,
     MaxWallTimeExceeded,
     MaxObservationBytesExceeded,
@@ -69,14 +69,16 @@ Exact Rust layout may be adjusted during implementation, but the runner must exp
 
 ## Guard Rules
 
-- `max_model_turns` counts each model stream invocation.
+- `model_turn_checkpoint_interval` emits a progress warning every N model stream invocations; it is not a terminal limit because long tasks must continue while hard budgets remain.
 - `max_tool_calls` counts executable tool call attempts before execution.
 - `max_wall_time_ms` is evaluated before each model call and before each tool execution.
 - `max_observation_bytes` counts all normalized observation text added to continuation context.
 - `max_consecutive_invalid_tool_calls` counts invalid, unknown, duplicate, or malformed tool proposals that do not execute.
-- Guard failures emit a runtime error event and return `AgentLoopTerminalState::Failed`.
+- Reaching a model-turn checkpoint emits `model_turn_budget_extended` and continues.
+- Hard guard failures emit a runtime error event and return `AgentLoopTerminalState::Failed`.
+- Cooperative cancellation returns `AgentLoopTerminalState::Cancelled`, never `Done`.
 
-Budgets are required to be non-zero. Invalid budget configuration fails before model invocation.
+Budget values and the checkpoint interval are required to be non-zero. Invalid configuration fails before model invocation.
 
 ## Idempotency Rules
 
@@ -105,7 +107,7 @@ Idempotency keys use hashes for tool input and do not store raw secrets. Guard d
 
 ## Testing Strategy
 
-- max model turns failure
+- model-turn checkpoint warning continues into the next model call
 - max tool calls failure before extra execution
 - invalid proposal streak failure
 - invalid zero budget failure before model invocation
@@ -114,8 +116,8 @@ Idempotency keys use hashes for tool input and do not store raw secrets. Guard d
 
 ## Acceptance Criteria
 
-- Comprehensive turns cannot exceed configured loop budgets.
-- Guard failures are auditable and typed.
+- Comprehensive turns continue across model-turn checkpoints and cannot exceed configured hard loop budgets.
+- Guard failures and cancellation are auditable and typed.
 - Completed side-effecting tool effects are not duplicated on replay.
 - Existing M18-01 through M18-03 tests remain green.
 

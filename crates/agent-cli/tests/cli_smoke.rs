@@ -14,7 +14,9 @@ fn prints_version() {
 
 #[test]
 fn prints_batch_prompt_output() {
+    let home = tempfile::tempdir().expect("home");
     let output = Command::new(env!("CARGO_BIN_EXE_agent-cli"))
+        .env("HOME", home.path())
         .args(["--prompt", "hello"])
         .output()
         .expect("agent-cli binary should run");

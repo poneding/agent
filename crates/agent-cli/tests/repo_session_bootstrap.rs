@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::PathBuf;
 use std::process::Command;
 
 use agent_cli::{
@@ -11,6 +12,34 @@ fn parse_frames(output: &str) -> Vec<UiJsonFrame> {
         .lines()
         .map(|line| serde_json::from_str(line).expect("valid frame line"))
         .collect()
+}
+
+fn fake_config_path() -> PathBuf {
+    let path = std::env::temp_dir().join(format!(
+        "agent-cli-repo-session-fake-config-{}.yaml",
+        std::process::id()
+    ));
+    fs::write(
+        &path,
+        r#"
+schemaVersion: 1
+model:
+  defaultProvider: fake
+  invocation:
+    timeoutMs: 30000
+    maxAttempts: 1
+    retryableFailures: []
+    fallbackProviderIds: []
+  providers:
+    - id: fake
+      kind: fake
+      defaultModel: fake-scripted
+      enabled: true
+      timeoutMs: 1000
+"#,
+    )
+    .expect("write fake config");
+    path
 }
 
 #[test]
@@ -35,13 +64,14 @@ fn repo_session_bootstrap_parses_text_and_json_forms() {
 #[test]
 fn repo_session_bootstrap_text_renders_safe_summary() {
     let temp = tempfile::tempdir().expect("tempdir");
-    let invocation = parse_cli_invocation([
+    let mut invocation = parse_cli_invocation([
         "repo",
         "session",
         "--workspace",
         temp.path().to_str().expect("utf8 path"),
     ])
     .expect("parse repo session");
+    invocation.config_path = Some(fake_config_path());
 
     let output = render_cli_invocation(invocation);
 
@@ -60,7 +90,7 @@ fn repo_session_bootstrap_text_renders_safe_summary() {
 #[test]
 fn repo_session_bootstrap_json_renders_snapshot_and_events() {
     let temp = tempfile::tempdir().expect("tempdir");
-    let invocation = parse_cli_invocation([
+    let mut invocation = parse_cli_invocation([
         "--json",
         "repo",
         "session",
@@ -68,6 +98,7 @@ fn repo_session_bootstrap_json_renders_snapshot_and_events() {
         temp.path().to_str().expect("utf8 path"),
     ])
     .expect("parse repo session");
+    invocation.config_path = Some(fake_config_path());
 
     let output = render_cli_invocation(invocation);
 
@@ -75,7 +106,7 @@ fn repo_session_bootstrap_json_renders_snapshot_and_events() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         frames.first(),
-        Some(UiJsonFrame::RepoSessionSnapshot(snapshot))
+        Some(UiJsonFrame::repo_session_snapshot(snapshot))
             if snapshot.workspace_root_display == "."
                 && snapshot.git_state == "not_repository"
                 && snapshot.selected_provider == "fake"

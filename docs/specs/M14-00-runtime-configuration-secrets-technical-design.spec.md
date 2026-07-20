@@ -15,7 +15,7 @@ This design governs:
 - secret resolver boundaries
 - redacted secret value handling
 - runtime config schema version 1
-- TOML parse and validation behavior
+- YAML default parse and validation behavior, with legacy TOML fallback support
 - config source layering and override precedence
 - CLI config diagnostics
 - UI-safe config snapshots
@@ -30,7 +30,7 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-model` adds a `secrets` module with provider-neutral secret reference resolution. It does not read config files and does not emit runtime events. `agent-core` adds a `config` module that parses TOML, validates model settings, layers sources, and emits diagnostics. `agent-cli`, `agent-ui-bridge`, and `agent-desktop` render or transport summaries only.
+`agent-model` adds a `secrets` module with provider-neutral secret reference resolution. It does not read config files and does not emit runtime events. `agent-core` adds a `config` module that resolves the default `~/.config/agent/config.yaml` path, parses YAML or explicit legacy TOML, validates model settings, layers sources, converts direct provider `apiKey` values into an in-memory resolver, and emits diagnostics. `agent-cli`, `agent-ui-bridge`, and `agent-desktop` render or transport summaries only.
 
 ```mermaid
 flowchart TD
@@ -46,7 +46,7 @@ Dependency rules:
 
 - `agent-model` must not depend on `agent-core`, CLI, Desktop, storage, or UI bridge.
 - `agent-core::config` may depend on `agent-model` and `agent-storage` schema-version types.
-- UI crates must not parse TOML or resolve secrets directly.
+- UI crates must not parse YAML/TOML or resolve secrets directly.
 - config layer merging must be deterministic and testable in memory.
 
 ## Secret Model
@@ -69,36 +69,34 @@ M14 provides:
 
 ## Runtime Config Schema
 
-M14 uses schema version 1 and TOML for local config:
+M14 uses schema version 1 and YAML for the default local config at `~/.config/agent/config.yaml`:
 
-```toml
-schema_version = 1
-
-[model]
-default_provider = "openai"
-
-[model.invocation]
-timeout_ms = 30000
-max_attempts = 2
-retryable_failures = ["timeout", "transport", "rate_limited"]
-fallback_provider_ids = ["fake"]
-
-[[model.providers]]
-id = "openai"
-kind = "open_ai_compatible"
-default_model = "gpt-4.1-mini"
-enabled = true
-base_url = "https://api.openai.com/v1"
-api_key_provider = "env"
-api_key_name = "OPENAI_API_KEY"
+```yaml
+schemaVersion: 1
+model:
+  defaultProvider: openai
+  invocation:
+    timeoutMs: 30000
+    maxAttempts: 2
+    retryableFailures: [timeout, transport, rate_limited]
+    fallbackProviderIds: [fake]
+  providers:
+    - id: openai
+      kind: openai-compatible
+      defaultModel: gpt-4.1-mini
+      enabled: true
+      baseUrl: https://api.openai.com/v1
+      apiKey: "sk-..."
 ```
+
+Legacy `~/.config/agent/agent.toml` and explicit `--config path/to/file.toml` remain readable for compatibility. When no explicit path is supplied, `config.yaml` wins; if it is absent and legacy `agent.toml` exists, the loader uses it and emits a migration diagnostic.
 
 The loader maps this into M13 contracts:
 
 - `ModelProviderCatalog`
 - `ModelProviderConfig`
 - `ModelEndpointConfig`
-- `SecretRef`
+- `SecretRef` or direct `apiKey` converted into a synthetic in-memory secret reference
 - `ModelInvocationPolicy`
 
 ## Layering Model
@@ -121,7 +119,7 @@ Merge rules:
 - provider entries merge by `id`
 - explicit disabled providers remain present but cannot be selected
 - explicit provider/model overrides affect the current effective config only
-- merging never creates raw secret values
+- merging never serializes raw secret values
 
 ## Diagnostics
 
@@ -137,13 +135,13 @@ pub struct ConfigDiagnostic {
 }
 ```
 
-Diagnostics can be serialized to CLI JSON and UI bridge snapshots. Messages may mention provider ids and secret reference names, but never secret values.
+Diagnostics can be serialized to CLI JSON and UI bridge snapshots. Messages may mention provider ids, but never direct `apiKey` values or secret reference names that would reveal local credential layout.
 
 ## Security And Privacy
 
-- Raw secret values stay inside `SecretValue`.
+- Raw secret values stay inside `SecretValue` after config loading.
 - `SecretValue` debug/display output is redacted.
-- TOML fixtures use synthetic provider ids and secret names.
+- YAML fixtures use synthetic provider ids and fake `apiKey` values.
 - CLI JSON tests include values such as `sk-test-secret` and assert absence from output.
 - Config validation does not perform network calls.
 
@@ -152,7 +150,7 @@ Diagnostics can be serialized to CLI JSON and UI bridge snapshots. Messages may 
 Required verification:
 
 - secret resolver unit tests
-- config TOML parser tests
+- config YAML parser tests plus legacy TOML fallback tests
 - config layering tests
 - CLI JSON diagnostics tests
 - UI snapshot tests

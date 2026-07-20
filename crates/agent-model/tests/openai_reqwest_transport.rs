@@ -242,7 +242,9 @@ async fn reqwest_transport_streams_sse_chunks_into_model_events() {
             conversation_id: agent_types::ConversationId::new(),
             turn_id: agent_types::TurnId::new(),
             correlation_id: agent_types::CorrelationId::new(),
-            messages: vec!["hello".to_string()],
+            messages: vec![agent_model::ModelMessage::user("hello")],
+            reasoning_effort: None,
+            tools: Vec::new(),
         })
         .await
         .expect("stream response");

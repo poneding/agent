@@ -30,11 +30,16 @@ pub use command::{
     render_plan_todo_command, render_plugin_command, render_recovery_command,
     render_replay_command, render_skill_root_command, render_task_command,
     render_task_review_summary, render_team_command, run_mcp_server_stdio, run_mcp_server_stdio_io,
-    run_plain_repl_stdio,
+    run_plain_repl_stdio, run_terminal_app_stdio,
 };
 pub use output::CliOutput;
 pub use repl::{
-    PlainReplEvent, PlainReplRuntimeError, parse_plain_repl_line,
-    render_plain_repl_approval_prompt, render_plain_repl_prompt, render_plain_repl_script,
-    run_plain_repl_io,
+    PlainReplEvent, PlainReplRuntimeError, PlainReplSymbolMode, parse_plain_repl_line,
+    render_plain_repl_approval_prompt, render_plain_repl_footer,
+    render_plain_repl_footer_with_width, render_plain_repl_footer_with_width_and_symbols,
+    render_plain_repl_frame, render_plain_repl_frame_with_symbols,
+    render_plain_repl_interactive_frame, render_plain_repl_interactive_frame_with_symbols,
+    render_plain_repl_interactive_screen, render_plain_repl_prompt,
+    render_plain_repl_prompt_with_width, render_plain_repl_script, render_plain_repl_separator,
+    run_plain_repl_io, run_plain_repl_io_with_status, run_plain_repl_io_with_status_mode,
 };

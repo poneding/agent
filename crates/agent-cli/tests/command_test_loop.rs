@@ -164,8 +164,11 @@ fn command_test_loop_json_emits_snapshot_events_and_done() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         frames.first(),
-        Some(UiJsonFrame::CommandTestSnapshot(snapshot))
+        Some(UiJsonFrame::command_test_snapshot(snapshot))
             if snapshot.status == "failed"
+                && !snapshot.command_run_id.is_empty()
+                && snapshot.program.as_deref() == Some(helper.to_str().expect("utf8 path"))
+                && snapshot.args == vec!["fail".to_string()]
                 && snapshot.classification == "test_failure"
                 && snapshot.exit_code == Some(7)
                 && snapshot.stderr.contains("cli stderr")

@@ -40,7 +40,7 @@ fn startup_check_renders_json_snapshot() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         frames.first(),
-        Some(UiJsonFrame::StartupMigrationSnapshot(snapshot))
+        Some(UiJsonFrame::startup_migration_snapshot(snapshot))
             if snapshot.runtime_allowed && snapshot.domains.len() == 6
     ));
     assert!(matches!(

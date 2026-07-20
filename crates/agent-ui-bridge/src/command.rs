@@ -68,6 +68,11 @@ pub enum UiCommand {
         turn_id: Option<TurnId>,
         checkpoint_id: Option<CheckpointId>,
     },
+    RecoveryResume {
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+        checkpoint_id: Option<CheckpointId>,
+    },
     ReplayInspect {
         conversation_id: ConversationId,
         from_checkpoint_id: Option<CheckpointId>,
@@ -82,6 +87,10 @@ pub enum UiCommand {
         command_run_id: String,
         reason: String,
         dry_run: bool,
+    },
+    ConversationCompact {
+        conversation_id: ConversationId,
+        max_summary_tokens: u32,
     },
     SwitchSession {
         workspace_id: WorkspaceId,
@@ -188,6 +197,12 @@ pub fn validate_ui_command(envelope: &UiCommandEnvelope) -> Result<(), UiBridgeE
         | UiCommand::RecoveryResumeDryRun {
             conversation_id, ..
         }
+        | UiCommand::RecoveryResume {
+            conversation_id, ..
+        }
+        | UiCommand::ConversationCompact {
+            conversation_id, ..
+        }
         | UiCommand::ReplayInspect {
             conversation_id, ..
         }
@@ -207,8 +222,10 @@ pub fn validate_ui_command(envelope: &UiCommandEnvelope) -> Result<(), UiBridgeE
         UiCommand::CommandRetryPlan { reason, .. } if reason.trim().is_empty() => Err(
             UiBridgeError::Validation("command_retry reason cannot be empty".to_string()),
         ),
-        UiCommand::CommandRetryPlan { dry_run, .. } if !dry_run => Err(UiBridgeError::Validation(
-            "command_retry requires dry_run until execution is wired".to_string(),
+        UiCommand::ConversationCompact {
+            max_summary_tokens, ..
+        } if *max_summary_tokens == 0 => Err(UiBridgeError::Validation(
+            "conversation_compact max_summary_tokens must be greater than zero".to_string(),
         )),
         UiCommand::SwitchSession { workspace_id, .. } if is_nil_workspace_id(*workspace_id) => Err(
             UiBridgeError::Validation("switch_session workspace_id cannot be nil".to_string()),

@@ -31,10 +31,14 @@ fn permission_decision_and_tool_result_have_stable_json_shape() {
         request_id: "request-1".to_string(),
         decision: "allow".to_string(),
         reason: "read-only path".to_string(),
+        action: None,
+        resource_kind: None,
+        resource: None,
     });
     let completed = RuntimeEventPayload::ToolExecutionCompleted(ToolExecutionCompleted {
         call_id: "call-1".to_string(),
         output_json: json!({ "content": "hello" }),
+        elapsed_ms: None,
     });
 
     assert_eq!(
@@ -66,12 +70,19 @@ fn all_tool_audit_payloads_round_trip() {
         RuntimeEventPayload::ToolExecutionStarted(ToolExecutionStarted {
             call_id: "call-1".to_string(),
             tool_name: "workspace.read_file".to_string(),
+            policy_decision: None,
+            policy_reason: None,
+            action: None,
+            resource_kind: None,
+            resource: None,
+            sandbox_profile: None,
         }),
         RuntimeEventPayload::ToolExecutionFailed(ToolExecutionFailed {
             call_id: "call-2".to_string(),
             error_code: "tool_failed".to_string(),
             message: "boom".to_string(),
             recoverable: true,
+            elapsed_ms: None,
         }),
         RuntimeEventPayload::ToolObservationRecorded(ToolObservationRecorded {
             call_id: "call-1".to_string(),

@@ -70,26 +70,33 @@ impl TaskPanelState {
 
     pub fn reduce_frame(&mut self, frame: &UiJsonFrame) {
         match frame {
-            UiJsonFrame::TaskSnapshot(snapshot) => {
-                self.tasks = snapshot.tasks.clone();
+            UiJsonFrame::Admin(admin) if admin.kind == "task_snapshot" => {
+                if let Ok(snapshot) = admin.decode_as::<agent_ui_bridge::UiTaskSnapshot>() {
+                    self.tasks = snapshot.tasks.clone();
+                }
             }
             UiJsonFrame::PlanTodoSnapshot(snapshot) => {
                 self.plan = Some(snapshot.clone());
             }
-            UiJsonFrame::TaskReviewSnapshot(snapshot) => {
-                self.reviews = snapshot.reviews.clone();
+            UiJsonFrame::Admin(admin) if admin.kind == "task_review_snapshot" => {
+                if let Ok(snapshot) = admin.decode_as::<agent_ui_bridge::UiTaskReviewSnapshot>() {
+                    self.reviews = snapshot.reviews.clone();
+                }
             }
-            UiJsonFrame::TeamWorkflowSnapshot(snapshot) => {
-                self.team_workflows = vec![snapshot.clone()];
+            UiJsonFrame::Admin(admin) if admin.kind == "team_workflow_snapshot" => {
+                if let Ok(snapshot) = admin.decode_as::<agent_ui_bridge::UiTeamWorkflowSnapshot>() {
+                    self.team_workflows = vec![snapshot];
+                }
             }
-            UiJsonFrame::MemorySnapshot(snapshot) => {
-                self.memory = Some(snapshot.clone());
+            UiJsonFrame::Admin(admin) if admin.kind == "memory_snapshot" => {
+                if let Ok(snapshot) = admin.decode_as::<agent_ui_bridge::UiMemorySnapshot>() {
+                    self.memory = Some(snapshot);
+                }
             }
             UiJsonFrame::Event(event) => {
                 let UiEventPayload::TaskNotification(notification) = &event.payload else {
                     return;
                 };
-
                 self.push(TaskPanelNotification::new(
                     notification.task_id,
                     notification.kind.clone(),

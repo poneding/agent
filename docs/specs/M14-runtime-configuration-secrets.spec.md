@@ -13,7 +13,8 @@ M13 created provider configuration and adapter contracts. M14 makes those contra
 This milestone delivers:
 
 - secret resolver contracts with redacted secret values
-- TOML runtime config schema for model catalog and invocation policy
+- YAML runtime config schema for model catalog and invocation policy
+- direct provider `apiKey` support in the default local config path
 - config layering for built-in, user, workspace, session, and explicit overrides
 - CLI config flags and JSON diagnostics
 - UI bridge config snapshot that Desktop can consume without secrets
@@ -73,7 +74,9 @@ flowchart TD
 Contract rules:
 
 - raw secret values never implement normal `Debug`, `Display`, `Serialize`, or UI conversion
-- config files may contain `SecretRef` handles but never raw secret values
+- the default config file is `~/.config/agent/config.yaml`; legacy `~/.config/agent/agent.toml` is a compatibility fallback with diagnostics
+- config files may contain direct provider `apiKey` values for local setup or `SecretRef` handles for advanced setups
+- direct `apiKey` values are converted into redacted in-memory secret resolver entries before runtime invocation
 - config diagnostics use field paths and provider ids, not credential contents
 - explicit CLI/Desktop overrides have the highest precedence
 - unknown config keys are rejected with typed diagnostics
@@ -81,7 +84,7 @@ Contract rules:
 ## State And Failure Handling
 
 - missing config files fail before runtime execution unless a caller explicitly uses defaults
-- invalid TOML fails with `AgentConfigError::Parse`
+- invalid YAML or explicit legacy TOML fails with `AgentConfigError::Parse`
 - invalid provider catalogs fail with model config errors wrapped in config diagnostics
 - missing secret references are recoverable diagnostics until a caller requires strict validation
 - explicit overrides can replace provider/model selection without mutating lower-priority layers
@@ -91,7 +94,7 @@ Contract rules:
 
 - tests must include secret-like fixture values and prove they are absent from diagnostics, JSON frames, and snapshots
 - environment variable resolver reads by name only and returns redacted wrappers
-- config snapshots expose secret provider/name only when needed to explain missing handles; they never expose values
+- config snapshots expose credential presence only; they never expose direct `apiKey` values or local secret ref names
 - config loading does not broaden permissions or enable tools/plugins by default
 
 ## Testing Strategy
@@ -100,7 +103,8 @@ Required coverage:
 
 - secret value redaction and non-serialization tests
 - in-memory and environment resolver tests
-- TOML config parse, validation, unknown-key, and error-path tests
+- YAML config parse, direct `apiKey`, validation, unknown-key, and error-path tests
+- legacy TOML fallback and migration-diagnostic tests
 - layering precedence tests
 - CLI `--config` and `--config-check --json` tests
 - UI snapshot serialization tests
@@ -114,7 +118,7 @@ cargo test --workspace
 
 ## Acceptance Criteria
 
-- Users can load a model-provider config file without raw secrets.
+- Users can load a model-provider config file with direct `apiKey` values or advanced secret refs without leaking credentials.
 - Runtime code can produce an effective config from layered sources and overrides.
 - CLI can validate config and print UI-safe JSON diagnostics.
 - Desktop-facing contracts can display model/config status without accessing secret values.

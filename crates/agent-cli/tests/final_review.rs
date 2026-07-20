@@ -64,7 +64,7 @@ fn final_review_json_fixture_emits_snapshot_and_done() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         frames.first(),
-        Some(UiJsonFrame::FinalReviewSnapshot(snapshot))
+        Some(UiJsonFrame::final_review_snapshot(snapshot))
             if snapshot.changed_files == vec!["README.md"]
                 && snapshot.audit_event_count == 30
                 && snapshot.replay_reconstructed

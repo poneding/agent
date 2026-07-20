@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AppShell, BootstrapError } from '../App';
 import type { ConversationTaskState, DesktopBootstrap, DesktopSessionSnapshot } from '../types';
@@ -46,6 +46,7 @@ const conversationState: ConversationTaskState = {
   memorySnapshot: null,
   pendingFrameCount: 0,
   tasks: [],
+  transcriptsByConversation: {},
   transcript: [
     {
       id: 'entry-1',
@@ -59,12 +60,14 @@ afterEach(() => cleanup());
 
 describe('AppShell', () => {
   it('renders the MX02 workspace shell regions from typed state', () => {
+    const onSelectConversation = vi.fn();
     render(
       <AppShell
         bootstrap={bootstrap}
         bootstrapError={null}
         conversationState={conversationState}
         sessionSnapshot={sessionSnapshot}
+        onSelectConversation={onSelectConversation}
       />,
     );
 
@@ -79,12 +82,15 @@ describe('AppShell', () => {
     expect(screen.getByRole('region', { name: 'Archived threads' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Search threads' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '+ New Thread' })).toBeInTheDocument();
-    expect(screen.getByText('Implement desktop shell')).toBeInTheDocument();
+    expect(screen.getAllByText('Implement desktop shell')).toHaveLength(2);
     expect(screen.getByText('Ready to work')).toBeInTheDocument();
     expect(screen.getAllByText('agent')).toHaveLength(2);
     expect(screen.getAllByText('0.1.0')).toHaveLength(2);
     expect(screen.getAllByText('not_started')).toHaveLength(2);
     expect(screen.getByText('desktop.bootstrap')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /Implement desktop shell/ }));
+    expect(onSelectConversation).toHaveBeenCalledWith('conversation-1');
   });
 
   it('switches inspector tabs and toggles terminal and command palette controls', () => {

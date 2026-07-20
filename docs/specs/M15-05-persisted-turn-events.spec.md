@@ -36,7 +36,7 @@ Persistence remains owned by `agent-storage`. `agent-core::model_runtime` append
 
 ## Security And Privacy
 
-- persisted events contain final response and model deltas, not raw config TOML
+- persisted events contain final response and model deltas, not raw config files
 - tests assert persisted JSON excludes secret-like fixture values
 
 ## Testing Strategy

@@ -3,12 +3,12 @@ use std::sync::Arc;
 use agent_cli::providers::build_model_provider_registry;
 use agent_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentRuntimeConfig, ConfigLayer, ConfigLayerKind, ConfigOverride,
-    RuntimeModelConfig, build_effective_runtime_config,
+    RuntimeModelConfig, build_effective_runtime_config, load_agent_config_yaml_with_secrets,
 };
 use agent_model::{
-    EnvSecretResolver, InMemorySecretResolver, ModelEndpointConfig, ModelFallbackChain,
-    ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig, ModelProviderKind,
-    ModelRequestRequirements, ModelRetryPolicy, SecretRef,
+    CompositeSecretResolver, EnvSecretResolver, InMemorySecretResolver, ModelEndpointConfig,
+    ModelFallbackChain, ModelInvocationPolicy, ModelProviderCatalog, ModelProviderConfig,
+    ModelProviderKind, ModelRequestRequirements, ModelRetryPolicy, SecretRef,
 };
 
 fn fake_provider(id: &str, enabled: bool) -> ModelProviderConfig {
@@ -101,6 +101,7 @@ fn effective_config(
                     catalog: ModelProviderCatalog::new(providers).expect("valid catalog"),
                     invocation_policy: invocation_policy(),
                 },
+                terminal: Default::default(),
             },
         }],
         ConfigOverride::default(),
@@ -117,6 +118,28 @@ fn prompt_requirements() -> ModelRequestRequirements {
         min_context_tokens: Some(1024),
         min_output_tokens: Some(1024),
     }
+}
+
+fn direct_api_key_yaml() -> String {
+    r#"
+schemaVersion: 1
+model:
+  defaultProvider: openai
+  invocation:
+    timeoutMs: 30000
+    maxAttempts: 1
+    retryableFailures: []
+    fallbackProviderIds: []
+  providers:
+    - id: openai
+      kind: openai-compatible
+      defaultModel: gpt-4.1-mini
+      enabled: true
+      baseUrl: https://api.openai.com/v1
+      timeoutMs: 30000
+      apiKey: sk-test-direct-runtime-key
+"#
+    .to_string()
 }
 
 #[test]
@@ -183,6 +206,71 @@ fn live_provider_registration_registers_enabled_config_providers() {
             .id,
         "local"
     );
+}
+
+#[test]
+fn live_provider_registration_uses_direct_config_api_key() {
+    let loaded =
+        load_agent_config_yaml_with_secrets(&direct_api_key_yaml()).expect("direct api key config");
+    let effective = build_effective_runtime_config(
+        vec![ConfigLayer {
+            kind: ConfigLayerKind::User,
+            source: "config.yaml".to_string(),
+            config: loaded.config,
+        }],
+        ConfigOverride::default(),
+    )
+    .expect("effective config");
+    let resolver = CompositeSecretResolver::new(vec![Arc::new(loaded.inline_secret_resolver)]);
+
+    let registry = build_model_provider_registry(&effective, "hello", Arc::new(resolver))
+        .expect("registry builds with config apiKey");
+
+    assert_eq!(registry.len(), 1);
+    assert!(registry.get("openai").is_ok());
+    let rendered = format!("{registry:?}");
+    assert!(!rendered.contains("sk-test-direct-runtime-key"));
+    assert!(!rendered.contains("api_key"));
+}
+
+#[test]
+fn live_provider_registration_direct_api_key_needs_inline_resolver() {
+    // Regression: the approval-resume path used to rebuild the registry with a
+    // bare EnvSecretResolver, which cannot resolve inline `apiKey` values stored
+    // under the `<inline-config>` secret provider. The initial turn built a
+    // composite (inline + env) resolver, so a direct config apiKey worked before
+    // an approval but failed on resume. The resume path now rebuilds the same
+    // composite resolver; this test pins both halves of that contrast.
+    let build_effective = || {
+        let loaded = load_agent_config_yaml_with_secrets(&direct_api_key_yaml())
+            .expect("direct api key config");
+        let effective = build_effective_runtime_config(
+            vec![ConfigLayer {
+                kind: ConfigLayerKind::User,
+                source: "config.yaml".to_string(),
+                config: loaded.config,
+            }],
+            ConfigOverride::default(),
+        )
+        .expect("effective config");
+        (effective, loaded.inline_secret_resolver)
+    };
+
+    // Bare env resolver (old resume behavior): inline apiKey is unresolvable.
+    let (effective, _inline) = build_effective();
+    let error = build_model_provider_registry(&effective, "hello", Arc::new(EnvSecretResolver))
+        .expect_err("bare env resolver cannot resolve an inline config apiKey");
+    let rendered = format!("{error:?}");
+    assert!(rendered.contains("could not be resolved before live invocation"));
+    assert!(!rendered.contains("sk-test-direct-runtime-key"));
+
+    // Composite inline + env resolver (fixed resume behavior): resolves fine.
+    let (effective, inline) = build_effective();
+    let resolver =
+        CompositeSecretResolver::new(vec![Arc::new(inline), Arc::new(EnvSecretResolver)]);
+    let registry = build_model_provider_registry(&effective, "hello", Arc::new(resolver))
+        .expect("composite resolver resolves the inline config apiKey");
+    assert!(registry.get("openai").is_ok());
 }
 
 #[test]

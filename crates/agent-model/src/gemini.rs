@@ -2,6 +2,7 @@ use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
 
+use agent_types::ReasoningEffort;
 use async_trait::async_trait;
 use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -10,7 +11,7 @@ use thiserror::Error;
 
 use crate::config::{ModelProviderConfig, ModelProviderKind, SecretRef};
 use crate::provider::{ModelError, ModelProvider};
-use crate::request::ModelRequest;
+use crate::request::{ModelMessage, ModelRequest};
 use crate::secrets::SecretResolver;
 use crate::stream::{
     ModelEventStream, ModelStreamEvent, ModelStreamResult, model_events_to_stream,
@@ -219,27 +220,120 @@ impl ModelProvider for GeminiProvider {
 
 #[must_use]
 pub fn build_gemini_request_body(request: &ModelRequest) -> Value {
+    let system = request
+        .messages
+        .iter()
+        .filter_map(|message| match message {
+            ModelMessage::System { content } => Some(content.as_str()),
+            _ => None,
+        })
+        .collect::<Vec<_>>()
+        .join("\n\n");
     let contents = request
         .messages
         .iter()
-        .map(|message| {
-            json!({
-                "role": "user",
-                "parts": [
-                    {
-                        "text": message,
-                    }
-                ],
-            })
-        })
+        .filter_map(gemini_message)
         .collect::<Vec<_>>();
 
-    json!({
+    let mut body = json!({
         "contents": contents,
         "generationConfig": {
             "maxOutputTokens": DEFAULT_MAX_OUTPUT_TOKENS,
         },
-    })
+    });
+    if !system.is_empty() {
+        body["systemInstruction"] = json!({
+            "parts": [{ "text": system }],
+        });
+    }
+    if let Some(config) = request
+        .reasoning_effort
+        .and_then(|effort| gemini_thinking_config(&request.model, effort))
+    {
+        body["generationConfig"]["thinkingConfig"] = config;
+    }
+    if !request.tools.is_empty() {
+        body["tools"] = json!([
+            {
+                "functionDeclarations": request
+                    .tools
+                    .iter()
+                    .map(|tool| json!({
+                        "name": tool.name.clone(),
+                        "description": tool.description.clone(),
+                        "parameters": tool.input_schema.clone(),
+                    }))
+                    .collect::<Vec<_>>()
+            }
+        ]);
+    }
+    body
+}
+
+fn gemini_thinking_config(model: &str, effort: ReasoningEffort) -> Option<Value> {
+    let model = model.to_ascii_lowercase();
+    if model.contains("gemini-3") {
+        let level = match effort {
+            ReasoningEffort::Minimal => "MINIMAL",
+            ReasoningEffort::Low => "LOW",
+            ReasoningEffort::Medium => "MEDIUM",
+            ReasoningEffort::High | ReasoningEffort::XHigh => "HIGH",
+        };
+        return Some(json!({ "thinkingLevel": level }));
+    }
+    if model.contains("gemini-2.5") {
+        let budget = match effort {
+            ReasoningEffort::Minimal => 0,
+            ReasoningEffort::Low => 1_024,
+            ReasoningEffort::Medium => 4_096,
+            ReasoningEffort::High => 8_192,
+            ReasoningEffort::XHigh => 16_384,
+        };
+        return Some(json!({ "thinkingBudget": budget }));
+    }
+    None
+}
+
+fn gemini_message(message: &ModelMessage) -> Option<Value> {
+    match message {
+        ModelMessage::System { .. } => None,
+        ModelMessage::User { content } => Some(json!({
+            "role": "user",
+            "parts": [{ "text": content }],
+        })),
+        ModelMessage::Assistant { content } => Some(json!({
+            "role": "model",
+            "parts": [{ "text": content }],
+        })),
+        ModelMessage::AssistantToolCall {
+            call_id,
+            tool_name,
+            input_json,
+        } => Some(json!({
+            "role": "model",
+            "parts": [{
+                "functionCall": {
+                    "id": call_id,
+                    "name": tool_name,
+                    "args": input_json,
+                }
+            }],
+        })),
+        ModelMessage::ToolResult {
+            call_id,
+            tool_name,
+            content,
+        } => Some(json!({
+            "role": "user",
+            "parts": [{
+                "functionResponse": {
+                    "id": call_id,
+                    "name": tool_name,
+                    "response": { "output": content },
+                }
+            }],
+        })),
+    }
 }
 
 #[must_use]

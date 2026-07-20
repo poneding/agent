@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add schema version 1 TOML runtime config loading in `agent-core`.
+**Goal:** Add schema version 1 YAML runtime config loading in `agent-core`, with legacy TOML compatibility.
 
-**Architecture:** Keep TOML parsing and runtime composition in `agent-core::config`; reuse `agent-model` provider config and invocation policy contracts. Do not resolve secret values or call providers in this slice.
+**Architecture:** Keep YAML/TOML parsing and runtime composition in `agent-core::config`; reuse `agent-model` provider config and invocation policy contracts. Direct `apiKey` values are converted into an in-memory secret resolver; UI/CLI consumers still receive only redacted typed state.
 
-**Tech Stack:** Rust 2024 edition, serde, toml, thiserror, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, serde, serde_yaml, toml, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -27,7 +27,7 @@ Run:
 sed -n '1,240p' docs/specs/M14-02-config-file-loader.spec.md
 ```
 
-Expected: the spec defines TOML schema, contracts, validation, and tests.
+Expected: the spec defines YAML schema, legacy TOML compatibility, contracts, validation, and tests.
 
 ### Task 2: Write RED Tests
 
@@ -38,7 +38,10 @@ Expected: the spec defines TOML schema, contracts, validation, and tests.
 
 Add tests named:
 
-- `runtime_config_loader_parses_valid_toml`
+- `runtime_config_loader_parses_valid_yaml`
+- `runtime_config_loader_parses_legacy_toml`
+- `runtime_config_loader_parses_direct_api_key`
+- `runtime_config_loader_resolves_default_config_yaml_before_legacy_toml`
 - `runtime_config_loader_rejects_unsupported_schema_version`
 - `runtime_config_loader_rejects_unknown_keys`
 - `runtime_config_loader_rejects_raw_secret_value_keys`
@@ -67,6 +70,7 @@ Expected: tests fail because runtime config loading is not implemented.
 Add to `crates/agent-core/Cargo.toml`:
 
 ```toml
+serde_yaml = "0.9"
 toml = "0.8"
 ```
 
@@ -80,10 +84,12 @@ Implement:
 - `ConfigDiagnostic`
 - `ConfigDiagnosticSeverity`
 - `AgentConfigError`
+- `load_agent_config_yaml`
 - `load_agent_config_toml`
 - `load_agent_config_file`
+- `resolve_agent_config_path`
 
-- [x] **Step 3: Map TOML into model contracts**
+- [x] **Step 3: Map YAML/TOML into model contracts**
 
 Use existing constructors for:
 

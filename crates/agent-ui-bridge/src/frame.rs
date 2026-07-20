@@ -3,14 +3,15 @@ use agent_core::{
     ContextCandidate, ContextCandidateOmission, ContextHybridCandidate,
     ContextHybridCandidateOmission, ContextQualityDiagnostic, ContextQualitySignal,
     ContextQualityTrace, ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity,
-    ContextSemanticRetrievalSummary, DiffEvidenceState, EditDiffFlowReport,
-    ObservabilityEvidenceBundle, OnboardingDiagnosticSeverity, OnboardingNextActionTarget,
-    OnboardingReadinessSnapshot, OnboardingReadinessStatus, PinnedContextItem,
-    PinnedContextOmission, ProjectContextDiagnosticSeverity,
-    ProjectContextHybridPinnedRetrievalReport, ProjectContextHybridRetrievalReport,
-    ProjectContextPinnedRetrievalReport, ProjectContextRetrievalReport, ProjectContextSummary,
-    ProjectFileSummary, RepoGitState, RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity,
-    StartupMigrationOutcome, TaskArtifact, TaskReviewSummary, TerminalSessionDiagnosticSeverity,
+    ContextSemanticRetrievalSummary, ConversationCompactionReport, DiffEvidenceState,
+    EditDiffFlowReport, ModelInvocationAttempt, ObservabilityEvidenceBundle,
+    OnboardingDiagnosticSeverity, OnboardingNextActionTarget, OnboardingReadinessSnapshot,
+    OnboardingReadinessStatus, PinnedContextItem, PinnedContextOmission,
+    ProjectContextDiagnosticSeverity, ProjectContextHybridPinnedRetrievalReport,
+    ProjectContextHybridRetrievalReport, ProjectContextPinnedRetrievalReport,
+    ProjectContextRetrievalReport, ProjectContextSummary, ProjectFileSummary, RepoGitState,
+    RepoSessionBootstrapReport, RepoSessionDiagnosticSeverity, StartupMigrationOutcome,
+    TaskArtifact, TaskReviewSummary, TerminalSessionDiagnosticSeverity,
     TerminalSessionDirectoryReport, TerminalSessionStatus, TerminalSessionSummary,
     normalize_plan_todo_snapshot,
 };
@@ -26,8 +27,8 @@ use agent_team::TeamWorkflowSnapshot;
 use agent_types::{
     ApprovalRequestId, CheckpointId, ClientKind, CommandRetryPlan, ConversationId, EventSeq,
     IdempotentRecoverySummary, PlanTodoItemId, PlanTodoProgress, PlanTodoSnapshot,
-    RecoveryConflictSummary, RecoveryDiagnostic, RecoverySnapshot, ResumeDryRunReport, TaskId,
-    TaskState, Timestamp, TodoPriority, TurnId, WorkspaceId,
+    RecoveryConflictSummary, RecoveryDiagnostic, RecoverySnapshot, ResumeDryRunReport,
+    ResumeReport, TaskId, TaskState, Timestamp, TodoPriority, TurnId, WorkspaceId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -528,7 +529,15 @@ impl UiEditDiffSnapshot {
 pub struct UiCommandTestSnapshot {
     pub workspace_id: WorkspaceId,
     pub conversation_id: ConversationId,
+    #[serde(default = "legacy_command_snapshot_run_id")]
+    pub command_run_id: String,
     pub command: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub program: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub args: Vec<String>,
+    #[serde(default)]
+    pub timeout_ms: u64,
     pub cwd: String,
     pub classify_as_test: bool,
     pub status: String,
@@ -547,10 +556,28 @@ pub struct UiCommandTestSnapshot {
     pub diagnostic_count: u32,
 }
 
+fn legacy_command_snapshot_run_id() -> String {
+    "legacy-command-run".to_string()
+}
+
 impl UiCommandTestSnapshot {
     pub fn from_report(report: &CommandTestLoopReport) -> Result<Self, UiBridgeError> {
         let command = bounded_task_text(&report.command.display);
+        let program = report
+            .command
+            .program
+            .as_ref()
+            .map(|program| bounded_task_text(program))
+            .filter(|program| !program.is_empty());
+        let args = report
+            .command
+            .args
+            .iter()
+            .map(|arg| bounded_task_text(arg))
+            .collect::<Vec<_>>();
         let cwd = bounded_task_text(&report.command.cwd);
+        let command_run_id = bounded_task_text(&report.command_run_id);
+        validate_non_empty("command test command run id", &command_run_id)?;
         validate_non_empty("command test command", &command)?;
         validate_non_empty("command test cwd", &cwd)?;
         let stdout = bounded_diff_text(&report.stdout.text);
@@ -562,7 +589,11 @@ impl UiCommandTestSnapshot {
         Ok(Self {
             workspace_id: report.workspace_id,
             conversation_id: report.conversation_id,
+            command_run_id,
             command,
+            program,
+            args,
+            timeout_ms: report.command.timeout_ms,
             cwd,
             classify_as_test: report.command.classify_as_test,
             status: command_status_label(report.status).to_string(),
@@ -2200,6 +2231,18 @@ impl UiResumeDryRunReport {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiResumeReport {
+    pub report: ResumeReport,
+}
+
+impl UiResumeReport {
+    #[must_use]
+    pub const fn new(report: ResumeReport) -> Self {
+        Self { report }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct UiIdempotentRecoverySummary {
     pub summary: IdempotentRecoverySummary,
 }
@@ -2289,6 +2332,82 @@ impl UiCommandRetryPlan {
     #[must_use]
     pub const fn new(plan: CommandRetryPlan) -> Self {
         Self { plan }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiModelInvocationAttempt {
+    pub provider_id: String,
+    pub model: String,
+    pub attempt_index: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub elapsed_ms: Option<u64>,
+}
+
+impl UiModelInvocationAttempt {
+    #[must_use]
+    pub fn from_attempt(attempt: &ModelInvocationAttempt) -> Self {
+        Self {
+            provider_id: bounded_contract_text(&attempt.provider_id),
+            model: bounded_contract_text(&attempt.model),
+            attempt_index: attempt.attempt_index,
+            request_id: attempt.request_id.as_deref().map(bounded_attempt_metadata),
+            elapsed_ms: attempt.elapsed_ms,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiModelInvocationAttemptSnapshot {
+    pub status: String,
+    pub attempts: Vec<UiModelInvocationAttempt>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+}
+
+impl UiModelInvocationAttemptSnapshot {
+    pub fn new(
+        status: impl Into<String>,
+        attempts: &[ModelInvocationAttempt],
+        message: Option<String>,
+    ) -> Result<Self, UiBridgeError> {
+        let status = bounded_contract_text(&status.into());
+        validate_non_empty("model invocation attempt status", &status)?;
+        Ok(Self {
+            status,
+            attempts: attempts
+                .iter()
+                .map(UiModelInvocationAttempt::from_attempt)
+                .collect(),
+            message: message.map(|value| bounded_attempt_diagnostic(&value)),
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiConversationCompactionReport {
+    pub conversation_id: ConversationId,
+    pub source_message_count: u32,
+    pub summary_message_count: u32,
+    pub dropped_message_count: u32,
+    pub estimated_tokens: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
+}
+
+impl UiConversationCompactionReport {
+    #[must_use]
+    pub fn from_report(report: &ConversationCompactionReport) -> Self {
+        Self {
+            conversation_id: report.conversation_id,
+            source_message_count: report.source_message_count,
+            summary_message_count: report.summary_message_count,
+            dropped_message_count: report.dropped_message_count,
+            estimated_tokens: report.estimated_tokens,
+            summary: report.summary.as_deref().map(bounded_compaction_summary),
+        }
     }
 }
 
@@ -3107,41 +3226,73 @@ impl UiTaskReviewSummaryArtifact {
     }
 }
 
+
+
+/// Management/admin frames that are not on the interactive TUI hot path.
+/// Wire format uses `type = "admin"` and `data.kind` for the former variant name.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct UiAdminFrame {
+    /// Former UiJsonFrame variant tag, e.g. `"recovery_snapshot"`.
+    pub kind: String,
+    /// JSON body previously stored in the variant payload.
+    pub body: serde_json::Value,
+}
+
+impl UiAdminFrame {
+    pub fn new(kind: impl Into<String>, body: impl Serialize) -> Result<Self, UiBridgeError> {
+        let kind = kind.into();
+        validate_non_empty("admin frame kind", &kind)?;
+        let body = serde_json::to_value(body).map_err(|error| {
+            UiBridgeError::Json(format!("admin frame body encode failed: {error}"))
+        })?;
+        Ok(Self { kind, body })
+    }
+
+    pub fn decode_as<T: for<'de> Deserialize<'de>>(&self) -> Result<T, UiBridgeError> {
+        serde_json::from_value(self.body.clone()).map_err(|error| {
+            UiBridgeError::Json(format!(
+                "admin frame body decode failed for {}: {error}",
+                self.kind
+            ))
+        })
+    }
+}
+
+/// Management-only project-context detail payloads (retrieval / hybrid / pinned / quality).
+/// Collapsed from four separate UiJsonFrame variants so the bridge surface stays smaller.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "detail_kind", content = "body", rename_all = "snake_case")]
+pub enum UiProjectContextDetail {
+    Retrieval(UiProjectContextRetrievalSnapshot),
+    Hybrid(UiProjectContextHybridRetrievalSnapshot),
+    Pinned(UiProjectContextPinnedRetrievalSnapshot),
+    Quality(UiProjectContextQualityTraceSnapshot),
+}
+
+impl UiProjectContextDetail {
+    #[must_use]
+    pub fn kind_label(&self) -> &'static str {
+        match self {
+            Self::Retrieval(_) => "retrieval",
+            Self::Hybrid(_) => "hybrid",
+            Self::Pinned(_) => "pinned",
+            Self::Quality(_) => "quality",
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum UiJsonFrame {
+    // --- Core interactive surface (TUI daily-driver hot path) ---
     Event(UiEventEnvelope),
     ConfigSnapshot(UiConfigSnapshot),
-    RepoSessionSnapshot(UiRepoSessionSnapshot),
     TerminalSessionSnapshot(UiTerminalSessionSnapshot),
     ApprovalQueueSnapshot(UiApprovalQueueSnapshot),
     SlashCommandCatalogSnapshot(UiSlashCommandCatalogSnapshot),
     TerminalStatusSnapshot(UiTerminalStatusSnapshot),
     EditDiffSnapshot(UiEditDiffSnapshot),
-    CommandTestSnapshot(UiCommandTestSnapshot),
-    FinalReviewSnapshot(UiFinalReviewSnapshot),
-    PromptSummary(UiPromptSummary),
-    ProjectContextSnapshot(UiProjectContextSnapshot),
-    ProjectContextRetrievalSnapshot(UiProjectContextRetrievalSnapshot),
-    ProjectContextHybridRetrievalSnapshot(UiProjectContextHybridRetrievalSnapshot),
-    ProjectContextPinnedRetrievalSnapshot(UiProjectContextPinnedRetrievalSnapshot),
-    ProjectContextQualityTraceSnapshot(UiProjectContextQualityTraceSnapshot),
-    ExtensionSnapshot(UiExtensionSnapshot),
-    PlanTodoSnapshot(UiPlanTodoSnapshot),
-    RecoverySnapshot(UiRecoverySnapshot),
-    ResumeDryRun(UiResumeDryRunReport),
-    IdempotentRecovery(UiIdempotentRecoverySummary),
-    ReplayInspect(UiReplayInspectReport),
-    ReplayFork(UiReplayForkReport),
-    CommandRetryPlan(UiCommandRetryPlan),
-    ConflictInspect(UiConflictInspectReport),
-    TeamWorkflowSnapshot(UiTeamWorkflowSnapshot),
-    MemorySnapshot(UiMemorySnapshot),
-    TaskSnapshot(UiTaskSnapshot),
-    TaskReviewSnapshot(UiTaskReviewSnapshot),
-    StartupMigrationSnapshot(UiStartupMigrationSnapshot),
-    OnboardingReadinessSnapshot(UiOnboardingReadinessSnapshot),
-    ObservabilitySnapshot(UiObservabilitySnapshot),
+    ModelInvocationAttempts(UiModelInvocationAttemptSnapshot),
     ModelSelection {
         provider: String,
         model: String,
@@ -3168,6 +3319,12 @@ pub enum UiJsonFrame {
         message: String,
         recoverable: bool,
     },
+    // First-class product projections used by daily coding UX (not raw admin dumps).
+    PlanTodoSnapshot(UiPlanTodoSnapshot),
+    ProjectContextSnapshot(UiProjectContextSnapshot),
+    ProjectContextDetail(UiProjectContextDetail),
+    // --- Everything else: single admin envelope ---
+    Admin(UiAdminFrame),
 }
 
 fn git_state_label(state: RepoGitState) -> &'static str {
@@ -3398,6 +3555,36 @@ fn bounded_task_text(value: &str) -> String {
     }
 }
 
+fn bounded_compaction_summary(value: &str) -> String {
+    let redacted = redact_secret_like_text(value);
+    let redacted = redacted.trim();
+    if redacted.chars().count() > 2_000 {
+        redacted.chars().take(2_000).collect()
+    } else {
+        redacted.to_string()
+    }
+}
+
+fn bounded_attempt_diagnostic(value: &str) -> String {
+    let redacted = redact_secret_like_text(value);
+    let redacted = redacted.trim();
+    if redacted.chars().count() > 2_000 {
+        redacted.chars().take(2_000).collect()
+    } else {
+        redacted.to_string()
+    }
+}
+
+fn bounded_attempt_metadata(value: &str) -> String {
+    let redacted = redact_secret_like_text(value);
+    let redacted = redacted.trim();
+    if redacted.chars().count() > 120 {
+        redacted.chars().take(120).collect()
+    } else {
+        redacted.to_string()
+    }
+}
+
 fn bounded_contract_text(value: &str) -> String {
     let value = value.trim();
     if value.chars().count() > 120 {
@@ -3436,4 +3623,91 @@ fn normalize_optional_string(value: Option<String>) -> Option<String> {
             Some(value.to_string())
         }
     })
+}
+
+
+impl UiJsonFrame {
+    #[must_use]
+    pub fn project_context_retrieval(snapshot: UiProjectContextRetrievalSnapshot) -> Self {
+        Self::ProjectContextDetail(UiProjectContextDetail::Retrieval(snapshot))
+    }
+    #[must_use]
+    pub fn project_context_hybrid(snapshot: UiProjectContextHybridRetrievalSnapshot) -> Self {
+        Self::ProjectContextDetail(UiProjectContextDetail::Hybrid(snapshot))
+    }
+    #[must_use]
+    pub fn project_context_pinned(snapshot: UiProjectContextPinnedRetrievalSnapshot) -> Self {
+        Self::ProjectContextDetail(UiProjectContextDetail::Pinned(snapshot))
+    }
+    #[must_use]
+    pub fn project_context_quality(snapshot: UiProjectContextQualityTraceSnapshot) -> Self {
+        Self::ProjectContextDetail(UiProjectContextDetail::Quality(snapshot))
+    }
+
+    pub fn admin(kind: impl Into<String>, body: impl Serialize) -> Result<Self, UiBridgeError> {
+        Ok(Self::Admin(UiAdminFrame::new(kind, body)?))
+    }
+    pub fn recovery_snapshot(snapshot: UiRecoverySnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("recovery_snapshot", snapshot)
+    }
+    pub fn resume_dry_run(report: UiResumeDryRunReport) -> Result<Self, UiBridgeError> {
+        Self::admin("resume_dry_run", report)
+    }
+    pub fn recovery_resume(report: UiResumeReport) -> Result<Self, UiBridgeError> {
+        Self::admin("recovery_resume", report)
+    }
+    pub fn idempotent_recovery(summary: UiIdempotentRecoverySummary) -> Result<Self, UiBridgeError> {
+        Self::admin("idempotent_recovery", summary)
+    }
+    pub fn replay_inspect(report: UiReplayInspectReport) -> Result<Self, UiBridgeError> {
+        Self::admin("replay_inspect", report)
+    }
+    pub fn replay_fork(report: UiReplayForkReport) -> Result<Self, UiBridgeError> {
+        Self::admin("replay_fork", report)
+    }
+    pub fn command_retry_plan(plan: UiCommandRetryPlan) -> Result<Self, UiBridgeError> {
+        Self::admin("command_retry_plan", plan)
+    }
+    pub fn command_test_snapshot(snapshot: UiCommandTestSnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("command_test_snapshot", snapshot)
+    }
+    pub fn final_review_snapshot(snapshot: UiFinalReviewSnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("final_review_snapshot", snapshot)
+    }
+    pub fn prompt_summary(summary: UiPromptSummary) -> Result<Self, UiBridgeError> {
+        Self::admin("prompt_summary", summary)
+    }
+    pub fn extension_snapshot(snapshot: UiExtensionSnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("extension_snapshot", snapshot)
+    }
+    pub fn conversation_compaction(report: UiConversationCompactionReport) -> Result<Self, UiBridgeError> {
+        Self::admin("conversation_compaction", report)
+    }
+    pub fn conflict_inspect(report: UiConflictInspectReport) -> Result<Self, UiBridgeError> {
+        Self::admin("conflict_inspect", report)
+    }
+    pub fn team_workflow_snapshot(snapshot: UiTeamWorkflowSnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("team_workflow_snapshot", snapshot)
+    }
+    pub fn memory_snapshot(snapshot: UiMemorySnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("memory_snapshot", snapshot)
+    }
+    pub fn task_snapshot(snapshot: UiTaskSnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("task_snapshot", snapshot)
+    }
+    pub fn task_review_snapshot(snapshot: UiTaskReviewSnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("task_review_snapshot", snapshot)
+    }
+    pub fn startup_migration_snapshot(snapshot: UiStartupMigrationSnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("startup_migration_snapshot", snapshot)
+    }
+    pub fn onboarding_readiness_snapshot(snapshot: UiOnboardingReadinessSnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("onboarding_readiness_snapshot", snapshot)
+    }
+    pub fn observability_snapshot(snapshot: UiObservabilitySnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("observability_snapshot", snapshot)
+    }
+    pub fn repo_session_snapshot(snapshot: UiRepoSessionSnapshot) -> Result<Self, UiBridgeError> {
+        Self::admin("repo_session_snapshot", snapshot)
+    }
 }

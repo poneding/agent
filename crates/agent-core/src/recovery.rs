@@ -6,9 +6,9 @@ use agent_storage::{
 use agent_types::{
     CheckpointId, ConversationId, EventSeq, RecoveredApprovalWait, RecoveredToolCall,
     RecoveredToolCallStatus, RecoveredToolEffect, RecoveredToolEffectDisposition,
-    RecoveryCheckpointSummary, RecoveryDiagnostic, RecoveryDiagnosticSeverity, RecoveryReadiness,
-    RecoveryReplaySummary, RecoverySnapshot, ResumeDryRunReport, RuntimeEventPayload,
-    ToolEffectDisposition, TurnId,
+    RecoveryCheckpointSummary, RecoveryContinuation, RecoveryDiagnostic,
+    RecoveryDiagnosticSeverity, RecoveryReadiness, RecoveryReplaySummary, RecoverySnapshot,
+    ResumeDryRunReport, ResumeReport, RuntimeEventPayload, ToolEffectDisposition, TurnId,
 };
 use thiserror::Error;
 
@@ -17,6 +17,9 @@ use crate::ConflictRecoveryMapper;
 
 const MAX_RECOVERY_DIAGNOSTIC_CHARS: usize = 240;
 const MAX_RECOVERY_SUMMARY_CHARS: usize = 240;
+const MAX_RECOVERY_CONTINUATION_SUMMARY_CHARS: usize = 480;
+const MAX_RECOVERY_CONTINUATION_PROMPT_CHARS: usize = 1600;
+const MAX_RECOVERY_CONTINUATION_ITEM_COUNT: usize = 8;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RecoveryPlan {
@@ -207,6 +210,44 @@ impl RecoveryEngine {
         }
     }
 
+    pub fn resume<E, I>(
+        &self,
+        events: &E,
+        idempotency: &I,
+        conversation_id: ConversationId,
+        turn_id: Option<TurnId>,
+    ) -> ResumeReport
+    where
+        E: EventStore + CheckpointStore,
+        I: IdempotencyStore + ?Sized,
+    {
+        let snapshot = self.snapshot(events, idempotency, conversation_id, turn_id);
+        let blocked = !matches!(
+            snapshot.readiness,
+            RecoveryReadiness::Ready
+                | RecoveryReadiness::NeedsApproval
+                | RecoveryReadiness::PendingToolCalls
+        );
+        let resumed = !blocked
+            && self
+                .recover(events, idempotency, conversation_id, turn_id)
+                .map(|outcome| outcome.resumed)
+                .unwrap_or(false);
+        let continuation = resumed
+            .then(|| recovery_continuation(events, &snapshot))
+            .flatten();
+
+        ResumeReport {
+            replayed_event_count: snapshot.replay.replayed_event_count,
+            resumed_pending_tool_count: usize_to_u32(snapshot.pending_tool_calls.len()),
+            reused_idempotent_effect_count: usize_to_u32(snapshot.idempotent_effects.len()),
+            resumed,
+            blocked,
+            continuation,
+            snapshot,
+        }
+    }
+
     pub fn resume_dry_run_with_conflicts<E, I>(
         &self,
         events: &E,
@@ -233,6 +274,204 @@ impl RecoveryEngine {
             ),
             snapshot,
         }
+    }
+}
+
+fn recovery_continuation<E>(events: &E, snapshot: &RecoverySnapshot) -> Option<RecoveryContinuation>
+where
+    E: EventStore,
+{
+    let replayed =
+        ReplayCursor::from_sequence(snapshot.conversation_id, snapshot.replay.replay_from)
+            .collect(events)
+            .ok()?;
+
+    let mut last_user_message = None;
+    let mut last_final_response = None;
+    let mut last_turn_summary = None;
+    let mut replay_tool_names = BTreeSet::new();
+
+    for replay in &replayed {
+        match &replay.event.payload {
+            RuntimeEventPayload::UserInputReceived(input) => {
+                last_user_message = Some(bound_summary(input.message.clone()));
+            }
+            RuntimeEventPayload::FinalResponseProduced(response) => {
+                last_final_response = Some(bound_summary(response.message.clone()));
+            }
+            RuntimeEventPayload::TurnCompleted(completed) => {
+                last_turn_summary = Some(bound_summary(completed.summary.clone()));
+            }
+            RuntimeEventPayload::ToolCallProposed(call) => {
+                replay_tool_names.insert(bound_summary(call.tool_name.clone()));
+            }
+            _ => {}
+        }
+    }
+
+    let checkpoint = snapshot
+        .checkpoint
+        .as_ref()
+        .map(|checkpoint| checkpoint.checkpoint_id.to_string())
+        .unwrap_or_else(|| "none".to_string());
+    let pending_tool_count = usize_to_u32(snapshot.pending_tool_calls.len());
+    let reused_effect_count = usize_to_u32(snapshot.idempotent_effects.len());
+    let pending_approval_count = usize_to_u32(snapshot.pending_approvals.len());
+    let can_start_turn = matches!(snapshot.readiness, RecoveryReadiness::Ready);
+
+    let summary_raw = format!(
+        "readiness={} checkpoint={} replayed={} pending_tools={} reusable_effects={} pending_approvals={}",
+        readiness_label(snapshot.readiness),
+        checkpoint,
+        snapshot.replay.replayed_event_count,
+        pending_tool_count,
+        reused_effect_count,
+        pending_approval_count
+    );
+    let (summary, summary_truncated) =
+        bound_text(summary_raw, MAX_RECOVERY_CONTINUATION_SUMMARY_CHARS);
+
+    let mut lines = vec![
+        "Recover the interrupted agent turn using this runtime replay state.".to_string(),
+        format!("conversation_id: {}", snapshot.conversation_id),
+        format!("turn_id: {}", optional_turn_id(snapshot.turn_id)),
+        format!("checkpoint_id: {checkpoint}"),
+        format!(
+            "readiness: {} replayed_events: {}",
+            readiness_label(snapshot.readiness),
+            snapshot.replay.replayed_event_count
+        ),
+        format!(
+            "pending_tools: {} reusable_effects: {} pending_approvals: {}",
+            pending_tool_count, reused_effect_count, pending_approval_count
+        ),
+    ];
+
+    if let Some(message) = last_user_message {
+        lines.push(format!("last_user_message: {message}"));
+    }
+    if let Some(response) = last_final_response {
+        lines.push(format!("last_final_response: {response}"));
+    }
+    if let Some(turn_summary) = last_turn_summary {
+        lines.push(format!("last_turn_summary: {turn_summary}"));
+    }
+
+    push_limited_list(
+        &mut lines,
+        "replayed_tools",
+        replay_tool_names,
+        MAX_RECOVERY_CONTINUATION_ITEM_COUNT,
+    );
+    push_limited_list(
+        &mut lines,
+        "pending_tool_calls",
+        snapshot.pending_tool_calls.iter().map(|call| {
+            let tool = call
+                .tool_name
+                .as_deref()
+                .map(bound_summary)
+                .unwrap_or_else(|| "unknown".to_string());
+            format!("{}:{tool}", bound_summary(call.call_id.clone()))
+        }),
+        MAX_RECOVERY_CONTINUATION_ITEM_COUNT,
+    );
+    push_limited_list(
+        &mut lines,
+        "reusable_effects",
+        snapshot.idempotent_effects.iter().map(|effect| {
+            format!(
+                "{}:{}",
+                bound_summary(effect.call_id.clone()),
+                bound_summary(effect.tool_name.clone())
+            )
+        }),
+        MAX_RECOVERY_CONTINUATION_ITEM_COUNT,
+    );
+    push_limited_list(
+        &mut lines,
+        "pending_approvals",
+        snapshot.pending_approvals.iter().map(|approval| {
+            format!(
+                "{}:{}:{}",
+                bound_summary(approval.approval_id.clone()),
+                bound_summary(approval.action.clone()),
+                bound_summary(approval.resource.clone())
+            )
+        }),
+        MAX_RECOVERY_CONTINUATION_ITEM_COUNT,
+    );
+
+    lines.push(recovery_next_action(snapshot.readiness).to_string());
+    lines.push(
+        "Do not repeat reusable tool effects; continue from replayed state and preserve policy checks."
+            .to_string(),
+    );
+
+    let (next_prompt, prompt_truncated) =
+        bound_text(lines.join("\n"), MAX_RECOVERY_CONTINUATION_PROMPT_CHARS);
+
+    Some(RecoveryContinuation {
+        summary,
+        next_prompt,
+        can_start_turn,
+        replayed_event_count: snapshot.replay.replayed_event_count,
+        pending_tool_count,
+        reused_effect_count,
+        pending_approval_count,
+        summary_truncated,
+        prompt_truncated,
+    })
+}
+
+fn optional_turn_id(turn_id: Option<TurnId>) -> String {
+    turn_id
+        .map(|turn_id| turn_id.to_string())
+        .unwrap_or_else(|| "none".to_string())
+}
+
+fn push_limited_list<I>(lines: &mut Vec<String>, label: &str, values: I, max_items: usize)
+where
+    I: IntoIterator<Item = String>,
+{
+    let mut values = values.into_iter().collect::<Vec<_>>();
+    if values.is_empty() {
+        return;
+    }
+    values.sort();
+    let omitted = values.len().saturating_sub(max_items);
+    let mut rendered = values.into_iter().take(max_items).collect::<Vec<_>>();
+    if omitted > 0 {
+        rendered.push(format!("... {omitted} more"));
+    }
+    lines.push(format!("{label}: {}", rendered.join(", ")));
+}
+
+fn recovery_next_action(readiness: RecoveryReadiness) -> &'static str {
+    match readiness {
+        RecoveryReadiness::Ready => "Next action: continue the interrupted turn.",
+        RecoveryReadiness::NeedsApproval => {
+            "Next action: restore the pending approval workflow before continuing the turn."
+        }
+        RecoveryReadiness::PendingToolCalls => {
+            "Next action: resume pending tool calls through the runtime tool policy path."
+        }
+        RecoveryReadiness::HasConflict => "Next action: inspect conflicts before continuing.",
+        RecoveryReadiness::CorruptCheckpoint => "Next action: repair or choose another checkpoint.",
+        RecoveryReadiness::StorageError => "Next action: repair storage before continuing.",
+        RecoveryReadiness::Blocked => "Next action: resolve recovery blockers before continuing.",
+    }
+}
+
+fn readiness_label(readiness: RecoveryReadiness) -> &'static str {
+    match readiness {
+        RecoveryReadiness::Ready => "ready",
+        RecoveryReadiness::NeedsApproval => "needs_approval",
+        RecoveryReadiness::PendingToolCalls => "pending_tool_calls",
+        RecoveryReadiness::HasConflict => "has_conflict",
+        RecoveryReadiness::CorruptCheckpoint => "corrupt_checkpoint",
+        RecoveryReadiness::StorageError => "storage_error",
+        RecoveryReadiness::Blocked => "blocked",
     }
 }
 

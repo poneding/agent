@@ -67,6 +67,40 @@ fn file_edit_preview_summarizes_diff_without_mutating_file() {
 }
 
 #[test]
+fn write_file_preview_summarizes_create_without_mutating_file() {
+    let (temp, sandbox) = workspace_fixture();
+    let input = ToolInput {
+        value: json!({
+            "path": "notes/new.txt",
+            "content": "new text\n"
+        }),
+    };
+
+    let preview = preview_tool_call(&tool_name("workspace.write_file"), &input, Some(&sandbox))
+        .expect("write file preview");
+
+    let ToolPreview::FileEdit(FileEditPreview {
+        path,
+        diff,
+        added_lines,
+        removed_lines,
+        apply,
+        ..
+    }) = &preview
+    else {
+        panic!("expected file edit preview");
+    };
+    assert_eq!(path, "notes/new.txt");
+    assert_eq!(
+        diff,
+        "--- notes/new.txt\n+++ notes/new.txt\n@@\n+new text\n"
+    );
+    assert_eq!((*added_lines, *removed_lines), (1, 0));
+    assert!(*apply);
+    assert!(!temp.path().join("workspace/notes/new.txt").exists());
+}
+
+#[test]
 fn shell_command_preview_redacts_environment_values() {
     let (_temp, sandbox) = workspace_fixture();
     let input = ToolInput {

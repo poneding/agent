@@ -364,6 +364,7 @@ const conversationState: ConversationTaskState = {
       content: 'Desktop smoke fixture completed with tests passing.',
     },
   ],
+  transcriptsByConversation: {},
   activeConversationId: 'conversation-1',
   activeTaskId: 'task-64',
   composerText: '',

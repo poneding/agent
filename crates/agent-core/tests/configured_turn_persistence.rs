@@ -48,6 +48,7 @@ fn effective_config(provider: ModelProviderConfig) -> agent_core::EffectiveRunti
             )
             .expect("valid policy"),
         },
+        terminal: Default::default(),
     };
     build_effective_runtime_config(
         vec![ConfigLayer {
@@ -87,7 +88,8 @@ fn configured_input(ids: RuntimeIds, provider: ModelProviderConfig) -> Configure
     ConfiguredTurnInput {
         ids,
         user_message: "persist this turn".to_string(),
-        effective_config: effective_config(provider),
+        conversation_history: std::sync::Arc::new(Vec::new()),
+        effective_config: std::sync::Arc::new(effective_config(provider)),
         requirements: requirements(),
     }
 }

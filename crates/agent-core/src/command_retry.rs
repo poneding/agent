@@ -1,18 +1,35 @@
+use std::path::PathBuf;
+
 use agent_types::{
     CommandRetryAttemptLink, CommandRetryCommandSummary, CommandRetryDiagnostic,
     CommandRetryDiagnosticSeverity, CommandRetryFailureClassification, CommandRetryPlan,
     CommandRetryReadiness, CommandRetryRequest,
 };
+use agent_types::{ConversationId, CorrelationId, TurnId, WorkspaceId};
 
 use crate::{
     CommandExecutionStatus, CommandFailureClassification, CommandIntentSummary,
-    CommandTestLoopReport,
+    CommandTestLoopError, CommandTestLoopInput, CommandTestLoopReport,
+    DEFAULT_COMMAND_TEST_TIMEOUT_MS, RuntimeIds, run_command_test_loop,
 };
 
 const MAX_RETRY_TEXT_CHARS: usize = 240;
 
 #[derive(Clone, Debug, Default)]
 pub struct CommandRetryPlanner;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommandRetryExecutionInput {
+    pub workspace_root: PathBuf,
+    pub request: CommandRetryRequest,
+    pub evidence: CommandTestLoopReport,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommandRetryExecutionReport {
+    pub plan: CommandRetryPlan,
+    pub retry_report: Option<CommandTestLoopReport>,
+}
 
 impl CommandRetryPlanner {
     #[must_use]
@@ -22,14 +39,6 @@ impl CommandRetryPlanner {
         report: &CommandTestLoopReport,
     ) -> CommandRetryPlan {
         let mut diagnostics = Vec::new();
-        if !request.dry_run {
-            diagnostics.push(diagnostic(
-                CommandRetryDiagnosticSeverity::Warning,
-                "command_retry.dry_run_required",
-                "retry execution is not wired in this slice; returning a plan only",
-                true,
-            ));
-        }
         if request.reason.trim().is_empty() {
             diagnostics.push(diagnostic(
                 CommandRetryDiagnosticSeverity::Error,
@@ -70,6 +79,9 @@ impl CommandRetryPlanner {
             classification: CommandRetryFailureClassification::InvalidInput,
             command: CommandRetryCommandSummary {
                 display: "unknown".to_string(),
+                program: None,
+                args: Vec::new(),
+                timeout_ms: DEFAULT_COMMAND_TEST_TIMEOUT_MS,
                 cwd: ".".to_string(),
                 classify_as_test: false,
             },
@@ -83,6 +95,49 @@ impl CommandRetryPlanner {
                 false,
             )],
         }
+    }
+
+    pub fn execute_from_report(
+        &self,
+        input: CommandRetryExecutionInput,
+    ) -> Result<CommandRetryExecutionReport, CommandTestLoopError> {
+        let mut plan = self.plan_from_report(input.request, &input.evidence);
+        if plan.readiness != CommandRetryReadiness::Retryable {
+            return Ok(CommandRetryExecutionReport {
+                plan,
+                retry_report: None,
+            });
+        }
+
+        let Some(program) = input.evidence.command.program.clone() else {
+            plan.readiness = CommandRetryReadiness::InvalidTarget;
+            plan.diagnostics.push(diagnostic(
+                CommandRetryDiagnosticSeverity::Error,
+                "command_retry.argv.missing",
+                "command retry execution requires typed program evidence",
+                false,
+            ));
+            return Ok(CommandRetryExecutionReport {
+                plan,
+                retry_report: None,
+            });
+        };
+
+        let retry_report = run_command_test_loop(CommandTestLoopInput {
+            workspace_root: input.workspace_root,
+            command_run_id: Some(plan.attempt.next_attempt_id.clone()),
+            program,
+            args: input.evidence.command.args.clone(),
+            cwd: input.evidence.command.cwd.clone(),
+            timeout_ms: input.evidence.command.timeout_ms,
+            classify_as_test: input.evidence.command.classify_as_test,
+            ids: retry_runtime_ids(input.evidence.workspace_id, input.evidence.conversation_id),
+        })?;
+
+        Ok(CommandRetryExecutionReport {
+            plan,
+            retry_report: Some(retry_report),
+        })
     }
 }
 
@@ -119,8 +174,20 @@ fn readiness_for_report(
 fn retry_command_summary(command: &CommandIntentSummary) -> CommandRetryCommandSummary {
     CommandRetryCommandSummary {
         display: bound_text(command.display.clone()),
+        program: command.program.clone().map(bound_text),
+        args: command.args.iter().cloned().map(bound_text).collect(),
+        timeout_ms: command.timeout_ms,
         cwd: bound_text(command.cwd.clone()),
         classify_as_test: command.classify_as_test,
+    }
+}
+
+fn retry_runtime_ids(workspace_id: WorkspaceId, conversation_id: ConversationId) -> RuntimeIds {
+    RuntimeIds {
+        workspace_id,
+        conversation_id,
+        turn_id: TurnId::new(),
+        correlation_id: CorrelationId::new(),
     }
 }
 

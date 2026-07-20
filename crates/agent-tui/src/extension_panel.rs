@@ -7,8 +7,12 @@ pub struct ExtensionPanelState {
 
 impl ExtensionPanelState {
     pub fn reduce_frame(&mut self, frame: &UiJsonFrame) {
-        if let UiJsonFrame::ExtensionSnapshot(snapshot) = frame {
-            self.snapshot = Some(snapshot.clone());
+        if let UiJsonFrame::Admin(admin) = frame {
+            if admin.kind == "extension_snapshot" {
+                if let Ok(snapshot) = admin.decode_as::<UiExtensionSnapshot>() {
+                    self.snapshot = Some(snapshot);
+                }
+            }
         }
     }
 
@@ -20,7 +24,6 @@ impl ExtensionPanelState {
         if snapshot.extensions.is_empty() {
             return "No extensions".to_string();
         }
-
         let mut lines = vec![format!(
             "Extensions total={} reviews={}",
             snapshot.extensions.len(),
@@ -32,13 +35,6 @@ impl ExtensionPanelState {
                 extension.id, extension.health, extension.enabled, extension.capability_count
             ));
         }
-        for diagnostic in &snapshot.diagnostics {
-            lines.push(format!(
-                "{} {}: {}",
-                diagnostic.severity, diagnostic.code, diagnostic.message
-            ));
-        }
-        lines.push(format!("reviews={}", snapshot.capability_reviews.len()));
         lines.join("\n")
     }
 }

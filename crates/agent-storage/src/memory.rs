@@ -33,6 +33,10 @@ impl EventStore for InMemoryEventStore {
         Ok(stored)
     }
 
+    fn list_conversation_ids(&self) -> Result<Vec<ConversationId>, StorageError> {
+        Ok(self.streams.keys().copied().collect())
+    }
+
     fn list_by_conversation(
         &self,
         conversation_id: ConversationId,

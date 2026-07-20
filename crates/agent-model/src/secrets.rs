@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 use std::fmt;
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -51,6 +52,52 @@ impl fmt::Display for SecretValue {
 
 pub trait SecretResolver: Send + Sync {
     fn resolve(&self, secret_ref: &SecretRef) -> Result<SecretValue, SecretResolutionError>;
+}
+
+#[derive(Clone, Default)]
+pub struct CompositeSecretResolver {
+    resolvers: Vec<Arc<dyn SecretResolver>>,
+}
+
+impl CompositeSecretResolver {
+    #[must_use]
+    pub fn new(resolvers: Vec<Arc<dyn SecretResolver>>) -> Self {
+        Self { resolvers }
+    }
+
+    #[must_use]
+    pub fn with_resolver(mut self, resolver: Arc<dyn SecretResolver>) -> Self {
+        self.resolvers.push(resolver);
+        self
+    }
+}
+
+impl fmt::Debug for CompositeSecretResolver {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("CompositeSecretResolver")
+            .field("resolver_count", &self.resolvers.len())
+            .finish()
+    }
+}
+
+impl SecretResolver for CompositeSecretResolver {
+    fn resolve(&self, secret_ref: &SecretRef) -> Result<SecretValue, SecretResolutionError> {
+        let mut last_error = None;
+        for resolver in &self.resolvers {
+            match resolver.resolve(secret_ref) {
+                Ok(value) => return Ok(value),
+                Err(error) => last_error = Some(error),
+            }
+        }
+
+        Err(
+            last_error.unwrap_or_else(|| SecretResolutionError::SecretNotFound {
+                provider: secret_ref.provider.clone(),
+                name: secret_ref.name.clone(),
+            }),
+        )
+    }
 }
 
 pub trait SecretStoreBackend: Send + Sync {

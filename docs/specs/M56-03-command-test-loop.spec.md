@@ -95,6 +95,7 @@ pub struct CommandTestLoopInput {
 pub struct CommandTestLoopReport {
     pub workspace_id: WorkspaceId,
     pub conversation_id: ConversationId,
+    pub command_run_id: String,
     pub command: CommandIntentSummary,
     pub status: CommandExecutionStatus,
     pub classification: CommandFailureClassification,

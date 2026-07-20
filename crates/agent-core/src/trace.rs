@@ -64,17 +64,44 @@ fn trace_payload(payload: &RuntimeEventPayload, query: &TraceQuery) -> Option<(S
         )),
         RuntimeEventPayload::ToolExecutionStarted(started) if query.include_tools => Some((
             "tool_start".to_string(),
-            format!("started {} {}", started.tool_name, started.call_id),
+            format!(
+                "started {} {}{}{}",
+                started.tool_name,
+                started.call_id,
+                started
+                    .policy_decision
+                    .as_ref()
+                    .map(|decision| format!(" policy={decision}"))
+                    .unwrap_or_default(),
+                started
+                    .sandbox_profile
+                    .as_ref()
+                    .map(|sandbox| format!(" sandbox={sandbox}"))
+                    .unwrap_or_default()
+            ),
         )),
         RuntimeEventPayload::ToolExecutionCompleted(completed) if query.include_tools => Some((
             "tool_result".to_string(),
-            format!("completed {}", completed.call_id),
+            format!(
+                "completed {}{}",
+                completed.call_id,
+                completed
+                    .elapsed_ms
+                    .map(|elapsed| format!(" elapsed_ms={elapsed}"))
+                    .unwrap_or_default()
+            ),
         )),
         RuntimeEventPayload::ToolExecutionFailed(failed) if query.include_tools => Some((
             "tool_error".to_string(),
             format!(
-                "failed {} {} recoverable={}",
-                failed.call_id, failed.error_code, failed.recoverable
+                "failed {} {} recoverable={}{}",
+                failed.call_id,
+                failed.error_code,
+                failed.recoverable,
+                failed
+                    .elapsed_ms
+                    .map(|elapsed| format!(" elapsed_ms={elapsed}"))
+                    .unwrap_or_default()
             ),
         )),
         RuntimeEventPayload::ToolObservationRecorded(observed) if query.include_tools => Some((

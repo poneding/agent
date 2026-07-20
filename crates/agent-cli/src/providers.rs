@@ -149,6 +149,7 @@ pub(crate) fn redact_secret_like_text(input: &str) -> String {
             let lower = part.to_ascii_lowercase();
             if part.starts_with("sk-")
                 || lower.contains("api_key")
+                || lower.contains("apikey")
                 || lower.contains("token")
                 || lower.contains("password")
             {

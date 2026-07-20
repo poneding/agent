@@ -7,7 +7,8 @@ use agent_mcp::{
     validate_mcp_sampling_request,
 };
 use agent_model::{
-    ModelError, ModelProvider, ModelRequest, ModelStreamEvent, collect_model_event_stream,
+    ModelError, ModelMessage, ModelProvider, ModelRequest, ModelStreamEvent,
+    collect_model_event_stream,
 };
 use agent_types::{ConversationId, CorrelationId, TurnId};
 use async_trait::async_trait;
@@ -102,6 +103,7 @@ impl McpSamplingProvider for McpModelSamplingProvider {
         for event in events {
             match event {
                 ModelStreamEvent::Started { .. } => {}
+                ModelStreamEvent::ReasoningSummaryDelta { .. } => {}
                 ModelStreamEvent::Delta { text: delta } => text.push_str(&delta),
                 ModelStreamEvent::Completed { finish_reason, .. } => {
                     stop_reason = Some(finish_reason);
@@ -147,15 +149,15 @@ pub fn build_mcp_sampling_model_request(
 
     let mut messages = Vec::new();
     if let Some(system_prompt) = &request.system_prompt {
-        messages.push(format!("system: {system_prompt}"));
+        messages.push(ModelMessage::system(system_prompt));
     }
 
     for message in &request.messages {
-        messages.push(format!(
-            "{}: {}",
-            sampling_role_label(message.role),
-            text_content_for_model(&message.content.content)?
-        ));
+        let content = text_content_for_model(&message.content.content)?;
+        messages.push(match message.role {
+            McpSamplingRole::User => ModelMessage::user(content),
+            McpSamplingRole::Assistant => ModelMessage::assistant(content),
+        });
     }
 
     Ok(ModelRequest {
@@ -165,6 +167,8 @@ pub fn build_mcp_sampling_model_request(
         turn_id: ids.turn_id,
         correlation_id: ids.correlation_id,
         messages,
+        reasoning_effort: None,
+        tools: Vec::new(),
     })
 }
 
@@ -242,13 +246,6 @@ fn validate_local_model_field(
         )));
     }
     Ok(trimmed.to_string())
-}
-
-fn sampling_role_label(role: McpSamplingRole) -> &'static str {
-    match role {
-        McpSamplingRole::User => "user",
-        McpSamplingRole::Assistant => "assistant",
-    }
 }
 
 fn text_content_for_model(

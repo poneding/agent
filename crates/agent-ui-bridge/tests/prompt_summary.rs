@@ -130,7 +130,7 @@ fn ui_prompt_summary_hides_secret_like_layer_preview() {
 
 #[test]
 fn ui_prompt_summary_frame_encodes_as_single_line() {
-    let line = encode_json_frame(&UiJsonFrame::PromptSummary(summary_with_layers(vec![
+    let line = encode_json_frame(&UiJsonFrame::prompt_summary(summary_with_layers(vec![
         public_layer(),
     ])))
     .expect("encode frame");
@@ -138,5 +138,5 @@ fn ui_prompt_summary_frame_encodes_as_single_line() {
     assert!(line.ends_with('\n'));
     assert_eq!(line.matches('\n').count(), 1);
     let frame = serde_json::from_str::<UiJsonFrame>(line.trim_end()).expect("parse frame");
-    assert!(matches!(frame, UiJsonFrame::PromptSummary(_)));
+    assert!(matches!(frame, UiJsonFrame::prompt_summary(_)));
 }

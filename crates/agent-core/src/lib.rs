@@ -1,5 +1,9 @@
 #![forbid(unsafe_code)]
 //! Core runtime orchestration for agent.
+//!
+//! Interactive hosts should start from [`AgentSession`] (`prompt` /
+//! `prompt_with_tools`) rather than wiring
+//! `ConfiguredTurnRunner` / `ComprehensiveTurnRunner` by hand.
 
 pub mod approval;
 pub mod audit_export;
@@ -15,18 +19,21 @@ pub mod extension;
 pub mod final_review;
 pub mod idempotency;
 pub mod local_coding;
+#[cfg(feature = "mcp")]
 pub mod mcp_sampling;
 pub mod memory;
 pub mod model_runtime;
 pub mod observability;
 pub mod onboarding;
 pub mod plan;
+pub mod prelude;
 pub mod project_context;
 pub mod provider_support;
 pub mod recovery;
 pub mod recovery_smoke;
 pub mod repo_session;
 pub mod runtime;
+pub mod session;
 pub mod settings;
 pub mod startup_migration;
 pub mod task_review;
@@ -53,21 +60,34 @@ pub use benchmark::{
     BenchmarkEnvironment, BenchmarkError, BenchmarkResult, BenchmarkRunner, BenchmarkScenario,
     run_smoke_benchmarks, smoke_benchmark_scenarios,
 };
-pub use command_retry::CommandRetryPlanner;
+pub use command_retry::{
+    CommandRetryExecutionInput, CommandRetryExecutionReport, CommandRetryPlanner,
+};
 pub use command_test::{
     BoundedCommandOutput, CommandCancellationState, CommandExecutionStatus,
     CommandFailureClassification, CommandIntentSummary, CommandObservationSummary,
     CommandTestDiagnostic, CommandTestDiagnosticSeverity, CommandTestLoopError,
-    CommandTestLoopInput, CommandTestLoopReport, run_command_test_loop,
+    CommandTestLoopInput, CommandTestLoopReport, DEFAULT_COMMAND_TEST_TIMEOUT_MS,
+    run_command_test_loop,
 };
 pub use config::{
-    AGENT_CONFIG_SCHEMA_VERSION, AgentConfigError, AgentRuntimeConfig, ConfigDiagnostic,
+    AGENT_CONFIG_FILE_NAME, AGENT_CONFIG_SCHEMA_VERSION, AGENT_LEGACY_CONFIG_FILE_NAME,
+    AgentConfigError, AgentConfigPathResolution, AgentRuntimeConfig, ConfigDiagnostic,
     ConfigDiagnosticSeverity, ConfigLayer, ConfigLayerKind, ConfigLayerSummary, ConfigOverride,
-    EffectiveRuntimeConfig, RuntimeModelConfig, build_effective_runtime_config,
-    load_agent_config_file, load_agent_config_toml,
+    EffectiveRuntimeConfig, LoadedAgentConfig, RuntimeModelConfig, RuntimeTerminalConfig,
+    RuntimeTerminalTheme, build_effective_runtime_config, default_agent_config_path,
+    default_agent_config_path_for_home, legacy_agent_config_path,
+    legacy_agent_config_path_for_home, load_agent_config_file, load_agent_config_file_with_secrets,
+    load_agent_config_toml, load_agent_config_toml_with_secrets, load_agent_config_yaml,
+    load_agent_config_yaml_with_secrets, resolve_agent_config_path,
+    resolve_agent_config_path_for_home, write_agent_config_terminal_theme_atomic,
 };
 pub use conflict_recovery::{ConflictRecoveryMapper, conflict_diagnostic};
-pub use context::ContextAssembler;
+pub use context::{
+    ContextAssembler, ConversationCompactionInput, ConversationCompactionReport,
+    coding_context_assembler, compact_conversation_events, conversation_history_messages,
+    load_workspace_git_summary_layer, load_workspace_instruction_layer,
+};
 pub use edit_diff::{
     DiffEvidenceState, DiffSummary, EditDiffDiagnostic, EditDiffDiagnosticSeverity,
     EditDiffFlowError, EditDiffFlowInput, EditDiffFlowReport, EditPreviewSummary,
@@ -92,6 +112,7 @@ pub use local_coding::{
     LocalCodingError, LocalCodingOutcome, LocalCodingRun, replay_local_coding_outcome,
     run_local_coding_fixture, run_local_coding_fixture_with_shell_denied,
 };
+#[cfg(feature = "mcp")]
 pub use mcp_sampling::{
     McpModelSamplingProvider, McpSamplingBridgeDiagnostic, McpSamplingModelBridgeConfig,
     McpSamplingModelBridgeError, McpSamplingModelBridgeIds, build_mcp_sampling_model_request,
@@ -105,12 +126,13 @@ pub use memory::{
 };
 pub use model_runtime::{
     AgentLoopBudget, AgentLoopFailureReason, AgentLoopOutcome, AgentLoopTerminalState,
-    ComprehensiveTurnInput, ComprehensiveTurnResources, ComprehensiveTurnRunner,
-    ConfiguredModelRuntime, ConfiguredTurnError, ConfiguredTurnEventStream, ConfiguredTurnInput,
-    ConfiguredTurnOutcome, ConfiguredTurnPersistenceError, ConfiguredTurnRunner,
-    ConfiguredTurnStream, ConfiguredTurnStreamOptions, ModelInvocationAttempt,
-    ModelInvocationError, ModelInvocationOutcome, ModelInvocationRunner, ModelRuntimeError,
-    ModelRuntimeResolver,
+    ComprehensiveApprovalContinuation, ComprehensiveTurnInput, ComprehensiveTurnResources,
+    ComprehensiveTurnRunner, ComprehensiveTurnStreamOptions, ConfiguredModelRuntime,
+    ConfiguredTurnError, ConfiguredTurnEventStream, ConfiguredTurnInput, ConfiguredTurnOutcome,
+    ConfiguredTurnPersistenceError, ConfiguredTurnRunner, ConfiguredTurnStream,
+    ConfiguredTurnStreamOptions, ModelInvocationAttempt, ModelInvocationError,
+    ModelInvocationOutcome, ModelInvocationRunner, ModelRuntimeError, ModelRuntimeResolver,
+    PendingComprehensiveApproval,
 };
 pub use observability::{
     EvidenceReplayVerificationExpectation, EvidenceReplayVerificationReport,
@@ -174,6 +196,7 @@ pub use repo_session::{
     RepoSessionDiagnostic, RepoSessionDiagnosticSeverity, bootstrap_repo_session,
 };
 pub use runtime::RuntimeIds;
+pub use session::{AgentSession, SessionAgentOptions, SessionPromptOptions};
 pub use settings::{
     PlatformKind, PlatformPathKey, PlatformPathOverrides, PlatformPaths, ReleaseChannel,
     SETTINGS_SCHEMA_VERSION, SettingsError, SettingsLoadResult, SettingsMutation, SettingsProfile,
@@ -189,14 +212,16 @@ pub use startup_migration::{
 };
 pub use task_review::{TaskArtifact, TaskArtifactKind, TaskReviewError, TaskReviewSummary};
 pub use terminal_session::{
-    TerminalSessionDiagnostic, TerminalSessionDiagnosticSeverity, TerminalSessionDirectoryError,
-    TerminalSessionDirectoryReport, TerminalSessionRecord, TerminalSessionRestoreError,
-    TerminalSessionStatus, TerminalSessionSummary, build_terminal_session_directory,
-    terminal_session_status, validate_terminal_session_restore,
+    TerminalSessionCatalog, TerminalSessionDiagnostic, TerminalSessionDiagnosticSeverity,
+    TerminalSessionDirectoryError, TerminalSessionDirectoryReport, TerminalSessionRecord,
+    TerminalSessionRestoreError, TerminalSessionStatus, TerminalSessionSummary,
+    build_terminal_session_directory, summarize_terminal_session_title, terminal_session_status,
+    validate_terminal_session_restore,
 };
 pub use tool_loop::{
     AccumulatedToolCall, ToolCallAccumulator, ToolCallRequest, ToolLoop, ToolLoopError,
-    ToolLoopOutcome, ToolLoopStatus, ToolObservationMessage,
+    ToolLoopOutcome, ToolLoopStatus, ToolObservationMessage, capability_action_for_tool,
+    sandbox_profile_for_tool,
 };
 pub use trace::{TraceEntry, TraceError, TraceQuery, build_trace};
 pub use turn::{

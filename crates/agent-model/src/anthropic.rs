@@ -3,6 +3,7 @@ use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
 
+use agent_types::ReasoningEffort;
 use async_trait::async_trait;
 use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -11,7 +12,7 @@ use thiserror::Error;
 
 use crate::config::{ModelProviderConfig, ModelProviderKind, SecretRef};
 use crate::provider::{ModelError, ModelProvider};
-use crate::request::ModelRequest;
+use crate::request::{ModelMessage, ModelRequest};
 use crate::secrets::SecretResolver;
 use crate::stream::{
     ModelEventStream, ModelStreamEvent, ModelStreamResult, model_events_to_stream,
@@ -231,28 +232,99 @@ impl ModelProvider for AnthropicProvider {
 
 #[must_use]
 pub fn build_anthropic_request_body(request: &ModelRequest) -> Value {
+    let system = request
+        .messages
+        .iter()
+        .filter_map(|message| match message {
+            ModelMessage::System { content } => Some(content.as_str()),
+            _ => None,
+        })
+        .collect::<Vec<_>>()
+        .join("\n\n");
     let messages = request
         .messages
         .iter()
-        .map(|message| {
-            json!({
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": message,
-                    }
-                ],
-            })
-        })
+        .filter_map(anthropic_message)
         .collect::<Vec<_>>();
 
-    json!({
+    let mut body = json!({
         "model": request.model,
         "messages": messages,
         "max_tokens": DEFAULT_MAX_TOKENS,
         "stream": true,
-    })
+    });
+    if !system.is_empty() {
+        body["system"] = json!(system);
+    }
+    if let Some(effort) = request.reasoning_effort {
+        body["output_config"] = json!({ "effort": anthropic_effort(effort) });
+    }
+    if !request.tools.is_empty() {
+        body["tools"] = json!(
+            request
+                .tools
+                .iter()
+                .map(|tool| json!({
+                    "name": tool.name.clone(),
+                    "description": tool.description.clone(),
+                    "input_schema": tool.input_schema.clone(),
+                }))
+                .collect::<Vec<_>>()
+        );
+    }
+    body
+}
+
+fn anthropic_effort(effort: ReasoningEffort) -> &'static str {
+    match effort {
+        ReasoningEffort::Minimal | ReasoningEffort::Low => "low",
+        ReasoningEffort::Medium => "medium",
+        ReasoningEffort::High => "high",
+        ReasoningEffort::XHigh => "max",
+    }
+}
+
+fn anthropic_message(message: &ModelMessage) -> Option<Value> {
+    match message {
+        ModelMessage::System { .. } => None,
+        ModelMessage::User { content } => Some(json!({
+            "role": "user",
+            "content": [{
+                "type": "text",
+                "text": content,
+            }],
+        })),
+        ModelMessage::Assistant { content } => Some(json!({
+            "role": "assistant",
+            "content": [{
+                "type": "text",
+                "text": content,
+            }],
+        })),
+        ModelMessage::AssistantToolCall {
+            call_id,
+            tool_name,
+            input_json,
+        } => Some(json!({
+            "role": "assistant",
+            "content": [{
+                "type": "tool_use",
+                "id": call_id,
+                "name": tool_name,
+                "input": input_json,
+            }],
+        })),
+        ModelMessage::ToolResult {
+            call_id, content, ..
+        } => Some(json!({
+            "role": "user",
+            "content": [{
+                "type": "tool_result",
+                "tool_use_id": call_id,
+                "content": content,
+            }],
+        })),
+    }
 }
 
 pub fn parse_anthropic_sse(

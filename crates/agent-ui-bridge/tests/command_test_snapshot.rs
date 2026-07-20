@@ -19,8 +19,17 @@ fn report() -> CommandTestLoopReport {
     CommandTestLoopReport {
         workspace_id: WorkspaceId::new(),
         conversation_id: ConversationId::new(),
+        command_run_id: "command-test-run-1".to_string(),
         command: CommandIntentSummary {
             display: "cargo test -p agent-core command_test_loop".to_string(),
+            program: Some("cargo".to_string()),
+            args: vec![
+                "test".to_string(),
+                "-p".to_string(),
+                "agent-core".to_string(),
+                "command_test_loop".to_string(),
+            ],
+            timeout_ms: 30_000,
             cwd: ".".to_string(),
             classify_as_test: true,
         },
@@ -53,6 +62,13 @@ fn command_test_snapshot_serializes_safe_shape() {
         value["command"],
         "cargo test -p agent-core command_test_loop"
     );
+    assert_eq!(value["program"], "cargo");
+    assert_eq!(
+        value["args"],
+        serde_json::json!(["test", "-p", "agent-core", "command_test_loop"])
+    );
+    assert_eq!(value["timeout_ms"], 30_000);
+    assert_eq!(value["command_run_id"], "command-test-run-1");
     assert_eq!(value["cwd"], ".");
     assert_eq!(value["classify_as_test"], true);
     assert_eq!(value["status"], "failed");
@@ -126,10 +142,10 @@ fn command_test_snapshot_preserves_timeout_and_cancellation_readiness() {
 fn command_test_snapshot_json_frame_is_single_line() {
     let snapshot = UiCommandTestSnapshot::from_report(&report()).expect("snapshot");
 
-    let line = encode_json_frame(&UiJsonFrame::CommandTestSnapshot(snapshot)).expect("encode");
+    let line = encode_json_frame(&UiJsonFrame::command_test_snapshot(snapshot)).expect("encode");
 
     assert!(line.ends_with('\n'));
     assert_eq!(line.matches('\n').count(), 1);
     let frame = serde_json::from_str::<UiJsonFrame>(line.trim_end()).expect("parse frame");
-    assert!(matches!(frame, UiJsonFrame::CommandTestSnapshot(_)));
+    assert!(matches!(frame, UiJsonFrame::command_test_snapshot(_)));
 }

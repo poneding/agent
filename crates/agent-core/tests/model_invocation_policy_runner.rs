@@ -8,7 +8,7 @@ use agent_core::{
 };
 use agent_model::{
     ModelCapabilities, ModelEndpointConfig, ModelError, ModelEventStream, ModelFailureKind,
-    ModelFallbackChain, ModelInvocationPolicy, ModelProvider, ModelProviderCatalog,
+    ModelFallbackChain, ModelInvocationPolicy, ModelMessage, ModelProvider, ModelProviderCatalog,
     ModelProviderConfig, ModelProviderKind, ModelProviderRegistry, ModelRequest,
     ModelRequestRequirements, ModelRetryPolicy, ModelStreamEvent, ModelStreamResult,
     RegisteredModelProvider, model_events_to_stream,
@@ -76,6 +76,7 @@ fn runtime_config(
             catalog: ModelProviderCatalog::new(providers).expect("valid catalog"),
             invocation_policy,
         },
+        terminal: Default::default(),
     }
 }
 
@@ -115,7 +116,11 @@ fn request() -> ModelRequest {
         conversation_id: ConversationId::new(),
         turn_id: TurnId::new(),
         correlation_id: CorrelationId::new(),
-        messages: vec!["hello with sk-test-secret should stay out of errors".to_string()],
+        messages: vec![ModelMessage::user(
+            "hello with sk-test-secret should stay out of errors",
+        )],
+        reasoning_effort: None,
+        tools: Vec::new(),
     }
 }
 
@@ -199,6 +204,13 @@ async fn model_invocation_policy_retries_retryable_failure() {
     assert_eq!(outcome.attempts.len(), 2);
     assert_eq!(outcome.attempts[0].attempt_index, 1);
     assert_eq!(outcome.attempts[1].attempt_index, 2);
+    assert!(outcome.attempts[0].elapsed_ms.is_some());
+    assert_eq!(outcome.attempts[0].request_id, None);
+    assert!(outcome.attempts[1].elapsed_ms.is_some());
+    assert_eq!(
+        outcome.attempts[1].request_id.as_deref(),
+        Some("request-ready")
+    );
     assert_eq!(outcome.stream, stream_text("ready"));
     assert_eq!(primary_requests.lock().expect("requests").len(), 2);
 }
@@ -264,6 +276,12 @@ async fn model_invocation_policy_uses_fallback_provider() {
     assert_eq!(outcome.attempts.len(), 2);
     assert_eq!(outcome.attempts[0].provider_id, "primary");
     assert_eq!(outcome.attempts[1].provider_id, "backup");
+    assert!(outcome.attempts[0].elapsed_ms.is_some());
+    assert!(outcome.attempts[1].elapsed_ms.is_some());
+    assert_eq!(
+        outcome.attempts[1].request_id.as_deref(),
+        Some("request-fallback")
+    );
     assert_eq!(primary_requests.lock().expect("requests").len(), 1);
     let backup_requests = backup_requests.lock().expect("requests");
     assert_eq!(backup_requests.len(), 1);

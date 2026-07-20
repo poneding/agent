@@ -6,10 +6,16 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 
+[features]
+default = ["mcp"]
+## MCP sampling bridge. Coding-agent TUI path can build with
+## `--no-default-features` to drop the agent-mcp dependency from core.
+mcp = ["dep:agent-mcp"]
+
 [dependencies]
 agent-context = { path = "../agent-context" }
 agent-memory = { path = "../agent-memory" }
-agent-mcp = { path = "../agent-mcp" }
+agent-mcp = { path = "../agent-mcp", optional = true }
 agent-model = { path = "../agent-model" }
 agent-policy = { path = "../agent-policy" }
 agent-sandbox = { path = "../agent-sandbox" }
@@ -23,14 +29,16 @@ async-trait = "0.1"
 futures-util = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+serde_yaml = "0.9"
 tempfile = "3"
 thiserror = "2"
 toml = "0.8"
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread", "time"] }
 
 [dev-dependencies]
 agent-plugin = { path = "../agent-plugin" }
+agent-mcp = { path = "../agent-mcp" }
 futures = "0.3"
-tokio = { version = "1", features = ["macros", "rt", "time"] }
 
 [lints]
 workspace = true

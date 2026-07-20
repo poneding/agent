@@ -47,8 +47,17 @@ fn command_report(status: CommandExecutionStatus) -> CommandTestLoopReport {
     CommandTestLoopReport {
         workspace_id: WorkspaceId::new(),
         conversation_id: ConversationId::new(),
+        command_run_id: "final-review-command-run".to_string(),
         command: CommandIntentSummary {
             display: "cargo test -p agent-core final_review".to_string(),
+            program: Some("cargo".to_string()),
+            args: vec![
+                "test".to_string(),
+                "-p".to_string(),
+                "agent-core".to_string(),
+                "final_review".to_string(),
+            ],
+            timeout_ms: 30_000,
             cwd: ".".to_string(),
             classify_as_test: true,
         },

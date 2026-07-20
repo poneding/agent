@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use agent_model::{
     AnthropicError, AnthropicHttpResponse, AnthropicProvider, FixtureAnthropicTransport,
-    ModelEndpointConfig, ModelError, ModelProvider, ModelProviderConfig, ModelProviderKind,
-    ModelRequest, ModelStreamEvent, SecretRef, build_anthropic_request_body,
-    collect_model_event_stream, parse_anthropic_sse,
+    ModelEndpointConfig, ModelError, ModelMessage, ModelProvider, ModelProviderConfig,
+    ModelProviderKind, ModelRequest, ModelStreamEvent, ModelToolDefinition, SecretRef,
+    build_anthropic_request_body, collect_model_event_stream, parse_anthropic_sse,
 };
-use agent_types::{ConversationId, CorrelationId, TurnId};
+use agent_types::{ConversationId, CorrelationId, ReasoningEffort, TurnId};
 use serde_json::json;
 
 fn model_request() -> ModelRequest {
@@ -16,8 +16,38 @@ fn model_request() -> ModelRequest {
         conversation_id: ConversationId::new(),
         turn_id: TurnId::new(),
         correlation_id: CorrelationId::new(),
-        messages: vec!["hello".to_string(), "summarize this".to_string()],
+        messages: vec![
+            ModelMessage::system("follow project instructions"),
+            ModelMessage::user("summarize this"),
+        ],
+        reasoning_effort: None,
+        tools: Vec::new(),
     }
+}
+
+fn tool_request() -> ModelRequest {
+    let mut request = model_request();
+    request.messages.extend([
+        ModelMessage::assistant_tool_call(
+            "call-1",
+            "workspace.read_file",
+            json!({ "path": "README.md" }),
+        ),
+        ModelMessage::tool_result("call-1", "workspace.read_file", "hello from tool"),
+    ]);
+    request.tools = vec![ModelToolDefinition {
+        name: "workspace.read_file".to_string(),
+        description: "Read a workspace file".to_string(),
+        input_schema: json!({
+            "type": "object",
+            "required": ["path"],
+            "properties": {
+                "path": { "type": "string" }
+            },
+            "additionalProperties": false
+        }),
+    }];
+    request
 }
 
 fn secret_ref() -> SecretRef {
@@ -44,11 +74,8 @@ fn anthropic_request_builder_emits_messages_payload() {
         body,
         json!({
             "model": "claude-3-5-sonnet-latest",
+            "system": "follow project instructions",
             "messages": [
-                {
-                    "role": "user",
-                    "content": [{ "type": "text", "text": "hello" }]
-                },
                 {
                     "role": "user",
                     "content": [{ "type": "text", "text": "summarize this" }]
@@ -57,6 +84,41 @@ fn anthropic_request_builder_emits_messages_payload() {
             "max_tokens": 1024,
             "stream": true
         })
+    );
+}
+
+#[test]
+fn anthropic_request_builder_emits_reasoning_effort() {
+    let mut request = model_request();
+    request.reasoning_effort = Some(ReasoningEffort::XHigh);
+
+    let body = build_anthropic_request_body(&request);
+
+    assert_eq!(body["output_config"], json!({ "effort": "max" }));
+}
+
+#[test]
+fn anthropic_request_builder_emits_tools_payload() {
+    let body = build_anthropic_request_body(&tool_request());
+
+    assert_eq!(body["messages"][1]["content"][0]["type"], "tool_use");
+    assert_eq!(body["messages"][2]["content"][0]["type"], "tool_result");
+    assert_eq!(
+        body["tools"],
+        json!([
+            {
+                "name": "workspace.read_file",
+                "description": "Read a workspace file",
+                "input_schema": {
+                    "type": "object",
+                    "required": ["path"],
+                    "properties": {
+                        "path": { "type": "string" }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        ])
     );
 }
 

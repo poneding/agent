@@ -1,8 +1,17 @@
 use std::collections::VecDeque;
 
-use agent_desktop::{DesktopSessionReadiness, DesktopSessionReadinessState};
-use agent_types::{ConversationId, SessionId, WorkspaceId};
-use agent_ui_bridge::{UiCommandEnvelope, UiJsonFrame, validate_ui_command};
+use agent_core::{PlatformPathOverrides, PlatformPaths, TerminalSessionCatalog};
+use agent_desktop::{
+    DesktopConversationItem, DesktopSessionReadiness, DesktopSessionReadinessState,
+};
+use agent_storage::{EventStore, SqliteEventStore};
+use agent_types::{
+    ActorKind, ActorRef, ConversationId, CorrelationId, EventId, RuntimeEvent, RuntimeEventPayload,
+    SchemaVersion, SessionId, Timestamp, TurnId, UserInputReceived, WorkspaceId,
+};
+use agent_ui_bridge::{
+    UiCommand, UiCommandEnvelope, UiJsonFrame, normalize_runtime_event, validate_ui_command,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::bootstrap::DesktopRuntimeState;
@@ -11,6 +20,7 @@ use crate::commands::DesktopCommandError;
 use crate::commands::redact_secret_like_text;
 
 const DEFAULT_FRAME_CAPACITY: usize = 256;
+const DESKTOP_EVENT_STORE_FILE: &str = "terminal-events.sqlite3";
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DesktopStartSessionRequest {
@@ -52,17 +62,36 @@ impl SessionIdentity {
     }
 }
 
-#[derive(Debug)]
 pub struct DesktopRuntimeSession {
     identity: Option<SessionIdentity>,
     state: DesktopRuntimeState,
     frame_capacity: usize,
     frames: VecDeque<UiJsonFrame>,
+    event_store: Option<SqliteEventStore>,
 }
 
 impl Default for DesktopRuntimeSession {
     fn default() -> Self {
-        Self::new(DEFAULT_FRAME_CAPACITY)
+        Self {
+            identity: None,
+            state: DesktopRuntimeState::NotStarted,
+            frame_capacity: DEFAULT_FRAME_CAPACITY,
+            frames: VecDeque::new(),
+            event_store: None,
+        }
+    }
+}
+
+impl std::fmt::Debug for DesktopRuntimeSession {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("DesktopRuntimeSession")
+            .field("identity", &self.identity)
+            .field("state", &self.state)
+            .field("frame_capacity", &self.frame_capacity)
+            .field("pending_frame_count", &self.frames.len())
+            .field("event_store_ready", &self.event_store.is_some())
+            .finish()
     }
 }
 
@@ -74,6 +103,10 @@ impl DesktopRuntimeSession {
             state: DesktopRuntimeState::NotStarted,
             frame_capacity,
             frames: VecDeque::new(),
+            event_store: Some(
+                SqliteEventStore::open_in_memory()
+                    .expect("desktop in-memory event store initializes"),
+            ),
         }
     }
 
@@ -81,6 +114,21 @@ impl DesktopRuntimeSession {
     #[must_use]
     pub fn new_for_tests(frame_capacity: usize) -> Self {
         Self::new(frame_capacity)
+    }
+
+    #[cfg(test)]
+    #[must_use]
+    pub fn new_with_event_store_for_tests(
+        frame_capacity: usize,
+        event_store: SqliteEventStore,
+    ) -> Self {
+        Self {
+            identity: None,
+            state: DesktopRuntimeState::NotStarted,
+            frame_capacity,
+            frames: VecDeque::new(),
+            event_store: Some(event_store),
+        }
     }
 
     pub fn start(
@@ -100,6 +148,7 @@ impl DesktopRuntimeSession {
         }
 
         self.state = DesktopRuntimeState::Connecting;
+        self.ensure_event_store()?;
         self.identity.get_or_insert_with(SessionIdentity::new);
         self.state = DesktopRuntimeState::Connected;
         self.enqueue_frame(UiJsonFrame::ConfigDiagnostic {
@@ -135,8 +184,58 @@ impl DesktopRuntimeSession {
             DesktopCommandError::new("desktop.bridge.command_invalid", error.to_string())
         })?;
 
+        let command_frames = match &envelope.command {
+            UiCommand::SwitchSession {
+                workspace_id,
+                conversation_id,
+            } => {
+                let frames = self.replay_conversation_frames(*conversation_id)?;
+                let identity = self.identity.get_or_insert_with(SessionIdentity::new);
+                identity.workspace_id = *workspace_id;
+                identity.conversation_id = *conversation_id;
+                frames
+            }
+            UiCommand::StartTurn {
+                workspace_id,
+                conversation_id,
+                prompt,
+            } => {
+                let event = desktop_user_input_event(
+                    *workspace_id,
+                    *conversation_id,
+                    envelope.command_id,
+                    prompt.clone(),
+                );
+                let stored = self
+                    .event_store
+                    .as_mut()
+                    .ok_or_else(|| {
+                        DesktopCommandError::new(
+                            "desktop.bridge.event_store_unavailable",
+                            "desktop event store is unavailable",
+                        )
+                    })?
+                    .append(event)
+                    .map_err(|error| {
+                        DesktopCommandError::new(
+                            "desktop.bridge.event_append_failed",
+                            error.to_string(),
+                        )
+                    })?;
+                let identity = self.identity.get_or_insert_with(SessionIdentity::new);
+                identity.workspace_id = *workspace_id;
+                identity.conversation_id = *conversation_id;
+                vec![UiJsonFrame::Event(normalize_runtime_event(&stored.event))]
+            }
+            _ => Vec::new(),
+        };
+
         let command_id = envelope.command_id.to_string();
-        self.enqueue_frame(UiJsonFrame::Done { event_count: 0 });
+        let event_count = u64::try_from(command_frames.len()).unwrap_or(u64::MAX);
+        for frame in command_frames {
+            self.enqueue_frame(frame);
+        }
+        self.enqueue_frame(UiJsonFrame::Done { event_count });
 
         Ok(DesktopCommandAck {
             command_id,
@@ -177,6 +276,45 @@ impl DesktopRuntimeSession {
         }
     }
 
+    pub fn persisted_conversations(
+        &self,
+    ) -> Result<Vec<DesktopConversationItem>, DesktopCommandError> {
+        let Some(store) = self.event_store.as_ref() else {
+            return Ok(Vec::new());
+        };
+        let mut catalog = TerminalSessionCatalog::default();
+        catalog.hydrate_from_store(store).map_err(|error| {
+            DesktopCommandError::new(
+                "desktop.workspace_snapshot.history_failed",
+                error.to_string(),
+            )
+        })?;
+        let report = catalog.report().map_err(|error| {
+            DesktopCommandError::new(
+                "desktop.workspace_snapshot.history_invalid",
+                error.to_string(),
+            )
+        })?;
+        report
+            .sessions
+            .into_iter()
+            .map(|session| {
+                DesktopConversationItem::new(
+                    session.conversation_id,
+                    session.title,
+                    session.last_event_at,
+                    0,
+                )
+                .map_err(|error| {
+                    DesktopCommandError::new(
+                        "desktop.workspace_snapshot.conversation_invalid",
+                        error.to_string(),
+                    )
+                })
+            })
+            .collect()
+    }
+
     #[must_use]
     pub fn workspace_snapshot_identity(&self) -> (WorkspaceId, Option<ConversationId>) {
         self.identity.as_ref().map_or_else(
@@ -191,6 +329,21 @@ impl DesktopRuntimeSession {
     }
 
     #[cfg(test)]
+    pub fn append_event_for_tests(
+        &mut self,
+        event: RuntimeEvent,
+    ) -> Result<(), DesktopCommandError> {
+        self.event_store
+            .as_mut()
+            .expect("test event store is initialized")
+            .append(event)
+            .map(|_| ())
+            .map_err(|error| {
+                DesktopCommandError::new("desktop.bridge.test_event_append", error.to_string())
+            })
+    }
+
+    #[cfg(test)]
     pub fn clear_frames_for_tests(&mut self) {
         self.frames.clear();
     }
@@ -198,6 +351,42 @@ impl DesktopRuntimeSession {
     #[cfg(test)]
     pub fn enqueue_diagnostic_for_tests(&mut self, message: impl Into<String>) {
         self.enqueue_diagnostic(message.into());
+    }
+
+    fn ensure_event_store(&mut self) -> Result<(), DesktopCommandError> {
+        if self.event_store.is_some() {
+            return Ok(());
+        }
+        let paths = PlatformPaths::current(PlatformPathOverrides::default()).map_err(|error| {
+            DesktopCommandError::new("desktop.bridge.data_dir_failed", error.to_string())
+        })?;
+        let store = SqliteEventStore::open(paths.data_dir.join(DESKTOP_EVENT_STORE_FILE)).map_err(
+            |error| {
+                DesktopCommandError::new("desktop.bridge.event_store_failed", error.to_string())
+            },
+        )?;
+        self.event_store = Some(store);
+        Ok(())
+    }
+
+    fn replay_conversation_frames(
+        &self,
+        conversation_id: ConversationId,
+    ) -> Result<Vec<UiJsonFrame>, DesktopCommandError> {
+        let Some(store) = self.event_store.as_ref() else {
+            return Ok(Vec::new());
+        };
+        store
+            .list_by_conversation(conversation_id)
+            .map(|events| {
+                events
+                    .into_iter()
+                    .map(|stored| UiJsonFrame::Event(normalize_runtime_event(&stored.event)))
+                    .collect()
+            })
+            .map_err(|error| {
+                DesktopCommandError::new("desktop.bridge.history_replay_failed", error.to_string())
+            })
     }
 
     fn snapshot(&self) -> DesktopSessionSnapshot {
@@ -239,6 +428,34 @@ impl DesktopRuntimeSession {
         }
 
         self.frames.push_back(frame);
+    }
+}
+
+fn desktop_user_input_event(
+    workspace_id: WorkspaceId,
+    conversation_id: ConversationId,
+    correlation_id: CorrelationId,
+    message: String,
+) -> RuntimeEvent {
+    RuntimeEvent {
+        schema_version: SchemaVersion::current(),
+        id: EventId::new(),
+        seq: None,
+        occurred_at: Timestamp::now_utc(),
+        workspace_id,
+        conversation_id,
+        turn_id: Some(TurnId::new()),
+        task_id: None,
+        agent_id: None,
+        team_id: None,
+        actor: ActorRef {
+            kind: ActorKind::User,
+            id: "desktop-user".to_string(),
+            display_name: Some("desktop user".to_string()),
+        },
+        correlation_id,
+        causation_id: None,
+        payload: RuntimeEventPayload::UserInputReceived(UserInputReceived { message }),
     }
 }
 

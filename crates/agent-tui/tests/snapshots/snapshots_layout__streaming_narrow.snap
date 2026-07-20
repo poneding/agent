@@ -1,0 +1,15 @@
+---
+source: crates/agent-tui/tests/snapshots_layout.rs
+assertion_line: 128
+expression: "snapshot(&streaming_app(), NARROW)"
+---
+ ❯ explain the plan                     
+                                        
+                                        
+ Here is the plan so far                
+                                        
+ ⠸ Responding… · 7s · esc/Ctrl+C to inte
+ ────────────────────────────────────── 
+ ❯ type a message — / for commands · En 
+ ────────────────────────────────────── 
+openai / gpt-5.5  ctx pending/128k  ~/ag

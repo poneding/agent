@@ -32,13 +32,13 @@ Narrower scopes override broader scopes only for keys they explicitly set.
 
 ## Format
 
-Use human-editable config files for local scopes. Prefer TOML for structured local configuration and JSON for wire/config exchange with external systems.
+Use human-editable config files for local scopes. The default user config path is `~/.config/agent/config.yaml`; legacy `~/.config/agent/agent.toml` may be loaded as a fallback with a migration diagnostic, but new docs and generated examples should use YAML. Use JSON for wire/config exchange with external systems.
 
 Config values that cross process boundaries must have typed serde structs.
 
 ## Secrets
 
-Secrets are referenced by name and resolved by a secret provider. Secret values are not stored in config files, events, traces, snapshots, or memory records.
+Provider API keys may be configured directly as `apiKey` in local `config.yaml` for the default setup path. The loader converts those values into a redacted in-memory secret resolver before runtime use. Environment-backed and other secret-reference mechanisms remain available for advanced setups. Raw secret values must never appear in events, traces, snapshots, diagnostics, logs, support bundles, or memory records.
 
 ## Migration
 
@@ -57,4 +57,4 @@ Migration rules:
 - Layering tests prove override order.
 - Unknown key behavior is explicit.
 - Config migration fixtures cover every version step.
-- Secret references remain references after serialization.
+- Direct `apiKey` values and secret references remain redacted after serialization.

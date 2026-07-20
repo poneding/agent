@@ -31,6 +31,7 @@ pub struct IdempotentToolExecutor {
 }
 
 impl IdempotentToolExecutor {
+    /// Synchronous path for fixtures / non-async callers.
     pub fn run<P, S>(
         &self,
         ids: RuntimeIds,
@@ -63,6 +64,59 @@ impl IdempotentToolExecutor {
             .tool_loop
             .run(ids, call.clone(), registry, policy)
             .map_err(tool_loop_error)?;
+        self.record_completed(ids, key, call, input_hash, outcome, effects)
+    }
+
+    /// Async path used by the interactive agent loop: tool execute runs via
+    /// `spawn_blocking` so shell/fs work cannot stall streaming.
+    pub async fn run_async<P, S>(
+        &self,
+        ids: RuntimeIds,
+        key: IdempotencyKey,
+        call: ToolCallRequest,
+        registry: &ToolRegistry,
+        policy: &P,
+        effects: &mut S,
+    ) -> Result<IdempotentToolOutcome, IdempotentToolError>
+    where
+        P: PolicyEngine + ?Sized,
+        S: IdempotencyStore + ?Sized,
+    {
+        let input_hash = input_hash(&call);
+        if let Some(record) = effects.get_effect(&key).map_err(storage_error)? {
+            if record.input_hash != input_hash {
+                return Err(storage_error(StorageError::IdempotencyConflict {
+                    key: key.to_string(),
+                    existing_hash: record.input_hash,
+                    new_hash: input_hash,
+                }));
+            }
+            return Ok(IdempotentToolOutcome {
+                tool: replayed_outcome(ids, &record),
+                replayed: true,
+            });
+        }
+
+        let outcome = self
+            .tool_loop
+            .run_async(ids, call.clone(), registry, policy)
+            .await
+            .map_err(tool_loop_error)?;
+        self.record_completed(ids, key, call, input_hash, outcome, effects)
+    }
+
+    fn record_completed<S>(
+        &self,
+        _ids: RuntimeIds,
+        key: IdempotencyKey,
+        call: ToolCallRequest,
+        input_hash: String,
+        outcome: ToolLoopOutcome,
+        effects: &mut S,
+    ) -> Result<IdempotentToolOutcome, IdempotentToolError>
+    where
+        S: IdempotencyStore + ?Sized,
+    {
         if outcome.status == ToolLoopStatus::Completed
             && let Some(output_json) = completed_output(&outcome)
         {

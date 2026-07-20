@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-CLI parses flags and delegates validation to `agent-core::config`. CLI renders text or `UiJsonFrame` output only; it does not parse TOML internals or resolve secret values.
+CLI parses flags and delegates validation to `agent-core::config`. CLI renders text or `UiJsonFrame` output only; it does not parse YAML/TOML internals or resolve secret values.
 
 ## Public Contracts
 
@@ -52,7 +52,7 @@ CLI parses flags and delegates validation to `agent-core::config`. CLI renders t
 - CLI parses `--config` and `--config-check`
 - text mode reports valid config summary
 - JSON mode emits config summary and diagnostics frames
-- invalid TOML exits with non-zero status
+- invalid YAML or explicit legacy TOML exits with non-zero status
 - secret-like fixture values are absent from stdout/stderr
 
 ## Acceptance Criteria

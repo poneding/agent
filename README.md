@@ -120,6 +120,32 @@ Run `cargo xtask help` for the full command list.
 
 `cargo xtask desktop-test` is the Desktop product gate. It runs the Desktop Rust contracts, UI bridge Desktop smoke, Tauri command tests, frontend Vitest suite, and frontend production build.
 
+## Default Configuration
+
+The default user config path is `~/.config/agent/config.yaml`. Provider API keys can be configured directly with `apiKey`, which is the recommended local setup path; the runtime converts the value into a redacted secret resolver before model requests. Environment-backed secret refs remain supported for advanced setups.
+
+```yaml
+schemaVersion: 1
+model:
+  defaultProvider: openai
+  invocation:
+    timeoutMs: 30000
+    maxAttempts: 1
+    retryableFailures: [timeout, transport, rate_limited]
+    fallbackProviderIds: []
+  providers:
+    - id: openai
+      kind: openai-compatible
+      defaultModel: gpt-4.1-mini
+      enabled: true
+      baseUrl: https://api.openai.com/v1
+      apiKey: "sk-..."
+terminal:
+  theme: system
+```
+
+If `config.yaml` is absent, legacy `~/.config/agent/agent.toml` is still loaded as a compatibility fallback with a migration diagnostic. New docs, examples, and generated config should use `config.yaml`.
+
 ## M56 Golden Path
 
 Run the deterministic M56 coding-agent acceptance path with:

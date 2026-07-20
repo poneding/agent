@@ -18,7 +18,7 @@ use agent_model::{
     model_events_to_stream,
 };
 use agent_policy::{
-    CapabilityAction, PolicyDecision, ResourceKind, ResourceScope, StaticPolicyEngine,
+    PolicyDecision, ResourceKind, ResourceScope, StaticPolicyEngine,
 };
 use agent_sandbox::WorkspaceSandbox;
 use agent_storage::InMemoryEventStore;
@@ -109,6 +109,7 @@ fn effective_config_with_policy(
                 catalog: ModelProviderCatalog::new(providers).expect("valid catalog"),
                 invocation_policy,
             },
+            terminal: Default::default(),
         },
     };
 
@@ -118,7 +119,7 @@ fn effective_config_with_policy(
 
 fn loop_budget() -> AgentLoopBudget {
     AgentLoopBudget {
-        max_model_turns: 8,
+        model_turn_checkpoint_interval: 8,
         max_tool_calls: 8,
         max_wall_time_ms: 30_000,
         max_observation_bytes: 16_384,
@@ -137,7 +138,8 @@ fn input_with_effective(
     ComprehensiveTurnInput {
         ids,
         user_message: "Update notes.txt and verify the workspace".to_string(),
-        effective_config,
+        conversation_history: std::sync::Arc::new(Vec::new()),
+        effective_config: std::sync::Arc::new(effective_config),
         requirements: requirements(),
         loop_budget: loop_budget(),
     }
@@ -205,7 +207,7 @@ fn allow_policy<const N: usize>(tool_names: [&str; N]) -> StaticPolicyEngine {
     let mut policy = StaticPolicyEngine::default();
     for tool_name in tool_names {
         policy = policy.with_decision(
-            CapabilityAction::Read,
+            agent_core::capability_action_for_tool(tool_name),
             ResourceScope::new(ResourceKind::Tool, tool_name).expect("scope"),
             PolicyDecision::Allow {
                 reason: "fixture allows tool".to_string(),

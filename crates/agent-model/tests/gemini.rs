@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use agent_model::{
     FixtureGeminiTransport, GeminiError, GeminiHttpResponse, GeminiProvider, ModelEndpointConfig,
-    ModelError, ModelProvider, ModelProviderConfig, ModelProviderKind, ModelRequest,
-    ModelStreamEvent, SecretRef, build_gemini_request_body, collect_model_event_stream,
-    gemini_stream_generate_content_url, parse_gemini_sse,
+    ModelError, ModelMessage, ModelProvider, ModelProviderConfig, ModelProviderKind, ModelRequest,
+    ModelStreamEvent, ModelToolDefinition, SecretRef, build_gemini_request_body,
+    collect_model_event_stream, gemini_stream_generate_content_url, parse_gemini_sse,
 };
-use agent_types::{ConversationId, CorrelationId, TurnId};
+use agent_types::{ConversationId, CorrelationId, ReasoningEffort, TurnId};
 use serde_json::json;
 
 fn model_request() -> ModelRequest {
@@ -16,8 +16,38 @@ fn model_request() -> ModelRequest {
         conversation_id: ConversationId::new(),
         turn_id: TurnId::new(),
         correlation_id: CorrelationId::new(),
-        messages: vec!["hello".to_string(), "summarize this".to_string()],
+        messages: vec![
+            ModelMessage::system("follow project instructions"),
+            ModelMessage::user("summarize this"),
+        ],
+        reasoning_effort: None,
+        tools: Vec::new(),
     }
+}
+
+fn tool_request() -> ModelRequest {
+    let mut request = model_request();
+    request.messages.extend([
+        ModelMessage::assistant_tool_call(
+            "call-1",
+            "workspace.read_file",
+            json!({ "path": "README.md" }),
+        ),
+        ModelMessage::tool_result("call-1", "workspace.read_file", "hello from tool"),
+    ]);
+    request.tools = vec![ModelToolDefinition {
+        name: "workspace.read_file".to_string(),
+        description: "Read a workspace file".to_string(),
+        input_schema: json!({
+            "type": "object",
+            "required": ["path"],
+            "properties": {
+                "path": { "type": "string" }
+            },
+            "additionalProperties": false
+        }),
+    }];
+    request
 }
 
 fn secret_ref() -> SecretRef {
@@ -46,11 +76,10 @@ fn gemini_request_builder_emits_generate_content_payload() {
     assert_eq!(
         body,
         json!({
+            "systemInstruction": {
+                "parts": [{ "text": "follow project instructions" }]
+            },
             "contents": [
-                {
-                    "role": "user",
-                    "parts": [{ "text": "hello" }]
-                },
                 {
                     "role": "user",
                     "parts": [{ "text": "summarize this" }]
@@ -60,6 +89,62 @@ fn gemini_request_builder_emits_generate_content_payload() {
                 "maxOutputTokens": 1024
             }
         })
+    );
+}
+
+#[test]
+fn gemini_request_builder_maps_supported_reasoning_effort_dialects() {
+    let mut request = model_request();
+    request.reasoning_effort = Some(ReasoningEffort::Medium);
+
+    request.model = "gemini-3-pro".to_string();
+    let gemini_3 = build_gemini_request_body(&request);
+    assert_eq!(
+        gemini_3["generationConfig"]["thinkingConfig"],
+        json!({ "thinkingLevel": "MEDIUM" })
+    );
+
+    request.model = "gemini-2.5-pro".to_string();
+    let gemini_25 = build_gemini_request_body(&request);
+    assert_eq!(
+        gemini_25["generationConfig"]["thinkingConfig"],
+        json!({ "thinkingBudget": 4096 })
+    );
+
+    request.model = "gemini-1.5-pro".to_string();
+    let legacy = build_gemini_request_body(&request);
+    assert!(legacy["generationConfig"].get("thinkingConfig").is_none());
+}
+
+#[test]
+fn gemini_request_builder_emits_tools_payload() {
+    let body = build_gemini_request_body(&tool_request());
+
+    assert_eq!(body["contents"][1]["role"], "model");
+    assert_eq!(
+        body["contents"][2]["parts"][0]["functionResponse"]["name"],
+        "workspace.read_file"
+    );
+    assert_eq!(
+        body["tools"],
+        json!([
+            {
+                "functionDeclarations": [
+                    {
+                        "name": "workspace.read_file",
+                        "description": "Read a workspace file",
+                        "parameters": {
+                            "type": "object",
+                            "required": ["path"],
+                            "properties": {
+                                "path": { "type": "string" }
+                            },
+                            "additionalProperties": false
+                        }
+                    }
+                ]
+            }
+        ])
     );
 }
 

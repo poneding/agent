@@ -62,12 +62,12 @@ fn repo_session_snapshot_serializes_safe_shape() {
 fn repo_session_snapshot_json_frame_is_single_line() {
     let snapshot = UiRepoSessionSnapshot::from_report(&report()).expect("snapshot");
 
-    let line = encode_json_frame(&UiJsonFrame::RepoSessionSnapshot(snapshot)).expect("encode");
+    let line = encode_json_frame(&UiJsonFrame::repo_session_snapshot(snapshot)).expect("encode");
 
     assert!(line.ends_with('\n'));
     assert_eq!(line.matches('\n').count(), 1);
     let frame = serde_json::from_str::<UiJsonFrame>(line.trim_end()).expect("parse frame");
-    assert!(matches!(frame, UiJsonFrame::RepoSessionSnapshot(_)));
+    assert!(matches!(frame, UiJsonFrame::repo_session_snapshot(_)));
 }
 
 #[test]

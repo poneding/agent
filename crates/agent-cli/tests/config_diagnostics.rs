@@ -112,9 +112,38 @@ timeout_ms = 30000
     config
 }
 
+fn direct_api_key_config_yaml(api_key: &str) -> String {
+    format!(
+        r#"
+schemaVersion: 1
+model:
+  defaultProvider: openai
+  invocation:
+    timeoutMs: 30000
+    maxAttempts: 1
+    retryableFailures: [timeout, transport, rate_limited]
+    fallbackProviderIds: []
+  providers:
+    - id: openai
+      kind: openai-compatible
+      defaultModel: gpt-4.1-mini
+      enabled: true
+      baseUrl: https://api.openai.com/v1
+      timeoutMs: 30000
+      apiKey: "{api_key}"
+"#
+    )
+}
+
 fn write_config(name: &str, contents: &str) -> PathBuf {
     let path = std::env::temp_dir().join(format!("agent-cli-{name}-{}.toml", std::process::id()));
     fs::write(&path, contents).expect("write config fixture");
+    path
+}
+
+fn write_yaml_config(name: &str, contents: &str) -> PathBuf {
+    let path = std::env::temp_dir().join(format!("agent-cli-{name}-{}.yaml", std::process::id()));
+    fs::write(&path, contents).expect("write yaml config fixture");
     path
 }
 
@@ -176,7 +205,7 @@ fn cli_config_diagnostics_text_reports_valid_config() {
     assert!(output.stdout.contains("Selected model: gpt-4.1-mini"));
     assert!(output.stdout.contains("Providers: fake, openai"));
     assert!(output.stdout.contains(
-        "Provider capabilities: fake: streaming=true tool_calls=false structured_outputs=false image_input=false context=4096 output=1024; openai: streaming=true tool_calls=false structured_outputs=false image_input=false context=128000 output=16384"
+        "Provider capabilities: fake: streaming=true tool_calls=false structured_outputs=false image_input=false context=4096 output=1024; openai: streaming=true tool_calls=true structured_outputs=false image_input=false context=128000 output=16384"
     ));
     assert!(output.stdout.contains("Settings profile: default"));
     assert!(output.stdout.contains("Release channel: dev"));
@@ -201,7 +230,7 @@ fn cli_config_diagnostics_text_reports_provider_support() {
 
     assert_eq!(output.status_code, 0);
     assert!(output.stdout.contains(
-        "Provider support: selected=openai missing=tool_calls; fallback[0]=fake missing=tool_calls; fallback[1]=local compatible=true"
+        "Provider support: selected=openai compatible=true; fallback[0]=fake missing=tool_calls; fallback[1]=local compatible=true"
     ));
     assert!(!output.stdout.contains("OPENAI_API_KEY"));
     assert!(!output.stdout.contains("localhost:11434"));
@@ -281,7 +310,7 @@ fn cli_config_diagnostics_json_renders_config_summary() {
             .is_empty()
     );
     let onboarding = frames.iter().find_map(|frame| {
-        if let UiJsonFrame::OnboardingReadinessSnapshot(snapshot) = frame {
+        if let UiJsonFrame::onboarding_readiness_snapshot(snapshot) = frame {
             Some(snapshot)
         } else {
             None
@@ -336,6 +365,31 @@ fn cli_config_diagnostics_json_renders_config_summary() {
 }
 
 #[test]
+fn cli_config_diagnostics_json_redacts_direct_api_key() {
+    let secret = "sk-config-diagnostic-direct-key";
+    let path = write_yaml_config("direct-api-key-json", &direct_api_key_config_yaml(secret));
+    let invocation = parse_cli_invocation([
+        "--json",
+        "--config-check",
+        "--config",
+        path.to_str().unwrap(),
+    ])
+    .expect("parse json config check");
+
+    let output = render_cli_invocation(invocation);
+
+    assert_eq!(output.status_code, 0);
+    let frames = parse_frames(&output.stdout);
+    assert!(frames.iter().any(|frame| matches!(
+        frame,
+        UiJsonFrame::ConfigSnapshot(snapshot) if snapshot.selected_provider == "openai"
+    )));
+    assert!(!output.stdout.contains(secret));
+    assert!(!output.stdout.contains("sk-config-diagnostic"));
+    assert!(!output.stdout.contains("apiKey"));
+}
+
+#[test]
 fn cli_config_diagnostics_json_renders_provider_support() {
     let path = write_config("support-json", &local_fallback_config_toml());
     let invocation = parse_cli_invocation([
@@ -375,8 +429,8 @@ fn cli_config_diagnostics_json_renders_provider_support() {
         .expect("local support");
 
     assert_eq!(selected.role, UiProviderSupportRole::Selected);
-    assert!(!selected.compatible);
-    assert_eq!(selected.missing, vec!["tool_calls"]);
+    assert!(selected.compatible);
+    assert!(selected.missing.is_empty());
     assert_eq!(fake.role, UiProviderSupportRole::Fallback);
     assert_eq!(fake.fallback_index, Some(0));
     assert_eq!(fake.missing, vec!["tool_calls"]);

@@ -81,7 +81,7 @@ fn invocation_policy() -> ModelInvocationPolicy {
 
 fn loop_budget() -> AgentLoopBudget {
     AgentLoopBudget {
-        max_model_turns: 2,
+        model_turn_checkpoint_interval: 2,
         max_tool_calls: 1,
         max_wall_time_ms: 30_000,
         max_observation_bytes: 4096,
@@ -109,6 +109,7 @@ fn effective_config(config: ModelProviderConfig) -> agent_core::EffectiveRuntime
                 catalog: ModelProviderCatalog::new(vec![config]).expect("catalog"),
                 invocation_policy: invocation_policy(),
             },
+            terminal: Default::default(),
         },
     };
     build_effective_runtime_config(vec![layer], ConfigOverride::default()).expect("config")

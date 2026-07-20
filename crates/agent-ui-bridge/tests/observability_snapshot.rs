@@ -96,7 +96,7 @@ fn observability_snapshot_bounds_and_redacts_diagnostics() {
 #[test]
 fn observability_snapshot_json_frame_is_single_line() {
     let snapshot = UiObservabilitySnapshot::from_evidence(&evidence()).expect("snapshot");
-    let line = encode_json_frame(&UiJsonFrame::ObservabilitySnapshot(snapshot)).expect("frame");
+    let line = encode_json_frame(&UiJsonFrame::observability_snapshot(snapshot)).expect("frame");
     let value: serde_json::Value = serde_json::from_str(line.trim()).expect("parse frame");
 
     assert!(line.ends_with('\n'));

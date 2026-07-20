@@ -20,15 +20,18 @@ dependencies = [
  "agent-model",
  "agent-plugin",
  "agent-policy",
+ "agent-sandbox",
  "agent-scheduler",
  "agent-skill",
  "agent-storage",
  "agent-team",
+ "agent-tool",
  "agent-tui",
  "agent-types",
  "agent-ui-bridge",
  "agent-worktree",
  "camino",
+ "crossterm",
  "futures-util",
  "serde",
  "serde_json",
@@ -72,6 +75,7 @@ dependencies = [
  "futures-util",
  "serde",
  "serde_json",
+ "serde_yaml",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
@@ -97,6 +101,7 @@ version = "0.1.0"
 dependencies = [
  "agent-core",
  "agent-desktop",
+ "agent-storage",
  "agent-types",
  "agent-ui-bridge",
  "serde",
@@ -234,6 +239,7 @@ dependencies = [
  "rusqlite",
  "serde",
  "serde_json",
+ "tempfile",
  "thiserror 2.0.18",
 ]
 
@@ -277,11 +283,14 @@ version = "0.1.0"
 dependencies = [
  "agent-types",
  "agent-ui-bridge",
+ "base64 0.22.1",
  "crossterm",
+ "insta",
  "ratatui",
  "serde_json",
  "thiserror 2.0.18",
  "tui-textarea",
+ "unicode-width 0.2.0",
 ]
 
 [[package]]
@@ -709,6 +718,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "console"
+version = "0.16.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fe5f465a4f6fee88fad41b85d990f84c835335e85b5d9e6e63e0d06d28cba7c"
+dependencies = [
+ "encode_unicode",
+ "libc",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "cookie"
 version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1108,6 +1128,12 @@ name = "embed_plist"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ef6b89e5b37196644d8796de5268852ff179b44e96276cf4290264843743bb7"
+
+[[package]]
+name = "encode_unicode"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "equivalent"
@@ -1975,6 +2001,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a588916bfdfd92e71cacef98a63d9b1f0d74d6599980d11894290e7ddefffcf7"
 dependencies = [
  "cfb",
+]
+
+[[package]]
+name = "insta"
+version = "1.48.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86f0f8fee8c926415c58d6ae43a08523a26faccb2323f5e6b644fe7dd4ef6b82"
+dependencies = [
+ "console",
+ "once_cell",
+ "similar",
+ "tempfile",
 ]
 
 [[package]]
@@ -3575,6 +3613,12 @@ name = "simd-adler32"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "703d5c7ef118737c72f1af64ad2f6f8c5e1921f818cdcb97b8fe6fc69bf66214"
+
+[[package]]
+name = "similar"
+version = "2.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbbb5d9659141646ae647b42fe094daf6c6192d1620870b449d9557f748b2daa"
 
 [[package]]
 name = "siphasher"

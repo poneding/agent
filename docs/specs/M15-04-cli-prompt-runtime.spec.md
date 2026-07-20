@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-CLI parses flags and builds an effective config using `agent-core::config`. It registers fake providers for executable fake configs, calls `ConfiguredTurnRunner`, and renders the final message. CLI does not parse TOML internals or call provider transports directly.
+CLI parses flags and builds an effective config using `agent-core::config`. It registers fake providers for executable fake configs, calls `ConfiguredTurnRunner`, and renders the final message. CLI does not parse YAML/TOML internals or call provider transports directly.
 
 ## State And Failure Handling
 

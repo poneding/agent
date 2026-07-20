@@ -31,53 +31,53 @@ Owned by implementation slices:
 
 ## Architecture
 
-M12 keeps production concerns behind focused crates. `agent-storage` owns migration contracts because durable schema changes must stay near storage implementations. `agent-telemetry` owns provider-neutral observability data. `agent-core` orchestrates audit export and benchmark scenarios using existing runtime events. `agent-memory` owns memory archive formats. `agent-sandbox` owns platform capability reports. `agent-cli` may expose user-facing commands only after the lower-level contracts are stable.
+M12 keeps production concerns behind focused crates. `ruse-storage` owns migration contracts because durable schema changes must stay near storage implementations. `ruse-telemetry` owns provider-neutral observability data. `ruse-core` orchestrates audit export and benchmark scenarios using existing runtime events. `ruse-memory` owns memory archive formats. `ruse-sandbox` owns platform capability reports. `ruse-cli` may expose user-facing commands only after the lower-level contracts are stable.
 
 ```mermaid
 flowchart TD
-  storage["agent-storage"] --> types["agent-types"]
-  telemetry["agent-telemetry"] --> types
-  memory["agent-memory"] --> types
-  sandbox["agent-sandbox"] --> report["Platform Report"]
-  core["agent-core"] --> storage
+  storage["ruse-storage"] --> types["ruse-types"]
+  telemetry["ruse-telemetry"] --> types
+  memory["ruse-memory"] --> types
+  sandbox["ruse-sandbox"] --> report["Platform Report"]
+  core["ruse-core"] --> storage
   core --> telemetry
   core --> memory
   core --> sandbox
-  cli["agent-cli"] --> core
+  cli["ruse-cli"] --> core
 ```
 
 Dependency rules:
 
-- `agent-storage` must not depend on `agent-core`, UI crates, model crates, MCP, or plugins.
-- `agent-telemetry` may depend on `agent-types`, `serde`, `serde_json`, and `thiserror`.
-- `agent-core` may depend on `agent-telemetry` for orchestration and integration tests.
-- `agent-memory` owns archive validation and must not call storage or UI directly.
-- `agent-sandbox` owns platform reporting and must not depend on `agent-core`.
-- `agent-cli` exposes commands by calling typed lower-level APIs only.
+- `ruse-storage` must not depend on `ruse-core`, UI crates, model crates, MCP, or plugins.
+- `ruse-telemetry` may depend on `ruse-types`, `serde`, `serde_json`, and `thiserror`.
+- `ruse-core` may depend on `ruse-telemetry` for orchestration and integration tests.
+- `ruse-memory` owns archive validation and must not call storage or UI directly.
+- `ruse-sandbox` owns platform reporting and must not depend on `ruse-core`.
+- `ruse-cli` exposes commands by calling typed lower-level APIs only.
 
 ## File Layout
 
 ```text
 crates/
-  agent-storage/
+  ruse-storage/
     src/migration.rs
     tests/schema_migration.rs
-  agent-telemetry/
+  ruse-telemetry/
     Cargo.toml
     src/lib.rs
     src/span.rs
     src/metric.rs
     src/sink.rs
     tests/telemetry.rs
-  agent-core/
+  ruse-core/
     src/audit_export.rs
     src/benchmark.rs
     tests/audit_export.rs
     tests/benchmarks.rs
-  agent-memory/
+  ruse-memory/
     src/archive.rs
     tests/memory_archive.rs
-  agent-sandbox/
+  ruse-sandbox/
     src/platform.rs
     tests/platform_report.rs
 docs/

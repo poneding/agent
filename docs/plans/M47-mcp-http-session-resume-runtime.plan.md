@@ -4,7 +4,7 @@
 
 **Goal:** Add the session metadata and event checkpoint foundation for resumable MCP streamable HTTP clients.
 
-**Architecture:** `agent-mcp` owns HTTP session metadata, response envelopes, session-aware headers, SSE checkpoints, redaction, and tests. CLI/Desktop remain consumers of typed runtime contracts.
+**Architecture:** `ruse-mcp` owns HTTP session metadata, response envelopes, session-aware headers, SSE checkpoints, redaction, and tests. CLI/Desktop remain consumers of typed runtime contracts.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, reqwest, HTTP headers, SSE parsing, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -82,10 +82,10 @@ git commit -m "feat: complete m47 mcp http session resume runtime"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_session_metadata` passed.
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_response_envelope` passed.
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_session_headers` passed.
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_checkpoints` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_session_metadata` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_response_envelope` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_session_headers` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_sse_checkpoints` passed.
 - `git diff --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m47 cargo xtask ci` passed. The `definitely-not-a-real-rustc-flag` output is expected from an existing quality-gate fixture.

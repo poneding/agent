@@ -27,7 +27,7 @@ Owned by later slices:
 
 ## Architecture
 
-`agent-cli` owns command parsing and rendering. It asks `agent-context` to assemble a built-in/default prompt inspection fixture using current effective config. The CLI does not persist events or invoke model providers for inspection. JSON output should use existing `UiJsonFrame` patterns where practical, but it may return a CLI-specific summary until M16-05 adds a formal UI bridge payload.
+`ruse-cli` owns command parsing and rendering. It asks `ruse-context` to assemble a built-in/default prompt inspection fixture using current effective config. The CLI does not persist events or invoke model providers for inspection. JSON output should use existing `UiJsonFrame` patterns where practical, but it may return a CLI-specific summary until M16-05 adds a formal UI bridge payload.
 
 ## CLI Contracts
 

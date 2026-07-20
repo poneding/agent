@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add provider-agnostic embedding contracts to `agent-memory` so memory retrieval can later use semantic search without coupling memory storage to any concrete model vendor or network transport.
+Add provider-agnostic embedding contracts to `ruse-memory` so memory retrieval can later use semantic search without coupling memory storage to any concrete model vendor or network transport.
 
 ## Product Context
 
@@ -28,7 +28,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-memory` owns embedding contracts because embeddings are derived memory index data. Provider implementations may live in `agent-memory` for fixtures or later adapter crates, but callers depend only on the trait. `agent-model` is not required for this slice.
+`ruse-memory` owns embedding contracts because embeddings are derived memory index data. Provider implementations may live in `ruse-memory` for fixtures or later adapter crates, but callers depend only on the trait. `ruse-model` is not required for this slice.
 
 ```mermaid
 flowchart TD
@@ -40,17 +40,17 @@ flowchart TD
 
 Dependency rules:
 
-- `agent-memory` must not depend on `agent-core`, UI crates, or concrete HTTP transports.
+- `ruse-memory` must not depend on `ruse-core`, UI crates, or concrete HTTP transports.
 - embedding outputs inherit source memory sensitivity.
 - fixture embeddings must be deterministic across platforms.
 
 ## File Layout
 
 ```text
-crates/agent-memory/src/
+crates/ruse-memory/src/
   embedding.rs
   lib.rs
-crates/agent-memory/tests/
+crates/ruse-memory/tests/
   embedding_provider.rs
 ```
 
@@ -117,10 +117,10 @@ All durable or test-visible contracts derive `Clone`, `Debug`, `PartialEq`, `Ser
 
 ## Acceptance Criteria
 
-- `agent-memory` exports embedding provider contracts and deterministic fixture provider.
+- `ruse-memory` exports embedding provider contracts and deterministic fixture provider.
 - A batch request preserves input ordering in output vectors.
 - Invalid inputs fail before indexing.
-- Focused tests pass with `cargo test -p agent-memory embedding_provider`.
+- Focused tests pass with `cargo test -p ruse-memory embedding_provider`.
 
 ## Completion Signal
 

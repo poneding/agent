@@ -27,25 +27,25 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-skill` owns discovery, manifests, prompt contribution conversion, and diagnostics. `agent-core` records root enablement through `ExtensionRegistry`. `agent-cli` owns command UX and output rendering. Prompt assembly remains owned by `agent-context`.
+`ruse-skill` owns discovery, manifests, prompt contribution conversion, and diagnostics. `ruse-core` records root enablement through `ExtensionRegistry`. `ruse-cli` owns command UX and output rendering. Prompt assembly remains owned by `ruse-context`.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli skill roots"] --> Core["agent-core ExtensionRegistry"]
-  CLI --> Skill["agent-skill discover_skills"]
-  Skill --> Context["agent-context prompt layers"]
+  CLI["ruse-cli skill roots"] --> Core["ruse-core ExtensionRegistry"]
+  CLI --> Skill["ruse-skill discover_skills"]
+  Skill --> Context["ruse-context prompt layers"]
   Skill --> Diagnostics["SkillRootDiagnostic"]
 ```
 
 ## File Layout
 
 ```text
-crates/agent-skill/src/
+crates/ruse-skill/src/
   roots.rs
   lib.rs
-crates/agent-skill/tests/
+crates/ruse-skill/tests/
   skill_roots.rs
-crates/agent-cli/tests/
+crates/ruse-cli/tests/
   skill_root_commands.rs
 ```
 
@@ -101,7 +101,7 @@ agent skill roots remove <id>
 
 ## Testing Strategy
 
-- `agent-skill` tests for root add/list/disable/remove models and discovery diagnostics
+- `ruse-skill` tests for root add/list/disable/remove models and discovery diagnostics
 - CLI tests for root commands in text and JSON modes
 - prompt contribution tests proving disabled or invalid roots do not reach prompt layers
 - redaction tests for diagnostics and previews
@@ -112,7 +112,7 @@ agent skill roots remove <id>
 - Enabled valid roots produce discoverable skill summaries.
 - Invalid roots produce clear diagnostics without prompt contribution.
 - Skill source metadata remains traceable to M16 prompt layers.
-- Focused tests pass with `cargo test -p agent-skill skill_roots` and `cargo test -p agent-cli skill_root_commands`.
+- Focused tests pass with `cargo test -p ruse-skill skill_roots` and `cargo test -p ruse-cli skill_root_commands`.
 
 ## Completion Signal
 

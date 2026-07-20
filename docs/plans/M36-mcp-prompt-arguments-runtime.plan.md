@@ -4,7 +4,7 @@
 
 **Goal:** Add explicit, safe string arguments for MCP prompt exports.
 
-**Architecture:** `agent-mcp` owns prompt argument contracts, validation, and rendering. `agent-cli` owns manifest file IO and stdio startup wiring.
+**Architecture:** `ruse-mcp` owns prompt argument contracts, validation, and rendering. `ruse-cli` owns manifest file IO and stdio startup wiring.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

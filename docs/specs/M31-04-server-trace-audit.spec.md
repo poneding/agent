@@ -25,13 +25,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::server_trace` owns trace structs and redaction. Session runtime emits trace entries; CLI renders summaries or returns them through status/debug surfaces later.
+`ruse-mcp::server_trace` owns trace structs and redaction. Session runtime emits trace entries; CLI renders summaries or returns them through status/debug surfaces later.
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_trace.rs
-crates/agent-mcp/tests/mcp_server_trace.rs
+crates/ruse-mcp/src/server_trace.rs
+crates/ruse-mcp/tests/mcp_server_trace.rs
 ```
 
 ## Public Contracts
@@ -67,7 +67,7 @@ pub struct McpServerTraceEntry {
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_server_trace` passes.
+- `cargo test -p ruse-mcp mcp_server_trace` passes.
 - trace entries are safe for CLI/Desktop display.
 
 ## Completion Signal

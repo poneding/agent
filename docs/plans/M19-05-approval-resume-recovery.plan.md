@@ -4,7 +4,7 @@
 
 **Goal:** Persist pending approvals, suspend turns, and resume side-effecting tool execution after approval or denial.
 
-**Architecture:** `agent-core` owns suspended turn orchestration and event emission. `agent-policy` validates approval state transitions and lease scope. `agent-storage` persists event/checkpoint evidence through existing stores.
+**Architecture:** `ruse-core` owns suspended turn orchestration and event emission. `ruse-policy` validates approval state transitions and lease scope. `ruse-storage` persists event/checkpoint evidence through existing stores.
 
 **Tech Stack:** Rust 2024 edition, Tokio tests, existing comprehensive turn runner, checkpoint store, idempotency store, serde runtime events, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M19-05-approval-resume-recovery.spec.md`
-- Read: `crates/agent-core/src/model_runtime.rs`
-- Read: `crates/agent-core/src/tool_loop.rs`
-- Read: `crates/agent-storage/src/checkpoint.rs`
+- Read: `crates/ruse-core/src/model_runtime.rs`
+- Read: `crates/ruse-core/src/tool_loop.rs`
+- Read: `crates/ruse-storage/src/checkpoint.rs`
 
 - [x] **Step 1: Review resume scope**
 
@@ -24,7 +24,7 @@ Run:
 
 ```bash
 sed -n '1,240p' docs/specs/M19-05-approval-resume-recovery.spec.md
-rg -n "WaitingApproval|run_with_idempotency|Checkpoint" crates/agent-core/src crates/agent-storage/src
+rg -n "WaitingApproval|run_with_idempotency|Checkpoint" crates/ruse-core/src crates/ruse-storage/src
 ```
 
 Expected: this slice wires approval contracts into core suspension and resume.
@@ -32,7 +32,7 @@ Expected: this slice wires approval contracts into core suspension and resume.
 ### Task 2: Write RED Core Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/approval_resume_recovery.rs`
+- Create: `crates/ruse-core/tests/approval_resume_recovery.rs`
 
 - [x] **Step 1: Add approval resume tests**
 
@@ -43,7 +43,7 @@ Add tests for ask -> pending -> approve -> execute, ask -> deny -> no execution,
 Run:
 
 ```bash
-cargo test -p agent-core --test approval_resume_recovery
+cargo test -p ruse-core --test approval_resume_recovery
 ```
 
 Expected: compile or test failures because core approval resume is not implemented.
@@ -51,9 +51,9 @@ Expected: compile or test failures because core approval resume is not implement
 ### Task 3: Add Runtime Events and Pending Store Boundary
 
 **Files:**
-- Modify: `crates/agent-types/src/event.rs`
-- Create: `crates/agent-core/src/approval.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Modify: `crates/ruse-types/src/event.rs`
+- Create: `crates/ruse-core/src/approval.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add approval runtime events**
 
@@ -66,8 +66,8 @@ Create a coordinator that maps `PolicyDecision::Ask` to `PendingApproval` plus c
 ### Task 4: Wire Resume Execution
 
 **Files:**
-- Modify: `crates/agent-core/src/tool_loop.rs`
-- Modify: `crates/agent-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/tool_loop.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
 
 - [x] **Step 1: Suspend on ask with pending approval**
 
@@ -84,14 +84,14 @@ Record denial and provide a bounded model-visible observation when the loop can 
 ### Task 5: Verify
 
 **Files:**
-- Read: `crates/agent-core/tests/approval_resume_recovery.rs`
+- Read: `crates/ruse-core/tests/approval_resume_recovery.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-core --test approval_resume_recovery
+cargo test -p ruse-core --test approval_resume_recovery
 ```
 
 Expected: focused tests pass.
@@ -101,9 +101,9 @@ Expected: focused tests pass.
 Run:
 
 ```bash
-cargo test -p agent-core --test comprehensive_turn_observations
-cargo test -p agent-core --test comprehensive_turn_idempotency
-cargo test -p agent-core --test comprehensive_turn_guards
+cargo test -p ruse-core --test comprehensive_turn_observations
+cargo test -p ruse-core --test comprehensive_turn_idempotency
+cargo test -p ruse-core --test comprehensive_turn_guards
 ```
 
 Expected: existing comprehensive turn behavior remains intact.

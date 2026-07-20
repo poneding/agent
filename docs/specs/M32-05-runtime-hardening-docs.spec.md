@@ -39,7 +39,7 @@ docs/plans/M32-mcp-export-profile-runtime.plan.md
 ## Public Contracts
 
 ```bash
-agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --profile-name default
+ruse-cli mcp server stdio --profile path/to/mcp-server-exports.json --profile-name default
 ```
 
 ## State and Failure Handling

@@ -27,7 +27,7 @@ Owned by later milestones:
 
 ## Architecture
 
-WASM contracts live in `agent-plugin::wasm`. The prototype does not bypass policy or register tools directly.
+WASM contracts live in `ruse-plugin::wasm`. The prototype does not bypass policy or register tools directly.
 
 ```mermaid
 flowchart TD
@@ -40,7 +40,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-plugin/
+  ruse-plugin/
     src/
       wasm.rs
     tests/
@@ -97,7 +97,7 @@ M11 prototype behavior:
 - WASM isolation mode has a typed host prototype.
 - Prototype clearly rejects privileged behavior.
 - M11 milestone acceptance criteria remain satisfied after workspace verification.
-- `cargo test -p agent-plugin wasm_host` passes.
+- `cargo test -p ruse-plugin wasm_host` passes.
 
 ## Completion Signal
 

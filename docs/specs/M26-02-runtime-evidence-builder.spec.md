@@ -15,7 +15,7 @@ This spec delivers:
 - `ObservabilityEvidenceBundle`
 - `ObservabilityEvidenceOptions`
 - `ReplayEvidenceSummary`
-- runtime evidence builder in `agent-core`
+- runtime evidence builder in `ruse-core`
 - local coding fixture evidence test
 
 Owned by other specs:
@@ -27,7 +27,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns evidence composition because it already owns trace queries and audit export. Storage remains responsible for event retrieval; evidence builder accepts typed events and telemetry records.
+`ruse-core` owns evidence composition because it already owns trace queries and audit export. Storage remains responsible for event retrieval; evidence builder accepts typed events and telemetry records.
 
 ## Public Contracts
 
@@ -61,8 +61,8 @@ pub fn build_observability_evidence(
 
 ## Acceptance Criteria
 
-- `agent-core` can build one evidence bundle from runtime events and telemetry records.
-- `cargo test -p agent-core observability_evidence` passes.
+- `ruse-core` can build one evidence bundle from runtime events and telemetry records.
+- `cargo test -p ruse-core observability_evidence` passes.
 
 ## Completion Signal
 

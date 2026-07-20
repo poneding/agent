@@ -25,16 +25,16 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` orchestrates startup migration. `agent-storage`, `agent-memory`, `agent-plugin`, and `agent-context` provide domain migration participants. Startup blocks runtime execution until the plan verifies successfully.
+`ruse-core` orchestrates startup migration. `ruse-storage`, `ruse-memory`, `ruse-plugin`, and `ruse-context` provide domain migration participants. Startup blocks runtime execution until the plan verifies successfully.
 
 ```mermaid
 flowchart TD
   Startup["runtime startup"] --> Runner["StartupMigrationRunner"]
   Runner --> Config["settings/config"]
-  Runner --> Storage["agent-storage"]
-  Runner --> Memory["agent-memory"]
-  Runner --> Plugins["agent-plugin"]
-  Runner --> Prompts["agent-context"]
+  Runner --> Storage["ruse-storage"]
+  Runner --> Memory["ruse-memory"]
+  Runner --> Plugins["ruse-plugin"]
+  Runner --> Prompts["ruse-context"]
   Runner --> Core["runtime start"]
 ```
 
@@ -82,7 +82,7 @@ pub trait StartupMigrationParticipant {
 
 - startup can plan, apply, verify, and audit migrations across domains
 - failed migrations are recoverable and block runtime side effects
-- focused tests pass with `cargo test -p agent-core startup_migrations`
+- focused tests pass with `cargo test -p ruse-core startup_migrations`
 
 ## Completion Signal
 

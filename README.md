@@ -1,6 +1,6 @@
-# agent
+# ruse
 
-agent is a local-first runtime for building reliable AI agents. It provides the shared core for CLI, Desktop, background tasks, tools, memory, MCP, plugins, and multi-agent workflows.
+ruse is a local-first runtime for building reliable AI agents. It provides the shared core for CLI, Desktop, background tasks, tools, memory, MCP, plugins, and multi-agent workflows.
 
 The project focuses on one thing first: make agent execution observable, permissioned, recoverable, and replayable.
 
@@ -52,25 +52,25 @@ flowchart TD
 
 ```text
 crates/
-  agent-types/
-  agent-core/
-  agent-model/
-  agent-storage/
-  agent-tool/
-  agent-policy/
-  agent-sandbox/
-  agent-context/
-  agent-memory/
-  agent-scheduler/
-  agent-worktree/
-  agent-team/
-  agent-mcp/
-  agent-skill/
-  agent-plugin/
-  agent-ui-bridge/
-  agent-cli/
-  agent-tui/
-  agent-desktop/
+  ruse-types/
+  ruse-core/
+  ruse-model/
+  ruse-storage/
+  ruse-tool/
+  ruse-policy/
+  ruse-sandbox/
+  ruse-context/
+  ruse-memory/
+  ruse-scheduler/
+  ruse-worktree/
+  ruse-team/
+  ruse-mcp/
+  ruse-skill/
+  ruse-plugin/
+  ruse-ui-bridge/
+  ruse-cli/
+  ruse-tui/
+  ruse-desktop/
 docs/
   PRD.md
   architecture/
@@ -95,25 +95,25 @@ cargo xtask test
 cargo xtask ci
 cargo xtask eval
 cargo xtask desktop-test
-cargo test -p agent-core --test crash_resume_smoke
+cargo test -p ruse-core --test crash_resume_smoke
 cargo xtask cli-prompt -- "hello agent"
 cargo xtask cli-json -- "hello agent"
 cargo xtask package-cli --channel dev
 cargo xtask package-desktop --channel dev
 cargo xtask support-bundle --channel dev
-agent-cli --observability-summary
-agent-cli --observability-json
-agent-cli mcp server status
-agent-cli --json mcp server status
-agent-cli mcp server stdio
-agent-cli mcp server stdio --profile path/to/mcp-server-exports.json
-agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
-agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
-agent-cli eval validate --manifest path/to/scenario.eval.json
-agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
-agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
-agent-cli team status
-agent-cli team merge-readiness --fixture conflict --dry-run
+ruse-cli --observability-summary
+ruse-cli --observability-json
+ruse-cli mcp server status
+ruse-cli --json mcp server status
+ruse-cli mcp server stdio
+ruse-cli mcp server stdio --profile path/to/mcp-server-exports.json
+ruse-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
+ruse-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
+ruse-cli eval validate --manifest path/to/scenario.eval.json
+ruse-cli eval run --manifest path/to/scenario.eval.json --out-dir target/ruse-eval
+ruse-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/ruse-eval
+ruse-cli team status
+ruse-cli team merge-readiness --fixture conflict --dry-run
 ```
 
 Run `cargo xtask help` for the full command list.
@@ -156,19 +156,19 @@ cargo xtask eval
 
 The gate runs `docs/eval/default.suite.json`, including the `default-m56-golden-path` local-coding scenario, the `default-m58-context-quality` context-quality scenario, the `default-m62-recovery-crash-smoke` recovery scenario, and the `default-m63-team-workflow-smoke` team workflow scenario. It is fixture-driven and requires no provider credentials. It writes redacted evidence artifacts to:
 
-- `target/agent-eval/eval-run-report.json`
-- `target/agent-eval/eval-summary.txt`
+- `target/ruse-eval/eval-run-report.json`
+- `target/ruse-eval/eval-summary.txt`
 
 For JSON output from the same suite path:
 
 ```bash
-cargo run -p agent-cli --bin agent-cli -- --json eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
+cargo run -p ruse-cli --bin ruse-cli -- --json eval suite run --suite docs/eval/default.suite.json --out-dir target/ruse-eval
 ```
 
 Run the M62 recovery crash smoke directly with:
 
 ```bash
-cargo test -p agent-core --test crash_resume_smoke
+cargo test -p ruse-core --test crash_resume_smoke
 ```
 
 The smoke proves checkpoint replay, pending tool recovery, idempotent effect reuse, conflict blocking, and retry planning after a simulated restart. User-facing recovery workflows are documented in [CLI Recovery Workflows](docs/cli/recovery-workflows.md) and [Desktop Recovery Workflows](docs/desktop/recovery-workflows.md).
@@ -176,10 +176,10 @@ The smoke proves checkpoint replay, pending tool recovery, idempotent effect reu
 Run team workflow CLI dry-runs with:
 
 ```bash
-agent-cli team status
-agent-cli team handoff --role implementer --objective "Implement the task" --dry-run
-agent-cli team review --vote block --summary "Unsafe merge" --dry-run
-agent-cli team merge-readiness --fixture conflict --dry-run
+ruse-cli team status
+ruse-cli team handoff --role implementer --objective "Implement the task" --dry-run
+ruse-cli team review --vote block --summary "Unsafe merge" --dry-run
+ruse-cli team merge-readiness --fixture conflict --dry-run
 ```
 
 The M63 team workflow smoke proves isolated worktree evidence, reduced-capability handoff evidence, blackboard output, reviewer votes, conflict-aware merge readiness, policy blocking, and redaction. User-facing workflows are documented in [CLI Team Workflows](docs/cli/team-workflows.md) and [Desktop Team Workflows](docs/desktop/team-workflows.md).
@@ -187,7 +187,7 @@ The M63 team workflow smoke proves isolated worktree evidence, reduced-capabilit
 For the local final-review fixture alone:
 
 ```bash
-cargo run -p agent-cli --bin agent-cli -- repo final-review --fixture local-coding
+cargo run -p ruse-cli --bin ruse-cli -- repo final-review --fixture local-coding
 ```
 
 The default eval path is intentionally deterministic and credential-free. M57 extends the runtime with provider capability diagnostics, native Anthropic and Gemini adapters, local/Ollama-style endpoint support, and compatible-only fallback, while M58 adds repo-aware context quality coverage without requiring provider credentials.
@@ -200,12 +200,12 @@ Run the local and CI quality gate with:
 cargo xtask ci
 ```
 
-The gate writes redacted evidence artifacts to `target/agent-ci/`:
+The gate writes redacted evidence artifacts to `target/ruse-ci/`:
 
 - `quality-gate-report.json`
 - `quality-gate-summary.txt`
 
-GitHub Actions uploads the same `target/agent-ci` directory for review.
+GitHub Actions uploads the same `target/ruse-ci` directory for review.
 
 Use `cargo xtask ci` as the release-readiness gate before merge or packaging. Inspect `quality-gate-summary.txt` for the human summary and `quality-gate-report.json` for machine-readable evidence; artifacts are redacted summaries, not raw command logs.
 
@@ -225,10 +225,10 @@ Install, upgrade, onboarding diagnostics, and support workflows are documented i
 
 ## MCP Client Roots
 
-`agent-mcp` can model client-side MCP roots for external MCP servers used through gateway flows. Roots are explicit `file://` workspace roots, not filesystem permissions. They are validated before exposure, sorted deterministically, and surfaced in gateway reports as safe metadata.
+`ruse-mcp` can model client-side MCP roots for external MCP servers used through gateway flows. Roots are explicit `file://` workspace roots, not filesystem permissions. They are validated before exposure, sorted deterministically, and surfaced in gateway reports as safe metadata.
 
 ```rust
-use agent_mcp::{
+use ruse_mcp::{
     McpClientRootCandidate, McpClientRootRegistry,
 };
 
@@ -241,13 +241,13 @@ Disabled roots remain inspectable but are excluded from active root lists. Disab
 
 ## MCP Client Stdio
 
-`agent-mcp` can start external MCP stdio server processes, drive `initialize` plus `tools/list`, and execute live `tools/call` requests through the typed gateway path. `McpStdioClient` owns newline-delimited JSON-RPC framing, request id matching, process timeouts, child cleanup, and typed mapping into `McpInitializeResult`, `McpToolListResult`, and `McpToolCallResult`.
+`ruse-mcp` can start external MCP stdio server processes, drive `initialize` plus `tools/list`, and execute live `tools/call` requests through the typed gateway path. `McpStdioClient` owns newline-delimited JSON-RPC framing, request id matching, process timeouts, child cleanup, and typed mapping into `McpInitializeResult`, `McpToolListResult`, and `McpToolCallResult`.
 
 ```rust
 use std::sync::Arc;
 
-use agent_mcp::{McpClient as _, McpGateway, McpStdioClient};
-use agent_tool::ToolRegistry;
+use ruse_mcp::{McpClient as _, McpGateway, McpStdioClient};
+use ruse_tool::ToolRegistry;
 
 let client = Arc::new(McpStdioClient::spawn(&server_config).await?);
 let init = client.initialize(&server_config).await?;
@@ -259,19 +259,19 @@ let mut registry = ToolRegistry::default();
 gateway.register_tools(&mut registry, &report)?;
 ```
 
-Tool listing is discovery metadata only; it does not grant permission to execute remote tools. Local policy gates the registered gateway tool before a remote `tools/call` is sent. Remote success payloads are returned as tool output by design, then bounded locally by gateway surfaces. Public diagnostics are bounded and redacted: process stderr, command env, unresolved secret refs, prompt text, local tool arguments, and raw remote failure details are not surfaced. `McpEnvValue::SecretRef` values must be resolved outside `agent-mcp` before spawning a stdio client process.
+Tool listing is discovery metadata only; it does not grant permission to execute remote tools. Local policy gates the registered gateway tool before a remote `tools/call` is sent. Remote success payloads are returned as tool output by design, then bounded locally by gateway surfaces. Public diagnostics are bounded and redacted: process stderr, command env, unresolved secret refs, prompt text, local tool arguments, and raw remote failure details are not surfaced. `McpEnvValue::SecretRef` values must be resolved outside `ruse-mcp` before spawning a stdio client process.
 
 MX01 adds typed reentrant client callback contracts for `roots/list` and `sampling/createMessage` frames that may arrive while stdio or streamable HTTP tool work is in flight. Unknown callbacks and callback notifications without request ids are safely rejected or ignored, and callback reports are bounded and redacted. Callback handling still routes through the existing root and sampling provider boundaries; it does not bypass local policy, tool registration, sandboxing, or permission checks.
 
 ## MCP Client Streamable HTTP
 
-`agent-mcp` can also drive streamable HTTP MCP server configs through the same typed client and gateway contracts. M45 implements request/response JSON-RPC over HTTP POST for `initialize`, `tools/list`, and `tools/call`. M46 adds bounded `text/event-stream` response parsing: SSE events are parsed into typed response frames, local request id matching selects the expected JSON-RPC response, and initialize/list/call work when the server answers with SSE frames. M47 captures safe response metadata for `Mcp-Session-Id`, `MCP-Protocol-Version`, and the latest accepted SSE event id, then sends session headers on later initialized requests. M48 adds typed GET stream request snapshots, a reqwest-backed bounded SSE stream-open boundary, and explicit stream event drain reports that update checkpoints after accepted events. M49 adds bounded reconnect policy, retry classification, reconnect runner composition, safe replay diagnostics, and typed reconnect trace reports. M50 adds an explicit supervisor tick boundary over the M49 reconnect runner, including bounded tick accounting, cancellation and lease preflight, and redacted supervisor reports for CLI/Desktop or scheduler surfaces.
+`ruse-mcp` can also drive streamable HTTP MCP server configs through the same typed client and gateway contracts. M45 implements request/response JSON-RPC over HTTP POST for `initialize`, `tools/list`, and `tools/call`. M46 adds bounded `text/event-stream` response parsing: SSE events are parsed into typed response frames, local request id matching selects the expected JSON-RPC response, and initialize/list/call work when the server answers with SSE frames. M47 captures safe response metadata for `Mcp-Session-Id`, `MCP-Protocol-Version`, and the latest accepted SSE event id, then sends session headers on later initialized requests. M48 adds typed GET stream request snapshots, a reqwest-backed bounded SSE stream-open boundary, and explicit stream event drain reports that update checkpoints after accepted events. M49 adds bounded reconnect policy, retry classification, reconnect runner composition, safe replay diagnostics, and typed reconnect trace reports. M50 adds an explicit supervisor tick boundary over the M49 reconnect runner, including bounded tick accounting, cancellation and lease preflight, and redacted supervisor reports for CLI/Desktop or scheduler surfaces.
 
 ```rust
 use std::sync::Arc;
 
-use agent_mcp::{McpClient as _, McpGateway, McpHttpClient};
-use agent_tool::ToolRegistry;
+use ruse_mcp::{McpClient as _, McpGateway, McpHttpClient};
+use ruse_tool::ToolRegistry;
 
 let client = Arc::new(McpHttpClient::reqwest());
 let init = client.initialize(&server_config).await?;
@@ -283,14 +283,14 @@ let mut registry = ToolRegistry::default();
 gateway.register_tools(&mut registry, &report)?;
 ```
 
-HTTP configs use `McpTransportConfig::StreamableHttp`. Literal headers are sent with each request, while `McpEnvValue::SecretRef` header values must be resolved outside `agent-mcp` before request construction. Public diagnostics are bounded and redacted: raw URLs with credentials, header values, session ids, event ids, unresolved secret ref names, request bodies, local tool arguments, remote status bodies, raw SSE data, and raw remote failure details are not surfaced. Local policy still gates registered gateway tools before any remote HTTP `tools/call` is sent, and remote success payloads are bounded locally by gateway surfaces.
+HTTP configs use `McpTransportConfig::StreamableHttp`. Literal headers are sent with each request, while `McpEnvValue::SecretRef` header values must be resolved outside `ruse-mcp` before request construction. Public diagnostics are bounded and redacted: raw URLs with credentials, header values, session ids, event ids, unresolved secret ref names, request bodies, local tool arguments, remote status bodies, raw SSE data, and raw remote failure details are not surfaced. Local policy still gates registered gateway tools before any remote HTTP `tools/call` is sent, and remote success payloads are bounded locally by gateway surfaces.
 
 M49 stream reconnect remains bounded and explicit: clients can build a resume-aware GET stream request, open a typed `text/event-stream` response, retry according to `McpClientHttpReconnectPolicy`, advance the local checkpoint through `record_stream_open`, and inspect `McpClientHttpReconnectReport` plus `McpClientHttpReplayDiagnostic` without exposing raw session ids, event ids, headers, stream bodies, or remote failure payloads. Replay diagnostics prove whether the local request included `Last-Event-ID` and whether the local checkpoint advanced; they do not claim the remote server replayed every missed event.
 
 M50 stream supervision is also explicit: the runtime exposes one bounded tick API that a scheduler may call, not an unmanaged background loop. A tick validates `McpClientHttpStreamSupervisorConfig`, checks tick budget, optionally applies `McpClientHttpStreamSupervisorControl` cancellation and lease preflight before stream side effects, composes the M49 reconnect runner, and produces a `McpClientHttpStreamSupervisorReport`.
 
 ```rust
-use agent_mcp::{
+use ruse_mcp::{
     McpClientHttpStreamSupervisorConfig, McpClientHttpStreamSupervisorControl,
     McpClientHttpStreamSupervisorReport,
 };
@@ -305,10 +305,10 @@ let report = McpClientHttpStreamSupervisorReport::from_tick(&tick);
 
 Supervisor reports expose status, completed tick count, public terminal summaries, and redacted reconnect summaries. They do not expose raw URLs, headers, session ids, event ids, stream bodies, scheduler internals, or remote failure payloads.
 
-M51 adds the MCP HTTP OAuth authorization foundation without owning login UX or token lifecycle. `agent-mcp` exposes typed `McpClientHttpOAuthMetadata` and `McpClientHttpProtectedResourceMetadata`, parses caller-provided discovery JSON with redacted errors, builds `McpClientHttpAuthorizationReport` readiness diagnostics, and applies caller-provided `McpClientHttpAuthorization` bearer material only at explicit POST or GET stream request construction boundaries.
+M51 adds the MCP HTTP OAuth authorization foundation without owning login UX or token lifecycle. `ruse-mcp` exposes typed `McpClientHttpOAuthMetadata` and `McpClientHttpProtectedResourceMetadata`, parses caller-provided discovery JSON with redacted errors, builds `McpClientHttpAuthorizationReport` readiness diagnostics, and applies caller-provided `McpClientHttpAuthorization` bearer material only at explicit POST or GET stream request construction boundaries.
 
 ```rust
-use agent_mcp::{
+use ruse_mcp::{
     McpClientHttpAuthorization, McpClientHttpRequest, McpClientHttpStreamRequest,
     build_mcp_client_http_authorization_report,
 };
@@ -336,7 +336,7 @@ Authorization diagnostics and errors do not expose bearer tokens, authorization 
 M52 adds a token lifecycle foundation on top of that bearer boundary. `McpClientHttpOAuthTokenLease` represents caller-provided access-token material with optional expiry and scopes; `Debug` is redacted and the lease is intentionally not a durable serialization DTO. `McpClientHttpOAuthTokenSourceRef` is the durable-safe reference shape for an external auth or vault layer. `build_mcp_client_http_oauth_refresh_plan` deterministically classifies leases as usable, refresh-soon, expired, unknown-expiry, or scope-incompatible from caller-provided time and requirements. `build_mcp_client_http_request_with_oauth_token` and `build_mcp_client_http_stream_request_with_oauth_token` reject expired leases before applying `Authorization` headers, then delegate to the M51 request constructors.
 
 ```rust
-use agent_mcp::{
+use ruse_mcp::{
     McpClientHttpOAuthTokenLease, build_mcp_client_http_oauth_refresh_plan,
     build_mcp_client_http_request_with_oauth_token,
 };
@@ -365,7 +365,7 @@ Token lifecycle diagnostics and request factories do not expose access tokens, r
 M53 adds a typed OAuth authorization-flow foundation for callers that own browser launch, callback hosting, remote token endpoint execution, and secret storage. `McpClientHttpOAuthPkceVerifier`, `McpClientHttpOAuthPkceChallenge`, and `McpClientHttpOAuthState` validate caller-provided flow material. `build_mcp_client_http_oauth_authorization_request_plan` creates a deterministic authorization URL plan. `validate_mcp_client_http_oauth_callback` validates returned code/state shape and classifies provider errors. `build_mcp_client_http_oauth_token_exchange_request` creates the final token exchange form DTO without executing a network call. Flow reports expose UI-safe diagnostics for authorization-ready, callback, and token-exchange-ready states.
 
 ```rust
-use agent_mcp::{
+use ruse_mcp::{
     McpClientHttpOAuthAuthorizationRequestInput, McpClientHttpOAuthCallbackInput,
     McpClientHttpOAuthPkceChallenge, McpClientHttpOAuthPkceVerifier, McpClientHttpOAuthState,
     build_mcp_client_http_oauth_authorization_flow_report,
@@ -414,7 +414,7 @@ Authorization-flow diagnostics and reports do not expose PKCE verifiers, state v
 M54 executes that token exchange DTO through a typed HTTP form POST boundary and converts successful bearer token responses into `McpClientHttpOAuthTokenLease` values. `McpClientHttpOAuthTokenExchangeTransport` owns the async exchange boundary, with fixture and reqwest implementations. `exchange_mcp_client_http_oauth_token` returns a redacted report plus optional secret-bearing token response. `build_mcp_client_http_oauth_token_lease_from_exchange_response` maps successful bearer responses into existing token lifecycle contracts using caller-provided time for expiry calculation.
 
 ```rust
-use agent_mcp::{
+use ruse_mcp::{
     McpClientHttpOAuthTokenExchangeTransport, build_mcp_client_http_oauth_token_lease_from_exchange_response,
     exchange_mcp_client_http_oauth_token,
 };
@@ -436,12 +436,12 @@ MX01 still does not implement the P0 OAuth/Auth product closure: browser/device 
 
 ## MCP Sampling
 
-`agent-mcp` can model MCP `sampling/createMessage` requests from external servers without handing model credentials or local tool access to those servers. M40 implements typed sampling contracts, a conservative request validator, deterministic fixture execution, and gateway availability diagnostics. M41 adds an `agent-core` bridge that maps safe text-only sampling requests to local `agent-model` providers. M42 adds fixture-grade JSON-RPC stdio frame dispatch for server-initiated `sampling/createMessage` requests through the same local provider path.
+`ruse-mcp` can model MCP `sampling/createMessage` requests from external servers without handing model credentials or local tool access to those servers. M40 implements typed sampling contracts, a conservative request validator, deterministic fixture execution, and gateway availability diagnostics. M41 adds an `ruse-core` bridge that maps safe text-only sampling requests to local `ruse-model` providers. M42 adds fixture-grade JSON-RPC stdio frame dispatch for server-initiated `sampling/createMessage` requests through the same local provider path.
 
 Given a configured `server_id`, `server_config`, and fixture `initialize_result`:
 
 ```rust
-use agent_mcp::{
+use ruse_mcp::{
     FixtureMcpClient, McpCreateMessageRequestParams, McpCreateMessageResult,
     McpSamplingContent, McpSamplingMessage, McpSamplingRole, create_mcp_sampling_message,
 };
@@ -469,10 +469,10 @@ Use the core bridge when a validated sampling request should execute through the
 ```rust
 use std::sync::Arc;
 
-use agent_core::{
+use ruse_core::{
     McpModelSamplingProvider, McpSamplingModelBridgeConfig, McpSamplingModelBridgeIds,
 };
-use agent_model::{FakeModelProvider, FakeModelScript};
+use ruse_model::{FakeModelProvider, FakeModelScript};
 
 let sampling_provider = McpModelSamplingProvider::new(
     Arc::new(FakeModelProvider::new(FakeModelScript::text("Local model answer."))),
@@ -492,7 +492,7 @@ let response = create_mcp_sampling_message(&sampling_provider, &server_config, r
 Use the stdio dispatcher when tests or a future transport wrapper need to turn one MCP JSON-RPC sampling request frame into a JSON-RPC response frame:
 
 ```rust
-use agent_mcp::{
+use ruse_mcp::{
     MCP_SAMPLING_CREATE_MESSAGE_METHOD, handle_mcp_sampling_stdio_frame,
 };
 use serde_json::json;
@@ -527,7 +527,7 @@ MX01 adds sampling approval request, decision, and report contracts; task-augmen
 
 ## MCP Management Snapshot
 
-MX01 adds UI-safe MCP management snapshots in `agent-mcp` plus independent bridge DTOs in `agent-ui-bridge`. Snapshots summarize server status, transport kind, roots, sampling availability, stream status, auth status, last diagnostics, and extension health in bounded, serializable, redacted shapes for future CLI/Desktop rendering.
+MX01 adds UI-safe MCP management snapshots in `ruse-mcp` plus independent bridge DTOs in `ruse-ui-bridge`. Snapshots summarize server status, transport kind, roots, sampling availability, stream status, auth status, last diagnostics, and extension health in bounded, serializable, redacted shapes for future CLI/Desktop rendering.
 
 Management snapshots are status reports only. They do not create permission leases, expose raw headers or tokens, read resource contents, reveal prompt text, or grant MCP servers local filesystem, command, Git, browser, Desktop, secret, or network authority.
 
@@ -536,18 +536,18 @@ Management snapshots are status reports only. They do not create permission leas
 Inspect local MCP server readiness without starting a daemon:
 
 ```bash
-agent-cli mcp server status
-agent-cli --json mcp server status
+ruse-cli mcp server status
+ruse-cli --json mcp server status
 ```
 
-The status surface reports protocol version, capability flags, stdio fixture availability, and explicit export counts/names only. Exported tool calls and resource reads remain policy-gated in `agent-mcp`; status rendering does not execute tools or expose resource contents.
+The status surface reports protocol version, capability flags, stdio fixture availability, and explicit export counts/names only. Exported tool calls and resource reads remain policy-gated in `ruse-mcp`; status rendering does not execute tools or expose resource contents.
 
 Inspect a manifest-backed export profile before starting stdio:
 
 ```bash
-agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
-agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json --profile-name default --workspace .
-agent-cli --json mcp server profile inspect --profile path/to/mcp-server-exports.json --workspace .
+ruse-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
+ruse-cli mcp server profile inspect --profile path/to/mcp-server-exports.json --profile-name default --workspace .
+ruse-cli --json mcp server profile inspect --profile path/to/mcp-server-exports.json --workspace .
 ```
 
 Profile inspection reports selected tools, resources, prompts, enabled/disabled state, and preflight diagnostics for missing workspaces, invalid workspace roots, unknown tools, missing resource files, and disabled exports hidden from active MCP listings. Inspection never reads resource contents or prompt message text, and keeps diagnostics bounded and redacted.
@@ -555,15 +555,15 @@ Profile inspection reports selected tools, resources, prompts, enabled/disabled 
 Run a local MCP stdio server process:
 
 ```bash
-agent-cli mcp server stdio
-agent-cli mcp server stdio --max-frames 1000
-agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --profile-name default
-agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
+ruse-cli mcp server stdio
+ruse-cli mcp server stdio --max-frames 1000
+ruse-cli mcp server stdio --profile path/to/mcp-server-exports.json --profile-name default
+ruse-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
 ```
 
 The stdio command reads newline-delimited JSON-RPC frames from stdin and writes only MCP protocol responses to stdout. Diagnostics go to stderr, EOF closes the session cleanly, and `--json` is rejected for this command so script and MCP-client stdout stays protocol-only.
 
-The default stdio profile is intentionally empty: no tools, resources, or prompts are exported until an explicit server export profile registers them. Tool calls and resource reads stay policy-gated in `agent-mcp`; prompt exports are read-only and explicit. Session summaries include bounded, redacted trace entries for methods, outcomes, and initialized state without raw tool arguments, resource contents, prompt message text, or secret-like values.
+The default stdio profile is intentionally empty: no tools, resources, or prompts are exported until an explicit server export profile registers them. Tool calls and resource reads stay policy-gated in `ruse-mcp`; prompt exports are read-only and explicit. Session summaries include bounded, redacted trace entries for methods, outcomes, and initialized state without raw tool arguments, resource contents, prompt message text, or secret-like values.
 
 Use a manifest-backed profile to expose explicit resources:
 
@@ -586,7 +586,7 @@ Use a manifest-backed profile to expose explicit resources:
 }
 ```
 
-Profile resource paths are resolved relative to the manifest file directory and must stay under that directory. Tool declarations use the explicit `agent-mcp` export catalog contract, so callers opt in to exactly which local tools can be selected by a manifest.
+Profile resource paths are resolved relative to the manifest file directory and must stay under that directory. Tool declarations use the explicit `ruse-mcp` export catalog contract, so callers opt in to exactly which local tools can be selected by a manifest.
 
 Use resource templates when an MCP client should discover a parameterized resource surface and read concrete URIs through `resources/read`:
 
@@ -777,8 +777,8 @@ cargo xtask package-desktop --channel dev
 
 Outputs are written to `target/agent-release/`:
 
-- `agent-desktop-<version>-<target>-<channel>.plan.txt`: local bundle plan and smoke summary
-- `agent-desktop-<version>-<target>-<channel>.update.json`: local update manifest
+- `ruse-desktop-<version>-<target>-<channel>.plan.txt`: local bundle plan and smoke summary
+- `ruse-desktop-<version>-<target>-<channel>.update.json`: local update manifest
 - `desktop-smoke-root/`: isolated Desktop smoke config/data/cache/log root
 
 ## Evaluation Harness
@@ -786,14 +786,14 @@ Outputs are written to `target/agent-release/`:
 Validate and run deterministic regression scenarios:
 
 ```bash
-agent-cli eval list --manifest path/to/scenario.eval.json
-agent-cli eval validate --manifest path/to/scenario.eval.json
-agent-cli eval run --manifest path/to/scenario.eval.json --out-dir target/agent-eval
-agent-cli --json eval run --manifest path/to/scenario.eval.json
-agent-cli eval suite list --suite docs/eval/default.suite.json
-agent-cli eval suite validate --suite docs/eval/default.suite.json
-agent-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/agent-eval
-agent-cli eval suite update-goldens --suite docs/eval/default.suite.json --dry-run
+ruse-cli eval list --manifest path/to/scenario.eval.json
+ruse-cli eval validate --manifest path/to/scenario.eval.json
+ruse-cli eval run --manifest path/to/scenario.eval.json --out-dir target/ruse-eval
+ruse-cli --json eval run --manifest path/to/scenario.eval.json
+ruse-cli eval suite list --suite docs/eval/default.suite.json
+ruse-cli eval suite validate --suite docs/eval/default.suite.json
+ruse-cli eval suite run --suite docs/eval/default.suite.json --out-dir target/ruse-eval
+ruse-cli eval suite update-goldens --suite docs/eval/default.suite.json --dry-run
 cargo xtask eval
 ```
 

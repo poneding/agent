@@ -28,11 +28,11 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m35 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_export
-CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_protocol
-CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_manifest_prompts
-CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-cli mcp_server_prompt_profile
-CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-cli mcp_server_profile_inspect_command
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_prompt_export
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_prompt_protocol
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_manifest_prompts
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-cli mcp_server_prompt_profile
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-cli mcp_server_profile_inspect_command
 CARGO_TARGET_DIR=target/codex-m35 cargo xtask ci
 ```
 

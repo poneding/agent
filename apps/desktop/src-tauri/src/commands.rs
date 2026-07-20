@@ -60,7 +60,7 @@ pub async fn stop_session(
 #[tauri::command]
 pub async fn send_ui_command(
     state: tauri::State<'_, DesktopAppState>,
-    envelope: agent_ui_bridge::UiCommandEnvelope,
+    envelope: ruse_ui_bridge::UiCommandEnvelope,
 ) -> Result<DesktopCommandAck, DesktopCommandError> {
     let mut session = state.runtime_session.lock().map_err(|_| {
         DesktopCommandError::new("desktop.bridge.lock_failed", "runtime session lock failed")
@@ -72,7 +72,7 @@ pub async fn send_ui_command(
 pub async fn drain_ui_frames(
     state: tauri::State<'_, DesktopAppState>,
     max_count: usize,
-) -> Result<Vec<agent_ui_bridge::UiJsonFrame>, DesktopCommandError> {
+) -> Result<Vec<ruse_ui_bridge::UiJsonFrame>, DesktopCommandError> {
     let mut session = state.runtime_session.lock().map_err(|_| {
         DesktopCommandError::new("desktop.bridge.lock_failed", "runtime session lock failed")
     })?;
@@ -82,7 +82,7 @@ pub async fn drain_ui_frames(
 #[tauri::command]
 pub async fn load_workspace_snapshot(
     state: tauri::State<'_, DesktopAppState>,
-) -> Result<agent_desktop::DesktopWorkspaceSnapshot, DesktopCommandError> {
+) -> Result<ruse_desktop::DesktopWorkspaceSnapshot, DesktopCommandError> {
     let mut session = state.runtime_session.lock().map_err(|_| {
         DesktopCommandError::new("desktop.bridge.lock_failed", "runtime session lock failed")
     })?;
@@ -92,7 +92,7 @@ pub async fn load_workspace_snapshot(
 #[tauri::command]
 pub async fn load_dashboard_snapshot(
     state: tauri::State<'_, DesktopAppState>,
-) -> Result<agent_desktop::DesktopDashboardSnapshot, DesktopCommandError> {
+) -> Result<ruse_desktop::DesktopDashboardSnapshot, DesktopCommandError> {
     let session = state.runtime_session.lock().map_err(|_| {
         DesktopCommandError::new("desktop.bridge.lock_failed", "runtime session lock failed")
     })?;

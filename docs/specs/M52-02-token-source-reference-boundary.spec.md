@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add typed token source references so `agent-mcp` can identify external token material without storing raw tokens.
+Add typed token source references so `ruse-mcp` can identify external token material without storing raw tokens.
 
 ## Product Context
 
@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::client_http` owns the reference contract only. Resolver crates remain responsible for mapping references to token leases.
+`ruse-mcp::client_http` owns the reference contract only. Resolver crates remain responsible for mapping references to token leases.
 
 ## Public Contracts
 
@@ -56,7 +56,7 @@ pub struct McpClientHttpOAuthTokenSourceRef {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token_source`
+- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p ruse-mcp mcp_client_http_oauth_token_source`
 - fmt and clippy focused gates pass
 
 ## Completion Signal

@@ -30,11 +30,11 @@ Owned by later M60 slices:
 
 ## Architecture
 
-`agent-ui-bridge` remains the owner of UI-safe config, task, and trace frame contracts. `agent-desktop` owns Desktop view models and pure aggregation/redaction helpers. Tauri settings and trace commands adapt existing state into typed Desktop contracts and do not persist settings in this slice. React renders settings, task monitor, and logs from typed snapshots and local reducers.
+`ruse-ui-bridge` remains the owner of UI-safe config, task, and trace frame contracts. `ruse-desktop` owns Desktop view models and pure aggregation/redaction helpers. Tauri settings and trace commands adapt existing state into typed Desktop contracts and do not persist settings in this slice. React renders settings, task monitor, and logs from typed snapshots and local reducers.
 
 ```mermaid
 flowchart TD
-  Bridge["UiConfigSnapshot / UiTaskSnapshot / trace entries"] --> DesktopModels["agent-desktop provider, task, log models"]
+  Bridge["UiConfigSnapshot / UiTaskSnapshot / trace entries"] --> DesktopModels["ruse-desktop provider, task, log models"]
   DesktopModels --> Tauri["settings and trace commands"]
   Tauri --> React["SettingsView / TaskMonitor / TraceTimeline"]
 ```
@@ -50,7 +50,7 @@ Dependency rules:
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     src/
       settings.rs
       task.rs
@@ -89,7 +89,7 @@ docs/
     M60-desktop-daily-driver.plan.md
 ```
 
-Exact filenames can change if implementation finds a better local fit, but settings/task/log view models should stay in `agent-desktop`, and bridge/runtime ownership should stay outside React and Tauri presentation code.
+Exact filenames can change if implementation finds a better local fit, but settings/task/log view models should stay in `ruse-desktop`, and bridge/runtime ownership should stay outside React and Tauri presentation code.
 
 ## Public Contracts
 
@@ -152,7 +152,7 @@ All contracts must derive or map cleanly to `Serialize` and `Deserialize`. Provi
 
 ## Testing Strategy
 
-- `agent-desktop` tests for provider/settings summary shape, settings validation diagnostics, task monitor counts, selected task detail, task error redaction, runtime log severity mapping, log sorting, truncation, and secret redaction
+- `ruse-desktop` tests for provider/settings summary shape, settings validation diagnostics, task monitor counts, selected task detail, task error redaction, runtime log severity mapping, log sorting, truncation, and secret redaction
 - Tauri tests for config snapshot redaction, settings validation diagnostics, trace/log loading, duplicate trace errors, and invalid id redaction
 - Vitest tests for provider/settings diagnostics rendering, task monitor counts/detail rendering, runtime log rendering, empty states, and no secret exposure
 - focused build/type checks for the Desktop frontend
@@ -160,9 +160,9 @@ All contracts must derive or map cleanly to `Serialize` and `Deserialize`. Provi
 Focused commands:
 
 ```bash
-cargo test -p agent-desktop --test settings
-cargo test -p agent-desktop --test trace_timeline
-cargo test -p agent-desktop --test conversation_tasks
+cargo test -p ruse-desktop --test settings
+cargo test -p ruse-desktop --test trace_timeline
+cargo test -p ruse-desktop --test conversation_tasks
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml trace_settings_commands
 npm --prefix apps/desktop test -- trace-settings-ui
 ```

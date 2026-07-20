@@ -4,7 +4,7 @@
 
 **Goal:** Add deterministic lexical relevant-file retrieval over M58-01 project summaries, with selected/omitted candidates, scoring reasons, budget behavior, and safe CLI/bridge evidence.
 
-**Architecture:** `agent-context` owns retrieval contracts, scoring, selection, and prompt-layer conversion. `agent-core` composes workspace scanning with retrieval. CLI/JSON and bridge surfaces render typed reports without duplicating retrieval logic.
+**Architecture:** `ruse-context` owns retrieval contracts, scoring, selection, and prompt-layer conversion. `ruse-core` composes workspace scanning with retrieval. CLI/JSON and bridge surfaces render typed reports without duplicating retrieval logic.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, M58-01 project summaries, existing prompt/budget contracts, deterministic temp fixtures, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,20 +15,20 @@
 **Files:**
 - Read: `docs/specs/M58-02-relevant-file-retrieval.spec.md`
 - Read: `docs/specs/M58-project-context-intelligence.spec.md`
-- Read: `crates/agent-context/src/project.rs`
-- Read: `crates/agent-core/src/project_context.rs`
-- Read: `crates/agent-cli/tests/project_context_commands.rs`
-- Read: `crates/agent-ui-bridge/tests/project_context_snapshot.rs`
+- Read: `crates/ruse-context/src/project.rs`
+- Read: `crates/ruse-core/src/project_context.rs`
+- Read: `crates/ruse-cli/tests/project_context_commands.rs`
+- Read: `crates/ruse-ui-bridge/tests/project_context_snapshot.rs`
 
 - [x] **Step 1: Review M58-01 baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-context --test project_context_summary
-cargo test -p agent-core --test project_context_scan
-cargo test -p agent-cli --test project_context_commands
-cargo test -p agent-ui-bridge --test project_context_snapshot
+cargo test -p ruse-context --test project_context_summary
+cargo test -p ruse-core --test project_context_scan
+cargo test -p ruse-cli --test project_context_commands
+cargo test -p ruse-ui-bridge --test project_context_snapshot
 ```
 
 Expected: M58-01 project summaries and context command surfaces pass before retrieval changes.
@@ -36,7 +36,7 @@ Expected: M58-01 project summaries and context command surfaces pass before retr
 ### Task 2: Write Failing Context Retrieval Tests
 
 **Files:**
-- Create: `crates/agent-context/tests/context_retrieval.rs`
+- Create: `crates/ruse-context/tests/context_retrieval.rs`
 
 - [x] **Step 1: Add retrieval contract tests**
 
@@ -54,17 +54,17 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-context --test context_retrieval
+cargo test -p ruse-context --test context_retrieval
 ```
 
 Expected: tests fail before retrieval contracts exist.
 
-### Task 3: Implement `agent-context` Retrieval
+### Task 3: Implement `ruse-context` Retrieval
 
 **Files:**
-- Create: `crates/agent-context/src/retrieval.rs`
-- Modify: `crates/agent-context/src/lib.rs`
-- Modify if needed: `crates/agent-context/src/error.rs`
+- Create: `crates/ruse-context/src/retrieval.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
+- Modify if needed: `crates/ruse-context/src/error.rs`
 
 - [x] **Step 1: Add typed retrieval contracts**
 
@@ -83,7 +83,7 @@ Select candidates under budget, omit over-budget candidates with reasons, and pr
 Run:
 
 ```bash
-cargo test -p agent-context --test context_retrieval
+cargo test -p ruse-context --test context_retrieval
 ```
 
 Expected: context retrieval tests pass.
@@ -91,9 +91,9 @@ Expected: context retrieval tests pass.
 ### Task 4: Add Core Scan-Plus-Retrieve Runtime
 
 **Files:**
-- Create: `crates/agent-core/tests/project_context_retrieval.rs`
-- Modify: `crates/agent-core/src/project_context.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/tests/project_context_retrieval.rs`
+- Modify: `crates/ruse-core/src/project_context.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add core orchestration tests**
 
@@ -101,14 +101,14 @@ Cover scanning a temp workspace, retrieving relevant files for a task, preservin
 
 - [x] **Step 2: Implement core helper**
 
-Add a typed input/report that composes `scan_project_context` with `agent-context` retrieval.
+Add a typed input/report that composes `scan_project_context` with `ruse-context` retrieval.
 
 - [x] **Step 3: Run core tests**
 
 Run:
 
 ```bash
-cargo test -p agent-core --test project_context_retrieval
+cargo test -p ruse-core --test project_context_retrieval
 ```
 
 Expected: core retrieval tests pass.
@@ -116,8 +116,8 @@ Expected: core retrieval tests pass.
 ### Task 5: Add CLI Text and JSON Retrieval Surface
 
 **Files:**
-- Create: `crates/agent-cli/tests/project_context_retrieval_commands.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/project_context_retrieval_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add CLI tests**
 
@@ -138,7 +138,7 @@ Extend the `repo context` namespace with a retrieval subcommand that calls share
 Run:
 
 ```bash
-cargo test -p agent-cli --test project_context_retrieval_commands
+cargo test -p ruse-cli --test project_context_retrieval_commands
 ```
 
 Expected: CLI retrieval tests pass.
@@ -146,11 +146,11 @@ Expected: CLI retrieval tests pass.
 ### Task 6: Add UI Bridge Retrieval Snapshot
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/project_context_retrieval_snapshot.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify if needed: `crates/agent-tui/src/trace_panel.rs`
-- Modify if needed: `crates/agent-tui/src/transcript.rs`
+- Create: `crates/ruse-ui-bridge/tests/project_context_retrieval_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify if needed: `crates/ruse-tui/src/trace_panel.rs`
+- Modify if needed: `crates/ruse-tui/src/transcript.rs`
 
 - [x] **Step 1: Add bridge tests**
 
@@ -165,7 +165,7 @@ Add a retrieval snapshot frame derived from the typed retrieval report.
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test project_context_retrieval_snapshot
+cargo test -p ruse-ui-bridge --test project_context_retrieval_snapshot
 ```
 
 Expected: bridge retrieval tests pass.
@@ -183,11 +183,11 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
-cargo test -p agent-context --test context_retrieval
-cargo test -p agent-core --test project_context_retrieval
-cargo test -p agent-cli --test project_context_retrieval_commands
-cargo test -p agent-ui-bridge --test project_context_retrieval_snapshot
+cargo clippy -p ruse-context -p ruse-core -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
+cargo test -p ruse-context --test context_retrieval
+cargo test -p ruse-core --test project_context_retrieval
+cargo test -p ruse-cli --test project_context_retrieval_commands
+cargo test -p ruse-ui-bridge --test project_context_retrieval_snapshot
 ```
 
 Expected: focused checks pass.

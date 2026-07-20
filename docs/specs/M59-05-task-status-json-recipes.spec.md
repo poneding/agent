@@ -27,15 +27,15 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-scheduler` owns task state transitions and durable task semantics. `agent-core` may produce task review summaries and background task evidence. `agent-ui-bridge` owns UI-safe task snapshots and review snapshots. `agent-cli` renders task commands and documents stable recipes. `agent-tui` owns task panel state and rendering. Recipe tests must use deterministic fixtures or local temporary workspaces, not live providers or network access.
+`ruse-scheduler` owns task state transitions and durable task semantics. `ruse-core` may produce task review summaries and background task evidence. `ruse-ui-bridge` owns UI-safe task snapshots and review snapshots. `ruse-cli` renders task commands and documents stable recipes. `ruse-tui` owns task panel state and rendering. Recipe tests must use deterministic fixtures or local temporary workspaces, not live providers or network access.
 
 ```mermaid
 flowchart TD
-  Scheduler["agent-scheduler task state"] --> Bridge["UiTaskSnapshot"]
+  Scheduler["ruse-scheduler task state"] --> Bridge["UiTaskSnapshot"]
   CoreReview["TaskReviewSummary"] --> BridgeReview["UiTaskReviewSnapshot"]
-  Bridge --> CLI["agent-cli task text/json"]
+  Bridge --> CLI["ruse-cli task text/json"]
   BridgeReview --> CLI
-  Bridge --> TUI["agent-tui task panel"]
+  Bridge --> TUI["ruse-tui task panel"]
   BridgeReview --> TUI
   CLI --> Docs["docs/cli/daily-driver-recipes.md"]
 ```
@@ -51,19 +51,19 @@ Dependency rules:
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
     tests/
       task_command_bridge.rs
       task_review.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       task_commands.rs
       daily_driver_recipes.rs
-  agent-tui/
+  ruse-tui/
     src/
       task_panel.rs
       render.rs
@@ -104,13 +104,13 @@ pub struct UiTaskReviewSnapshot {
 CLI task commands should remain compatible with:
 
 ```text
-agent-cli task create --prompt <text>
-agent-cli task list
-agent-cli task inspect <task-id>
-agent-cli task pause <task-id> --reason <text>
-agent-cli task resume <task-id> --reason <text>
-agent-cli task cancel <task-id> --reason <text>
-agent-cli --json task ...
+ruse-cli task create --prompt <text>
+ruse-cli task list
+ruse-cli task inspect <task-id>
+ruse-cli task pause <task-id> --reason <text>
+ruse-cli task resume <task-id> --reason <text>
+ruse-cli task cancel <task-id> --reason <text>
+ruse-cli --json task ...
 ```
 
 Recipe docs should include stable command blocks for session/status, approval queue fixture inspection, repo edit preview, repo command/test, task lifecycle, and default eval.
@@ -133,9 +133,9 @@ Recipe docs should include stable command blocks for session/status, approval qu
 
 ## Testing Strategy
 
-- `agent-ui-bridge` tests for task snapshot/review JSON shape, redaction, error snapshots, and stable ordering if changed
-- `agent-cli` tests for task lifecycle text/JSON output, missing-task errors, redaction, and documented recipe command parsing/execution
-- `agent-tui` tests for task panel snapshot reduction, review rendering, notification bounds, approval id display, empty state, and state grouping/counts if added
+- `ruse-ui-bridge` tests for task snapshot/review JSON shape, redaction, error snapshots, and stable ordering if changed
+- `ruse-cli` tests for task lifecycle text/JSON output, missing-task errors, redaction, and documented recipe command parsing/execution
+- `ruse-tui` tests for task panel snapshot reduction, review rendering, notification bounds, approval id display, empty state, and state grouping/counts if added
 - docs/recipe tests that verify every documented command is either parseable or covered by a deterministic fixture path
 - final M59 gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, and `cargo xtask eval`
 

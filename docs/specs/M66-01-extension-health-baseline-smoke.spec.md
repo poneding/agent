@@ -10,7 +10,7 @@ M66-01 should make the existing extension foundations easier to verify and suppo
 
 M65 closed the beta packaging gate. M66 now returns to extension hardening, but only for installable user workflows. Existing foundations already include:
 
-- `agent-core` extension registry records and snapshots
+- `ruse-core` extension registry records and snapshots
 - CLI `extension list`, `extension inspect`, and `extension health`
 - plugin install/enable/disable/remove commands
 - skill root management commands
@@ -79,7 +79,7 @@ Next-action ids should be stable strings such as:
 
 ## Runtime Boundary
 
-`agent-core` owns the aggregation because the report summarizes core extension records and will later feed CLI/bridge/support evidence. Presentation layers may render the report or existing snapshots, but they must not implement independent health policy.
+`ruse-core` owns the aggregation because the report summarizes core extension records and will later feed CLI/bridge/support evidence. Presentation layers may render the report or existing snapshots, but they must not implement independent health policy.
 
 ## Security And Privacy
 
@@ -91,7 +91,7 @@ Next-action ids should be stable strings such as:
 
 ## Acceptance Criteria
 
-- `agent-core` exposes a typed extension health smoke report.
+- `ruse-core` exposes a typed extension health smoke report.
 - The report covers plugin, skill root, and MCP server records in one deterministic aggregation.
 - Empty registries produce a safe diagnostic and next action.
 - Unhealthy/degraded/disabled/unknown records produce stable diagnostics.
@@ -105,9 +105,9 @@ Next-action ids should be stable strings such as:
 Focused checks:
 
 ```bash
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-core extension
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-cli extension_health_commands
-CARGO_TARGET_DIR=target/m66-dev cargo clippy -p agent-core -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-core extension
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-cli extension_health_commands
+CARGO_TARGET_DIR=target/m66-dev cargo clippy -p ruse-core -p ruse-cli --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

@@ -27,19 +27,19 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-tool` owns the edit tool and diff contract. `agent-sandbox` continues to own workspace path confinement. `agent-core` later orchestrates approval and audit around the tool call.
+`ruse-tool` owns the edit tool and diff contract. `ruse-sandbox` continues to own workspace path confinement. `ruse-core` later orchestrates approval and audit around the tool call.
 
 ```mermaid
 flowchart TD
-  agent_tool["agent-tool FileEditTool"] --> agent_sandbox["agent-sandbox"]
-  agent_core["agent-core"] --> agent_tool
+  ruse_tool["ruse-tool FileEditTool"] --> ruse_sandbox["ruse-sandbox"]
+  ruse_core["ruse-core"] --> ruse_tool
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-tool/
+  ruse-tool/
     src/
       builtins/
         edit_file.rs

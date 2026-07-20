@@ -4,7 +4,7 @@
 
 **Goal:** Build the tabbed right inspector for context, changes, approvals, tasks, artifacts, and trace.
 
-**Architecture:** `agent-desktop` supplies typed view models, Tauri exposes existing commands, and React renders tab state and panel presentation.
+**Architecture:** `ruse-desktop` supplies typed view models, Tauri exposes existing commands, and React renders tab state and panel presentation.
 
 **Tech Stack:** Rust serde contracts/tests where needed, React/TypeScript, Vitest, Vite.
 
@@ -14,10 +14,10 @@
 
 **Files:**
 - Read: `docs/specs/MX02-04-inspector-panels.spec.md`
-- Read: `crates/agent-desktop/src/diff.rs`
-- Read: `crates/agent-desktop/src/permission.rs`
-- Read: `crates/agent-desktop/src/task.rs`
-- Read: `crates/agent-desktop/src/trace.rs`
+- Read: `crates/ruse-desktop/src/diff.rs`
+- Read: `crates/ruse-desktop/src/permission.rs`
+- Read: `crates/ruse-desktop/src/task.rs`
+- Read: `crates/ruse-desktop/src/trace.rs`
 - Read: `apps/desktop/src/components/ApprovalDetail.tsx`
 - Read: `apps/desktop/src/components/DiffPreview.tsx`
 - Read: `apps/desktop/src/components/TaskDetail.tsx`
@@ -30,10 +30,10 @@ Expected: identify reusable approval, diff, task, and trace components to move i
 ### Task 2: Build Inspector Contracts and Components
 
 **Files:**
-- Modify: `crates/agent-desktop/src/diff.rs`
-- Modify: `crates/agent-desktop/src/permission.rs`
-- Modify: `crates/agent-desktop/src/task.rs`
-- Modify: `crates/agent-desktop/src/trace.rs`
+- Modify: `crates/ruse-desktop/src/diff.rs`
+- Modify: `crates/ruse-desktop/src/permission.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
+- Modify: `crates/ruse-desktop/src/trace.rs`
 - Modify: `apps/desktop/src/components/*`
 - Modify: `apps/desktop/src/types.ts`
 
@@ -58,7 +58,7 @@ Render Context, Changes, Approvals, Tasks, Artifacts, and Trace tabs with empty/
 Run:
 
 ```bash
-cargo test -p agent-desktop --test permissions_diffs --test conversation_tasks --test plan_todo_tasks
+cargo test -p ruse-desktop --test permissions_diffs --test conversation_tasks --test plan_todo_tasks
 npm --prefix apps/desktop test -- approval-diff-ui conversation-task-ui desktop-smoke
 npm --prefix apps/desktop run build
 ```
@@ -73,7 +73,7 @@ Run:
 
 ```bash
 git diff --check
-git add crates/agent-desktop apps/desktop docs/specs/MX02-04-inspector-panels.spec.md docs/plans/MX02-04-inspector-panels.plan.md
+git add crates/ruse-desktop apps/desktop docs/specs/MX02-04-inspector-panels.spec.md docs/plans/MX02-04-inspector-panels.plan.md
 git commit -m "feat: productize desktop inspector panels"
 ```
 

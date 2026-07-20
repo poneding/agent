@@ -25,18 +25,18 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-tool` owns `ShellCommandTool`. `agent-sandbox` validates cwd. The tool uses `std::process::Command` with a timeout loop suitable for local tests.
+`ruse-tool` owns `ShellCommandTool`. `ruse-sandbox` validates cwd. The tool uses `std::process::Command` with a timeout loop suitable for local tests.
 
 ```mermaid
 flowchart TD
-  agent_tool["agent-tool ShellCommandTool"] --> agent_sandbox["agent-sandbox"]
+  ruse_tool["ruse-tool ShellCommandTool"] --> ruse_sandbox["ruse-sandbox"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-tool/
+  ruse-tool/
     src/
       builtins/
         shell_command.rs

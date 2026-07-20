@@ -2,18 +2,18 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add deterministic pin preservation and rolling compaction contracts to `agent-context`.
+**Goal:** Add deterministic pin preservation and rolling compaction contracts to `ruse-context`.
 
-**Architecture:** Extend `agent-context` with a `compact` module that works on `PromptMessage` values from M05-01. The first compactor is deterministic and does not call models or storage.
+**Architecture:** Extend `ruse-context` with a `compact` module that works on `PromptMessage` values from M05-01. The first compactor is deterministic and does not call models or storage.
 
-**Tech Stack:** Rust 2024 edition, `agent-context`, serde, thiserror, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-context`, serde, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Pinning and Compaction Tests
 
 **Files:**
-- Create: `crates/agent-context/tests/pinning_compact.rs`
+- Create: `crates/ruse-context/tests/pinning_compact.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -29,7 +29,7 @@ Use two pinned messages and three unpinned messages. Assert the pinned IDs and m
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-context pinning_compact
+cargo test -p ruse-context pinning_compact
 ```
 
 Expected: tests fail because compaction contracts do not exist.
@@ -37,9 +37,9 @@ Expected: tests fail because compaction contracts do not exist.
 ### Task 2: Implement Compaction Contracts
 
 **Files:**
-- Create: `crates/agent-context/src/compact.rs`
-- Modify: `crates/agent-context/src/error.rs`
-- Modify: `crates/agent-context/src/lib.rs`
+- Create: `crates/ruse-context/src/compact.rs`
+- Modify: `crates/ruse-context/src/error.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
 
 - [x] **Step 1: Add public compact types**
 
@@ -52,7 +52,7 @@ Extend `ContextError` with `InvalidPin(String)` and `InvalidCompaction(String)`.
 - [x] **Step 3: Verify type-level GREEN progress**
 
 ```bash
-cargo test -p agent-context compact_messages_rejects_duplicate_pin_ids
+cargo test -p ruse-context compact_messages_rejects_duplicate_pin_ids
 ```
 
 Expected: duplicate pin test fails with the expected variant once validation is wired; other tests may still fail.
@@ -60,7 +60,7 @@ Expected: duplicate pin test fails with the expected variant once validation is 
 ### Task 3: Implement Rolling Compactor
 
 **Files:**
-- Modify: `crates/agent-context/src/compact.rs`
+- Modify: `crates/ruse-context/src/compact.rs`
 
 - [x] **Step 1: Validate pins**
 
@@ -73,7 +73,7 @@ For unpinned messages, join snippets as `"{role}: {content}"` separated by `"\n"
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-context --test pinning_compact
+cargo test -p ruse-context --test pinning_compact
 ```
 
 Expected: all pinning and compaction tests pass.

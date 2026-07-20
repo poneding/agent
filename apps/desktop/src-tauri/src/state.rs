@@ -4,9 +4,9 @@ use std::{
 };
 
 use crate::bridge::DesktopRuntimeSession;
-use agent_core::TraceEntry;
-use agent_desktop::{DesktopConfigSnapshot, DesktopSettings};
-use agent_ui_bridge::{UiConfigSnapshot, UiModelProviderCapabilities, UiModelProviderSummary};
+use ruse_core::TraceEntry;
+use ruse_desktop::{DesktopConfigSnapshot, DesktopSettings};
+use ruse_ui_bridge::{UiConfigSnapshot, UiModelProviderCapabilities, UiModelProviderSummary};
 
 #[derive(Clone, Debug)]
 pub struct DesktopAppState {

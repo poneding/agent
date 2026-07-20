@@ -25,24 +25,24 @@ Owned by other specs:
 - shell route/session: `M10-01-desktop-shell`
 - task and conversation lists: `M10-02-conversation-tasks`
 - trace timeline: `M10-04-trace-timeline`
-- actual file patch application: `agent-tool` and later Desktop integration
+- actual file patch application: `ruse-tool` and later Desktop integration
 
 ## Architecture
 
-Permission and diff review contracts live in `agent-desktop`. The permission dialog references `agent-policy` request shape; diff review stores file summaries and hunk metadata, not direct tool execution.
+Permission and diff review contracts live in `ruse-desktop`. The permission dialog references `ruse-policy` request shape; diff review stores file summaries and hunk metadata, not direct tool execution.
 
 ```mermaid
 flowchart TD
-  policy["agent-policy PermissionRequest"] --> desktop["agent-desktop permission dialog"]
+  policy["ruse-policy PermissionRequest"] --> desktop["ruse-desktop permission dialog"]
   desktop --> bridge["future UI bridge command response"]
-  tool["agent-tool file diff summaries"] --> desktop
+  tool["ruse-tool file diff summaries"] --> desktop
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     Cargo.toml
     src/
       permission.rs
@@ -127,7 +127,7 @@ pub struct DiffReview {
 
 - Desktop can represent permission prompts and diff summaries without direct runtime side effects.
 - State transitions are explicit and auditable.
-- `cargo test -p agent-desktop permissions_diffs` passes.
+- `cargo test -p ruse-desktop permissions_diffs` passes.
 
 ## Completion Signal
 

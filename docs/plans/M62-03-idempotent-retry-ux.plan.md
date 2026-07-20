@@ -4,7 +4,7 @@
 
 **Goal:** Make idempotent side-effect recovery visible and failed command/test retry planning explicit, typed, redacted, and evidence-linked.
 
-**Architecture:** `agent-core` owns idempotent recovery summaries and command retry planning. `agent-ui-bridge` owns UI-safe commands/frames. `agent-cli` parses and renders typed dry-run retry plans. Real retry execution must reuse the existing command/test loop, policy, sandbox, audit, checkpoint, and trace paths.
+**Architecture:** `ruse-core` owns idempotent recovery summaries and command retry planning. `ruse-ui-bridge` owns UI-safe commands/frames. `ruse-cli` parses and renders typed dry-run retry plans. Real retry execution must reuse the existing command/test loop, policy, sandbox, audit, checkpoint, and trace paths.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing `CommandTestLoopReport`, existing idempotency store/effects, recovery snapshots, UI bridge frames, CLI text/JSON commands, Cargo fmt/clippy/test.
 
@@ -16,14 +16,14 @@
 - Read: `docs/specs/M62-03-idempotent-retry-ux.spec.md`
 - Read: `docs/specs/M62-reliability-recovery-productization.spec.md`
 - Read: `docs/plans/M62-reliability-recovery-productization.plan.md`
-- Read: `crates/agent-types/src/recovery.rs`
-- Read: `crates/agent-core/src/recovery.rs`
-- Read: `crates/agent-core/src/idempotency.rs`
-- Read: `crates/agent-core/src/command_test.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/recovery_commands.rs`
+- Read: `crates/ruse-types/src/recovery.rs`
+- Read: `crates/ruse-core/src/recovery.rs`
+- Read: `crates/ruse-core/src/idempotency.rs`
+- Read: `crates/ruse-core/src/command_test.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/recovery_commands.rs`
 
 - [x] **Step 1: Review retry and idempotency foundations**
 
@@ -32,14 +32,14 @@ Identify existing command report fields, failure classifications, redaction help
 ### Task 2: Add Runtime Contracts and Retry Planner
 
 **Files:**
-- Modify: `crates/agent-types/src/recovery.rs`
-- Create: `crates/agent-types/src/command_retry.rs`
-- Modify: `crates/agent-types/src/lib.rs`
-- Create: `crates/agent-core/src/command_retry.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Modify: `crates/agent-core/src/recovery.rs`
-- Create: `crates/agent-core/tests/failed_command_retry.rs`
-- Modify: `crates/agent-core/tests/recovery_snapshot.rs`
+- Modify: `crates/ruse-types/src/recovery.rs`
+- Create: `crates/ruse-types/src/command_retry.rs`
+- Modify: `crates/ruse-types/src/lib.rs`
+- Create: `crates/ruse-core/src/command_retry.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Modify: `crates/ruse-core/src/recovery.rs`
+- Create: `crates/ruse-core/tests/failed_command_retry.rs`
+- Modify: `crates/ruse-core/tests/recovery_snapshot.rs`
 
 - [x] **Step 1: Define typed retry contracts**
 
@@ -78,9 +78,9 @@ Thread idempotent effect disposition into recovery snapshot or adjacent recovery
 Run:
 
 ```bash
-cargo test -p agent-core --test failed_command_retry
-cargo test -p agent-core --test recovery_snapshot
-cargo test -p agent-core --test comprehensive_turn_idempotency
+cargo test -p ruse-core --test failed_command_retry
+cargo test -p ruse-core --test recovery_snapshot
+cargo test -p ruse-core --test comprehensive_turn_idempotency
 ```
 
 Expected: retry plans are typed and evidence-linked, idempotent recovery summaries are safe and redacted, and existing idempotency behavior still passes.
@@ -88,10 +88,10 @@ Expected: retry plans are typed and evidence-linked, idempotent recovery summari
 ### Task 3: Add Bridge Contracts
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify: `crates/agent-ui-bridge/tests/recovery_bridge.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/tests/recovery_bridge.rs`
 
 - [x] **Step 1: Add retry UI command**
 
@@ -116,7 +116,7 @@ Add typed frames for command retry plans and idempotent recovery summaries.
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test recovery_bridge
+cargo test -p ruse-ui-bridge --test recovery_bridge
 ```
 
 Expected: command/frame JSON shapes are stable, bounded, and redacted.
@@ -124,16 +124,16 @@ Expected: command/frame JSON shapes are stable, bounded, and redacted.
 ### Task 4: Add CLI Retry Command
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/src/lib.rs`
-- Modify: `crates/agent-cli/tests/recovery_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
+- Modify: `crates/ruse-cli/tests/recovery_commands.rs`
 
 - [x] **Step 1: Add parser coverage**
 
 Support:
 
 ```text
-agent-cli command retry <command-run-id> --reason <text> --dry-run
+ruse-cli command retry <command-run-id> --reason <text> --dry-run
 ```
 
 If `command` is already used for repo shell execution, keep the existing `repo command` path unchanged and add a top-level `command retry` parser only for retry planning.
@@ -159,7 +159,7 @@ Text output should include readiness, classification, command display, previous 
 Run:
 
 ```bash
-cargo test -p agent-cli --test recovery_commands
+cargo test -p ruse-cli --test recovery_commands
 ```
 
 Expected: retry dry-run text/JSON is stable and rejects missing reason, missing dry-run, invalid target, and secret-like values.
@@ -177,11 +177,11 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-core -p agent-ui-bridge -p agent-cli --all-targets -- -D warnings
-cargo test -p agent-core --test comprehensive_turn_idempotency
-cargo test -p agent-core --test failed_command_retry
-cargo test -p agent-ui-bridge --test recovery_bridge
-cargo test -p agent-cli --test recovery_commands
+cargo clippy -p ruse-core -p ruse-ui-bridge -p ruse-cli --all-targets -- -D warnings
+cargo test -p ruse-core --test comprehensive_turn_idempotency
+cargo test -p ruse-core --test failed_command_retry
+cargo test -p ruse-ui-bridge --test recovery_bridge
+cargo test -p ruse-cli --test recovery_commands
 ```
 
 Expected: all focused checks pass.
@@ -210,7 +210,7 @@ After focused verification passes, exact-stage only M62-03 files and commit:
 ```bash
 git status --short --branch
 git diff --check
-git add crates/agent-types/src/recovery.rs crates/agent-types/src/command_retry.rs crates/agent-types/src/lib.rs crates/agent-core/src/command_retry.rs crates/agent-core/src/lib.rs crates/agent-core/src/recovery.rs crates/agent-core/tests/failed_command_retry.rs crates/agent-core/tests/recovery_snapshot.rs crates/agent-ui-bridge/src/command.rs crates/agent-ui-bridge/src/frame.rs crates/agent-ui-bridge/src/lib.rs crates/agent-ui-bridge/tests/recovery_bridge.rs crates/agent-cli/src/command.rs crates/agent-cli/src/lib.rs crates/agent-cli/tests/recovery_commands.rs crates/agent-tui/src/trace_panel.rs crates/agent-tui/src/transcript.rs docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md docs/plans/M62-03-idempotent-retry-ux.plan.md
+git add crates/ruse-types/src/recovery.rs crates/ruse-types/src/command_retry.rs crates/ruse-types/src/lib.rs crates/ruse-core/src/command_retry.rs crates/ruse-core/src/lib.rs crates/ruse-core/src/recovery.rs crates/ruse-core/tests/failed_command_retry.rs crates/ruse-core/tests/recovery_snapshot.rs crates/ruse-ui-bridge/src/command.rs crates/ruse-ui-bridge/src/frame.rs crates/ruse-ui-bridge/src/lib.rs crates/ruse-ui-bridge/tests/recovery_bridge.rs crates/ruse-cli/src/command.rs crates/ruse-cli/src/lib.rs crates/ruse-cli/tests/recovery_commands.rs crates/ruse-tui/src/trace_panel.rs crates/ruse-tui/src/transcript.rs docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md docs/plans/M62-03-idempotent-retry-ux.plan.md
 git commit -m "feat: add m62-03 command retry planning"
 ```
 

@@ -4,7 +4,7 @@
 
 **Goal:** Document MCP sampling stdio dispatch behavior and complete M42 verification.
 
-**Architecture:** Documentation-only hardening over runtime changes implemented in `agent-mcp`.
+**Architecture:** Documentation-only hardening over runtime changes implemented in `ruse-mcp`.
 
 **Tech Stack:** Markdown docs, Cargo workspace gates.
 
@@ -44,10 +44,10 @@ Mark M42-01 through M42-05 complete only after implementation and verification a
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_contracts
-CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_dispatch
-CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_validation
-CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_redaction
+CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_contracts
+CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_dispatch
+CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_validation
+CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_redaction
 ```
 
 Expected: focused M42 tests pass.

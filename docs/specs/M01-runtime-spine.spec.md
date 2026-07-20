@@ -20,11 +20,11 @@ This milestone delivers:
 
 Implementation primarily touches:
 
-- `agent-types`
-- `agent-storage`
-- `agent-model`
-- `agent-core`
-- `agent-cli`
+- `ruse-types`
+- `ruse-storage`
+- `ruse-model`
+- `ruse-core`
+- `ruse-cli`
 
 ## Dependencies
 
@@ -33,7 +33,7 @@ Implementation primarily touches:
 
 ## Architecture
 
-The milestone keeps the runtime layered: shared contracts live in lower-level crates, orchestration remains in `agent-core`, and presentation behavior stays outside core runtime crates. Each public contract must be typed, serializable when it crosses process or storage boundaries, and testable without a live model provider.
+The milestone keeps the runtime layered: shared contracts live in lower-level crates, orchestration remains in `ruse-core`, and presentation behavior stays outside core runtime crates. Each public contract must be typed, serializable when it crosses process or storage boundaries, and testable without a live model provider.
 
 ## Key Contracts
 

@@ -1,10 +1,10 @@
 # M64-02 CLI and JSON Memory Review Commands Plan
 
-> **For agentic workers:** Keep memory privacy and product logic in `agent-memory`. `agent-cli` should parse commands, call shared memory contracts, and render text/JSON only.
+> **For agentic workers:** Keep memory privacy and product logic in `ruse-memory`. `ruse-cli` should parse commands, call shared memory contracts, and render text/JSON only.
 
 **Goal:** Add stable text and JSON CLI surfaces for memory snapshots, retrieval previews, proposal review/decisions, import/export, deletion/tombstones, and index rebuild evidence.
 
-**Architecture:** `agent-cli` owns parsing and rendering. `MemoryCommandRuntime` adapts deterministic fixture-backed memory records/proposals/retrieval into `agent-memory` product snapshots. Later slices will wire runtime prompt influence and UI bridge/Desktop rendering.
+**Architecture:** `ruse-cli` owns parsing and rendering. `MemoryCommandRuntime` adapts deterministic fixture-backed memory records/proposals/retrieval into `ruse-memory` product snapshots. Later slices will wire runtime prompt influence and UI bridge/Desktop rendering.
 
 ---
 
@@ -14,12 +14,12 @@
 - Read: `docs/specs/M64-memory-personalization.spec.md`
 - Read: `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md`
 - Read: `docs/specs/M64-02-cli-json-memory-review.spec.md`
-- Read: `crates/agent-memory/src/product.rs`
-- Read: `crates/agent-memory/src/proposal.rs`
-- Read: `crates/agent-memory/src/rerank.rs`
-- Read: `crates/agent-memory/src/editor.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/memory_commands.rs`
+- Read: `crates/ruse-memory/src/product.rs`
+- Read: `crates/ruse-memory/src/proposal.rs`
+- Read: `crates/ruse-memory/src/rerank.rs`
+- Read: `crates/ruse-memory/src/editor.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/memory_commands.rs`
 
 - [x] **Step 1: Review current memory CLI baseline**
 
@@ -28,7 +28,7 @@ Confirm existing fixture-backed CLI commands cover list, inspect, delete, export
 ### Task 2: Write Focused CLI Tests
 
 **Files:**
-- Modify: `crates/agent-cli/tests/memory_commands.rs`
+- Modify: `crates/ruse-cli/tests/memory_commands.rs`
 
 - [x] **Step 1: Add parse tests**
 
@@ -57,7 +57,7 @@ Cover text and JSON output for:
 - [x] **Step 3: Run focused test and verify failure before implementation**
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-cli --test memory_commands
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-cli --test memory_commands
 ```
 
 Expected: new tests fail until parser/runtime/rendering support is implemented.
@@ -65,7 +65,7 @@ Expected: new tests fail until parser/runtime/rendering support is implemented.
 ### Task 3: Implement Parser and Runtime Support
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Extend `MemoryCommand`**
 
@@ -77,12 +77,12 @@ Parse the new subcommands with required values and stable error messages. Reject
 
 - [x] **Step 3: Extend `MemoryCommandRuntime`**
 
-Add deterministic proposal fixture state and retrieval preview helpers. Runtime adapters should rebuild retrieval candidates from active records and call `agent-memory` rerank/product contracts rather than implementing privacy rules locally.
+Add deterministic proposal fixture state and retrieval preview helpers. Runtime adapters should rebuild retrieval candidates from active records and call `ruse-memory` rerank/product contracts rather than implementing privacy rules locally.
 
 ### Task 4: Implement Text and JSON Rendering
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Render text review workflows**
 
@@ -120,8 +120,8 @@ Mark M64-02 complete only after focused checks pass. Keep M64 overall in progres
 - [x] **Step 1: Run focused checks**
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-cli --test memory_commands
-CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-cli --test memory_commands
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p ruse-cli --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

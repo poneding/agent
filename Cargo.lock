@@ -9,328 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
-name = "agent-cli"
-version = "0.1.0"
-dependencies = [
- "agent-context",
- "agent-core",
- "agent-eval",
- "agent-mcp",
- "agent-memory",
- "agent-model",
- "agent-plugin",
- "agent-policy",
- "agent-sandbox",
- "agent-scheduler",
- "agent-skill",
- "agent-storage",
- "agent-team",
- "agent-tool",
- "agent-tui",
- "agent-types",
- "agent-ui-bridge",
- "agent-worktree",
- "camino",
- "crossterm",
- "futures-util",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
-]
-
-[[package]]
-name = "agent-context"
-version = "0.1.0"
-dependencies = [
- "agent-memory",
- "agent-types",
- "async-trait",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
-]
-
-[[package]]
-name = "agent-core"
-version = "0.1.0"
-dependencies = [
- "agent-context",
- "agent-mcp",
- "agent-memory",
- "agent-model",
- "agent-plugin",
- "agent-policy",
- "agent-sandbox",
- "agent-scheduler",
- "agent-storage",
- "agent-telemetry",
- "agent-tool",
- "agent-types",
- "agent-worktree",
- "async-trait",
- "futures",
- "futures-util",
- "serde",
- "serde_json",
- "serde_yaml",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "agent-desktop"
-version = "0.1.0"
-dependencies = [
- "agent-core",
- "agent-policy",
- "agent-types",
- "agent-ui-bridge",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "agent-desktop-app"
-version = "0.1.0"
-dependencies = [
- "agent-core",
- "agent-desktop",
- "agent-storage",
- "agent-types",
- "agent-ui-bridge",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "agent-eval"
-version = "0.1.0"
-dependencies = [
- "agent-core",
- "agent-memory",
- "agent-policy",
- "agent-storage",
- "agent-team",
- "agent-types",
- "camino",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "agent-mcp"
-version = "0.1.0"
-dependencies = [
- "agent-policy",
- "agent-sandbox",
- "agent-tool",
- "agent-types",
- "async-trait",
- "base64 0.22.1",
- "futures",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "agent-memory"
-version = "0.1.0"
-dependencies = [
- "agent-types",
- "async-trait",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
-]
-
-[[package]]
-name = "agent-model"
-version = "0.1.0"
-dependencies = [
- "agent-types",
- "async-trait",
- "futures-core",
- "futures-util",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
-]
-
-[[package]]
-name = "agent-plugin"
-version = "0.1.0"
-dependencies = [
- "agent-policy",
- "agent-tool",
- "agent-types",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "agent-policy"
-version = "0.1.0"
-dependencies = [
- "agent-types",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "uuid",
-]
-
-[[package]]
-name = "agent-sandbox"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "agent-scheduler"
-version = "0.1.0"
-dependencies = [
- "agent-types",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "time",
-]
-
-[[package]]
-name = "agent-skill"
-version = "0.1.0"
-dependencies = [
- "agent-context",
- "serde",
- "serde_yaml",
- "tempfile",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "agent-storage"
-version = "0.1.0"
-dependencies = [
- "agent-types",
- "rusqlite",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "agent-team"
-version = "0.1.0"
-dependencies = [
- "agent-policy",
- "agent-types",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "agent-telemetry"
-version = "0.1.0"
-dependencies = [
- "agent-types",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "agent-tool"
-version = "0.1.0"
-dependencies = [
- "agent-policy",
- "agent-sandbox",
- "agent-types",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "agent-tui"
-version = "0.1.0"
-dependencies = [
- "agent-types",
- "agent-ui-bridge",
- "base64 0.22.1",
- "crossterm",
- "insta",
- "ratatui",
- "serde_json",
- "thiserror 2.0.18",
- "tui-textarea",
- "unicode-width 0.2.0",
-]
-
-[[package]]
-name = "agent-types"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "time",
- "uuid",
-]
-
-[[package]]
-name = "agent-ui-bridge"
-version = "0.1.0"
-dependencies = [
- "agent-core",
- "agent-memory",
- "agent-policy",
- "agent-scheduler",
- "agent-team",
- "agent-types",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "time",
-]
-
-[[package]]
-name = "agent-worktree"
-version = "0.1.0"
-dependencies = [
- "agent-types",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
-]
-
-[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3178,6 +2856,328 @@ dependencies = [
  "libc",
  "untrusted",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "ruse-cli"
+version = "0.1.0"
+dependencies = [
+ "camino",
+ "crossterm",
+ "futures-util",
+ "ruse-context",
+ "ruse-core",
+ "ruse-eval",
+ "ruse-mcp",
+ "ruse-memory",
+ "ruse-model",
+ "ruse-plugin",
+ "ruse-policy",
+ "ruse-sandbox",
+ "ruse-scheduler",
+ "ruse-skill",
+ "ruse-storage",
+ "ruse-team",
+ "ruse-tool",
+ "ruse-tui",
+ "ruse-types",
+ "ruse-ui-bridge",
+ "ruse-worktree",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+]
+
+[[package]]
+name = "ruse-context"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "ruse-memory",
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+]
+
+[[package]]
+name = "ruse-core"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures",
+ "futures-util",
+ "ruse-context",
+ "ruse-mcp",
+ "ruse-memory",
+ "ruse-model",
+ "ruse-plugin",
+ "ruse-policy",
+ "ruse-sandbox",
+ "ruse-scheduler",
+ "ruse-storage",
+ "ruse-telemetry",
+ "ruse-tool",
+ "ruse-types",
+ "ruse-worktree",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "toml 0.8.23",
+]
+
+[[package]]
+name = "ruse-desktop"
+version = "0.1.0"
+dependencies = [
+ "ruse-core",
+ "ruse-policy",
+ "ruse-types",
+ "ruse-ui-bridge",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "ruse-desktop-app"
+version = "0.1.0"
+dependencies = [
+ "ruse-core",
+ "ruse-desktop",
+ "ruse-storage",
+ "ruse-types",
+ "ruse-ui-bridge",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "ruse-eval"
+version = "0.1.0"
+dependencies = [
+ "camino",
+ "ruse-core",
+ "ruse-memory",
+ "ruse-policy",
+ "ruse-storage",
+ "ruse-team",
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "ruse-mcp"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "futures",
+ "reqwest 0.12.28",
+ "ruse-policy",
+ "ruse-sandbox",
+ "ruse-tool",
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "ruse-memory"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+]
+
+[[package]]
+name = "ruse-model"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures-core",
+ "futures-util",
+ "reqwest 0.12.28",
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+]
+
+[[package]]
+name = "ruse-plugin"
+version = "0.1.0"
+dependencies = [
+ "ruse-policy",
+ "ruse-tool",
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "ruse-policy"
+version = "0.1.0"
+dependencies = [
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
+name = "ruse-sandbox"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "ruse-scheduler"
+version = "0.1.0"
+dependencies = [
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "time",
+]
+
+[[package]]
+name = "ruse-skill"
+version = "0.1.0"
+dependencies = [
+ "ruse-context",
+ "serde",
+ "serde_yaml",
+ "tempfile",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "ruse-storage"
+version = "0.1.0"
+dependencies = [
+ "ruse-types",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "ruse-team"
+version = "0.1.0"
+dependencies = [
+ "ruse-policy",
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "ruse-telemetry"
+version = "0.1.0"
+dependencies = [
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "ruse-tool"
+version = "0.1.0"
+dependencies = [
+ "ruse-policy",
+ "ruse-sandbox",
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "ruse-tui"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "crossterm",
+ "insta",
+ "ratatui",
+ "ruse-types",
+ "ruse-ui-bridge",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tui-textarea",
+ "unicode-width 0.2.0",
+]
+
+[[package]]
+name = "ruse-types"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "time",
+ "uuid",
+]
+
+[[package]]
+name = "ruse-ui-bridge"
+version = "0.1.0"
+dependencies = [
+ "ruse-core",
+ "ruse-memory",
+ "ruse-policy",
+ "ruse-scheduler",
+ "ruse-team",
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "time",
+]
+
+[[package]]
+name = "ruse-worktree"
+version = "0.1.0"
+dependencies = [
+ "ruse-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

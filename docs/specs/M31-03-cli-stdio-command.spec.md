@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Expose a script-safe `agent-cli mcp server stdio` command that runs the MCP server session over stdin/stdout.
+Expose a script-safe `ruse-cli mcp server stdio` command that runs the MCP server session over stdin/stdout.
 
 ## Product Context
 
@@ -25,20 +25,20 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` owns IO handles and process exit codes. `agent-mcp` owns frame/session behavior. CLI tests use subprocess stdin/stdout fixtures.
+`ruse-cli` owns IO handles and process exit codes. `ruse-mcp` owns frame/session behavior. CLI tests use subprocess stdin/stdout fixtures.
 
 ## File Layout
 
 ```text
-crates/agent-cli/src/command.rs
-crates/agent-cli/tests/mcp_server_stdio_command.rs
+crates/ruse-cli/src/command.rs
+crates/ruse-cli/tests/mcp_server_stdio_command.rs
 ```
 
 ## Public Contracts
 
 ```bash
-agent-cli mcp server stdio
-agent-cli mcp server stdio --max-frames 10
+ruse-cli mcp server stdio
+ruse-cli mcp server stdio --max-frames 10
 ```
 
 ## State and Failure Handling
@@ -63,7 +63,7 @@ agent-cli mcp server stdio --max-frames 10
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-cli mcp_server_stdio_command` passes.
+- `cargo test -p ruse-cli mcp_server_stdio_command` passes.
 - command can serve initialize and list frames over stdio.
 
 ## Completion Signal

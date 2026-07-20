@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-Memory portability lives in `agent-memory`. Archive contracts use existing memory record concepts and remain independent from storage backends and UI crates.
+Memory portability lives in `ruse-memory`. Archive contracts use existing memory record concepts and remain independent from storage backends and UI crates.
 
 ```mermaid
 flowchart TD
@@ -39,7 +39,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-memory/
+  ruse-memory/
     src/
       lib.rs
       archive.rs
@@ -88,7 +88,7 @@ pub struct MemoryRetentionPolicy {
 
 - Memory records can be exported and imported through a versioned archive.
 - Retention policies are explicit and test-covered.
-- `cargo test -p agent-memory memory_archive` passes.
+- `cargo test -p ruse-memory memory_archive` passes.
 
 ## Completion Signal
 

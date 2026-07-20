@@ -27,14 +27,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns MCP profile construction and can provide helper contracts for approved server export catalogs. `agent-tool` owns built-in tool implementations. `agent-cli` owns CLI argument parsing, workspace path IO, and stdio process wiring only.
+`ruse-mcp` owns MCP profile construction and can provide helper contracts for approved server export catalogs. `ruse-tool` owns built-in tool implementations. `ruse-cli` owns CLI argument parsing, workspace path IO, and stdio process wiring only.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli stdio command"] --> MCP["agent-mcp profile builder"]
-  MCP --> Tools["agent-tool built-ins"]
-  Tools --> Sandbox["agent-sandbox WorkspaceSandbox"]
-  MCP --> Policy["agent-policy"]
+  CLI["ruse-cli stdio command"] --> MCP["ruse-mcp profile builder"]
+  MCP --> Tools["ruse-tool built-ins"]
+  Tools --> Sandbox["ruse-sandbox WorkspaceSandbox"]
+  MCP --> Policy["ruse-policy"]
   MCP --> Session["McpServerSession"]
 ```
 
@@ -42,7 +42,7 @@ flowchart TD
 
 - `McpServerBuiltinToolExportCatalogConfig`
 - `build_mcp_server_builtin_tool_export_catalog`
-- optional CLI `--workspace <path>` for `agent-cli mcp server stdio --profile ...`
+- optional CLI `--workspace <path>` for `ruse-cli mcp server stdio --profile ...`
 - updated `McpServerStdioConfig`
 - tests for list/call behavior over JSON-RPC frames
 
@@ -64,8 +64,8 @@ flowchart TD
 
 ## Testing Strategy
 
-- `agent-mcp` unit/integration tests for catalog construction and manifest binding.
-- `agent-cli` tests for `--workspace` parsing, preflight failures, and protocol-only stdout.
+- `ruse-mcp` unit/integration tests for catalog construction and manifest binding.
+- `ruse-cli` tests for `--workspace` parsing, preflight failures, and protocol-only stdout.
 - stdio JSON-RPC test listing and calling an exported read-only tool.
 - final `cargo xtask ci` with redacted quality evidence.
 

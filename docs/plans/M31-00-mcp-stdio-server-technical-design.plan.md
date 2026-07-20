@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M31 MCP stdio server runtime design baseline and implementation slices.
 
-**Architecture:** Documentation-only slice. `agent-mcp` owns runtime session semantics; `agent-cli` owns IO wiring.
+**Architecture:** Documentation-only slice. `ruse-mcp` owns runtime session semantics; `ruse-cli` owns IO wiring.
 
 **Tech Stack:** Markdown specs and plans.
 

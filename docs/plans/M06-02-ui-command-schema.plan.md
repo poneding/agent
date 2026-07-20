@@ -2,18 +2,18 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add UI command contracts and validation to `agent-ui-bridge`.
+**Goal:** Add UI command contracts and validation to `ruse-ui-bridge`.
 
-**Architecture:** Command schemas stay in `agent-ui-bridge` and depend only on `agent-types` shared IDs/enums. Commands declare intent; they do not execute runtime work or bypass policy.
+**Architecture:** Command schemas stay in `ruse-ui-bridge` and depend only on `ruse-types` shared IDs/enums. Commands declare intent; they do not execute runtime work or bypass policy.
 
-**Tech Stack:** Rust 2024 edition, `agent-ui-bridge`, `agent-types`, serde, serde_json, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-ui-bridge`, `ruse-types`, serde, serde_json, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write UI Command RED Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/ui_command_schema.rs`
+- Create: `crates/ruse-ui-bridge/tests/ui_command_schema.rs`
 
 - [x] **Step 1: Add failing command tests**
 
@@ -32,7 +32,7 @@ The tests should import `UiCommandEnvelope`, `UiCommand`, `UiClientInfo`, `UiPer
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge ui_command_schema
+cargo test -p ruse-ui-bridge ui_command_schema
 ```
 
 Expected: fails because command contracts do not exist.
@@ -40,8 +40,8 @@ Expected: fails because command contracts do not exist.
 ### Task 2: Implement Command Contracts
 
 **Files:**
-- Create: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
+- Create: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add command module**
 
@@ -132,7 +132,7 @@ pub use command::{
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test ui_command_schema
+cargo test -p ruse-ui-bridge --test ui_command_schema
 ```
 
 Expected: all UI command schema tests pass.

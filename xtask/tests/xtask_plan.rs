@@ -129,11 +129,11 @@ fn standard_tasks_map_to_single_cargo_commands() {
     assert_eq!(
         command_plan_for(&Task::DesktopTest),
         vec![
-            cargo(&["test", "-p", "agent-desktop"]),
+            cargo(&["test", "-p", "ruse-desktop"]),
             cargo(&[
                 "test",
                 "-p",
-                "agent-ui-bridge",
+                "ruse-ui-bridge",
                 "--test",
                 "desktop_daily_driver",
             ]),
@@ -152,9 +152,9 @@ fn standard_tasks_map_to_single_cargo_commands() {
         vec![cargo(&[
             "run",
             "-p",
-            "agent-cli",
+            "ruse-cli",
             "--bin",
-            "agent-cli",
+            "ruse-cli",
             "--",
             "eval",
             "suite",
@@ -162,7 +162,7 @@ fn standard_tasks_map_to_single_cargo_commands() {
             "--suite",
             "docs/eval/default.suite.json",
             "--out-dir",
-            "target/agent-eval",
+            "target/ruse-eval",
         ])]
     );
 }
@@ -201,7 +201,7 @@ fn cli_tasks_join_prompt_words_and_forward_to_agent_cli() {
         vec![cargo(&[
             "run",
             "-p",
-            "agent-cli",
+            "ruse-cli",
             "--",
             "--prompt",
             "hello agent",
@@ -221,7 +221,7 @@ fn cli_tasks_join_prompt_words_and_forward_to_agent_cli() {
         vec![cargo(&[
             "run",
             "-p",
-            "agent-cli",
+            "ruse-cli",
             "--",
             "--json",
             "--prompt",

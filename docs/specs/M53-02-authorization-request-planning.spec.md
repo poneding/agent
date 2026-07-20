@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-Pure helpers in `agent-mcp::client_http` consume OAuth metadata, client id, redirect URI, requested scopes, PKCE challenge, and state. The result is a UI-safe plan.
+Pure helpers in `ruse-mcp::client_http` consume OAuth metadata, client id, redirect URI, requested scopes, PKCE challenge, and state. The result is a UI-safe plan.
 
 ## Public Contracts
 
@@ -67,7 +67,7 @@ pub struct McpClientHttpOAuthAuthorizationRequestPlan {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_authorization_request`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_authorization_request`
 - fmt and clippy focused gates pass
 
 ## Completion Signal

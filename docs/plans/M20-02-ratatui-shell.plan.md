@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a minimal `agent-tui` crate with safe terminal lifecycle, pure state, and renderable shell.
+**Goal:** Add a minimal `ruse-tui` crate with safe terminal lifecycle, pure state, and renderable shell.
 
-**Architecture:** `agent-tui` owns terminal UI state and rendering. It receives UI bridge frames later, but this slice only creates the app shell and launcher boundary.
+**Architecture:** `ruse-tui` owns terminal UI state and rendering. It receives UI bridge frames later, but this slice only creates the app shell and launcher boundary.
 
-**Tech Stack:** Rust 2024 edition, Ratatui, Crossterm, `tui-textarea`, `agent-ui-bridge`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Ratatui, Crossterm, `tui-textarea`, `ruse-ui-bridge`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -25,13 +25,13 @@ Run:
 sed -n '1,220p' docs/specs/M20-02-ratatui-shell.spec.md
 ```
 
-Expected: `agent-tui` is UI-only and runtime-agnostic.
+Expected: `ruse-tui` is UI-only and runtime-agnostic.
 
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-tui/tests/shell_state.rs`
-- Create: `crates/agent-tui/tests/shell_render.rs`
+- Create: `crates/ruse-tui/tests/shell_state.rs`
+- Create: `crates/ruse-tui/tests/shell_render.rs`
 
 - [x] **Step 1: Add pure reducer tests**
 
@@ -46,24 +46,24 @@ Assert normal and narrow layouts render transcript placeholder, composer placeho
 Run:
 
 ```bash
-cargo test -p agent-tui
+cargo test -p ruse-tui
 ```
 
-Expected: fails because `agent-tui` does not exist.
+Expected: fails because `ruse-tui` does not exist.
 
 ### Task 3: Implement Crate
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-tui/Cargo.toml`
-- Create: `crates/agent-tui/src/lib.rs`
-- Create: `crates/agent-tui/src/app.rs`
-- Create: `crates/agent-tui/src/render.rs`
-- Create: `crates/agent-tui/src/terminal.rs`
+- Create: `crates/ruse-tui/Cargo.toml`
+- Create: `crates/ruse-tui/src/lib.rs`
+- Create: `crates/ruse-tui/src/app.rs`
+- Create: `crates/ruse-tui/src/render.rs`
+- Create: `crates/ruse-tui/src/terminal.rs`
 
 - [x] **Step 1: Add workspace crate and dependencies**
 
-Add Ratatui, Crossterm, `tui-textarea`, `agent-ui-bridge`, and `agent-types`.
+Add Ratatui, Crossterm, `tui-textarea`, `ruse-ui-bridge`, and `ruse-types`.
 
 - [x] **Step 2: Add app state and reducer**
 
@@ -80,15 +80,15 @@ Implement terminal enter/exit wrapper with cleanup on drop.
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-tui/tests/shell_state.rs`
-- Read: `crates/agent-tui/tests/shell_render.rs`
+- Read: `crates/ruse-tui/tests/shell_state.rs`
+- Read: `crates/ruse-tui/tests/shell_render.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-tui
+cargo test -p ruse-tui
 ```
 
 Expected: tests pass.

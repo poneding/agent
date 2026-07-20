@@ -12,7 +12,7 @@ This slice starts M05 Context and Memory MVP. Later budget planning, compaction,
 
 This spec delivers:
 
-- `agent-context` crate scaffold
+- `ruse-context` crate scaffold
 - `PromptLayerKind`, `PromptLayer`, `PromptMessage`, and `PromptBundle` contracts
 - deterministic prompt layer ordering by priority and insertion order
 - input validation for empty IDs and empty content
@@ -27,12 +27,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-context` owns context assembly contracts and has no dependency on `agent-core`, UI crates, storage, tools, or model providers. `agent-core` can consume `PromptBundle` later, but this slice keeps orchestration out of the new crate.
+`ruse-context` owns context assembly contracts and has no dependency on `ruse-core`, UI crates, storage, tools, or model providers. `ruse-core` can consume `PromptBundle` later, but this slice keeps orchestration out of the new crate.
 
 ```mermaid
 flowchart TD
-  agent_types["agent-types"] --> agent_context["agent-context"]
-  agent_context --> agent_core["agent-core consumes later"]
+  ruse_types["ruse-types"] --> ruse_context["ruse-context"]
+  ruse_context --> ruse_core["ruse-core consumes later"]
 ```
 
 ## File Layout
@@ -40,7 +40,7 @@ flowchart TD
 ```text
 Cargo.toml
 crates/
-  agent-context/
+  ruse-context/
     Cargo.toml
     src/
       lib.rs
@@ -106,15 +106,15 @@ Ordering rule: higher `priority` sorts first; ties preserve caller insertion ord
 - Unit tests prove deterministic ordering and tie stability.
 - Serialization tests prove stable JSON shape for `PromptLayer`.
 - Validation tests prove empty IDs and empty content are rejected.
-- Crate dependency checks prove `agent-context` does not depend on `agent-core`.
+- Crate dependency checks prove `ruse-context` does not depend on `ruse-core`.
 
 ## Acceptance Criteria
 
-- `agent-context` builds as a workspace crate.
+- `ruse-context` builds as a workspace crate.
 - `assemble_prompt_bundle` returns deterministic message order.
 - Invalid layers produce typed errors.
-- `cargo test -p agent-context prompt_layers` passes.
+- `cargo test -p ruse-context prompt_layers` passes.
 
 ## Completion Signal
 
-M05-01 is complete when prompt layer tests pass, `agent-context` is in the workspace, and active focus advances to `M05-02-budget-planner`.
+M05-01 is complete when prompt layer tests pass, `ruse-context` is in the workspace, and active focus advances to `M05-02-budget-planner`.

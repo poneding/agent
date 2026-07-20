@@ -35,7 +35,7 @@ pub struct CargoCommand {
 }
 
 pub const QUALITY_GATE_REPORT_SCHEMA_VERSION: u32 = 1;
-pub const QUALITY_GATE_ARTIFACT_DIR: &str = "target/agent-ci";
+pub const QUALITY_GATE_ARTIFACT_DIR: &str = "target/ruse-ci";
 pub const QUALITY_GATE_REPORT_FILE: &str = "quality-gate-report.json";
 pub const QUALITY_GATE_SUMMARY_FILE: &str = "quality-gate-summary.txt";
 pub const QUALITY_GATE_ARTIFACT_FILES: [&str; 2] =
@@ -850,11 +850,11 @@ pub fn command_plan_for(task: &Task) -> Vec<CargoCommand> {
         Task::Test => vec![test_command()],
         Task::Ci => quality_gate_command_plan(),
         Task::CliPrompt { prompt } => vec![CargoCommand::with_prompt(
-            &["run", "-p", "agent-cli", "--", "--prompt"],
+            &["run", "-p", "ruse-cli", "--", "--prompt"],
             prompt,
         )],
         Task::CliJson { prompt } => vec![CargoCommand::with_prompt(
-            &["run", "-p", "agent-cli", "--", "--json", "--prompt"],
+            &["run", "-p", "ruse-cli", "--", "--json", "--prompt"],
             prompt,
         )],
         Task::PackageCli(options) => {
@@ -865,17 +865,17 @@ pub fn command_plan_for(task: &Task) -> Vec<CargoCommand> {
             vec![CargoCommand::new([
                 "test",
                 "-p",
-                "agent-desktop",
+                "ruse-desktop",
                 "update_manifest",
             ])]
         }
         Task::SupportBundle(_options) => Vec::new(),
         Task::DesktopTest => vec![
-            CargoCommand::new(["test", "-p", "agent-desktop"]),
+            CargoCommand::new(["test", "-p", "ruse-desktop"]),
             CargoCommand::new([
                 "test",
                 "-p",
-                "agent-ui-bridge",
+                "ruse-ui-bridge",
                 "--test",
                 "desktop_daily_driver",
             ]),
@@ -890,9 +890,9 @@ pub fn command_plan_for(task: &Task) -> Vec<CargoCommand> {
         Task::Eval => vec![CargoCommand::new([
             "run",
             "-p",
-            "agent-cli",
+            "ruse-cli",
             "--bin",
-            "agent-cli",
+            "ruse-cli",
             "--",
             "eval",
             "suite",
@@ -900,7 +900,7 @@ pub fn command_plan_for(task: &Task) -> Vec<CargoCommand> {
             "--suite",
             "docs/eval/default.suite.json",
             "--out-dir",
-            "target/agent-eval",
+            "target/ruse-eval",
         ])],
     }
 }
@@ -917,8 +917,8 @@ Commands:
   test                  Run cargo test --workspace
   ci                    Run fmt-check, clippy, tests, and eval with evidence artifacts
   eval                  Run the default evaluation corpus
-  cli-prompt -- <text>  Run agent-cli with --prompt <text>
-  cli-json -- <text>    Run agent-cli with --json --prompt <text>
+  cli-prompt -- <text>  Run ruse-cli with --prompt <text>
+  cli-json -- <text>    Run ruse-cli with --json --prompt <text>
   package-cli           Build and smoke-test a local CLI release artifact
   package-desktop       Plan or build and smoke-test a local Desktop release
   support-bundle        Generate a redacted local support bundle manifest
@@ -1045,7 +1045,7 @@ pub fn package_cli_plan(
         .unwrap_or_else(|| host_target_triple.to_string());
     let binary_name = binary_name_for_target(&target_triple);
 
-    let mut build_args = ["build", "--release", "-p", "agent-cli", "--bin", "agent"]
+    let mut build_args = ["build", "--release", "-p", "ruse-cli", "--bin", "agent"]
         .into_iter()
         .map(str::to_string)
         .collect::<Vec<_>>();
@@ -1166,11 +1166,11 @@ pub fn package_desktop_plan(
         .clone()
         .unwrap_or_else(|| host_target_triple.to_string());
     let artifact_name = format!(
-        "agent-desktop-{version}-{target_triple}-{}.plan.txt",
+        "ruse-desktop-{version}-{target_triple}-{}.plan.txt",
         options.channel.as_str()
     );
     let update_manifest_name = format!(
-        "agent-desktop-{version}-{target_triple}-{}.update.json",
+        "ruse-desktop-{version}-{target_triple}-{}.update.json",
         options.channel.as_str()
     );
     let mut bundle_args = vec![
@@ -1207,9 +1207,9 @@ pub fn package_desktop_plan(
         plan_artifact_path: options.output_dir.join(artifact_name),
         update_manifest_path: options.output_dir.join(update_manifest_name),
         smoke_commands: vec![
-            ReleaseCommand::new("cargo", ["test", "-p", "agent-desktop", "update_manifest"])
+            ReleaseCommand::new("cargo", ["test", "-p", "ruse-desktop", "update_manifest"])
                 .with_env(smoke_env.clone()),
-            ReleaseCommand::new("cargo", ["test", "-p", "agent-desktop", "settings"])
+            ReleaseCommand::new("cargo", ["test", "-p", "ruse-desktop", "settings"])
                 .with_env(smoke_env),
         ],
     }
@@ -1237,8 +1237,8 @@ pub fn desktop_release_smoke_summary(plan: &PackageDesktopPlan) -> DesktopReleas
 fn desktop_smoke_check_id(index: usize, command: &ReleaseCommand) -> &'static str {
     let args = command.args.iter().map(String::as_str).collect::<Vec<_>>();
     match args.as_slice() {
-        ["test", "-p", "agent-desktop", "update_manifest"] => "update_manifest",
-        ["test", "-p", "agent-desktop", "settings"] => "settings",
+        ["test", "-p", "ruse-desktop", "update_manifest"] => "update_manifest",
+        ["test", "-p", "ruse-desktop", "settings"] => "settings",
         _ => match index {
             0 => "smoke_1",
             1 => "smoke_2",
@@ -1259,7 +1259,7 @@ pub fn support_bundle_plan(
         summary_path: options.output_dir.join(SUPPORT_BUNDLE_SUMMARY_FILE),
         release_artifact_dir: workspace_root.join("target/agent-release"),
         quality_gate_dir: workspace_root.join(QUALITY_GATE_ARTIFACT_DIR),
-        eval_report_path: workspace_root.join("target/agent-eval/eval-run-report.json"),
+        eval_report_path: workspace_root.join("target/ruse-eval/eval-run-report.json"),
     }
 }
 
@@ -1299,7 +1299,7 @@ pub fn build_support_bundle_manifest(plan: &SupportBundlePlan) -> SupportBundleM
                 .and_then(|name| name.to_str())
                 .unwrap_or("");
             name.starts_with("agent-")
-                && !name.starts_with("agent-desktop-")
+                && !name.starts_with("ruse-desktop-")
                 && name.ends_with(".json")
         },
     ));
@@ -1311,7 +1311,7 @@ pub fn build_support_bundle_manifest(plan: &SupportBundlePlan) -> SupportBundleM
                 .file_name()
                 .and_then(|name| name.to_str())
                 .unwrap_or("");
-            name.starts_with("agent-desktop-") && name.ends_with(".update.json")
+            name.starts_with("ruse-desktop-") && name.ends_with(".update.json")
         },
     ));
     sections.extend(discover_support_artifacts(
@@ -1322,7 +1322,7 @@ pub fn build_support_bundle_manifest(plan: &SupportBundlePlan) -> SupportBundleM
                 .file_name()
                 .and_then(|name| name.to_str())
                 .unwrap_or("");
-            name.starts_with("agent-desktop-") && name.ends_with(".plan.txt")
+            name.starts_with("ruse-desktop-") && name.ends_with(".plan.txt")
         },
     ));
     sections.push(section_from_optional_file(

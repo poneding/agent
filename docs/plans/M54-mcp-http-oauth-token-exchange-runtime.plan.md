@@ -4,7 +4,7 @@
 
 **Goal:** Add typed, redacted MCP HTTP OAuth token exchange execution for authorization-code flows.
 
-**Architecture:** `agent-mcp` owns exchange request execution, response parsing, diagnostics, and lease conversion. UI/auth/vault layers own browser launch, callback hosting, account UX, refresh/revocation/DCR execution, and durable secret storage.
+**Architecture:** `ruse-mcp` owns exchange request execution, response parsing, diagnostics, and lease conversion. UI/auth/vault layers own browser launch, callback hosting, account UX, refresh/revocation/DCR execution, and durable secret storage.
 
 **Tech Stack:** Rust 2024 edition, serde, async-trait, reqwest form POST boundary, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

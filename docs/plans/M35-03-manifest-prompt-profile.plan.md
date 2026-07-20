@@ -4,7 +4,7 @@
 
 **Goal:** Add manifest-backed prompt export declarations.
 
-**Architecture:** `agent-mcp` manifest code owns parsing and profile construction.
+**Architecture:** `ruse-mcp` manifest code owns parsing and profile construction.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -30,8 +30,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m35 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_manifest_prompts
+CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_manifest_prompts
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -40,11 +40,11 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m35 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_manifest_prompts
-CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp
-CARGO_TARGET_DIR=target/codex-m35 cargo check -p agent-cli
-CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_manifest_prompts
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp
+CARGO_TARGET_DIR=target/codex-m35 cargo check -p ruse-cli
+CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p ruse-cli --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit

@@ -12,7 +12,7 @@ M18 can stop on `PolicyDecision::Ask`, but the runtime needs a durable object th
 
 This spec delivers:
 
-- `PendingApproval` and `ApprovalStatus` contracts in `agent-policy`
+- `PendingApproval` and `ApprovalStatus` contracts in `ruse-policy`
 - approval request id, response, decision, denial reason, and status transition rules
 - approval lease scope and lease-duration intersection helpers
 - UI-safe preview summary metadata, without rich tool-specific preview payloads
@@ -28,33 +28,33 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-policy` owns the approval domain contracts because approval records are policy outcomes, not UI state. `agent-types` owns durable approval ids. `agent-core` will persist and consume these contracts later. `agent-ui-bridge` will project them into UI-safe frames later.
+`ruse-policy` owns the approval domain contracts because approval records are policy outcomes, not UI state. `ruse-types` owns durable approval ids. `ruse-core` will persist and consume these contracts later. `ruse-ui-bridge` will project them into UI-safe frames later.
 
 ```mermaid
 flowchart TD
-  Request["PermissionRequest"] --> Pending["agent-policy PendingApproval"]
+  Request["PermissionRequest"] --> Pending["ruse-policy PendingApproval"]
   Pending --> Response["ApprovalResponse"]
   Response --> Lease["ApprovalLeaseGrant"]
   Pending --> Resume["ApprovalResumeToken"]
-  Core["agent-core M19-05"] -.later.-> Pending
-  UI["agent-ui-bridge M19-02"] -.later.-> Pending
+  Core["ruse-core M19-05"] -.later.-> Pending
+  UI["ruse-ui-bridge M19-02"] -.later.-> Pending
 ```
 
 Dependency rules:
 
-- `agent-policy` may depend on `agent-types` for `ApprovalRequestId`, actor refs, timestamps, and checkpoints.
-- `agent-policy` must not depend on `agent-core`, `agent-tool`, `agent-ui-bridge`, `agent-cli`, or storage.
+- `ruse-policy` may depend on `ruse-types` for `ApprovalRequestId`, actor refs, timestamps, and checkpoints.
+- `ruse-policy` must not depend on `ruse-core`, `ruse-tool`, `ruse-ui-bridge`, `ruse-cli`, or storage.
 - preview data in this slice is summary-only and secret-safe.
 
 ## File Layout
 
 ```text
 crates/
-  agent-types/
+  ruse-types/
     src/
       ids.rs
       lib.rs
-  agent-policy/
+  ruse-policy/
     src/
       approval.rs
       lib.rs
@@ -144,11 +144,11 @@ pub struct ApprovalLeaseGrant {
 
 ## Acceptance Criteria
 
-- `agent-policy` exports pending approval contracts.
+- `ruse-policy` exports pending approval contracts.
 - pending approvals serialize deterministically and do not expose raw tool input.
 - status transitions enforce safe approval semantics.
 - lease grants are scoped and duration-limited.
 
 ## Completion Signal
 
-M19-01 is complete when `cargo test -p agent-policy --test pending_approval` passes and the contracts are exported from `agent-policy`.
+M19-01 is complete when `cargo test -p ruse-policy --test pending_approval` passes and the contracts are exported from `ruse-policy`.

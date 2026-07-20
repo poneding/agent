@@ -4,17 +4,17 @@
 
 **Goal:** Provide a scripted streaming model provider for deterministic runtime tests.
 
-**Architecture:** `agent-model` owns provider-neutral request and stream contracts. The fake provider is the first provider implementation and returns scripted stream events without network access.
+**Architecture:** `ruse-model` owns provider-neutral request and stream contracts. The fake provider is the first provider implementation and returns scripted stream events without network access.
 
-**Tech Stack:** Rust 2024 edition, `agent-types`, `async-trait`, `serde`, `thiserror`, `tokio` for async tests, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-types`, `async-trait`, `serde`, `thiserror`, `tokio` for async tests, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Add Model Dependencies and Modules
 
 **Files:**
-- Modify: `crates/agent-model/Cargo.toml`
-- Modify: `crates/agent-model/src/lib.rs`
+- Modify: `crates/ruse-model/Cargo.toml`
+- Modify: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Add dependencies**
 
@@ -22,7 +22,7 @@ Add:
 
 ```toml
 [dependencies]
-agent-types = { path = "../agent-types" }
+ruse-types = { path = "../ruse-types" }
 async-trait = "0.1"
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
@@ -53,14 +53,14 @@ pub use stream::{ModelStreamEvent, ModelStreamResult};
 ### Task 2: Define Provider Contracts
 
 **Files:**
-- Create: `crates/agent-model/src/request.rs`
-- Create: `crates/agent-model/src/stream.rs`
-- Create: `crates/agent-model/src/provider.rs`
+- Create: `crates/ruse-model/src/request.rs`
+- Create: `crates/ruse-model/src/stream.rs`
+- Create: `crates/ruse-model/src/provider.rs`
 
 - [x] **Step 1: Define model request**
 
 ```rust
-use agent_types::{ConversationId, CorrelationId, TurnId};
+use ruse_types::{ConversationId, CorrelationId, TurnId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -114,8 +114,8 @@ pub trait ModelProvider: Send + Sync {
 ### Task 3: Implement Fake Provider
 
 **Files:**
-- Create: `crates/agent-model/src/fake.rs`
-- Create: `crates/agent-model/tests/fake_model.rs`
+- Create: `crates/ruse-model/src/fake.rs`
+- Create: `crates/ruse-model/tests/fake_model.rs`
 
 - [x] **Step 1: Implement scripted fake provider**
 
@@ -187,12 +187,12 @@ Tests must prove:
 - a completed event is emitted
 - an empty script still emits started and completed
 - provider implements `Send + Sync`
-- request metadata can be constructed from `agent-types` IDs
+- request metadata can be constructed from `ruse-types` IDs
 
 Run:
 
 ```bash
-cargo test -p agent-model fake_model_streams_scripted_deltas
+cargo test -p ruse-model fake_model_streams_scripted_deltas
 ```
 
 Expected: fake model tests pass.

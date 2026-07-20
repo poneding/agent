@@ -8,7 +8,7 @@ This is an explicit product decision, not a forgotten gap. M66 remains focused o
 
 ## Evidence
 
-Existing `agent-mcp` foundations already cover:
+Existing `ruse-mcp` foundations already cover:
 
 - OAuth metadata parsing and validation
 - protected resource metadata
@@ -25,14 +25,14 @@ Existing `agent-mcp` foundations already cover:
 
 Relevant tests:
 
-- `crates/agent-mcp/tests/mcp_client_http_oauth_metadata.rs`
-- `crates/agent-mcp/tests/mcp_client_http_oauth_pkce_state.rs`
-- `crates/agent-mcp/tests/mcp_client_http_oauth_authorization_request.rs`
-- `crates/agent-mcp/tests/mcp_client_http_oauth_callback.rs`
-- `crates/agent-mcp/tests/mcp_client_http_oauth_token_exchange_runner.rs`
-- `crates/agent-mcp/tests/mcp_client_http_oauth_token_exchange_lease.rs`
-- `crates/agent-mcp/tests/mcp_client_http_oauth_token_refresh.rs`
-- `crates/agent-mcp/tests/mcp_client_http_bearer_authorization.rs`
+- `crates/ruse-mcp/tests/mcp_client_http_oauth_metadata.rs`
+- `crates/ruse-mcp/tests/mcp_client_http_oauth_pkce_state.rs`
+- `crates/ruse-mcp/tests/mcp_client_http_oauth_authorization_request.rs`
+- `crates/ruse-mcp/tests/mcp_client_http_oauth_callback.rs`
+- `crates/ruse-mcp/tests/mcp_client_http_oauth_token_exchange_runner.rs`
+- `crates/ruse-mcp/tests/mcp_client_http_oauth_token_exchange_lease.rs`
+- `crates/ruse-mcp/tests/mcp_client_http_oauth_token_refresh.rs`
+- `crates/ruse-mcp/tests/mcp_client_http_bearer_authorization.rs`
 
 ## Current M66 Workflow Need
 
@@ -83,7 +83,7 @@ When OAuth product work resumes:
 ## Verification
 
 ```bash
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-mcp oauth
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-mcp oauth
 cargo fmt --all -- --check
 git diff --check
 ```

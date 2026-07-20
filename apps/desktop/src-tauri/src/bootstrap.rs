@@ -1,4 +1,4 @@
-use agent_desktop::DesktopRoute;
+use ruse_desktop::DesktopRoute;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 

@@ -42,8 +42,8 @@ sequenceDiagram
 ## File Layout
 
 ```text
-crates/agent-cli/tests/mcp_server_workspace_tool_profile.rs
-crates/agent-mcp/tests/mcp_server_builtin_tool_call.rs
+crates/ruse-cli/tests/mcp_server_workspace_tool_profile.rs
+crates/ruse-mcp/tests/mcp_server_builtin_tool_call.rs
 ```
 
 ## Public Contracts
@@ -65,14 +65,14 @@ The protocol output must include an MCP `tools/list` entry for `workspace.read_f
 ## Testing Strategy
 
 - CLI IO test with in-memory stdin/stdout
-- optional direct `agent-mcp` session test for a built-in catalog
+- optional direct `ruse-mcp` session test for a built-in catalog
 - JSON parsing assertions for response shape and content
 - no raw diagnostics on stdout
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-cli mcp_server_workspace_tool_profile`
-- `CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-mcp mcp_server_builtin_tool_call`
+- `CARGO_TARGET_DIR=target/codex-m33 cargo test -p ruse-cli mcp_server_workspace_tool_profile`
+- `CARGO_TARGET_DIR=target/codex-m33 cargo test -p ruse-mcp mcp_server_builtin_tool_call`
 
 ## Completion Signal
 

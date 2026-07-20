@@ -4,16 +4,16 @@
 
 **Goal:** Add read-only Git status and diff tools.
 
-**Architecture:** `agent-tool` implements `GitStatusTool` and `GitDiffTool`, using `agent-sandbox` for cwd validation and `git` subprocesses for fixture-backed behavior.
+**Architecture:** `ruse-tool` implements `GitStatusTool` and `GitDiffTool`, using `ruse-sandbox` for cwd validation and `git` subprocesses for fixture-backed behavior.
 
-**Tech Stack:** Rust 2024 edition, `agent-tool`, `agent-sandbox`, `serde_json`, `tempfile`, local `git`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-tool`, `ruse-sandbox`, `serde_json`, `tempfile`, local `git`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Git Tool Tests
 
 **Files:**
-- Create: `crates/agent-tool/tests/git_tools.rs`
+- Create: `crates/ruse-tool/tests/git_tools.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -22,7 +22,7 @@ Tests must prove clean status, modified status, diff output, non-Git error, trav
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-tool git_tools
+cargo test -p ruse-tool git_tools
 ```
 
 Expected: tests fail because Git tools do not exist.
@@ -30,9 +30,9 @@ Expected: tests fail because Git tools do not exist.
 ### Task 2: Implement Git Tools
 
 **Files:**
-- Create: `crates/agent-tool/src/builtins/git_status.rs`
-- Create: `crates/agent-tool/src/builtins/git_diff.rs`
-- Modify: `crates/agent-tool/src/builtins/mod.rs`
+- Create: `crates/ruse-tool/src/builtins/git_status.rs`
+- Create: `crates/ruse-tool/src/builtins/git_diff.rs`
+- Modify: `crates/ruse-tool/src/builtins/mod.rs`
 
 - [x] **Step 1: Implement status tool**
 
@@ -45,7 +45,7 @@ Run `git diff -- <path>` inside validated cwd and return JSON `{ "diff": "..." }
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-tool git_tools
+cargo test -p ruse-tool git_tools
 ```
 
 Expected: focused tests pass.

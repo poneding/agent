@@ -48,7 +48,7 @@ fn support_bundle_plan_uses_stable_paths() {
     );
     assert_eq!(
         plan.eval_report_path,
-        PathBuf::from("/workspace/target/agent-eval/eval-run-report.json")
+        PathBuf::from("/workspace/target/ruse-eval/eval-run-report.json")
     );
 }
 
@@ -56,8 +56,8 @@ fn support_bundle_plan_uses_stable_paths() {
 fn support_bundle_manifest_collects_allowlisted_artifact_references() {
     let workspace = temp_workspace("manifest");
     let release_dir = workspace.join("target/agent-release");
-    let ci_dir = workspace.join("target/agent-ci");
-    let eval_dir = workspace.join("target/agent-eval");
+    let ci_dir = workspace.join("target/ruse-ci");
+    let eval_dir = workspace.join("target/ruse-eval");
     fs::create_dir_all(&release_dir).expect("release dir");
     fs::create_dir_all(&ci_dir).expect("ci dir");
     fs::create_dir_all(&eval_dir).expect("eval dir");
@@ -67,12 +67,12 @@ fn support_bundle_manifest_collects_allowlisted_artifact_references() {
     )
     .expect("cli manifest");
     fs::write(
-        release_dir.join("agent-desktop-1.2.3-test-dev.update.json"),
+        release_dir.join("ruse-desktop-1.2.3-test-dev.update.json"),
         "{\"ok\":true}\n",
     )
     .expect("desktop manifest");
     fs::write(
-        release_dir.join("agent-desktop-1.2.3-test-dev.plan.txt"),
+        release_dir.join("ruse-desktop-1.2.3-test-dev.plan.txt"),
         "plan\n",
     )
     .expect("desktop plan");

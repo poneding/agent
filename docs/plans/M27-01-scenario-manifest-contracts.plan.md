@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add the `agent-eval` crate and versioned evaluation scenario manifest contracts.
+**Goal:** Add the `ruse-eval` crate and versioned evaluation scenario manifest contracts.
 
-**Architecture:** `agent-eval::manifest` owns parsing, validation, and path normalization. Runner, CLI, and CI code consume validated manifests later.
+**Architecture:** `ruse-eval::manifest` owns parsing, validation, and path normalization. Runner, CLI, and CI code consume validated manifests later.
 
 **Tech Stack:** Rust 2024 edition, serde, camino, thiserror or typed validation errors, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -29,7 +29,7 @@ Expected: the spec defines manifest contracts, validation, privacy, and tests.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-eval/tests/manifest.rs`
+- Create: `crates/ruse-eval/tests/manifest.rs`
 
 - [x] **Step 1: Add manifest serde and validation tests**
 
@@ -40,7 +40,7 @@ Cover a valid manifest, invalid schema version, invalid scenario ID, path traver
 Run:
 
 ```bash
-cargo test -p agent-eval manifest
+cargo test -p ruse-eval manifest
 ```
 
 Expected: tests fail before the crate/contracts exist.
@@ -49,11 +49,11 @@ Expected: tests fail before the crate/contracts exist.
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-eval/Cargo.toml`
-- Create: `crates/agent-eval/src/lib.rs`
-- Create: `crates/agent-eval/src/manifest.rs`
+- Create: `crates/ruse-eval/Cargo.toml`
+- Create: `crates/ruse-eval/src/lib.rs`
+- Create: `crates/ruse-eval/src/manifest.rs`
 
-- [x] **Step 1: Add `agent-eval` crate to the workspace**
+- [x] **Step 1: Add `ruse-eval` crate to the workspace**
 
 Expected: crate compiles and uses workspace lint/rust-version conventions.
 
@@ -66,7 +66,7 @@ Expected: manifests are serializable, reject unsafe input, and normalize fixture
 Run:
 
 ```bash
-cargo test -p agent-eval manifest
+cargo test -p ruse-eval manifest
 ```
 
 Expected: focused tests pass.
@@ -93,8 +93,8 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-eval --all-targets -- -D warnings
-cargo test -p agent-eval
+cargo clippy -p ruse-eval --all-targets -- -D warnings
+cargo test -p ruse-eval
 ```
 
 Expected: all focused checks pass.
@@ -104,7 +104,7 @@ Expected: all focused checks pass.
 Run:
 
 ```bash
-git add Cargo.toml Cargo.lock crates/agent-eval docs
+git add Cargo.toml Cargo.lock crates/ruse-eval docs
 git commit -m "feat: add eval scenario manifests"
 ```
 

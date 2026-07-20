@@ -6,7 +6,7 @@ Add typed client-side JSON-RPC frame helpers for MCP stdio requests and response
 
 ## Product Context
 
-Before a live process transport exists, `agent-mcp` needs deterministic request rendering and response parsing contracts that can be tested without subprocess IO.
+Before a live process transport exists, `ruse-mcp` needs deterministic request rendering and response parsing contracts that can be tested without subprocess IO.
 
 ## Scope
 
@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-Add a new `agent-mcp` module, likely `client_stdio`, that reuses existing `McpJsonRpcId`, `McpJsonRpcRequest`, `McpJsonRpcSuccess`, `McpJsonRpcFailure`, and `McpJsonRpcError`.
+Add a new `ruse-mcp` module, likely `client_stdio`, that reuses existing `McpJsonRpcId`, `McpJsonRpcRequest`, `McpJsonRpcSuccess`, `McpJsonRpcFailure`, and `McpJsonRpcError`.
 
 ## Public Contracts
 
@@ -68,7 +68,7 @@ pub enum McpClientStdioResponseFrame {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_codec`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_codec`
 
 ## Completion Signal
 

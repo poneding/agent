@@ -4,7 +4,7 @@
 
 **Goal:** Execute validated evaluation scenarios and produce typed reports.
 
-**Architecture:** `agent-eval::runner` consumes manifest contracts and calls runtime/replay/evidence crates. UI crates stay consumers only.
+**Architecture:** `ruse-eval::runner` consumes manifest contracts and calls runtime/replay/evidence crates. UI crates stay consumers only.
 
 **Tech Stack:** Rust 2024 edition, serde, existing replay/evidence contracts, tempfile, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,7 +14,7 @@
 
 **Files:**
 - Read: `docs/specs/M27-02-scenario-runner-core.spec.md`
-- Read: `crates/agent-eval/src/manifest.rs`
+- Read: `crates/ruse-eval/src/manifest.rs`
 
 - [x] **Step 1: Review manifest contracts**
 
@@ -23,7 +23,7 @@ Expected: runner consumes validated scenarios only.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-eval/tests/runner.rs`
+- Create: `crates/ruse-eval/tests/runner.rs`
 
 - [x] **Step 1: Add deterministic runner tests**
 
@@ -32,9 +32,9 @@ Cover replay-trace, evidence-only, strict unsupported kind, warn skipped kind, a
 ### Task 3: Implement Runner
 
 **Files:**
-- Create: `crates/agent-eval/src/runner.rs`
-- Create: `crates/agent-eval/src/report.rs`
-- Modify: `crates/agent-eval/src/lib.rs`
+- Create: `crates/ruse-eval/src/runner.rs`
+- Create: `crates/ruse-eval/src/report.rs`
+- Modify: `crates/ruse-eval/src/lib.rs`
 
 - [x] **Step 1: Add report contracts**
 - [x] **Step 2: Add replay/evidence scenario execution**
@@ -46,13 +46,13 @@ Cover replay-trace, evidence-only, strict unsupported kind, warn skipped kind, a
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-eval --all-targets -- -D warnings
-cargo test -p agent-eval runner
+cargo clippy -p ruse-eval --all-targets -- -D warnings
+cargo test -p ruse-eval runner
 ```
 
 - [x] **Step 2: Commit**
 
 ```bash
-git add Cargo.toml Cargo.lock crates/agent-eval docs
+git add Cargo.toml Cargo.lock crates/ruse-eval docs
 git commit -m "feat: add eval scenario runner"
 ```

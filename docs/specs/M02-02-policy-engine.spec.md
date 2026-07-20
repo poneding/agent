@@ -6,13 +6,13 @@ Introduce permission requests, deterministic policy decisions, and permission le
 
 ## Product Context
 
-This slice gives M02 a single authorization path. Tools can be discovered by `agent-tool`, but execution must pass through `agent-policy` before audit and runtime integration.
+This slice gives M02 a single authorization path. Tools can be discovered by `ruse-tool`, but execution must pass through `ruse-policy` before audit and runtime integration.
 
 ## Scope
 
 This spec delivers:
 
-- `agent-policy` crate
+- `ruse-policy` crate
 - capability and resource scope contract
 - `PermissionRequest`
 - `PolicyDecision`
@@ -29,20 +29,20 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-policy` depends on `agent-types` for actor, timestamp, and correlation IDs. It does not depend on `agent-tool`; the integration layer maps tool definitions to permission requests.
+`ruse-policy` depends on `ruse-types` for actor, timestamp, and correlation IDs. It does not depend on `ruse-tool`; the integration layer maps tool definitions to permission requests.
 
 ```mermaid
 flowchart TD
-  agent_core["agent-core"] --> agent_policy["agent-policy"]
-  agent_tool["agent-tool"] --> agent_types["agent-types"]
-  agent_policy --> agent_types
+  ruse_core["ruse-core"] --> ruse_policy["ruse-policy"]
+  ruse_tool["ruse-tool"] --> ruse_types["ruse-types"]
+  ruse_policy --> ruse_types
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-policy/
+  ruse-policy/
     Cargo.toml
     src/
       lib.rs
@@ -82,11 +82,11 @@ pub struct ResourceScope {
 
 pub struct PermissionRequest {
     pub id: String,
-    pub actor: agent_types::ActorRef,
+    pub actor: ruse_types::ActorRef,
     pub action: CapabilityAction,
     pub scope: ResourceScope,
     pub reason: String,
-    pub correlation_id: agent_types::CorrelationId,
+    pub correlation_id: ruse_types::CorrelationId,
 }
 
 pub enum PolicyDecision {
@@ -99,7 +99,7 @@ pub struct PermissionLease {
     pub id: String,
     pub request_id: String,
     pub decision: PolicyDecision,
-    pub issued_at: agent_types::Timestamp,
+    pub issued_at: ruse_types::Timestamp,
 }
 ```
 
@@ -125,11 +125,11 @@ pub struct PermissionLease {
 
 ## Acceptance Criteria
 
-- `agent-policy` is a workspace crate.
+- `ruse-policy` is a workspace crate.
 - Policy decisions are deterministic and serializable.
 - Allow decisions can produce leases.
 - Deny and ask decisions short-circuit execution in later integration.
 
 ## Completion Signal
 
-M02-02 is complete when focused policy tests pass and public contracts are ready for `agent-core` integration.
+M02-02 is complete when focused policy tests pass and public contracts are ready for `ruse-core` integration.

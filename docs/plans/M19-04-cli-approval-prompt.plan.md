@@ -4,7 +4,7 @@
 
 **Goal:** Add plain terminal approval prompts for pending approvals while preserving batch and JSON safety.
 
-**Architecture:** `agent-cli` owns terminal rendering and input parsing. It consumes `agent-ui-bridge` approval frames and produces typed approval response commands; it does not create leases or execute tools.
+**Architecture:** `ruse-cli` owns terminal rendering and input parsing. It consumes `ruse-ui-bridge` approval frames and produces typed approval response commands; it does not create leases or execute tools.
 
 **Tech Stack:** Rust 2024 edition, existing CLI parser/rendering tests, stdin fixture tests, serde JSON frames, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M19-04-cli-approval-prompt.spec.md`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/src/lib.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/src/lib.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
 
 - [x] **Step 1: Review CLI boundaries**
 
@@ -24,7 +24,7 @@ Run:
 
 ```bash
 sed -n '1,220p' docs/specs/M19-04-cli-approval-prompt.spec.md
-sed -n '1,260p' crates/agent-cli/src/command.rs
+sed -n '1,260p' crates/ruse-cli/src/command.rs
 ```
 
 Expected: CLI prompt owns interaction only and delegates approval execution to core.
@@ -32,7 +32,7 @@ Expected: CLI prompt owns interaction only and delegates approval execution to c
 ### Task 2: Write RED CLI Tests
 
 **Files:**
-- Create: `crates/agent-cli/tests/approval_prompt.rs`
+- Create: `crates/ruse-cli/tests/approval_prompt.rs`
 
 - [x] **Step 1: Add prompt parser and rendering tests**
 
@@ -43,7 +43,7 @@ Add tests for allow, deny, abort, invalid input, batch approval-required failure
 Run:
 
 ```bash
-cargo test -p agent-cli --test approval_prompt
+cargo test -p ruse-cli --test approval_prompt
 ```
 
 Expected: compile fails because approval prompt contracts do not exist in CLI.
@@ -51,9 +51,9 @@ Expected: compile fails because approval prompt contracts do not exist in CLI.
 ### Task 3: Implement CLI Prompt
 
 **Files:**
-- Create: `crates/agent-cli/src/approval.rs`
-- Modify: `crates/agent-cli/src/lib.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Create: `crates/ruse-cli/src/approval.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add approval input parser**
 
@@ -70,14 +70,14 @@ Ensure interactive prompts block only in interactive mode; batch and JSON modes 
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-cli/tests/approval_prompt.rs`
+- Read: `crates/ruse-cli/tests/approval_prompt.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-cli --test approval_prompt
+cargo test -p ruse-cli --test approval_prompt
 ```
 
 Expected: focused tests pass.
@@ -87,7 +87,7 @@ Expected: focused tests pass.
 Run:
 
 ```bash
-cargo test -p agent-cli
+cargo test -p ruse-cli
 ```
 
 Expected: all CLI tests pass.

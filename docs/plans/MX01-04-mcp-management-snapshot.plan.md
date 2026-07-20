@@ -5,8 +5,8 @@
 ### Task 1: Add MCP Snapshot Contracts
 
 **Files:**
-- Create: `crates/agent-mcp/src/management_snapshot.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Create: `crates/ruse-mcp/src/management_snapshot.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Define server snapshot, transport, stream, auth, diagnostic, root, sampling, and extension DTOs**
 - [x] **Step 2: Add snapshot builder helpers**
@@ -15,8 +15,8 @@
 ### Task 2: Add Bridge DTOs
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Define bridge-safe MCP management snapshot DTOs**
 - [x] **Step 2: Reuse existing bridge validation/redaction style**
@@ -24,8 +24,8 @@
 ### Task 3: Add Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_management_snapshot.rs`
-- Create: `crates/agent-ui-bridge/tests/mcp_management_snapshot.rs`
+- Create: `crates/ruse-mcp/tests/mcp_management_snapshot.rs`
+- Create: `crates/ruse-ui-bridge/tests/mcp_management_snapshot.rs`
 
 - [x] **Step 1: Cover MCP snapshot redaction/bounding**
 - [x] **Step 2: Cover bridge snapshot serialization**
@@ -35,6 +35,6 @@
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-mcp mcp_management_snapshot
-cargo test -p agent-ui-bridge mcp_management_snapshot
+cargo test -p ruse-mcp mcp_management_snapshot
+cargo test -p ruse-ui-bridge mcp_management_snapshot
 ```

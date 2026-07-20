@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-Reports are typed DTOs in `agent-mcp` and do not depend on CLI/Desktop crates.
+Reports are typed DTOs in `ruse-mcp` and do not depend on CLI/Desktop crates.
 
 ```mermaid
 flowchart TD
@@ -63,9 +63,9 @@ pub struct McpClientHttpStreamSupervisorReport {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_reports`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_reports`
 - `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M52 token lifecycle technical design.
 
-**Architecture:** Documentation-only baseline for `agent-mcp::client_http` token lifecycle contracts.
+**Architecture:** Documentation-only baseline for `ruse-mcp::client_http` token lifecycle contracts.
 
 **Tech Stack:** Markdown, Cargo workspace documentation.
 

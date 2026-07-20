@@ -25,7 +25,7 @@ Owned by later specs:
 
 ## Architecture
 
-Invocation policy lives in `agent-model` as provider-domain decision data. `agent-core` may later wrap a selected provider with policy execution and event emission.
+Invocation policy lives in `ruse-model` as provider-domain decision data. `ruse-core` may later wrap a selected provider with policy execution and event emission.
 
 ## Acceptance Criteria
 

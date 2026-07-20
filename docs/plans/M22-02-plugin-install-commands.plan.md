@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add CLI plugin management commands backed by `agent-plugin` validation and `agent-core` extension registry state.
+**Goal:** Add CLI plugin management commands backed by `ruse-plugin` validation and `ruse-core` extension registry state.
 
-**Architecture:** `agent-cli` parses and renders commands. `agent-plugin` validates manifests and compatibility. `agent-core` owns registry mutation. Install commands do not execute plugin code.
+**Architecture:** `ruse-cli` parses and renders commands. `ruse-plugin` validates manifests and compatibility. `ruse-core` owns registry mutation. Install commands do not execute plugin code.
 
 **Tech Stack:** Rust 2024 edition, serde_json fixture manifests, assert command tests, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M22-02-plugin-install-commands.spec.md`
 - Read: `docs/specs/M22-01-extension-registry.spec.md`
-- Read: `crates/agent-plugin/src/manifest.rs`
-- Read: `crates/agent-plugin/src/capability.rs`
+- Read: `crates/ruse-plugin/src/manifest.rs`
+- Read: `crates/ruse-plugin/src/capability.rs`
 
 - [x] **Step 1: Review plugin UX scope**
 
@@ -31,10 +31,10 @@ Expected: commands, capability review, failure handling, and fixture requirement
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-cli/tests/plugin_commands.rs`
-- Create: `crates/agent-plugin/tests/fixtures/hello-process-plugin/plugin.json`
-- Create: `crates/agent-plugin/tests/fixtures/hello-process-plugin/plugin.sh`
-- Create: `crates/agent-plugin/tests/fixtures/invalid-plugin/plugin.json`
+- Create: `crates/ruse-cli/tests/plugin_commands.rs`
+- Create: `crates/ruse-plugin/tests/fixtures/hello-process-plugin/plugin.json`
+- Create: `crates/ruse-plugin/tests/fixtures/hello-process-plugin/plugin.sh`
+- Create: `crates/ruse-plugin/tests/fixtures/invalid-plugin/plugin.json`
 
 - [x] **Step 1: Add parser and output tests**
 
@@ -53,7 +53,7 @@ Cover missing path, invalid manifest, unsupported compatibility, and duplicate p
 Run:
 
 ```bash
-cargo test -p agent-cli plugin_commands
+cargo test -p ruse-cli plugin_commands
 ```
 
 Expected: tests fail because commands are missing.
@@ -61,9 +61,9 @@ Expected: tests fail because commands are missing.
 ### Task 3: Implement Plugin Commands
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-plugin/src/lib.rs`
-- Modify: `crates/agent-plugin/src/manifest.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-plugin/src/lib.rs`
+- Modify: `crates/ruse-plugin/src/manifest.rs`
 
 - [x] **Step 1: Add command parsing**
 
@@ -84,14 +84,14 @@ Render stable text and JSON outputs without raw env values or secret-like diagno
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-cli/tests/plugin_commands.rs`
+- Read: `crates/ruse-cli/tests/plugin_commands.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-cli plugin_commands
+cargo test -p ruse-cli plugin_commands
 ```
 
 Expected: focused plugin command tests pass.
@@ -124,7 +124,7 @@ Advance active implementation focus to M22-03.
 Run:
 
 ```bash
-git add crates/agent-cli crates/agent-plugin docs Cargo.lock
+git add crates/ruse-cli crates/ruse-plugin docs Cargo.lock
 git commit -m "feat: add plugin install commands"
 ```
 

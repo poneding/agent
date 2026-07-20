@@ -37,10 +37,10 @@
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_metadata
-CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_discovery
-CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_authorization_diagnostics
-CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_bearer_authorization
+CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_metadata
+CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_discovery
+CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_authorization_diagnostics
+CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_bearer_authorization
 ```
 
 - [x] **Step 2: Run final workspace gate**
@@ -68,10 +68,10 @@ git commit -m "feat: complete m51 mcp http oauth authorization runtime"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_metadata`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_discovery`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_authorization_diagnostics`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_bearer_authorization`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_metadata`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_discovery`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_authorization_diagnostics`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_bearer_authorization`
 - `git diff --check`
 - `CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check`
 - `CARGO_TARGET_DIR=target/codex-m51 cargo xtask ci`

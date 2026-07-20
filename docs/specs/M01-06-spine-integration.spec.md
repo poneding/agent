@@ -6,7 +6,7 @@ Run an end-to-end fake turn, persist emitted events, reload them, and verify the
 
 ## Product Context
 
-This slice is part of M01 Runtime Spine MVP. Its design center is agent-core plus agent-model plus agent-storage integration, persisted fake turn fixture, replayed final response, and CLI smoke validation. It builds on earlier M01 slices and keeps the runtime spine testable before tool, policy, memory, scheduler, or UI bridge capabilities are introduced.
+This slice is part of M01 Runtime Spine MVP. Its design center is ruse-core plus ruse-model plus ruse-storage integration, persisted fake turn fixture, replayed final response, and CLI smoke validation. It builds on earlier M01 slices and keeps the runtime spine testable before tool, policy, memory, scheduler, or UI bridge capabilities are introduced.
 
 ## Scope
 
@@ -20,9 +20,9 @@ This slice delivers:
 
 Primary implementation files:
 
-- `crates/agent-core/tests/spine_integration.rs`
-- `crates/agent-cli/tests/runtime_spine.rs`
-- `crates/agent-storage/tests/replay_integration.rs`
+- `crates/ruse-core/tests/spine_integration.rs`
+- `crates/ruse-cli/tests/runtime_spine.rs`
+- `crates/ruse-storage/tests/replay_integration.rs`
 
 ## Boundaries
 

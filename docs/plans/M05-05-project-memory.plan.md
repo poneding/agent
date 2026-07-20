@@ -4,16 +4,16 @@
 
 **Goal:** Add project-scoped memory with audit entries and prove it can feed deterministic context assembly.
 
-**Architecture:** Extend `agent-memory` with audit contracts and project-scope behavior. Add `agent-core` integration coverage that combines `agent-memory` records with `agent-context` prompt layers without putting memory logic into `agent-core`.
+**Architecture:** Extend `ruse-memory` with audit contracts and project-scope behavior. Add `ruse-core` integration coverage that combines `ruse-memory` records with `ruse-context` prompt layers without putting memory logic into `ruse-core`.
 
-**Tech Stack:** Rust 2024 edition, `agent-memory`, `agent-context`, `agent-core`, serde, thiserror, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-memory`, `ruse-context`, `ruse-core`, serde, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Project Memory Tests
 
 **Files:**
-- Create: `crates/agent-memory/tests/project_memory.rs`
+- Create: `crates/ruse-memory/tests/project_memory.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -29,7 +29,7 @@ Use two `WorkspaceId` values and `MemoryScope::Project { workspace_id }`.
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-memory project_memory
+cargo test -p ruse-memory project_memory
 ```
 
 Expected: tests fail because audit contracts do not exist.
@@ -37,9 +37,9 @@ Expected: tests fail because audit contracts do not exist.
 ### Task 2: Implement Project Memory Audit
 
 **Files:**
-- Create: `crates/agent-memory/src/audit.rs`
-- Modify: `crates/agent-memory/src/store.rs`
-- Modify: `crates/agent-memory/src/lib.rs`
+- Create: `crates/ruse-memory/src/audit.rs`
+- Modify: `crates/ruse-memory/src/store.rs`
+- Modify: `crates/ruse-memory/src/lib.rs`
 
 - [x] **Step 1: Add audit contracts**
 
@@ -52,7 +52,7 @@ Extend `InMemoryMemoryStore` with `Vec<MemoryAuditEntry>`. Add an `Added` entry 
 - [x] **Step 3: Verify project memory GREEN**
 
 ```bash
-cargo test -p agent-memory project_memory
+cargo test -p ruse-memory project_memory
 ```
 
 Expected: all project memory tests pass.
@@ -60,8 +60,8 @@ Expected: all project memory tests pass.
 ### Task 3: Add Core Context-Memory Integration
 
 **Files:**
-- Create: `crates/agent-core/tests/m05_context_memory_integration.rs`
-- Modify: `crates/agent-core/Cargo.toml`
+- Create: `crates/ruse-core/tests/m05_context_memory_integration.rs`
+- Modify: `crates/ruse-core/Cargo.toml`
 
 - [x] **Step 1: Add failing integration test**
 
@@ -70,17 +70,17 @@ Write `m05_context_memory_project_memory_feeds_prompt_bundle`. The test should a
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-core m05_context_memory_project_memory_feeds_prompt_bundle
+cargo test -p ruse-core m05_context_memory_project_memory_feeds_prompt_bundle
 ```
 
-Expected: fails until `agent-core` dev-dependencies include `agent-context` and `agent-memory`.
+Expected: fails until `ruse-core` dev-dependencies include `ruse-context` and `ruse-memory`.
 
 - [x] **Step 3: Wire dev-dependencies and verify GREEN**
 
-Add `agent-context` and `agent-memory` as `agent-core` dev-dependencies. Re-run the focused test.
+Add `ruse-context` and `ruse-memory` as `ruse-core` dev-dependencies. Re-run the focused test.
 
 ```bash
-cargo test -p agent-core m05_context_memory_project_memory_feeds_prompt_bundle
+cargo test -p ruse-core m05_context_memory_project_memory_feeds_prompt_bundle
 ```
 
 Expected: integration test passes.

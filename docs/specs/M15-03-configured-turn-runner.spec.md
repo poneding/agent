@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-`ConfiguredTurnRunner` lives in `agent-core::model_runtime` and wraps `TurnEngine`. It accepts `RuntimeIds`, user message, `EffectiveRuntimeConfig`, provider registry, and requirements. It returns final message, emitted events, selected provider/model, and invocation attempt history.
+`ConfiguredTurnRunner` lives in `ruse-core::model_runtime` and wraps `TurnEngine`. It accepts `RuntimeIds`, user message, `EffectiveRuntimeConfig`, provider registry, and requirements. It returns final message, emitted events, selected provider/model, and invocation attempt history.
 
 ## Public Contracts
 
@@ -74,4 +74,4 @@ pub struct ConfiguredTurnOutcome {
 
 ## Completion Signal
 
-M15-03 is complete when `cargo test -p agent-core --test configured_turn_runner` and workspace gates pass, status advances to M15-04, and the slice is committed.
+M15-03 is complete when `cargo test -p ruse-core --test configured_turn_runner` and workspace gates pass, status advances to M15-04, and the slice is committed.

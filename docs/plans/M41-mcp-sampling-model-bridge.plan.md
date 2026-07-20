@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a safe text-only bridge from validated MCP sampling requests to `agent-model` providers.
+**Goal:** Add a safe text-only bridge from validated MCP sampling requests to `ruse-model` providers.
 
-**Architecture:** `agent-mcp` keeps protocol contracts and validation. `agent-core` adds an `mcp_sampling` module that maps MCP sampling requests into `agent-model::ModelRequest` and implements a provider-backed `McpSamplingProvider`.
+**Architecture:** `ruse-mcp` keeps protocol contracts and validation. `ruse-core` adds an `mcp_sampling` module that maps MCP sampling requests into `ruse-model::ModelRequest` and implements a provider-backed `McpSamplingProvider`.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -83,10 +83,10 @@ git commit -m "feat: complete m41 mcp sampling model bridge"
 Passed on 2026-06-29:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_mapping
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_provider
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_redaction
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_guardrails
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_mapping
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_provider
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_redaction
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_guardrails
 git diff --check
 CARGO_TARGET_DIR=target/codex-m41 cargo fmt --all -- --check
 CARGO_TARGET_DIR=target/codex-m41 cargo xtask ci

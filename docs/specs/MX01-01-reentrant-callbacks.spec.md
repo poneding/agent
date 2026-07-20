@@ -22,7 +22,7 @@ Not included:
 
 ## Architecture
 
-`agent-mcp::client_callbacks` owns callback parsing and report rendering. It composes the existing root provider and sampling provider traits. Sampling callbacks reuse existing safe validation before provider execution.
+`ruse-mcp::client_callbacks` owns callback parsing and report rendering. It composes the existing root provider and sampling provider traits. Sampling callbacks reuse existing safe validation before provider execution.
 
 ## Security
 
@@ -30,4 +30,4 @@ Callback reports never expose raw sampling prompt text, provider payloads, local
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_client_reentrant_callbacks`
+- `cargo test -p ruse-mcp mcp_client_reentrant_callbacks`

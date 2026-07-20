@@ -26,7 +26,7 @@ Owned by later slices:
 
 ## Architecture
 
-`ComprehensiveTurnRunner` owns guard accounting and calls the idempotent executor at the side-effect boundary. The runner records guard failures as runtime errors and returns a controlled failed terminal state. Idempotency state stays in `agent-storage`; the runner only derives stable keys and passes them through the existing executor.
+`ComprehensiveTurnRunner` owns guard accounting and calls the idempotent executor at the side-effect boundary. The runner records guard failures as runtime errors and returns a controlled failed terminal state. Idempotency state stays in `ruse-storage`; the runner only derives stable keys and passes them through the existing executor.
 
 ```mermaid
 flowchart TD

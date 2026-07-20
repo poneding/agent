@@ -124,8 +124,8 @@ CARGO_TARGET_DIR=target/m65-dev cargo test -p xtask xtask_plan package_cli
 If CLI commands or diagnostics are touched:
 
 ```bash
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-cli startup_check
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-cli live_provider_registration
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-cli startup_check
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-cli live_provider_registration
 ```
 
 M65 final gates remain in the milestone plan.

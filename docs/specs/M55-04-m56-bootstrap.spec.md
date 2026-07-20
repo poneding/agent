@@ -34,7 +34,7 @@ M56 planning must preserve shared-runtime ownership. CLI, TUI, and Desktop must 
 flowchart TD
   M55["M55 Baseline, Smoke, Backlog"] --> M56Spec["M56 Milestone Spec"]
   M56Spec --> Slice1["M56-01 Repo Session Bootstrap"]
-  Runtime["agent-core and runtime crates"] --> Slice1
+  Runtime["ruse-core and runtime crates"] --> Slice1
   UI["CLI/TUI/Desktop bridge"] --> Slice1
 ```
 

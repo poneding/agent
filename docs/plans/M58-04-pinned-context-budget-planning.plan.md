@@ -4,7 +4,7 @@
 
 **Goal:** Add first-class required/optional pinned project context, budget-aware prompt-layer planning, core orchestration, CLI/JSON evidence, and bridge snapshots while preserving existing retrieval and semantic behavior.
 
-**Architecture:** `agent-context` owns pinned context contracts, validation, metadata-safe prompt layers, and budget decisions. `agent-core` composes workspace scanning, lexical or hybrid retrieval, and pinned budget planning. CLI/TUI/bridge crates render typed reports only.
+**Architecture:** `ruse-context` owns pinned context contracts, validation, metadata-safe prompt layers, and budget decisions. `ruse-core` composes workspace scanning, lexical or hybrid retrieval, and pinned budget planning. CLI/TUI/bridge crates render typed reports only.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing M58 project summaries/retrieval/hybrid reports, existing `ContextBudget` planner, deterministic fixtures, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -17,29 +17,29 @@
 - Read: `docs/specs/M58-project-context-intelligence.spec.md`
 - Read: `docs/specs/M58-02-relevant-file-retrieval.spec.md`
 - Read: `docs/specs/M58-03-semantic-hybrid-search.spec.md`
-- Read: `crates/agent-context/src/budget.rs`
-- Read: `crates/agent-context/src/retrieval.rs`
-- Read: `crates/agent-context/src/semantic.rs`
-- Read: `crates/agent-core/src/project_context.rs`
-- Read: `crates/agent-cli/tests/project_context_retrieval_commands.rs`
-- Read: `crates/agent-cli/tests/project_context_semantic_commands.rs`
-- Read: `crates/agent-ui-bridge/tests/project_context_retrieval_snapshot.rs`
-- Read: `crates/agent-ui-bridge/tests/project_context_semantic_snapshot.rs`
+- Read: `crates/ruse-context/src/budget.rs`
+- Read: `crates/ruse-context/src/retrieval.rs`
+- Read: `crates/ruse-context/src/semantic.rs`
+- Read: `crates/ruse-core/src/project_context.rs`
+- Read: `crates/ruse-cli/tests/project_context_retrieval_commands.rs`
+- Read: `crates/ruse-cli/tests/project_context_semantic_commands.rs`
+- Read: `crates/ruse-ui-bridge/tests/project_context_retrieval_snapshot.rs`
+- Read: `crates/ruse-ui-bridge/tests/project_context_semantic_snapshot.rs`
 
 - [x] **Step 1: Review baseline behavior**
 
 Run:
 
 ```bash
-cargo test -p agent-context --test budget_planner
-cargo test -p agent-context --test context_retrieval
-cargo test -p agent-context --test context_semantic_retrieval
-cargo test -p agent-core --test project_context_retrieval
-cargo test -p agent-core --test project_context_semantic_retrieval
-cargo test -p agent-cli --test project_context_retrieval_commands
-cargo test -p agent-cli --test project_context_semantic_commands
-cargo test -p agent-ui-bridge --test project_context_retrieval_snapshot
-cargo test -p agent-ui-bridge --test project_context_semantic_snapshot
+cargo test -p ruse-context --test budget_planner
+cargo test -p ruse-context --test context_retrieval
+cargo test -p ruse-context --test context_semantic_retrieval
+cargo test -p ruse-core --test project_context_retrieval
+cargo test -p ruse-core --test project_context_semantic_retrieval
+cargo test -p ruse-cli --test project_context_retrieval_commands
+cargo test -p ruse-cli --test project_context_semantic_commands
+cargo test -p ruse-ui-bridge --test project_context_retrieval_snapshot
+cargo test -p ruse-ui-bridge --test project_context_semantic_snapshot
 ```
 
 Expected: existing budget, lexical retrieval, semantic retrieval, CLI, and bridge behavior pass before M58-04 changes.
@@ -47,7 +47,7 @@ Expected: existing budget, lexical retrieval, semantic retrieval, CLI, and bridg
 ### Task 2: Write Failing Context Pin Budget Tests
 
 **Files:**
-- Create: `crates/agent-context/tests/pinned_context_budget.rs`
+- Create: `crates/ruse-context/tests/pinned_context_budget.rs`
 
 - [x] **Step 1: Add pinned context contract tests**
 
@@ -67,19 +67,19 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-context --test pinned_context_budget
+cargo test -p ruse-context --test pinned_context_budget
 ```
 
 Expected: tests fail before pinned context contracts exist.
 
-### Task 3: Implement `agent-context` Pinned Budget Planning
+### Task 3: Implement `ruse-context` Pinned Budget Planning
 
 **Files:**
-- Create: `crates/agent-context/src/pins.rs`
-- Modify: `crates/agent-context/src/lib.rs`
-- Modify if needed: `crates/agent-context/src/budget.rs`
-- Modify if needed: `crates/agent-context/src/retrieval.rs`
-- Modify if needed: `crates/agent-context/src/semantic.rs`
+- Create: `crates/ruse-context/src/pins.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
+- Modify if needed: `crates/ruse-context/src/budget.rs`
+- Modify if needed: `crates/ruse-context/src/retrieval.rs`
+- Modify if needed: `crates/ruse-context/src/semantic.rs`
 
 - [x] **Step 1: Add typed pinned context contracts**
 
@@ -106,7 +106,7 @@ Accept either lexical `ContextRetrievalReport` or semantic `ContextHybridRetriev
 Run:
 
 ```bash
-cargo test -p agent-context --test pinned_context_budget
+cargo test -p ruse-context --test pinned_context_budget
 ```
 
 Expected: context pinned budget tests pass.
@@ -114,9 +114,9 @@ Expected: context pinned budget tests pass.
 ### Task 4: Add Core Scan-Retrieve-Plan Runtime
 
 **Files:**
-- Create: `crates/agent-core/tests/project_context_pinned_budget.rs`
-- Modify: `crates/agent-core/src/project_context.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/tests/project_context_pinned_budget.rs`
+- Modify: `crates/ruse-core/src/project_context.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add core orchestration tests**
 
@@ -131,14 +131,14 @@ Cover:
 
 - [x] **Step 2: Implement core helper**
 
-Add typed input/report values that compose `scan_project_context`, lexical or hybrid retrieval, and pinned context budget planning. Keep pin resolution and budget decisions in `agent-context`.
+Add typed input/report values that compose `scan_project_context`, lexical or hybrid retrieval, and pinned context budget planning. Keep pin resolution and budget decisions in `ruse-context`.
 
 - [x] **Step 3: Run core pin tests**
 
 Run:
 
 ```bash
-cargo test -p agent-core --test project_context_pinned_budget
+cargo test -p ruse-core --test project_context_pinned_budget
 ```
 
 Expected: core pinned budget tests pass.
@@ -146,8 +146,8 @@ Expected: core pinned budget tests pass.
 ### Task 5: Add CLI Text and JSON Pinned Budget Surface
 
 **Files:**
-- Create: `crates/agent-cli/tests/project_context_pinned_commands.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/project_context_pinned_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add CLI tests**
 
@@ -180,7 +180,7 @@ Keep existing `--pin` as a retrieval boost compatibility flag. M58-04 pinned bud
 Run:
 
 ```bash
-cargo test -p agent-cli --test project_context_pinned_commands
+cargo test -p ruse-cli --test project_context_pinned_commands
 ```
 
 Expected: CLI pinned budget tests pass.
@@ -188,11 +188,11 @@ Expected: CLI pinned budget tests pass.
 ### Task 6: Add UI Bridge Pinned Budget Snapshot
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/project_context_pinned_snapshot.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify if needed: `crates/agent-tui/src/trace_panel.rs`
-- Modify if needed: `crates/agent-tui/src/transcript.rs`
+- Create: `crates/ruse-ui-bridge/tests/project_context_pinned_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify if needed: `crates/ruse-tui/src/trace_panel.rs`
+- Modify if needed: `crates/ruse-tui/src/transcript.rs`
 
 - [x] **Step 1: Add bridge tests**
 
@@ -214,7 +214,7 @@ Add a pinned budget snapshot frame derived from typed core reports. Keep UI summ
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test project_context_pinned_snapshot
+cargo test -p ruse-ui-bridge --test project_context_pinned_snapshot
 ```
 
 Expected: bridge pinned budget tests pass.
@@ -233,11 +233,11 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
-cargo test -p agent-context --test pinned_context_budget
-cargo test -p agent-core --test project_context_pinned_budget
-cargo test -p agent-cli --test project_context_pinned_commands
-cargo test -p agent-ui-bridge --test project_context_pinned_snapshot
+cargo clippy -p ruse-context -p ruse-core -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
+cargo test -p ruse-context --test pinned_context_budget
+cargo test -p ruse-core --test project_context_pinned_budget
+cargo test -p ruse-cli --test project_context_pinned_commands
+cargo test -p ruse-ui-bridge --test project_context_pinned_snapshot
 ```
 
 Expected: focused checks pass.

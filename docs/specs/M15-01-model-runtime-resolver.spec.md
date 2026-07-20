@@ -12,7 +12,7 @@ M14 can produce effective config snapshots. M15-01 makes provider selection exec
 
 This spec delivers:
 
-- `agent-core::model_runtime`
+- `ruse-core::model_runtime`
 - `ModelRuntimeResolver`
 - `ConfiguredModelRuntime`
 - `ModelRuntimeError`
@@ -27,7 +27,7 @@ Owned by later specs:
 
 ## Architecture
 
-The resolver lives in `agent-core` because it composes runtime config with model registry contracts. It does not parse files, resolve secrets, or call model providers.
+The resolver lives in `ruse-core` because it composes runtime config with model registry contracts. It does not parse files, resolve secrets, or call model providers.
 
 ## Public Contracts
 
@@ -79,4 +79,4 @@ impl ModelRuntimeResolver {
 
 ## Completion Signal
 
-M15-01 is complete when `cargo test -p agent-core --test model_runtime_resolver` and workspace gates pass, status advances to M15-02, and the slice is committed.
+M15-01 is complete when `cargo test -p ruse-core --test model_runtime_resolver` and workspace gates pass, status advances to M15-02, and the slice is committed.

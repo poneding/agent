@@ -25,13 +25,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::server_session` wraps `McpServerFixture` and `handle_mcp_server_frame`. It does not read stdin or write stdout directly.
+`ruse-mcp::server_session` wraps `McpServerFixture` and `handle_mcp_server_frame`. It does not read stdin or write stdout directly.
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_session.rs
-crates/agent-mcp/tests/mcp_server_session.rs
+crates/ruse-mcp/src/server_session.rs
+crates/ruse-mcp/tests/mcp_server_session.rs
 ```
 
 ## Public Contracts
@@ -65,7 +65,7 @@ pub struct McpServerSessionConfig {
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_server_session` passes.
+- `cargo test -p ruse-mcp mcp_server_session` passes.
 - session runtime has no direct process IO dependency.
 
 ## Completion Signal

@@ -4,9 +4,9 @@
 
 **Goal:** Add typed client-side MCP stdio request/response frame helpers.
 
-**Architecture:** Extend `agent-mcp` with a codec module that reuses existing JSON-RPC contracts.
+**Architecture:** Extend `ruse-mcp` with a codec module that reuses existing JSON-RPC contracts.
 
-**Tech Stack:** Rust 2024 edition, serde JSON, agent-mcp tests.
+**Tech Stack:** Rust 2024 edition, serde JSON, ruse-mcp tests.
 
 ---
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M43-01-client-stdio-codec.spec.md`
-- Read: `crates/agent-mcp/src/server.rs`
-- Read: `crates/agent-mcp/src/client_sampling_stdio.rs`
+- Read: `crates/ruse-mcp/src/server.rs`
+- Read: `crates/ruse-mcp/src/client_sampling_stdio.rs`
 
 - [x] **Step 1: Review JSON-RPC contracts**
 
@@ -24,7 +24,7 @@ Expected: codec can reuse existing envelope types.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_stdio_codec.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_stdio_codec.rs`
 
 - [x] **Step 1: Add codec tests**
 
@@ -42,7 +42,7 @@ mcp_client_stdio_codec_rejects_notifications_as_responses
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_codec
+CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_codec
 ```
 
 Expected: tests fail until the codec exists.
@@ -50,8 +50,8 @@ Expected: tests fail until the codec exists.
 ### Task 3: Implement Codec
 
 **Files:**
-- Create: `crates/agent-mcp/src/client_stdio.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Create: `crates/ruse-mcp/src/client_stdio.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add request frame renderer**
 - [x] **Step 2: Add response frame parser**
@@ -65,8 +65,8 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m43 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m43 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_codec
+CARGO_TARGET_DIR=target/codex-m43 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_codec
 ```
 
 Expected: focused checks pass.
@@ -78,6 +78,6 @@ Expected: focused checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp client stdio codec"
 ```

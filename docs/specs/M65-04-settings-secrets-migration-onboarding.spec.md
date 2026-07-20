@@ -12,7 +12,7 @@ M65-02 and M65-03 prove CLI and Desktop release artifacts can be packaged or pla
 
 This spec delivers:
 
-- a typed `OnboardingReadinessSnapshot` contract in `agent-core`
+- a typed `OnboardingReadinessSnapshot` contract in `ruse-core`
 - readiness summaries for settings, platform paths, secret store health, startup migrations, and provider support
 - stable status values: `ready`, `degraded`, and `blocked`
 - stable diagnostics and next-action ids suitable for CLI/Desktop/support rendering
@@ -27,11 +27,11 @@ Owned by later M65 slices:
 
 ## Architecture
 
-`agent-core` owns readiness decisions. `agent-ui-bridge`, CLI, TUI, and Desktop render typed snapshots only. Secret, migration, and provider policy stays in runtime/model crates.
+`ruse-core` owns readiness decisions. `ruse-ui-bridge`, CLI, TUI, and Desktop render typed snapshots only. Secret, migration, and provider policy stays in runtime/model crates.
 
 ```mermaid
 flowchart TD
-  Config["EffectiveRuntimeConfig"] --> Core["agent-core onboarding readiness"]
+  Config["EffectiveRuntimeConfig"] --> Core["ruse-core onboarding readiness"]
   Settings["SettingsProfile + PlatformPaths"] --> Core
   Secrets["SecretStoreHealth"] --> Core
   Migrations["StartupMigrationOutcome"] --> Core
@@ -44,7 +44,7 @@ flowchart TD
 
 ## Public Contracts
 
-`agent-core` exposes:
+`ruse-core` exposes:
 
 ```rust
 pub struct OnboardingReadinessSnapshot {
@@ -102,10 +102,10 @@ TUI consumes the bridge frame as a runtime/progress summary. Desktop may consume
 Focused checks:
 
 ```bash
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-core onboarding
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-cli --test config_diagnostics
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-ui-bridge -p agent-tui --lib
-CARGO_TARGET_DIR=target/m65-dev cargo clippy -p agent-core -p agent-ui-bridge -p agent-cli -p agent-tui --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-core onboarding
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-cli --test config_diagnostics
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-ui-bridge -p ruse-tui --lib
+CARGO_TARGET_DIR=target/m65-dev cargo clippy -p ruse-core -p ruse-ui-bridge -p ruse-cli -p ruse-tui --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

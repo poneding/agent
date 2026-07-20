@@ -25,7 +25,7 @@ Owned by later M37 specs:
 
 ## Architecture
 
-Manifest parsing stays in `agent-mcp`; `agent-cli` continues to pass manifest path, selected profile, and optional workspace.
+Manifest parsing stays in `ruse-mcp`; `ruse-cli` continues to pass manifest path, selected profile, and optional workspace.
 
 ```mermaid
 flowchart TD
@@ -78,8 +78,8 @@ Expected manifest shape:
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_manifest_resource_templates`
-- `CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-mcp mcp_server_manifest_resource_templates`
+- `CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

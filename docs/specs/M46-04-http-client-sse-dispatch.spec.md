@@ -53,7 +53,7 @@ No CLI/Desktop contract change is expected. Existing `McpClient`, `McpClientRoot
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_dispatch`
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_dispatch`
 - existing M45 HTTP tests still pass
 
 ## Completion Signal

@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `agent-policy` with permission requests, allow/deny/ask decisions, and leases.
+**Goal:** Add `ruse-policy` with permission requests, allow/deny/ask decisions, and leases.
 
-**Architecture:** `agent-policy` depends on `agent-types` for actor, timestamp, and correlation contracts. It stays independent from `agent-tool` so policy can evaluate any capability source.
+**Architecture:** `ruse-policy` depends on `ruse-types` for actor, timestamp, and correlation contracts. It stays independent from `ruse-tool` so policy can evaluate any capability source.
 
-**Tech Stack:** Rust 2024 edition, `agent-types`, `serde`, `thiserror`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-types`, `serde`, `thiserror`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-policy/Cargo.toml`
-- Create: `crates/agent-policy/src/lib.rs`
+- Create: `crates/ruse-policy/Cargo.toml`
+- Create: `crates/ruse-policy/src/lib.rs`
 
 - [x] **Step 1: Add workspace member and manifest**
 
@@ -23,7 +23,7 @@ Dependencies:
 
 ```toml
 [dependencies]
-agent-types = { path = "../agent-types" }
+ruse-types = { path = "../ruse-types" }
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
 uuid = { version = "1", features = ["v4", "serde"] }
@@ -36,7 +36,7 @@ Export `capability`, `decision`, `engine`, `error`, `lease`, and `request`.
 ### Task 2: Write Failing Policy Tests
 
 **Files:**
-- Create: `crates/agent-policy/tests/policy_engine.rs`
+- Create: `crates/ruse-policy/tests/policy_engine.rs`
 
 - [x] **Step 1: Add tests**
 
@@ -51,7 +51,7 @@ Tests must prove:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-policy policy_engine
+cargo test -p ruse-policy policy_engine
 ```
 
 Expected: tests fail before contracts exist.
@@ -59,12 +59,12 @@ Expected: tests fail before contracts exist.
 ### Task 3: Implement Policy Contracts
 
 **Files:**
-- Create: `crates/agent-policy/src/capability.rs`
-- Create: `crates/agent-policy/src/decision.rs`
-- Create: `crates/agent-policy/src/engine.rs`
-- Create: `crates/agent-policy/src/error.rs`
-- Create: `crates/agent-policy/src/lease.rs`
-- Create: `crates/agent-policy/src/request.rs`
+- Create: `crates/ruse-policy/src/capability.rs`
+- Create: `crates/ruse-policy/src/decision.rs`
+- Create: `crates/ruse-policy/src/engine.rs`
+- Create: `crates/ruse-policy/src/error.rs`
+- Create: `crates/ruse-policy/src/lease.rs`
+- Create: `crates/ruse-policy/src/request.rs`
 
 - [x] **Step 1: Implement data contracts**
 
@@ -77,7 +77,7 @@ Implement `StaticPolicyEngine` with explicit rules and default `Ask`.
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-policy policy_engine
+cargo test -p ruse-policy policy_engine
 ```
 
 Expected: focused tests pass.

@@ -4,9 +4,9 @@
 
 **Goal:** Add pure conflict detection for lead/subagent changed-file sets.
 
-**Architecture:** Conflict contracts live in `agent-worktree` and build on the crate created by M09-01. No Git merge, filesystem scan, CLI, or UI behavior is included.
+**Architecture:** Conflict contracts live in `ruse-worktree` and build on the crate created by M09-01. No Git merge, filesystem scan, CLI, or UI behavior is included.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `agent-worktree`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `ruse-worktree`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,7 +14,7 @@
 
 **Files:**
 - Read: `docs/specs/M09-02-conflict-detection.spec.md`
-- Read: `crates/agent-worktree/src/lib.rs`
+- Read: `crates/ruse-worktree/src/lib.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -25,7 +25,7 @@ sed -n '1,260p' docs/specs/M09-02-conflict-detection.spec.md
 ### Task 2: Write Conflict RED Tests
 
 **Files:**
-- Create: `crates/agent-worktree/tests/conflict_detection.rs`
+- Create: `crates/ruse-worktree/tests/conflict_detection.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -41,7 +41,7 @@ Cover:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-worktree conflict_detection
+cargo test -p ruse-worktree conflict_detection
 ```
 
 Expected: fails because conflict APIs do not exist.
@@ -49,8 +49,8 @@ Expected: fails because conflict APIs do not exist.
 ### Task 3: Implement Conflict Detection
 
 **Files:**
-- Create: `crates/agent-worktree/src/conflict.rs`
-- Modify: `crates/agent-worktree/src/lib.rs`
+- Create: `crates/ruse-worktree/src/conflict.rs`
+- Modify: `crates/ruse-worktree/src/lib.rs`
 
 - [x] **Step 1: Add conflict contracts**
 
@@ -63,7 +63,7 @@ Implement `detect_conflicts` with stable path sorting and validation.
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-worktree conflict_detection
+cargo test -p ruse-worktree conflict_detection
 ```
 
 ### Task 4: Update Progress and Commit

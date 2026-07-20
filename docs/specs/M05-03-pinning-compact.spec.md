@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-context` owns compaction contracts. The initial compactor is deterministic and extractive: it preserves pins and joins compactable message snippets into a bounded summary without calling a model.
+`ruse-context` owns compaction contracts. The initial compactor is deterministic and extractive: it preserves pins and joins compactable message snippets into a bounded summary without calling a model.
 
 ```mermaid
 flowchart TD
@@ -39,7 +39,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-context/
+  ruse-context/
     src/
       compact.rs
       lib.rs
@@ -102,7 +102,7 @@ pub fn compact_messages(request: CompactRequest) -> Result<CompactResult, Contex
 - Long message lists compact into a deterministic summary.
 - Pinned messages survive compaction unchanged.
 - Invalid pin input fails with typed diagnostics.
-- `cargo test -p agent-context pinning_compact` passes.
+- `cargo test -p ruse-context pinning_compact` passes.
 
 ## Completion Signal
 

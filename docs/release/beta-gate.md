@@ -12,8 +12,8 @@ Existing release foundations:
 - `cargo xtask support-bundle --channel dev` writes a redacted support bundle manifest and summary.
 - `cargo xtask eval` runs the default regression suite with product smokes for local coding, recovery, team workflows, and memory.
 - `npm --prefix apps/desktop test` and `npm --prefix apps/desktop run build` verify Desktop UI tests and production frontend build.
-- storage/config migration tests exist in `agent-storage` and `agent-core`.
-- Desktop update manifest validation exists in `agent-desktop`.
+- storage/config migration tests exist in `ruse-storage` and `ruse-core`.
+- Desktop update manifest validation exists in `ruse-desktop`.
 
 M65 turns these foundations into one beta-grade release workflow with explicit evidence and support artifacts.
 
@@ -21,11 +21,11 @@ M65 turns these foundations into one beta-grade release workflow with explicit e
 
 | Artifact | Required | Owner | Evidence |
 |---|---:|---|---|
-| CLI package | Yes | `xtask`, `agent-cli` | artifact path, manifest, checksum, release-local smoke commands, install smoke summary |
-| Desktop bundle or bundle plan | Yes | `xtask`, Tauri app, `agent-desktop` | bundle metadata, update manifest, Desktop smoke root, Desktop smoke summary |
-| Default eval report | Yes | `agent-eval`, `xtask` | `target/agent-eval/eval-run-report.json`, summary text |
-| Startup/migration diagnostics | Yes | `agent-core`, `agent-storage` | migrated config/schema report with diagnostics |
-| Provider/keychain diagnostics | Yes | `agent-core`, `agent-model`, CLI/Desktop renderers | onboarding readiness snapshot without raw secret values |
+| CLI package | Yes | `xtask`, `ruse-cli` | artifact path, manifest, checksum, release-local smoke commands, install smoke summary |
+| Desktop bundle or bundle plan | Yes | `xtask`, Tauri app, `ruse-desktop` | bundle metadata, update manifest, Desktop smoke root, Desktop smoke summary |
+| Default eval report | Yes | `ruse-eval`, `xtask` | `target/ruse-eval/eval-run-report.json`, summary text |
+| Startup/migration diagnostics | Yes | `ruse-core`, `ruse-storage` | migrated config/schema report with diagnostics |
+| Provider/keychain diagnostics | Yes | `ruse-core`, `ruse-model`, CLI/Desktop renderers | onboarding readiness snapshot without raw secret values |
 | Support bundle | Yes | `xtask` | redacted manifest and summary with allowlisted artifact references |
 
 ## Gate Status

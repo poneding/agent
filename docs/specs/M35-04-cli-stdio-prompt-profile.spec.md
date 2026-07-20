@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Wire manifest-backed prompt exports into `agent-cli mcp server stdio`.
+Wire manifest-backed prompt exports into `ruse-cli mcp server stdio`.
 
 ## Scope
 
@@ -15,11 +15,11 @@ This spec delivers:
 
 ## Architecture
 
-`agent-cli` reads manifest files and passes prompt exports to `agent-mcp`; it does not implement prompt protocol logic.
+`ruse-cli` reads manifest files and passes prompt exports to `ruse-mcp`; it does not implement prompt protocol logic.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-cli mcp_server_prompt_profile`
+- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-cli mcp_server_prompt_profile`
 
 ## Completion Signal
 

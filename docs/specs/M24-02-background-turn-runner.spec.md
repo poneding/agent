@@ -12,7 +12,7 @@ M18 provides comprehensive turn execution and M24-01 exposes task controls. M24-
 
 This spec delivers:
 
-- `BackgroundTaskRunner` in `agent-core`
+- `BackgroundTaskRunner` in `ruse-core`
 - scheduler lease acquisition and completion/failure integration
 - task run input mapping from `BackgroundAgentTask`
 - runtime event trace ids and checkpoint references in run result summaries
@@ -26,12 +26,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns runner orchestration and consumes `agent-scheduler` leases. `agent-scheduler` remains model/tool agnostic. Storage receives runtime events through existing event store contracts.
+`ruse-core` owns runner orchestration and consumes `ruse-scheduler` leases. `ruse-scheduler` remains model/tool agnostic. Storage receives runtime events through existing event store contracts.
 
 ```mermaid
 flowchart TD
-  Queue["agent-scheduler queue"] --> Lease["TaskRunLease"]
-  Lease --> Runner["agent-core BackgroundTaskRunner"]
+  Queue["ruse-scheduler queue"] --> Lease["TaskRunLease"]
+  Lease --> Runner["ruse-core BackgroundTaskRunner"]
   Runner --> Turn["ComprehensiveTurnRunner"]
   Runner --> QueueDone["complete/fail lease"]
 ```
@@ -39,10 +39,10 @@ flowchart TD
 ## File Layout
 
 ```text
-crates/agent-core/src/
+crates/ruse-core/src/
   background.rs
   lib.rs
-crates/agent-core/tests/
+crates/ruse-core/tests/
   background_turn_runner.rs
 ```
 
@@ -89,7 +89,7 @@ pub struct BackgroundTaskRunOutcome {
 
 - A queued task can be leased and completed by `BackgroundTaskRunner`.
 - Failed model/tool execution marks the task failed or retryable according to scheduler output.
-- Focused tests pass with `cargo test -p agent-core background_turn_runner`.
+- Focused tests pass with `cargo test -p ruse-core background_turn_runner`.
 
 ## Completion Signal
 

@@ -23,7 +23,7 @@ Owned by other specs:
 
 ## Architecture
 
-Parsing remains in `agent-mcp::client_http` and accepts caller-provided JSON values. This slice does not introduce live network fetching.
+Parsing remains in `ruse-mcp::client_http` and accepts caller-provided JSON values. This slice does not introduce live network fetching.
 
 ## Public Contracts
 
@@ -52,9 +52,9 @@ pub fn parse_mcp_client_http_oauth_metadata_json(value: &serde_json::Value)
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_discovery`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_discovery`
 - `CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

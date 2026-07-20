@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Verify prompt arguments through `agent-cli mcp server stdio`.
+**Goal:** Verify prompt arguments through `ruse-cli mcp server stdio`.
 
-**Architecture:** `agent-cli` stays an IO/bootstrap layer; `agent-mcp` owns rendering.
+**Architecture:** `ruse-cli` stays an IO/bootstrap layer; `ruse-mcp` owns rendering.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -29,8 +29,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m36 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p agent-cli --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-cli mcp_server_prompt_arguments
+CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p ruse-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-cli mcp_server_prompt_arguments
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -39,8 +39,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m36 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p agent-cli --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-cli mcp_server_prompt_arguments
+CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p ruse-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-cli mcp_server_prompt_arguments
 ```
 
 ### Task 5: Commit

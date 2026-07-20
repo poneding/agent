@@ -25,13 +25,13 @@ Owned by other specs:
 
 ## Architecture
 
-Approval and diff panels consume UI-safe approval payloads from `agent-ui-bridge`. They emit `UiCommand::ResolveApproval` envelopes and never create leases or execute tools.
+Approval and diff panels consume UI-safe approval payloads from `ruse-ui-bridge`. They emit `UiCommand::ResolveApproval` envelopes and never create leases or execute tools.
 
 ```mermaid
 flowchart TD
   ApprovalFrame["ApprovalRequested"] --> Panel["ApprovalPanelState"]
   Panel --> Command["ResolveApproval command"]
-  Command --> Bridge["agent-ui-bridge"]
+  Command --> Bridge["ruse-ui-bridge"]
 ```
 
 ## Public Contracts

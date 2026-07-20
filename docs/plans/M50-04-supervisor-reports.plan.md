@@ -4,7 +4,7 @@
 
 **Goal:** Add typed, redacted MCP HTTP stream supervisor reports.
 
-**Architecture:** `agent-mcp::client_http` owns report DTOs; UI crates consume serialized safe summaries.
+**Architecture:** `ruse-mcp::client_http` owns report DTOs; UI crates consume serialized safe summaries.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M50-04-supervisor-reports.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/src/lib.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Review report spec and existing reconnect report helpers**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_stream_supervisor_reports.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_stream_supervisor_reports.rs`
 
 - [x] **Step 1: Add supervisor report tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_reports
+CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_reports
 ```
 
 Expected: tests fail before supervisor reports exist.
@@ -37,8 +37,8 @@ Expected: tests fail before supervisor reports exist.
 ### Task 3: Implement Reports
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add supervisor report contract**
 - [x] **Step 2: Add redacted terminal summaries**
@@ -54,7 +54,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit
@@ -64,7 +64,7 @@ CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D 
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp http stream supervisor reports"
 ```
 
@@ -72,6 +72,6 @@ git commit -m "feat: add mcp http stream supervisor reports"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_reports` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_reports` passed.
 - `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

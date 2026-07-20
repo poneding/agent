@@ -26,27 +26,27 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns a deterministic local coding workflow runner for tests. `agent-cli` presents the result. Existing tool, policy, storage, and audit contracts remain replaceable.
+`ruse-core` owns a deterministic local coding workflow runner for tests. `ruse-cli` presents the result. Existing tool, policy, storage, and audit contracts remain replaceable.
 
 ```mermaid
 flowchart TD
-  agent_cli["agent-cli"] --> agent_core["agent-core local workflow"]
-  agent_core --> agent_tool["agent-tool"]
-  agent_core --> agent_policy["agent-policy"]
-  agent_core --> agent_storage["agent-storage"]
+  ruse_cli["ruse-cli"] --> ruse_core["ruse-core local workflow"]
+  ruse_core --> ruse_tool["ruse-tool"]
+  ruse_core --> ruse_policy["ruse-policy"]
+  ruse_core --> ruse_storage["ruse-storage"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       local_coding.rs
       lib.rs
     tests/
       local_coding_e2e.rs
-  agent-cli/
+  ruse-cli/
     tests/
       local_coding.rs
 ```

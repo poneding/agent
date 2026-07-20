@@ -4,7 +4,7 @@
 
 **Goal:** Parse protected-resource and OAuth metadata JSON into typed contracts.
 
-**Architecture:** `agent-mcp::client_http` owns parsing helpers without live network discovery.
+**Architecture:** `ruse-mcp::client_http` owns parsing helpers without live network discovery.
 
 **Tech Stack:** Rust 2024 edition, serde_json, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,28 +14,28 @@
 
 **Files:**
 - Read: `docs/specs/M51-02-protected-resource-discovery.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review discovery spec and parsing helpers**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_oauth_discovery.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_oauth_discovery.rs`
 
 - [x] **Step 1: Add discovery parser tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_discovery
+CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_discovery
 ```
 
 ### Task 3: Implement Discovery Parsing
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add OAuth metadata JSON parser**
 - [x] **Step 2: Add protected resource metadata JSON parser**
@@ -51,7 +51,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit
@@ -61,7 +61,7 @@ CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D 
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp http oauth metadata discovery"
 ```
 
@@ -69,6 +69,6 @@ git commit -m "feat: add mcp http oauth metadata discovery"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_discovery`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_discovery`
 - `CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p ruse-mcp --all-targets -- -D warnings`

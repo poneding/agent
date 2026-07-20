@@ -1,0 +1,29 @@
+---
+source: crates/ruse-tui/tests/snapshots_layout.rs
+assertion_line: 133
+expression: "snapshot(&approval_app(), STANDARD)"
+---
+ I will run the test suite now.                                                         
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+         ┌ Approval required ─────────────────────────────────────────────────┐         
+         │execute command                                                     │         
+         │cargo test --all                                                    │         
+         │run the suite                                                       │         
+         │                                                                    │         
+         │Run cargo test --all                                                │         
+         │                                                                    │         
+         │❯ 1  Allow once                                                     │         
+         │  2  Allow always (this tool + path, this session)                  │         
+         │  3  Reject & redirect                                              │         
+         │↑/↓ select · Enter confirm · Tab next request · Esc dismiss (stays p│         
+         └────────────────────────────────────────────────────────────────────┘         
+                                                                                        
+                                                                                        
+ ────────────────────────────────────────────────────────────────────────────────────── 
+ ❯ type a message — / for commands · Enter to send                                      
+ ────────────────────────────────────────────────────────────────────────────────────── 
+openai / gpt-5.5 · xhigh · normal       ⚠ 1 approval pending · ctx pending/128k  ~/agent

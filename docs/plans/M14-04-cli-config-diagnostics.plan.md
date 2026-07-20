@@ -4,7 +4,7 @@
 
 **Goal:** Add CLI config-check behavior and UI-safe JSON diagnostics.
 
-**Architecture:** `agent-cli` parses config flags and delegates validation to `agent-core::config`. JSON output uses `agent-ui-bridge` frames; CLI does not parse YAML/TOML internals directly.
+**Architecture:** `ruse-cli` parses config flags and delegates validation to `ruse-core::config`. JSON output uses `ruse-ui-bridge` frames; CLI does not parse YAML/TOML internals directly.
 
 **Tech Stack:** Rust 2024 edition, existing CLI parser style, tempfile for tests if already available, serde_json, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M14-04-cli-config-diagnostics.spec.md`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/cli_modes.rs`
-- Read: `crates/agent-cli/tests/json_mode.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/cli_modes.rs`
+- Read: `crates/ruse-cli/tests/json_mode.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -31,7 +31,7 @@ Expected: the spec defines config flags, diagnostics, JSON behavior, and privacy
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-cli/tests/config_diagnostics.rs`
+- Create: `crates/ruse-cli/tests/config_diagnostics.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -48,7 +48,7 @@ Add tests named:
 Run:
 
 ```bash
-cargo test -p agent-cli --test config_diagnostics
+cargo test -p ruse-cli --test config_diagnostics
 ```
 
 Expected: tests fail because config-check CLI behavior does not exist.
@@ -56,9 +56,9 @@ Expected: tests fail because config-check CLI behavior does not exist.
 ### Task 3: Implement CLI Diagnostics
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/src/lib.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Extend CLI invocation**
 
@@ -78,7 +78,7 @@ Text mode prints a concise config summary. JSON mode emits parseable frames and 
 Run:
 
 ```bash
-cargo test -p agent-cli --test config_diagnostics
+cargo test -p ruse-cli --test config_diagnostics
 ```
 
 Expected: focused tests pass.

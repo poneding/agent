@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Register executable live model providers from effective runtime config without moving provider-specific code into `agent-core`.
+Register executable live model providers from effective runtime config without moving provider-specific code into `ruse-core`.
 
 ## Product Context
 
@@ -26,13 +26,13 @@ Out of scope:
 
 ## Architecture
 
-`agent-cli` owns config-to-registry wiring for the CLI process. `agent-model` owns provider implementations. `agent-core` continues to accept a `ModelProviderRegistry` and never imports reqwest or provider-specific setup logic.
+`ruse-cli` owns config-to-registry wiring for the CLI process. `ruse-model` owns provider implementations. `ruse-core` continues to accept a `ModelProviderRegistry` and never imports reqwest or provider-specific setup logic.
 
 Dependency rules:
 
-- `agent-cli` may depend on `agent-model` provider constructors.
-- `agent-core` must not depend on reqwest.
-- `agent-model` must not read CLI flags.
+- `ruse-cli` may depend on `ruse-model` provider constructors.
+- `ruse-core` must not depend on reqwest.
+- `ruse-model` must not read CLI flags.
 
 ## State And Failure Handling
 
@@ -52,7 +52,7 @@ Only secret references are stored in config. Raw secret values are resolved insi
 - disabled providers are not registered
 - missing env secret fails safely
 - fake prompt runtime remains deterministic
-- core tests prove no provider-specific dependency leaks into `agent-core`
+- core tests prove no provider-specific dependency leaks into `ruse-core`
 
 ## Acceptance Criteria
 

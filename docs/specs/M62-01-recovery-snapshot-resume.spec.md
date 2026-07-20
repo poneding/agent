@@ -40,37 +40,37 @@ Owned by later M62 specs:
 
 ## Architecture
 
-`agent-types` owns durable, serde-friendly recovery data contracts. `agent-core` owns snapshot construction, recovery readiness classification, dry-run planning, and mapping existing storage/core errors into typed diagnostics. `agent-storage` remains the owner of event, checkpoint, replay, and idempotency stores. `agent-ui-bridge` may receive additive frame/command contracts only if needed by tests in this slice; no CLI, TUI, Desktop, or TypeScript presentation logic is required for M62-01.
+`ruse-types` owns durable, serde-friendly recovery data contracts. `ruse-core` owns snapshot construction, recovery readiness classification, dry-run planning, and mapping existing storage/core errors into typed diagnostics. `ruse-storage` remains the owner of event, checkpoint, replay, and idempotency stores. `ruse-ui-bridge` may receive additive frame/command contracts only if needed by tests in this slice; no CLI, TUI, Desktop, or TypeScript presentation logic is required for M62-01.
 
 ```mermaid
 flowchart TD
-  Types["agent-types recovery contracts"] --> Core["agent-core recovery snapshot builder"]
-  Storage["agent-storage events, checkpoints, replay, idempotency"] --> Core
-  Core --> Bridge["agent-ui-bridge additive recovery payloads if needed"]
+  Types["ruse-types recovery contracts"] --> Core["ruse-core recovery snapshot builder"]
+  Storage["ruse-storage events, checkpoints, replay, idempotency"] --> Core
+  Core --> Bridge["ruse-ui-bridge additive recovery payloads if needed"]
 ```
 
 Dependency rules:
 
-- Snapshot construction must live in `agent-core`, not in CLI, TUI, Desktop, Tauri, or React.
+- Snapshot construction must live in `ruse-core`, not in CLI, TUI, Desktop, Tauri, or React.
 - Durable/public recovery contracts must be typed and `Serialize`/`Deserialize`.
-- Recovery snapshots must consume existing storage traits instead of adding direct SQL or backend-specific logic to `agent-core`.
+- Recovery snapshots must consume existing storage traits instead of adding direct SQL or backend-specific logic to `ruse-core`.
 - Resume dry-run must not execute model, tool, command, policy mutation, checkpoint mutation, or audit side effects.
 
 ## File Layout
 
 ```text
 crates/
-  agent-types/
+  ruse-types/
     src/
       recovery.rs
       lib.rs
-  agent-core/
+  ruse-core/
     src/
       recovery.rs
       lib.rs
     tests/
       recovery_snapshot.rs
-  agent-storage/
+  ruse-storage/
     src/
       checkpoint.rs
       replay.rs
@@ -184,8 +184,8 @@ The existing `RecoveryPlan` and `RecoveryOutcome` may remain for internal compat
 
 ## Testing Strategy
 
-- `agent-types` tests or coverage through `agent-core` tests for serde shape and enum naming.
-- `agent-core/tests/recovery_snapshot.rs` should cover:
+- `ruse-types` tests or coverage through `ruse-core` tests for serde shape and enum naming.
+- `ruse-core/tests/recovery_snapshot.rs` should cover:
   - no-checkpoint snapshot starts from sequence 1 and is ready
   - valid checkpoint snapshot starts from the next sequence and includes checkpoint metadata
   - corrupt checkpoint reports blocking diagnostic
@@ -205,13 +205,13 @@ The existing `RecoveryPlan` and `RecoveryOutcome` may remain for internal compat
 - Dry-run resume is read-only and reports planned replay/resume/reuse counts.
 - Focused verification passes:
   - `cargo fmt --all -- --check`
-  - `cargo clippy -p agent-types -p agent-core -p agent-storage -p agent-ui-bridge --all-targets -- -D warnings`
-  - `cargo test -p agent-types`
-  - `cargo test -p agent-core --test recovery_snapshot`
-  - `cargo test -p agent-core --test approval_resume_recovery`
-  - `cargo test -p agent-core --test comprehensive_turn_idempotency`
-  - `cargo test -p agent-storage --test checkpoint_store`
-  - `cargo test -p agent-storage --test replay_integration`
+  - `cargo clippy -p ruse-types -p ruse-core -p ruse-storage -p ruse-ui-bridge --all-targets -- -D warnings`
+  - `cargo test -p ruse-types`
+  - `cargo test -p ruse-core --test recovery_snapshot`
+  - `cargo test -p ruse-core --test approval_resume_recovery`
+  - `cargo test -p ruse-core --test comprehensive_turn_idempotency`
+  - `cargo test -p ruse-storage --test checkpoint_store`
+  - `cargo test -p ruse-storage --test replay_integration`
 
 ## Completion Signal
 

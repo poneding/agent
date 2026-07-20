@@ -6,7 +6,7 @@
 
 **Architecture:** Runtime/extension crates own compatibility, health, capability review, OAuth state, and support evidence. CLI/TUI/Desktop render typed summaries.
 
-**Tech Stack:** Rust 2024 edition, existing `agent-plugin`, `agent-skill`, `agent-mcp`, `agent-core`, `agent-ui-bridge`, `agent-cli`, Desktop React/Vitest when touched, Cargo fmt/clippy/test.
+**Tech Stack:** Rust 2024 edition, existing `ruse-plugin`, `ruse-skill`, `ruse-mcp`, `ruse-core`, `ruse-ui-bridge`, `ruse-cli`, Desktop React/Vitest when touched, Cargo fmt/clippy/test.
 
 ---
 
@@ -16,12 +16,12 @@
 - Read: `docs/specs/M66-extensions-mcp-hardening.spec.md`
 - Read: `docs/roadmap/PRODUCT_GAP_BACKLOG.md`
 - Read: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
-- Read: `crates/agent-core/src/extension.rs`
-- Read: `crates/agent-plugin/`
-- Read: `crates/agent-skill/`
-- Read: `crates/agent-mcp/`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-cli/src/command.rs`
+- Read: `crates/ruse-core/src/extension.rs`
+- Read: `crates/ruse-plugin/`
+- Read: `crates/ruse-skill/`
+- Read: `crates/ruse-mcp/`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-cli/src/command.rs`
 - Read: `apps/desktop/src/components/ExtensionHealthView.tsx`
 
 - [x] **Step 1: Confirm current extension foundations**
@@ -33,10 +33,10 @@ Existing foundations include plugin install/manage commands, skill root commands
 **Files:**
 - Create: `docs/specs/M66-01-extension-health-baseline-smoke.spec.md`
 - Create: `docs/plans/M66-01-extension-health-baseline-smoke.plan.md`
-- Modify: `crates/agent-core/src/extension.rs`
-- Modify if needed: `crates/agent-ui-bridge/`
-- Modify if needed: `crates/agent-cli/`
-- Modify if needed: `crates/agent-eval/`
+- Modify: `crates/ruse-core/src/extension.rs`
+- Modify if needed: `crates/ruse-ui-bridge/`
+- Modify if needed: `crates/ruse-cli/`
+- Modify if needed: `crates/ruse-eval/`
 - Modify: `docs/`
 
 - [x] **Step 1: Plan extension health smoke**
@@ -52,7 +52,7 @@ Reuse existing extension registry, plugin, skill, and MCP contracts. Do not crea
 **Files:**
 - Create: `docs/specs/M66-02-plugin-skill-management-hardening.spec.md`
 - Create: `docs/plans/M66-02-plugin-skill-management-hardening.plan.md`
-- Modify as needed: `crates/agent-plugin/`, `crates/agent-skill/`, `crates/agent-cli/`, `crates/agent-ui-bridge/`
+- Modify as needed: `crates/ruse-plugin/`, `crates/ruse-skill/`, `crates/ruse-cli/`, `crates/ruse-ui-bridge/`
 
 - [x] **Step 1: Plan plugin/skill hardening**
 
@@ -67,7 +67,7 @@ Add only user-visible management polish and tests.
 **Files:**
 - Create: `docs/specs/M66-03-mcp-management-compatibility-health.spec.md`
 - Create: `docs/plans/M66-03-mcp-management-compatibility-health.plan.md`
-- Modify as needed: `crates/agent-mcp/`, `crates/agent-core/`, `crates/agent-ui-bridge/`, `crates/agent-cli/`
+- Modify as needed: `crates/ruse-mcp/`, `crates/ruse-core/`, `crates/ruse-ui-bridge/`, `crates/ruse-cli/`
 
 - [x] **Step 1: Plan MCP management health**
 

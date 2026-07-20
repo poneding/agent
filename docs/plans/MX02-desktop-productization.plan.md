@@ -4,7 +4,7 @@
 
 **Goal:** Productize Desktop into a polished local coding-agent workspace while preserving the shared Rust runtime, typed bridge contracts, and React-as-presentation boundary.
 
-**Architecture:** `agent-model` owns provider/model config contracts, `agent-ui-bridge` owns UI commands/frames/snapshots, `agent-desktop` owns Desktop view models, Tauri owns a narrow command bridge, and React renders typed state. M62 recovery implementation is out of scope for this lane.
+**Architecture:** `ruse-model` owns provider/model config contracts, `ruse-ui-bridge` owns UI commands/frames/snapshots, `ruse-desktop` owns Desktop view models, Tauri owns a narrow command bridge, and React renders typed state. M62 recovery implementation is out of scope for this lane.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, Tauri 2, React 18, TypeScript, Vite, Vitest, CSS variables/plain CSS initially, optional Radix UI primitives/class-variance-authority/lucide-react after dependency/build review, Cargo fmt/clippy/test, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, `cargo xtask desktop-test`, and `cargo xtask eval`.
 
@@ -30,9 +30,9 @@
 - Read: `apps/desktop/src/components/`
 - Read: `apps/desktop/src/state/`
 - Read: `apps/desktop/src-tauri/src/`
-- Read: `crates/agent-desktop/src/`
-- Read: `crates/agent-ui-bridge/src/`
-- Read: `crates/agent-model/src/config.rs`
+- Read: `crates/ruse-desktop/src/`
+- Read: `crates/ruse-ui-bridge/src/`
+- Read: `crates/ruse-model/src/config.rs`
 
 - [x] **Step 1: Review baseline**
 
@@ -51,8 +51,8 @@ Run:
 ```bash
 npm --prefix apps/desktop test
 npm --prefix apps/desktop run build
-cargo test -p agent-desktop
-cargo test -p agent-ui-bridge
+cargo test -p ruse-desktop
+cargo test -p ruse-ui-bridge
 ```
 
 Expected: existing Desktop contracts and UI pass before productization changes.
@@ -94,9 +94,9 @@ Expected: shell navigation, toggles, command palette skeleton, inspector tabs, a
 **Files:**
 - Read: `docs/specs/MX02-02-thread-composer-experience.spec.md`
 - Read: `docs/plans/MX02-02-thread-composer-experience.plan.md`
-- Modify: `crates/agent-desktop/src/conversation.rs`
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-desktop/src/conversation.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
 - Modify: `apps/desktop/src/components/Composer.tsx`
 - Modify: `apps/desktop/src/components/ConversationList.tsx`
 - Modify: `apps/desktop/src/components/TranscriptView.tsx`
@@ -129,9 +129,9 @@ Expected: thread and composer state is keyboard-friendly, typed-frame-driven, an
 **Files:**
 - Read: `docs/specs/MX02-03-provider-model-configuration.spec.md`
 - Read: `docs/plans/MX02-03-provider-model-configuration.plan.md`
-- Modify: `crates/agent-model/src/config.rs`
-- Modify: `crates/agent-desktop/src/settings.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-model/src/config.rs`
+- Modify: `crates/ruse-desktop/src/settings.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
 - Modify: `apps/desktop/src/components/SettingsView.tsx`
 - Modify: `apps/desktop/src/state/settings.ts`
 - Modify: `apps/desktop/src/types.ts`
@@ -151,10 +151,10 @@ Add provider list, model table/cards, add/edit provider dialog, base URL field, 
 Run:
 
 ```bash
-cargo clippy -p agent-model -p agent-desktop -p agent-ui-bridge --all-targets -- -D warnings
-cargo test -p agent-model
-cargo test -p agent-desktop --test settings
-cargo test -p agent-ui-bridge --test config_snapshot
+cargo clippy -p ruse-model -p ruse-desktop -p ruse-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-model
+cargo test -p ruse-desktop --test settings
+cargo test -p ruse-ui-bridge --test config_snapshot
 npm --prefix apps/desktop test -- trace-settings-ui
 npm --prefix apps/desktop run build
 ```
@@ -166,10 +166,10 @@ Expected: provider/model snapshots are typed, diagnosable, capability-aware, and
 **Files:**
 - Read: `docs/specs/MX02-04-inspector-panels.spec.md`
 - Read: `docs/plans/MX02-04-inspector-panels.plan.md`
-- Modify: `crates/agent-desktop/src/diff.rs`
-- Modify: `crates/agent-desktop/src/permission.rs`
-- Modify: `crates/agent-desktop/src/task.rs`
-- Modify: `crates/agent-desktop/src/trace.rs`
+- Modify: `crates/ruse-desktop/src/diff.rs`
+- Modify: `crates/ruse-desktop/src/permission.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
+- Modify: `crates/ruse-desktop/src/trace.rs`
 - Modify: `apps/desktop/src/components/`
 - Modify: `apps/desktop/src/state/`
 - Modify: `apps/desktop/src/types.ts`
@@ -188,7 +188,7 @@ Changes show file list, hunk preview, staged/unstaged badges, and placeholders f
 Run:
 
 ```bash
-cargo test -p agent-desktop --test permissions_diffs --test conversation_tasks --test plan_todo_tasks
+cargo test -p ruse-desktop --test permissions_diffs --test conversation_tasks --test plan_todo_tasks
 npm --prefix apps/desktop test -- approval-diff-ui conversation-task-ui desktop-smoke
 npm --prefix apps/desktop run build
 ```

@@ -4,16 +4,16 @@
 
 **Goal:** Add a workspace-confined file edit tool with preview and apply modes.
 
-**Architecture:** `agent-tool` implements `FileEditTool` in built-ins and uses `agent-sandbox` for path confinement. The tool emits deterministic JSON output so later CLI and audit layers can render diffs.
+**Architecture:** `ruse-tool` implements `FileEditTool` in built-ins and uses `ruse-sandbox` for path confinement. The tool emits deterministic JSON output so later CLI and audit layers can render diffs.
 
-**Tech Stack:** Rust 2024 edition, `agent-tool`, `agent-sandbox`, `serde_json`, `tempfile`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-tool`, `ruse-sandbox`, `serde_json`, `tempfile`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write File Edit Tool Tests
 
 **Files:**
-- Create: `crates/agent-tool/tests/file_edit_tool.rs`
+- Create: `crates/ruse-tool/tests/file_edit_tool.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -22,7 +22,7 @@ Tests must prove preview does not mutate, apply mutates, expected mismatch rejec
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-tool file_edit_tool
+cargo test -p ruse-tool file_edit_tool
 ```
 
 Expected: tests fail because `FileEditTool` does not exist.
@@ -30,8 +30,8 @@ Expected: tests fail because `FileEditTool` does not exist.
 ### Task 2: Implement File Edit Tool
 
 **Files:**
-- Create: `crates/agent-tool/src/builtins/edit_file.rs`
-- Modify: `crates/agent-tool/src/builtins/mod.rs`
+- Create: `crates/ruse-tool/src/builtins/edit_file.rs`
+- Modify: `crates/ruse-tool/src/builtins/mod.rs`
 
 - [x] **Step 1: Implement preview mode**
 
@@ -44,7 +44,7 @@ Write replacement content only after sandbox resolution and optional expected-co
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-tool file_edit_tool
+cargo test -p ruse-tool file_edit_tool
 ```
 
 Expected: focused tests pass.

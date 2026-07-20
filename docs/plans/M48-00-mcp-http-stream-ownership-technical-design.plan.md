@@ -4,7 +4,7 @@
 
 **Goal:** Define the M48 stream ownership implementation boundary before runtime changes begin.
 
-**Architecture:** Documentation-only design baseline for `agent-mcp` GET stream contracts, transport, resume headers, drain, redaction, and verification.
+**Architecture:** Documentation-only design baseline for `ruse-mcp` GET stream contracts, transport, resume headers, drain, redaction, and verification.
 
 **Tech Stack:** Markdown, Mermaid, Rust contract sketches.
 
@@ -15,7 +15,7 @@
 **Files:**
 - Read: `docs/specs/M47-mcp-http-session-resume-runtime.spec.md`
 - Read: `docs/plans/M47-mcp-http-session-resume-runtime.plan.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review M47 boundary and current HTTP client state**
 

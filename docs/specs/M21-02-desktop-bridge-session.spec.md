@@ -27,14 +27,14 @@ Owned by other specs:
 
 ## Architecture
 
-The Tauri command layer owns session orchestration. `agent-ui-bridge` owns command/event schemas. `agent-core` remains behind the bridge-facing command layer and is not referenced by frontend code.
+The Tauri command layer owns session orchestration. `ruse-ui-bridge` owns command/event schemas. `ruse-core` remains behind the bridge-facing command layer and is not referenced by frontend code.
 
 ```mermaid
 flowchart TD
   Frontend["Desktop UI"] --> Commands["Tauri bridge commands"]
   Commands --> Session["DesktopRuntimeSession"]
-  Session --> UiBridge["agent-ui-bridge"]
-  Session --> Core["agent-core runtime facade"]
+  Session --> UiBridge["ruse-ui-bridge"]
+  Session --> Core["ruse-core runtime facade"]
 ```
 
 ## File Layout

@@ -29,11 +29,11 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-mcp::client_http` owns pure OAuth flow contracts next to existing metadata, authorization, and token lifecycle contracts. Callers provide randomness, client metadata, redirect URIs, requested scopes, and callback query values. `agent-mcp` validates, plans, and renders safe DTOs but does not own browser launch, HTTP callback servers, secret storage, or remote token endpoint execution.
+`ruse-mcp::client_http` owns pure OAuth flow contracts next to existing metadata, authorization, and token lifecycle contracts. Callers provide randomness, client metadata, redirect URIs, requested scopes, and callback query values. `ruse-mcp` validates, plans, and renders safe DTOs but does not own browser launch, HTTP callback servers, secret storage, or remote token endpoint execution.
 
 ```mermaid
 flowchart TD
-  UI["CLI / TUI / Desktop Auth UX"] --> Flow["agent-mcp::client_http OAuth Flow"]
+  UI["CLI / TUI / Desktop Auth UX"] --> Flow["ruse-mcp::client_http OAuth Flow"]
   Metadata["OAuth Metadata"] --> Flow
   Flow --> AuthUrl["Authorization URL Plan"]
   Flow --> Callback["Callback Validation"]
@@ -79,7 +79,7 @@ pub struct McpClientHttpOAuthTokenExchangeRequest {
 
 - PKCE verifier, authorization code, state nonce, client secret, callback query, token endpoint bodies, and provider error descriptions are redacted from public diagnostics and `Debug`.
 - Public authorization request plans may expose the final authorization URL because it is intended for user navigation, but diagnostics must not repeat secret-like input.
-- `agent-mcp` does not persist verifier, authorization code, refresh token, access token, client secret, or token response bodies.
+- `ruse-mcp` does not persist verifier, authorization code, refresh token, access token, client secret, or token response bodies.
 - State validation is mandatory before token exchange request construction.
 
 ## Testing Strategy
@@ -93,10 +93,10 @@ pub struct McpClientHttpOAuthTokenExchangeRequest {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_pkce_state`
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_authorization_request`
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_callback`
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_flow_diagnostics`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_pkce_state`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_authorization_request`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_callback`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_flow_diagnostics`
 - `CARGO_TARGET_DIR=target/codex-m53 cargo xtask ci`
 
 ## Completion Signal

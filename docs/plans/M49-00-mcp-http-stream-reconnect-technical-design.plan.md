@@ -4,7 +4,7 @@
 
 **Goal:** Define the M49 reconnect implementation boundary before runtime changes begin.
 
-**Architecture:** Documentation-only design baseline for `agent-mcp` reconnect policy, runner, replay diagnostics, trace reports, redaction, and verification.
+**Architecture:** Documentation-only design baseline for `ruse-mcp` reconnect policy, runner, replay diagnostics, trace reports, redaction, and verification.
 
 **Tech Stack:** Markdown, Mermaid, Rust contract sketches.
 
@@ -15,7 +15,7 @@
 **Files:**
 - Read: `docs/specs/M48-mcp-http-stream-ownership-runtime.spec.md`
 - Read: `docs/plans/M48-mcp-http-stream-ownership-runtime.plan.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review M48 boundary and current stream state**
 

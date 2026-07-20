@@ -85,8 +85,8 @@ pub async fn create_mcp_sampling_message(
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling`
-- `CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_client_session_sampling`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

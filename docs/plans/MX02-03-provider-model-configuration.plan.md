@@ -4,7 +4,7 @@
 
 **Goal:** Add provider/model profiles and Desktop settings/composer controls that are capability-aware and secret-safe.
 
-**Architecture:** `agent-model` validates provider/model profiles, `agent-ui-bridge` serializes UI-safe snapshots, `agent-desktop` builds settings view models, Tauri validates/redacts, and React renders controls.
+**Architecture:** `ruse-model` validates provider/model profiles, `ruse-ui-bridge` serializes UI-safe snapshots, `ruse-desktop` builds settings view models, Tauri validates/redacts, and React renders controls.
 
 **Tech Stack:** Rust serde contracts, Tauri command tests, React/TypeScript, Vitest.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/MX02-03-provider-model-configuration.spec.md`
-- Read: `crates/agent-model/src/config.rs`
-- Read: `crates/agent-desktop/src/settings.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-model/src/config.rs`
+- Read: `crates/ruse-desktop/src/settings.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 - Read: `apps/desktop/src/components/SettingsView.tsx`
 - Read: `apps/desktop/src/state/settings.ts`
 - Read: `apps/desktop/src/types.ts`
@@ -29,9 +29,9 @@ Expected: identify existing provider id/kind/default model/endpoint/secret ref/c
 ### Task 2: Extend Contracts
 
 **Files:**
-- Modify: `crates/agent-model/src/config.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-desktop/src/settings.rs`
+- Modify: `crates/ruse-model/src/config.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-desktop/src/settings.rs`
 - Modify: focused Rust tests
 
 - [ ] **Step 1: Add provider/model profiles**
@@ -67,10 +67,10 @@ Expose provider/model selector and capability hints in the composer with per-thr
 Run:
 
 ```bash
-cargo clippy -p agent-model -p agent-desktop -p agent-ui-bridge --all-targets -- -D warnings
-cargo test -p agent-model
-cargo test -p agent-desktop --test settings
-cargo test -p agent-ui-bridge --test config_snapshot
+cargo clippy -p ruse-model -p ruse-desktop -p ruse-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-model
+cargo test -p ruse-desktop --test settings
+cargo test -p ruse-ui-bridge --test config_snapshot
 npm --prefix apps/desktop test -- trace-settings-ui
 npm --prefix apps/desktop run build
 ```
@@ -85,7 +85,7 @@ Run:
 
 ```bash
 git diff --check
-git add crates/agent-model crates/agent-desktop crates/agent-ui-bridge apps/desktop docs/specs/MX02-03-provider-model-configuration.spec.md docs/plans/MX02-03-provider-model-configuration.plan.md
+git add crates/ruse-model crates/ruse-desktop crates/ruse-ui-bridge apps/desktop docs/specs/MX02-03-provider-model-configuration.spec.md docs/plans/MX02-03-provider-model-configuration.plan.md
 git commit -m "feat: productize desktop provider settings"
 ```
 

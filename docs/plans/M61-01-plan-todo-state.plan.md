@@ -4,7 +4,7 @@
 
 **Goal:** Add shared TodoWrite-compatible plan/todo contracts and validation helpers in runtime crates.
 
-**Architecture:** `agent-types` owns serde contracts and event payload additions. `agent-core` owns validation, update application, progress summaries, and redaction. Presentation crates consume these contracts only in later M61 slices.
+**Architecture:** `ruse-types` owns serde contracts and event payload additions. `ruse-core` owns validation, update application, progress summaries, and redaction. Presentation crates consume these contracts only in later M61 slices.
 
 **Tech Stack:** Rust 2024 edition, serde, existing typed ids/timestamps/task state, existing task text redaction behavior, Cargo fmt/clippy/test.
 
@@ -18,40 +18,40 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-types/src/ids.rs`
-- Read: `crates/agent-types/src/state.rs`
-- Read: `crates/agent-types/src/event.rs`
-- Read: `crates/agent-core/src/task_review.rs`
-- Read: `crates/agent-scheduler/src/command.rs`
+- Read: `crates/ruse-types/src/ids.rs`
+- Read: `crates/ruse-types/src/state.rs`
+- Read: `crates/ruse-types/src/event.rs`
+- Read: `crates/ruse-core/src/task_review.rs`
+- Read: `crates/ruse-scheduler/src/command.rs`
 
 - [x] **Step 1: Review the contract home**
 
-M61 planning identified `agent-types` as the right home for durable plan/todo contracts and `agent-core` as the right home for validation and update helpers.
+M61 planning identified `ruse-types` as the right home for durable plan/todo contracts and `ruse-core` as the right home for validation and update helpers.
 
 - [x] **Step 2: Run pre-implementation focused checks**
 
 Run:
 
 ```bash
-cargo test -p agent-types
-cargo test -p agent-core task_review
+cargo test -p ruse-types
+cargo test -p ruse-core task_review
 ```
 
 Expected: existing shared type and task review tests pass before adding plan/todo contracts.
 
 Verification:
 
-- `cargo test -p agent-types` passed.
-- `cargo test -p agent-core task_review` was attempted twice and timed out while walking many filtered `agent-core` integration test binaries; no test failure was reported before timeout.
-- `cargo test -p agent-core --test task_artifacts_review` passed as the focused task-review baseline.
+- `cargo test -p ruse-types` passed.
+- `cargo test -p ruse-core task_review` was attempted twice and timed out while walking many filtered `ruse-core` integration test binaries; no test failure was reported before timeout.
+- `cargo test -p ruse-core --test task_artifacts_review` passed as the focused task-review baseline.
 
 ### Task 2: Write Failing Contract Tests
 
 **Files:**
-- Modify or create: `crates/agent-types/src/plan.rs`
-- Modify: `crates/agent-types/src/lib.rs`
-- Modify if adding events: `crates/agent-types/src/event.rs`
-- Create: `crates/agent-core/tests/plan_todo_state.rs`
+- Modify or create: `crates/ruse-types/src/plan.rs`
+- Modify: `crates/ruse-types/src/lib.rs`
+- Modify if adding events: `crates/ruse-types/src/event.rs`
+- Create: `crates/ruse-core/tests/plan_todo_state.rs`
 
 - [x] **Step 1: Add serde and validation expectations**
 
@@ -70,21 +70,21 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-types plan
-cargo test -p agent-core --test plan_todo_state
+cargo test -p ruse-types plan
+cargo test -p ruse-core --test plan_todo_state
 ```
 
 Expected: new tests fail until the contracts and validation helpers are implemented.
 
 The tests were added with the implementation in the same working pass; focused runs verified the intended serde, validation, redaction, revision, and evidence behavior.
 
-### Task 3: Implement `agent-types` Contracts
+### Task 3: Implement `ruse-types` Contracts
 
 **Files:**
-- Create: `crates/agent-types/src/plan.rs`
-- Modify: `crates/agent-types/src/lib.rs`
-- Modify if needed: `crates/agent-types/src/ids.rs`
-- Modify if needed: `crates/agent-types/src/event.rs`
+- Create: `crates/ruse-types/src/plan.rs`
+- Modify: `crates/ruse-types/src/lib.rs`
+- Modify if needed: `crates/ruse-types/src/ids.rs`
+- Modify if needed: `crates/ruse-types/src/event.rs`
 
 - [x] **Step 1: Add typed plan/todo structures**
 
@@ -92,29 +92,29 @@ Implement ids, enums, item snapshots, evidence, diagnostics, progress, and snaps
 
 - [x] **Step 2: Add event payloads only if needed by tests**
 
-Added typed `PlanTodoSnapshotRecorded` and `PlanTodoUpdated` runtime event payloads with serde tests in `agent-types`. Added minimal UI bridge event normalization for compile-time exhaustiveness; full bridge snapshots/commands remain deferred to M61-02.
+Added typed `PlanTodoSnapshotRecorded` and `PlanTodoUpdated` runtime event payloads with serde tests in `ruse-types`. Added minimal UI bridge event normalization for compile-time exhaustiveness; full bridge snapshots/commands remain deferred to M61-02.
 
 - [x] **Step 3: Run type-focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-types plan
+cargo test -p ruse-types plan
 ```
 
 Expected: type serialization tests pass.
 
 Verification passed:
 
-- `cargo test -p agent-types plan`
-- `cargo test -p agent-types`
+- `cargo test -p ruse-types plan`
+- `cargo test -p ruse-types`
 
-### Task 4: Implement `agent-core` Validation and Updates
+### Task 4: Implement `ruse-core` Validation and Updates
 
 **Files:**
-- Create: `crates/agent-core/src/plan.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Create: `crates/agent-core/tests/plan_todo_state.rs`
+- Create: `crates/ruse-core/src/plan.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Create: `crates/ruse-core/tests/plan_todo_state.rs`
 
 - [x] **Step 1: Add snapshot validation**
 
@@ -133,14 +133,14 @@ Do not add tool execution, scheduler mutation, CLI parsing, Desktop state, or Ty
 Run:
 
 ```bash
-cargo test -p agent-core --test plan_todo_state
+cargo test -p ruse-core --test plan_todo_state
 ```
 
 Expected: validation, redaction, progress, and update tests pass.
 
 Verification passed:
 
-- `cargo test -p agent-core --test plan_todo_state`
+- `cargo test -p ruse-core --test plan_todo_state`
 
 ### Task 5: Verify and Commit
 
@@ -154,9 +154,9 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-types -p agent-core --all-targets -- -D warnings
-cargo test -p agent-types
-cargo test -p agent-core --test plan_todo_state
+cargo clippy -p ruse-types -p ruse-core --all-targets -- -D warnings
+cargo test -p ruse-types
+cargo test -p ruse-core --test plan_todo_state
 ```
 
 Expected: focused checks pass.
@@ -164,12 +164,12 @@ Expected: focused checks pass.
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-types -p agent-core --all-targets -- -D warnings`
-- `cargo test -p agent-types`
-- `cargo test -p agent-core --test plan_todo_state`
-- `cargo test -p agent-core --test task_artifacts_review`
-- `cargo test -p agent-ui-bridge --test m61_plan_todo_events`
-- `cargo clippy -p agent-ui-bridge --all-targets -- -D warnings`
+- `cargo clippy -p ruse-types -p ruse-core --all-targets -- -D warnings`
+- `cargo test -p ruse-types`
+- `cargo test -p ruse-core --test plan_todo_state`
+- `cargo test -p ruse-core --test task_artifacts_review`
+- `cargo test -p ruse-ui-bridge --test m61_plan_todo_events`
+- `cargo clippy -p ruse-ui-bridge --all-targets -- -D warnings`
 
 - [x] **Step 2: Stage exact paths and commit**
 

@@ -1,6 +1,6 @@
 # Extensibility
 
-`agent` is designed to accept new providers, tools, MCP servers, skills, plugins, storage backends, and UI clients without rewriting `agent-core`.
+`agent` is designed to accept new providers, tools, MCP servers, skills, plugins, storage backends, and UI clients without rewriting `ruse-core`.
 
 ## Extension Rule
 
@@ -8,15 +8,15 @@ Extensions register capabilities. They do not mutate core state directly.
 
 Extension paths:
 
-- model providers through `agent-model`
-- tools through `agent-tool`
-- policy rules through `agent-policy`
-- sandbox executors through `agent-sandbox`
-- MCP servers through `agent-mcp`
-- plugins through `agent-plugin`
+- model providers through `ruse-model`
+- tools through `ruse-tool`
+- policy rules through `ruse-policy`
+- sandbox executors through `ruse-sandbox`
+- MCP servers through `ruse-mcp`
+- plugins through `ruse-plugin`
 - skills through context/prompt contribution contracts
-- UI clients through `agent-ui-bridge`
-- storage backends through `agent-storage`
+- UI clients through `ruse-ui-bridge`
+- storage backends through `ruse-storage`
 
 ## Provider Extension
 
@@ -51,7 +51,7 @@ Skills contribute instructions, prompt fragments, workflow rules, and optional a
 
 ## UI Extension
 
-UI clients consume runtime events and send UI commands through `agent-ui-bridge`. UI clients do not call tool, storage, or model providers directly.
+UI clients consume runtime events and send UI commands through `ruse-ui-bridge`. UI clients do not call tool, storage, or model providers directly.
 
 ## Versioning
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Introduce the `ComprehensiveTurnRunner` API in `agent-core` as the orchestration entrypoint for full model-tool-observation turns.
+Introduce the `ComprehensiveTurnRunner` API in `ruse-core` as the orchestration entrypoint for full model-tool-observation turns.
 
 ## Product Context
 
@@ -24,7 +24,7 @@ Owned by later M18 slices:
 
 ## Architecture
 
-`agent-core` owns the runner. It receives an effective runtime config and a model provider registry, reuses the M17 streaming model runtime, and emits typed `RuntimeEvent` records. It does not execute tools in this first slice.
+`ruse-core` owns the runner. It receives an effective runtime config and a model provider registry, reuses the M17 streaming model runtime, and emits typed `RuntimeEvent` records. It does not execute tools in this first slice.
 
 ```mermaid
 flowchart TD
@@ -84,7 +84,7 @@ The runner only records tool proposals in this slice. No side effects execute. T
 
 ## Acceptance Criteria
 
-- `agent-core` exposes comprehensive turn contracts.
+- `ruse-core` exposes comprehensive turn contracts.
 - A fake model can produce either a final response or a suspended tool proposal outcome.
 - Existing configured turn tests stay green.
 

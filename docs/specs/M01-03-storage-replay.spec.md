@@ -21,12 +21,12 @@ This slice delivers:
 
 Primary implementation files:
 
-- `crates/agent-storage/src/lib.rs`
-- `crates/agent-storage/src/event_store.rs`
-- `crates/agent-storage/src/memory.rs`
-- `crates/agent-storage/src/sqlite.rs`
-- `crates/agent-storage/src/replay.rs`
-- `crates/agent-storage/tests/event_store.rs`
+- `crates/ruse-storage/src/lib.rs`
+- `crates/ruse-storage/src/event_store.rs`
+- `crates/ruse-storage/src/memory.rs`
+- `crates/ruse-storage/src/sqlite.rs`
+- `crates/ruse-storage/src/replay.rs`
+- `crates/ruse-storage/tests/event_store.rs`
 
 ## Boundaries
 

@@ -12,7 +12,7 @@ M64 needs memory to be trusted by users. Before adding broader runtime or UI beh
 
 This spec delivers:
 
-- memory product snapshot contracts in `agent-memory`
+- memory product snapshot contracts in `ruse-memory`
 - record summaries with scope, sensitivity, confidence, source, preview, and redaction/truncation metadata
 - proposal summaries with status, proposed scope, sensitivity, confidence, summary, review eligibility, and source event counts
 - retrieval preview summaries with selected/rejected candidate counts and safe reasons
@@ -30,7 +30,7 @@ Owned by later slices:
 
 ## Architecture
 
-`agent-memory` owns the product snapshot because it owns memory privacy, proposal, tombstone, retrieval, and influence semantics. `agent-ui-bridge` may mirror this contract later, but M64-01 should avoid UI-specific rendering. `agent-core` can use the contract after runtime integration begins.
+`ruse-memory` owns the product snapshot because it owns memory privacy, proposal, tombstone, retrieval, and influence semantics. `ruse-ui-bridge` may mirror this contract later, but M64-01 should avoid UI-specific rendering. `ruse-core` can use the contract after runtime integration begins.
 
 ```mermaid
 flowchart TD
@@ -87,7 +87,7 @@ All text fields must be bounded and redacted. Durable or bridge-facing enums mus
 
 ## Testing Strategy
 
-- `crates/agent-memory/tests/memory_product_snapshot.rs`
+- `crates/ruse-memory/tests/memory_product_snapshot.rs`
   - stable serialization shape
   - public record preview renders bounded text
   - sensitive record preview is hidden by default
@@ -100,14 +100,14 @@ All text fields must be bounded and redacted. Durable or bridge-facing enums mus
 Focused checks:
 
 ```bash
-cargo test -p agent-memory --test memory_product_snapshot
-cargo test -p agent-memory
-cargo clippy -p agent-memory --all-targets -- -D warnings
+cargo test -p ruse-memory --test memory_product_snapshot
+cargo test -p ruse-memory
+cargo clippy -p ruse-memory --all-targets -- -D warnings
 ```
 
 ## Acceptance Criteria
 
-- `agent-memory` exposes a stable memory product snapshot contract.
+- `ruse-memory` exposes a stable memory product snapshot contract.
 - Snapshot output is bounded, redacted, and safe for CLI/TUI/Desktop.
 - Tests prove sensitive memory and secret-like text do not leak.
 - No CLI/TUI/Desktop behavior is required in this slice.

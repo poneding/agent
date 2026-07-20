@@ -27,7 +27,7 @@ Out of scope:
 
 ## Architecture
 
-`agent-model::openai_compatible` owns both fixture and reqwest transports. The provider receives an `Arc<dyn OpenAiCompatibleTransport>` so tests continue to use fixtures. The reqwest transport owns HTTP client construction and secret resolution; provider code maps transport output to `ModelStreamEvent`.
+`ruse-model::openai_compatible` owns both fixture and reqwest transports. The provider receives an `Arc<dyn OpenAiCompatibleTransport>` so tests continue to use fixtures. The reqwest transport owns HTTP client construction and secret resolution; provider code maps transport output to `ModelStreamEvent`.
 
 Recommended choices:
 

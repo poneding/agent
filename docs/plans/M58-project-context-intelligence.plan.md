@@ -4,7 +4,7 @@
 
 **Goal:** Add repo-aware context assembly for coding tasks, including project summaries, relevant-file retrieval, pinned context, budget decisions, and context quality evidence.
 
-**Architecture:** `agent-context` owns typed context contracts, retrieval reports, prompt-layer conversion, and budget decisions. `agent-core` owns workspace scanning and runtime orchestration. CLI/JSON and bridge surfaces consume typed summaries without duplicating context logic.
+**Architecture:** `ruse-context` owns typed context contracts, retrieval reports, prompt-layer conversion, and budget decisions. `ruse-core` owns workspace scanning and runtime orchestration. CLI/JSON and bridge surfaces consume typed summaries without duplicating context logic.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, deterministic fixtures, existing prompt/budget runtime, Cargo fmt/clippy/test, `cargo xtask eval`.
 
@@ -19,29 +19,29 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-context/src/lib.rs`
-- Read: `crates/agent-context/src/prompt.rs`
-- Read: `crates/agent-context/src/budget.rs`
-- Read: `crates/agent-core/src/context.rs`
-- Read: `crates/agent-core/src/repo_session.rs`
+- Read: `crates/ruse-context/src/lib.rs`
+- Read: `crates/ruse-context/src/prompt.rs`
+- Read: `crates/ruse-context/src/budget.rs`
+- Read: `crates/ruse-core/src/context.rs`
+- Read: `crates/ruse-core/src/repo_session.rs`
 
 - [x] **Step 1: Review context baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-context
-cargo test -p agent-core m05_context_memory_integration
-cargo test -p agent-ui-bridge prompt_summary
+cargo test -p ruse-context
+cargo test -p ruse-core m05_context_memory_integration
+cargo test -p ruse-ui-bridge prompt_summary
 ```
 
 Expected: current prompt layers, budget planning, memory prompt conversion, and bridge prompt summaries pass before M58 changes.
 
 Baseline verification on 2026-06-30:
 
-- `cargo test -p agent-context`
-- `cargo test -p agent-core m05_context_memory_integration`
-- `cargo test -p agent-ui-bridge prompt_summary`
+- `cargo test -p ruse-context`
+- `cargo test -p ruse-core m05_context_memory_integration`
+- `cargo test -p ruse-ui-bridge prompt_summary`
 
 ### Task 2: M58-01 Repo Map and File Tree Summaries
 

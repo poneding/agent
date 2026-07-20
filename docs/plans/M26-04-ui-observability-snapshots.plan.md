@@ -4,9 +4,9 @@
 
 **Goal:** Add UI-safe observability snapshots for TUI and Desktop.
 
-**Architecture:** `agent-ui-bridge` normalizes core evidence; `agent-tui` and `agent-desktop` consume typed snapshots.
+**Architecture:** `ruse-ui-bridge` normalizes core evidence; `ruse-tui` and `ruse-desktop` consume typed snapshots.
 
-**Tech Stack:** Rust 2024 edition, serde, agent-ui-bridge frames, Desktop/TUI tests, Cargo checks.
+**Tech Stack:** Rust 2024 edition, serde, ruse-ui-bridge frames, Desktop/TUI tests, Cargo checks.
 
 ---
 
@@ -14,24 +14,24 @@
 
 **Files:**
 - Read: `docs/specs/M26-04-ui-observability-snapshots.spec.md`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-desktop/src/trace.rs`
-- Read: `crates/agent-tui/src/app.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-desktop/src/trace.rs`
+- Read: `crates/ruse-tui/src/app.rs`
 
 - [x] **Step 1: Review UI bridge snapshot patterns**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/observability_snapshot.rs`
+- Create: `crates/ruse-ui-bridge/tests/observability_snapshot.rs`
 
 - [x] **Step 1: Add UI snapshot tests**
 
 ### Task 3: Implement Snapshots
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify if needed: `crates/agent-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify if needed: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add snapshot contracts and reducers**
 
@@ -40,8 +40,8 @@
 - [x] **Step 1: Run focused checks**
 
 ```bash
-cargo test -p agent-ui-bridge observability
-cargo clippy -p agent-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-ui-bridge observability
+cargo clippy -p ruse-ui-bridge --all-targets -- -D warnings
 ```
 
 ### Task 5: Update Status and Commit
@@ -49,6 +49,6 @@ cargo clippy -p agent-ui-bridge --all-targets -- -D warnings
 - [x] **Step 1: Mark M26-04 complete and commit**
 
 ```bash
-git add crates/agent-ui-bridge crates/agent-desktop crates/agent-tui docs
+git add crates/ruse-ui-bridge crates/ruse-desktop crates/ruse-tui docs
 git commit -m "feat: add ui observability snapshots"
 ```

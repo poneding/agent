@@ -26,11 +26,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns manifest parsing, validation, profile construction, and privacy rules. `agent-cli` owns path selection and process IO only. The stdio server continues to run through `McpServerSession`.
+`ruse-mcp` owns manifest parsing, validation, profile construction, and privacy rules. `ruse-cli` owns path selection and process IO only. The stdio server continues to run through `McpServerSession`.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli profile path"] --> MCP["agent-mcp manifest loader"]
+  CLI["ruse-cli profile path"] --> MCP["ruse-mcp manifest loader"]
   MCP --> Profile["McpServerProfileRuntime"]
   Profile --> Session["McpServerSession"]
   Session --> Stdio["Protocol-only stdout"]
@@ -39,11 +39,11 @@ flowchart TD
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_manifest.rs
-crates/agent-mcp/src/server_profile.rs
-crates/agent-cli/src/command.rs
-crates/agent-mcp/tests/mcp_server_manifest.rs
-crates/agent-cli/tests/mcp_server_profile_command.rs
+crates/ruse-mcp/src/server_manifest.rs
+crates/ruse-mcp/src/server_profile.rs
+crates/ruse-cli/src/command.rs
+crates/ruse-mcp/tests/mcp_server_manifest.rs
+crates/ruse-cli/tests/mcp_server_profile_command.rs
 ```
 
 ## Public Contracts
@@ -89,9 +89,9 @@ pub struct McpServerExportProfileConfig {
 
 ## Acceptance Criteria
 
-- `agent-cli mcp server stdio --profile path/to/profile.json --profile-name default` starts with explicit exports.
+- `ruse-cli mcp server stdio --profile path/to/profile.json --profile-name default` starts with explicit exports.
 - invalid manifests fail on stderr without protocol stdout.
-- default `agent-cli mcp server stdio` remains an empty export profile.
+- default `ruse-cli mcp server stdio` remains an empty export profile.
 - final quality gate passes.
 
 ## Completion Signal

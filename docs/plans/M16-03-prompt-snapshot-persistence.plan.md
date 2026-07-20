@@ -4,7 +4,7 @@
 
 **Goal:** Persist prompt snapshot metadata before configured turns invoke model providers.
 
-**Architecture:** `agent-context` computes snapshot hashes. `agent-types` defines the runtime event payload. `agent-core` emits and persists the prompt snapshot event before model invocation.
+**Architecture:** `ruse-context` computes snapshot hashes. `ruse-types` defines the runtime event payload. `ruse-core` emits and persists the prompt snapshot event before model invocation.
 
 **Tech Stack:** Rust 2024 edition, serde, existing runtime events, existing event stores, deterministic fake model tests, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,10 +14,10 @@
 
 **Files:**
 - Read: `docs/specs/M16-03-prompt-snapshot-persistence.spec.md`
-- Read: `crates/agent-context/src/prompt.rs`
-- Read: `crates/agent-types/src/event.rs`
-- Read: `crates/agent-core/src/model_runtime.rs`
-- Read: `crates/agent-core/tests/configured_turn_persistence.rs`
+- Read: `crates/ruse-context/src/prompt.rs`
+- Read: `crates/ruse-types/src/event.rs`
+- Read: `crates/ruse-core/src/model_runtime.rs`
+- Read: `crates/ruse-core/tests/configured_turn_persistence.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -32,9 +32,9 @@ Expected: the spec defines snapshot hashing, event payload, and configured turn 
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-context/tests/prompt_snapshots.rs`
-- Create: `crates/agent-types/tests/m16_prompt_snapshot.rs`
-- Modify: `crates/agent-core/tests/configured_turn_persistence.rs`
+- Create: `crates/ruse-context/tests/prompt_snapshots.rs`
+- Create: `crates/ruse-types/tests/m16_prompt_snapshot.rs`
+- Modify: `crates/ruse-core/tests/configured_turn_persistence.rs`
 
 - [x] **Step 1: Add context snapshot tests**
 
@@ -61,9 +61,9 @@ Add tests named:
 Run:
 
 ```bash
-cargo test -p agent-context --test prompt_snapshots
-cargo test -p agent-types --test m16_prompt_snapshot
-cargo test -p agent-core --test configured_turn_persistence
+cargo test -p ruse-context --test prompt_snapshots
+cargo test -p ruse-types --test m16_prompt_snapshot
+cargo test -p ruse-core --test configured_turn_persistence
 ```
 
 Expected: tests fail because prompt snapshots and snapshot runtime events are not implemented.
@@ -71,10 +71,10 @@ Expected: tests fail because prompt snapshots and snapshot runtime events are no
 ### Task 3: Implement Snapshot Persistence
 
 **Files:**
-- Modify: `crates/agent-context/src/prompt.rs`
-- Modify: `crates/agent-context/src/lib.rs`
-- Modify: `crates/agent-types/src/event.rs`
-- Modify: `crates/agent-core/src/model_runtime.rs`
+- Modify: `crates/ruse-context/src/prompt.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
+- Modify: `crates/ruse-types/src/event.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
 
 - [x] **Step 1: Add snapshot contracts and hashing**
 
@@ -108,9 +108,9 @@ Ensure model failures still return events containing the prompt snapshot.
 Run:
 
 ```bash
-cargo test -p agent-context --test prompt_snapshots
-cargo test -p agent-types --test m16_prompt_snapshot
-cargo test -p agent-core --test configured_turn_persistence
+cargo test -p ruse-context --test prompt_snapshots
+cargo test -p ruse-types --test m16_prompt_snapshot
+cargo test -p ruse-core --test configured_turn_persistence
 ```
 
 Expected: focused tests pass.
@@ -134,7 +134,7 @@ Update M16 planning status so active work advances to M16-04.
 Run:
 
 ```bash
-git add crates/agent-context crates/agent-types crates/agent-core docs
+git add crates/ruse-context crates/ruse-types crates/ruse-core docs
 git commit -m "feat: persist m16 prompt snapshots"
 ```
 

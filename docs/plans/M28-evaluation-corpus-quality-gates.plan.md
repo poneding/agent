@@ -4,7 +4,7 @@
 
 **Goal:** Promote the M27 single-scenario evaluation harness into scenario suites, built-in corpora, golden update workflows, CLI suite commands, and CI gates.
 
-**Architecture:** `agent-eval` owns suite/golden/corpus logic. `agent-cli` and `xtask` are command surfaces over typed `agent-eval` contracts.
+**Architecture:** `ruse-eval` owns suite/golden/corpus logic. `ruse-cli` and `xtask` are command surfaces over typed `ruse-eval` contracts.
 
 **Tech Stack:** Rust 2024 edition, serde, camino, existing M27 eval contracts, Cargo fmt, Cargo clippy, Cargo test.
 

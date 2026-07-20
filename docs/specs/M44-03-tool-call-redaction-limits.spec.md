@@ -24,7 +24,7 @@ Owned by other specs:
 
 ## Architecture
 
-Redaction stays in `agent-mcp::client_stdio` for client mapping errors and in `agent-mcp::gateway` for local argument handling.
+Redaction stays in `ruse-mcp::client_stdio` for client mapping errors and in `ruse-mcp::gateway` for local argument handling.
 
 ## Public Contracts
 
@@ -49,8 +49,8 @@ Redaction stays in `agent-mcp::client_stdio` for client mapping errors and in `a
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call`
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool_call`
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_client_stdio_tool_call`
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_gateway_stdio_tool_call`
 
 ## Completion Signal
 

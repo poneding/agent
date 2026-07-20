@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M15 architecture baseline for config-driven turn execution.
 
-**Architecture:** This is a documentation-only slice. It defines `agent-core::model_runtime` ownership, dependency direction, CLI boundaries, persistence boundaries, and privacy constraints before source implementation begins.
+**Architecture:** This is a documentation-only slice. It defines `ruse-core::model_runtime` ownership, dependency direction, CLI boundaries, persistence boundaries, and privacy constraints before source implementation begins.
 
 **Tech Stack:** Markdown docs, existing architecture docs, Cargo workspace verification.
 

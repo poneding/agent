@@ -27,7 +27,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-desktop` owns conversation/task view-model contracts. Tauri commands load snapshots and pass UI bridge frames. Frontend reducers derive screen state and send prompt submissions as `UiCommand::StartTurn`.
+`ruse-desktop` owns conversation/task view-model contracts. Tauri commands load snapshots and pass UI bridge frames. Frontend reducers derive screen state and send prompt submissions as `UiCommand::StartTurn`.
 
 ```mermaid
 flowchart TD

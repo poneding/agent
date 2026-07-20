@@ -29,7 +29,7 @@ Owned by implementation slices:
 
 ## Architecture
 
-Completion lives in `agent-mcp` beside prompt and resource exports. It resolves against already-declared exports and static completion sources.
+Completion lives in `ruse-mcp` beside prompt and resource exports. It resolves against already-declared exports and static completion sources.
 
 ```mermaid
 flowchart TD

@@ -28,7 +28,7 @@ Owned by other specs:
 
 ## Architecture
 
-Migration contracts live in `agent-storage`. They are pure Rust contracts and fixture helpers in M12; individual storage backends can adopt them incrementally.
+Migration contracts live in `ruse-storage`. They are pure Rust contracts and fixture helpers in M12; individual storage backends can adopt them incrementally.
 
 ```mermaid
 flowchart TD
@@ -41,7 +41,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-storage/
+  ruse-storage/
     src/
       lib.rs
       migration.rs
@@ -102,10 +102,10 @@ pub struct MigrationReport {
 
 ## Acceptance Criteria
 
-- `agent-storage` exposes typed migration contracts.
+- `ruse-storage` exposes typed migration contracts.
 - Missing, duplicate, and invalid migration paths fail deterministically.
 - Migration reports are serializable and auditable.
-- `cargo test -p agent-storage schema_migration` passes.
+- `cargo test -p ruse-storage schema_migration` passes.
 
 ## Completion Signal
 

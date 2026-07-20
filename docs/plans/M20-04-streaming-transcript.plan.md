@@ -4,9 +4,9 @@
 
 **Goal:** Convert UI bridge event frames into a live transcript rendered by the TUI.
 
-**Architecture:** `agent-tui` owns transcript state and rendering. It consumes `agent-ui-bridge` frames and keeps all runtime normalization in bridge/core crates.
+**Architecture:** `ruse-tui` owns transcript state and rendering. It consumes `ruse-ui-bridge` frames and keeps all runtime normalization in bridge/core crates.
 
-**Tech Stack:** Rust 2024 edition, `agent-tui`, `agent-ui-bridge`, Ratatui buffer tests, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-tui`, `ruse-ui-bridge`, Ratatui buffer tests, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,16 +14,16 @@
 
 **Files:**
 - Read: `docs/specs/M20-04-streaming-transcript.spec.md`
-- Read: `crates/agent-ui-bridge/src/event.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-tui/src/app.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-tui/src/app.rs`
 
 - [x] **Step 1: Review bridge frame contracts**
 
 Run:
 
 ```bash
-sed -n '1,260p' crates/agent-ui-bridge/src/event.rs
+sed -n '1,260p' crates/ruse-ui-bridge/src/event.rs
 sed -n '1,220p' docs/specs/M20-04-streaming-transcript.spec.md
 ```
 
@@ -32,8 +32,8 @@ Expected: transcript state consumes UI-safe frames only.
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-tui/tests/transcript.rs`
-- Create: `crates/agent-tui/tests/transcript_render.rs`
+- Create: `crates/ruse-tui/tests/transcript.rs`
+- Create: `crates/ruse-tui/tests/transcript_render.rs`
 
 - [x] **Step 1: Add reducer tests**
 
@@ -48,8 +48,8 @@ Assert transcript renders active stream, completed answer, and diagnostics in st
 Run:
 
 ```bash
-cargo test -p agent-tui --test transcript
-cargo test -p agent-tui --test transcript_render
+cargo test -p ruse-tui --test transcript
+cargo test -p ruse-tui --test transcript_render
 ```
 
 Expected: fails because transcript contracts are missing.
@@ -57,10 +57,10 @@ Expected: fails because transcript contracts are missing.
 ### Task 3: Implement Transcript
 
 **Files:**
-- Create: `crates/agent-tui/src/transcript.rs`
-- Modify: `crates/agent-tui/src/app.rs`
-- Modify: `crates/agent-tui/src/render.rs`
-- Modify: `crates/agent-tui/src/lib.rs`
+- Create: `crates/ruse-tui/src/transcript.rs`
+- Modify: `crates/ruse-tui/src/app.rs`
+- Modify: `crates/ruse-tui/src/render.rs`
+- Modify: `crates/ruse-tui/src/lib.rs`
 
 - [x] **Step 1: Add transcript item model**
 
@@ -77,16 +77,16 @@ Render transcript rows with bounded width and stable scrolling behavior.
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-tui/tests/transcript.rs`
-- Read: `crates/agent-tui/tests/transcript_render.rs`
+- Read: `crates/ruse-tui/tests/transcript.rs`
+- Read: `crates/ruse-tui/tests/transcript_render.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-tui --test transcript
-cargo test -p agent-tui --test transcript_render
+cargo test -p ruse-tui --test transcript
+cargo test -p ruse-tui --test transcript_render
 ```
 
 Expected: focused tests pass.
@@ -96,7 +96,7 @@ Expected: focused tests pass.
 Run:
 
 ```bash
-cargo test -p agent-tui
+cargo test -p ruse-tui
 ```
 
 Expected: all TUI tests pass.

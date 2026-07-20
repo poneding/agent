@@ -77,8 +77,8 @@ Skill root management:
 ## Verification
 
 ```bash
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-cli plugin_commands skill_root_commands
-CARGO_TARGET_DIR=target/m66-dev cargo clippy -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-cli plugin_commands skill_root_commands
+CARGO_TARGET_DIR=target/m66-dev cargo clippy -p ruse-cli --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

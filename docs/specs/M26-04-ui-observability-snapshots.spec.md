@@ -24,7 +24,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-ui-bridge` owns UI-safe frame contracts. `agent-desktop` and `agent-tui` consume snapshots and render them without mutating runtime evidence.
+`ruse-ui-bridge` owns UI-safe frame contracts. `ruse-desktop` and `ruse-tui` consume snapshots and render them without mutating runtime evidence.
 
 ## Public Contracts
 
@@ -61,7 +61,7 @@ pub struct UiObservabilitySnapshot {
 ## Acceptance Criteria
 
 - UI bridge can produce a Desktop/TUI-safe observability snapshot from evidence.
-- `cargo test -p agent-ui-bridge observability` passes.
+- `cargo test -p ruse-ui-bridge observability` passes.
 
 ## Completion Signal
 

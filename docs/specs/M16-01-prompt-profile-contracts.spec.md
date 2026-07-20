@@ -6,7 +6,7 @@ Add the versioned prompt profile and prompt layer metadata contracts that later 
 
 ## Product Context
 
-`agent-context` already has basic prompt layers and bundles. M16-01 upgrades those contracts so a turn can describe not just prompt text, but where each layer came from, how visible it is, how sensitive it is, which profile required it, and which version affected the model request.
+`ruse-context` already has basic prompt layers and bundles. M16-01 upgrades those contracts so a turn can describe not just prompt text, but where each layer came from, how visible it is, how sensitive it is, which profile required it, and which version affected the model request.
 
 ## Scope
 
@@ -32,7 +32,7 @@ Owned by later slices:
 
 ## Architecture
 
-All contracts live in `agent-context::prompt`. `agent-context` remains pure and UI-agnostic. It may reuse existing `PromptLayerKind`, `PromptLayer`, `PromptMessage`, `PromptBundle`, and `ContextError`, but it must not depend on `agent-core`, storage, CLI, Desktop, or model provider crates.
+All contracts live in `ruse-context::prompt`. `ruse-context` remains pure and UI-agnostic. It may reuse existing `PromptLayerKind`, `PromptLayer`, `PromptMessage`, `PromptBundle`, and `ContextError`, but it must not depend on `ruse-core`, storage, CLI, Desktop, or model provider crates.
 
 The implementation should preserve existing prompt assembly behavior while extending `PromptLayer` with source, visibility, sensitivity, version, and policy metadata.
 
@@ -112,11 +112,11 @@ Contracts preserve sensitivity metadata from the beginning. `PromptLayerVisibili
 
 ## Acceptance Criteria
 
-- `agent-context` exposes versioned prompt profile contracts.
+- `ruse-context` exposes versioned prompt profile contracts.
 - Existing prompt bundle assembly tests remain green after metadata additions.
 - New contracts have stable serde tests.
 - Later M16 slices can reference prompt source, visibility, sensitivity, policy, and version without adding new foundational types.
 
 ## Completion Signal
 
-M16-01 is complete when `cargo test -p agent-context --test prompt_profiles` and `cargo test -p agent-context --test prompt_layers` pass, workspace gates pass, and M16 planning advances to M16-02.
+M16-01 is complete when `cargo test -p ruse-context --test prompt_profiles` and `cargo test -p ruse-context --test prompt_layers` pass, workspace gates pass, and M16 planning advances to M16-02.

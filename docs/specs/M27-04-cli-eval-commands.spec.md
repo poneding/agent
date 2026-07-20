@@ -12,9 +12,9 @@ Developers need a fast local way to list, validate, run, and inspect regression 
 
 This spec delivers:
 
-- `agent-cli eval list`
-- `agent-cli eval validate`
-- `agent-cli eval run`
+- `ruse-cli eval list`
+- `ruse-cli eval validate`
+- `ruse-cli eval run`
 - text and JSON output modes
 - pass/fail/invalid exit-code semantics
 
@@ -27,12 +27,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` parses command arguments and delegates to `agent-eval`. Output formatting uses existing CLI output patterns.
+`ruse-cli` parses command arguments and delegates to `ruse-eval`. Output formatting uses existing CLI output patterns.
 
 ```mermaid
 flowchart TD
-  Args["CLI args"] --> CLI["agent-cli"]
-  CLI --> Eval["agent-eval"]
+  Args["CLI args"] --> CLI["ruse-cli"]
+  CLI --> Eval["ruse-eval"]
   Eval --> Report["Eval report"]
   CLI --> Text["Text output"]
   CLI --> Json["JSON output"]
@@ -42,7 +42,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
       output.rs
@@ -53,9 +53,9 @@ crates/
 ## Public Contracts
 
 ```text
-agent-cli eval list --manifest <path> [--json]
-agent-cli eval validate --manifest <path> [--json]
-agent-cli eval run --manifest <path> [--json] [--strict|--warn]
+ruse-cli eval list --manifest <path> [--json]
+ruse-cli eval validate --manifest <path> [--json]
+ruse-cli eval run --manifest <path> [--json] [--strict|--warn]
 ```
 
 ## State and Failure Handling
@@ -80,9 +80,9 @@ agent-cli eval run --manifest <path> [--json] [--strict|--warn]
 
 ## Acceptance Criteria
 
-- CLI eval commands call `agent-eval` contracts.
+- CLI eval commands call `ruse-eval` contracts.
 - text and JSON output are deterministic and redacted.
-- `cargo test -p agent-cli eval_commands` passes.
+- `cargo test -p ruse-cli eval_commands` passes.
 
 ## Completion Signal
 

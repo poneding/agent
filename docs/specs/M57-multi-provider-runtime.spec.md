@@ -29,24 +29,24 @@ Owned by other specs:
 
 ## Architecture
 
-Provider behavior remains owned by `agent-model` and runtime selection remains owned by shared runtime/config paths. CLI, TUI, and Desktop must consume typed summaries through existing config/runtime contracts rather than duplicating provider rules.
+Provider behavior remains owned by `ruse-model` and runtime selection remains owned by shared runtime/config paths. CLI, TUI, and Desktop must consume typed summaries through existing config/runtime contracts rather than duplicating provider rules.
 
 ```mermaid
 flowchart TD
-  Config["agent-core runtime config"] --> Model["agent-model provider registry"]
+  Config["ruse-core runtime config"] --> Model["ruse-model provider registry"]
   Model --> OpenAI["OpenAI-compatible adapter"]
   Model --> Anthropic["Anthropic adapter"]
   Model --> Gemini["Gemini adapter"]
   Model --> Local["Local/Ollama-compatible adapter"]
-  CLI["agent-cli config/prompt"] --> Config
-  UI["agent-ui-bridge snapshots"] --> Config
+  CLI["ruse-cli config/prompt"] --> Config
+  UI["ruse-ui-bridge snapshots"] --> Config
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-model/
+  ruse-model/
     src/
       config.rs
       registry.rs
@@ -59,11 +59,11 @@ crates/
       anthropic.rs
       gemini.rs
       local_provider.rs
-  agent-core/
+  ruse-core/
     src/
       config.rs
       repo_session.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
@@ -126,7 +126,7 @@ Exact field names may differ by slice, but durable/public forms must remain serd
 
 ## Testing Strategy
 
-- `agent-model` tests for capability profiles, mismatch diagnostics, adapter request/response mapping, and redaction
+- `ruse-model` tests for capability profiles, mismatch diagnostics, adapter request/response mapping, and redaction
 - CLI tests for config checks, provider registration, and safe missing-secret behavior
 - eval/golden coverage showing a tool-capable configured provider can run the M56 golden path where fixtures support it
 - focused checks per slice plus final workspace fmt/clippy/test and `cargo xtask eval`

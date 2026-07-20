@@ -4,9 +4,9 @@
 
 **Goal:** Connect the Desktop conversation composer to typed bridge turn submission, bounded frame draining, transcript updates, command acknowledgements, and recoverable bridge errors.
 
-**Architecture:** `agent-ui-bridge` owns command/frame contracts and validation; `agent-desktop` owns Desktop-safe conversation view models and pure helpers; Tauri exposes narrow typed command/frame boundaries; React renders and reduces typed state. Runtime side effects remain in shared runtime, policy, sandbox, audit, and bridge paths.
+**Architecture:** `ruse-ui-bridge` owns command/frame contracts and validation; `ruse-desktop` owns Desktop-safe conversation view models and pure helpers; Tauri exposes narrow typed command/frame boundaries; React renders and reduces typed state. Runtime side effects remain in shared runtime, policy, sandbox, audit, and bridge paths.
 
-**Tech Stack:** Rust 2024 edition, serde contracts, existing `agent-desktop`, `agent-ui-bridge`, and Tauri bridge modules, React 18, TypeScript, Vitest, Cargo fmt/clippy/test.
+**Tech Stack:** Rust 2024 edition, serde contracts, existing `ruse-desktop`, `ruse-ui-bridge`, and Tauri bridge modules, React 18, TypeScript, Vitest, Cargo fmt/clippy/test.
 
 ---
 
@@ -19,9 +19,9 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-desktop/src/conversation.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-desktop/src/conversation.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 - Read: `apps/desktop/src-tauri/src/bridge.rs`
 - Read: `apps/desktop/src-tauri/src/tests/bridge_session.rs`
 - Read: `apps/desktop/src/state/conversation.ts`
@@ -42,11 +42,11 @@ Baseline reviewed before planning:
 ### Task 2: Add Failing Conversation Contract Tests
 
 **Files:**
-- Create: `crates/agent-desktop/tests/desktop_conversation.rs`
-- Create: `crates/agent-ui-bridge/tests/desktop_daily_driver.rs`
+- Create: `crates/ruse-desktop/tests/desktop_conversation.rs`
+- Create: `crates/ruse-ui-bridge/tests/desktop_daily_driver.rs`
 - Modify: `apps/desktop/src/__tests__/conversation-task-ui.test.tsx`
 
-- [x] **Step 1: Add `agent-desktop` conversation view-model tests**
+- [x] **Step 1: Add `ruse-desktop` conversation view-model tests**
 
 Cover:
 
@@ -78,19 +78,19 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-desktop --test desktop_conversation
-cargo test -p agent-ui-bridge desktop_daily_driver
+cargo test -p ruse-desktop --test desktop_conversation
+cargo test -p ruse-ui-bridge desktop_daily_driver
 npm --prefix apps/desktop test -- conversation-task-ui
 ```
 
 Expected: focused tests cover the new contracts. Implementation landed with the tests in this slice; final focused verification passed after the contracts were implemented.
 
-### Task 3: Implement `agent-desktop` Conversation Model
+### Task 3: Implement `ruse-desktop` Conversation Model
 
 **Files:**
-- Modify: `crates/agent-desktop/src/conversation.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
-- Modify: `crates/agent-desktop/tests/desktop_conversation.rs`
+- Modify: `crates/ruse-desktop/src/conversation.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
+- Modify: `crates/ruse-desktop/tests/desktop_conversation.rs`
 
 - [x] **Step 1: Add conversation contracts**
 
@@ -105,7 +105,7 @@ Implement bounded/redacted prompt preview creation and helper methods for applyi
 Run:
 
 ```bash
-cargo test -p agent-desktop --test desktop_conversation
+cargo test -p ruse-desktop --test desktop_conversation
 ```
 
 Expected: Desktop conversation contract tests pass.
@@ -115,15 +115,15 @@ Passed with four focused Desktop conversation contract tests.
 ### Task 4: Strengthen Bridge and Tauri Boundaries
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/tests/desktop_daily_driver.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/tests/desktop_daily_driver.rs`
 - Modify: `apps/desktop/src-tauri/src/bridge.rs`
 - Modify: `apps/desktop/src-tauri/src/tests/bridge_session.rs`
 
 - [x] **Step 1: Add bridge command/frame coverage**
 
-Keep `StartTurn` validation in `agent-ui-bridge` and add focused Desktop daily-driver tests for command serialization, validation, done frames, and recoverable error frames.
+Keep `StartTurn` validation in `ruse-ui-bridge` and add focused Desktop daily-driver tests for command serialization, validation, done frames, and recoverable error frames.
 
 - [x] **Step 2: Add deterministic Tauri frame fixtures if needed**
 
@@ -136,13 +136,13 @@ No new Tauri frame fixture helper was required; existing bridge-session helpers 
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge desktop_daily_driver
+cargo test -p ruse-ui-bridge desktop_daily_driver
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml bridge_session
 ```
 
 Expected: bridge and Tauri command/frame tests pass.
 
-Passed with the `agent-ui-bridge` Desktop daily-driver integration test and Tauri bridge-session test.
+Passed with the `ruse-ui-bridge` Desktop daily-driver integration test and Tauri bridge-session test.
 
 ### Task 5: Connect React Composer, Transcript, and Frame Drain
 
@@ -197,9 +197,9 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-desktop --test desktop_conversation
-cargo test -p agent-ui-bridge desktop_daily_driver
+cargo clippy -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-desktop --test desktop_conversation
+cargo test -p ruse-ui-bridge desktop_daily_driver
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml bridge_session
 npm --prefix apps/desktop test -- conversation-task-ui
 npm --prefix apps/desktop run build
@@ -210,9 +210,9 @@ Expected: all focused M60-02 checks pass.
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
-- `cargo test -p agent-desktop --test desktop_conversation`
-- `cargo test -p agent-ui-bridge --test desktop_daily_driver`
+- `cargo clippy -p ruse-desktop --all-targets -- -D warnings`
+- `cargo test -p ruse-desktop --test desktop_conversation`
+- `cargo test -p ruse-ui-bridge --test desktop_daily_driver`
 - `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml bridge_session`
 - `npm --prefix apps/desktop test -- conversation-task-ui`
 - `npm --prefix apps/desktop run build`
@@ -227,12 +227,12 @@ git add docs/specs/M60-02-conversation-composer-transcript.spec.md \
   docs/plans/M60-02-conversation-composer-transcript.plan.md \
   docs/plans/M60-desktop-daily-driver.plan.md \
   docs/milestones/README.md \
-  crates/agent-desktop/src/conversation.rs \
-  crates/agent-desktop/src/lib.rs \
-  crates/agent-desktop/tests/desktop_conversation.rs \
-  crates/agent-ui-bridge/src/command.rs \
-  crates/agent-ui-bridge/src/frame.rs \
-  crates/agent-ui-bridge/tests/desktop_daily_driver.rs \
+  crates/ruse-desktop/src/conversation.rs \
+  crates/ruse-desktop/src/lib.rs \
+  crates/ruse-desktop/tests/desktop_conversation.rs \
+  crates/ruse-ui-bridge/src/command.rs \
+  crates/ruse-ui-bridge/src/frame.rs \
+  crates/ruse-ui-bridge/tests/desktop_daily_driver.rs \
   apps/desktop/src-tauri/src/bridge.rs \
   apps/desktop/src-tauri/src/tests/bridge_session.rs \
   apps/desktop/src/App.tsx \

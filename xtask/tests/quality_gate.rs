@@ -44,7 +44,7 @@ fn quality_gate_artifact_contract_exposes_stable_paths() {
         QualityGateOptions::default().output_dir,
         std::path::PathBuf::from(QUALITY_GATE_ARTIFACT_DIR)
     );
-    assert_eq!(QUALITY_GATE_ARTIFACT_DIR, "target/agent-ci");
+    assert_eq!(QUALITY_GATE_ARTIFACT_DIR, "target/ruse-ci");
     assert_eq!(QUALITY_GATE_REPORT_FILE, "quality-gate-report.json");
     assert_eq!(QUALITY_GATE_SUMMARY_FILE, "quality-gate-summary.txt");
     assert_eq!(

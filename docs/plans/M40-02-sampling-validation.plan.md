@@ -4,7 +4,7 @@
 
 **Goal:** Add safe-subset validation for MCP sampling requests.
 
-**Architecture:** `agent-mcp` validates protocol shape and M40 capability support before any fixture or future model provider executes the request.
+**Architecture:** `ruse-mcp` validates protocol shape and M40 capability support before any fixture or future model provider executes the request.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M40-02-sampling-validation.spec.md`
-- Read: `crates/agent-mcp/src/client_sampling.rs`
-- Read: `crates/agent-mcp/src/error.rs`
+- Read: `crates/ruse-mcp/src/client_sampling.rs`
+- Read: `crates/ruse-mcp/src/error.rs`
 
 - [x] **Step 1: Review validation scope and existing error style**
 
@@ -23,16 +23,16 @@ Run:
 
 ```bash
 sed -n '1,240p' docs/specs/M40-02-sampling-validation.spec.md
-sed -n '1,260p' crates/agent-mcp/src/client_sampling.rs
-sed -n '1,220p' crates/agent-mcp/src/error.rs
+sed -n '1,260p' crates/ruse-mcp/src/client_sampling.rs
+sed -n '1,220p' crates/ruse-mcp/src/error.rs
 ```
 
-Expected: validation stays in `agent-mcp` and produces redacted MCP diagnostics/errors.
+Expected: validation stays in `ruse-mcp` and produces redacted MCP diagnostics/errors.
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_sampling_validation.rs`
+- Create: `crates/ruse-mcp/tests/mcp_sampling_validation.rs`
 
 - [x] **Step 1: Add accepted and rejected request tests**
 
@@ -52,7 +52,7 @@ mcp_sampling_validation_redacts_prompt_content_from_diagnostics
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_validation
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_validation
 ```
 
 Expected: tests fail because validation does not exist yet.
@@ -60,8 +60,8 @@ Expected: tests fail because validation does not exist yet.
 ### Task 3: Implement Validation
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_sampling.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_sampling.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add validation policy and diagnostics**
 
@@ -91,17 +91,17 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_validation
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_validation
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_contracts
 ```
 
 Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_validation
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_validation
 ```
 
 Expected: focused checks pass.
@@ -113,7 +113,7 @@ Expected: focused checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: validate mcp sampling requests"
 ```
 

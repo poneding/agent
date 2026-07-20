@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-Frame handling lives in `agent-mcp`. It accepts strings/bytes and returns response strings for tests. Production process management remains outside this slice.
+Frame handling lives in `ruse-mcp`. It accepts strings/bytes and returns response strings for tests. Production process management remains outside this slice.
 
 ## Public Contracts
 
@@ -58,7 +58,7 @@ pub fn handle_mcp_server_frame(
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_server_stdio` passes.
+- `cargo test -p ruse-mcp mcp_server_stdio` passes.
 - frame handling is deterministic and does not require network or subprocesses.
 
 ## Completion Signal

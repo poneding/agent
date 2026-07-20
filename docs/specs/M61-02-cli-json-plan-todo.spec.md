@@ -14,10 +14,10 @@ This slice follows the M59 terminal daily-driver pattern: text output is concise
 
 This spec delivers:
 
-- `agent-cli plan show` for a bounded plan summary with progress and revision
-- `agent-cli todo list` for todo item details from the same snapshot
-- `agent-cli todo update --todo <id> --status <status> --revision <n> --reason <text>` for revision-aware status updates
-- `agent-cli todo set --snapshot-json <json> --revision <n> --reason <text>` for replacing the shared snapshot from typed JSON
+- `ruse-cli plan show` for a bounded plan summary with progress and revision
+- `ruse-cli todo list` for todo item details from the same snapshot
+- `ruse-cli todo update --todo <id> --status <status> --revision <n> --reason <text>` for revision-aware status updates
+- `ruse-cli todo set --snapshot-json <json> --revision <n> --reason <text>` for replacing the shared snapshot from typed JSON
 - a typed `UiCommand::PlanTodo` command envelope for bridge clients
 - a `UiJsonFrame::PlanTodoSnapshot` frame with progress, normalized items, diagnostics, and command errors
 - focused bridge and CLI tests covering text, JSON, redaction, sorting, revision failures, and terminal status failures
@@ -31,19 +31,19 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-types` remains the owner of durable plan/todo schemas. `agent-core` remains the owner of validation, normalization, progress, revision checks, and transition rules. `agent-ui-bridge` owns UI-safe command envelopes and snapshots. `agent-cli` parses command syntax, delegates updates to the shared core helper, and renders text or JSON from bridge snapshots.
+`ruse-types` remains the owner of durable plan/todo schemas. `ruse-core` remains the owner of validation, normalization, progress, revision checks, and transition rules. `ruse-ui-bridge` owns UI-safe command envelopes and snapshots. `ruse-cli` parses command syntax, delegates updates to the shared core helper, and renders text or JSON from bridge snapshots.
 
 ```mermaid
 flowchart TD
-  Types["agent-types PlanTodoSnapshot"] --> Core["agent-core apply_plan_todo_update"]
-  Core --> Bridge["agent-ui-bridge UiPlanTodoSnapshot"]
-  Bridge --> CLI["agent-cli plan/todo text and JSON"]
+  Types["ruse-types PlanTodoSnapshot"] --> Core["ruse-core apply_plan_todo_update"]
+  Core --> Bridge["ruse-ui-bridge UiPlanTodoSnapshot"]
+  Bridge --> CLI["ruse-cli plan/todo text and JSON"]
   Bridge --> DesktopFuture["M61-03 TUI/Desktop consumers"]
 ```
 
 Dependency rules:
 
-- CLI parsing must not duplicate transition validation; it builds typed operations and calls `agent-core`.
+- CLI parsing must not duplicate transition validation; it builds typed operations and calls `ruse-core`.
 - Bridge snapshots may normalize, sort, bound, redact, and summarize, but they must not create new runtime truth.
 - JSON output uses `UiJsonFrame` instead of ad hoc CLI-only schemas.
 - The fixture runtime used by tests is in-memory and deterministic; durable persistence remains future runtime integration work.
@@ -52,14 +52,14 @@ Dependency rules:
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       command.rs
       frame.rs
       lib.rs
     tests/
       plan_todo_bridge.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
@@ -116,12 +116,12 @@ pub struct UiPlanTodoSnapshot {
 CLI syntax:
 
 ```text
-agent-cli plan show
-agent-cli todo list
-agent-cli todo update --todo <id> --status pending|in_progress|completed|cancelled --revision <n> --reason <text>
-agent-cli todo set --snapshot-json <json> --revision <n> --reason <text>
-agent-cli --json plan show
-agent-cli --json todo list
+ruse-cli plan show
+ruse-cli todo list
+ruse-cli todo update --todo <id> --status pending|in_progress|completed|cancelled --revision <n> --reason <text>
+ruse-cli todo set --snapshot-json <json> --revision <n> --reason <text>
+ruse-cli --json plan show
+ruse-cli --json todo list
 ```
 
 `--snapshot-json` is used for the snapshot payload because `--json` is already the global CLI output-mode flag.
@@ -146,21 +146,21 @@ agent-cli --json todo list
 
 ## Testing Strategy
 
-- `agent-ui-bridge/tests/plan_todo_bridge.rs` covers command serialization, command validation, snapshot sorting, progress, redaction, empty states, and JSON frame shape.
-- `agent-cli/tests/plan_todo_commands.rs` covers parser shapes, text rendering, JSON rendering, update success, stale revision failure, terminal status failure, and snapshot replacement.
+- `ruse-ui-bridge/tests/plan_todo_bridge.rs` covers command serialization, command validation, snapshot sorting, progress, redaction, empty states, and JSON frame shape.
+- `ruse-cli/tests/plan_todo_commands.rs` covers parser shapes, text rendering, JSON rendering, update success, stale revision failure, terminal status failure, and snapshot replacement.
 - Focused verification:
 
 ```bash
-cargo clippy -p agent-ui-bridge -p agent-cli --all-targets -- -D warnings
-cargo test -p agent-ui-bridge --test plan_todo_bridge
-cargo test -p agent-cli --test plan_todo_commands
+cargo clippy -p ruse-ui-bridge -p ruse-cli --all-targets -- -D warnings
+cargo test -p ruse-ui-bridge --test plan_todo_bridge
+cargo test -p ruse-cli --test plan_todo_commands
 ```
 
 ## Acceptance Criteria
 
 - `plan show` and `todo list` render stable bounded text from a shared plan/todo snapshot.
 - `--json plan show` and `--json todo list` emit stable `plan_todo_snapshot` frames.
-- `todo update` and `todo set` are revision-aware and use `agent-core` validation.
+- `todo update` and `todo set` are revision-aware and use `ruse-core` validation.
 - Bridge command and frame contracts are typed, serde-friendly, redacted, and covered by focused tests.
 - Existing task command tests continue to pass.
 

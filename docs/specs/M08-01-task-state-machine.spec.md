@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Create the `agent-scheduler` crate and define the durable task-run state machine used by background and recurring work.
+Create the `ruse-scheduler` crate and define the durable task-run state machine used by background and recurring work.
 
 ## Product Context
 
@@ -12,7 +12,7 @@ M08 introduces long-running work. This slice establishes task identity, task kin
 
 This spec delivers:
 
-- `agent-scheduler` crate scaffold
+- `ruse-scheduler` crate scaffold
 - `TaskKind`
 - `TaskPriority`
 - `TaskRun`
@@ -28,20 +28,20 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-scheduler` depends on `agent-types` for IDs, timestamps, and `TaskState`. It does not depend on `agent-core`, storage, UI crates, model providers, tools, or MCP in this slice.
+`ruse-scheduler` depends on `ruse-types` for IDs, timestamps, and `TaskState`. It does not depend on `ruse-core`, storage, UI crates, model providers, tools, or MCP in this slice.
 
 ```mermaid
 flowchart TD
-  types["agent-types TaskState / IDs"] --> scheduler["agent-scheduler task state machine"]
+  types["ruse-types TaskState / IDs"] --> scheduler["ruse-scheduler task state machine"]
   future_queue["M08-02 queue"] --> scheduler
-  future_core["future agent-core orchestration"] --> scheduler
+  future_core["future ruse-core orchestration"] --> scheduler
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-scheduler/
+  ruse-scheduler/
     Cargo.toml
     src/
       lib.rs
@@ -127,11 +127,11 @@ Transition rules:
 
 ## Acceptance Criteria
 
-- `agent-scheduler` is a workspace member.
+- `ruse-scheduler` is a workspace member.
 - `TaskRun` serializes and deserializes with stable snake_case state/kind/priority values.
 - Legal transitions return an updated run.
 - Illegal transitions return typed errors.
-- `cargo test -p agent-scheduler task_state_machine` passes.
+- `cargo test -p ruse-scheduler task_state_machine` passes.
 
 ## Completion Signal
 

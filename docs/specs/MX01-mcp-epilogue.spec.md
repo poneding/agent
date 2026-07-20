@@ -34,18 +34,18 @@ Owned by later product milestones:
 
 ## Architecture
 
-`agent-mcp` owns MCP protocol contracts, validation, redaction, policy previews, and safe management snapshots. `agent-ui-bridge` owns bridge-consumable snapshot DTOs without depending on `agent-mcp`. CLI/Desktop can render these contracts later without owning protocol parsing or policy semantics.
+`ruse-mcp` owns MCP protocol contracts, validation, redaction, policy previews, and safe management snapshots. `ruse-ui-bridge` owns bridge-consumable snapshot DTOs without depending on `ruse-mcp`. CLI/Desktop can render these contracts later without owning protocol parsing or policy semantics.
 
 ```mermaid
 flowchart TD
   Server["MCP server"] --> Callback["reentrant callback frame"]
   Server --> Events["progress/logging/task/elicitation events"]
-  Callback --> Contracts["agent-mcp typed reports"]
+  Callback --> Contracts["ruse-mcp typed reports"]
   Events --> Contracts
   Sampling["sampling/createMessage"] --> Approval["sampling approval contracts"]
   Exports["server export manifest"] --> Guardrails["capability guardrails"]
   Contracts --> Snapshot["MCP management snapshot"]
-  Snapshot --> Bridge["agent-ui-bridge DTO"]
+  Snapshot --> Bridge["ruse-ui-bridge DTO"]
 ```
 
 ## Public Contracts
@@ -106,7 +106,7 @@ Names may evolve during implementation, but contracts must remain typed, seriali
 - fixture callback tests for roots/list, sampling, unknown callbacks, and safe rejection
 - protocol event parsing/redaction tests for progress, logging, task, elicitation, unknown event payloads, and UI summaries
 - sampling approval tests for request/decision serde, task metadata, default-deny tool loops, and redaction
-- management snapshot tests in `agent-mcp` plus bridge-safe snapshot tests in `agent-ui-bridge`
+- management snapshot tests in `ruse-mcp` plus bridge-safe snapshot tests in `ruse-ui-bridge`
 - manifest validation and policy preview tests for read-only exports and dangerous side-effecting export classes
 - final `cargo fmt`, `cargo clippy`, `cargo test`, and `cargo xtask ci`
 

@@ -31,13 +31,13 @@ Owned by other specs:
 
 ## Architecture
 
-Runtime truth remains in Rust crates. `agent-core`, `agent-storage`, `agent-policy`, `agent-tool`, `agent-model`, `agent-context`, and `agent-scheduler` own runtime behavior. `agent-ui-bridge` owns typed commands, frames, slash command descriptors, config snapshots, and UI-safe protocol contracts. `agent-desktop` owns Desktop view models and redacted product snapshots. `apps/desktop/src-tauri` exposes a narrow Tauri command bridge with validation and redaction. `apps/desktop/src` owns React view state, reducers, components, and presentation only.
+Runtime truth remains in Rust crates. `ruse-core`, `ruse-storage`, `ruse-policy`, `ruse-tool`, `ruse-model`, `ruse-context`, and `ruse-scheduler` own runtime behavior. `ruse-ui-bridge` owns typed commands, frames, slash command descriptors, config snapshots, and UI-safe protocol contracts. `ruse-desktop` owns Desktop view models and redacted product snapshots. `apps/desktop/src-tauri` exposes a narrow Tauri command bridge with validation and redaction. `apps/desktop/src` owns React view state, reducers, components, and presentation only.
 
 ```mermaid
 flowchart TD
-  Runtime["shared Rust runtime crates"] --> Bridge["agent-ui-bridge typed commands and frames"]
-  Model["agent-model provider/model contracts"] --> Bridge
-  Bridge --> DesktopContracts["agent-desktop view models"]
+  Runtime["shared Rust runtime crates"] --> Bridge["ruse-ui-bridge typed commands and frames"]
+  Model["ruse-model provider/model contracts"] --> Bridge
+  Bridge --> DesktopContracts["ruse-desktop view models"]
   DesktopContracts --> Tauri["apps/desktop/src-tauri command bridge"]
   Tauri --> React["apps/desktop React presentation"]
 ```
@@ -65,9 +65,9 @@ docs/
   desktop/
     desktop-productization.md
 crates/
-  agent-model/
-  agent-ui-bridge/
-  agent-desktop/
+  ruse-model/
+  ruse-ui-bridge/
+  ruse-desktop/
 apps/
   desktop/
     package.json
@@ -143,9 +143,9 @@ Provider kinds must cover OpenAI-compatible, Anthropic, Gemini, local/Ollama-sty
 
 ## Testing Strategy
 
-- `agent-model` tests for provider/model profile validation, capability diagnostics, and secret reference handling
-- `agent-ui-bridge` snapshot tests for provider/model config, shell/thread/inspector frames, command palette descriptors, and redaction
-- `agent-desktop` tests for shell snapshots, thread summaries, inspector view models, provider settings, approvals/diffs/tasks/artifacts, and trace summaries
+- `ruse-model` tests for provider/model profile validation, capability diagnostics, and secret reference handling
+- `ruse-ui-bridge` snapshot tests for provider/model config, shell/thread/inspector frames, command palette descriptors, and redaction
+- `ruse-desktop` tests for shell snapshots, thread summaries, inspector view models, provider settings, approvals/diffs/tasks/artifacts, and trace summaries
 - Tauri tests for command allowlist, validation, config snapshots, approval/diff/task/trace loading, and no-secret snapshots
 - Vitest tests for app shell navigation, conversation/task UI, approval/diff UI, trace/settings UI, and Desktop smoke fixtures
 - final MX02 gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, `cargo xtask desktop-test`, and `cargo xtask eval`

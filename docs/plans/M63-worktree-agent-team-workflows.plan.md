@@ -4,26 +4,26 @@
 
 **Goal:** Productize safe parallel implementation and review through isolated worktrees, reduced-capability handoffs, shared blackboard output, reviewer decisions, conflict-aware merge readiness, CLI/JSON and UI-safe bridge surfaces, and deterministic smoke evidence.
 
-**Architecture:** `agent-worktree` owns leases and conflict detection. `agent-team` owns team workflow, handoff, capability ceiling, blackboard, and review contracts. `agent-core` orchestrates snapshots and smoke fixtures. `agent-ui-bridge` exposes UI-safe frames. CLI/TUI/Desktop render typed summaries without duplicating policy, conflict, or readiness logic.
+**Architecture:** `ruse-worktree` owns leases and conflict detection. `ruse-team` owns team workflow, handoff, capability ceiling, blackboard, and review contracts. `ruse-core` orchestrates snapshots and smoke fixtures. `ruse-ui-bridge` exposes UI-safe frames. CLI/TUI/Desktop render typed summaries without duplicating policy, conflict, or readiness logic.
 
-**Tech Stack:** Rust 2024 edition, serde contracts, existing `agent-worktree`, `agent-team`, `agent-policy`, `agent-core`, `agent-ui-bridge`, CLI text/JSON commands, Ratatui and Desktop fixtures, Cargo fmt/clippy/test, Vitest, Vite build, and `cargo xtask eval`.
+**Tech Stack:** Rust 2024 edition, serde contracts, existing `ruse-worktree`, `ruse-team`, `ruse-policy`, `ruse-core`, `ruse-ui-bridge`, CLI text/JSON commands, Ratatui and Desktop fixtures, Cargo fmt/clippy/test, Vitest, Vite build, and `cargo xtask eval`.
 
 ---
 
 ### Task 1: Confirm Milestone Inputs
 
 **Files:**
-- Read: `docs/specs/M63-worktree-agent-team-workflows.spec.md`
+- Read: `docs/specs/M63-worktree-ruse-team-workflows.spec.md`
 - Read: `docs/PRD.md`
 - Read: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Read: `docs/roadmap/PRODUCT_GAP_BACKLOG.md`
 - Read: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
 - Read: `docs/specs/M09-worktree-subagents.spec.md`
 - Read: `docs/specs/M62-reliability-recovery-productization.spec.md`
-- Read: `crates/agent-worktree/`
-- Read: `crates/agent-team/`
-- Read: `crates/agent-core/`
-- Read: `crates/agent-ui-bridge/`
+- Read: `crates/ruse-worktree/`
+- Read: `crates/ruse-team/`
+- Read: `crates/ruse-core/`
+- Read: `crates/ruse-ui-bridge/`
 
 - [x] **Step 1: Review existing foundations**
 
@@ -34,9 +34,9 @@ Confirm that M09 supplies worktree leases, conflict detection, handoff envelopes
 **Files:**
 - Create: `docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md`
 - Create: `docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md`
-- Modify: `crates/agent-team/`
-- Modify: `crates/agent-core/`
-- Modify if needed: `crates/agent-ui-bridge/`
+- Modify: `crates/ruse-team/`
+- Modify: `crates/ruse-core/`
+- Modify if needed: `crates/ruse-ui-bridge/`
 
 - [x] **Step 1: Plan M63-01**
 
@@ -49,20 +49,20 @@ Add typed, serializable, bounded, redacted contracts and focused tests. Keep sid
 Expected checks:
 
 ```bash
-cargo test -p agent-team --test team_workflow_snapshot
-cargo test -p agent-team
-cargo clippy -p agent-team --all-targets -- -D warnings
+cargo test -p ruse-team --test team_workflow_snapshot
+cargo test -p ruse-team
+cargo clippy -p ruse-team --all-targets -- -D warnings
 ```
 
-Result: M63-01 is implemented in `agent-team` with workflow snapshot/readiness contracts, capability ceiling summaries, redaction/bounding helpers, and focused tests. Core assembly was not required in this slice.
+Result: M63-01 is implemented in `ruse-team` with workflow snapshot/readiness contracts, capability ceiling summaries, redaction/bounding helpers, and focused tests. Core assembly was not required in this slice.
 
 ### Task 3: M63-02 CLI and JSON Team Workflow Commands
 
 **Files:**
 - Create: `docs/specs/M63-02-cli-json-team-workflows.spec.md`
 - Create: `docs/plans/M63-02-cli-json-team-workflows.plan.md`
-- Modify: `crates/agent-cli/`
-- Modify: `crates/agent-ui-bridge/`
+- Modify: `crates/ruse-cli/`
+- Modify: `crates/ruse-ui-bridge/`
 - Modify: `docs/cli/`
 
 - [x] **Step 1: Plan CLI/JSON surfaces**
@@ -80,9 +80,9 @@ Result: M63-02 adds deterministic `team` CLI commands, a `team_workflow_snapshot
 **Files:**
 - Create: `docs/specs/M63-03-reviewer-merge-readiness.spec.md`
 - Create: `docs/plans/M63-03-reviewer-merge-readiness.plan.md`
-- Modify: `crates/agent-team/`
-- Modify: `crates/agent-worktree/`
-- Modify: `crates/agent-core/`
+- Modify: `crates/ruse-team/`
+- Modify: `crates/ruse-worktree/`
+- Modify: `crates/ruse-core/`
 
 - [x] **Step 1: Plan reviewer and merge-readiness rules**
 
@@ -92,15 +92,15 @@ Define reviewer role, required artifact evidence, review votes, stale lease dete
 
 Merge readiness must block on conflicts, missing review, pending approval, stale leases, policy denial, and incomplete handoffs.
 
-Result: M63-03 adds `agent-team` merge readiness reports with typed blockers for policy, conflicts, pending approvals, stale worktrees, waiting/failed handoffs, blocking reviews, missing reviews, and missing artifacts. Workflow snapshots now include pending approval counts and block stale worktrees/pending approvals during readiness derivation.
+Result: M63-03 adds `ruse-team` merge readiness reports with typed blockers for policy, conflicts, pending approvals, stale worktrees, waiting/failed handoffs, blocking reviews, missing reviews, and missing artifacts. Workflow snapshots now include pending approval counts and block stale worktrees/pending approvals during readiness derivation.
 
 ### Task 5: M63-04 TUI/Desktop Team Surfaces
 
 **Files:**
 - Create: `docs/specs/M63-04-tui-desktop-team-surfaces.spec.md`
 - Create: `docs/plans/M63-04-tui-desktop-team-surfaces.plan.md`
-- Modify: `crates/agent-tui/`
-- Modify: `crates/agent-desktop/`
+- Modify: `crates/ruse-tui/`
+- Modify: `crates/ruse-desktop/`
 - Modify: `apps/desktop/`
 - Modify: `docs/desktop/`
 
@@ -163,7 +163,7 @@ Exact-stage only M63 milestone and M63-01 planning docs plus milestone index upd
 ```bash
 git status --short --branch
 git diff --check
-git add docs/specs/M63-worktree-agent-team-workflows.spec.md docs/plans/M63-worktree-agent-team-workflows.plan.md docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md docs/milestones/README.md
+git add docs/specs/M63-worktree-ruse-team-workflows.spec.md docs/plans/M63-worktree-ruse-team-workflows.plan.md docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md docs/milestones/README.md
 git commit -m "docs: add m63 team workflow plan"
 ```
 

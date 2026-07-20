@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M13 technical design baseline for provider configuration, registry, invocation policy, OpenAI-compatible adapter, and CLI/Desktop selection boundaries.
 
-**Architecture:** This is a documentation-only design slice. It constrains later source changes to `agent-model`, `agent-core`, `agent-cli`, `agent-desktop`, and storage/config contracts without creating runtime code.
+**Architecture:** This is a documentation-only design slice. It constrains later source changes to `ruse-model`, `ruse-core`, `ruse-cli`, `ruse-desktop`, and storage/config contracts without creating runtime code.
 
 **Tech Stack:** Markdown specs/plans, Mermaid diagrams, existing architecture docs, Cargo workspace gates.
 

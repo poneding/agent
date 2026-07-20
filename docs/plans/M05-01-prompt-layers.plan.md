@@ -2,29 +2,29 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add the `agent-context` crate and deterministic prompt layer assembly contracts.
+**Goal:** Add the `ruse-context` crate and deterministic prompt layer assembly contracts.
 
-**Architecture:** `agent-context` depends only on `agent-types`, `serde`, `serde_json`, and `thiserror`. It owns prompt assembly contracts and exposes pure functions that `agent-core` can consume later.
+**Architecture:** `ruse-context` depends only on `ruse-types`, `serde`, `serde_json`, and `thiserror`. It owns prompt assembly contracts and exposes pure functions that `ruse-core` can consume later.
 
 **Tech Stack:** Rust 2024 edition, Cargo workspace, serde, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
-### Task 1: Scaffold `agent-context`
+### Task 1: Scaffold `ruse-context`
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-context/Cargo.toml`
-- Create: `crates/agent-context/src/lib.rs`
-- Create: `crates/agent-context/src/error.rs`
-- Create: `crates/agent-context/src/prompt.rs`
+- Create: `crates/ruse-context/Cargo.toml`
+- Create: `crates/ruse-context/src/lib.rs`
+- Create: `crates/ruse-context/src/error.rs`
+- Create: `crates/ruse-context/src/prompt.rs`
 
 - [x] **Step 1: Add failing crate smoke test**
 
-Create `crates/agent-context/tests/prompt_layers.rs` with:
+Create `crates/ruse-context/tests/prompt_layers.rs` with:
 
 ```rust
-use agent_context::PromptLayerKind;
+use ruse_context::PromptLayerKind;
 
 #[test]
 fn prompt_layers_expose_public_kind_contract() {
@@ -35,19 +35,19 @@ fn prompt_layers_expose_public_kind_contract() {
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-context prompt_layers_expose_public_kind_contract
+cargo test -p ruse-context prompt_layers_expose_public_kind_contract
 ```
 
-Expected: fails because `agent-context` is not a workspace crate yet.
+Expected: fails because `ruse-context` is not a workspace crate yet.
 
 - [x] **Step 3: Add crate scaffold**
 
-Add `crates/agent-context` to workspace members. Create `Cargo.toml` with dependencies on `agent-types`, `serde`, `serde_json`, and `thiserror`. Create `lib.rs` that re-exports `ContextError`, `PromptBundle`, `PromptLayer`, `PromptLayerKind`, `PromptMessage`, and `assemble_prompt_bundle`.
+Add `crates/ruse-context` to workspace members. Create `Cargo.toml` with dependencies on `ruse-types`, `serde`, `serde_json`, and `thiserror`. Create `lib.rs` that re-exports `ContextError`, `PromptBundle`, `PromptLayer`, `PromptLayerKind`, `PromptMessage`, and `assemble_prompt_bundle`.
 
 - [x] **Step 4: Verify crate smoke GREEN**
 
 ```bash
-cargo test -p agent-context prompt_layers_expose_public_kind_contract
+cargo test -p ruse-context prompt_layers_expose_public_kind_contract
 ```
 
 Expected: the smoke test passes.
@@ -55,7 +55,7 @@ Expected: the smoke test passes.
 ### Task 2: Add Prompt Layer Contract Tests
 
 **Files:**
-- Modify: `crates/agent-context/tests/prompt_layers.rs`
+- Modify: `crates/ruse-context/tests/prompt_layers.rs`
 
 - [x] **Step 1: Add failing behavior tests**
 
@@ -71,7 +71,7 @@ Use `assemble_prompt_bundle` with layers for `system`, `project`, and `user`; as
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-context prompt_layers
+cargo test -p ruse-context prompt_layers
 ```
 
 Expected: tests fail because prompt assembly is not implemented.
@@ -79,9 +79,9 @@ Expected: tests fail because prompt assembly is not implemented.
 ### Task 3: Implement Prompt Assembly
 
 **Files:**
-- Modify: `crates/agent-context/src/error.rs`
-- Modify: `crates/agent-context/src/prompt.rs`
-- Modify: `crates/agent-context/src/lib.rs`
+- Modify: `crates/ruse-context/src/error.rs`
+- Modify: `crates/ruse-context/src/prompt.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
 
 - [x] **Step 1: Implement public contracts**
 
@@ -94,7 +94,7 @@ Implement `assemble_prompt_bundle` by validating each layer, sorting by descendi
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-context prompt_layers
+cargo test -p ruse-context prompt_layers
 ```
 
 Expected: prompt layer tests pass.

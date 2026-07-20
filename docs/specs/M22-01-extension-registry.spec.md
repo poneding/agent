@@ -28,24 +28,24 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns the coordinating registry because it needs to reason across plugin, skill, and MCP extension kinds without making domain crates depend on each other. Domain crates still own their native manifests and discovery logic. `agent-ui-bridge` receives serializable registry snapshots in M22-05.
+`ruse-core` owns the coordinating registry because it needs to reason across plugin, skill, and MCP extension kinds without making domain crates depend on each other. Domain crates still own their native manifests and discovery logic. `ruse-ui-bridge` receives serializable registry snapshots in M22-05.
 
 ```mermaid
 flowchart TD
-  Core["agent-core ExtensionRegistry"] --> Plugin["agent-plugin manifests"]
-  Core --> Skill["agent-skill roots"]
-  Core --> MCP["agent-mcp server configs"]
-  Core --> Policy["agent-policy capability leases"]
-  Core --> Bridge["agent-ui-bridge snapshots"]
+  Core["ruse-core ExtensionRegistry"] --> Plugin["ruse-plugin manifests"]
+  Core --> Skill["ruse-skill roots"]
+  Core --> MCP["ruse-mcp server configs"]
+  Core --> Policy["ruse-policy capability leases"]
+  Core --> Bridge["ruse-ui-bridge snapshots"]
 ```
 
 ## File Layout
 
 ```text
-crates/agent-core/src/
+crates/ruse-core/src/
   extension.rs
   lib.rs
-crates/agent-core/tests/
+crates/ruse-core/tests/
   extension_registry.rs
 ```
 
@@ -107,12 +107,12 @@ All durable or bridge-facing contracts derive `Clone`, `Debug`, `Eq`, `PartialEq
 
 ## Acceptance Criteria
 
-- `agent-core` exposes `ExtensionRegistry` and registry snapshot contracts.
+- `ruse-core` exposes `ExtensionRegistry` and registry snapshot contracts.
 - Plugin, skill root, and MCP server records can coexist in deterministic order.
 - Disabling or removing an extension revokes its active leases.
 - Registry snapshots are serializable and secret-safe.
-- Focused tests pass with `cargo test -p agent-core extension_registry`.
+- Focused tests pass with `cargo test -p ruse-core extension_registry`.
 
 ## Completion Signal
 
-M22-01 is complete when registry contracts and tests pass, public exports are available from `agent-core`, and M22 planning marks the slice complete.
+M22-01 is complete when registry contracts and tests pass, public exports are available from `ruse-core`, and M22 planning marks the slice complete.

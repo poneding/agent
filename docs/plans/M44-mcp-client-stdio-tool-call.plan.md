@@ -4,7 +4,7 @@
 
 **Goal:** Add live MCP `tools/call` execution over client-side stdio sessions and the existing gateway tool path.
 
-**Architecture:** `agent-mcp` owns JSON-RPC `tools/call` mapping, session use, gateway client implementation, redacted diagnostics, and focused tests. CLI/Desktop remain consumers of typed runtime contracts.
+**Architecture:** `ruse-mcp` owns JSON-RPC `tools/call` mapping, session use, gateway client implementation, redacted diagnostics, and focused tests. CLI/Desktop remain consumers of typed runtime contracts.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, Tokio process and IO, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -80,9 +80,9 @@ git commit -m "feat: complete m44 mcp client stdio tool call"
 
 **Verification evidence (2026-06-30):**
 
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call` passed.
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool_call` passed.
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call_process` passed.
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_client_stdio_tool_call` passed.
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_gateway_stdio_tool_call` passed.
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_client_stdio_tool_call_process` passed.
 - `git diff --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m44 cargo fmt --all -- --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m44 cargo xtask ci` passed with exit code 0.

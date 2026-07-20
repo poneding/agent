@@ -4,7 +4,7 @@
 
 **Goal:** Expose extension registry and health state through UI-safe bridge contracts, CLI commands, TUI panel data, and Desktop view models.
 
-**Architecture:** `agent-ui-bridge` owns serializable extension snapshots. `agent-cli`, `agent-tui`, `agent-desktop`, and `apps/desktop` render them without owning extension mutation.
+**Architecture:** `ruse-ui-bridge` owns serializable extension snapshots. `ruse-cli`, `ruse-tui`, `ruse-desktop`, and `apps/desktop` render them without owning extension mutation.
 
 **Tech Stack:** Rust 2024 edition, serde, Ratatui render tests, React/Vitest, Cargo fmt, Cargo clippy, Cargo test, npm build/test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M22-05-extension-health-ui.spec.md`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-tui/src/trace_panel.rs`
-- Read: `crates/agent-desktop/src/settings.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-tui/src/trace_panel.rs`
+- Read: `crates/ruse-desktop/src/settings.rs`
 - Read: `apps/desktop/src/App.tsx`
 
 - [x] **Step 1: Review UI health scope**
@@ -32,10 +32,10 @@ Expected: UI bridge contracts, CLI/TUI/Desktop surfaces, and redaction requireme
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/extension_snapshot.rs`
-- Create: `crates/agent-cli/tests/extension_health_commands.rs`
-- Create: `crates/agent-tui/tests/extension_panel.rs`
-- Create: `crates/agent-desktop/tests/extension_health.rs`
+- Create: `crates/ruse-ui-bridge/tests/extension_snapshot.rs`
+- Create: `crates/ruse-cli/tests/extension_health_commands.rs`
+- Create: `crates/ruse-tui/tests/extension_panel.rs`
+- Create: `crates/ruse-desktop/tests/extension_health.rs`
 - Create: `apps/desktop/src/__tests__/extension-health-ui.test.tsx`
 
 - [x] **Step 1: Add bridge snapshot tests**
@@ -55,10 +55,10 @@ Cover extension health component rendering, unhealthy states, review-required st
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge extension_snapshot
-cargo test -p agent-cli extension_health_commands
-cargo test -p agent-tui extension_panel
-cargo test -p agent-desktop extension_health
+cargo test -p ruse-ui-bridge extension_snapshot
+cargo test -p ruse-cli extension_health_commands
+cargo test -p ruse-tui extension_panel
+cargo test -p ruse-desktop extension_health
 npm --prefix apps/desktop test -- --run extension-health-ui
 ```
 
@@ -67,13 +67,13 @@ Expected: tests fail because UI contracts and views are missing.
 ### Task 3: Implement Extension Health Surfaces
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Create: `crates/agent-tui/src/extension_panel.rs`
-- Modify: `crates/agent-tui/src/lib.rs`
-- Create: `crates/agent-desktop/src/extension.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Create: `crates/ruse-tui/src/extension_panel.rs`
+- Modify: `crates/ruse-tui/src/lib.rs`
+- Create: `crates/ruse-desktop/src/extension.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
 - Create: `apps/desktop/src/components/ExtensionHealthView.tsx`
 - Modify: `apps/desktop/src/App.tsx`
 - Modify: `apps/desktop/src/types.ts`
@@ -97,7 +97,7 @@ Exercise plugin fixture, skill fixture, MCP fixture, and extension health snapsh
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-ui-bridge/tests/extension_snapshot.rs`
+- Read: `crates/ruse-ui-bridge/tests/extension_snapshot.rs`
 - Read: `apps/desktop/src/__tests__/extension-health-ui.test.tsx`
 
 - [x] **Step 1: Run focused tests**
@@ -105,10 +105,10 @@ Exercise plugin fixture, skill fixture, MCP fixture, and extension health snapsh
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge extension_snapshot
-cargo test -p agent-cli extension_health_commands
-cargo test -p agent-tui extension_panel
-cargo test -p agent-desktop extension_health
+cargo test -p ruse-ui-bridge extension_snapshot
+cargo test -p ruse-cli extension_health_commands
+cargo test -p ruse-tui extension_panel
+cargo test -p ruse-desktop extension_health
 npm --prefix apps/desktop test -- --run extension-health-ui
 ```
 

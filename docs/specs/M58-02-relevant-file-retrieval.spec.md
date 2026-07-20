@@ -6,7 +6,7 @@ Select likely relevant project files for a coding task from the bounded project 
 
 ## Product Context
 
-M58-01 can describe repository shape, but coding turns still need task-aware selection. M58-02 gives the runtime a lexical retrieval baseline so a request like "update the CLI project context command" can prioritize `agent-cli` command code, related tests, and bridge contracts before later semantic search work.
+M58-01 can describe repository shape, but coding turns still need task-aware selection. M58-02 gives the runtime a lexical retrieval baseline so a request like "update the CLI project context command" can prioritize `ruse-cli` command code, related tests, and bridge contracts before later semantic search work.
 
 ## Scope
 
@@ -17,7 +17,7 @@ This spec delivers:
 - budget-aware selected/omitted candidate lists
 - pinned path boosting as an input compatibility bridge for M58-04, without full pin UX
 - prompt-layer conversion for selected relevant files as summary-only project context
-- `agent-core` runtime helper that scans a workspace and runs retrieval in one call
+- `ruse-core` runtime helper that scans a workspace and runs retrieval in one call
 - CLI/JSON and UI bridge summaries for retrieval evidence
 - focused tests for stable scoring, sorting, redaction, and budget behavior
 
@@ -30,40 +30,40 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-context` owns retrieval contracts, lexical scoring, budget selection, and prompt-layer conversion. `agent-core` owns workspace orchestration by composing M58-01 scanning with M58-02 retrieval. CLI/JSON and bridge surfaces render typed reports.
+`ruse-context` owns retrieval contracts, lexical scoring, budget selection, and prompt-layer conversion. `ruse-core` owns workspace orchestration by composing M58-01 scanning with M58-02 retrieval. CLI/JSON and bridge surfaces render typed reports.
 
 ```mermaid
 flowchart TD
-  Task["ContextRetrievalQuery"] --> Context["agent-context lexical retrieval"]
+  Task["ContextRetrievalQuery"] --> Context["ruse-context lexical retrieval"]
   Summary["ProjectContextSummary"] --> Context
   Context --> Report["ContextRetrievalReport"]
   Report --> Prompt["PromptLayer selected context"]
-  Core["agent-core project context runtime"] --> Context
-  CLI["agent-cli repo context select"] --> Core
-  Bridge["agent-ui-bridge retrieval snapshot"] --> Report
+  Core["ruse-core project context runtime"] --> Context
+  CLI["ruse-cli repo context select"] --> Core
+  Bridge["ruse-ui-bridge retrieval snapshot"] --> Report
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-context/
+  ruse-context/
     src/
       retrieval.rs
       lib.rs
     tests/
       context_retrieval.rs
-  agent-core/
+  ruse-core/
     src/
       project_context.rs
     tests/
       project_context_retrieval.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       project_context_retrieval_commands.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
     tests/
@@ -129,24 +129,24 @@ Scores are product diagnostics, not a public ranking guarantee. They must be det
 
 ## Testing Strategy
 
-- `agent-context` tests for scoring, stable ordering, pinned path boost, budget omission, serde shape, and prompt-layer conversion
-- `agent-core` tests for scan-plus-retrieve orchestration on temp workspaces
+- `ruse-context` tests for scoring, stable ordering, pinned path boost, budget omission, serde shape, and prompt-layer conversion
+- `ruse-core` tests for scan-plus-retrieve orchestration on temp workspaces
 - CLI tests for text and JSON retrieval output with safe task rendering
 - UI bridge tests for retrieval snapshot stability and redaction
 - focused commands:
 
 ```bash
-cargo test -p agent-context --test context_retrieval
-cargo test -p agent-core --test project_context_retrieval
-cargo test -p agent-cli --test project_context_retrieval_commands
-cargo test -p agent-ui-bridge --test project_context_retrieval_snapshot
+cargo test -p ruse-context --test context_retrieval
+cargo test -p ruse-core --test project_context_retrieval
+cargo test -p ruse-cli --test project_context_retrieval_commands
+cargo test -p ruse-ui-bridge --test project_context_retrieval_snapshot
 ```
 
 ## Acceptance Criteria
 
-- Given a task and project summary, `agent-context` returns deterministic relevant-file candidates with reasons.
+- Given a task and project summary, `ruse-context` returns deterministic relevant-file candidates with reasons.
 - Budget limits select fitting candidates and explain omissions.
-- `agent-core` can scan and retrieve relevant files for a workspace in one typed call.
+- `ruse-core` can scan and retrieve relevant files for a workspace in one typed call.
 - CLI/JSON and bridge outputs expose safe retrieval evidence.
 - M58-03 can add semantic signals without replacing the lexical contract.
 

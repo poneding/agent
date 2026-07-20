@@ -25,13 +25,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::server_profile` maps profile records into `McpToolExportRegistry`, `McpResourceExportRegistry`, `ToolRegistry`, and `PolicyEngine` fixtures. Later config-backed profiles can reuse this boundary.
+`ruse-mcp::server_profile` maps profile records into `McpToolExportRegistry`, `McpResourceExportRegistry`, `ToolRegistry`, and `PolicyEngine` fixtures. Later config-backed profiles can reuse this boundary.
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_profile.rs
-crates/agent-mcp/tests/mcp_server_profile.rs
+crates/ruse-mcp/src/server_profile.rs
+crates/ruse-mcp/tests/mcp_server_profile.rs
 ```
 
 ## Public Contracts
@@ -66,7 +66,7 @@ pub struct McpServerExportProfile {
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_server_profile` passes.
+- `cargo test -p ruse-mcp mcp_server_profile` passes.
 - stdio sessions can be constructed from a profile without implicit exports.
 
 ## Completion Signal

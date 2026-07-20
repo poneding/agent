@@ -61,8 +61,8 @@ Checkpoint state may remain private in M47, but test helpers can inspect sent re
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_checkpoints`
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_dispatch`
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_sse_checkpoints`
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_sse_dispatch`
 - `CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check`
 
 ## Completion Signal

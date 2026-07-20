@@ -27,7 +27,7 @@ Owned by later milestones:
 
 - Docs must state that tool listing is discovery only, not permission to execute.
 - Docs must state that errors keep process diagnostics redacted.
-- Docs must state that secret refs are resolved outside `agent-mcp`.
+- Docs must state that secret refs are resolved outside `ruse-mcp`.
 
 ## Testing Strategy
 
@@ -37,10 +37,10 @@ Owned by later milestones:
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_codec`
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_session`
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_process`
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_mcp_client`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_codec`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_session`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_process`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_mcp_client`
 - `CARGO_TARGET_DIR=target/codex-m43 cargo xtask ci`
 
 ## Completion Signal

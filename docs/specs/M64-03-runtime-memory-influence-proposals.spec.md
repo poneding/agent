@@ -17,7 +17,7 @@ This spec delivers:
 - influence evidence that reports selected/rejected memory counts and safe summaries
 - turn-level memory output that can be serialized and rendered by later bridge/UI slices
 - deterministic memory write proposal creation from bounded turn evidence
-- focused `agent-context` and `agent-core` tests proving prompt influence, redaction, disabled-memory behavior, and proposal review state
+- focused `ruse-context` and `ruse-core` tests proving prompt influence, redaction, disabled-memory behavior, and proposal review state
 
 Out of scope:
 
@@ -29,13 +29,13 @@ Out of scope:
 
 ## Architecture
 
-`agent-memory` owns retrieval, reranking, product snapshots, proposal validation, and redaction. `agent-context` owns prompt-layer assembly from selected memories. `agent-core` owns turn-level orchestration and emits memory influence/proposal evidence as typed runtime results.
+`ruse-memory` owns retrieval, reranking, product snapshots, proposal validation, and redaction. `ruse-context` owns prompt-layer assembly from selected memories. `ruse-core` owns turn-level orchestration and emits memory influence/proposal evidence as typed runtime results.
 
 ```mermaid
 flowchart TD
-  Input["Turn input"] --> Core["agent-core turn orchestration"]
-  Core --> Memory["agent-memory retrieval/rerank/proposals"]
-  Memory --> Context["agent-context memory prompt layers"]
+  Input["Turn input"] --> Core["ruse-core turn orchestration"]
+  Core --> Memory["ruse-memory retrieval/rerank/proposals"]
+  Memory --> Context["ruse-context memory prompt layers"]
   Context --> Prompt["assembled model request"]
   Memory --> Evidence["turn memory evidence"]
   Evidence --> LaterUI["CLI/TUI/Desktop bridge in later slices"]
@@ -43,7 +43,7 @@ flowchart TD
 
 ## Public Contracts
 
-Expected `agent-core` contract families:
+Expected `ruse-core` contract families:
 
 - `RuntimeMemoryConfig`
 - `RuntimeMemoryInput`
@@ -56,7 +56,7 @@ Expected behavior:
 
 - memory can be disabled explicitly
 - retrieval uses bounded max-selected and prompt-budget settings
-- selected memories become prompt layers through `agent-context`
+- selected memories become prompt layers through `ruse-context`
 - influence reports use safe summaries and do not expose raw sensitive text
 - proposal reports contain `MemoryProposalSummary`, not raw proposal content
 - proposal creation never commits memory
@@ -80,11 +80,11 @@ Expected behavior:
 
 ## Testing Strategy
 
-- `crates/agent-context/tests/memory_prompt_layers.rs`
+- `crates/ruse-context/tests/memory_prompt_layers.rs`
   - selected memories enter prompt layers with existing privacy semantics
   - selected memory layers can be assembled with user/system layers in priority order
 
-- `crates/agent-core/tests/runtime_memory_influence.rs`
+- `crates/ruse-core/tests/runtime_memory_influence.rs`
   - disabled memory emits no layers and reports diagnostics
   - selected memory affects model request messages
   - influence report includes selected/rejected counts and redacted sensitive previews
@@ -94,9 +94,9 @@ Expected behavior:
 Focused checks:
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-context --test memory_prompt_layers
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-core --test runtime_memory_influence
-CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-context -p agent-core --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-context --test memory_prompt_layers
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-core --test runtime_memory_influence
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p ruse-context -p ruse-core --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

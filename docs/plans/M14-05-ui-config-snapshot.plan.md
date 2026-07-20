@@ -4,7 +4,7 @@
 
 **Goal:** Add UI bridge, CLI JSON, and Desktop config snapshot contracts.
 
-**Architecture:** Convert effective runtime config into UI-safe snapshot types in `agent-ui-bridge`; CLI JSON can emit those snapshots, and `agent-desktop` can consume them without loading config files or resolving secrets.
+**Architecture:** Convert effective runtime config into UI-safe snapshot types in `ruse-ui-bridge`; CLI JSON can emit those snapshots, and `ruse-desktop` can consume them without loading config files or resolving secrets.
 
 **Tech Stack:** Rust 2024 edition, serde, serde_json snapshot tests, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M14-05-ui-config-snapshot.spec.md`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-desktop/src/lib.rs`
-- Read: `crates/agent-desktop/tests/settings.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-desktop/src/lib.rs`
+- Read: `crates/ruse-desktop/tests/settings.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -31,9 +31,9 @@ Expected: the spec defines UI snapshot contracts, state handling, and privacy te
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/config_snapshot.rs`
-- Create: `crates/agent-desktop/tests/config_snapshot.rs`
-- Modify: `crates/agent-cli/tests/config_diagnostics.rs`
+- Create: `crates/ruse-ui-bridge/tests/config_snapshot.rs`
+- Create: `crates/ruse-desktop/tests/config_snapshot.rs`
+- Modify: `crates/ruse-cli/tests/config_diagnostics.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -56,8 +56,8 @@ Extend CLI config diagnostics tests so JSON config-check output includes `UiJson
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test config_snapshot
-cargo test -p agent-desktop --test config_snapshot
+cargo test -p ruse-ui-bridge --test config_snapshot
+cargo test -p ruse-desktop --test config_snapshot
 ```
 
 Expected: tests fail because snapshot contracts do not exist.
@@ -65,10 +65,10 @@ Expected: tests fail because snapshot contracts do not exist.
 ### Task 3: Implement Snapshot Contracts
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
 
 - [x] **Step 1: Add UI bridge snapshot types**
 
@@ -93,8 +93,8 @@ Implement a small Desktop view model that validates selected provider/model and 
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test config_snapshot
-cargo test -p agent-desktop --test config_snapshot
+cargo test -p ruse-ui-bridge --test config_snapshot
+cargo test -p ruse-desktop --test config_snapshot
 ```
 
 Expected: focused tests pass.

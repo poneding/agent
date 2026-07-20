@@ -20,7 +20,7 @@ If no memory snapshot has arrived, Desktop should show an empty or unavailable s
 
 ## Records
 
-Record rows are bounded summaries from `agent-memory` product contracts. They can show ids, scope-safe metadata, confidence, sensitivity labels, source descriptions, and redacted previews.
+Record rows are bounded summaries from `ruse-memory` product contracts. They can show ids, scope-safe metadata, confidence, sensitivity labels, source descriptions, and redacted previews.
 
 Sensitive record text is not shown in default Desktop summaries. If a record preview is `[redacted]`, Desktop should preserve that exact state and avoid adding its own reveal behavior unless a later runtime contract introduces one.
 

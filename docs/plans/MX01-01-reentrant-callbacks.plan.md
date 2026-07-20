@@ -5,8 +5,8 @@
 ### Task 1: Add Contracts
 
 **Files:**
-- Create: `crates/agent-mcp/src/client_callbacks.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Create: `crates/ruse-mcp/src/client_callbacks.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Define callback transport, phase, outcome, diagnostics, and report DTOs**
 - [x] **Step 2: Export callback contracts**
@@ -14,7 +14,7 @@
 ### Task 2: Add Dispatcher
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_callbacks.rs`
+- Modify: `crates/ruse-mcp/src/client_callbacks.rs`
 
 - [x] **Step 1: Parse JSON-RPC callback frames**
 - [x] **Step 2: Handle `roots/list` through the root provider**
@@ -24,7 +24,7 @@
 ### Task 3: Add Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_reentrant_callbacks.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_reentrant_callbacks.rs`
 
 - [x] **Step 1: Cover roots/list callback**
 - [x] **Step 2: Cover sampling callback**
@@ -36,5 +36,5 @@
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-mcp mcp_client_reentrant_callbacks
+cargo test -p ruse-mcp mcp_client_reentrant_callbacks
 ```

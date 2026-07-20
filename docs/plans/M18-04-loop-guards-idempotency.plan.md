@@ -6,15 +6,15 @@
 
 **Architecture:** `ComprehensiveTurnRunner` owns guard accounting and delegates replay-safe execution to the existing `IdempotentToolExecutor`. Guard failures return typed failed outcomes and emit runtime error events.
 
-**Tech Stack:** Rust 2024 edition, Tokio tests, serde_json, existing `agent-core` idempotency module, `agent-storage` idempotency store, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Tokio tests, serde_json, existing `ruse-core` idempotency module, `ruse-storage` idempotency store, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write RED Guard Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/comprehensive_turn_guards.rs`
-- Modify: `crates/agent-core/src/model_runtime.rs`
+- Create: `crates/ruse-core/tests/comprehensive_turn_guards.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
 
 - [x] **Step 1: Add model-turn checkpoint test**
 
@@ -53,7 +53,7 @@ async fn comprehensive_turn_fails_before_executing_tool_over_budget() {
 Run:
 
 ```bash
-cargo test -p agent-core --test comprehensive_turn_guards
+cargo test -p ruse-core --test comprehensive_turn_guards
 ```
 
 Expected: fails because `AgentLoopFailureReason` and guard enforcement do not exist.
@@ -61,8 +61,8 @@ Expected: fails because `AgentLoopFailureReason` and guard enforcement do not ex
 ### Task 2: Add Guard Contracts
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Extend `AgentLoopBudget`**
 
@@ -105,7 +105,7 @@ pub struct AgentLoopOutcome {
 
 - [x] **Step 3: Export failure reason**
 
-Export `AgentLoopFailureReason` from `crates/agent-core/src/lib.rs`.
+Export `AgentLoopFailureReason` from `crates/ruse-core/src/lib.rs`.
 
 ```rust
 pub use model_runtime::{
@@ -117,7 +117,7 @@ pub use model_runtime::{
 ### Task 3: Enforce Guards
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
 
 - [x] **Step 1: Add internal guard state**
 
@@ -153,7 +153,7 @@ After creating each observation, add its byte length to `observation_bytes`. Inc
 ### Task 4: Write RED Idempotency Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/comprehensive_turn_idempotency.rs`
+- Create: `crates/ruse-core/tests/comprehensive_turn_idempotency.rs`
 
 - [x] **Step 1: Add replay test**
 
@@ -191,7 +191,7 @@ async fn comprehensive_turn_replays_completed_tool_effect_without_reexecution() 
 Run:
 
 ```bash
-cargo test -p agent-core --test comprehensive_turn_idempotency
+cargo test -p ruse-core --test comprehensive_turn_idempotency
 ```
 
 Expected: fails because comprehensive runner idempotency integration does not exist.
@@ -199,8 +199,8 @@ Expected: fails because comprehensive runner idempotency integration does not ex
 ### Task 5: Integrate Idempotent Execution
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
-- Modify: `crates/agent-core/src/idempotency.rs` if the existing executor needs a narrower public helper
+- Modify: `crates/ruse-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/idempotency.rs` if the existing executor needs a narrower public helper
 
 - [x] **Step 1: Add idempotency-aware entrypoint**
 
@@ -224,9 +224,9 @@ When `IdempotentToolExecutor` returns a replayed completed effect, convert its o
 Run:
 
 ```bash
-cargo test -p agent-core --test comprehensive_turn_guards
-cargo test -p agent-core --test comprehensive_turn_idempotency
-cargo test -p agent-core --test comprehensive_turn_observations
+cargo test -p ruse-core --test comprehensive_turn_guards
+cargo test -p ruse-core --test comprehensive_turn_idempotency
+cargo test -p ruse-core --test comprehensive_turn_observations
 ```
 
 - [x] **Step 2: Run workspace gate**
@@ -242,6 +242,6 @@ cargo xtask check
 Run:
 
 ```bash
-git add crates/agent-core docs
+git add crates/ruse-core docs
 git commit -m "feat: enforce comprehensive turn guards"
 ```

@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add redacted audit export bundles derived from `agent-types` runtime events.
+**Goal:** Add redacted audit export bundles derived from `ruse-types` runtime events.
 
-**Architecture:** Implement export composition in `agent-core`; use typed `agent-types` events as input and produce serializable export bundles for future CLI/Desktop surfaces.
+**Architecture:** Implement export composition in `ruse-core`; use typed `ruse-types` events as input and produce serializable export bundles for future CLI/Desktop surfaces.
 
-**Tech Stack:** Rust 2024 edition, serde, serde_json, existing `agent-core` and `agent-types`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, serde, serde_json, existing `ruse-core` and `ruse-types`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,15 +14,15 @@
 
 **Files:**
 - Read: `docs/specs/M12-03-audit-export.spec.md`
-- Read: `crates/agent-core/src/lib.rs`
-- Read: `crates/agent-types/src/event.rs`
+- Read: `crates/ruse-core/src/lib.rs`
+- Read: `crates/ruse-types/src/event.rs`
 
 - [x] **Step 1: Review event payloads**
 
 Run:
 
 ```bash
-sed -n '1,220p' crates/agent-types/src/event.rs
+sed -n '1,220p' crates/ruse-types/src/event.rs
 sed -n '1,240p' docs/specs/M12-03-audit-export.spec.md
 ```
 
@@ -31,7 +31,7 @@ Expected: audit export derives from existing runtime events.
 ### Task 2: Write RED Audit Export Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/audit_export.rs`
+- Create: `crates/ruse-core/tests/audit_export.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -50,7 +50,7 @@ The tests define the public API for `AuditExportOptions`, `AuditExportBundle`, `
 Run:
 
 ```bash
-cargo test -p agent-core audit_export
+cargo test -p ruse-core audit_export
 ```
 
 Expected: tests fail because audit export contracts do not exist.
@@ -58,8 +58,8 @@ Expected: tests fail because audit export contracts do not exist.
 ### Task 3: Implement Audit Export
 
 **Files:**
-- Modify: `crates/agent-core/src/lib.rs`
-- Create: `crates/agent-core/src/audit_export.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Create: `crates/ruse-core/src/audit_export.rs`
 
 - [x] **Step 1: Add export contracts**
 
@@ -76,14 +76,14 @@ Redact secret-like keys and values and truncate payload summaries above `max_pay
 ### Task 4: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-core/tests/audit_export.rs`
+- Read: `crates/ruse-core/tests/audit_export.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-core audit_export
+cargo test -p ruse-core audit_export
 ```
 
 Expected: focused tests pass.

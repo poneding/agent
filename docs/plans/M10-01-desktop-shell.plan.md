@@ -2,32 +2,32 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `agent-desktop` with typed Desktop session and shell route contracts.
+**Goal:** Add `ruse-desktop` with typed Desktop session and shell route contracts.
 
-**Architecture:** `agent-desktop` depends on `agent-types` and `agent-ui-bridge` only in this slice. Runtime execution remains in `agent-core`; this crate exposes presentation contracts that a future native Desktop UI can consume.
+**Architecture:** `ruse-desktop` depends on `ruse-types` and `ruse-ui-bridge` only in this slice. Runtime execution remains in `ruse-core`; this crate exposes presentation contracts that a future native Desktop UI can consume.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `agent-types`, `agent-ui-bridge`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `ruse-types`, `ruse-ui-bridge`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
-### Task 1: Scaffold `agent-desktop`
+### Task 1: Scaffold `ruse-desktop`
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-desktop/Cargo.toml`
-- Create: `crates/agent-desktop/src/lib.rs`
-- Create: `crates/agent-desktop/src/error.rs`
+- Create: `crates/ruse-desktop/Cargo.toml`
+- Create: `crates/ruse-desktop/src/lib.rs`
+- Create: `crates/ruse-desktop/src/error.rs`
 
 - [x] **Step 1: Add crate scaffold**
 
-Add `crates/agent-desktop` to workspace members.
+Add `crates/ruse-desktop` to workspace members.
 
 Create the crate with dependencies:
 
 ```toml
 [dependencies]
-agent-types = { path = "../agent-types" }
-agent-ui-bridge = { path = "../agent-ui-bridge" }
+ruse-types = { path = "../ruse-types" }
+ruse-ui-bridge = { path = "../ruse-ui-bridge" }
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
 ```
@@ -35,7 +35,7 @@ thiserror = "2"
 ### Task 2: Write Desktop Shell RED Tests
 
 **Files:**
-- Create: `crates/agent-desktop/tests/desktop_shell.rs`
+- Create: `crates/ruse-desktop/tests/desktop_shell.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -50,16 +50,16 @@ Cover:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-desktop desktop_shell
+cargo test -p ruse-desktop desktop_shell
 ```
 
-Expected: fails because `agent-desktop` shell contracts do not exist.
+Expected: fails because `ruse-desktop` shell contracts do not exist.
 
 ### Task 3: Implement Desktop Shell Contracts
 
 **Files:**
-- Create: `crates/agent-desktop/src/session.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
+- Create: `crates/ruse-desktop/src/session.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
 
 - [x] **Step 1: Add session contracts**
 
@@ -72,7 +72,7 @@ Implement `start_desktop_session`, `switch_desktop_route`, and `disconnect_deskt
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-desktop desktop_shell
+cargo test -p ruse-desktop desktop_shell
 ```
 
 ### Task 4: Update Progress and Commit

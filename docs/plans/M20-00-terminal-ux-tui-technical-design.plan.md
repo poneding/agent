@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M20 architecture baseline for the `agent` binary and Ratatui-powered terminal REPL.
 
-**Architecture:** This is a documentation-only slice. It defines `agent-cli` entrypoint ownership, `agent-tui` rendering/input ownership, UI bridge boundaries, TTY fallback behavior, and terminal cleanup requirements.
+**Architecture:** This is a documentation-only slice. It defines `ruse-cli` entrypoint ownership, `ruse-tui` rendering/input ownership, UI bridge boundaries, TTY fallback behavior, and terminal cleanup requirements.
 
 **Tech Stack:** Markdown docs, Ratatui/Crossterm/tui-textarea design references, existing UI bridge docs, Cargo workspace verification.
 
@@ -26,7 +26,7 @@ Run:
 sed -n '1,220p' docs/specs/M20-terminal-ux-tui-repl.spec.md
 ```
 
-Expected: milestone scope defines `agent` binary behavior, `agent-tui`, Ratatui shell, panels, and fallback modes.
+Expected: milestone scope defines `agent` binary behavior, `ruse-tui`, Ratatui shell, panels, and fallback modes.
 
 ### Task 2: Write Technical Design
 

@@ -23,7 +23,7 @@ Owned by other specs:
 
 ## Architecture
 
-Documentation only. Runtime ownership remains in `agent-mcp`/`agent-tool`; CLI remains process IO.
+Documentation only. Runtime ownership remains in `ruse-mcp`/`ruse-tool`; CLI remains process IO.
 
 ## File Layout
 
@@ -39,7 +39,7 @@ docs/plans/M33-05-hardening-docs.plan.md
 README must show:
 
 ```bash
-agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
+ruse-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
 ```
 
 and a manifest tool declaration for `workspace.read_file`.

@@ -4,7 +4,7 @@
 
 **Goal:** Expose M62-01 recovery snapshots and dry-run reports through stable UI bridge contracts and CLI text/JSON commands for recovery status, resume dry-run, replay inspect, and replay fork planning.
 
-**Architecture:** `agent-core` remains recovery truth. `agent-ui-bridge` owns typed UI command/frame contracts. `agent-cli` parses and renders typed reports without duplicating recovery logic. This slice is read-only and dry-run oriented.
+**Architecture:** `ruse-core` remains recovery truth. `ruse-ui-bridge` owns typed UI command/frame contracts. `ruse-cli` parses and renders typed reports without duplicating recovery logic. This slice is read-only and dry-run oriented.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing `RecoverySnapshot` and `ResumeDryRunReport`, UI bridge commands/frames, CLI parser/rendering patterns, Cargo fmt/clippy/test.
 
@@ -16,13 +16,13 @@
 - Read: `docs/specs/M62-02-cli-json-replay-resume-fork.spec.md`
 - Read: `docs/specs/M62-01-recovery-snapshot-resume.spec.md`
 - Read: `docs/plans/M62-01-recovery-snapshot-resume.plan.md`
-- Read: `crates/agent-types/src/recovery.rs`
-- Read: `crates/agent-core/src/recovery.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/plan_todo_commands.rs`
-- Read: `crates/agent-cli/tests/json_mode.rs`
+- Read: `crates/ruse-types/src/recovery.rs`
+- Read: `crates/ruse-core/src/recovery.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/plan_todo_commands.rs`
+- Read: `crates/ruse-cli/tests/json_mode.rs`
 
 - [x] **Step 1: Review CLI and bridge patterns**
 
@@ -31,9 +31,9 @@ Identify existing command parsing, text rendering, JSON frame rendering, fixture
 ### Task 2: Add Bridge Contracts
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Create: `crates/agent-ui-bridge/tests/recovery_bridge.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Create: `crates/ruse-ui-bridge/tests/recovery_bridge.rs`
 
 - [x] **Step 1: Add UI command variants**
 
@@ -55,14 +55,14 @@ Add typed report/frame wrappers for:
 - replay inspect report
 - replay fork report
 
-Wrap existing `agent-types` recovery contracts where possible.
+Wrap existing `ruse-types` recovery contracts where possible.
 
 - [x] **Step 3: Add bridge serde tests**
 
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test recovery_bridge
+cargo test -p ruse-ui-bridge --test recovery_bridge
 ```
 
 Expected initially: tests fail before bridge contracts exist, then pass after implementation.
@@ -70,21 +70,21 @@ Expected initially: tests fail before bridge contracts exist, then pass after im
 ### Task 3: Add CLI Commands
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/src/lib.rs`
-- Modify: `crates/agent-tui/src/trace_panel.rs`
-- Modify: `crates/agent-tui/src/transcript.rs`
-- Create: `crates/agent-cli/tests/recovery_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
+- Modify: `crates/ruse-tui/src/trace_panel.rs`
+- Modify: `crates/ruse-tui/src/transcript.rs`
+- Create: `crates/ruse-cli/tests/recovery_commands.rs`
 
 - [x] **Step 1: Add parser coverage**
 
 Support command forms:
 
 ```text
-agent-cli recovery status --conversation <id> [--turn <id>]
-agent-cli recovery resume --conversation <id> [--turn <id>] [--checkpoint <id>] --dry-run
-agent-cli replay inspect --conversation <id> [--from-checkpoint <id>]
-agent-cli replay fork --conversation <id> [--turn <id>] [--checkpoint <id>] --label <name> --dry-run
+ruse-cli recovery status --conversation <id> [--turn <id>]
+ruse-cli recovery resume --conversation <id> [--turn <id>] [--checkpoint <id>] --dry-run
+ruse-cli replay inspect --conversation <id> [--from-checkpoint <id>]
+ruse-cli replay fork --conversation <id> [--turn <id>] [--checkpoint <id>] --label <name> --dry-run
 ```
 
 - [x] **Step 2: Add deterministic fixture-backed reports**
@@ -100,7 +100,7 @@ Text output should include readiness, replay_from, replayed_event_count, pending
 Run:
 
 ```bash
-cargo test -p agent-cli --test recovery_commands
+cargo test -p ruse-cli --test recovery_commands
 ```
 
 Expected: text and JSON commands are stable, bounded, redacted, and reject invalid arguments safely.
@@ -118,9 +118,9 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-ui-bridge -p agent-cli --all-targets -- -D warnings
-cargo test -p agent-ui-bridge --test recovery_bridge
-cargo test -p agent-cli --test recovery_commands
+cargo clippy -p ruse-ui-bridge -p ruse-cli --all-targets -- -D warnings
+cargo test -p ruse-ui-bridge --test recovery_bridge
+cargo test -p ruse-cli --test recovery_commands
 ```
 
 Expected: all focused checks pass.
@@ -149,7 +149,7 @@ After focused verification passes, exact-stage only M62-02 files and commit:
 ```bash
 git status --short --branch
 git diff --check
-git add crates/agent-ui-bridge/src/command.rs crates/agent-ui-bridge/src/frame.rs crates/agent-ui-bridge/src/lib.rs crates/agent-ui-bridge/tests/recovery_bridge.rs crates/agent-cli/src/command.rs crates/agent-cli/src/lib.rs crates/agent-cli/tests/recovery_commands.rs crates/agent-tui/src/trace_panel.rs crates/agent-tui/src/transcript.rs docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md docs/plans/M62-02-cli-json-replay-resume-fork.plan.md
+git add crates/ruse-ui-bridge/src/command.rs crates/ruse-ui-bridge/src/frame.rs crates/ruse-ui-bridge/src/lib.rs crates/ruse-ui-bridge/tests/recovery_bridge.rs crates/ruse-cli/src/command.rs crates/ruse-cli/src/lib.rs crates/ruse-cli/tests/recovery_commands.rs crates/ruse-tui/src/trace_panel.rs crates/ruse-tui/src/transcript.rs docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md docs/plans/M62-02-cli-json-replay-resume-fork.plan.md
 git commit -m "feat: add m62-02 recovery cli commands"
 ```
 

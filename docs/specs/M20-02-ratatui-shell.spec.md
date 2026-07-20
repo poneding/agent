@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Create the `agent-tui` crate with a safe full-screen terminal shell, pure app state, and deterministic rendering tests.
+Create the `ruse-tui` crate with a safe full-screen terminal shell, pure app state, and deterministic rendering tests.
 
 ## Product Context
 
@@ -12,7 +12,7 @@ After M20-01 routes interactive terminal sessions toward TUI, M20-02 provides th
 
 This spec delivers:
 
-- `agent-tui` crate in the workspace
+- `ruse-tui` crate in the workspace
 - `TuiApp` state and reducer skeleton
 - `TerminalModeGuard` for raw mode and alternate screen cleanup
 - base layout with transcript pane, composer placeholder, status bar, and optional side panel
@@ -26,14 +26,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-tui` depends on `agent-ui-bridge`, `agent-types`, Ratatui, Crossterm, and `tui-textarea`. It must not depend on `agent-core`, `agent-model`, `agent-tool`, `agent-policy`, or storage crates.
+`ruse-tui` depends on `ruse-ui-bridge`, `ruse-types`, Ratatui, Crossterm, and `tui-textarea`. It must not depend on `ruse-core`, `ruse-model`, `ruse-tool`, `ruse-policy`, or storage crates.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli"] --> Launcher["agent-tui launcher"]
+  CLI["ruse-cli"] --> Launcher["ruse-tui launcher"]
   Launcher --> App["TuiApp reducer"]
   App --> Render["Ratatui render"]
-  App --> Bridge["agent-ui-bridge frames"]
+  App --> Bridge["ruse-ui-bridge frames"]
 ```
 
 ## Public Contracts
@@ -68,14 +68,14 @@ The shell renders only UI-safe state. It does not read config secrets or raw run
 - reducer tests for quit, resize, and screen switching
 - terminal guard fixture tests that validate cleanup calls
 - Ratatui buffer snapshot tests for normal and narrow layouts
-- dependency check that `agent-tui` does not import runtime business crates
+- dependency check that `ruse-tui` does not import runtime business crates
 
 ## Acceptance Criteria
 
-- `agent-tui` builds as a workspace crate.
+- `ruse-tui` builds as a workspace crate.
 - a minimal TUI screen renders nonblank content in tests.
 - terminal cleanup is covered by tests.
 
 ## Completion Signal
 
-M20-02 is complete when `agent-cli` can call the `agent-tui` launcher boundary and TUI shell tests pass.
+M20-02 is complete when `ruse-cli` can call the `ruse-tui` launcher boundary and TUI shell tests pass.

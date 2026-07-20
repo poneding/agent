@@ -6,7 +6,7 @@
 
 **Architecture:** Tauri commands return `TraceTimeline`, `DesktopConfigSnapshot`, and settings validation diagnostics. Frontend renders safe summaries and defers durable settings mutation to M25.
 
-**Tech Stack:** Rust 2024 edition, Tauri 2 commands, `agent-desktop`, `agent-ui-bridge`, TypeScript, React, Vitest, Testing Library, Playwright smoke test, Cargo test.
+**Tech Stack:** Rust 2024 edition, Tauri 2 commands, `ruse-desktop`, `ruse-ui-bridge`, TypeScript, React, Vitest, Testing Library, Playwright smoke test, Cargo test.
 
 ---
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M21-05-trace-settings-ui.spec.md`
-- Read: `crates/agent-desktop/src/trace.rs`
-- Read: `crates/agent-desktop/src/settings.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-desktop/src/trace.rs`
+- Read: `crates/ruse-desktop/src/settings.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 - Read: `docs/plans/M21-desktop-gui-mvp.plan.md`
 
 - [x] **Step 1: Review trace/settings scope**
@@ -76,7 +76,7 @@ Expected: tests fail because trace/settings commands and views are missing.
 
 - [x] **Step 1: Add trace command**
 
-Implement `load_trace` using `agent-desktop::build_trace_timeline` and fixture-safe empty trace fallback.
+Implement `load_trace` using `ruse-desktop::build_trace_timeline` and fixture-safe empty trace fallback.
 
 - [x] **Step 2: Add config/settings commands**
 

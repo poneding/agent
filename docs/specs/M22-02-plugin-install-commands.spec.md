@@ -28,12 +28,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` owns command parsing and rendering. `agent-plugin` owns manifest parsing, validation, compatibility, and process plugin contracts. `agent-core` owns registry mutation. CLI commands call core/domain APIs and do not run plugin tools during install.
+`ruse-cli` owns command parsing and rendering. `ruse-plugin` owns manifest parsing, validation, compatibility, and process plugin contracts. `ruse-core` owns registry mutation. CLI commands call core/domain APIs and do not run plugin tools during install.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli plugin commands"] --> Core["agent-core ExtensionRegistry"]
-  CLI --> Plugin["agent-plugin manifest validation"]
+  CLI["ruse-cli plugin commands"] --> Core["ruse-core ExtensionRegistry"]
+  CLI --> Plugin["ruse-plugin manifest validation"]
   Core --> Report["PluginInstallReport"]
   Report --> Output["text/json output"]
 ```
@@ -41,11 +41,11 @@ flowchart TD
 ## File Layout
 
 ```text
-crates/agent-cli/src/
+crates/ruse-cli/src/
   command.rs
-crates/agent-cli/tests/
+crates/ruse-cli/tests/
   plugin_commands.rs
-crates/agent-plugin/tests/fixtures/
+crates/ruse-plugin/tests/fixtures/
   hello-process-plugin/
     plugin.json
     plugin.sh
@@ -112,7 +112,7 @@ agent plugin remove <id>
 - Enabling requires explicit capability acceptance.
 - Plugin list and inspect work in text and JSON modes.
 - Invalid manifests fail safely without registry mutation.
-- Focused tests pass with `cargo test -p agent-cli plugin_commands`.
+- Focused tests pass with `cargo test -p ruse-cli plugin_commands`.
 
 ## Completion Signal
 

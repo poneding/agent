@@ -19,12 +19,12 @@ This spec delivers:
 
 Owned by other specs:
 
-- scheduler queue implementation outside `agent-mcp`
+- scheduler queue implementation outside `ruse-mcp`
 - Desktop controls and notifications outside this slice
 
 ## Architecture
 
-`agent-mcp` consumes lightweight lease/cancel DTOs. `agent-scheduler` can map durable leases into these DTOs later without reverse dependencies.
+`ruse-mcp` consumes lightweight lease/cancel DTOs. `ruse-scheduler` can map durable leases into these DTOs later without reverse dependencies.
 
 ## Public Contracts
 
@@ -56,9 +56,9 @@ Concrete names may change during implementation.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_cancellation`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_cancellation`
 - `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

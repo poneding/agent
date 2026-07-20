@@ -25,7 +25,7 @@ Owned by later M42 specs:
 
 ## Architecture
 
-`agent-mcp` dispatcher calls `create_mcp_sampling_message(provider, config, request).await` or a synchronous fixture equivalent depending on final async shape. The public API should make async execution explicit if provider invocation is async.
+`ruse-mcp` dispatcher calls `create_mcp_sampling_message(provider, config, request).await` or a synchronous fixture equivalent depending on final async shape. The public API should make async execution explicit if provider invocation is async.
 
 ## Public Contracts
 
@@ -59,7 +59,7 @@ If the implementation keeps parsing and rendering separate, the public dispatche
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_dispatch`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_dispatch`
 
 ## Completion Signal
 

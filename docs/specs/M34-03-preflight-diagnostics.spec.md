@@ -16,12 +16,12 @@ This spec delivers diagnostics for:
 
 ## Architecture
 
-Diagnostics remain in `agent-mcp`; CLI renders them.
+Diagnostics remain in `ruse-mcp`; CLI renders them.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_preflight_diagnostics`
-- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command`
+- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-mcp mcp_server_profile_preflight_diagnostics`
+- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-cli mcp_server_profile_inspect_command`
 
 ## Completion Signal
 

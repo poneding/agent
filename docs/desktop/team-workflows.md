@@ -20,7 +20,7 @@ The panel shows:
 
 ## Readiness States
 
-Readiness values come from `agent-team`:
+Readiness values come from `ruse-team`:
 
 - `ready_for_handoff`
 - `waiting_on_subagent`

@@ -32,17 +32,17 @@ Out of scope:
 
 ## Architecture
 
-`agent-memory` owns durable memory records, archives, proposal state, index/retrieval, reranking, tombstones, audit entries, and influence traces. `agent-context` asks memory for scoped candidates and turns selected records into bounded prompt layers. `agent-core` orchestrates memory retrieval/proposal events and attaches evidence to turns. `agent-ui-bridge` exposes UI-safe snapshots. CLI/TUI/Desktop render and command over typed contracts only.
+`ruse-memory` owns durable memory records, archives, proposal state, index/retrieval, reranking, tombstones, audit entries, and influence traces. `ruse-context` asks memory for scoped candidates and turns selected records into bounded prompt layers. `ruse-core` orchestrates memory retrieval/proposal events and attaches evidence to turns. `ruse-ui-bridge` exposes UI-safe snapshots. CLI/TUI/Desktop render and command over typed contracts only.
 
 ```mermaid
 flowchart TD
-  Core["agent-core turn orchestration"] --> Context["agent-context prompt assembly"]
-  Context --> Memory["agent-memory retrieval and proposals"]
-  Memory --> Bridge["agent-ui-bridge memory frames"]
+  Core["ruse-core turn orchestration"] --> Context["ruse-context prompt assembly"]
+  Context --> Memory["ruse-memory retrieval and proposals"]
+  Memory --> Bridge["ruse-ui-bridge memory frames"]
   Bridge --> CLI["CLI/JSON"]
   Bridge --> TUI["TUI"]
   Bridge --> Desktop["Desktop"]
-  Memory --> Eval["agent-eval memory smoke"]
+  Memory --> Eval["ruse-eval memory smoke"]
 ```
 
 ## Milestone Slices
@@ -91,8 +91,8 @@ Contracts must be typed, serializable when durable or bridge-facing, bounded, re
 
 ## Testing Strategy
 
-- focused `agent-memory` contract tests for snapshots, proposals, tombstones, retention, redaction, and influence traces
-- `agent-context` and `agent-core` tests proving selected memory affects prompt assembly with evidence
+- focused `ruse-memory` contract tests for snapshots, proposals, tombstones, retention, redaction, and influence traces
+- `ruse-context` and `ruse-core` tests proving selected memory affects prompt assembly with evidence
 - CLI/JSON tests for stable memory commands and proposal decisions
 - UI bridge/TUI/Desktop tests for memory frames and rendering
 - default eval scenario proving memory retrieval, proposal review, deletion/tombstone, import/export redaction, and influence trace evidence

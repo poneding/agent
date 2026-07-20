@@ -12,7 +12,7 @@ M49 can run explicit bounded reconnect attempts for an initialized HTTP MCP clie
 
 This milestone delivers:
 
-- background stream supervisor contracts in `agent-mcp`
+- background stream supervisor contracts in `ruse-mcp`
 - durable stream supervisor status and lifecycle summaries
 - a bounded supervisor tick/runner that composes M49 reconnect reports
 - scheduler-facing lease and cancellation integration points
@@ -28,7 +28,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` owns stream supervision contracts and reconnect composition. Scheduler integration remains dependency-light: supervisor commands and reports are typed DTOs that `agent-scheduler`, CLI, TUI, and Desktop can consume without owning MCP protocol details.
+`ruse-mcp` owns stream supervision contracts and reconnect composition. Scheduler integration remains dependency-light: supervisor commands and reports are typed DTOs that `ruse-scheduler`, CLI, TUI, and Desktop can consume without owning MCP protocol details.
 
 ```mermaid
 flowchart TD
@@ -86,10 +86,10 @@ Names may evolve during implementation, but contracts must remain typed, seriali
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_contracts`
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_runner`
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_cancellation`
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_reports`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_contracts`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_runner`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_cancellation`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_reports`
 - `CARGO_TARGET_DIR=target/codex-m50 cargo xtask ci`
 
 ## Completion Signal

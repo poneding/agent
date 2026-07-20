@@ -2,31 +2,31 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `agent-worktree` with deterministic worktree lease lifecycle contracts.
+**Goal:** Add `ruse-worktree` with deterministic worktree lease lifecycle contracts.
 
-**Architecture:** `agent-worktree` depends on `agent-types` only in this slice. Real Git side effects remain out of scope; the in-memory manager defines the durable API shape.
+**Architecture:** `ruse-worktree` depends on `ruse-types` only in this slice. Real Git side effects remain out of scope; the in-memory manager defines the durable API shape.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `agent-types`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `ruse-types`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
-### Task 1: Scaffold `agent-worktree`
+### Task 1: Scaffold `ruse-worktree`
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-worktree/Cargo.toml`
-- Create: `crates/agent-worktree/src/lib.rs`
-- Create: `crates/agent-worktree/src/error.rs`
+- Create: `crates/ruse-worktree/Cargo.toml`
+- Create: `crates/ruse-worktree/src/lib.rs`
+- Create: `crates/ruse-worktree/src/error.rs`
 
 - [x] **Step 1: Add crate scaffold**
 
-Add `crates/agent-worktree` to workspace members.
+Add `crates/ruse-worktree` to workspace members.
 
 Create the crate with dependencies:
 
 ```toml
 [dependencies]
-agent-types = { path = "../agent-types" }
+ruse-types = { path = "../ruse-types" }
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
 ```
@@ -34,7 +34,7 @@ thiserror = "2"
 ### Task 2: Write Worktree Manager RED Tests
 
 **Files:**
-- Create: `crates/agent-worktree/tests/worktree_manager.rs`
+- Create: `crates/ruse-worktree/tests/worktree_manager.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -49,17 +49,17 @@ Cover:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-worktree worktree_manager
+cargo test -p ruse-worktree worktree_manager
 ```
 
-Expected: fails because `agent-worktree` contracts do not exist.
+Expected: fails because `ruse-worktree` contracts do not exist.
 
 ### Task 3: Implement Worktree Contracts
 
 **Files:**
-- Create: `crates/agent-worktree/src/lease.rs`
-- Create: `crates/agent-worktree/src/manager.rs`
-- Modify: `crates/agent-worktree/src/lib.rs`
+- Create: `crates/ruse-worktree/src/lease.rs`
+- Create: `crates/ruse-worktree/src/manager.rs`
+- Modify: `crates/ruse-worktree/src/lib.rs`
 
 - [x] **Step 1: Add lease contracts**
 
@@ -72,7 +72,7 @@ Implement `WorktreeManager` and `InMemoryWorktreeManager`.
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-worktree worktree_manager
+cargo test -p ruse-worktree worktree_manager
 ```
 
 ### Task 4: Update Progress and Commit

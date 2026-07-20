@@ -4,7 +4,7 @@
 
 **Goal:** Make plans, todos, and tasks one shared product surface across CLI/JSON, TUI, Desktop, and background work.
 
-**Architecture:** `agent-types` owns durable serde contracts, `agent-core` owns plan/todo validation and progress state, `agent-scheduler` owns background task lifecycle and notifications, `agent-ui-bridge` owns UI-safe commands/frames, and CLI/TUI/Desktop render or submit typed contracts.
+**Architecture:** `ruse-types` owns durable serde contracts, `ruse-core` owns plan/todo validation and progress state, `ruse-scheduler` owns background task lifecycle and notifications, `ruse-ui-bridge` owns UI-safe commands/frames, and CLI/TUI/Desktop render or submit typed contracts.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing scheduler/task commands, UI bridge frames, Ratatui task panel state, Desktop Rust view models, React/TypeScript/Vitest, Cargo fmt/clippy/test, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`.
 
@@ -23,17 +23,17 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-types/src/state.rs`
-- Read: `crates/agent-scheduler/src/task.rs`
-- Read: `crates/agent-scheduler/src/command.rs`
-- Read: `crates/agent-scheduler/src/notification.rs`
-- Read: `crates/agent-core/src/background.rs`
-- Read: `crates/agent-core/src/task_review.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-tui/src/task_panel.rs`
-- Read: `crates/agent-desktop/src/task.rs`
+- Read: `crates/ruse-types/src/state.rs`
+- Read: `crates/ruse-scheduler/src/task.rs`
+- Read: `crates/ruse-scheduler/src/command.rs`
+- Read: `crates/ruse-scheduler/src/notification.rs`
+- Read: `crates/ruse-core/src/background.rs`
+- Read: `crates/ruse-core/src/task_review.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-tui/src/task_panel.rs`
+- Read: `crates/ruse-desktop/src/task.rs`
 - Read: `apps/desktop/src/components/TaskList.tsx`
 - Read: `apps/desktop/src/components/TaskDetail.tsx`
 
@@ -54,14 +54,14 @@ Baseline reviewed during M61 planning:
 Run:
 
 ```bash
-cargo test -p agent-scheduler
-cargo test -p agent-core background
-cargo test -p agent-core task_review
-cargo test -p agent-ui-bridge --test task_command_bridge
-cargo test -p agent-ui-bridge --test task_review
-cargo test -p agent-cli --test task_commands
-cargo test -p agent-tui --test task_panel
-cargo test -p agent-desktop --test conversation_tasks
+cargo test -p ruse-scheduler
+cargo test -p ruse-core background
+cargo test -p ruse-core task_review
+cargo test -p ruse-ui-bridge --test task_command_bridge
+cargo test -p ruse-ui-bridge --test task_review
+cargo test -p ruse-cli --test task_commands
+cargo test -p ruse-tui --test task_panel
+cargo test -p ruse-desktop --test conversation_tasks
 npm --prefix apps/desktop test -- desktop-smoke
 ```
 
@@ -72,12 +72,12 @@ Expected: existing task, review, bridge, CLI, TUI, Desktop, and frontend task su
 **Files:**
 - Create: `docs/specs/M61-01-plan-todo-state.spec.md`
 - Create: `docs/plans/M61-01-plan-todo-state.plan.md`
-- Modify: `crates/agent-types/src/lib.rs`
-- Modify: `crates/agent-types/src/event.rs`
-- Create: `crates/agent-types/src/plan.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Create: `crates/agent-core/src/plan.rs`
-- Create: `crates/agent-core/tests/plan_todo_state.rs`
+- Modify: `crates/ruse-types/src/lib.rs`
+- Modify: `crates/ruse-types/src/event.rs`
+- Create: `crates/ruse-types/src/plan.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Create: `crates/ruse-core/src/plan.rs`
+- Create: `crates/ruse-core/tests/plan_todo_state.rs`
 
 - [x] **Step 1: Plan shared state slice**
 
@@ -92,8 +92,8 @@ M61-01 planning is captured in:
 
 Add serde-friendly plan/todo ids, states, item snapshots, progress summaries, diagnostics, evidence references, and runtime validation helpers.
 
-- Implemented `agent-types::plan` contracts for todo ids, statuses, priorities, sources, evidence, diagnostics, snapshots, progress, and plan/todo runtime event payloads.
-- Implemented `agent-core::plan` validation, normalization, progress, revision checks, update application, and evidence append helpers.
+- Implemented `ruse-types::plan` contracts for todo ids, statuses, priorities, sources, evidence, diagnostics, snapshots, progress, and plan/todo runtime event payloads.
+- Implemented `ruse-core::plan` validation, normalization, progress, revision checks, update application, and evidence append helpers.
 - Added minimal UI bridge normalization for the new runtime event payloads so workspace consumers remain exhaustive; richer plan/todo bridge snapshots remain scoped to M61-02.
 
 - [x] **Step 3: Verify shared state contracts**
@@ -102,9 +102,9 @@ Run focused tests:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-types -p agent-core --all-targets -- -D warnings
-cargo test -p agent-types
-cargo test -p agent-core --test plan_todo_state
+cargo clippy -p ruse-types -p ruse-core --all-targets -- -D warnings
+cargo test -p ruse-types
+cargo test -p ruse-core --test plan_todo_state
 ```
 
 Expected: shared plan/todo contracts serialize, validate, redact, and reject invalid/stale updates.
@@ -112,23 +112,23 @@ Expected: shared plan/todo contracts serialize, validate, redact, and reject inv
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-types -p agent-core --all-targets -- -D warnings`
-- `cargo test -p agent-types`
-- `cargo test -p agent-core --test plan_todo_state`
-- `cargo test -p agent-core --test task_artifacts_review`
-- `cargo test -p agent-ui-bridge --test m61_plan_todo_events`
-- `cargo clippy -p agent-ui-bridge --all-targets -- -D warnings`
+- `cargo clippy -p ruse-types -p ruse-core --all-targets -- -D warnings`
+- `cargo test -p ruse-types`
+- `cargo test -p ruse-core --test plan_todo_state`
+- `cargo test -p ruse-core --test task_artifacts_review`
+- `cargo test -p ruse-ui-bridge --test m61_plan_todo_events`
+- `cargo clippy -p ruse-ui-bridge --all-targets -- -D warnings`
 
 ### Task 3: M61-02 CLI and JSON Plan/Todo Commands
 
 **Files:**
 - Create: `docs/specs/M61-02-cli-json-plan-todo.spec.md`
 - Create: `docs/plans/M61-02-cli-json-plan-todo.plan.md`
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Create: `crates/agent-ui-bridge/tests/plan_todo_bridge.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Create: `crates/agent-cli/tests/plan_todo_commands.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Create: `crates/ruse-ui-bridge/tests/plan_todo_bridge.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/plan_todo_commands.rs`
 
 - [x] **Step 1: Plan CLI/JSON slice**
 
@@ -143,9 +143,9 @@ Expose `plan show`, `todo list`, and typed todo update/set commands through shar
 Run:
 
 ```bash
-cargo clippy -p agent-ui-bridge -p agent-cli --all-targets -- -D warnings
-cargo test -p agent-ui-bridge --test plan_todo_bridge
-cargo test -p agent-cli --test plan_todo_commands
+cargo clippy -p ruse-ui-bridge -p ruse-cli --all-targets -- -D warnings
+cargo test -p ruse-ui-bridge --test plan_todo_bridge
+cargo test -p ruse-cli --test plan_todo_commands
 ```
 
 Expected: text and JSON plan/todo commands are stable, bounded, redacted, and revision-aware.
@@ -153,23 +153,23 @@ Expected: text and JSON plan/todo commands are stable, bounded, redacted, and re
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-ui-bridge -p agent-cli --all-targets -- -D warnings`
-- `cargo test -p agent-ui-bridge --test plan_todo_bridge`
-- `cargo test -p agent-cli --test plan_todo_commands`
-- `cargo test -p agent-cli --test task_commands`
-- `cargo test -p agent-tui --test trace_panel`
-- `cargo test -p agent-tui --test transcript`
+- `cargo clippy -p ruse-ui-bridge -p ruse-cli --all-targets -- -D warnings`
+- `cargo test -p ruse-ui-bridge --test plan_todo_bridge`
+- `cargo test -p ruse-cli --test plan_todo_commands`
+- `cargo test -p ruse-cli --test task_commands`
+- `cargo test -p ruse-tui --test trace_panel`
+- `cargo test -p ruse-tui --test transcript`
 
 ### Task 4: M61-03 TUI and Desktop Plan/Task Surfaces
 
 **Files:**
 - Create: `docs/specs/M61-03-tui-desktop-plan-task-surfaces.spec.md`
 - Create: `docs/plans/M61-03-tui-desktop-plan-task-surfaces.plan.md`
-- Modify: `crates/agent-tui/src/task_panel.rs`
-- Modify: `crates/agent-tui/tests/task_panel.rs`
-- Modify: `crates/agent-desktop/src/task.rs`
-- Modify: `crates/agent-desktop/src/conversation.rs`
-- Create: `crates/agent-desktop/tests/plan_todo_tasks.rs`
+- Modify: `crates/ruse-tui/src/task_panel.rs`
+- Modify: `crates/ruse-tui/tests/task_panel.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
+- Modify: `crates/ruse-desktop/src/conversation.rs`
+- Create: `crates/ruse-desktop/tests/plan_todo_tasks.rs`
 - Modify: `apps/desktop/src/types.ts`
 - Modify: `apps/desktop/src/state/tasks.ts`
 - Modify: `apps/desktop/src/components/TaskList.tsx`
@@ -189,9 +189,9 @@ Update TUI panel, Desktop view models, React task list/detail state, and fixture
 Run:
 
 ```bash
-cargo clippy -p agent-tui -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-tui --test task_panel
-cargo test -p agent-desktop --test plan_todo_tasks
+cargo clippy -p ruse-tui -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-tui --test task_panel
+cargo test -p ruse-desktop --test plan_todo_tasks
 npm --prefix apps/desktop test -- desktop-smoke
 npm --prefix apps/desktop run build
 ```
@@ -201,11 +201,11 @@ Expected: TUI and Desktop show plan/todo/task truth from typed snapshots.
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-tui -p agent-desktop --all-targets -- -D warnings`
-- `cargo test -p agent-tui --test task_panel`
-- `cargo test -p agent-desktop --test plan_todo_tasks`
-- `cargo test -p agent-desktop --test conversation_tasks`
-- `cargo test -p agent-ui-bridge --test task_command_bridge`
+- `cargo clippy -p ruse-tui -p ruse-desktop --all-targets -- -D warnings`
+- `cargo test -p ruse-tui --test task_panel`
+- `cargo test -p ruse-desktop --test plan_todo_tasks`
+- `cargo test -p ruse-desktop --test conversation_tasks`
+- `cargo test -p ruse-ui-bridge --test task_command_bridge`
 - `npm --prefix apps/desktop test -- conversation-task-ui trace-settings-ui desktop-smoke`
 - `npm --prefix apps/desktop run build`
 
@@ -214,13 +214,13 @@ Verification passed:
 **Files:**
 - Create: `docs/specs/M61-04-background-waits-controls-notifications.spec.md`
 - Create: `docs/plans/M61-04-background-waits-controls-notifications.plan.md`
-- Modify: `crates/agent-scheduler/src/command.rs`
-- Modify: `crates/agent-scheduler/src/notification.rs`
-- Modify: `crates/agent-core/src/background.rs`
-- Modify: `crates/agent-ui-bridge/src/event.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-cli/tests/task_commands.rs`
-- Modify: `crates/agent-desktop/tests/conversation_tasks.rs`
+- Modify: `crates/ruse-scheduler/src/command.rs`
+- Modify: `crates/ruse-scheduler/src/notification.rs`
+- Modify: `crates/ruse-core/src/background.rs`
+- Modify: `crates/ruse-ui-bridge/src/event.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-cli/tests/task_commands.rs`
+- Modify: `crates/ruse-desktop/tests/conversation_tasks.rs`
 
 - [x] **Step 1: Plan wait/control slice**
 
@@ -246,12 +246,12 @@ Implemented scheduler-owned wait/control evidence:
 Run:
 
 ```bash
-cargo clippy -p agent-scheduler -p agent-core -p agent-ui-bridge -p agent-cli -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-scheduler
-cargo test -p agent-core background
-cargo test -p agent-ui-bridge --test task_command_bridge
-cargo test -p agent-cli --test task_commands
-cargo test -p agent-desktop --test conversation_tasks
+cargo clippy -p ruse-scheduler -p ruse-core -p ruse-ui-bridge -p ruse-cli -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-scheduler
+cargo test -p ruse-core background
+cargo test -p ruse-ui-bridge --test task_command_bridge
+cargo test -p ruse-cli --test task_commands
+cargo test -p ruse-desktop --test conversation_tasks
 ```
 
 Expected: background waits and controls are visible, typed, redacted, and still scheduler/policy backed.
@@ -259,12 +259,12 @@ Expected: background waits and controls are visible, typed, redacted, and still 
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-scheduler -p agent-core -p agent-ui-bridge -p agent-cli -p agent-desktop --all-targets -- -D warnings`
-- `cargo test -p agent-scheduler`
-- `cargo test -p agent-core --test background_task_approvals --test background_task_cancellation --test background_turn_runner`
-- `cargo test -p agent-ui-bridge --test task_command_bridge`
-- `cargo test -p agent-cli --test task_commands`
-- `cargo test -p agent-desktop --test conversation_tasks`
+- `cargo clippy -p ruse-scheduler -p ruse-core -p ruse-ui-bridge -p ruse-cli -p ruse-desktop --all-targets -- -D warnings`
+- `cargo test -p ruse-scheduler`
+- `cargo test -p ruse-core --test background_task_approvals --test background_task_cancellation --test background_turn_runner`
+- `cargo test -p ruse-ui-bridge --test task_command_bridge`
+- `cargo test -p ruse-cli --test task_commands`
+- `cargo test -p ruse-desktop --test conversation_tasks`
 - `npm --prefix apps/desktop test -- conversation-task-ui trace-settings-ui desktop-smoke`
 - `npm --prefix apps/desktop run build`
 
@@ -273,10 +273,10 @@ Verification passed:
 **Files:**
 - Create: `docs/specs/M61-05-artifacts-smoke-closeout.spec.md`
 - Create: `docs/plans/M61-05-artifacts-smoke-closeout.plan.md`
-- Modify: `crates/agent-core/src/task_review.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-cli/tests/daily_driver_recipes.rs`
-- Modify: `crates/agent-desktop/tests/desktop_daily_driver.rs`
+- Modify: `crates/ruse-core/src/task_review.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-cli/tests/daily_driver_recipes.rs`
+- Modify: `crates/ruse-desktop/tests/desktop_daily_driver.rs`
 - Modify: `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
 - Create or modify: `docs/cli/daily-driver-recipes.md`
 - Create: `docs/desktop/plan-todo-task-smoke.md`
@@ -296,7 +296,7 @@ M61-05 planning is captured in:
 
 Link task reviews/artifacts into plan/todo evidence and document the product workflow.
 
-- Implemented `append_task_review_evidence` in `agent-core` to attach task, trace, checkpoint, artifact, and diagnostic evidence to a todo item in one revision-safe update.
+- Implemented `append_task_review_evidence` in `ruse-core` to attach task, trace, checkpoint, artifact, and diagnostic evidence to a todo item in one revision-safe update.
 - Extended CLI daily-driver recipes and Desktop plan/todo/task smoke docs.
 - Extended Desktop Rust and React smoke fixtures with plan/todo evidence counts, waiting approval evidence, artifact counts, and task review artifact metadata.
 

@@ -36,6 +36,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agent-ci-quality-gate
-          path: target/agent-ci
+          name: ruse-ci-quality-gate
+          path: target/ruse-ci
           if-no-files-found: warn

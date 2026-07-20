@@ -4,7 +4,7 @@
 
 **Goal:** Add a typed, policy-routed command/test loop that runs workspace verification commands, returns bounded/redacted output, classifies failures, exposes cancellation readiness, and feeds safe observations back into the model loop.
 
-**Architecture:** `agent-core` owns the command/test contract and orchestration. `agent-tool` remains the process execution boundary through `ShellCommandTool`. `agent-cli` renders command surfaces. `agent-ui-bridge` owns safe command/test snapshots. `agent-tui` consumes bridge evidence. Runtime logic must not move into UI crates.
+**Architecture:** `ruse-core` owns the command/test contract and orchestration. `ruse-tool` remains the process execution boundary through `ShellCommandTool`. `ruse-cli` renders command surfaces. `ruse-ui-bridge` owns safe command/test snapshots. `ruse-tui` consumes bridge evidence. Runtime logic must not move into UI crates.
 
 **Tech Stack:** Rust 2024 edition, serde, existing `ToolLoop`, `WorkspaceSandbox`, `StaticPolicyEngine`, `ShellCommandTool`, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -17,11 +17,11 @@
 - Read: `docs/specs/M56-coding-agent-golden-path-v1.spec.md`
 - Read: `docs/roadmap/PRODUCT_GAP_BACKLOG.md`
 - Read: `docs/roadmap/GOLDEN_PATH_SMOKE_MATRIX.md`
-- Read: `crates/agent-tool/src/builtins/shell_command.rs`
-- Read: `crates/agent-core/src/tool_loop.rs`
-- Read: `crates/agent-core/tests/comprehensive_turn_observations.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-tool/src/builtins/shell_command.rs`
+- Read: `crates/ruse-core/src/tool_loop.rs`
+- Read: `crates/ruse-core/tests/comprehensive_turn_observations.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Review command/test boundaries**
 
@@ -36,7 +36,7 @@ Expected: scope is limited to command/test evidence, bounded output, cancellatio
 ### Task 2: Write Failing Core Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/command_test_loop.rs`
+- Create: `crates/ruse-core/tests/command_test_loop.rs`
 
 - [x] **Step 1: Add core tests**
 
@@ -56,7 +56,7 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-core command_test_loop
+cargo test -p ruse-core command_test_loop
 ```
 
 Expected: tests fail before the core command/test loop exists.
@@ -64,8 +64,8 @@ Expected: tests fail before the core command/test loop exists.
 ### Task 3: Implement Core Command/Test Loop
 
 **Files:**
-- Create: `crates/agent-core/src/command_test.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/src/command_test.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add typed contracts**
 
@@ -73,7 +73,7 @@ Implement `CommandTestLoopInput`, `CommandTestLoopReport`, command intent, execu
 
 - [x] **Step 2: Orchestrate existing shell tool**
 
-Use `ShellCommandTool` through `ToolLoop` with `workspace.shell_command`. Do not spawn commands directly from `agent-core`.
+Use `ShellCommandTool` through `ToolLoop` with `workspace.shell_command`. Do not spawn commands directly from `ruse-core`.
 
 - [x] **Step 3: Extract safe evidence**
 
@@ -84,9 +84,9 @@ Deserialize `ShellCommandResult`, classify status, bound/redact stdout/stderr, b
 Run:
 
 ```bash
-cargo test -p agent-tool shell_command_tool
-cargo test -p agent-core command_test_loop
-cargo test -p agent-core comprehensive_turn_observations
+cargo test -p ruse-tool shell_command_tool
+cargo test -p ruse-core command_test_loop
+cargo test -p ruse-core comprehensive_turn_observations
 ```
 
 Expected: shell tool, command/test loop, and model observation checks pass.
@@ -94,13 +94,13 @@ Expected: shell tool, command/test loop, and model observation checks pass.
 ### Task 4: Add UI Bridge and TUI Evidence
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/command_test_snapshot.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Create if needed: `crates/agent-tui/src/command_panel.rs`
-- Modify if needed: `crates/agent-tui/src/lib.rs`
-- Modify if needed: `crates/agent-tui/src/render.rs`
-- Create: `crates/agent-tui/tests/command_panel.rs`
+- Create: `crates/ruse-ui-bridge/tests/command_test_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Create if needed: `crates/ruse-tui/src/command_panel.rs`
+- Modify if needed: `crates/ruse-tui/src/lib.rs`
+- Modify if needed: `crates/ruse-tui/src/render.rs`
+- Create: `crates/ruse-tui/tests/command_panel.rs`
 
 - [x] **Step 1: Add bridge snapshot tests**
 
@@ -119,8 +119,8 @@ Add or extend TUI state for command/test evidence while preserving existing shel
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge command_test_snapshot
-cargo test -p agent-tui command_panel
+cargo test -p ruse-ui-bridge command_test_snapshot
+cargo test -p ruse-tui command_panel
 ```
 
 Expected: UI evidence tests pass.
@@ -128,8 +128,8 @@ Expected: UI evidence tests pass.
 ### Task 5: Add CLI Text and JSON Surface
 
 **Files:**
-- Create: `crates/agent-cli/tests/command_test_loop.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/command_test_loop.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add CLI tests**
 
@@ -151,7 +151,7 @@ Add parser and renderer using core command/test loop. Do not accept environment 
 Run:
 
 ```bash
-cargo test -p agent-cli command_test_loop
+cargo test -p ruse-cli command_test_loop
 ```
 
 Expected: CLI tests pass.
@@ -168,13 +168,13 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
-cargo test -p agent-tool shell_command_tool
-cargo test -p agent-core command_test_loop
-cargo test -p agent-core comprehensive_turn_observations
-cargo test -p agent-cli command_test_loop
-cargo test -p agent-ui-bridge command_test_snapshot
-cargo test -p agent-tui command_panel
+cargo clippy -p ruse-core -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
+cargo test -p ruse-tool shell_command_tool
+cargo test -p ruse-core command_test_loop
+cargo test -p ruse-core comprehensive_turn_observations
+cargo test -p ruse-cli command_test_loop
+cargo test -p ruse-ui-bridge command_test_snapshot
+cargo test -p ruse-tui command_panel
 ```
 
 Expected: focused checks pass.

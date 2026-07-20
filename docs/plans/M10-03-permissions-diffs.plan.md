@@ -4,9 +4,9 @@
 
 **Goal:** Add Desktop permission dialog and diff review contracts with explicit state transitions.
 
-**Architecture:** Implement permission and diff contracts inside `agent-desktop`. Add an `agent-policy` dependency only if it is not already present, and keep actual approval execution in existing runtime/UI bridge paths.
+**Architecture:** Implement permission and diff contracts inside `ruse-desktop`. Add an `ruse-policy` dependency only if it is not already present, and keep actual approval execution in existing runtime/UI bridge paths.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `agent-desktop`, `agent-types`, `agent-policy`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `ruse-desktop`, `ruse-types`, `ruse-policy`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M10-03-permissions-diffs.spec.md`
-- Read: `crates/agent-policy/src/request.rs`
-- Read: `crates/agent-tool/src/builtins/edit_file.rs`
+- Read: `crates/ruse-policy/src/request.rs`
+- Read: `crates/ruse-tool/src/builtins/edit_file.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -26,7 +26,7 @@ sed -n '1,280p' docs/specs/M10-03-permissions-diffs.spec.md
 ### Task 2: Write Permissions and Diffs RED Tests
 
 **Files:**
-- Create: `crates/agent-desktop/tests/permissions_diffs.rs`
+- Create: `crates/ruse-desktop/tests/permissions_diffs.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -41,7 +41,7 @@ Cover:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-desktop permissions_diffs
+cargo test -p ruse-desktop permissions_diffs
 ```
 
 Expected: fails because permission and diff contracts do not exist.
@@ -49,11 +49,11 @@ Expected: fails because permission and diff contracts do not exist.
 ### Task 3: Implement Permission and Diff Contracts
 
 **Files:**
-- Modify: `crates/agent-desktop/Cargo.toml`
-- Create: `crates/agent-desktop/src/permission.rs`
-- Create: `crates/agent-desktop/src/diff.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
-- Modify: `crates/agent-desktop/src/error.rs`
+- Modify: `crates/ruse-desktop/Cargo.toml`
+- Create: `crates/ruse-desktop/src/permission.rs`
+- Create: `crates/ruse-desktop/src/diff.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
+- Modify: `crates/ruse-desktop/src/error.rs`
 
 - [x] **Step 1: Add permission contracts**
 
@@ -66,7 +66,7 @@ Implement `DiffReviewStatus`, `DiffFileSummary`, `DiffReview`, and diff transiti
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-desktop permissions_diffs
+cargo test -p ruse-desktop permissions_diffs
 ```
 
 ### Task 4: Update Progress and Commit

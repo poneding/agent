@@ -4,7 +4,7 @@
 
 **Goal:** Build a runnable Tauri Desktop MVP over the shared runtime bridge.
 
-**Architecture:** Tauri hosts the Desktop frontend and Rust command layer. `agent-desktop` remains view-model contracts, `agent-ui-bridge` carries commands/events, and runtime crates stay UI-agnostic.
+**Architecture:** Tauri hosts the Desktop frontend and Rust command layer. `ruse-desktop` remains view-model contracts, `ruse-ui-bridge` carries commands/events, and runtime crates stay UI-agnostic.
 
 **Tech Stack:** Rust 2024 edition, Tauri 2, TypeScript frontend, UI bridge schemas, Playwright smoke tests, Cargo fmt, Cargo clippy, Cargo test.
 

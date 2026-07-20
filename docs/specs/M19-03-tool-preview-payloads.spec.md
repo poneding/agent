@@ -12,7 +12,7 @@ Approval without preview is unsafe. M19-03 turns tool inputs into bounded summar
 
 This spec delivers:
 
-- `ToolPreview` payload enum in `agent-tool`
+- `ToolPreview` payload enum in `ruse-tool`
 - file edit diff preview summaries
 - shell command preview summaries
 - Git operation preview summaries
@@ -28,13 +28,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-tool` owns tool preview generation because it already owns built-in tool input schemas and workspace confinement helpers. Extension previews later flow through the same enum.
+`ruse-tool` owns tool preview generation because it already owns built-in tool input schemas and workspace confinement helpers. Extension previews later flow through the same enum.
 
 ```mermaid
 flowchart TD
-  Input["ToolInput"] --> Preview["agent-tool ToolPreview"]
-  Preview --> Policy["agent-policy ApprovalPreviewSummary"]
-  Preview --> UI["agent-ui-bridge preview view"]
+  Input["ToolInput"] --> Preview["ruse-tool ToolPreview"]
+  Preview --> Policy["ruse-policy ApprovalPreviewSummary"]
+  Preview --> UI["ruse-ui-bridge preview view"]
 ```
 
 ## Public Contracts
@@ -77,4 +77,4 @@ flowchart TD
 
 ## Completion Signal
 
-M19-03 is complete when `cargo test -p agent-tool preview` passes and M19-01 approval records can carry preview summaries derived from typed tool previews.
+M19-03 is complete when `cargo test -p ruse-tool preview` passes and M19-01 approval records can carry preview summaries derived from typed tool previews.

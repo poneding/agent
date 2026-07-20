@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M47 architecture baseline and implementation slice map.
 
-**Architecture:** `agent-mcp` owns HTTP session metadata, response envelopes, session-aware headers, and SSE checkpoints; CLI/Desktop remain presentation clients.
+**Architecture:** `ruse-mcp` owns HTTP session metadata, response envelopes, session-aware headers, and SSE checkpoints; CLI/Desktop remain presentation clients.
 
 **Tech Stack:** Markdown specs/plans, existing Rust workspace.
 
@@ -15,7 +15,7 @@
 **Files:**
 - Read: `docs/specs/M45-mcp-client-streamable-http.spec.md`
 - Read: `docs/specs/M46-mcp-http-sse-response-runtime.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review completed HTTP and SSE client shape**
 

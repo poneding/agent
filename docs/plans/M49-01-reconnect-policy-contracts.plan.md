@@ -4,7 +4,7 @@
 
 **Goal:** Add pure contracts for bounded MCP HTTP stream reconnect policy and retry classification.
 
-**Architecture:** `agent-mcp::client_http` owns reconnect policy contracts and exports them through `agent-mcp`.
+**Architecture:** `ruse-mcp::client_http` owns reconnect policy contracts and exports them through `ruse-mcp`.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M49-01-reconnect-policy-contracts.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/src/lib.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Review the spec and existing stream contracts**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_reconnect_policy.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_reconnect_policy.rs`
 
 - [x] **Step 1: Add focused reconnect policy tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_policy
+CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_reconnect_policy
 ```
 
 Expected: tests fail before reconnect policy contracts exist.
@@ -37,8 +37,8 @@ Expected: tests fail before reconnect policy contracts exist.
 ### Task 3: Implement Policy Contracts
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add `McpClientHttpReconnectPolicy`**
 - [x] **Step 2: Add validation and capped backoff**
@@ -49,7 +49,7 @@ Expected: tests fail before reconnect policy contracts exist.
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_policy
+CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_reconnect_policy
 ```
 
 Expected: focused tests pass.
@@ -62,7 +62,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Expected: checks pass.
@@ -74,7 +74,7 @@ Expected: checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp http reconnect policy contracts"
 ```
 
@@ -82,6 +82,6 @@ git commit -m "feat: add mcp http reconnect policy contracts"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_policy` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_reconnect_policy` passed.
 - `CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

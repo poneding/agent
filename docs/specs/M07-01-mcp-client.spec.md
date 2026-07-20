@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Create the `agent-mcp` crate and define the minimal MCP client contracts for server configuration, initialization, deterministic tool discovery, and health checks.
+Create the `ruse-mcp` crate and define the minimal MCP client contracts for server configuration, initialization, deterministic tool discovery, and health checks.
 
 ## Product Context
 
@@ -14,7 +14,7 @@ The protocol grounding is the official MCP `2025-11-25` specification: clients i
 
 This spec delivers:
 
-- `agent-mcp` crate scaffold
+- `ruse-mcp` crate scaffold
 - `McpServerId`
 - `McpServerConfig`
 - `McpTransportConfig`
@@ -37,13 +37,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns MCP protocol-facing contracts and deterministic client test fixtures. It depends on shared serialization/error libraries and must not depend on `agent-core`, `agent-cli`, `agent-ui-bridge`, storage, model providers, or Desktop code in this slice.
+`ruse-mcp` owns MCP protocol-facing contracts and deterministic client test fixtures. It depends on shared serialization/error libraries and must not depend on `ruse-core`, `ruse-cli`, `ruse-ui-bridge`, storage, model providers, or Desktop code in this slice.
 
 ```mermaid
 flowchart TD
-  mcp["agent-mcp contracts"] --> serde["serde wire shape"]
+  mcp["ruse-mcp contracts"] --> serde["serde wire shape"]
   fixture["FixtureMcpClient"] --> mcp
-  future_core["future agent-core integration"] --> mcp
+  future_core["future ruse-core integration"] --> mcp
   future_tool["future local tool registration"] --> mcp
 ```
 
@@ -51,7 +51,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-mcp/
+  ruse-mcp/
     Cargo.toml
     src/
       lib.rs
@@ -186,11 +186,11 @@ Validation rules:
 
 ## Acceptance Criteria
 
-- `agent-mcp` is a workspace member.
+- `ruse-mcp` is a workspace member.
 - MCP configs and discovery contracts serialize and deserialize.
 - `FixtureMcpClient` can initialize a configured server and return deterministic tool descriptors.
 - `check_mcp_server_health` reports disabled, healthy, and unhealthy states.
-- `cargo test -p agent-mcp mcp_client` passes.
+- `cargo test -p ruse-mcp mcp_client` passes.
 
 ## Completion Signal
 

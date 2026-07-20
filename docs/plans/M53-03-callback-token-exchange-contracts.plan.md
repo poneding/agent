@@ -4,7 +4,7 @@
 
 **Goal:** Add callback validation and token exchange request DTOs.
 
-**Architecture:** Pure `agent-mcp::client_http` validation and DTO construction; external auth transport owns network execution.
+**Architecture:** Pure `ruse-mcp::client_http` validation and DTO construction; external auth transport owns network execution.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M53-03-callback-token-exchange-contracts.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review callback and exchange scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_oauth_callback.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_oauth_callback.rs`
 
 - [x] **Step 1: Add callback and token exchange tests**
 
 ### Task 3: Implement Contracts
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add callback input and validation result**
 - [x] **Step 2: Add token exchange request DTO**
@@ -48,9 +48,9 @@
 Verification evidence, 2026-06-30:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_callback
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_callback
 CARGO_TARGET_DIR=target/codex-m53 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m53 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m53 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Result: all focused M53-03 checks passed.

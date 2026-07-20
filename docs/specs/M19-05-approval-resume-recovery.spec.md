@@ -28,14 +28,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns suspended turn orchestration and persists durable runtime events. `agent-policy` validates approval state transitions and lease grants. `agent-storage` persists event/checkpoint state.
+`ruse-core` owns suspended turn orchestration and persists durable runtime events. `ruse-policy` validates approval state transitions and lease grants. `ruse-storage` persists event/checkpoint state.
 
 ```mermaid
 flowchart TD
   Ask["PolicyDecision::Ask"] --> Pending["PendingApproval"]
   Pending --> Checkpoint["CheckpointRecorded"]
-  Response["ApprovalResponse"] --> Core["agent-core resume"]
-  Core --> Lease["agent-policy lease grant"]
+  Response["ApprovalResponse"] --> Core["ruse-core resume"]
+  Core --> Lease["ruse-policy lease grant"]
   Lease --> Tool["idempotent tool execution"]
   Core --> Audit["runtime events"]
 ```

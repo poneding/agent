@@ -30,25 +30,25 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-model` owns all provider-specific request, response, SSE, transport, and error mapping behavior. `agent-core` consumes provider-neutral `ModelStreamEvent` values and emits runtime events as they arrive. `agent-cli` loads config, resolves secrets through `agent-model`, registers executable providers, and renders streamed text or JSON.
+`ruse-model` owns all provider-specific request, response, SSE, transport, and error mapping behavior. `ruse-core` consumes provider-neutral `ModelStreamEvent` values and emits runtime events as they arrive. `ruse-cli` loads config, resolves secrets through `ruse-model`, registers executable providers, and renders streamed text or JSON.
 
 ```mermaid
 flowchart TD
-  Config["AgentRuntimeConfig"] --> CLI["agent-cli live registry builder"]
+  Config["AgentRuntimeConfig"] --> CLI["ruse-cli live registry builder"]
   Secrets["SecretResolver"] --> CLI
   CLI --> Registry["ModelProviderRegistry"]
   Registry --> Provider["OpenAiCompatibleProvider"]
   Provider --> Transport["ReqwestOpenAiTransport"]
-  Core["agent-core streaming turn"] --> Registry
+  Core["ruse-core streaming turn"] --> Registry
   Core --> Events["RuntimeEvent stream"]
 ```
 
 Dependency rules:
 
-- `agent-model` may depend on async stream utilities and HTTP client crates.
-- `agent-core` must not import `reqwest` or provider-specific request types.
-- `agent-cli` may construct provider registries but must not parse SSE frames directly.
-- `agent-ui-bridge` remains a serializable event/command boundary.
+- `ruse-model` may depend on async stream utilities and HTTP client crates.
+- `ruse-core` must not import `reqwest` or provider-specific request types.
+- `ruse-cli` may construct provider registries but must not parse SSE frames directly.
+- `ruse-ui-bridge` remains a serializable event/command boundary.
 
 ## Stream Contract
 
@@ -92,7 +92,7 @@ Testing should use fixture byte streams or a local in-process HTTP server. Works
 
 ## Retry, Fallback, and Cancellation
 
-`agent-core::model_runtime` owns retry/fallback orchestration. The runner attempts the selected provider, retries before emitting terminal failure when failure kind matches policy, and then tries configured fallback providers.
+`ruse-core::model_runtime` owns retry/fallback orchestration. The runner attempts the selected provider, retries before emitting terminal failure when failure kind matches policy, and then tries configured fallback providers.
 
 Rules:
 

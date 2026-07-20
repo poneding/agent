@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-tui` consumes UI-safe bridge frames. It never normalizes raw runtime events itself.
+`ruse-tui` consumes UI-safe bridge frames. It never normalizes raw runtime events itself.
 
 ```mermaid
 flowchart TD

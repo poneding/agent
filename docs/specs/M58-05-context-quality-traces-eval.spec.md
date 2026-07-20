@@ -31,59 +31,59 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-context` owns quality trace contracts and deterministic quality derivation from existing context reports. It must not scan the filesystem or run providers. `agent-core` owns workspace orchestration helpers that produce quality traces next to lexical, hybrid, or pinned reports. `agent-cli`, `agent-ui-bridge`, and `agent-tui` render typed summaries only. `agent-eval` owns deterministic scenario execution and artifact reporting.
+`ruse-context` owns quality trace contracts and deterministic quality derivation from existing context reports. It must not scan the filesystem or run providers. `ruse-core` owns workspace orchestration helpers that produce quality traces next to lexical, hybrid, or pinned reports. `ruse-cli`, `ruse-ui-bridge`, and `ruse-tui` render typed summaries only. `ruse-eval` owns deterministic scenario execution and artifact reporting.
 
 ```mermaid
 flowchart TD
-  Summary["ProjectContextSummary"] --> Quality["agent-context quality trace"]
+  Summary["ProjectContextSummary"] --> Quality["ruse-context quality trace"]
   Retrieval["ContextRetrievalReport"] --> Quality
   Hybrid["ContextHybridRetrievalReport"] --> Quality
   Pinned["PinnedProjectContextBudgetReport"] --> Quality
-  Quality --> Core["agent-core context quality orchestration"]
-  Core --> CLI["agent-cli --quality-trace"]
-  Core --> Bridge["agent-ui-bridge quality snapshot"]
-  Core --> Eval["agent-eval context_quality scenario"]
+  Quality --> Core["ruse-core context quality orchestration"]
+  Core --> CLI["ruse-cli --quality-trace"]
+  Core --> Bridge["ruse-ui-bridge quality snapshot"]
+  Core --> Eval["ruse-eval context_quality scenario"]
 ```
 
 Dependency rules:
 
-- `agent-context` may depend on existing context project, retrieval, semantic, and pin contracts only.
-- `agent-core` may compose scan/retrieve/plan helpers and re-export quality contracts.
-- `agent-eval` may call `agent-core` with deterministic fixtures, but must not shell out to CLI for core assertions.
+- `ruse-context` may depend on existing context project, retrieval, semantic, and pin contracts only.
+- `ruse-core` may compose scan/retrieve/plan helpers and re-export quality contracts.
+- `ruse-eval` may call `ruse-core` with deterministic fixtures, but must not shell out to CLI for core assertions.
 - UI crates must not reimplement quality scoring or budget diagnostics.
 
 ## File Layout
 
 ```text
 crates/
-  agent-context/
+  ruse-context/
     src/
       quality.rs
       lib.rs
     tests/
       context_quality_traces.rs
-  agent-core/
+  ruse-core/
     src/
       project_context.rs
       lib.rs
     tests/
       project_context_quality_traces.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       project_context_quality_commands.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
       lib.rs
     tests/
       project_context_quality_snapshot.rs
-  agent-tui/
+  ruse-tui/
     src/
       trace_panel.rs
       transcript.rs
-  agent-eval/
+  ruse-eval/
     src/
       manifest.rs
       runner.rs
@@ -201,22 +201,22 @@ The implementation may place context-quality expectations inside `EvalExpectatio
 
 ## Testing Strategy
 
-- `agent-context` tests for stable serde shape, budget-pressure classification, lexical trace derivation, hybrid trace derivation, pinned trace derivation, signal ordering, and redaction
-- `agent-core` tests for lexical, hybrid, pinned lexical, and pinned hybrid orchestration returning quality traces from temp workspaces
+- `ruse-context` tests for stable serde shape, budget-pressure classification, lexical trace derivation, hybrid trace derivation, pinned trace derivation, signal ordering, and redaction
+- `ruse-core` tests for lexical, hybrid, pinned lexical, and pinned hybrid orchestration returning quality traces from temp workspaces
 - CLI tests for `repo context select --quality-trace` text and JSON output with lexical, hybrid, and pinned modes
 - UI bridge tests for stable quality snapshot JSON, single-line frame encoding, bounded signals/diagnostics, and redaction
 - TUI reducer tests or existing snapshot updates for the new quality frame
-- `agent-eval` tests for manifest validation, context-quality scenario pass/fail behavior, golden comparison, and artifact redaction
+- `ruse-eval` tests for manifest validation, context-quality scenario pass/fail behavior, golden comparison, and artifact redaction
 - focused commands:
 
 ```bash
-cargo test -p agent-context --test context_quality_traces
-cargo test -p agent-core --test project_context_quality_traces
-cargo test -p agent-cli --test project_context_quality_commands
-cargo test -p agent-ui-bridge --test project_context_quality_snapshot
-cargo test -p agent-eval --test context_quality
+cargo test -p ruse-context --test context_quality_traces
+cargo test -p ruse-core --test project_context_quality_traces
+cargo test -p ruse-cli --test project_context_quality_commands
+cargo test -p ruse-ui-bridge --test project_context_quality_snapshot
+cargo test -p ruse-eval --test context_quality
 cargo xtask eval
-cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui -p agent-eval --all-targets -- -D warnings
+cargo clippy -p ruse-context -p ruse-core -p ruse-cli -p ruse-ui-bridge -p ruse-tui -p ruse-eval --all-targets -- -D warnings
 ```
 
 ## Acceptance Criteria

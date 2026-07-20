@@ -6,10 +6,10 @@ M66 productizes extension management for plugins, skill roots, and MCP servers. 
 
 Extension state follows the repository crate boundaries:
 
-- `agent-core` owns extension registry records, health aggregation, capability-review state, and shared extension snapshots.
-- `agent-plugin` owns plugin manifest parsing, compatibility checks, and capability validation.
-- `agent-skill` owns skill root discovery and skill diagnostics.
-- `agent-mcp` owns MCP server status, export summaries, gateway health, and OAuth foundation contracts.
+- `ruse-core` owns extension registry records, health aggregation, capability-review state, and shared extension snapshots.
+- `ruse-plugin` owns plugin manifest parsing, compatibility checks, and capability validation.
+- `ruse-skill` owns skill root discovery and skill diagnostics.
+- `ruse-mcp` owns MCP server status, export summaries, gateway health, and OAuth foundation contracts.
 - `xtask` owns support bundle manifests and summaries.
 - CLI, TUI, and Desktop render typed contracts from those crates.
 
@@ -20,13 +20,13 @@ Presentation layers should not duplicate compatibility rules, capability policy,
 Plugin commands are intentionally conservative:
 
 ```bash
-agent-cli plugin install path/to/plugin
-agent-cli plugin install path/to/plugin --enable --accept-capabilities
-agent-cli plugin list
-agent-cli plugin inspect hello-plugin
-agent-cli plugin enable hello-plugin --accept-capabilities
-agent-cli plugin disable hello-plugin
-agent-cli plugin remove hello-plugin
+ruse-cli plugin install path/to/plugin
+ruse-cli plugin install path/to/plugin --enable --accept-capabilities
+ruse-cli plugin list
+ruse-cli plugin inspect hello-plugin
+ruse-cli plugin enable hello-plugin --accept-capabilities
+ruse-cli plugin disable hello-plugin
+ruse-cli plugin remove hello-plugin
 ```
 
 Install without `--enable` records the plugin but keeps it disabled. Install or enable with plugin capabilities requires `--accept-capabilities`; accepted capabilities create deterministic extension leases from the manifest's declared permissions. Disabling or removing a plugin clears those leases through the shared extension registry.
@@ -45,12 +45,12 @@ Plugin support evidence must not copy raw plugin manifests. Use registry records
 Skill roots are managed through the existing CLI path:
 
 ```bash
-agent-cli skill roots add path/to/skills
-agent-cli skill roots list
-agent-cli skill roots inspect <root-id>
-agent-cli skill roots enable <root-id>
-agent-cli skill roots disable <root-id>
-agent-cli skill roots remove <root-id>
+ruse-cli skill roots add path/to/skills
+ruse-cli skill roots list
+ruse-cli skill roots inspect <root-id>
+ruse-cli skill roots enable <root-id>
+ruse-cli skill roots disable <root-id>
+ruse-cli skill roots remove <root-id>
 ```
 
 Listing and inspecting roots refreshes extension registry health from current skill discovery. Duplicate skill ids and discovery diagnostics become health diagnostics on the root record. Disabled roots remain inspectable but are excluded from active discovery.
@@ -62,10 +62,10 @@ Skill root support evidence must not include raw skill prompt bodies. Safe evide
 Use extension health commands to inspect all extension kinds together:
 
 ```bash
-agent-cli extension list
-agent-cli extension inspect <extension-id>
-agent-cli extension health
-agent-cli --json extension health
+ruse-cli extension list
+ruse-cli extension inspect <extension-id>
+ruse-cli extension health
+ruse-cli --json extension health
 ```
 
 The health report is deterministic, bounded, redacted, and credential-free. It summarizes plugin, skill root, and MCP server records with counts by kind and status, bounded diagnostics, and stable next-action ids.
@@ -87,10 +87,10 @@ Desktop and other UI surfaces should render the shared extension snapshot contra
 MCP server status remains a typed status report, not a background process launcher:
 
 ```bash
-agent-cli mcp server status
-agent-cli --json mcp server status
-agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
-agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
+ruse-cli mcp server status
+ruse-cli --json mcp server status
+ruse-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
+ruse-cli mcp server stdio --profile path/to/mcp-server-exports.json --workspace .
 ```
 
 M66 adds a health report to MCP server status summaries. It covers:
@@ -111,7 +111,7 @@ The status command should not start live servers or collect raw process output. 
 
 ## OAuth Expectations
 
-M66 does not add browser login, localhost callback hosting, Desktop account UX, durable OAuth token storage, refresh execution, revocation, or provider-specific OAuth UI. Existing `agent-mcp` OAuth contracts already cover metadata parsing, PKCE/state, authorization request planning, callback validation, token exchange construction/execution, token lease conversion, token source references, refresh planning, and bearer request construction.
+M66 does not add browser login, localhost callback hosting, Desktop account UX, durable OAuth token storage, refresh execution, revocation, or provider-specific OAuth UI. Existing `ruse-mcp` OAuth contracts already cover metadata parsing, PKCE/state, authorization request planning, callback validation, token exchange construction/execution, token lease conversion, token source references, refresh planning, and bearer request construction.
 
 New OAuth product work should start only when an installable MCP workflow requires it. When that happens, token values, authorization codes, PKCE verifiers, bearer headers, client secrets, refresh tokens, and raw provider responses must stay out of CLI output, Desktop frames, logs, support bundles, and tests.
 
@@ -146,9 +146,9 @@ Redaction diagnostics are themselves useful support evidence because they explai
 Focused extension checks:
 
 ```bash
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-core extension
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-cli plugin_commands skill_root_commands extension_health_commands
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-mcp mcp_server_status_health
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-core extension
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-cli plugin_commands skill_root_commands extension_health_commands
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-mcp mcp_server_status_health
 CARGO_TARGET_DIR=target/m66-dev cargo test -p xtask support_bundle
 npm --prefix apps/desktop test -- extension-health-ui
 ```

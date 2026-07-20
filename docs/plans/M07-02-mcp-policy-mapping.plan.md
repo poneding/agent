@@ -4,9 +4,9 @@
 
 **Goal:** Convert discovered MCP tools into local tool definitions and permission requests.
 
-**Architecture:** `agent-mcp` owns mapping from MCP descriptors to local contracts. It may depend on `agent-tool`, `agent-policy`, and `agent-types`; those crates must not depend on `agent-mcp`.
+**Architecture:** `ruse-mcp` owns mapping from MCP descriptors to local contracts. It may depend on `ruse-tool`, `ruse-policy`, and `ruse-types`; those crates must not depend on `ruse-mcp`.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `serde_json`, existing `agent-tool`, `agent-policy`, `agent-types`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `serde_json`, existing `ruse-tool`, `ruse-policy`, `ruse-types`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,10 +14,10 @@
 
 **Files:**
 - Read: `docs/specs/M07-02-mcp-policy-mapping.spec.md`
-- Read: `crates/agent-mcp/src/tool.rs`
-- Read: `crates/agent-tool/src/definition.rs`
-- Read: `crates/agent-policy/src/request.rs`
-- Read: `crates/agent-policy/src/capability.rs`
+- Read: `crates/ruse-mcp/src/tool.rs`
+- Read: `crates/ruse-tool/src/definition.rs`
+- Read: `crates/ruse-policy/src/request.rs`
+- Read: `crates/ruse-policy/src/capability.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -32,7 +32,7 @@ Expected: the spec defines mapping contracts, security defaults, and focused tes
 ### Task 2: Write MCP Policy RED Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_policy_mapping.rs`
+- Create: `crates/ruse-mcp/tests/mcp_policy_mapping.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -41,15 +41,15 @@ Create tests with these names:
 ```rust
 #[test]
 fn mcp_policy_mapping_normalizes_local_tool_name() {
-    let server_id = agent_mcp::McpServerId::new("filesystem").unwrap();
-    let name = agent_mcp::local_tool_name_for_mcp_tool(&server_id, "Read File").unwrap();
+    let server_id = ruse_mcp::McpServerId::new("filesystem").unwrap();
+    let name = ruse_mcp::local_tool_name_for_mcp_tool(&server_id, "Read File").unwrap();
     assert_eq!(name.as_str(), "mcp.filesystem.read_file");
 }
 
 #[test]
 fn mcp_policy_mapping_converts_descriptor_to_tool_definition() {
-    let server_id = agent_mcp::McpServerId::new("filesystem").unwrap();
-    let descriptor = agent_mcp::McpToolDescriptor::new(
+    let server_id = ruse_mcp::McpServerId::new("filesystem").unwrap();
+    let descriptor = ruse_mcp::McpToolDescriptor::new(
         server_id,
         "read_file",
         Some("Read File"),
@@ -58,7 +58,7 @@ fn mcp_policy_mapping_converts_descriptor_to_tool_definition() {
     )
     .unwrap();
 
-    let mapped = agent_mcp::mcp_descriptor_to_tool_definition(&descriptor).unwrap();
+    let mapped = ruse_mcp::mcp_descriptor_to_tool_definition(&descriptor).unwrap();
 
     assert_eq!(mapped.local_name.as_str(), "mcp.filesystem.read_file");
     assert_eq!(mapped.definition.name.as_str(), "mcp.filesystem.read_file");
@@ -68,9 +68,9 @@ fn mcp_policy_mapping_converts_descriptor_to_tool_definition() {
 
 #[test]
 fn mcp_policy_mapping_builds_default_permission_request() {
-    let actor = agent_types::ActorRef::system();
-    let server_id = agent_mcp::McpServerId::new("filesystem").unwrap();
-    let descriptor = agent_mcp::McpToolDescriptor::new(
+    let actor = ruse_types::ActorRef::system();
+    let server_id = ruse_mcp::McpServerId::new("filesystem").unwrap();
+    let descriptor = ruse_mcp::McpToolDescriptor::new(
         server_id,
         "read_file",
         None::<String>,
@@ -79,19 +79,19 @@ fn mcp_policy_mapping_builds_default_permission_request() {
     )
     .unwrap();
 
-    let mapping = agent_mcp::default_policy_mapping_for_mcp_tool(&descriptor).unwrap();
-    let request = agent_mcp::permission_request_for_mcp_mapping(&mapping, actor.clone());
+    let mapping = ruse_mcp::default_policy_mapping_for_mcp_tool(&descriptor).unwrap();
+    let request = ruse_mcp::permission_request_for_mcp_mapping(&mapping, actor.clone());
 
     assert_eq!(request.actor, actor);
-    assert_eq!(request.action, agent_policy::CapabilityAction::Execute);
-    assert_eq!(request.scope.kind, agent_policy::ResourceKind::Tool);
+    assert_eq!(request.action, ruse_policy::CapabilityAction::Execute);
+    assert_eq!(request.scope.kind, ruse_policy::ResourceKind::Tool);
     assert_eq!(request.scope.pattern, "mcp:filesystem:read_file");
 }
 
 #[test]
 fn mcp_policy_mapping_rejects_empty_remote_name() {
-    let server_id = agent_mcp::McpServerId::new("filesystem").unwrap();
-    let result = agent_mcp::local_tool_name_for_mcp_tool(&server_id, " ");
+    let server_id = ruse_mcp::McpServerId::new("filesystem").unwrap();
+    let result = ruse_mcp::local_tool_name_for_mcp_tool(&server_id, " ");
     assert!(result.is_err());
 }
 ```
@@ -101,7 +101,7 @@ fn mcp_policy_mapping_rejects_empty_remote_name() {
 Run:
 
 ```bash
-cargo test -p agent-mcp mcp_policy_mapping
+cargo test -p ruse-mcp mcp_policy_mapping
 ```
 
 Expected: fails because mapping APIs do not exist.
@@ -109,16 +109,16 @@ Expected: fails because mapping APIs do not exist.
 ### Task 3: Add Mapping Dependencies
 
 **Files:**
-- Modify: `crates/agent-mcp/Cargo.toml`
+- Modify: `crates/ruse-mcp/Cargo.toml`
 
 - [x] **Step 1: Add local dependencies**
 
 Add:
 
 ```toml
-agent-policy = { path = "../agent-policy" }
-agent-tool = { path = "../agent-tool" }
-agent-types = { path = "../agent-types" }
+ruse-policy = { path = "../ruse-policy" }
+ruse-tool = { path = "../ruse-tool" }
+ruse-types = { path = "../ruse-types" }
 ```
 
 - [x] **Step 2: Confirm metadata**
@@ -134,9 +134,9 @@ Expected: metadata succeeds and there is no dependency cycle.
 ### Task 4: Implement Tool and Policy Mapping
 
 **Files:**
-- Create: `crates/agent-mcp/src/tool_mapping.rs`
-- Create: `crates/agent-mcp/src/policy.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Create: `crates/ruse-mcp/src/tool_mapping.rs`
+- Create: `crates/ruse-mcp/src/policy.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add tool mapping**
 
@@ -155,7 +155,7 @@ Update `lib.rs` to export the new modules and public contracts.
 Run:
 
 ```bash
-cargo test -p agent-mcp mcp_policy_mapping
+cargo test -p ruse-mcp mcp_policy_mapping
 ```
 
 Expected: all MCP policy mapping tests pass.

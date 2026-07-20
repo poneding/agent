@@ -42,10 +42,10 @@ The closeout documentation must describe:
 
 M66 remains inside the established ownership model:
 
-- `agent-core` owns extension registry and extension health aggregation.
-- `agent-plugin` owns plugin manifest, compatibility, and capability validation.
-- `agent-skill` owns skill root discovery and skill diagnostics.
-- `agent-mcp` owns MCP status, export, gateway, and OAuth foundation contracts.
+- `ruse-core` owns extension registry and extension health aggregation.
+- `ruse-plugin` owns plugin manifest, compatibility, and capability validation.
+- `ruse-skill` owns skill root discovery and skill diagnostics.
+- `ruse-mcp` owns MCP status, export, gateway, and OAuth foundation contracts.
 - `xtask` owns support bundle manifests and release evidence.
 - CLI and Desktop render typed, redacted contracts.
 

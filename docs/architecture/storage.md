@@ -56,7 +56,7 @@ Artifact records include:
 ## SQLite Rules
 
 - Use migrations for schema changes.
-- Keep SQL in `agent-storage`.
+- Keep SQL in `ruse-storage`.
 - Use transactions for multi-row updates.
 - Store durable payloads as JSON where schema evolution is expected.
 - Index event stream lookups by workspace, conversation, turn, task, and sequence.

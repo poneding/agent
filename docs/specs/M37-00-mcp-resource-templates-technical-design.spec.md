@@ -28,7 +28,7 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-mcp` remains the protocol owner. Resource templates live beside static resource exports and resolve concrete URIs into the existing resource read policy path.
+`ruse-mcp` remains the protocol owner. Resource templates live beside static resource exports and resolve concrete URIs into the existing resource read policy path.
 
 ```mermaid
 flowchart TD

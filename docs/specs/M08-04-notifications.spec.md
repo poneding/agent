@@ -28,28 +28,28 @@ Owned by other specs:
 
 ## Architecture
 
-Notification contracts live in `agent-scheduler`. Durable runtime event payloads live in `agent-types`. UI-safe summaries live in `agent-ui-bridge`.
+Notification contracts live in `ruse-scheduler`. Durable runtime event payloads live in `ruse-types`. UI-safe summaries live in `ruse-ui-bridge`.
 
 ```mermaid
 flowchart TD
-  scheduler["agent-scheduler TaskNotification"] --> types["agent-types RuntimeEventPayload"]
-  types --> bridge["agent-ui-bridge"]
+  scheduler["ruse-scheduler TaskNotification"] --> types["ruse-types RuntimeEventPayload"]
+  types --> bridge["ruse-ui-bridge"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-scheduler/
+  ruse-scheduler/
     src/
       notification.rs
     tests/
       notifications.rs
-  agent-types/
+  ruse-types/
     src/
       task.rs
       event.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       event.rs
     tests/

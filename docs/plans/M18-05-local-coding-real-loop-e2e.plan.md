@@ -13,7 +13,7 @@
 ### Task 1: Write RED Local Coding E2E Test
 
 **Files:**
-- Create: `crates/agent-core/tests/comprehensive_local_coding_e2e.rs`
+- Create: `crates/ruse-core/tests/comprehensive_local_coding_e2e.rs`
 
 - [x] **Step 1: Add full workflow test**
 
@@ -73,7 +73,7 @@ assert_eq!(phases.last(), Some(&"final"));
 Run:
 
 ```bash
-cargo test -p agent-core --test comprehensive_local_coding_e2e
+cargo test -p ruse-core --test comprehensive_local_coding_e2e
 ```
 
 Expected: PASS when M18-01 through M18-04 already provide the complete comprehensive loop path. If it fails, fix the comprehensive loop rather than bypassing it in the fixture.
@@ -81,7 +81,7 @@ Expected: PASS when M18-01 through M18-04 already provide the complete comprehen
 ### Task 2: Build Fixture Tool Registry
 
 **Files:**
-- Modify: `crates/agent-core/tests/comprehensive_local_coding_e2e.rs`
+- Modify: `crates/ruse-core/tests/comprehensive_local_coding_e2e.rs`
 
 - [x] **Step 1: Create temporary workspace**
 
@@ -98,8 +98,8 @@ Use an explicit policy fixture that allows only the test tool names and the temp
 ### Task 3: Build Fake Model Script
 
 **Files:**
-- Modify: `crates/agent-core/tests/comprehensive_local_coding_e2e.rs`
-- Modify: `crates/agent-model/src/fake.rs` only if the existing fake provider cannot express the required sequence
+- Modify: `crates/ruse-core/tests/comprehensive_local_coding_e2e.rs`
+- Modify: `crates/ruse-model/src/fake.rs` only if the existing fake provider cannot express the required sequence
 
 - [x] **Step 1: Script read request**
 
@@ -128,8 +128,8 @@ The fourth model turn proposes Git status or diff inspection. The final model tu
 ### Task 4: Add Replay or Trace Reconstruction Assertion
 
 **Files:**
-- Modify: `crates/agent-core/tests/comprehensive_local_coding_e2e.rs`
-- Modify: `crates/agent-core/src/trace.rs` only if an existing public trace helper cannot express the assertion
+- Modify: `crates/ruse-core/tests/comprehensive_local_coding_e2e.rs`
+- Modify: `crates/ruse-core/src/trace.rs` only if an existing public trace helper cannot express the assertion
 
 - [x] **Step 1: Reconstruct final response from events**
 
@@ -152,7 +152,7 @@ Collect proposed tool names from `ToolCallProposed` events and assert the sequen
 **Files:**
 - Modify: `README.md`
 - Modify: `docs/milestones/README.md`
-- Modify: `docs/plans/M18-agent-tool-loop-runtime.plan.md`
+- Modify: `docs/plans/M18-ruse-tool-loop-runtime.plan.md`
 
 - [x] **Step 1: Mark M18 slice implementation complete**
 
@@ -172,9 +172,9 @@ Set active implementation focus to `M19 Interactive Approval and Safe Local Acti
 Run:
 
 ```bash
-cargo test -p agent-core --test comprehensive_local_coding_e2e
-cargo test -p agent-core --test comprehensive_turn_guards
-cargo test -p agent-core --test comprehensive_turn_idempotency
+cargo test -p ruse-core --test comprehensive_local_coding_e2e
+cargo test -p ruse-core --test comprehensive_turn_guards
+cargo test -p ruse-core --test comprehensive_turn_idempotency
 ```
 
 - [x] **Step 2: Run workspace gate**

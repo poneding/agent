@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add typed model provider configuration, catalog validation, and secret-reference contracts to `agent-model`.
+Add typed model provider configuration, catalog validation, and secret-reference contracts to `ruse-model`.
 
 ## Product Context
 
@@ -30,19 +30,19 @@ Owned by later specs:
 
 ## Architecture
 
-Provider config lives in `agent-model` because it is model-domain data and must not depend on runtime orchestration or UI crates.
+Provider config lives in `ruse-model` because it is model-domain data and must not depend on runtime orchestration or UI crates.
 
 ```mermaid
 flowchart TD
-  config["agent-model::config"] --> types["serde types"]
-  core["agent-core"] --> model["agent-model"]
+  config["ruse-model::config"] --> types["serde types"]
+  core["ruse-core"] --> model["ruse-model"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-model/
+  ruse-model/
     src/
       lib.rs
       config.rs
@@ -112,8 +112,8 @@ pub struct ModelProviderCatalog {
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-model --test provider_config` passes.
-- `agent-model` exports provider config contracts.
+- `cargo test -p ruse-model --test provider_config` passes.
+- `ruse-model` exports provider config contracts.
 - No config contract can store a raw API key value.
 
 ## Completion Signal

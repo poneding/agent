@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Define typed IDs, event envelope, event payloads, state enums, and JSON serialization rules in `agent-types`.
+**Goal:** Define typed IDs, event envelope, event payloads, state enums, and JSON serialization rules in `ruse-types`.
 
-**Architecture:** `agent-types` owns all durable event contracts and has no dependency on runtime orchestration, storage engines, model SDKs, CLI rendering, or Tokio. The event model is split into focused modules: IDs and sequences, schema version, timestamp, actor, state, error, and event payloads.
+**Architecture:** `ruse-types` owns all durable event contracts and has no dependency on runtime orchestration, storage engines, model SDKs, CLI rendering, or Tokio. The event model is split into focused modules: IDs and sequences, schema version, timestamp, actor, state, error, and event payloads.
 
 **Tech Stack:** Rust 2024 edition, `serde`, `serde_json`, `uuid`, `time`, `thiserror`, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -13,16 +13,16 @@
 ### Task 1: Add Dependencies and Module Exports
 
 **Files:**
-- Modify: `crates/agent-types/Cargo.toml`
-- Modify: `crates/agent-types/src/lib.rs`
+- Modify: `crates/ruse-types/Cargo.toml`
+- Modify: `crates/ruse-types/src/lib.rs`
 
 - [ ] **Step 1: Add event-model dependencies**
 
-Modify `crates/agent-types/Cargo.toml`:
+Modify `crates/ruse-types/Cargo.toml`:
 
 ```toml
 [package]
-name = "agent-types"
+name = "ruse-types"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -44,7 +44,7 @@ workspace = true
 
 - [ ] **Step 2: Export event model modules**
 
-Replace `crates/agent-types/src/lib.rs` with:
+Replace `crates/ruse-types/src/lib.rs` with:
 
 ```rust
 #![forbid(unsafe_code)]
@@ -69,7 +69,7 @@ pub use timestamp::Timestamp;
 /// Returns this crate's stable package name.
 #[must_use]
 pub const fn crate_name() -> &'static str {
-    "agent-types"
+    "ruse-types"
 }
 ```
 
@@ -78,7 +78,7 @@ pub const fn crate_name() -> &'static str {
 Run:
 
 ```bash
-cargo test -p agent-types
+cargo test -p ruse-types
 ```
 
 Expected: compilation fails because the exported modules do not exist yet.
@@ -86,11 +86,11 @@ Expected: compilation fails because the exported modules do not exist yet.
 ### Task 2: Implement Typed IDs and Event Sequence
 
 **Files:**
-- Create: `crates/agent-types/src/ids.rs`
+- Create: `crates/ruse-types/src/ids.rs`
 
 - [ ] **Step 1: Create ID and sequence types**
 
-Create `crates/agent-types/src/ids.rs`:
+Create `crates/ruse-types/src/ids.rs`:
 
 ```rust
 use std::fmt;
@@ -220,7 +220,7 @@ mod tests {
 Run:
 
 ```bash
-cargo test -p agent-types id_round_trips_through_string event_sequence_rejects_zero
+cargo test -p ruse-types id_round_trips_through_string event_sequence_rejects_zero
 ```
 
 Expected: tests compile after `AgentTypesError` exists in the next task; until then compilation fails because `crate::error` is missing.
@@ -228,13 +228,13 @@ Expected: tests compile after `AgentTypesError` exists in the next task; until t
 ### Task 3: Implement Shared Error, Schema Version, and Timestamp
 
 **Files:**
-- Create: `crates/agent-types/src/error.rs`
-- Create: `crates/agent-types/src/schema.rs`
-- Create: `crates/agent-types/src/timestamp.rs`
+- Create: `crates/ruse-types/src/error.rs`
+- Create: `crates/ruse-types/src/schema.rs`
+- Create: `crates/ruse-types/src/timestamp.rs`
 
 - [ ] **Step 1: Create error types**
 
-Create `crates/agent-types/src/error.rs`:
+Create `crates/ruse-types/src/error.rs`:
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -284,7 +284,7 @@ pub struct RuntimeError {
 
 - [ ] **Step 2: Create schema version**
 
-Create `crates/agent-types/src/schema.rs`:
+Create `crates/ruse-types/src/schema.rs`:
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -341,7 +341,7 @@ mod tests {
 
 - [ ] **Step 3: Create timestamp wrapper**
 
-Create `crates/agent-types/src/timestamp.rs`:
+Create `crates/ruse-types/src/timestamp.rs`:
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -387,7 +387,7 @@ mod tests {
 Run:
 
 ```bash
-cargo test -p agent-types schema_version_rejects_zero timestamp_serializes_as_rfc3339 event_sequence_rejects_zero
+cargo test -p ruse-types schema_version_rejects_zero timestamp_serializes_as_rfc3339 event_sequence_rejects_zero
 ```
 
 Expected: tests pass after the modules compile.
@@ -395,12 +395,12 @@ Expected: tests pass after the modules compile.
 ### Task 4: Implement Actor and State Contracts
 
 **Files:**
-- Create: `crates/agent-types/src/actor.rs`
-- Create: `crates/agent-types/src/state.rs`
+- Create: `crates/ruse-types/src/actor.rs`
+- Create: `crates/ruse-types/src/state.rs`
 
 - [ ] **Step 1: Create actor model**
 
-Create `crates/agent-types/src/actor.rs`:
+Create `crates/ruse-types/src/actor.rs`:
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -449,7 +449,7 @@ mod tests {
 
 - [ ] **Step 2: Create turn and task states**
 
-Create `crates/agent-types/src/state.rs`:
+Create `crates/ruse-types/src/state.rs`:
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -533,7 +533,7 @@ mod tests {
 Run:
 
 ```bash
-cargo test -p agent-types actor_kind_uses_snake_case turn_state_uses_snake_case terminal_states_are_marked
+cargo test -p ruse-types actor_kind_uses_snake_case turn_state_uses_snake_case terminal_states_are_marked
 ```
 
 Expected: tests pass.
@@ -541,11 +541,11 @@ Expected: tests pass.
 ### Task 5: Implement Runtime Event Payloads and Envelope
 
 **Files:**
-- Create: `crates/agent-types/src/event.rs`
+- Create: `crates/ruse-types/src/event.rs`
 
 - [ ] **Step 1: Create runtime event contracts**
 
-Create `crates/agent-types/src/event.rs`:
+Create `crates/ruse-types/src/event.rs`:
 
 ```rust
 use serde::{Deserialize, Serialize};
@@ -735,7 +735,7 @@ pub struct ReplayCompleted {
 Run:
 
 ```bash
-cargo test -p agent-types
+cargo test -p ruse-types
 ```
 
 Expected: crate tests pass before integration snapshots are added.
@@ -743,14 +743,14 @@ Expected: crate tests pass before integration snapshots are added.
 ### Task 6: Add JSON Snapshot and Round-Trip Tests
 
 **Files:**
-- Create: `crates/agent-types/tests/event_json.rs`
+- Create: `crates/ruse-types/tests/event_json.rs`
 
 - [ ] **Step 1: Add integration tests for event JSON**
 
-Create `crates/agent-types/tests/event_json.rs`:
+Create `crates/ruse-types/tests/event_json.rs`:
 
 ```rust
-use agent_types::{
+use ruse_types::{
     ActorRef, ConversationId, CorrelationId, EventId, FinalResponseProduced, RuntimeEvent,
     RuntimeEventPayload, SchemaVersion, Timestamp, TurnId, UserInputReceived, WorkspaceId,
 };
@@ -811,7 +811,7 @@ fn final_response_event_has_stable_shape() {
 Run:
 
 ```bash
-cargo test -p agent-types --test event_json
+cargo test -p ruse-types --test event_json
 ```
 
 Expected: event JSON tests pass.
@@ -839,11 +839,11 @@ Expected: all commands pass.
 Confirm:
 
 ```text
-agent-types exposes event model modules through lib.rs.
-cargo test -p agent-types passes.
+ruse-types exposes event model modules through lib.rs.
+cargo test -p ruse-types passes.
 cargo test --workspace passes.
 Representative JSON round-trip and shape tests exist.
-No runtime crate outside agent-types defines duplicate ID, event, actor, or state types.
+No runtime crate outside ruse-types defines duplicate ID, event, actor, or state types.
 ```
 
 ### Task 8: Update Progress and Commit

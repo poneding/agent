@@ -29,23 +29,23 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-context` owns typed context contracts, prompt-layer conversion, scoring reports, budget decisions, and redacted context snapshots. `agent-core` owns workspace-bound scanning and runtime orchestration because it has the workspace root, policy context, and turn lifecycle. CLI, TUI, and Desktop consume context summaries through `agent-cli` and `agent-ui-bridge`; they must not duplicate project indexing, scoring, or budget logic.
+`ruse-context` owns typed context contracts, prompt-layer conversion, scoring reports, budget decisions, and redacted context snapshots. `ruse-core` owns workspace-bound scanning and runtime orchestration because it has the workspace root, policy context, and turn lifecycle. CLI, TUI, and Desktop consume context summaries through `ruse-cli` and `ruse-ui-bridge`; they must not duplicate project indexing, scoring, or budget logic.
 
 ```mermaid
 flowchart TD
-  Core["agent-core project context runtime"] --> Context["agent-context contracts and scoring"]
-  Core --> Types["agent-types workspace/session ids"]
+  Core["ruse-core project context runtime"] --> Context["ruse-context contracts and scoring"]
+  Core --> Types["ruse-types workspace/session ids"]
   Context --> Prompt["PromptLayer and budget planner"]
-  CLI["agent-cli repo/context commands"] --> Core
-  Bridge["agent-ui-bridge context snapshots"] --> Core
-  Eval["agent-eval coding scenarios"] --> CLI
+  CLI["ruse-cli repo/context commands"] --> Core
+  Bridge["ruse-ui-bridge context snapshots"] --> Core
+  Eval["ruse-eval coding scenarios"] --> CLI
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-context/
+  ruse-context/
     src/
       project.rs
       retrieval.rs
@@ -56,24 +56,24 @@ crates/
       context_retrieval.rs
       pinned_context_budget.rs
       context_quality_traces.rs
-  agent-core/
+  ruse-core/
     src/
       project_context.rs
       context.rs
     tests/
       project_context_scan.rs
       context_assembly_runtime.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       project_context_commands.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
     tests/
       project_context_snapshot.rs
-  agent-eval/
+  ruse-eval/
     tests/
       context_quality.rs
 docs/
@@ -158,8 +158,8 @@ Context summaries that cross UI, event, or eval boundaries must be serializable,
 
 ## Testing Strategy
 
-- `agent-context` tests for stable serialization, sorting, prompt-layer conversion, scoring reasons, pinned context budget behavior, and redaction
-- `agent-core` tests for bounded workspace scans, ignored directories, unreadable/oversized/binary files, and safe diagnostics
+- `ruse-context` tests for stable serialization, sorting, prompt-layer conversion, scoring reasons, pinned context budget behavior, and redaction
+- `ruse-core` tests for bounded workspace scans, ignored directories, unreadable/oversized/binary files, and safe diagnostics
 - CLI/JSON tests for parseable context summaries and redaction
 - UI bridge snapshot tests for stable safe context frames
 - eval coverage proving a coding scenario receives relevant context evidence

@@ -4,7 +4,7 @@
 
 **Goal:** Add bounded MCP streamable HTTP reconnect behavior with safe retry, resume, replay diagnostics, and redacted reports.
 
-**Architecture:** `agent-mcp` owns reconnect policy, runner, replay diagnostics, trace reports, and tests. CLI/Desktop consume typed reports only.
+**Architecture:** `ruse-mcp` owns reconnect policy, runner, replay diagnostics, trace reports, and tests. CLI/Desktop consume typed reports only.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde, reqwest fixture transports, SSE parsing, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -82,10 +82,10 @@ git commit -m "feat: complete m49 mcp http stream reconnect runtime"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_policy` passed.
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_stream_reconnect_runner` passed.
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_missed_event_replay` passed.
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_trace` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_reconnect_policy` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_stream_reconnect_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_missed_event_replay` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_reconnect_trace` passed.
 - `git diff --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m49 cargo xtask ci` passed. The known quality-gate fixture printed `error: Unrecognized option: 'definitely-not-a-real-rustc-flag'` and the command exited 0.

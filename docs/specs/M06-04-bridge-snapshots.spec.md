@@ -30,8 +30,8 @@ Snapshot tests live near the bridge crate that owns the wire contract. CLI JSON 
 
 ```mermaid
 flowchart TD
-  fixture["deterministic RuntimeEvent fixtures"] --> bridge["agent-ui-bridge snapshots"]
-  bridge --> cli["agent-cli JSON mode assertions"]
+  fixture["deterministic RuntimeEvent fixtures"] --> bridge["ruse-ui-bridge snapshots"]
+  bridge --> cli["ruse-cli JSON mode assertions"]
   bridge --> desktop["future Desktop compatibility"]
 ```
 
@@ -39,14 +39,14 @@ flowchart TD
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     tests/
       bridge_snapshots.rs
       fixtures/
         m06_model_delta_event.json
         m06_start_turn_command.json
         m06_done_frame.json
-  agent-cli/
+  ruse-cli/
     tests/
       json_mode.rs
 docs/

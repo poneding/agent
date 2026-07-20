@@ -27,11 +27,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-memory` owns tombstones, rebuild, import/export behavior, and UI-safe summaries. `agent-cli` exposes thin command rendering over memory runtime contracts. `agent-ui-bridge` may define portable memory summary frames if needed for JSON output.
+`ruse-memory` owns tombstones, rebuild, import/export behavior, and UI-safe summaries. `ruse-cli` exposes thin command rendering over memory runtime contracts. `ruse-ui-bridge` may define portable memory summary frames if needed for JSON output.
 
 ```mermaid
 flowchart TD
-  CLI["agent memory commands"] --> Memory["agent-memory"]
+  CLI["agent memory commands"] --> Memory["ruse-memory"]
   Memory --> Store["MemoryStore"]
   Memory --> Tombstone["MemoryTombstone"]
   Memory --> Rebuild["IndexRebuildReport"]
@@ -48,16 +48,16 @@ Dependency rules:
 ## File Layout
 
 ```text
-crates/agent-memory/src/
+crates/ruse-memory/src/
   tombstone.rs
   editor.rs
   archive.rs
   lib.rs
-crates/agent-cli/src/
+crates/ruse-cli/src/
   command.rs
-crates/agent-memory/tests/
+crates/ruse-memory/tests/
   memory_editor_portability.rs
-crates/agent-cli/tests/
+crates/ruse-cli/tests/
   memory_commands.rs
 ```
 
@@ -130,7 +130,7 @@ agent memory rebuild-index [--json]
 - Users can inspect and delete memory through CLI fixtures.
 - Deleted records do not reappear after rebuild or import.
 - Exports are portable and secret-safe by default.
-- Focused tests pass with `cargo test -p agent-memory memory_editor_portability` and `cargo test -p agent-cli memory_commands`.
+- Focused tests pass with `cargo test -p ruse-memory memory_editor_portability` and `cargo test -p ruse-cli memory_commands`.
 
 ## Completion Signal
 

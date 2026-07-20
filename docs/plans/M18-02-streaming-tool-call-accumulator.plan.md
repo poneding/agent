@@ -4,16 +4,16 @@
 
 **Goal:** Add a typed accumulator that converts model tool-call stream events into executable requests or recoverable observations.
 
-**Architecture:** `agent-core` owns accumulation and validation. It creates `ToolCallRequest` values for valid calls and `ToolObservationMessage` values for invalid or duplicate calls.
+**Architecture:** `ruse-core` owns accumulation and validation. It creates `ToolCallRequest` values for valid calls and `ToolObservationMessage` values for invalid or duplicate calls.
 
-**Tech Stack:** Rust 2024 edition, serde_json, `agent-model`, `agent-tool`, `agent-core`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, serde_json, `ruse-model`, `ruse-tool`, `ruse-core`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write RED Accumulator Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/tool_call_accumulator.rs`
+- Create: `crates/ruse-core/tests/tool_call_accumulator.rs`
 
 - [x] **Step 1: Add valid call test**
 
@@ -44,7 +44,7 @@ assert!(matches!(duplicate, AccumulatedToolCall::Observation(_)));
 Run:
 
 ```bash
-cargo test -p agent-core --test tool_call_accumulator
+cargo test -p ruse-core --test tool_call_accumulator
 ```
 
 Expected: fails because accumulator contracts do not exist.
@@ -52,8 +52,8 @@ Expected: fails because accumulator contracts do not exist.
 ### Task 2: Implement Accumulator Contracts
 
 **Files:**
-- Modify: `crates/agent-core/src/tool_loop.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Modify: `crates/ruse-core/src/tool_loop.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add `ToolObservationMessage`**
 
@@ -70,7 +70,7 @@ Track seen call ids in a `BTreeSet<String>` and expose `push_tool_call`.
 ### Task 3: Validate Tool Names and Inputs
 
 **Files:**
-- Modify: `crates/agent-core/src/tool_loop.rs`
+- Modify: `crates/ruse-core/src/tool_loop.rs`
 
 - [x] **Step 1: Validate tool names**
 
@@ -94,8 +94,8 @@ Ensure observation strings do not include `sk-`, `api_key`, `token`, or `passwor
 Run:
 
 ```bash
-cargo test -p agent-core --test tool_call_accumulator
-cargo test -p agent-core --test comprehensive_turn_runner
+cargo test -p ruse-core --test tool_call_accumulator
+cargo test -p ruse-core --test comprehensive_turn_runner
 ```
 
 - [x] **Step 2: Run workspace gate**
@@ -111,6 +111,6 @@ cargo xtask check
 Run:
 
 ```bash
-git add crates/agent-core docs
+git add crates/ruse-core docs
 git commit -m "feat: accumulate streaming tool calls"
 ```

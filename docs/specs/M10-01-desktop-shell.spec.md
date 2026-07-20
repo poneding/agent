@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Create the `agent-desktop` crate and define the first Desktop shell/session contracts over the existing runtime and UI bridge boundaries.
+Create the `ruse-desktop` crate and define the first Desktop shell/session contracts over the existing runtime and UI bridge boundaries.
 
 ## Product Context
 
@@ -12,7 +12,7 @@ M10 starts the Desktop Preview milestone. This slice establishes a typed Desktop
 
 This spec delivers:
 
-- `agent-desktop` crate scaffold
+- `ruse-desktop` crate scaffold
 - `DesktopSessionState`
 - `DesktopRoute`
 - `DesktopSession`
@@ -28,12 +28,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-desktop` owns Desktop presentation contracts and depends on lower-level crates only. It may depend on `agent-types` and `agent-ui-bridge`, but it must not move runtime orchestration out of `agent-core`.
+`ruse-desktop` owns Desktop presentation contracts and depends on lower-level crates only. It may depend on `ruse-types` and `ruse-ui-bridge`, but it must not move runtime orchestration out of `ruse-core`.
 
 ```mermaid
 flowchart TD
-  types["agent-types IDs / Timestamp"] --> desktop["agent-desktop shell contracts"]
-  bridge["agent-ui-bridge command/event schema"] --> desktop
+  types["ruse-types IDs / Timestamp"] --> desktop["ruse-desktop shell contracts"]
+  bridge["ruse-ui-bridge command/event schema"] --> desktop
   future_ui["future native UI"] --> desktop
 ```
 
@@ -41,7 +41,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     Cargo.toml
     src/
       lib.rs
@@ -118,9 +118,9 @@ pub fn disconnect_desktop_session(
 
 ## Acceptance Criteria
 
-- `agent-desktop` is a workspace member.
+- `ruse-desktop` is a workspace member.
 - Desktop shell contracts serialize deterministically.
-- `cargo test -p agent-desktop desktop_shell` passes.
+- `cargo test -p ruse-desktop desktop_shell` passes.
 
 ## Completion Signal
 

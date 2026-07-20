@@ -2,32 +2,32 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `agent-team` subagent profile, handoff, and capability reduction contracts.
+**Goal:** Add `ruse-team` subagent profile, handoff, and capability reduction contracts.
 
-**Architecture:** `agent-team` depends on `agent-types` and `agent-policy` only. This slice defines auditable delegation data; it does not spawn processes or execute tools.
+**Architecture:** `ruse-team` depends on `ruse-types` and `ruse-policy` only. This slice defines auditable delegation data; it does not spawn processes or execute tools.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `agent-types`, `agent-policy`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `ruse-types`, `ruse-policy`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
-### Task 1: Scaffold `agent-team`
+### Task 1: Scaffold `ruse-team`
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-team/Cargo.toml`
-- Create: `crates/agent-team/src/lib.rs`
-- Create: `crates/agent-team/src/error.rs`
+- Create: `crates/ruse-team/Cargo.toml`
+- Create: `crates/ruse-team/src/lib.rs`
+- Create: `crates/ruse-team/src/error.rs`
 
 - [x] **Step 1: Add crate scaffold**
 
-Add `crates/agent-team` to workspace members.
+Add `crates/ruse-team` to workspace members.
 
 Create the crate with dependencies:
 
 ```toml
 [dependencies]
-agent-policy = { path = "../agent-policy" }
-agent-types = { path = "../agent-types" }
+ruse-policy = { path = "../ruse-policy" }
+ruse-types = { path = "../ruse-types" }
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
 ```
@@ -35,7 +35,7 @@ thiserror = "2"
 ### Task 2: Write Handoff RED Tests
 
 **Files:**
-- Create: `crates/agent-team/tests/subagent_handoff.rs`
+- Create: `crates/ruse-team/tests/subagent_handoff.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -50,17 +50,17 @@ Cover:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-team subagent_handoff
+cargo test -p ruse-team subagent_handoff
 ```
 
-Expected: fails because `agent-team` contracts do not exist.
+Expected: fails because `ruse-team` contracts do not exist.
 
 ### Task 3: Implement Handoff Contracts
 
 **Files:**
-- Create: `crates/agent-team/src/capability.rs`
-- Create: `crates/agent-team/src/handoff.rs`
-- Modify: `crates/agent-team/src/lib.rs`
+- Create: `crates/ruse-team/src/capability.rs`
+- Create: `crates/ruse-team/src/handoff.rs`
+- Modify: `crates/ruse-team/src/lib.rs`
 
 - [x] **Step 1: Add capability contracts**
 
@@ -73,7 +73,7 @@ Implement `SubagentRole`, `SubagentProfile`, `HandoffStatus`, `HandoffEnvelope`,
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-team subagent_handoff
+cargo test -p ruse-team subagent_handoff
 ```
 
 ### Task 4: Update Progress and Commit

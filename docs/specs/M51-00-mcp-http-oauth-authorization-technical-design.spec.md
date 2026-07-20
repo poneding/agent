@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::client_http` owns the contracts because they are transport-adjacent and shared by POST and GET stream request builders. No CLI, Desktop, scheduler, model, or secret-store crate depends back into `agent-mcp`.
+`ruse-mcp::client_http` owns the contracts because they are transport-adjacent and shared by POST and GET stream request builders. No CLI, Desktop, scheduler, model, or secret-store crate depends back into `ruse-mcp`.
 
 ```mermaid
 flowchart TD

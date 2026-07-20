@@ -4,7 +4,7 @@
 
 **Goal:** Add typed provider support summaries, redacted config-check UX, compatible-only fallback selection, and deterministic M56 coding-path fallback coverage.
 
-**Architecture:** Capability matching remains in `agent-model`; provider support reporting and runtime fallback decisions live in `agent-core`; CLI and UI bridge render typed support summaries without owning provider rules.
+**Architecture:** Capability matching remains in `ruse-model`; provider support reporting and runtime fallback decisions live in `ruse-core`; CLI and UI bridge render typed support summaries without owning provider rules.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, async fixture providers, Cargo fmt/clippy/test.
 
@@ -15,26 +15,26 @@
 **Files:**
 - Read: `docs/specs/M57-05-provider-ux-fallback.spec.md`
 - Read: `docs/specs/M57-multi-provider-runtime.spec.md`
-- Read: `crates/agent-model/src/registry.rs`
-- Read: `crates/agent-model/src/invocation_policy.rs`
-- Read: `crates/agent-core/src/model_runtime.rs`
-- Read: `crates/agent-core/tests/model_invocation_policy_runner.rs`
-- Read: `crates/agent-core/tests/streaming_retry_cancel_replay.rs`
-- Read: `crates/agent-core/tests/comprehensive_local_coding_e2e.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/config_diagnostics.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-model/src/registry.rs`
+- Read: `crates/ruse-model/src/invocation_policy.rs`
+- Read: `crates/ruse-core/src/model_runtime.rs`
+- Read: `crates/ruse-core/tests/model_invocation_policy_runner.rs`
+- Read: `crates/ruse-core/tests/streaming_retry_cancel_replay.rs`
+- Read: `crates/ruse-core/tests/comprehensive_local_coding_e2e.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/config_diagnostics.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Review current provider support and fallback baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-model invocation_policy
-cargo test -p agent-core model_invocation_policy_runner
-cargo test -p agent-core streaming_retry_cancel_replay
-cargo test -p agent-core comprehensive_local_coding_e2e
-cargo test -p agent-cli config_diagnostics
+cargo test -p ruse-model invocation_policy
+cargo test -p ruse-core model_invocation_policy_runner
+cargo test -p ruse-core streaming_retry_cancel_replay
+cargo test -p ruse-core comprehensive_local_coding_e2e
+cargo test -p ruse-cli config_diagnostics
 ```
 
 Expected: existing fallback, streaming retry, local coding, and config diagnostics pass before M57-05 changes.
@@ -42,13 +42,13 @@ Expected: existing fallback, streaming retry, local coding, and config diagnosti
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Modify: `crates/agent-model/tests/invocation_policy.rs`
-- Modify: `crates/agent-core/tests/model_runtime_resolver.rs`
-- Modify: `crates/agent-core/tests/model_invocation_policy_runner.rs`
-- Modify: `crates/agent-core/tests/streaming_retry_cancel_replay.rs`
-- Modify: `crates/agent-core/tests/comprehensive_local_coding_e2e.rs`
-- Modify: `crates/agent-cli/tests/config_diagnostics.rs`
-- Modify if needed: `crates/agent-ui-bridge/tests/*`
+- Modify: `crates/ruse-model/tests/invocation_policy.rs`
+- Modify: `crates/ruse-core/tests/model_runtime_resolver.rs`
+- Modify: `crates/ruse-core/tests/model_invocation_policy_runner.rs`
+- Modify: `crates/ruse-core/tests/streaming_retry_cancel_replay.rs`
+- Modify: `crates/ruse-core/tests/comprehensive_local_coding_e2e.rs`
+- Modify: `crates/ruse-cli/tests/config_diagnostics.rs`
+- Modify if needed: `crates/ruse-ui-bridge/tests/*`
 
 - [x] **Step 1: Add provider compatibility tests**
 
@@ -89,12 +89,12 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-model invocation_policy
-cargo test -p agent-core model_runtime_resolver
-cargo test -p agent-core model_invocation_policy_runner
-cargo test -p agent-core streaming_retry_cancel_replay
-cargo test -p agent-core comprehensive_local_coding_e2e
-cargo test -p agent-cli config_diagnostics
+cargo test -p ruse-model invocation_policy
+cargo test -p ruse-core model_runtime_resolver
+cargo test -p ruse-core model_invocation_policy_runner
+cargo test -p ruse-core streaming_retry_cancel_replay
+cargo test -p ruse-core comprehensive_local_coding_e2e
+cargo test -p ruse-cli config_diagnostics
 ```
 
 Expected: new tests fail before provider support reports, JSON contracts, and compatible-only fallback behavior are implemented.
@@ -102,11 +102,11 @@ Expected: new tests fail before provider support reports, JSON contracts, and co
 ### Task 3: Implement Provider Support Contracts
 
 **Files:**
-- Modify: `crates/agent-model/src/registry.rs`
-- Modify if needed: `crates/agent-model/src/invocation_policy.rs`
-- Create: `crates/agent-core/src/provider_support.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Modify: `crates/agent-core/src/model_runtime.rs`
+- Modify: `crates/ruse-model/src/registry.rs`
+- Modify if needed: `crates/ruse-model/src/invocation_policy.rs`
+- Create: `crates/ruse-core/src/provider_support.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
 
 - [x] **Step 1: Add coding-turn requirements helper**
 
@@ -127,8 +127,8 @@ Ensure support report construction never includes endpoint URLs, secret refs, pr
 ### Task 4: Implement Compatible-Only Fallback
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
-- Modify if needed: `crates/agent-model/src/invocation_policy.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
+- Modify if needed: `crates/ruse-model/src/invocation_policy.rs`
 
 - [x] **Step 1: Resolve selected-provider incompatibility through fallback**
 
@@ -149,10 +149,10 @@ Do not retry or fallback after a stream has emitted text or tool-call output.
 ### Task 5: Wire CLI and UI Bridge Support Output
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify if needed: `crates/agent-cli/tests/config_diagnostics.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify if needed: `crates/ruse-cli/tests/config_diagnostics.rs`
 
 - [x] **Step 1: Add text support summary**
 
@@ -179,13 +179,13 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-model -p agent-core -p agent-cli -p agent-ui-bridge --all-targets -- -D warnings
-cargo test -p agent-model invocation_policy
-cargo test -p agent-core model_runtime_resolver
-cargo test -p agent-core model_invocation_policy_runner
-cargo test -p agent-core streaming_retry_cancel_replay
-cargo test -p agent-core comprehensive_local_coding_e2e
-cargo test -p agent-cli config_diagnostics
+cargo clippy -p ruse-model -p ruse-core -p ruse-cli -p ruse-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-model invocation_policy
+cargo test -p ruse-core model_runtime_resolver
+cargo test -p ruse-core model_invocation_policy_runner
+cargo test -p ruse-core streaming_retry_cancel_replay
+cargo test -p ruse-core comprehensive_local_coding_e2e
+cargo test -p ruse-cli config_diagnostics
 ```
 
 Expected: focused checks pass.

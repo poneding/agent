@@ -4,7 +4,7 @@
 
 **Goal:** Add live OpenAI-compatible HTTP model execution and true runtime streaming while preserving provider-neutral core events.
 
-**Architecture:** `agent-model` owns streaming provider traits, reqwest transport, SSE parsing, and secret-safe errors. `agent-core` consumes model streams incrementally. `agent-cli` registers live providers from config and renders streamed text or NDJSON.
+**Architecture:** `ruse-model` owns streaming provider traits, reqwest transport, SSE parsing, and secret-safe errors. `ruse-core` consumes model streams incrementally. `ruse-cli` registers live providers from config and renders streamed text or NDJSON.
 
 **Tech Stack:** Rust 2024 edition, Tokio, reqwest, futures stream traits, serde, fixture HTTP streams, Cargo fmt, Cargo clippy, Cargo test.
 

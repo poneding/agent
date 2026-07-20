@@ -25,13 +25,13 @@ Owned by other specs:
 
 ## Architecture
 
-CLI renders summaries from `agent-mcp` contracts. Trace events use existing redaction and UI-safe summary patterns.
+CLI renders summaries from `ruse-mcp` contracts. Trace events use existing redaction and UI-safe summary patterns.
 
 ## Public Contracts
 
 ```bash
-agent-cli mcp server status
-agent-cli --json mcp server status
+ruse-cli mcp server status
+ruse-cli --json mcp server status
 ```
 
 ## State and Failure Handling

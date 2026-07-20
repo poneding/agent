@@ -29,12 +29,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-ui-bridge` remains the shared UI protocol owner. TUI and Desktop consume `UiTaskSnapshot`, `UiTaskReviewSnapshot`, `UiPlanTodoSnapshot`, and task notification events as UI-safe state. `agent-desktop` owns Rust Desktop view models. `apps/desktop` owns TypeScript state reduction and React rendering. No presentation layer validates plan transitions or mutates runtime state directly.
+`ruse-ui-bridge` remains the shared UI protocol owner. TUI and Desktop consume `UiTaskSnapshot`, `UiTaskReviewSnapshot`, `UiPlanTodoSnapshot`, and task notification events as UI-safe state. `ruse-desktop` owns Rust Desktop view models. `apps/desktop` owns TypeScript state reduction and React rendering. No presentation layer validates plan transitions or mutates runtime state directly.
 
 ```mermaid
 flowchart TD
-  Bridge["agent-ui-bridge UiTaskSnapshot + UiPlanTodoSnapshot"] --> TUI["agent-tui task panel"]
-  Bridge --> DesktopRust["agent-desktop task view models"]
+  Bridge["ruse-ui-bridge UiTaskSnapshot + UiPlanTodoSnapshot"] --> TUI["ruse-tui task panel"]
+  Bridge --> DesktopRust["ruse-desktop task view models"]
   Bridge --> DesktopTs["apps/desktop state reducers"]
   DesktopRust --> DesktopTs
   DesktopTs --> React["TaskList and TaskDetail"]
@@ -51,13 +51,13 @@ Dependency rules:
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/frame.rs
     tests/task_command_bridge.rs
-  agent-tui/
+  ruse-tui/
     src/task_panel.rs
     tests/task_panel.rs
-  agent-desktop/
+  ruse-desktop/
     src/task.rs
     tests/plan_todo_tasks.rs
 apps/
@@ -139,17 +139,17 @@ interface DesktopTaskItem {
 
 ## Testing Strategy
 
-- `agent-tui/tests/task_panel.rs` covers plan/todo frame reduction, active todo rendering, empty states, task waiting state, notifications, and reviews.
-- `agent-desktop/tests/plan_todo_tasks.rs` covers Rust Desktop task monitor/view-model conversion with plan progress, active todo, waiting approval, latest notification, artifact count, and redaction.
+- `ruse-tui/tests/task_panel.rs` covers plan/todo frame reduction, active todo rendering, empty states, task waiting state, notifications, and reviews.
+- `ruse-desktop/tests/plan_todo_tasks.rs` covers Rust Desktop task monitor/view-model conversion with plan progress, active todo, waiting approval, latest notification, artifact count, and redaction.
 - `apps/desktop/src/__tests__/conversation-task-ui.test.tsx` covers TypeScript reduction of `plan_todo_snapshot` frames into selected tasks.
 - `apps/desktop/src/__tests__/trace-settings-ui.test.tsx` covers React task list/detail rendering of plan progress and active todo.
 - `apps/desktop/src/__tests__/desktop-smoke.test.tsx` keeps the broader Desktop smoke fixture rendering plan/task data without secret leakage.
 - Focused verification:
 
 ```bash
-cargo clippy -p agent-tui -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-tui --test task_panel
-cargo test -p agent-desktop --test plan_todo_tasks
+cargo clippy -p ruse-tui -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-tui --test task_panel
+cargo test -p ruse-desktop --test plan_todo_tasks
 npm --prefix apps/desktop test -- conversation-task-ui trace-settings-ui desktop-smoke
 npm --prefix apps/desktop run build
 ```

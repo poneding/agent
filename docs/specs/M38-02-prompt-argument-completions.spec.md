@@ -75,9 +75,9 @@ impl McpPromptExportRegistry {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_prompt_completions`
-- `CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_prompt_completions`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 
-M38-02 is complete when prompt argument completion values can be registered and resolved through typed `agent-mcp` APIs.
+M38-02 is complete when prompt argument completion values can be registered and resolved through typed `ruse-mcp` APIs.

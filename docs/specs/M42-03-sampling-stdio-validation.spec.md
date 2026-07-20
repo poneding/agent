@@ -48,7 +48,7 @@ No new public contracts are required beyond M42-02 dispatcher behavior.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_validation`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_validation`
 
 ## Completion Signal
 

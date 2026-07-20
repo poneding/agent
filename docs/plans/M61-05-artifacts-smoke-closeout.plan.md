@@ -11,12 +11,12 @@ Complete M61 by wiring task review/artifact evidence into plan/todo state, updat
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Modify: `docs/plans/M61-plan-todo-task-ux.plan.md`
-- Modify: `crates/agent-core/src/plan.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Modify: `crates/agent-core/tests/plan_todo_state.rs`
-- Modify: `crates/agent-ui-bridge/tests/task_review.rs`
-- Modify: `crates/agent-cli/tests/daily_driver_recipes.rs`
-- Modify: `crates/agent-desktop/tests/desktop_daily_driver.rs`
+- Modify: `crates/ruse-core/src/plan.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Modify: `crates/ruse-core/tests/plan_todo_state.rs`
+- Modify: `crates/ruse-ui-bridge/tests/task_review.rs`
+- Modify: `crates/ruse-cli/tests/daily_driver_recipes.rs`
+- Modify: `crates/ruse-desktop/tests/desktop_daily_driver.rs`
 - Modify: `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
 - Modify: `docs/cli/daily-driver-recipes.md`
 - Create: `docs/desktop/plan-todo-task-smoke.md`
@@ -36,11 +36,11 @@ Focused checks:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-core -p agent-ui-bridge -p agent-cli -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-core --test plan_todo_state
-cargo test -p agent-ui-bridge --test task_review
-cargo test -p agent-cli --test daily_driver_recipes
-cargo test -p agent-desktop --test desktop_daily_driver
+cargo clippy -p ruse-core -p ruse-ui-bridge -p ruse-cli -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-core --test plan_todo_state
+cargo test -p ruse-ui-bridge --test task_review
+cargo test -p ruse-cli --test daily_driver_recipes
+cargo test -p ruse-desktop --test desktop_daily_driver
 npm --prefix apps/desktop test -- desktop-smoke conversation-task-ui
 npm --prefix apps/desktop run build
 git diff --check
@@ -71,11 +71,11 @@ cargo xtask eval
 Focused checks passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-core -p agent-ui-bridge -p agent-cli -p agent-desktop --all-targets -- -D warnings`
-- `cargo test -p agent-core --test plan_todo_state`
-- `cargo test -p agent-ui-bridge --test task_review`
-- `cargo test -p agent-cli --test daily_driver_recipes`
-- `cargo test -p agent-desktop --test desktop_daily_driver`
+- `cargo clippy -p ruse-core -p ruse-ui-bridge -p ruse-cli -p ruse-desktop --all-targets -- -D warnings`
+- `cargo test -p ruse-core --test plan_todo_state`
+- `cargo test -p ruse-ui-bridge --test task_review`
+- `cargo test -p ruse-cli --test daily_driver_recipes`
+- `cargo test -p ruse-desktop --test desktop_daily_driver`
 - `npm --prefix apps/desktop test -- desktop-smoke conversation-task-ui`
 - `npm --prefix apps/desktop run build`
 

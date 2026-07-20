@@ -4,7 +4,7 @@
 
 **Goal:** Add typed, redacted OAuth authorization-flow contracts for MCP HTTP clients.
 
-**Architecture:** `agent-mcp` owns pure flow planning and validation contracts; external UI/auth/storage layers own browser launch, callback servers, remote token exchange execution, and durable secret storage.
+**Architecture:** `ruse-mcp` owns pure flow planning and validation contracts; external UI/auth/storage layers own browser launch, callback servers, remote token exchange execution, and durable secret storage.
 
 **Tech Stack:** Rust 2024 edition, serde, SHA-256/base64url helpers as needed, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -72,10 +72,10 @@ Expected: all checks pass.
 Evidence, 2026-06-30:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_pkce_state
-CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_authorization_request
-CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_callback
-CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_flow_diagnostics
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_pkce_state
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_authorization_request
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_callback
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_flow_diagnostics
 git diff --check
 CARGO_TARGET_DIR=target/codex-m53 cargo fmt --all -- --check
 CARGO_TARGET_DIR=target/codex-m53 cargo xtask ci

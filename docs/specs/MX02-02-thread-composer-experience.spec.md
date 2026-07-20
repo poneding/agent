@@ -26,15 +26,15 @@ Owned by other specs:
 
 ## Architecture
 
-Thread state is derived from `agent-desktop` conversation/task snapshots and `agent-ui-bridge` frames. React may track search/filter/pin/archive presentation state until durable thread metadata exists, but runtime status and transcript entries come from typed frames.
+Thread state is derived from `ruse-desktop` conversation/task snapshots and `ruse-ui-bridge` frames. React may track search/filter/pin/archive presentation state until durable thread metadata exists, but runtime status and transcript entries come from typed frames.
 
 ## File Layout
 
 ```text
 crates/
-  agent-desktop/src/conversation.rs
-  agent-ui-bridge/src/command.rs
-  agent-ui-bridge/src/frame.rs
+  ruse-desktop/src/conversation.rs
+  ruse-ui-bridge/src/command.rs
+  ruse-ui-bridge/src/frame.rs
 apps/desktop/src/
   components/Composer.tsx
   components/ConversationList.tsx

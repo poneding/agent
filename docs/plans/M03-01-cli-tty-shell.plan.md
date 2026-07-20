@@ -4,23 +4,23 @@
 
 **Goal:** Add a testable CLI command surface with version, banner, batch prompt, TTY shell, and slash command parsing.
 
-**Architecture:** `agent-cli` gets a library boundary for parsing and output formatting. `main.rs` becomes a thin adapter over library functions, while runtime logic stays in `agent-core`.
+**Architecture:** `ruse-cli` gets a library boundary for parsing and output formatting. `main.rs` becomes a thin adapter over library functions, while runtime logic stays in `ruse-core`.
 
-**Tech Stack:** Rust 2024 edition, `agent-core`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-core`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Add CLI Library Boundary
 
 **Files:**
-- Create: `crates/agent-cli/src/lib.rs`
-- Create: `crates/agent-cli/src/command.rs`
-- Create: `crates/agent-cli/src/output.rs`
-- Modify: `crates/agent-cli/src/main.rs`
+- Create: `crates/ruse-cli/src/lib.rs`
+- Create: `crates/ruse-cli/src/command.rs`
+- Create: `crates/ruse-cli/src/output.rs`
+- Modify: `crates/ruse-cli/src/main.rs`
 
 - [x] **Step 1: Write failing parser tests**
 
-Create `crates/agent-cli/tests/cli_modes.rs` with tests for:
+Create `crates/ruse-cli/tests/cli_modes.rs` with tests for:
 
 - `--version`
 - no args runtime banner
@@ -31,10 +31,10 @@ Create `crates/agent-cli/tests/cli_modes.rs` with tests for:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-cli cli_modes
+cargo test -p ruse-cli cli_modes
 ```
 
-Expected: tests fail because `agent_cli::CliCommand` and parser functions do not exist.
+Expected: tests fail because `ruse_cli::CliCommand` and parser functions do not exist.
 
 - [x] **Step 3: Implement parser and output contracts**
 
@@ -43,7 +43,7 @@ Implement `CliCommand`, `CliOutput`, and `parse_cli_command`.
 - [x] **Step 4: Verify GREEN**
 
 ```bash
-cargo test -p agent-cli cli_modes
+cargo test -p ruse-cli cli_modes
 ```
 
 Expected: parser tests pass.
@@ -51,8 +51,8 @@ Expected: parser tests pass.
 ### Task 2: Add Slash Commands
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Create: `crates/agent-cli/tests/slash_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/slash_commands.rs`
 
 - [x] **Step 1: Write failing slash tests**
 
@@ -61,7 +61,7 @@ Tests must prove `/help`, `/status`, `/exit`, and unknown slash commands return 
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-cli slash_commands
+cargo test -p ruse-cli slash_commands
 ```
 
 Expected: tests fail before slash command parser exists.
@@ -73,7 +73,7 @@ Implement `SlashCommand` and `handle_slash_command`.
 - [x] **Step 4: Verify GREEN**
 
 ```bash
-cargo test -p agent-cli slash_commands
+cargo test -p ruse-cli slash_commands
 ```
 
 Expected: slash command tests pass.
@@ -81,13 +81,13 @@ Expected: slash command tests pass.
 ### Task 3: Wire Binary Modes
 
 **Files:**
-- Modify: `crates/agent-cli/src/main.rs`
-- Modify: `crates/agent-cli/tests/cli_smoke.rs`
-- Modify: `crates/agent-cli/tests/runtime_spine.rs`
+- Modify: `crates/ruse-cli/src/main.rs`
+- Modify: `crates/ruse-cli/tests/cli_smoke.rs`
+- Modify: `crates/ruse-cli/tests/runtime_spine.rs`
 
 - [x] **Step 1: Add binary smoke tests**
 
-Tests must prove `agent-cli --version`, `agent-cli`, and `agent-cli --prompt hello` print exact expected output.
+Tests must prove `ruse-cli --version`, `ruse-cli`, and `ruse-cli --prompt hello` print exact expected output.
 
 - [x] **Step 2: Implement binary adapter**
 
@@ -96,7 +96,7 @@ Tests must prove `agent-cli --version`, `agent-cli`, and `agent-cli --prompt hel
 - [x] **Step 3: Run focused CLI tests**
 
 ```bash
-cargo test -p agent-cli
+cargo test -p ruse-cli
 ```
 
 Expected: all CLI tests pass.

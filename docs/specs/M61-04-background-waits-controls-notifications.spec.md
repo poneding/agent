@@ -83,11 +83,11 @@ All fields are optional/defaulted for backward-compatible deserialization.
 
 ## Testing Strategy
 
-- `agent-scheduler` tests cover command-service control evidence, queue approval id persistence, and redaction.
-- `agent-core` background approval tests cover wait/resume/cancel outcomes and notification ids from the runner.
-- `agent-ui-bridge` tests cover new task summary fields, JSON shape, defaulted backward compatibility, and redaction.
-- `agent-cli` tests cover text lifecycle output and JSON snapshot evidence.
-- `agent-desktop` tests cover Desktop task item and monitor conversion of approval ids and notification metadata.
+- `ruse-scheduler` tests cover command-service control evidence, queue approval id persistence, and redaction.
+- `ruse-core` background approval tests cover wait/resume/cancel outcomes and notification ids from the runner.
+- `ruse-ui-bridge` tests cover new task summary fields, JSON shape, defaulted backward compatibility, and redaction.
+- `ruse-cli` tests cover text lifecycle output and JSON snapshot evidence.
+- `ruse-desktop` tests cover Desktop task item and monitor conversion of approval ids and notification metadata.
 - Focused verification runs fmt, clippy for touched crates, relevant Rust tests, and `git diff --check`.
 
 ## Acceptance Criteria

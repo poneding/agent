@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Expose profile inspection through `agent-cli`.
+Expose profile inspection through `ruse-cli`.
 
 ## Product Context
 
@@ -12,26 +12,26 @@ Users and scripts need a command that validates and summarizes an export profile
 
 This spec delivers:
 
-- `agent-cli mcp server profile inspect`
+- `ruse-cli mcp server profile inspect`
 - text rendering
 - JSON rendering under `--json`
 - parser tests and safe failure behavior
 
 Owned by other specs:
 
-- agent-mcp inspection contracts
+- ruse-mcp inspection contracts
 - extended diagnostics and redaction regressions
 
 ## Architecture
 
-CLI reads manifest files, calls `agent-mcp` inspection, and renders typed output. It must not duplicate profile validation logic.
+CLI reads manifest files, calls `ruse-mcp` inspection, and renders typed output. It must not duplicate profile validation logic.
 
 ## Public Contracts
 
 ```bash
-agent-cli mcp server profile inspect --profile exports.json
-agent-cli mcp server profile inspect --profile exports.json --profile-name default --workspace .
-agent-cli --json mcp server profile inspect --profile exports.json --workspace .
+ruse-cli mcp server profile inspect --profile exports.json
+ruse-cli mcp server profile inspect --profile exports.json --profile-name default --workspace .
+ruse-cli --json mcp server profile inspect --profile exports.json --workspace .
 ```
 
 ## State and Failure Handling
@@ -54,7 +54,7 @@ agent-cli --json mcp server profile inspect --profile exports.json --workspace .
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command`
+- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-cli mcp_server_profile_inspect_command`
 
 ## Completion Signal
 

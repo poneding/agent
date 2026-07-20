@@ -4,7 +4,7 @@
 
 **Goal:** Add the async token exchange runner and redacted diagnostics.
 
-**Architecture:** `agent-mcp::client_http` composes exchange DTOs, transport, response parsing, and safe reports without storage side effects.
+**Architecture:** `ruse-mcp::client_http` composes exchange DTOs, transport, response parsing, and safe reports without storage side effects.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M54-03-token-exchange-runner-diagnostics.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review runner diagnostic scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_oauth_token_exchange_runner.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_oauth_token_exchange_runner.rs`
 
 - [x] **Step 1: Add success, provider error, transport failure, invalid response, and redaction tests**
 
 ### Task 3: Implement Runner
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add diagnostic contracts**
 - [x] **Step 2: Add exchange report**
@@ -43,17 +43,17 @@
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_exchange_runner
+CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_exchange_runner
 CARGO_TARGET_DIR=target/codex-m54 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m54 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m54 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Evidence, 2026-06-30:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_exchange_runner
+CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_exchange_runner
 CARGO_TARGET_DIR=target/codex-m54 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m54 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m54 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit

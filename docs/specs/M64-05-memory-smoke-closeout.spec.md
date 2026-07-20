@@ -45,9 +45,9 @@ Out of scope:
 Focused checks:
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-eval --test runner memory
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-eval --test manifest memory
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-eval --test corpus
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-eval --test runner memory
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-eval --test manifest memory
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-eval --test corpus
 cargo xtask eval
 ```
 

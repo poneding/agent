@@ -4,7 +4,7 @@
 
 **Goal:** Prepare `agent` for repeatable local distribution with packaging, platform paths, settings, secrets, migrations, and update flows.
 
-**Architecture:** `agent-cli` exposes the `agent` binary, Desktop packaging uses Tauri, shared platform paths and settings live behind typed runtime contracts, and migrations run before runtime side effects.
+**Architecture:** `ruse-cli` exposes the `agent` binary, Desktop packaging uses Tauri, shared platform paths and settings live behind typed runtime contracts, and migrations run before runtime side effects.
 
 **Tech Stack:** Rust 2024 edition, Tauri bundler, OS keychain adapters, platform dirs, schema migrations, release smoke tests, Cargo fmt, Cargo clippy, Cargo test.
 

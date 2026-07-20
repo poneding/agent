@@ -4,7 +4,7 @@
 
 **Goal:** Load MCP resource templates from export manifests and expose safe inspection metadata.
 
-**Architecture:** `agent-mcp` manifest code owns parsing, validation, profile construction, and inspection.
+**Architecture:** `ruse-mcp` manifest code owns parsing, validation, profile construction, and inspection.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -31,8 +31,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m37 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_manifest_resource_templates
+CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-mcp mcp_server_manifest_resource_templates
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -41,9 +41,9 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m37 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_manifest_resource_templates
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_manifest
+CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-mcp mcp_server_manifest_resource_templates
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-mcp mcp_server_manifest
 ```
 
 ### Task 5: Commit

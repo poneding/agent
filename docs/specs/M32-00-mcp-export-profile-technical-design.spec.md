@@ -28,14 +28,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` parses and validates manifests, then constructs `McpServerProfileRuntime`. `agent-cli` passes the manifest path/profile name and starts `McpServerSession`.
+`ruse-mcp` parses and validates manifests, then constructs `McpServerProfileRuntime`. `ruse-cli` passes the manifest path/profile name and starts `McpServerSession`.
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_manifest.rs
-crates/agent-mcp/src/server_profile.rs
-crates/agent-cli/src/command.rs
+crates/ruse-mcp/src/server_manifest.rs
+crates/ruse-mcp/src/server_profile.rs
+crates/ruse-cli/src/command.rs
 ```
 
 ## Public Contracts

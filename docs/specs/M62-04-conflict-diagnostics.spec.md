@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Surface worktree/file-change conflicts as typed, safe, actionable recovery diagnostics. M62-04 builds on the existing `agent-worktree` conflict detector and threads conflict summaries through recovery snapshots and UI-safe surfaces so a developer can see why work is blocked, which paths overlap, and what the next safe action is.
+Surface worktree/file-change conflicts as typed, safe, actionable recovery diagnostics. M62-04 builds on the existing `ruse-worktree` conflict detector and threads conflict summaries through recovery snapshots and UI-safe surfaces so a developer can see why work is blocked, which paths overlap, and what the next safe action is.
 
 ## Product Context
 
@@ -15,7 +15,7 @@ This slice is not a full merge workflow. M63 owns worktree/team product workflow
 This slice delivers:
 
 - typed conflict summary contracts suitable for recovery snapshots
-- mapping from `agent-worktree::ConflictReport` into recovery-safe conflict diagnostics
+- mapping from `ruse-worktree::ConflictReport` into recovery-safe conflict diagnostics
 - recovery readiness interaction for active conflicts
 - CLI/JSON conflict inspection using deterministic fixture-backed conflict reports when durable lookup is not yet available
 - bridge frames for conflict diagnostics and recovery snapshots carrying conflict summaries
@@ -32,13 +32,13 @@ Out of scope:
 
 ## Architecture
 
-`agent-worktree` remains the source of pure conflict detection. `agent-core` owns recovery-facing mapping and readiness logic. `agent-ui-bridge` wraps recovery-safe conflict reports into frames. CLI/TUI/Desktop render typed summaries without embedding raw file contents or recomputing conflict classification.
+`ruse-worktree` remains the source of pure conflict detection. `ruse-core` owns recovery-facing mapping and readiness logic. `ruse-ui-bridge` wraps recovery-safe conflict reports into frames. CLI/TUI/Desktop render typed summaries without embedding raw file contents or recomputing conflict classification.
 
 ```mermaid
 flowchart TD
-  Worktree["agent-worktree ConflictReport"] --> Core["agent-core recovery conflict mapping"]
+  Worktree["ruse-worktree ConflictReport"] --> Core["ruse-core recovery conflict mapping"]
   Core --> Recovery["RecoverySnapshot conflicts/readiness/diagnostics"]
-  Core --> Bridge["agent-ui-bridge conflict frames"]
+  Core --> Bridge["ruse-ui-bridge conflict frames"]
   Bridge --> CLI["CLI text/JSON conflict inspect"]
   Bridge --> TUI["TUI recovery/task summary"]
   Bridge --> Desktop["Desktop typed fixture surfaces"]
@@ -55,37 +55,37 @@ Dependency rules:
 
 ```text
 crates/
-  agent-types/
+  ruse-types/
     src/
       recovery.rs
-  agent-core/
+  ruse-core/
     src/
       recovery.rs
       conflict_recovery.rs
     tests/
       conflict_recovery.rs
-  agent-worktree/
+  ruse-worktree/
     src/
       conflict.rs
     tests/
       conflict_detection.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
       lib.rs
     tests/
       recovery_bridge.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       recovery_commands.rs
-  agent-tui/
+  ruse-tui/
     src/
       task_panel.rs
       trace_panel.rs
       transcript.rs
-  agent-desktop/
+  ruse-desktop/
     src/
       task.rs
     tests/
@@ -99,7 +99,7 @@ apps/
       __tests__/desktop-smoke.test.tsx
 ```
 
-Exact placement may change to match local code ownership, but conflict classification must remain in `agent-worktree` or `agent-core`.
+Exact placement may change to match local code ownership, but conflict classification must remain in `ruse-worktree` or `ruse-core`.
 
 ## Public Contracts
 
@@ -156,8 +156,8 @@ HasConflict
 CLI command shape:
 
 ```text
-agent-cli conflict inspect --fixture sample
-agent-cli conflict inspect --conversation <id> [--turn <id>]
+ruse-cli conflict inspect --fixture sample
+ruse-cli conflict inspect --conversation <id> [--turn <id>]
 ```
 
 If durable conflict lookup is not available, fixture mode may be used for M62-04 tests, but output must include a typed diagnostic explaining that persisted lookup is not wired yet.
@@ -169,7 +169,7 @@ If durable conflict lookup is not available, fixture mode may be used for M62-04
 - Invalid paths are rejected before being exposed through recovery summaries.
 - Reports must be sorted by path for deterministic output.
 - Empty conflict reports do not block readiness.
-- Same-content add/add remains non-conflicting according to `agent-worktree`.
+- Same-content add/add remains non-conflicting according to `ruse-worktree`.
 - Raw file contents, hunk text, command output, and provider prompts must not be included.
 
 ## Security and Privacy
@@ -181,15 +181,15 @@ If durable conflict lookup is not available, fixture mode may be used for M62-04
 
 ## Testing Strategy
 
-- `agent-worktree/tests/conflict_detection.rs`
+- `ruse-worktree/tests/conflict_detection.rs`
   - keep existing detector behavior green
-- `agent-core/tests/conflict_recovery.rs`
+- `ruse-core/tests/conflict_recovery.rs`
   - map `ConflictReport` to recovery summaries
   - conflict readiness blocks automatic recovery
   - invalid/secret-like paths are rejected or redacted
-- `agent-ui-bridge/tests/recovery_bridge.rs`
+- `ruse-ui-bridge/tests/recovery_bridge.rs`
   - conflict frame/snapshot JSON shape
-- `agent-cli/tests/recovery_commands.rs`
+- `ruse-cli/tests/recovery_commands.rs`
   - text and JSON conflict inspect output
   - no `must-not-appear`, `sk-`, `api_key`, or `token` leakage
 - TUI/Desktop fixture tests:
@@ -200,12 +200,12 @@ Focused checks:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-worktree -p agent-core -p agent-ui-bridge -p agent-cli -p agent-tui -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-worktree --test conflict_detection
-cargo test -p agent-core --test conflict_recovery
-cargo test -p agent-ui-bridge --test recovery_bridge
-cargo test -p agent-cli --test recovery_commands
-cargo test -p agent-desktop --test recovery_view
+cargo clippy -p ruse-worktree -p ruse-core -p ruse-ui-bridge -p ruse-cli -p ruse-tui -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-worktree --test conflict_detection
+cargo test -p ruse-core --test conflict_recovery
+cargo test -p ruse-ui-bridge --test recovery_bridge
+cargo test -p ruse-cli --test recovery_commands
+cargo test -p ruse-desktop --test recovery_view
 npm --prefix apps/desktop test -- desktop-smoke
 ```
 
@@ -215,7 +215,7 @@ npm --prefix apps/desktop test -- desktop-smoke
 - Active conflicts block automatic readiness with typed diagnostics.
 - CLI/JSON can inspect conflict summaries with stable bounded output.
 - Bridge/TUI/Desktop-safe surfaces can render conflict count, path, kind, and next action without raw file contents.
-- Existing `agent-worktree` conflict detector behavior remains green.
+- Existing `ruse-worktree` conflict detector behavior remains green.
 - No Desktop redesign or M63 team workflow work is mixed into this slice.
 
 ## Completion Signal

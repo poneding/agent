@@ -27,7 +27,7 @@ Owned by other specs:
 
 ## Architecture
 
-Telemetry export lives entirely in `agent-telemetry`. It may depend on `agent-types::Timestamp`, but it must not depend on `agent-core`, storage, CLI, Desktop, models, plugins, MCP, or UI bridge crates.
+Telemetry export lives entirely in `ruse-telemetry`. It may depend on `ruse-types::Timestamp`, but it must not depend on `ruse-core`, storage, CLI, Desktop, models, plugins, MCP, or UI bridge crates.
 
 ```mermaid
 flowchart TD
@@ -40,7 +40,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-telemetry/
+  ruse-telemetry/
     src/
       export.rs
       lib.rs
@@ -89,10 +89,10 @@ pub fn export_telemetry_bundle(
 
 ## Acceptance Criteria
 
-- `agent-telemetry` exports bundle contracts from `lib.rs`.
-- `cargo test -p agent-telemetry telemetry_export` passes.
+- `ruse-telemetry` exports bundle contracts from `lib.rs`.
+- `cargo test -p ruse-telemetry telemetry_export` passes.
 - M26-01 status is marked complete in the milestone docs after implementation.
 
 ## Completion Signal
 
-M26-01 is complete when telemetry export tests pass, focused clippy passes for `agent-telemetry`, docs status is updated, and the slice is committed.
+M26-01 is complete when telemetry export tests pass, focused clippy passes for `ruse-telemetry`, docs status is updated, and the slice is committed.

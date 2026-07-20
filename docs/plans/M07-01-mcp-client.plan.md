@@ -2,31 +2,31 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `agent-mcp` with deterministic MCP server config, initialization, tool discovery, and health-check contracts.
+**Goal:** Add `ruse-mcp` with deterministic MCP server config, initialization, tool discovery, and health-check contracts.
 
-**Architecture:** `agent-mcp` owns MCP protocol-facing contracts and fixture-backed client behavior. It stays independent from `agent-core`, UI crates, storage, model providers, and real transports in this slice.
+**Architecture:** `ruse-mcp` owns MCP protocol-facing contracts and fixture-backed client behavior. It stays independent from `ruse-core`, UI crates, storage, model providers, and real transports in this slice.
 
 **Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `serde_json`, `thiserror`, `async-trait`, `tokio` test runtime, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
-### Task 1: Scaffold `agent-mcp`
+### Task 1: Scaffold `ruse-mcp`
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-mcp/Cargo.toml`
-- Create: `crates/agent-mcp/src/lib.rs`
-- Create: `crates/agent-mcp/src/error.rs`
+- Create: `crates/ruse-mcp/Cargo.toml`
+- Create: `crates/ruse-mcp/src/lib.rs`
+- Create: `crates/ruse-mcp/src/error.rs`
 
 - [x] **Step 1: Add crate scaffold**
 
-Add `crates/agent-mcp` to workspace members in `Cargo.toml`.
+Add `crates/ruse-mcp` to workspace members in `Cargo.toml`.
 
-Create `crates/agent-mcp/Cargo.toml`:
+Create `crates/ruse-mcp/Cargo.toml`:
 
 ```toml
 [package]
-name = "agent-mcp"
+name = "ruse-mcp"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -89,7 +89,7 @@ pub enum McpError {
 Run:
 
 ```bash
-cargo test -p agent-mcp
+cargo test -p ruse-mcp
 ```
 
 Expected: the crate is wired into the workspace; the behavior RED check is performed by the focused tests in Task 2.
@@ -97,7 +97,7 @@ Expected: the crate is wired into the workspace; the behavior RED check is perfo
 ### Task 2: Write MCP Client RED Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -106,23 +106,23 @@ Create tests with these names:
 ```rust
 #[tokio::test]
 async fn mcp_client_validates_server_config() {
-    assert!(agent_mcp::McpServerId::new("filesystem").is_ok());
-    assert!(agent_mcp::McpServerId::new("FileSystem").is_err());
+    assert!(ruse_mcp::McpServerId::new("filesystem").is_ok());
+    assert!(ruse_mcp::McpServerId::new("FileSystem").is_err());
 }
 
 #[tokio::test]
 async fn mcp_client_serializes_transport_shape() {
     use std::collections::BTreeMap;
 
-    let config = agent_mcp::McpServerConfig::new(
-        agent_mcp::McpServerId::new("docs").unwrap(),
+    let config = ruse_mcp::McpServerConfig::new(
+        ruse_mcp::McpServerId::new("docs").unwrap(),
         "Docs",
-        agent_mcp::McpTransportConfig::Stdio {
+        ruse_mcp::McpTransportConfig::Stdio {
             command: "mcp-docs".to_string(),
             args: vec!["--stdio".to_string()],
             env: BTreeMap::from([(
                 "API_TOKEN".to_string(),
-                agent_mcp::McpEnvValue::SecretRef("docs.token".to_string()),
+                ruse_mcp::McpEnvValue::SecretRef("docs.token".to_string()),
             )]),
         },
     )
@@ -135,23 +135,23 @@ async fn mcp_client_serializes_transport_shape() {
 
 #[tokio::test]
 async fn mcp_client_fixture_initializes_and_lists_tools() {
-    let server_id = agent_mcp::McpServerId::new("filesystem").unwrap();
-    let config = agent_mcp::McpServerConfig::new(
+    let server_id = ruse_mcp::McpServerId::new("filesystem").unwrap();
+    let config = ruse_mcp::McpServerConfig::new(
         server_id.clone(),
         "Filesystem",
-        agent_mcp::McpTransportConfig::stdio("mcp-filesystem"),
+        ruse_mcp::McpTransportConfig::stdio("mcp-filesystem"),
     )
     .unwrap();
 
-    let client = agent_mcp::FixtureMcpClient::new()
+    let client = ruse_mcp::FixtureMcpClient::new()
         .with_server(
             server_id.clone(),
-            agent_mcp::McpInitializeResult::new(
+            ruse_mcp::McpInitializeResult::new(
                 server_id.clone(),
                 "2025-11-25",
                 "filesystem",
                 Some("1.0.0"),
-                agent_mcp::McpServerCapabilities {
+                ruse_mcp::McpServerCapabilities {
                     tools: true,
                     prompts: false,
                     resources: false,
@@ -160,7 +160,7 @@ async fn mcp_client_fixture_initializes_and_lists_tools() {
         )
         .with_tools(
             server_id.clone(),
-            vec![agent_mcp::McpToolDescriptor::new(
+            vec![ruse_mcp::McpToolDescriptor::new(
                 server_id.clone(),
                 "read_file",
                 Some("Read file"),
@@ -180,31 +180,31 @@ async fn mcp_client_fixture_initializes_and_lists_tools() {
 
 #[tokio::test]
 async fn mcp_client_health_reports_disabled_healthy_and_unhealthy() {
-    let server_id = agent_mcp::McpServerId::new("filesystem").unwrap();
-    let enabled = agent_mcp::McpServerConfig::new(
+    let server_id = ruse_mcp::McpServerId::new("filesystem").unwrap();
+    let enabled = ruse_mcp::McpServerConfig::new(
         server_id.clone(),
         "Filesystem",
-        agent_mcp::McpTransportConfig::stdio("mcp-filesystem"),
+        ruse_mcp::McpTransportConfig::stdio("mcp-filesystem"),
     )
     .unwrap();
     let disabled = enabled.clone().disabled();
-    let empty_client = agent_mcp::FixtureMcpClient::new();
+    let empty_client = ruse_mcp::FixtureMcpClient::new();
 
-    let disabled_health = agent_mcp::check_mcp_server_health(&empty_client, &disabled).await;
-    assert_eq!(disabled_health.status, agent_mcp::McpServerStatus::Disabled);
+    let disabled_health = ruse_mcp::check_mcp_server_health(&empty_client, &disabled).await;
+    assert_eq!(disabled_health.status, ruse_mcp::McpServerStatus::Disabled);
 
-    let unhealthy = agent_mcp::check_mcp_server_health(&empty_client, &enabled).await;
-    assert_eq!(unhealthy.status, agent_mcp::McpServerStatus::Unhealthy);
+    let unhealthy = ruse_mcp::check_mcp_server_health(&empty_client, &enabled).await;
+    assert_eq!(unhealthy.status, ruse_mcp::McpServerStatus::Unhealthy);
 
-    let healthy_client = agent_mcp::FixtureMcpClient::new()
+    let healthy_client = ruse_mcp::FixtureMcpClient::new()
         .with_server(
             server_id.clone(),
-            agent_mcp::McpInitializeResult::new(
+            ruse_mcp::McpInitializeResult::new(
                 server_id.clone(),
                 "2025-11-25",
                 "filesystem",
                 None,
-                agent_mcp::McpServerCapabilities {
+                ruse_mcp::McpServerCapabilities {
                     tools: true,
                     prompts: false,
                     resources: false,
@@ -213,8 +213,8 @@ async fn mcp_client_health_reports_disabled_healthy_and_unhealthy() {
         )
         .with_tools(server_id, Vec::new());
 
-    let healthy = agent_mcp::check_mcp_server_health(&healthy_client, &enabled).await;
-    assert_eq!(healthy.status, agent_mcp::McpServerStatus::Healthy);
+    let healthy = ruse_mcp::check_mcp_server_health(&healthy_client, &enabled).await;
+    assert_eq!(healthy.status, ruse_mcp::McpServerStatus::Healthy);
 }
 ```
 
@@ -223,7 +223,7 @@ async fn mcp_client_health_reports_disabled_healthy_and_unhealthy() {
 Run:
 
 ```bash
-cargo test -p agent-mcp mcp_client
+cargo test -p ruse-mcp mcp_client
 ```
 
 Expected: fails because config, client, and tool contracts do not exist.
@@ -231,8 +231,8 @@ Expected: fails because config, client, and tool contracts do not exist.
 ### Task 3: Implement Config and Tool Contracts
 
 **Files:**
-- Create: `crates/agent-mcp/src/config.rs`
-- Create: `crates/agent-mcp/src/tool.rs`
+- Create: `crates/ruse-mcp/src/config.rs`
+- Create: `crates/ruse-mcp/src/tool.rs`
 
 - [x] **Step 1: Add config contracts**
 
@@ -363,7 +363,7 @@ Implement `McpToolDescriptor` and `McpToolListResult` with validation matching t
 Run:
 
 ```bash
-cargo test -p agent-mcp mcp_client_validates_server_config mcp_client_serializes_transport_shape
+cargo test -p ruse-mcp mcp_client_validates_server_config mcp_client_serializes_transport_shape
 ```
 
 Expected: config and serialization tests pass.
@@ -371,7 +371,7 @@ Expected: config and serialization tests pass.
 ### Task 4: Implement Fixture Client and Health Checks
 
 **Files:**
-- Create: `crates/agent-mcp/src/client.rs`
+- Create: `crates/ruse-mcp/src/client.rs`
 
 - [x] **Step 1: Add client contracts**
 
@@ -437,7 +437,7 @@ Add `new`, `with_server`, `with_tools`, `McpClient` implementation, and `check_m
 Run:
 
 ```bash
-cargo test -p agent-mcp mcp_client
+cargo test -p ruse-mcp mcp_client
 ```
 
 Expected: all `mcp_client` tests pass.

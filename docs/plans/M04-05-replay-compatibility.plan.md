@@ -4,18 +4,18 @@
 
 **Goal:** Add versioned replay fixtures and compatibility checks for M04 traces.
 
-**Architecture:** `agent-storage` owns fixture loading and compatibility diagnostics. `agent-core` verifies recovered trace summaries from loaded fixtures.
+**Architecture:** `ruse-storage` owns fixture loading and compatibility diagnostics. `ruse-core` verifies recovered trace summaries from loaded fixtures.
 
-**Tech Stack:** Rust 2024 edition, `agent-storage`, `agent-core`, `agent-types`, `serde_json`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-storage`, `ruse-core`, `ruse-types`, `serde_json`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Compatibility Tests
 
 **Files:**
-- Create: `crates/agent-storage/tests/replay_compatibility.rs`
-- Create: `crates/agent-storage/tests/fixtures/m04_trace_v1.json`
-- Create: `crates/agent-core/tests/recovery_compatibility.rs`
+- Create: `crates/ruse-storage/tests/replay_compatibility.rs`
+- Create: `crates/ruse-storage/tests/fixtures/m04_trace_v1.json`
+- Create: `crates/ruse-core/tests/recovery_compatibility.rs`
 
 - [x] **Step 1: Add failing fixture tests**
 
@@ -32,8 +32,8 @@ Expected: tests fail because compatibility loader contracts do not exist.
 ### Task 2: Implement Compatibility Loader
 
 **Files:**
-- Create: `crates/agent-storage/src/compatibility.rs`
-- Modify: `crates/agent-storage/src/lib.rs`
+- Create: `crates/ruse-storage/src/compatibility.rs`
+- Modify: `crates/ruse-storage/src/lib.rs`
 
 - [x] **Step 1: Define `ReplayCompatibilityReport`**
 
@@ -46,7 +46,7 @@ Parse fixture schema version, runtime events, checkpoints, and expected summary.
 - [x] **Step 3: Verify storage GREEN**
 
 ```bash
-cargo test -p agent-storage replay_compatibility
+cargo test -p ruse-storage replay_compatibility
 ```
 
 Expected: storage compatibility tests pass.
@@ -54,7 +54,7 @@ Expected: storage compatibility tests pass.
 ### Task 3: Verify Core Recovery Compatibility
 
 **Files:**
-- Modify: `crates/agent-core/tests/recovery_compatibility.rs`
+- Modify: `crates/ruse-core/tests/recovery_compatibility.rs`
 
 - [x] **Step 1: Reconstruct outcome from fixture**
 
@@ -63,7 +63,7 @@ Use loaded fixture events to rebuild final summary and audit count.
 - [x] **Step 2: Verify core GREEN**
 
 ```bash
-cargo test -p agent-core recovery_compatibility
+cargo test -p ruse-core recovery_compatibility
 ```
 
 Expected: core compatibility tests pass.

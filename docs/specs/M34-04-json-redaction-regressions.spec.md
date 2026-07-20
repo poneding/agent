@@ -15,12 +15,12 @@ This spec delivers:
 
 ## Architecture
 
-`agent-mcp` redacts diagnostics; `agent-cli` preserves redacted output.
+`ruse-mcp` redacts diagnostics; `ruse-cli` preserves redacted output.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command`
-- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_inspection`
+- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-cli mcp_server_profile_inspect_command`
+- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-mcp mcp_server_profile_inspection`
 
 ## Completion Signal
 

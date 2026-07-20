@@ -4,7 +4,7 @@
 
 **Goal:** Add a bounded MCP HTTP stream supervisor tick runner.
 
-**Architecture:** `agent-mcp::client_http` composes supervisor config with the M49 reconnect runner without adding scheduler ownership.
+**Architecture:** `ruse-mcp::client_http` composes supervisor config with the M49 reconnect runner without adding scheduler ownership.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde, fixture transports, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,23 +14,23 @@
 
 **Files:**
 - Read: `docs/specs/M50-02-supervisor-runner.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_stream_reconnect_runner.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_reconnect_trace.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_stream_reconnect_runner.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_reconnect_trace.rs`
 
 - [x] **Step 1: Review runner spec and M49 reconnect tests**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_stream_supervisor_runner.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_stream_supervisor_runner.rs`
 
 - [x] **Step 1: Add supervisor runner tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_runner
+CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_runner
 ```
 
 Expected: tests fail before supervisor runner exists.
@@ -38,8 +38,8 @@ Expected: tests fail before supervisor runner exists.
 ### Task 3: Implement Runner
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add supervisor tick API**
 - [x] **Step 2: Compose M49 reconnect report**
@@ -55,7 +55,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit
@@ -65,7 +65,7 @@ CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D 
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp http stream supervisor runner"
 ```
 
@@ -73,6 +73,6 @@ git commit -m "feat: add mcp http stream supervisor runner"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_runner` passed.
 - `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

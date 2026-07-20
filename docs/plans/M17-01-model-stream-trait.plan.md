@@ -4,7 +4,7 @@
 
 **Goal:** Migrate model providers from collected vectors to true async event streams.
 
-**Architecture:** `agent-model` defines `ModelEventStream` and collection helpers. Providers return streams; `agent-core` collects only where compatibility outcomes still require a final vector.
+**Architecture:** `ruse-model` defines `ModelEventStream` and collection helpers. Providers return streams; `ruse-core` collects only where compatibility outcomes still require a final vector.
 
 **Tech Stack:** Rust 2024 edition, `futures-core`, `futures-util`, `async-stream` or `futures_util::stream`, Tokio tests, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -13,8 +13,8 @@
 ### Task 1: Write RED Stream Contract Tests
 
 **Files:**
-- Create: `crates/agent-model/tests/model_stream_trait.rs`
-- Modify: `crates/agent-core/tests/configured_turn_runner.rs`
+- Create: `crates/ruse-model/tests/model_stream_trait.rs`
+- Modify: `crates/ruse-core/tests/configured_turn_runner.rs`
 
 - [x] **Step 1: Add fake stream tests**
 
@@ -44,8 +44,8 @@ Assert existing final response behavior remains unchanged after the trait migrat
 Run:
 
 ```bash
-cargo test -p agent-model --test model_stream_trait
-cargo test -p agent-core --test configured_turn_runner configured_turn_runner_collects_streamed_model_events
+cargo test -p ruse-model --test model_stream_trait
+cargo test -p ruse-core --test configured_turn_runner configured_turn_runner_collects_streamed_model_events
 ```
 
 Expected: compile or test failures because `ModelEventStream` and collection helper do not exist.
@@ -53,13 +53,13 @@ Expected: compile or test failures because `ModelEventStream` and collection hel
 ### Task 2: Add Stream Types And Helpers
 
 **Files:**
-- Modify: `crates/agent-model/Cargo.toml`
-- Modify: `crates/agent-model/src/stream.rs`
-- Modify: `crates/agent-model/src/lib.rs`
+- Modify: `crates/ruse-model/Cargo.toml`
+- Modify: `crates/ruse-model/src/stream.rs`
+- Modify: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Add stream dependencies**
 
-Add `futures-core` and `futures-util` to `agent-model`.
+Add `futures-core` and `futures-util` to `ruse-model`.
 
 - [x] **Step 2: Define `ModelEventStream`**
 
@@ -85,12 +85,12 @@ The helper preserves order and returns the first item error.
 ### Task 3: Migrate Providers
 
 **Files:**
-- Modify: `crates/agent-model/src/provider.rs`
-- Modify: `crates/agent-model/src/fake.rs`
-- Modify: `crates/agent-model/src/openai_compatible.rs`
-- Modify: `crates/agent-model/tests/fake_model.rs`
-- Modify: `crates/agent-model/tests/fake_tool_call.rs`
-- Modify: `crates/agent-model/tests/openai_compatible.rs`
+- Modify: `crates/ruse-model/src/provider.rs`
+- Modify: `crates/ruse-model/src/fake.rs`
+- Modify: `crates/ruse-model/src/openai_compatible.rs`
+- Modify: `crates/ruse-model/tests/fake_model.rs`
+- Modify: `crates/ruse-model/tests/fake_tool_call.rs`
+- Modify: `crates/ruse-model/tests/openai_compatible.rs`
 
 - [x] **Step 1: Change `ModelProvider::stream` return type**
 
@@ -111,10 +111,10 @@ Replace direct vector assertions with `collect_model_event_stream`.
 ### Task 4: Migrate Core Collection Boundary
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
-- Modify: `crates/agent-core/src/turn.rs`
-- Modify: `crates/agent-core/tests/configured_turn_runner.rs`
-- Modify: `crates/agent-core/tests/model_invocation_policy_runner.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/turn.rs`
+- Modify: `crates/ruse-core/tests/configured_turn_runner.rs`
+- Modify: `crates/ruse-core/tests/model_invocation_policy_runner.rs`
 
 - [x] **Step 1: Collect streams only in core compatibility wrappers**
 
@@ -134,10 +134,10 @@ Stream item errors must reach existing `TurnError::Model` and configured turn er
 Run:
 
 ```bash
-cargo test -p agent-model --test model_stream_trait
-cargo test -p agent-model
-cargo test -p agent-core --test configured_turn_runner
-cargo test -p agent-core --test model_invocation_policy_runner
+cargo test -p ruse-model --test model_stream_trait
+cargo test -p ruse-model
+cargo test -p ruse-core --test configured_turn_runner
+cargo test -p ruse-core --test model_invocation_policy_runner
 ```
 
 Expected: all focused tests pass.
@@ -157,6 +157,6 @@ Expected: workspace passes.
 Run:
 
 ```bash
-git add Cargo.toml Cargo.lock crates/agent-model crates/agent-core docs
+git add Cargo.toml Cargo.lock crates/ruse-model crates/ruse-core docs
 git commit -m "feat: add m17 model event stream trait"
 ```

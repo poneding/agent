@@ -5,8 +5,8 @@
 ### Task 1: Add Event Contracts
 
 **Files:**
-- Create: `crates/agent-mcp/src/client_events.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Create: `crates/ruse-mcp/src/client_events.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Define event kind, status, diagnostics, summary, and report DTOs**
 - [x] **Step 2: Export event contracts**
@@ -14,7 +14,7 @@
 ### Task 2: Add Parser and Normalizer
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_events.rs`
+- Modify: `crates/ruse-mcp/src/client_events.rs`
 
 - [x] **Step 1: Parse JSON-RPC event frames**
 - [x] **Step 2: Normalize progress/logging/task/elicitation methods**
@@ -23,7 +23,7 @@
 ### Task 3: Add Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_protocol_events.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_protocol_events.rs`
 
 - [x] **Step 1: Cover known event summaries**
 - [x] **Step 2: Cover unknown events**
@@ -34,5 +34,5 @@
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-mcp mcp_client_protocol_events
+cargo test -p ruse-mcp mcp_client_protocol_events
 ```

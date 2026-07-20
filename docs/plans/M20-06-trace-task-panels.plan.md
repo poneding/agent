@@ -4,9 +4,9 @@
 
 **Goal:** Add inspectable trace and task panels to the TUI.
 
-**Architecture:** `agent-tui` derives trace and task panel state from UI bridge frames. Storage-backed trace loading remains outside this slice.
+**Architecture:** `ruse-tui` derives trace and task panel state from UI bridge frames. Storage-backed trace loading remains outside this slice.
 
-**Tech Stack:** Rust 2024 edition, `agent-tui`, `agent-ui-bridge`, Ratatui buffer tests, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-tui`, `ruse-ui-bridge`, Ratatui buffer tests, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M20-06-trace-task-panels.spec.md`
-- Read: `crates/agent-ui-bridge/src/event.rs`
-- Read: `crates/agent-tui/src/slash.rs`
-- Read: `crates/agent-tui/src/transcript.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
+- Read: `crates/ruse-tui/src/slash.rs`
+- Read: `crates/ruse-tui/src/transcript.rs`
 
 - [x] **Step 1: Review panel data sources**
 
@@ -31,8 +31,8 @@ Expected: panels consume UI-safe bridge events only.
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-tui/tests/trace_panel.rs`
-- Create: `crates/agent-tui/tests/task_panel.rs`
+- Create: `crates/ruse-tui/tests/trace_panel.rs`
+- Create: `crates/ruse-tui/tests/task_panel.rs`
 
 - [x] **Step 1: Add trace panel tests**
 
@@ -47,8 +47,8 @@ Cover task notifications, bounded list behavior, empty state, and `/tasks` focus
 Run:
 
 ```bash
-cargo test -p agent-tui --test trace_panel
-cargo test -p agent-tui --test task_panel
+cargo test -p ruse-tui --test trace_panel
+cargo test -p ruse-tui --test task_panel
 ```
 
 Expected: fails because trace/task panel contracts are missing.
@@ -56,12 +56,12 @@ Expected: fails because trace/task panel contracts are missing.
 ### Task 3: Implement Panels
 
 **Files:**
-- Create: `crates/agent-tui/src/trace_panel.rs`
-- Create: `crates/agent-tui/src/task_panel.rs`
-- Modify: `crates/agent-tui/src/app.rs`
-- Modify: `crates/agent-tui/src/render.rs`
-- Modify: `crates/agent-tui/src/slash.rs`
-- Modify: `crates/agent-tui/src/lib.rs`
+- Create: `crates/ruse-tui/src/trace_panel.rs`
+- Create: `crates/ruse-tui/src/task_panel.rs`
+- Modify: `crates/ruse-tui/src/app.rs`
+- Modify: `crates/ruse-tui/src/render.rs`
+- Modify: `crates/ruse-tui/src/slash.rs`
+- Modify: `crates/ruse-tui/src/lib.rs`
 
 - [x] **Step 1: Add trace state**
 
@@ -82,16 +82,16 @@ Render empty, populated, and narrow states with stable dimensions.
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-tui/tests/trace_panel.rs`
-- Read: `crates/agent-tui/tests/task_panel.rs`
+- Read: `crates/ruse-tui/tests/trace_panel.rs`
+- Read: `crates/ruse-tui/tests/task_panel.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-tui --test trace_panel
-cargo test -p agent-tui --test task_panel
+cargo test -p ruse-tui --test trace_panel
+cargo test -p ruse-tui --test task_panel
 ```
 
 Expected: focused tests pass.
@@ -101,7 +101,7 @@ Expected: focused tests pass.
 Run:
 
 ```bash
-cargo test -p agent-tui
+cargo test -p ruse-tui
 ```
 
 Expected: all TUI tests pass.

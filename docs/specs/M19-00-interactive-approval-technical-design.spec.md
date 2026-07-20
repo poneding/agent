@@ -30,25 +30,25 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-policy` owns permission decisions and lease data. `agent-core` owns pending approval lifecycle and suspended turn state. `agent-ui-bridge` defines approval events and response commands. `agent-cli` implements the first prompt UI; `agent-tui` and Desktop consume the same bridge contracts later.
+`ruse-policy` owns permission decisions and lease data. `ruse-core` owns pending approval lifecycle and suspended turn state. `ruse-ui-bridge` defines approval events and response commands. `ruse-cli` implements the first prompt UI; `ruse-tui` and Desktop consume the same bridge contracts later.
 
 ```mermaid
 flowchart TD
-  Runner["agent-core turn"] --> Request["PermissionRequest"]
-  Request --> Policy["agent-policy"]
+  Runner["ruse-core turn"] --> Request["PermissionRequest"]
+  Request --> Policy["ruse-policy"]
   Policy --> Ask["PolicyDecision::Ask"]
   Ask --> Pending["PendingApproval store"]
   Pending --> Bridge["ApprovalRequest UI event"]
   UI["CLI/TUI/Desktop"] --> Response["ApprovalResponse command"]
-  Response --> Core["agent-core resume"]
-  Core --> Lease["agent-policy lease"]
+  Response --> Core["ruse-core resume"]
+  Core --> Lease["ruse-policy lease"]
   Core --> Tool["tool execution"]
 ```
 
 Dependency rules:
 
-- `agent-policy` does not depend on UI or storage.
-- `agent-core` maps policy `ask` into durable runtime state.
+- `ruse-policy` does not depend on UI or storage.
+- `ruse-core` maps policy `ask` into durable runtime state.
 - UI clients cannot approve actions without a pending request id.
 - Tool executors do not self-prompt for approval.
 

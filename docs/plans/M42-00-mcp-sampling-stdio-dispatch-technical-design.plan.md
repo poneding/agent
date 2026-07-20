@@ -4,7 +4,7 @@
 
 **Goal:** Establish M42 crate ownership, dispatcher boundaries, and implementation slices.
 
-**Architecture:** `agent-mcp` owns sampling stdio dispatch; `agent-core` remains the provider bridge owner.
+**Architecture:** `ruse-mcp` owns sampling stdio dispatch; `ruse-core` remains the provider bridge owner.
 
 **Tech Stack:** Markdown docs, Rust crate boundary review.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M41-mcp-sampling-model-bridge.spec.md`
-- Read: `crates/agent-mcp/src/client.rs`
-- Read: `crates/agent-mcp/src/server.rs`
-- Read: `crates/agent-mcp/src/server_stdio.rs`
+- Read: `crates/ruse-mcp/src/client.rs`
+- Read: `crates/ruse-mcp/src/server.rs`
+- Read: `crates/ruse-mcp/src/server_stdio.rs`
 
 - [x] **Step 1: Review prior sampling and JSON-RPC contracts**
 

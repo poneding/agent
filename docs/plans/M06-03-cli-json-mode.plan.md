@@ -4,16 +4,16 @@
 
 **Goal:** Add `--json` mode to the CLI and emit newline-delimited UI bridge frames for the local runtime fixture.
 
-**Architecture:** `agent-cli` parses output mode and renders JSON through `agent-ui-bridge`; runtime fixture generation remains in `agent-core`. Bridge frame encoding lives in `agent-ui-bridge` so Desktop can reuse it later.
+**Architecture:** `ruse-cli` parses output mode and renders JSON through `ruse-ui-bridge`; runtime fixture generation remains in `ruse-core`. Bridge frame encoding lives in `ruse-ui-bridge` so Desktop can reuse it later.
 
-**Tech Stack:** Rust 2024 edition, `agent-cli`, `agent-ui-bridge`, serde_json, assert_cmd, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-cli`, `ruse-ui-bridge`, serde_json, assert_cmd, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write JSON Frame RED Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/json_frame.rs`
+- Create: `crates/ruse-ui-bridge/tests/json_frame.rs`
 
 - [x] **Step 1: Add failing frame tests**
 
@@ -30,7 +30,7 @@ The tests should import `UiJsonFrame` and `encode_json_frame`.
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge json_frame
+cargo test -p ruse-ui-bridge json_frame
 ```
 
 Expected: fails because frame contracts do not exist.
@@ -38,9 +38,9 @@ Expected: fails because frame contracts do not exist.
 ### Task 2: Implement Bridge JSON Frames
 
 **Files:**
-- Create: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify: `crates/agent-ui-bridge/src/error.rs`
+- Create: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/error.rs`
 
 - [x] **Step 1: Add frame module**
 
@@ -83,7 +83,7 @@ pub use frame::{encode_json_frame, UiJsonFrame};
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test json_frame
+cargo test -p ruse-ui-bridge --test json_frame
 ```
 
 Expected: all frame tests pass.
@@ -91,7 +91,7 @@ Expected: all frame tests pass.
 ### Task 3: Write CLI JSON RED Tests
 
 **Files:**
-- Create: `crates/agent-cli/tests/json_mode.rs`
+- Create: `crates/ruse-cli/tests/json_mode.rs`
 
 - [x] **Step 1: Add failing CLI tests**
 
@@ -105,14 +105,14 @@ Expected behavior:
 
 - `parse_cli_invocation(["--json", "--local-summary"])` returns JSON mode plus `CliCommand::LocalSummary`.
 - `render_cli_invocation` returns JSON lines that deserialize into `UiJsonFrame`.
-- The binary command `agent-cli --json --local-summary` prints at least one `event` frame and one `done` frame.
+- The binary command `ruse-cli --json --local-summary` prints at least one `event` frame and one `done` frame.
 
 - [x] **Step 2: Verify RED**
 
 Run:
 
 ```bash
-cargo test -p agent-cli json_mode
+cargo test -p ruse-cli json_mode
 ```
 
 Expected: fails because `--json` mode contracts do not exist.
@@ -120,17 +120,17 @@ Expected: fails because `--json` mode contracts do not exist.
 ### Task 4: Implement CLI JSON Mode
 
 **Files:**
-- Modify: `crates/agent-cli/Cargo.toml`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/src/main.rs`
-- Modify: `crates/agent-cli/src/lib.rs`
+- Modify: `crates/ruse-cli/Cargo.toml`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/main.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
 
 - [x] **Step 1: Add dependency**
 
-Add to `agent-cli` dependencies:
+Add to `ruse-cli` dependencies:
 
 ```toml
-agent-ui-bridge = { path = "../agent-ui-bridge" }
+ruse-ui-bridge = { path = "../ruse-ui-bridge" }
 ```
 
 - [x] **Step 2: Add invocation contracts**
@@ -155,7 +155,7 @@ Add `parse_cli_invocation`; keep `parse_cli_command` backward compatible by retu
 
 - [x] **Step 3: Add JSON renderer**
 
-Add `render_cli_invocation`. For `OutputMode::Text`, delegate to `render_cli_command`. For `OutputMode::Json` and `CliCommand::LocalSummary`, run `agent_core::run_local_coding_fixture()`, normalize each runtime event with `normalize_runtime_event`, encode each `UiJsonFrame::Event`, and append `UiJsonFrame::Done { event_count }`.
+Add `render_cli_invocation`. For `OutputMode::Text`, delegate to `render_cli_command`. For `OutputMode::Json` and `CliCommand::LocalSummary`, run `ruse_core::run_local_coding_fixture()`, normalize each runtime event with `normalize_runtime_event`, encode each `UiJsonFrame::Event`, and append `UiJsonFrame::Done { event_count }`.
 
 - [x] **Step 4: Update main**
 
@@ -166,7 +166,7 @@ Add `render_cli_invocation`. For `OutputMode::Text`, delegate to `render_cli_com
 Run:
 
 ```bash
-cargo test -p agent-cli --test json_mode
+cargo test -p ruse-cli --test json_mode
 ```
 
 Expected: all JSON mode tests pass and existing CLI tests still pass.

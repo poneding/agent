@@ -4,9 +4,9 @@
 
 **Goal:** Add sandboxed read-only workspace tools for file reads and text search.
 
-**Architecture:** `agent-sandbox` owns workspace path confinement. `agent-tool` owns built-in read-only tools and calls the sandbox before reading local files.
+**Architecture:** `ruse-sandbox` owns workspace path confinement. `ruse-tool` owns built-in read-only tools and calls the sandbox before reading local files.
 
-**Tech Stack:** Rust 2024 edition, `agent-tool`, `agent-sandbox`, `serde_json`, `tempfile` for tests, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-tool`, `ruse-sandbox`, `serde_json`, `tempfile` for tests, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-sandbox/Cargo.toml`
-- Create: `crates/agent-sandbox/src/lib.rs`
-- Create: `crates/agent-sandbox/src/path.rs`
+- Create: `crates/ruse-sandbox/Cargo.toml`
+- Create: `crates/ruse-sandbox/src/lib.rs`
+- Create: `crates/ruse-sandbox/src/path.rs`
 
 - [x] **Step 1: Add workspace member and manifest**
 
@@ -37,13 +37,13 @@ Create tests for normal relative paths, `..` traversal, absolute paths, and syml
 ### Task 2: Implement Workspace Sandbox
 
 **Files:**
-- Create: `crates/agent-sandbox/tests/path.rs`
-- Modify: `crates/agent-sandbox/src/path.rs`
+- Create: `crates/ruse-sandbox/tests/path.rs`
+- Modify: `crates/ruse-sandbox/src/path.rs`
 
 - [x] **Step 1: Verify RED**
 
 ```bash
-cargo test -p agent-sandbox path
+cargo test -p ruse-sandbox path
 ```
 
 Expected: tests fail before path confinement exists.
@@ -55,7 +55,7 @@ Implement `resolve_read_path(&self, relative_path: &str)` and reject paths outsi
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-sandbox path
+cargo test -p ruse-sandbox path
 ```
 
 Expected: sandbox tests pass.
@@ -63,11 +63,11 @@ Expected: sandbox tests pass.
 ### Task 3: Add Built-in Tools
 
 **Files:**
-- Modify: `crates/agent-tool/Cargo.toml`
-- Create: `crates/agent-tool/src/builtins/mod.rs`
-- Create: `crates/agent-tool/src/builtins/read_file.rs`
-- Create: `crates/agent-tool/src/builtins/search_text.rs`
-- Create: `crates/agent-tool/tests/read_only_builtins.rs`
+- Modify: `crates/ruse-tool/Cargo.toml`
+- Create: `crates/ruse-tool/src/builtins/mod.rs`
+- Create: `crates/ruse-tool/src/builtins/read_file.rs`
+- Create: `crates/ruse-tool/src/builtins/search_text.rs`
+- Create: `crates/ruse-tool/tests/read_only_builtins.rs`
 
 - [x] **Step 1: Write failing built-in tests**
 
@@ -80,7 +80,7 @@ Implement `ReadFileTool` and `SearchTextTool` as `Tool` implementations using `W
 - [x] **Step 3: Verify focused tests**
 
 ```bash
-cargo test -p agent-tool read_only_builtins
+cargo test -p ruse-tool read_only_builtins
 ```
 
 Expected: built-in tests pass.

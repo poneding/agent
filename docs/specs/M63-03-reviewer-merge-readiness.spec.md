@@ -10,11 +10,11 @@ M63-01 introduced workflow snapshots. M63-02 exposed them through CLI/JSON. M63-
 
 This slice delivers:
 
-- typed merge readiness reports in `agent-team`
+- typed merge readiness reports in `ruse-team`
 - merge blocker kinds for policy, conflicts, pending approvals, stale worktrees, waiting/failed handoffs, blocking reviews, missing reviews, and missing artifacts
 - `pending_approval_count` on team workflow snapshots
 - readiness derivation that blocks stale worktrees and pending approvals
-- deterministic `agent-team` tests proving merge-ready and blocked states
+- deterministic `ruse-team` tests proving merge-ready and blocked states
 
 ## Non-Goals
 

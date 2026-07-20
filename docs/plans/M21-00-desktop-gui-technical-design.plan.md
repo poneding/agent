@@ -6,7 +6,7 @@
 
 **Architecture:** This is a documentation-only slice. It defines Tauri command boundaries, frontend state ownership, runtime bridge sessions, settings/secrets behavior, and Desktop smoke testing strategy.
 
-**Tech Stack:** Markdown docs, Tauri 2 design notes, existing `agent-desktop` and `agent-ui-bridge` contracts, Cargo workspace verification.
+**Tech Stack:** Markdown docs, Tauri 2 design notes, existing `ruse-desktop` and `ruse-ui-bridge` contracts, Cargo workspace verification.
 
 ---
 

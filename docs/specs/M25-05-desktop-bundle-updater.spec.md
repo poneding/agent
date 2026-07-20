@@ -26,14 +26,14 @@ Owned by other specs:
 
 ## Architecture
 
-`apps/desktop/src-tauri` owns Tauri bundle config. `xtask` orchestrates local bundle and smoke checks. `agent-desktop` exposes safe startup snapshots, settings diagnostics, and update manifest validation contracts.
+`apps/desktop/src-tauri` owns Tauri bundle config. `xtask` orchestrates local bundle and smoke checks. `ruse-desktop` exposes safe startup snapshots, settings diagnostics, and update manifest validation contracts.
 
 ```mermaid
 flowchart TD
   Xtask["cargo xtask package-desktop"] --> Tauri["Tauri bundle"]
   Tauri --> Bundle["Desktop artifact"]
   Bundle --> Smoke["launch/settings smoke"]
-  Manifest["update manifest"] --> Validator["agent-desktop validator"]
+  Manifest["update manifest"] --> Validator["ruse-desktop validator"]
   Validator --> Smoke
 ```
 
@@ -81,7 +81,7 @@ pub struct DesktopUpdateArtifact {
 - `cargo xtask package-desktop` can build or plan a local Desktop bundle
 - update manifests validate before use
 - Desktop smoke checks confirm version/settings startup behavior
-- focused tests pass with `cargo test -p agent-desktop update_manifest`
+- focused tests pass with `cargo test -p ruse-desktop update_manifest`
 
 ## Completion Signal
 

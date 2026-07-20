@@ -4,17 +4,17 @@
 
 **Goal:** Add the first comprehensive turn runner contracts and model-stream orchestration.
 
-**Architecture:** `agent-core` owns `ComprehensiveTurnRunner` and reuses M17 model streaming. This slice records final responses and tool proposals but does not execute tools.
+**Architecture:** `ruse-core` owns `ComprehensiveTurnRunner` and reuses M17 model streaming. This slice records final responses and tool proposals but does not execute tools.
 
-**Tech Stack:** Rust 2024 edition, Tokio tests, `agent-core`, `agent-model`, `agent-types`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Tokio tests, `ruse-core`, `ruse-model`, `ruse-types`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write RED Runner Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/comprehensive_turn_runner.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/tests/comprehensive_turn_runner.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add final response test**
 
@@ -56,7 +56,7 @@ async fn comprehensive_turn_runner_waits_on_tool_proposal() {
 Run:
 
 ```bash
-cargo test -p agent-core --test comprehensive_turn_runner
+cargo test -p ruse-core --test comprehensive_turn_runner
 ```
 
 Expected: fails because `ComprehensiveTurnRunner` contracts do not exist.
@@ -64,8 +64,8 @@ Expected: fails because `ComprehensiveTurnRunner` contracts do not exist.
 ### Task 2: Add Core Contracts
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add public structs and enums**
 
@@ -82,7 +82,7 @@ pub struct AgentLoopBudget {
 
 - [x] **Step 2: Export contracts**
 
-Export the new types from `crates/agent-core/src/lib.rs`.
+Export the new types from `crates/ruse-core/src/lib.rs`.
 
 ```rust
 pub use model_runtime::{
@@ -94,7 +94,7 @@ pub use model_runtime::{
 ### Task 3: Implement Minimal Runner
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
 
 - [x] **Step 1: Stream one model turn**
 
@@ -118,8 +118,8 @@ When the stream completes with `FinalResponseProduced`, return `AgentLoopTermina
 Run:
 
 ```bash
-cargo test -p agent-core --test comprehensive_turn_runner
-cargo test -p agent-core --test configured_turn_runner
+cargo test -p ruse-core --test comprehensive_turn_runner
+cargo test -p ruse-core --test configured_turn_runner
 ```
 
 - [x] **Step 2: Run workspace gate**
@@ -135,6 +135,6 @@ cargo xtask check
 Run:
 
 ```bash
-git add crates/agent-core docs
+git add crates/ruse-core docs
 git commit -m "feat: add comprehensive turn runner"
 ```

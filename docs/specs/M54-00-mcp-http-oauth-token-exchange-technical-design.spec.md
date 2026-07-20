@@ -28,7 +28,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::client_http` remains the owner for MCP HTTP OAuth exchange contracts. The runner accepts only the M53 `McpClientHttpOAuthTokenExchangeRequest`, builds a form POST request for an exchange transport, parses bounded JSON responses, and emits safe reports.
+`ruse-mcp::client_http` remains the owner for MCP HTTP OAuth exchange contracts. The runner accepts only the M53 `McpClientHttpOAuthTokenExchangeRequest`, builds a form POST request for an exchange transport, parses bounded JSON responses, and emits safe reports.
 
 ```mermaid
 flowchart TD
@@ -44,7 +44,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-mcp/
+  ruse-mcp/
     src/
       client_http.rs
       lib.rs

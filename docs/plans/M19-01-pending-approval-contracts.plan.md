@@ -4,9 +4,9 @@
 
 **Goal:** Add durable pending approval contracts and safe status transitions for policy `ask` decisions.
 
-**Architecture:** `agent-types` owns `ApprovalRequestId` as a durable typed id. `agent-policy` owns approval records, response contracts, preview summaries, lease-scope clamping, and transition validation. No UI bridge, storage, CLI, or core resume behavior belongs in this slice.
+**Architecture:** `ruse-types` owns `ApprovalRequestId` as a durable typed id. `ruse-policy` owns approval records, response contracts, preview summaries, lease-scope clamping, and transition validation. No UI bridge, storage, CLI, or core resume behavior belongs in this slice.
 
-**Tech Stack:** Rust 2024 edition, serde, uuid-backed typed ids, existing `agent-policy` validation style, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, serde, uuid-backed typed ids, existing `ruse-policy` validation style, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -15,9 +15,9 @@
 **Files:**
 - Read: `docs/specs/M19-01-pending-approval-contracts.spec.md`
 - Read: `docs/specs/M19-00-interactive-approval-technical-design.spec.md`
-- Read: `crates/agent-policy/src/request.rs`
-- Read: `crates/agent-policy/src/lease.rs`
-- Read: `crates/agent-types/src/ids.rs`
+- Read: `crates/ruse-policy/src/request.rs`
+- Read: `crates/ruse-policy/src/lease.rs`
+- Read: `crates/ruse-types/src/ids.rs`
 
 - [x] **Step 1: Review the spec and existing policy contracts**
 
@@ -25,8 +25,8 @@ Run:
 
 ```bash
 sed -n '1,260p' docs/specs/M19-01-pending-approval-contracts.spec.md
-sed -n '1,180p' crates/agent-policy/src/request.rs
-sed -n '1,180p' crates/agent-types/src/ids.rs
+sed -n '1,180p' crates/ruse-policy/src/request.rs
+sed -n '1,180p' crates/ruse-types/src/ids.rs
 ```
 
 Expected: the spec scopes M19-01 to typed contracts and transition validation only.
@@ -34,19 +34,19 @@ Expected: the spec scopes M19-01 to typed contracts and transition validation on
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-policy/tests/pending_approval.rs`
-- Modify: `crates/agent-types/src/ids.rs`
+- Create: `crates/ruse-policy/tests/pending_approval.rs`
+- Modify: `crates/ruse-types/src/ids.rs`
 
 - [x] **Step 1: Add pending approval contract tests**
 
-Create `crates/agent-policy/tests/pending_approval.rs` with tests covering construction, stable JSON, approval, denial, expiration, cancellation, consumption, stale responses, and lease clamping.
+Create `crates/ruse-policy/tests/pending_approval.rs` with tests covering construction, stable JSON, approval, denial, expiration, cancellation, consumption, stale responses, and lease clamping.
 
 - [x] **Step 2: Verify RED**
 
 Run:
 
 ```bash
-cargo test -p agent-policy --test pending_approval
+cargo test -p ruse-policy --test pending_approval
 ```
 
 Expected: compile fails because `PendingApproval`, `ApprovalRequestId`, `ApprovalStatus`, `ApprovalDecision`, `ApprovalResponse`, `ApprovalLeaseScope`, `ApprovalLeaseGrant`, `ApprovalPreviewSummary`, and `ApprovalResumeToken` are not implemented.
@@ -54,28 +54,28 @@ Expected: compile fails because `PendingApproval`, `ApprovalRequestId`, `Approva
 ### Task 3: Add Typed Approval Id
 
 **Files:**
-- Modify: `crates/agent-types/src/ids.rs`
-- Modify: `crates/agent-types/src/lib.rs`
+- Modify: `crates/ruse-types/src/ids.rs`
+- Modify: `crates/ruse-types/src/lib.rs`
 
 - [x] **Step 1: Add `ApprovalRequestId`**
 
-Add `uuid_id!(ApprovalRequestId);` beside the existing id newtypes in `crates/agent-types/src/ids.rs`.
+Add `uuid_id!(ApprovalRequestId);` beside the existing id newtypes in `crates/ruse-types/src/ids.rs`.
 
 - [x] **Step 2: Cover typed id in RED/GREEN flow**
 
 Run:
 
 ```bash
-cargo test -p agent-policy --test pending_approval
+cargo test -p ruse-policy --test pending_approval
 ```
 
-Expected: `ApprovalRequestId` is covered by the pending approval tests and exported through `agent-types`.
+Expected: `ApprovalRequestId` is covered by the pending approval tests and exported through `ruse-types`.
 
 ### Task 4: Implement Approval Contracts
 
 **Files:**
-- Create: `crates/agent-policy/src/approval.rs`
-- Modify: `crates/agent-policy/src/lib.rs`
+- Create: `crates/ruse-policy/src/approval.rs`
+- Modify: `crates/ruse-policy/src/lib.rs`
 
 - [x] **Step 1: Add public approval structs and enums**
 
@@ -117,19 +117,19 @@ Only `Pending` records accept approve, deny, expire, and cancel. Only `Approved`
 
 - [x] **Step 4: Export contracts**
 
-Add `pub mod approval;` and `pub use approval::{...};` to `crates/agent-policy/src/lib.rs`.
+Add `pub mod approval;` and `pub use approval::{...};` to `crates/ruse-policy/src/lib.rs`.
 
 ### Task 5: Verify M19-01
 
 **Files:**
-- Read: `crates/agent-policy/tests/pending_approval.rs`
+- Read: `crates/ruse-policy/tests/pending_approval.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-policy --test pending_approval
+cargo test -p ruse-policy --test pending_approval
 ```
 
 Expected: all pending approval tests pass.
@@ -139,10 +139,10 @@ Expected: all pending approval tests pass.
 Run:
 
 ```bash
-cargo test -p agent-policy
+cargo test -p ruse-policy
 ```
 
-Expected: all `agent-policy` tests pass.
+Expected: all `ruse-policy` tests pass.
 
 - [x] **Step 3: Run workspace gate**
 

@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-mcp` owns a new sampling stdio dispatch module. It reuses existing JSON-RPC envelope types, sampling contracts, server config, and `McpSamplingProvider`. The module does not depend on `agent-core`.
+`ruse-mcp` owns a new sampling stdio dispatch module. It reuses existing JSON-RPC envelope types, sampling contracts, server config, and `McpSamplingProvider`. The module does not depend on `ruse-core`.
 
 ```mermaid
 flowchart TD

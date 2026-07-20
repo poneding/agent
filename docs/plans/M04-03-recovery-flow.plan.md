@@ -4,16 +4,16 @@
 
 **Goal:** Resume interrupted work from the latest checkpoint plus event-log tail.
 
-**Architecture:** `agent-core` owns `RecoveryPlan` and `RecoveryEngine`. It consumes `EventStore`, `CheckpointStore`, and `IdempotencyStore` without adding UI dependencies.
+**Architecture:** `ruse-core` owns `RecoveryPlan` and `RecoveryEngine`. It consumes `EventStore`, `CheckpointStore`, and `IdempotencyStore` without adding UI dependencies.
 
-**Tech Stack:** Rust 2024 edition, `agent-core`, `agent-storage`, `agent-types`, `serde_json`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-core`, `ruse-storage`, `ruse-types`, `serde_json`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Recovery Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/recovery_flow.rs`
+- Create: `crates/ruse-core/tests/recovery_flow.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -22,7 +22,7 @@ Tests must prove planning without checkpoint, planning from latest checkpoint, r
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-core recovery_flow
+cargo test -p ruse-core recovery_flow
 ```
 
 Expected: tests fail because recovery contracts do not exist.
@@ -30,8 +30,8 @@ Expected: tests fail because recovery contracts do not exist.
 ### Task 2: Implement Recovery Contracts
 
 **Files:**
-- Create: `crates/agent-core/src/recovery.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/src/recovery.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Define `RecoveryPlan` and `RecoveryOutcome`**
 
@@ -48,7 +48,7 @@ Replay events from the cursor and reuse recorded idempotent side effects.
 - [x] **Step 4: Verify GREEN**
 
 ```bash
-cargo test -p agent-core recovery_flow
+cargo test -p ruse-core recovery_flow
 ```
 
 Expected: focused recovery tests pass.

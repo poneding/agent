@@ -4,7 +4,7 @@
 
 **Goal:** Run `TurnEngine` from effective config and a provider registry.
 
-**Architecture:** Add configured turn orchestration to `agent-core::model_runtime`. The runner resolves the provider, applies invocation policy through M15-02 contracts, and returns normal runtime events.
+**Architecture:** Add configured turn orchestration to `ruse-core::model_runtime`. The runner resolves the provider, applies invocation policy through M15-02 contracts, and returns normal runtime events.
 
 **Tech Stack:** Rust 2024 edition, async turn tests, fake providers, existing runtime events, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M15-03-configured-turn-runner.spec.md`
-- Read: `crates/agent-core/src/model_runtime.rs`
-- Read: `crates/agent-core/src/turn.rs`
-- Read: `crates/agent-core/tests/turn_engine.rs`
+- Read: `crates/ruse-core/src/model_runtime.rs`
+- Read: `crates/ruse-core/src/turn.rs`
+- Read: `crates/ruse-core/tests/turn_engine.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -31,7 +31,7 @@ Expected: the spec defines configured turn input, outcome, errors, and tests.
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/configured_turn_runner.rs`
+- Create: `crates/ruse-core/tests/configured_turn_runner.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -47,7 +47,7 @@ Add tests named:
 Run:
 
 ```bash
-cargo test -p agent-core --test configured_turn_runner
+cargo test -p ruse-core --test configured_turn_runner
 ```
 
 Expected: tests fail because configured turn runner contracts do not exist.
@@ -55,7 +55,7 @@ Expected: tests fail because configured turn runner contracts do not exist.
 ### Task 3: Implement Configured Runner
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
 
 - [x] **Step 1: Add configured turn contracts**
 
@@ -78,7 +78,7 @@ Rules:
 Run:
 
 ```bash
-cargo test -p agent-core --test configured_turn_runner
+cargo test -p ruse-core --test configured_turn_runner
 ```
 
 Expected: focused tests pass.

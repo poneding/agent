@@ -42,7 +42,7 @@ All steps run through `ComprehensiveTurnRunner`; test code must not call `ToolLo
 
 ## Architecture
 
-The E2E test is an integration fixture inside `agent-core` that wires existing crates through public contracts. It uses a temporary workspace and deterministic fake model scripts. The fixture should be small enough to diagnose failures without requiring a live provider.
+The E2E test is an integration fixture inside `ruse-core` that wires existing crates through public contracts. It uses a temporary workspace and deterministic fake model scripts. The fixture should be small enough to diagnose failures without requiring a live provider.
 
 ```mermaid
 flowchart TD

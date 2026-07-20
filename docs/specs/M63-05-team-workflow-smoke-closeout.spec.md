@@ -26,7 +26,7 @@ Out of scope:
 
 ## Architecture
 
-`agent-team` remains the source of truth for readiness, blackboard summaries, capability ceilings, merge-review summaries, and merge blockers. `agent-eval` may construct deterministic typed team workflow snapshots for smoke evidence, but it must not duplicate product UI logic.
+`ruse-team` remains the source of truth for readiness, blackboard summaries, capability ceilings, merge-review summaries, and merge blockers. `ruse-eval` may construct deterministic typed team workflow snapshots for smoke evidence, but it must not duplicate product UI logic.
 
 The smoke should validate the product-level contract:
 
@@ -42,8 +42,8 @@ CLI, TUI, and Desktop keep rendering bridge/runtime contracts. They do not own r
 
 ```mermaid
 flowchart TD
-  Team["agent-team typed snapshots"] --> Eval["agent-eval team workflow smoke"]
-  Team --> Bridge["agent-ui-bridge team_workflow_snapshot"]
+  Team["ruse-team typed snapshots"] --> Eval["ruse-eval team workflow smoke"]
+  Team --> Bridge["ruse-ui-bridge team_workflow_snapshot"]
   Bridge --> CLI["CLI/JSON commands"]
   Bridge --> TUI["TUI task panel"]
   Bridge --> Desktop["Desktop Tasks panel"]
@@ -54,7 +54,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-eval/
+  ruse-eval/
     src/
       manifest.rs
       runner.rs
@@ -76,7 +76,7 @@ docs/
   milestones/
     README.md
   plans/
-    M63-worktree-agent-team-workflows.plan.md
+    M63-worktree-ruse-team-workflows.plan.md
     M63-05-team-workflow-smoke-closeout.plan.md
   roadmap/
     PRODUCT_ROADMAP.md
@@ -137,12 +137,12 @@ The smoke should assert against existing public M63 contracts:
 
 ## Testing Strategy
 
-- `agent-eval/tests/runner.rs`
+- `ruse-eval/tests/runner.rs`
   - `team_workflow_smoke` validates and passes
   - missing expected evidence produces diagnostics when feasible
-- `agent-eval/tests/manifest.rs`
+- `ruse-eval/tests/manifest.rs`
   - manifest round-trips and validates `team_workflow_smoke`
-- `agent-eval/tests/corpus.rs`
+- `ruse-eval/tests/corpus.rs`
   - default suite includes the M63 smoke scenario and its golden
 - `cargo xtask eval`
   - includes `default-m63-team-workflow-smoke`

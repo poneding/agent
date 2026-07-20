@@ -4,9 +4,9 @@
 
 **Goal:** Add typed, serializable team workflow snapshot and readiness contracts that compose worktree leases, subagent handoffs, blackboard output, reviewer votes, conflict summaries, merge readiness, and capability ceilings.
 
-**Architecture:** `agent-team` owns UI-independent workflow summary types and readiness rules where possible. `agent-core` owns runtime-facing fixture/snapshot assembly when it needs recovery conflict summaries or multiple lower-level crates. No CLI/TUI/Desktop rendering is implemented in this slice.
+**Architecture:** `ruse-team` owns UI-independent workflow summary types and readiness rules where possible. `ruse-core` owns runtime-facing fixture/snapshot assembly when it needs recovery conflict summaries or multiple lower-level crates. No CLI/TUI/Desktop rendering is implemented in this slice.
 
-**Tech Stack:** Rust 2024 edition, serde, existing `agent-team`, `agent-worktree`, `agent-policy`, `agent-core`, `agent-types`, Cargo fmt/clippy/test.
+**Tech Stack:** Rust 2024 edition, serde, existing `ruse-team`, `ruse-worktree`, `ruse-policy`, `ruse-core`, `ruse-types`, Cargo fmt/clippy/test.
 
 ---
 
@@ -14,13 +14,13 @@
 
 **Files:**
 - Read: `docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md`
-- Read: `docs/specs/M63-worktree-agent-team-workflows.spec.md`
-- Read: `crates/agent-team/src/handoff.rs`
-- Read: `crates/agent-team/src/blackboard.rs`
-- Read: `crates/agent-team/src/capability.rs`
-- Read: `crates/agent-worktree/src/lease.rs`
-- Read: `crates/agent-worktree/src/conflict.rs`
-- Read: `crates/agent-core/src/conflict_recovery.rs`
+- Read: `docs/specs/M63-worktree-ruse-team-workflows.spec.md`
+- Read: `crates/ruse-team/src/handoff.rs`
+- Read: `crates/ruse-team/src/blackboard.rs`
+- Read: `crates/ruse-team/src/capability.rs`
+- Read: `crates/ruse-worktree/src/lease.rs`
+- Read: `crates/ruse-worktree/src/conflict.rs`
+- Read: `crates/ruse-core/src/conflict_recovery.rs`
 
 - [x] **Step 1: Review contract foundations**
 
@@ -29,10 +29,10 @@ Confirm existing types already cover worktree leases, handoff envelopes, capabil
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-team/tests/team_workflow_snapshot.rs`
-- Create if needed: `crates/agent-core/tests/team_workflow_snapshot.rs`
+- Create: `crates/ruse-team/tests/team_workflow_snapshot.rs`
+- Create if needed: `crates/ruse-core/tests/team_workflow_snapshot.rs`
 
-- [x] **Step 1: Add agent-team contract tests**
+- [x] **Step 1: Add ruse-team contract tests**
 
 Cover:
 
@@ -42,7 +42,7 @@ Cover:
 - missing review and waiting handoff states
 - bounded/redacted summary strings
 
-- [x] **Step 2: Add agent-core fixture tests if assembly lives in core**
+- [x] **Step 2: Add ruse-core fixture tests if assembly lives in core**
 
 Cover:
 
@@ -50,29 +50,29 @@ Cover:
 - conflicts force has-conflict readiness
 - serialized runtime snapshot does not leak secret-like fixture values
 
-Result: core assembly was not needed in M63-01; the UI-independent workflow contract lives in `agent-team`.
+Result: core assembly was not needed in M63-01; the UI-independent workflow contract lives in `ruse-team`.
 
 - [x] **Step 3: Verify tests fail before implementation**
 
 Run:
 
 ```bash
-cargo test -p agent-team --test team_workflow_snapshot
-cargo test -p agent-core --test team_workflow_snapshot
+cargo test -p ruse-team --test team_workflow_snapshot
+cargo test -p ruse-core --test team_workflow_snapshot
 ```
 
 Expected: new tests fail because the snapshot contracts are not implemented yet.
 
-Result: `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team --test team_workflow_snapshot` failed before implementation because the workflow contracts were not exported yet.
+Result: `CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-team --test team_workflow_snapshot` failed before implementation because the workflow contracts were not exported yet.
 
 ### Task 3: Implement Contracts
 
 **Files:**
-- Create: `crates/agent-team/src/workflow.rs`
-- Modify: `crates/agent-team/src/lib.rs`
-- Modify if needed: `crates/agent-core/Cargo.toml`
-- Create if needed: `crates/agent-core/src/team_workflow.rs`
-- Modify if needed: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-team/src/workflow.rs`
+- Modify: `crates/ruse-team/src/lib.rs`
+- Modify if needed: `crates/ruse-core/Cargo.toml`
+- Create if needed: `crates/ruse-core/src/team_workflow.rs`
+- Modify if needed: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add workflow types**
 
@@ -94,43 +94,43 @@ Use existing redaction helpers if available. Otherwise, keep summaries short and
 
 - [x] **Step 4: Export public contracts**
 
-Expose the new contracts from `agent-team` and, if core assembly exists, from `agent-core`.
+Expose the new contracts from `ruse-team` and, if core assembly exists, from `ruse-core`.
 
 ### Task 4: Verify Focused Slice
 
 **Files:**
-- Read: `crates/agent-team/Cargo.toml`
-- Read if modified: `crates/agent-core/Cargo.toml`
+- Read: `crates/ruse-team/Cargo.toml`
+- Read if modified: `crates/ruse-core/Cargo.toml`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-team --test team_workflow_snapshot
+cargo test -p ruse-team --test team_workflow_snapshot
 ```
 
 Expected: focused tests pass.
 
-Result: `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team --test team_workflow_snapshot` passed with 7 tests. `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team` also passed.
+Result: `CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-team --test team_workflow_snapshot` passed with 7 tests. `CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-team` also passed.
 
 - [x] **Step 2: Run focused clippy**
 
 Run:
 
 ```bash
-cargo clippy -p agent-team --all-targets -- -D warnings
+cargo clippy -p ruse-team --all-targets -- -D warnings
 ```
 
 Expected: clippy passes without warnings.
 
-Result: `CARGO_TARGET_DIR=target/m63-gate cargo clippy -p agent-team --all-targets -- -D warnings` passed.
+Result: `CARGO_TARGET_DIR=target/m63-gate cargo clippy -p ruse-team --all-targets -- -D warnings` passed.
 
 ### Task 5: Update Status and Commit
 
 **Files:**
 - Modify: `docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md`
-- Modify: `docs/plans/M63-worktree-agent-team-workflows.plan.md`
+- Modify: `docs/plans/M63-worktree-ruse-team-workflows.plan.md`
 - Modify: `docs/milestones/README.md`
 
 - [x] **Step 1: Update checkboxes and M63 status**
@@ -143,14 +143,14 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-team --all-targets -- -D warnings
-cargo test -p agent-team --test team_workflow_snapshot
+cargo clippy -p ruse-team --all-targets -- -D warnings
+cargo test -p ruse-team --test team_workflow_snapshot
 git diff --check
 ```
 
 Expected: all checks pass.
 
-Result: final slice checks passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m63-gate cargo clippy -p agent-team --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team --test team_workflow_snapshot`, and `git diff --check`.
+Result: final slice checks passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m63-gate cargo clippy -p ruse-team --all-targets -- -D warnings`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-team --test team_workflow_snapshot`, and `git diff --check`.
 
 - [x] **Step 3: Commit M63-01**
 
@@ -158,7 +158,7 @@ Exact-stage only M63-01 files:
 
 ```bash
 git status --short --branch
-git add crates/agent-team/src/workflow.rs crates/agent-team/src/lib.rs crates/agent-team/src/error.rs crates/agent-team/tests/team_workflow_snapshot.rs docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md docs/plans/M63-worktree-agent-team-workflows.plan.md docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md
+git add crates/ruse-team/src/workflow.rs crates/ruse-team/src/lib.rs crates/ruse-team/src/error.rs crates/ruse-team/tests/team_workflow_snapshot.rs docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md docs/plans/M63-worktree-ruse-team-workflows.plan.md docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md
 git commit -m "feat: add m63 team workflow snapshots"
 ```
 

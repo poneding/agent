@@ -12,7 +12,7 @@ Evaluation scenarios are the entry point for M27. They describe which fixture to
 
 This spec delivers:
 
-- `agent-eval` crate scaffold
+- `ruse-eval` crate scaffold
 - versioned manifest structs and enums
 - manifest validation and path normalization
 - serde stability tests
@@ -27,11 +27,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-eval::manifest` owns all manifest parsing and validation. It depends only on shared typed crates needed for IDs and timestamps. Runner-specific code consumes validated manifests.
+`ruse-eval::manifest` owns all manifest parsing and validation. It depends only on shared typed crates needed for IDs and timestamps. Runner-specific code consumes validated manifests.
 
 ```mermaid
 flowchart TD
-  Raw["Manifest file"] --> Manifest["agent-eval::manifest"]
+  Raw["Manifest file"] --> Manifest["ruse-eval::manifest"]
   Manifest --> Validated["ValidatedEvalScenario"]
   Validated --> Runner["M27-02 runner"]
 ```
@@ -40,7 +40,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-eval/
+  ruse-eval/
     Cargo.toml
     src/
       lib.rs
@@ -94,11 +94,11 @@ pub struct ValidatedEvalScenario {
 
 ## Acceptance Criteria
 
-- `agent-eval` exists in the workspace.
+- `ruse-eval` exists in the workspace.
 - manifest contracts are public, serializable, and covered by tests.
 - invalid manifests fail before runner code can execute side effects.
-- `cargo test -p agent-eval manifest` passes.
+- `cargo test -p ruse-eval manifest` passes.
 
 ## Completion Signal
 
-M27-01 is complete when `agent-eval::manifest` can parse and validate versioned scenario manifests with stable serde behavior and focused tests pass.
+M27-01 is complete when `ruse-eval::manifest` can parse and validate versioned scenario manifests with stable serde behavior and focused tests pass.

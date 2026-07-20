@@ -2,18 +2,18 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add deterministic token budget planning to `agent-context`.
+**Goal:** Add deterministic token budget planning to `ruse-context`.
 
-**Architecture:** Extend `agent-context` with a `budget` module that consumes `PromptLayer` values from M05-01. Keep the planner pure and independent of model providers.
+**Architecture:** Extend `ruse-context` with a `budget` module that consumes `PromptLayer` values from M05-01. Keep the planner pure and independent of model providers.
 
-**Tech Stack:** Rust 2024 edition, `agent-context`, serde, thiserror, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-context`, serde, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Budget Planner Tests
 
 **Files:**
-- Create: `crates/agent-context/tests/budget_planner.rs`
+- Create: `crates/ruse-context/tests/budget_planner.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -29,7 +29,7 @@ Use three layers with token estimates `40`, `30`, and `50`; set `ContextBudget {
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-context budget_planner
+cargo test -p ruse-context budget_planner
 ```
 
 Expected: tests fail because budget contracts do not exist.
@@ -37,9 +37,9 @@ Expected: tests fail because budget contracts do not exist.
 ### Task 2: Implement Budget Contracts
 
 **Files:**
-- Create: `crates/agent-context/src/budget.rs`
-- Modify: `crates/agent-context/src/error.rs`
-- Modify: `crates/agent-context/src/lib.rs`
+- Create: `crates/ruse-context/src/budget.rs`
+- Modify: `crates/ruse-context/src/error.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
 
 - [x] **Step 1: Add public budget types**
 
@@ -52,7 +52,7 @@ Extend `ContextError` with `InvalidBudget(String)` and `BudgetExceeded(String)`.
 - [x] **Step 3: Verify type-level GREEN progress**
 
 ```bash
-cargo test -p agent-context context_budget_serializes_stable_shape
+cargo test -p ruse-context context_budget_serializes_stable_shape
 ```
 
 Expected: serialization test passes while behavior tests may still fail.
@@ -60,7 +60,7 @@ Expected: serialization test passes while behavior tests may still fail.
 ### Task 3: Implement Budget Planning
 
 **Files:**
-- Modify: `crates/agent-context/src/budget.rs`
+- Modify: `crates/ruse-context/src/budget.rs`
 
 - [x] **Step 1: Implement capacity calculation**
 
@@ -73,7 +73,7 @@ Iterate items in caller order. Include required items if they fit; fail if a req
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-context --test budget_planner
+cargo test -p ruse-context --test budget_planner
 ```
 
 Expected: all budget planner tests pass.

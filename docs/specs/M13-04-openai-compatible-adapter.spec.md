@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-The adapter lives under `agent-model::openai_compatible`. Provider-specific JSON structs remain private. Tests use fixture transports and synthetic SSE chunks.
+The adapter lives under `ruse-model::openai_compatible`. Provider-specific JSON structs remain private. Tests use fixture transports and synthetic SSE chunks.
 
 ## Acceptance Criteria
 

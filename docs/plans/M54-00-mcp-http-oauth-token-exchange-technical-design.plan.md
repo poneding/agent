@@ -4,7 +4,7 @@
 
 **Goal:** Record the M54 token exchange runtime design baseline.
 
-**Architecture:** `agent-mcp::client_http` owns token exchange execution contracts and safe diagnostics; external auth/vault/UI layers own user interaction and storage.
+**Architecture:** `ruse-mcp::client_http` owns token exchange execution contracts and safe diagnostics; external auth/vault/UI layers own user interaction and storage.
 
 **Tech Stack:** Markdown, Rust crate boundary planning, Cargo verification references.
 

@@ -7,7 +7,7 @@ fn github_actions_workflow_delegates_to_xtask_ci() {
         "workflow should delegate quality logic to xtask"
     );
     assert!(
-        CI_WORKFLOW.contains("path: target/agent-ci"),
+        CI_WORKFLOW.contains("path: target/ruse-ci"),
         "workflow should upload quality gate evidence artifacts"
     );
     assert!(

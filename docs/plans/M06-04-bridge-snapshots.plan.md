@@ -4,19 +4,19 @@
 
 **Goal:** Lock M06 UI bridge wire contracts with deterministic snapshot-style tests and close the M06 milestone.
 
-**Architecture:** Snapshot tests live in `agent-ui-bridge` because it owns event, command, and frame wire shapes. CLI JSON mode reuses bridge frames and only tests that its output remains parseable.
+**Architecture:** Snapshot tests live in `ruse-ui-bridge` because it owns event, command, and frame wire shapes. CLI JSON mode reuses bridge frames and only tests that its output remains parseable.
 
-**Tech Stack:** Rust 2024 edition, `agent-ui-bridge`, `agent-cli`, serde_json fixtures, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-ui-bridge`, `ruse-cli`, serde_json fixtures, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Bridge Snapshot RED Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/bridge_snapshots.rs`
-- Create: `crates/agent-ui-bridge/tests/fixtures/m06_model_delta_event.json`
-- Create: `crates/agent-ui-bridge/tests/fixtures/m06_start_turn_command.json`
-- Create: `crates/agent-ui-bridge/tests/fixtures/m06_done_frame.json`
+- Create: `crates/ruse-ui-bridge/tests/bridge_snapshots.rs`
+- Create: `crates/ruse-ui-bridge/tests/fixtures/m06_model_delta_event.json`
+- Create: `crates/ruse-ui-bridge/tests/fixtures/m06_start_turn_command.json`
+- Create: `crates/ruse-ui-bridge/tests/fixtures/m06_done_frame.json`
 
 - [x] **Step 1: Add fixture files**
 
@@ -36,7 +36,7 @@ Create tests named:
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge bridge_snapshots
+cargo test -p ruse-ui-bridge bridge_snapshots
 ```
 
 Expected: fails until fixture shape and bridge serialization agree.
@@ -44,10 +44,10 @@ Expected: fails until fixture shape and bridge serialization agree.
 ### Task 2: Align Snapshot Serialization
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/event.rs`
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/tests/fixtures/*.json`
+- Modify: `crates/ruse-ui-bridge/src/event.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/tests/fixtures/*.json`
 
 - [x] **Step 1: Normalize serialized field order through serde_json values**
 
@@ -66,7 +66,7 @@ Ensure public enums retain:
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test bridge_snapshots
+cargo test -p ruse-ui-bridge --test bridge_snapshots
 ```
 
 Expected: all bridge snapshot tests pass.
@@ -74,18 +74,18 @@ Expected: all bridge snapshot tests pass.
 ### Task 3: Add CLI JSON Contract Check
 
 **Files:**
-- Modify: `crates/agent-cli/tests/json_mode.rs`
+- Modify: `crates/ruse-cli/tests/json_mode.rs`
 
 - [x] **Step 1: Add full-stream assertion**
 
-Extend the CLI JSON test so every stdout line from `agent-cli --json --local-summary` deserializes into `agent_ui_bridge::UiJsonFrame`, the final line is `Done`, and at least one event line is present before it.
+Extend the CLI JSON test so every stdout line from `ruse-cli --json --local-summary` deserializes into `ruse_ui_bridge::UiJsonFrame`, the final line is `Done`, and at least one event line is present before it.
 
 - [x] **Step 2: Verify CLI JSON contract**
 
 Run:
 
 ```bash
-cargo test -p agent-cli --test json_mode
+cargo test -p ruse-cli --test json_mode
 ```
 
 Expected: CLI JSON stream remains parseable and ends with `Done`.

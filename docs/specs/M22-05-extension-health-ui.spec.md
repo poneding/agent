@@ -29,27 +29,27 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-ui-bridge` owns serializable UI-safe extension frames. `agent-cli` renders text/JSON commands. `agent-tui` consumes bridge snapshots for a compact panel. `agent-desktop` owns Desktop view models, while `apps/desktop` renders them.
+`ruse-ui-bridge` owns serializable UI-safe extension frames. `ruse-cli` renders text/JSON commands. `ruse-tui` consumes bridge snapshots for a compact panel. `ruse-desktop` owns Desktop view models, while `apps/desktop` renders them.
 
 ```mermaid
 flowchart TD
-  Registry["ExtensionRegistrySnapshot"] --> Bridge["agent-ui-bridge UiExtensionSnapshot"]
-  Bridge --> CLI["agent-cli extension commands"]
-  Bridge --> TUI["agent-tui extension panel"]
-  Bridge --> Desktop["agent-desktop/app extension view"]
+  Registry["ExtensionRegistrySnapshot"] --> Bridge["ruse-ui-bridge UiExtensionSnapshot"]
+  Bridge --> CLI["ruse-cli extension commands"]
+  Bridge --> TUI["ruse-tui extension panel"]
+  Bridge --> Desktop["ruse-desktop/app extension view"]
 ```
 
 ## File Layout
 
 ```text
-crates/agent-ui-bridge/src/
+crates/ruse-ui-bridge/src/
   frame.rs
   event.rs
-crates/agent-cli/tests/
+crates/ruse-cli/tests/
   extension_health_commands.rs
-crates/agent-tui/src/
+crates/ruse-tui/src/
   extension_panel.rs
-crates/agent-desktop/src/
+crates/ruse-desktop/src/
   extension.rs
 apps/desktop/src/
   components/ExtensionHealthView.tsx
@@ -104,7 +104,7 @@ agent extension health [--json]
 
 ## Testing Strategy
 
-- `agent-ui-bridge` serialization tests for extension snapshots and JSON frames
+- `ruse-ui-bridge` serialization tests for extension snapshots and JSON frames
 - CLI text/JSON tests for list, inspect, and health commands
 - TUI render tests for enabled/unhealthy/review-required states
 - Desktop component tests for extension health and redacted diagnostics

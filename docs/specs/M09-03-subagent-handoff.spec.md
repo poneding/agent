@@ -12,7 +12,7 @@ Lead agents need to delegate tasks without giving subagents broader access than 
 
 This spec delivers:
 
-- `agent-team` crate scaffold
+- `ruse-team` crate scaffold
 - `SubagentRole`
 - `SubagentProfile`
 - `CapabilityGrant`
@@ -30,20 +30,20 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-team` owns team and delegation contracts. It depends on `agent-types` for IDs and timestamps, and `agent-policy` for capability action/scope shapes. It does not execute tools, create worktrees, call models, or render UI.
+`ruse-team` owns team and delegation contracts. It depends on `ruse-types` for IDs and timestamps, and `ruse-policy` for capability action/scope shapes. It does not execute tools, create worktrees, call models, or render UI.
 
 ```mermaid
 flowchart TD
-  types["agent-types"] --> team["agent-team"]
-  policy["agent-policy capability shapes"] --> team
-  future_core["future agent-core orchestration"] --> team
+  types["ruse-types"] --> team["ruse-team"]
+  policy["ruse-policy capability shapes"] --> team
+  future_core["future ruse-core orchestration"] --> team
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-team/
+  ruse-team/
     Cargo.toml
     src/
       lib.rs
@@ -129,10 +129,10 @@ pub fn reduce_capabilities(
 
 ## Acceptance Criteria
 
-- `agent-team` is a workspace member.
+- `ruse-team` is a workspace member.
 - Subagent handoff envelopes serialize deterministically.
 - Capability reduction cannot grant access absent from the parent set.
-- `cargo test -p agent-team subagent_handoff` passes.
+- `cargo test -p ruse-team subagent_handoff` passes.
 
 ## Completion Signal
 

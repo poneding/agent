@@ -4,9 +4,9 @@
 
 **Goal:** Add explicit and fallback plain REPL behavior without entering raw terminal mode.
 
-**Architecture:** `agent-cli` owns the plain line-oriented loop. It reuses existing prompt runtime, slash command, and approval prompt helpers.
+**Architecture:** `ruse-cli` owns the plain line-oriented loop. It reuses existing prompt runtime, slash command, and approval prompt helpers.
 
-**Tech Stack:** Rust 2024 edition, `agent-cli`, stdin/stdout fixtures, existing approval helpers, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-cli`, stdin/stdout fixtures, existing approval helpers, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M20-07-plain-repl-fallback.spec.md`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/src/approval.rs`
-- Read: `crates/agent-cli/tests/slash_commands.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/src/approval.rs`
+- Read: `crates/ruse-cli/tests/slash_commands.rs`
 
 - [x] **Step 1: Review plain REPL boundary**
 
@@ -26,12 +26,12 @@ Run:
 sed -n '1,220p' docs/specs/M20-07-plain-repl-fallback.spec.md
 ```
 
-Expected: plain REPL stays in `agent-cli` and does not depend on Ratatui.
+Expected: plain REPL stays in `ruse-cli` and does not depend on Ratatui.
 
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-cli/tests/plain_repl.rs`
+- Create: `crates/ruse-cli/tests/plain_repl.rs`
 
 - [x] **Step 1: Add command parsing tests**
 
@@ -46,7 +46,7 @@ Cover prompt submission, slash command, empty line ignore, EOF exit, and recover
 Run:
 
 ```bash
-cargo test -p agent-cli --test plain_repl
+cargo test -p ruse-cli --test plain_repl
 ```
 
 Expected: fails because plain REPL contracts are missing.
@@ -54,10 +54,10 @@ Expected: fails because plain REPL contracts are missing.
 ### Task 3: Implement Plain REPL
 
 **Files:**
-- Create: `crates/agent-cli/src/repl.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/src/lib.rs`
-- Modify: `crates/agent-cli/src/main.rs`
+- Create: `crates/ruse-cli/src/repl.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
+- Modify: `crates/ruse-cli/src/main.rs`
 
 - [x] **Step 1: Add REPL contracts**
 
@@ -78,14 +78,14 @@ When approval frames are encountered, use M19-04 prompt rendering and command co
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-cli/tests/plain_repl.rs`
+- Read: `crates/ruse-cli/tests/plain_repl.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-cli --test plain_repl
+cargo test -p ruse-cli --test plain_repl
 ```
 
 Expected: focused tests pass.
@@ -95,8 +95,8 @@ Expected: focused tests pass.
 Run:
 
 ```bash
-cargo test -p agent-cli
-cargo test -p agent-tui
+cargo test -p ruse-cli
+cargo test -p ruse-tui
 ```
 
 Expected: terminal UX crates remain green.

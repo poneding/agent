@@ -4,7 +4,7 @@
 
 **Goal:** Add typed MCP export profile inspection and CLI preflight output before stdio startup.
 
-**Architecture:** `agent-mcp` owns inspection contracts and diagnostics. `agent-cli` owns manifest file IO, args, and rendering.
+**Architecture:** `ruse-mcp` owns inspection contracts and diagnostics. `ruse-cli` owns manifest file IO, args, and rendering.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

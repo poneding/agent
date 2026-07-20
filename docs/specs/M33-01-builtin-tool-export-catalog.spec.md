@@ -24,7 +24,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns `McpServerToolExportCatalog`; this slice adds a helper that registers selected `agent-tool` built-ins with `WorkspaceSandbox`.
+`ruse-mcp` owns `McpServerToolExportCatalog`; this slice adds a helper that registers selected `ruse-tool` built-ins with `WorkspaceSandbox`.
 
 ```mermaid
 flowchart TD
@@ -40,9 +40,9 @@ flowchart TD
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_manifest.rs
-crates/agent-mcp/src/lib.rs
-crates/agent-mcp/tests/mcp_server_builtin_tool_catalog.rs
+crates/ruse-mcp/src/server_manifest.rs
+crates/ruse-mcp/src/lib.rs
+crates/ruse-mcp/tests/mcp_server_builtin_tool_catalog.rs
 ```
 
 ## Public Contracts
@@ -82,9 +82,9 @@ pub fn build_mcp_server_builtin_tool_export_catalog(
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-mcp mcp_server_builtin_tool_catalog`
+- `CARGO_TARGET_DIR=target/codex-m33 cargo test -p ruse-mcp mcp_server_builtin_tool_catalog`
 - No side-effecting built-ins are available from the helper.
 
 ## Completion Signal
 
-M33-01 is complete when the catalog helper is public, tested, and exported from `agent-mcp`.
+M33-01 is complete when the catalog helper is public, tested, and exported from `ruse-mcp`.

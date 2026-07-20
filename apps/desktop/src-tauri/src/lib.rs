@@ -45,7 +45,7 @@ pub fn run() {
             settings_commands::validate_settings
         ])
         .run(tauri::generate_context!())
-        .expect("failed to run agent desktop app");
+        .expect("failed to run ruse desktop app");
 }
 
 #[cfg(test)]

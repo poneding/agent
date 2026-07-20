@@ -4,7 +4,7 @@
 
 **Goal:** Establish M32 ownership, slice boundaries, and verification gates.
 
-**Architecture:** Documentation-only design baseline. Runtime ownership remains in `agent-mcp`.
+**Architecture:** Documentation-only design baseline. Runtime ownership remains in `ruse-mcp`.
 
 **Tech Stack:** Markdown docs.
 
@@ -12,7 +12,7 @@
 
 ### Task 1: Confirm Inputs
 
-- [x] **Step 1: Review M30-M31 MCP server docs and current `agent-mcp` boundaries**
+- [x] **Step 1: Review M30-M31 MCP server docs and current `ruse-mcp` boundaries**
 
 ### Task 2: Write Design
 

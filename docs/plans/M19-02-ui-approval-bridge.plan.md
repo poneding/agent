@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Expose pending approvals and approval responses through typed `agent-ui-bridge` frames and commands.
+**Goal:** Expose pending approvals and approval responses through typed `ruse-ui-bridge` frames and commands.
 
-**Architecture:** `agent-ui-bridge` consumes `agent-policy` approval contracts and emits UI-safe event/command payloads. Runtime approval execution remains in `agent-core` for M19-05.
+**Architecture:** `ruse-ui-bridge` consumes `ruse-policy` approval contracts and emits UI-safe event/command payloads. Runtime approval execution remains in `ruse-core` for M19-05.
 
 **Tech Stack:** Rust 2024 edition, serde UI schemas, existing `UiJsonFrame`, snapshot tests, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M19-02-ui-approval-bridge.spec.md`
-- Read: `crates/agent-ui-bridge/src/event.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-policy/src/approval.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-policy/src/approval.rs`
 
 - [x] **Step 1: Review bridge scope**
 
@@ -24,8 +24,8 @@ Run:
 
 ```bash
 sed -n '1,220p' docs/specs/M19-02-ui-approval-bridge.spec.md
-sed -n '1,220p' crates/agent-ui-bridge/src/event.rs
-sed -n '1,220p' crates/agent-ui-bridge/src/command.rs
+sed -n '1,220p' crates/ruse-ui-bridge/src/event.rs
+sed -n '1,220p' crates/ruse-ui-bridge/src/command.rs
 ```
 
 Expected: this slice adds UI-safe schemas only.
@@ -33,7 +33,7 @@ Expected: this slice adds UI-safe schemas only.
 ### Task 2: Write RED Bridge Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/approval_bridge.rs`
+- Create: `crates/ruse-ui-bridge/tests/approval_bridge.rs`
 
 - [x] **Step 1: Add approval frame and command tests**
 
@@ -44,7 +44,7 @@ Add tests for serializing `ApprovalRequested`, serializing `ResolveApproval`, va
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test approval_bridge
+cargo test -p ruse-ui-bridge --test approval_bridge
 ```
 
 Expected: compile fails because approval bridge payloads do not exist.
@@ -52,9 +52,9 @@ Expected: compile fails because approval bridge payloads do not exist.
 ### Task 3: Implement Bridge Payloads
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/event.rs`
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/event.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add event payloads**
 
@@ -66,19 +66,19 @@ Add `UiApprovalResponseCommand` and `UiCommandPayload::ResolveApproval`.
 
 - [x] **Step 3: Add normalization helpers**
 
-Convert `agent_policy::PendingApproval` into a UI-safe request payload without raw tool input.
+Convert `ruse_policy::PendingApproval` into a UI-safe request payload without raw tool input.
 
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-ui-bridge/tests/approval_bridge.rs`
+- Read: `crates/ruse-ui-bridge/tests/approval_bridge.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test approval_bridge
+cargo test -p ruse-ui-bridge --test approval_bridge
 ```
 
 Expected: focused tests pass.
@@ -88,7 +88,7 @@ Expected: focused tests pass.
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge
+cargo test -p ruse-ui-bridge
 ```
 
 Expected: all bridge tests pass.

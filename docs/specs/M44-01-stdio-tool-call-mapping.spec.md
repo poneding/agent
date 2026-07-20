@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::client_stdio` owns the implementation. It reuses `McpClientStdioSession::send_request` and `McpServerMethod::ToolsCall`.
+`ruse-mcp::client_stdio` owns the implementation. It reuses `McpClientStdioSession::send_request` and `McpServerMethod::ToolsCall`.
 
 ## Public Contracts
 
@@ -59,7 +59,7 @@ where
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call`
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_client_stdio_tool_call`
 
 ## Completion Signal
 

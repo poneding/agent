@@ -4,7 +4,7 @@
 
 **Goal:** Add a fixture-backed OpenAI-compatible provider adapter for request mapping and streaming response parsing.
 
-**Architecture:** Keep provider-specific JSON and SSE parsing inside `agent-model::openai_compatible`. Use fixture transports in tests and do not require live network calls or real secrets.
+**Architecture:** Keep provider-specific JSON and SSE parsing inside `ruse-model::openai_compatible`. Use fixture transports in tests and do not require live network calls or real secrets.
 
 **Tech Stack:** Rust 2024 edition, serde_json, async-trait, thiserror, existing `ModelProvider` trait, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M13-04-openai-compatible-adapter.spec.md`
 - Read: `docs/specs/M13-00-real-model-providers-config-technical-design.spec.md`
-- Read: `crates/agent-model/src/request.rs`
-- Read: `crates/agent-model/src/stream.rs`
+- Read: `crates/ruse-model/src/request.rs`
+- Read: `crates/ruse-model/src/stream.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -31,7 +31,7 @@ Expected: the spec defines fixture-backed request mapping and stream parsing.
 ### Task 2: Write RED Adapter Tests
 
 **Files:**
-- Create: `crates/agent-model/tests/openai_compatible.rs`
+- Create: `crates/ruse-model/tests/openai_compatible.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -48,7 +48,7 @@ Add tests:
 Run:
 
 ```bash
-cargo test -p agent-model --test openai_compatible
+cargo test -p ruse-model --test openai_compatible
 ```
 
 Expected: tests fail because adapter contracts do not exist.
@@ -56,8 +56,8 @@ Expected: tests fail because adapter contracts do not exist.
 ### Task 3: Implement Adapter
 
 **Files:**
-- Create: `crates/agent-model/src/openai_compatible.rs`
-- Modify: `crates/agent-model/src/lib.rs`
+- Create: `crates/ruse-model/src/openai_compatible.rs`
+- Modify: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Add request builder**
 
@@ -84,7 +84,7 @@ Implement `OpenAiCompatibleProvider` behind `ModelProvider` using fixture transp
 Run:
 
 ```bash
-cargo test -p agent-model --test openai_compatible
+cargo test -p ruse-model --test openai_compatible
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace

@@ -1,10 +1,10 @@
 # M65-02 CLI Package and Install Smoke Plan
 
-> **For agentic workers:** Extend the existing `xtask package-cli` path. Do not move release logic into `agent-cli`; the packaged binary only supplies smoke command behavior.
+> **For agentic workers:** Extend the existing `xtask package-cli` path. Do not move release logic into `ruse-cli`; the packaged binary only supplies smoke command behavior.
 
 **Goal:** Add beta-grade CLI package install smoke evidence with isolated roots, stable manifest fields, focused tests, and release docs.
 
-**Architecture:** `xtask` plans/builds/copies/checksums/smokes the CLI artifact; `agent-cli` and runtime crates provide command behavior and diagnostics.
+**Architecture:** `xtask` plans/builds/copies/checksums/smokes the CLI artifact; `ruse-cli` and runtime crates provide command behavior and diagnostics.
 
 **Tech Stack:** Rust 2024 edition, existing `xtask` release structs, Cargo fmt, Cargo clippy, Cargo test.
 

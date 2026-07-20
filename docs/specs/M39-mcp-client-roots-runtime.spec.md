@@ -31,7 +31,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` owns root contracts, registry validation, fixture behavior, and gateway diagnostics. `agent-cli` and Desktop remain presentation clients and do not own root policy. Root declarations are advisory protocol metadata; actual filesystem access remains controlled by `agent-policy`, `agent-sandbox`, and tool execution boundaries.
+`ruse-mcp` owns root contracts, registry validation, fixture behavior, and gateway diagnostics. `ruse-cli` and Desktop remain presentation clients and do not own root policy. Root declarations are advisory protocol metadata; actual filesystem access remains controlled by `ruse-policy`, `ruse-sandbox`, and tool execution boundaries.
 
 ```mermaid
 flowchart TD
@@ -69,10 +69,10 @@ flowchart TD
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_contracts`
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_registry`
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_session_roots`
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_gateway_roots`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_contracts`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_registry`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_session_roots`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_gateway_roots`
 - `CARGO_TARGET_DIR=target/codex-m39 cargo xtask ci`
 
 ## Completion Signal

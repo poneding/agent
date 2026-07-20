@@ -6,7 +6,7 @@ Add a typed provider/model capability matrix so the runtime can explain what eac
 
 ## Product Context
 
-M57 starts by strengthening the existing `agent-model` provider registry. Current capabilities cover streaming, tool calls, structured outputs, and context tokens, but they are too small for product UX: users also need model metadata, image support, output limits, cost hints, and stable mismatch diagnostics in CLI/JSON.
+M57 starts by strengthening the existing `ruse-model` provider registry. Current capabilities cover streaming, tool calls, structured outputs, and context tokens, but they are too small for product UX: users also need model metadata, image support, output limits, cost hints, and stable mismatch diagnostics in CLI/JSON.
 
 ## Scope
 
@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-model` owns capability contracts and matching. `agent-core` and `agent-cli` may render summaries from those contracts but must not duplicate capability logic.
+`ruse-model` owns capability contracts and matching. `ruse-core` and `ruse-cli` may render summaries from those contracts but must not duplicate capability logic.
 
 ```mermaid
 flowchart TD
@@ -34,14 +34,14 @@ flowchart TD
   Requirements["ModelRequestRequirements"] --> Registry["ModelProviderRegistry"]
   Profile --> Registry
   Registry --> Diagnostics["Capability mismatch diagnostics"]
-  CLI["agent-cli config check"] --> Diagnostics
+  CLI["ruse-cli config check"] --> Diagnostics
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-model/
+  ruse-model/
     src/
       registry.rs
       config.rs
@@ -49,12 +49,12 @@ crates/
     tests/
       provider_capability_matrix.rs
       provider_registry.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       config_diagnostics.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
 ```
@@ -107,15 +107,15 @@ Cost values should avoid floating-point drift in durable JSON; strings or fixed 
 
 ## Testing Strategy
 
-- `agent-model` tests for serialization, default profiles, requirement matching, and mismatch diagnostics
+- `ruse-model` tests for serialization, default profiles, requirement matching, and mismatch diagnostics
 - registry tests proving fallback/capability checks use the extended requirements
 - CLI tests proving config check renders provider capability summaries without secrets
 - focused commands:
 
 ```bash
-cargo test -p agent-model provider_capability_matrix
-cargo test -p agent-model provider_registry
-cargo test -p agent-cli config_diagnostics
+cargo test -p ruse-model provider_capability_matrix
+cargo test -p ruse-model provider_registry
+cargo test -p ruse-cli config_diagnostics
 ```
 
 ## Acceptance Criteria

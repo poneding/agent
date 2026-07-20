@@ -30,7 +30,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` continues to own HTTP MCP protocol behavior. The HTTP transport returns a typed response envelope rather than exposing raw headers to CLI/Desktop. The client state records safe session metadata and uses it when rendering subsequent requests.
+`ruse-mcp` continues to own HTTP MCP protocol behavior. The HTTP transport returns a typed response envelope rather than exposing raw headers to CLI/Desktop. The client state records safe session metadata and uses it when rendering subsequent requests.
 
 ```mermaid
 flowchart TD
@@ -85,14 +85,14 @@ Names may evolve during implementation, but metadata must remain typed, serializ
 - fixture tests proving session headers are sent only after initialize succeeds
 - checkpoint tests proving last SSE event id updates after accepted matching responses
 - redaction regressions for malformed metadata
-- final `agent-mcp` focused checks and workspace CI gate
+- final `ruse-mcp` focused checks and workspace CI gate
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_session_metadata`
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_response_envelope`
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_session_headers`
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_checkpoints`
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_session_metadata`
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_response_envelope`
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_session_headers`
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_sse_checkpoints`
 - `CARGO_TARGET_DIR=target/codex-m47 cargo xtask ci`
 
 ## Completion Signal

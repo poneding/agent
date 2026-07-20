@@ -4,7 +4,7 @@
 
 **Goal:** Add redacted gateway diagnostics for MCP sampling availability.
 
-**Architecture:** `agent-mcp::gateway` reports sampling capability metadata alongside tools and roots without invoking sampling during discovery.
+**Architecture:** `ruse-mcp::gateway` reports sampling capability metadata alongside tools and roots without invoking sampling during discovery.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, async-trait, Cargo tests.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M40-04-gateway-sampling-diagnostics.spec.md`
-- Read: `crates/agent-mcp/src/gateway.rs`
-- Read: `crates/agent-mcp/tests/mcp_gateway_roots.rs`
+- Read: `crates/ruse-mcp/src/gateway.rs`
+- Read: `crates/ruse-mcp/tests/mcp_gateway_roots.rs`
 
 - [x] **Step 1: Review gateway report patterns**
 
@@ -23,8 +23,8 @@ Run:
 
 ```bash
 sed -n '1,240p' docs/specs/M40-04-gateway-sampling-diagnostics.spec.md
-sed -n '1,260p' crates/agent-mcp/src/gateway.rs
-sed -n '1,220p' crates/agent-mcp/tests/mcp_gateway_roots.rs
+sed -n '1,260p' crates/ruse-mcp/src/gateway.rs
+sed -n '1,220p' crates/ruse-mcp/tests/mcp_gateway_roots.rs
 ```
 
 Expected: roots diagnostics show the non-blocking discovery pattern to mirror.
@@ -32,7 +32,7 @@ Expected: roots diagnostics show the non-blocking discovery pattern to mirror.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_gateway_sampling.rs`
+- Create: `crates/ruse-mcp/tests/mcp_gateway_sampling.rs`
 
 - [x] **Step 1: Add gateway sampling report tests**
 
@@ -51,13 +51,13 @@ mcp_gateway_sampling_report_serializes_stable_shape
 Verified failing before implementation:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_gateway_sampling
 ```
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_gateway_sampling
 ```
 
 Expected: tests fail because gateway sampling descriptors do not exist yet.
@@ -65,8 +65,8 @@ Expected: tests fail because gateway sampling descriptors do not exist yet.
 ### Task 3: Implement Gateway Diagnostics
 
 **Files:**
-- Modify: `crates/agent-mcp/src/gateway.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/gateway.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add `McpGatewaySamplingDescriptor`**
 
@@ -87,17 +87,17 @@ When a sampling capability advertises optional tools/context extensions rejected
 Verified:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_gateway_sampling
 CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_gateway_sampling
 ```
 
 Expected: focused checks pass.
@@ -109,7 +109,7 @@ Expected: focused checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp gateway sampling diagnostics"
 ```
 

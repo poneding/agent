@@ -32,32 +32,32 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-plugin` owns plugin-specific contracts and host adapters. `agent-core` orchestrates plugin registration and calls plugin tools only through `agent-tool`. `agent-policy` remains the only decision point for runtime permissions. `agent-types` owns durable event payloads that are needed for trace and audit.
+`ruse-plugin` owns plugin-specific contracts and host adapters. `ruse-core` orchestrates plugin registration and calls plugin tools only through `ruse-tool`. `ruse-policy` remains the only decision point for runtime permissions. `ruse-types` owns durable event payloads that are needed for trace and audit.
 
 ```mermaid
 flowchart TD
-  manifest["Plugin Manifest"] --> plugin["agent-plugin"]
-  plugin --> tool["agent-tool"]
-  plugin --> policy["agent-policy"]
-  plugin --> types["agent-types"]
-  core["agent-core"] --> plugin
+  manifest["Plugin Manifest"] --> plugin["ruse-plugin"]
+  plugin --> tool["ruse-tool"]
+  plugin --> policy["ruse-policy"]
+  plugin --> types["ruse-types"]
+  core["ruse-core"] --> plugin
   core --> tool
   core --> policy
-  tool --> sandbox["agent-sandbox"]
+  tool --> sandbox["ruse-sandbox"]
 ```
 
 Dependency rules:
 
-- `agent-plugin` may depend on `agent-tool`, `agent-policy`, `agent-types`, `serde`, `serde_json`, `thiserror`, and small validation crates.
-- `agent-plugin` must not depend on `agent-core`, `agent-cli`, `agent-desktop`, or storage crates.
-- `agent-core` may depend on `agent-plugin` for orchestration.
+- `ruse-plugin` may depend on `ruse-tool`, `ruse-policy`, `ruse-types`, `serde`, `serde_json`, `thiserror`, and small validation crates.
+- `ruse-plugin` must not depend on `ruse-core`, `ruse-cli`, `ruse-desktop`, or storage crates.
+- `ruse-core` may depend on `ruse-plugin` for orchestration.
 - UI crates observe plugin behavior through runtime events and bridge snapshots only.
 
 ## File Layout
 
 ```text
 crates/
-  agent-plugin/
+  ruse-plugin/
     Cargo.toml
     src/
       lib.rs
@@ -109,10 +109,10 @@ M11 uses four version gates:
 
 | Gate | Owner | M11 Rule |
 |---|---|---|
-| manifest schema version | `agent-plugin` | exact match on `1` |
-| runtime API version | `agent-plugin` | exact match on `1` |
+| manifest schema version | `ruse-plugin` | exact match on `1` |
+| runtime API version | `ruse-plugin` | exact match on `1` |
 | agent package version | workspace | plugin `min_agent_version` must be less than or equal to workspace version |
-| capability version | `agent-plugin` | implicit version `1` for M11 capability kinds |
+| capability version | `ruse-plugin` | implicit version `1` for M11 capability kinds |
 
 Breaking changes after M11 require either a compatibility adapter or a manifest rejection with a stable diagnostic.
 
@@ -193,10 +193,10 @@ Capability mapping rules:
 
 ## Tool Registration
 
-Plugin tools become normal `agent-tool` entries:
+Plugin tools become normal `ruse-tool` entries:
 
 - manifest tool declaration becomes `ToolDefinition`
-- `PluginTool` implements `agent_tool::Tool`
+- `PluginTool` implements `ruse_tool::Tool`
 - `ToolRegistry::register` handles duplicate names
 - `ToolLoop` handles tool proposal, permission decision, execution, observation, and events
 - plugin host failures become `ToolError::Execution`

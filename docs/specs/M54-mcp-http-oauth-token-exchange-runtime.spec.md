@@ -6,7 +6,7 @@ Execute MCP HTTP OAuth authorization-code token exchange through a typed, redact
 
 ## Product Context
 
-Protected MCP streamable HTTP servers need a complete path from authorization callback to a usable access-token lease. CLI, TUI, Desktop, and future auth services can own user interaction and vault storage while delegating token endpoint execution and response validation to `agent-mcp`.
+Protected MCP streamable HTTP servers need a complete path from authorization callback to a usable access-token lease. CLI, TUI, Desktop, and future auth services can own user interaction and vault storage while delegating token endpoint execution and response validation to `ruse-mcp`.
 
 ## Scope
 
@@ -30,7 +30,7 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-mcp::client_http` owns token exchange execution contracts next to existing HTTP transport and OAuth flow helpers. Callers provide a validated `McpClientHttpOAuthTokenExchangeRequest`; `agent-mcp` sends a redacted form POST through an exchange transport, parses bounded JSON responses, and returns a safe report plus token lease material at the explicit secret boundary.
+`ruse-mcp::client_http` owns token exchange execution contracts next to existing HTTP transport and OAuth flow helpers. Callers provide a validated `McpClientHttpOAuthTokenExchangeRequest`; `ruse-mcp` sends a redacted form POST through an exchange transport, parses bounded JSON responses, and returns a safe report plus token lease material at the explicit secret boundary.
 
 ```mermaid
 flowchart TD
@@ -74,7 +74,7 @@ pub trait McpClientHttpOAuthTokenExchangeTransport {
 - Non-2xx provider responses parse safe OAuth error fields when possible and never expose raw response bodies.
 - Successful responses require non-empty bearer-compatible access token material.
 - Lease conversion uses caller-provided `now_unix_ms` plus `expires_in_seconds`; missing expiry remains allowed and produces existing token lifecycle warnings later.
-- Refresh token material is parsed only as a redacted, non-durable boundary value and is not persisted by `agent-mcp`.
+- Refresh token material is parsed only as a redacted, non-durable boundary value and is not persisted by `ruse-mcp`.
 
 ## Security and Privacy
 
@@ -94,10 +94,10 @@ pub trait McpClientHttpOAuthTokenExchangeTransport {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_response`
-- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_exchange_transport`
-- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_exchange_runner`
-- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_exchange_lease`
+- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_response`
+- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_exchange_transport`
+- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_exchange_runner`
+- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_exchange_lease`
 - `CARGO_TARGET_DIR=target/codex-m54 cargo xtask ci`
 
 ## Completion Signal

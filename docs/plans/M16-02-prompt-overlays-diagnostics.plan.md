@@ -4,7 +4,7 @@
 
 **Goal:** Add deterministic prompt overlay application and assembly diagnostics.
 
-**Architecture:** Keep all assembly logic pure inside `agent-context`. `PromptRuntime` consumes M16-01 contracts and returns `PromptBundle` plus `PromptAssemblyReport`; no storage, CLI, UI bridge, or model provider code changes belong in this slice.
+**Architecture:** Keep all assembly logic pure inside `ruse-context`. `PromptRuntime` consumes M16-01 contracts and returns `PromptBundle` plus `PromptAssemblyReport`; no storage, CLI, UI bridge, or model provider code changes belong in this slice.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing context budget planner, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M16-02-prompt-overlays-diagnostics.spec.md`
 - Read: `docs/specs/M16-00-prompt-runtime-technical-design.spec.md`
-- Read: `crates/agent-context/src/prompt.rs`
-- Read: `crates/agent-context/src/budget.rs`
+- Read: `crates/ruse-context/src/prompt.rs`
+- Read: `crates/ruse-context/src/budget.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -31,7 +31,7 @@ Expected: the spec defines pure overlay and diagnostic behavior only.
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-context/tests/prompt_overlays.rs`
+- Create: `crates/ruse-context/tests/prompt_overlays.rs`
 
 - [x] **Step 1: Add overlay and diagnostics tests**
 
@@ -50,7 +50,7 @@ Add tests named:
 Run:
 
 ```bash
-cargo test -p agent-context --test prompt_overlays
+cargo test -p ruse-context --test prompt_overlays
 ```
 
 Expected: tests fail because prompt overlays, prompt runtime, reports, and diagnostics are not implemented.
@@ -58,8 +58,8 @@ Expected: tests fail because prompt overlays, prompt runtime, reports, and diagn
 ### Task 3: Implement Prompt Runtime
 
 **Files:**
-- Modify: `crates/agent-context/src/prompt.rs`
-- Modify: `crates/agent-context/src/lib.rs`
+- Modify: `crates/ruse-context/src/prompt.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
 
 - [x] **Step 1: Add overlay and diagnostic contracts**
 
@@ -104,7 +104,7 @@ Ensure diagnostic messages reference ids, source labels, and codes only.
 Run:
 
 ```bash
-cargo test -p agent-context --test prompt_overlays
+cargo test -p ruse-context --test prompt_overlays
 ```
 
 Expected: focused tests pass.
@@ -128,7 +128,7 @@ Update M16 planning status so active work advances to M16-03.
 Run:
 
 ```bash
-git add crates/agent-context docs
+git add crates/ruse-context docs
 git commit -m "feat: add m16 prompt overlays diagnostics"
 ```
 

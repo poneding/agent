@@ -34,27 +34,27 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-context` owns pinned context contracts, pin resolution against project summaries, prompt-layer conversion, and budget planning. It should reuse the existing `ContextBudget`, `BudgetItem`, `BudgetClass`, and `plan_context_budget` primitives where possible, but it must expose pin-specific reports and diagnostics rather than leaking generic `(PromptLayer, String)` tuples to UI clients.
+`ruse-context` owns pinned context contracts, pin resolution against project summaries, prompt-layer conversion, and budget planning. It should reuse the existing `ContextBudget`, `BudgetItem`, `BudgetClass`, and `plan_context_budget` primitives where possible, but it must expose pin-specific reports and diagnostics rather than leaking generic `(PromptLayer, String)` tuples to UI clients.
 
-`agent-core` owns workspace orchestration by composing project scan, lexical or hybrid retrieval, and pinned budget planning. CLI, TUI, and Desktop bridge surfaces render typed reports only; they must not duplicate pin resolution, path matching, budget ordering, or failure rules.
+`ruse-core` owns workspace orchestration by composing project scan, lexical or hybrid retrieval, and pinned budget planning. CLI, TUI, and Desktop bridge surfaces render typed reports only; they must not duplicate pin resolution, path matching, budget ordering, or failure rules.
 
 ```mermaid
 flowchart TD
-  Pins["PinnedProjectContextRequest"] --> Context["agent-context pin resolver"]
+  Pins["PinnedProjectContextRequest"] --> Context["ruse-context pin resolver"]
   Summary["ProjectContextSummary"] --> Context
   Retrieval["ContextRetrievalReport / ContextHybridRetrievalReport"] --> Context
   Budget["ContextBudget"] --> Planner["pinned budget planner"]
   Context --> Planner
   Planner --> Report["PinnedProjectContextBudgetReport"]
-  Core["agent-core scan/retrieve/plan runtime"] --> Report
-  CLI["agent-cli repo context select flags"] --> Core
-  Bridge["agent-ui-bridge pinned budget snapshot"] --> Report
+  Core["ruse-core scan/retrieve/plan runtime"] --> Report
+  CLI["ruse-cli repo context select flags"] --> Core
+  Bridge["ruse-ui-bridge pinned budget snapshot"] --> Report
 ```
 
 Dependency rules:
 
-- `agent-context` may depend on existing context project/retrieval/semantic contracts, but not on `agent-core`, CLI, TUI, or bridge crates.
-- `agent-core` may re-export pinned context contracts and add orchestration input/report structs.
+- `ruse-context` may depend on existing context project/retrieval/semantic contracts, but not on `ruse-core`, CLI, TUI, or bridge crates.
+- `ruse-core` may re-export pinned context contracts and add orchestration input/report structs.
 - UI crates may render reports and snapshots only.
 - Pinned context must not grant filesystem, command, Git, network, MCP, plugin, browser, Desktop, secret, or memory permissions.
 
@@ -62,7 +62,7 @@ Dependency rules:
 
 ```text
 crates/
-  agent-context/
+  ruse-context/
     src/
       pins.rs
       budget.rs
@@ -71,24 +71,24 @@ crates/
       lib.rs
     tests/
       pinned_context_budget.rs
-  agent-core/
+  ruse-core/
     src/
       project_context.rs
       lib.rs
     tests/
       project_context_pinned_budget.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       project_context_pinned_commands.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
       lib.rs
     tests/
       project_context_pinned_snapshot.rs
-  agent-tui/
+  ruse-tui/
     src/
       trace_panel.rs
       transcript.rs
@@ -193,19 +193,19 @@ Path normalization must match M58-02 pinned path normalization: trim whitespace,
 
 ## Testing Strategy
 
-- `agent-context` tests for pinned request validation, serde shape, path normalization, required versus optional behavior, duplicate handling, prompt-layer safety, budget ordering, required overflow errors, optional omissions, and redaction
-- `agent-core` tests for scan-plus-retrieve-plus-pinned-budget orchestration on temp workspaces, unknown required pin failure, optional pin diagnostics, lexical and hybrid report compatibility, and secret-like metadata safety
+- `ruse-context` tests for pinned request validation, serde shape, path normalization, required versus optional behavior, duplicate handling, prompt-layer safety, budget ordering, required overflow errors, optional omissions, and redaction
+- `ruse-core` tests for scan-plus-retrieve-plus-pinned-budget orchestration on temp workspaces, unknown required pin failure, optional pin diagnostics, lexical and hybrid report compatibility, and secret-like metadata safety
 - CLI tests for `repo context select` pinned budget flags, text output, JSON output, invalid pins, required pin budget failure, optional pin omission, and redaction
 - UI bridge tests for stable pinned context snapshot shape, single-line frame encoding, included/omitted pin summaries, retrieval budget status, diagnostics, and redaction
 - TUI reducer tests or existing TUI test updates if `UiJsonFrame` grows a new pinned snapshot variant
 - focused commands:
 
 ```bash
-cargo test -p agent-context --test pinned_context_budget
-cargo test -p agent-core --test project_context_pinned_budget
-cargo test -p agent-cli --test project_context_pinned_commands
-cargo test -p agent-ui-bridge --test project_context_pinned_snapshot
-cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
+cargo test -p ruse-context --test pinned_context_budget
+cargo test -p ruse-core --test project_context_pinned_budget
+cargo test -p ruse-cli --test project_context_pinned_commands
+cargo test -p ruse-ui-bridge --test project_context_pinned_snapshot
+cargo clippy -p ruse-context -p ruse-core -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
 ```
 
 ## Acceptance Criteria
@@ -214,7 +214,7 @@ cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge -p a
 - Required pins are included before retrieval context or fail with safe diagnostics.
 - Optional pins improve context when they fit and produce stable omission evidence when they do not.
 - Pinned context and retrieval context share an explicit prompt budget plan.
-- `agent-core` can scan a workspace, run lexical or hybrid retrieval, and return one pinned budget report.
+- `ruse-core` can scan a workspace, run lexical or hybrid retrieval, and return one pinned budget report.
 - CLI text/JSON and bridge outputs expose safe pinned budget evidence without raw secret leakage.
 - Existing `--pin` retrieval boost behavior remains backward compatible.
 - M58-05 can build context quality traces from the pinned budget report without replacing the M58-04 contracts.

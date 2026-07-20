@@ -37,6 +37,6 @@ Tradeoffs:
 
 ## Follow-Up
 
-- Implement event contracts in `agent-types`.
-- Keep storage sequencing in `agent-storage`.
+- Implement event contracts in `ruse-types`.
+- Keep storage sequencing in `ruse-storage`.
 - Add replay tests for every event-sourced milestone.

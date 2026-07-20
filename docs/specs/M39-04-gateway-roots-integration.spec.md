@@ -74,8 +74,8 @@ pub struct McpGatewayRootDescriptor {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_gateway_roots`
-- `CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_gateway_roots`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

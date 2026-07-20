@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M53 OAuth authorization-flow technical design.
 
-**Architecture:** Documentation-only baseline for `agent-mcp::client_http` OAuth flow contracts.
+**Architecture:** Documentation-only baseline for `ruse-mcp::client_http` OAuth flow contracts.
 
 **Tech Stack:** Markdown, Cargo workspace docs, existing milestone templates.
 

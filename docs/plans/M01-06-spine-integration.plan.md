@@ -4,7 +4,7 @@
 
 **Goal:** Run an end-to-end fake turn, persist emitted events, reload them, and verify the replayed final state.
 
-**Architecture:** This slice proves the M01 runtime spine works across `agent-core`, `agent-model`, `agent-storage`, and `agent-types`. It uses the fake provider, in-memory store, and replay helpers to verify that event-sourced execution can be reconstructed.
+**Architecture:** This slice proves the M01 runtime spine works across `ruse-core`, `ruse-model`, `ruse-storage`, and `ruse-types`. It uses the fake provider, in-memory store, and replay helpers to verify that event-sourced execution can be reconstructed.
 
 **Tech Stack:** Rust 2024 edition, M01 runtime crates, `tokio` async tests, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -13,7 +13,7 @@
 ### Task 1: Add Integration Test Fixture
 
 **Files:**
-- Create: `crates/agent-core/tests/spine_integration.rs`
+- Create: `crates/ruse-core/tests/spine_integration.rs`
 
 - [x] **Step 1: Build a deterministic fake turn fixture**
 
@@ -37,7 +37,7 @@ Assertions:
 Run:
 
 ```bash
-cargo test -p agent-core spine_integration_persists_fake_turn_events
+cargo test -p ruse-core spine_integration_persists_fake_turn_events
 ```
 
 Expected: integration test passes.
@@ -45,7 +45,7 @@ Expected: integration test passes.
 ### Task 2: Verify Replay Reconstructs Final Response
 
 **Files:**
-- Create: `crates/agent-storage/tests/replay_integration.rs`
+- Create: `crates/ruse-storage/tests/replay_integration.rs`
 
 - [x] **Step 1: Add replay final-state test**
 
@@ -59,7 +59,7 @@ The test should:
 Run:
 
 ```bash
-cargo test -p agent-storage replay_reconstructs_final_response
+cargo test -p ruse-storage replay_reconstructs_final_response
 ```
 
 Expected: replay reconstructs the same final response produced by the turn engine.
@@ -67,20 +67,20 @@ Expected: replay reconstructs the same final response produced by the turn engin
 ### Task 3: Add CLI Runtime Spine Smoke Test
 
 **Files:**
-- Create: `crates/agent-cli/tests/runtime_spine.rs`
+- Create: `crates/ruse-cli/tests/runtime_spine.rs`
 
 - [x] **Step 1: Add CLI smoke assertion**
 
 The test should run:
 
 ```bash
-cargo run -p agent-cli
+cargo run -p ruse-cli
 ```
 
 Expected stdout:
 
 ```text
-agent (agent-model uses agent-types, agent-storage uses agent-types)
+agent (ruse-model uses ruse-types, ruse-storage uses ruse-types)
 ```
 
 The CLI test proves the binary still links after runtime spine crates are integrated.

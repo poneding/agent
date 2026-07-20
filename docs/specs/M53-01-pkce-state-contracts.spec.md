@@ -27,7 +27,7 @@ Owned by other specs:
 
 ## Architecture
 
-Pure contracts live in `agent-mcp::client_http`. Callers provide verifier and state values from a secure random source outside `agent-mcp`.
+Pure contracts live in `ruse-mcp::client_http`. Callers provide verifier and state values from a secure random source outside `ruse-mcp`.
 
 ## Public Contracts
 
@@ -69,7 +69,7 @@ pub struct McpClientHttpOAuthState {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_pkce_state`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_pkce_state`
 - fmt and clippy focused gates pass
 
 ## Completion Signal

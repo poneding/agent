@@ -4,9 +4,9 @@
 
 **Goal:** Add a deterministic M56 golden-path E2E/eval scenario that proves repo session, edit/diff, command/test, final review, trace/audit, replay, and CLI/JSON evidence under default CI-safe checks.
 
-**Architecture:** Runtime behavior remains in `agent-core`; eval and CLI orchestrate only typed scenario execution and reporting. Evidence and goldens must be stable, bounded, and redacted.
+**Architecture:** Runtime behavior remains in `ruse-core`; eval and CLI orchestrate only typed scenario execution and reporting. Evidence and goldens must be stable, bounded, and redacted.
 
-**Tech Stack:** Rust 2024 edition, serde eval manifests, existing local coding fixture/final review contracts, `agent-eval`, `agent-cli`, `cargo xtask eval`.
+**Tech Stack:** Rust 2024 edition, serde eval manifests, existing local coding fixture/final review contracts, `ruse-eval`, `ruse-cli`, `cargo xtask eval`.
 
 ---
 
@@ -17,19 +17,19 @@
 - Read: `docs/eval/default.suite.json`
 - Read: `docs/eval/scenarios/m04-replay.eval.json`
 - Read: `docs/eval/scenarios/m04-evidence.eval.json`
-- Read: `crates/agent-eval/src/manifest.rs`
-- Read: `crates/agent-eval/src/runner.rs`
-- Read: `crates/agent-core/src/local_coding.rs`
-- Read: `crates/agent-core/src/final_review.rs`
-- Read: `crates/agent-cli/src/command.rs`
+- Read: `crates/ruse-eval/src/manifest.rs`
+- Read: `crates/ruse-eval/src/runner.rs`
+- Read: `crates/ruse-core/src/local_coding.rs`
+- Read: `crates/ruse-core/src/final_review.rs`
+- Read: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Review current eval behavior**
 
 Run:
 
 ```bash
-cargo test -p agent-cli eval_commands
-cargo test -p agent-cli eval_suite_commands
+cargo test -p ruse-cli eval_commands
+cargo test -p ruse-cli eval_suite_commands
 ```
 
 Expected: current replay/evidence eval paths pass, while local-coding strict support is not yet a passing default suite scenario.
@@ -37,10 +37,10 @@ Expected: current replay/evidence eval paths pass, while local-coding strict sup
 ### Task 2: Write Failing Eval/CLI Tests
 
 **Files:**
-- Modify: `crates/agent-eval/tests/runner.rs`
-- Modify: `crates/agent-eval/tests/corpus.rs`
-- Create: `crates/agent-cli/tests/golden_path_e2e.rs`
-- Modify if needed: `crates/agent-cli/tests/eval_suite_commands.rs`
+- Modify: `crates/ruse-eval/tests/runner.rs`
+- Modify: `crates/ruse-eval/tests/corpus.rs`
+- Create: `crates/ruse-cli/tests/golden_path_e2e.rs`
+- Modify if needed: `crates/ruse-cli/tests/eval_suite_commands.rs`
 
 - [x] **Step 1: Add eval tests**
 
@@ -63,8 +63,8 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-eval local_coding
-cargo test -p agent-cli golden_path_e2e
+cargo test -p ruse-eval local_coding
+cargo test -p ruse-cli golden_path_e2e
 ```
 
 Expected: tests fail before local-coding eval support and scenario files are implemented.
@@ -72,13 +72,13 @@ Expected: tests fail before local-coding eval support and scenario files are imp
 ### Task 3: Implement Local Coding Eval Support
 
 **Files:**
-- Modify: `crates/agent-eval/src/runner.rs`
-- Modify if needed: `crates/agent-eval/src/report.rs`
-- Modify if needed: `crates/agent-eval/src/manifest.rs`
+- Modify: `crates/ruse-eval/src/runner.rs`
+- Modify if needed: `crates/ruse-eval/src/report.rs`
+- Modify if needed: `crates/ruse-eval/src/manifest.rs`
 
 - [x] **Step 1: Add local-coding runner path**
 
-Use existing `agent-core` local coding/final review contracts to produce deterministic eval evidence.
+Use existing `ruse-core` local coding/final review contracts to produce deterministic eval evidence.
 
 - [x] **Step 2: Validate expectations**
 
@@ -120,10 +120,10 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-core -p agent-cli -p agent-eval --all-targets -- -D warnings
-cargo test -p agent-eval local_coding
-cargo test -p agent-cli golden_path_e2e
-cargo test -p agent-cli eval_suite_commands
+cargo clippy -p ruse-core -p ruse-cli -p ruse-eval --all-targets -- -D warnings
+cargo test -p ruse-eval local_coding
+cargo test -p ruse-cli golden_path_e2e
+cargo test -p ruse-cli eval_suite_commands
 cargo xtask eval
 ```
 

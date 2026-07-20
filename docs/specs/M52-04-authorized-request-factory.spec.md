@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-Factory helpers live in `agent-mcp::client_http` and call existing `McpClientHttpRequest` / `McpClientHttpStreamRequest` M51 authorization constructors.
+Factory helpers live in `ruse-mcp::client_http` and call existing `McpClientHttpRequest` / `McpClientHttpStreamRequest` M51 authorization constructors.
 
 ## Public Contracts
 
@@ -54,7 +54,7 @@ pub fn build_mcp_client_http_stream_request_with_oauth_token(...);
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token_requests`
+- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p ruse-mcp mcp_client_http_oauth_token_requests`
 - fmt and clippy focused gates pass
 
 ## Completion Signal

@@ -4,9 +4,9 @@
 
 **Goal:** Add a policy-aware local tool export registry for MCP server mode.
 
-**Architecture:** `agent-mcp` maps `agent-tool` definitions into MCP server descriptors and uses `agent-policy` before execution.
+**Architecture:** `ruse-mcp` maps `ruse-tool` definitions into MCP server descriptors and uses `ruse-policy` before execution.
 
-**Tech Stack:** Rust 2024 edition, serde JSON, existing `agent-tool` and `agent-policy` crates.
+**Tech Stack:** Rust 2024 edition, serde JSON, existing `ruse-tool` and `ruse-policy` crates.
 
 ---
 
@@ -30,11 +30,11 @@
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-mcp --all-targets -- -D warnings
-cargo test -p agent-mcp mcp_server_tool_export
+cargo clippy -p ruse-mcp --all-targets -- -D warnings
+cargo test -p ruse-mcp mcp_server_tool_export
 ```
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp server tool exports"
 ```

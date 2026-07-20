@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Create `agent-plugin` and implement typed plugin manifest parsing, validation, and compatibility checks.
+**Goal:** Create `ruse-plugin` and implement typed plugin manifest parsing, validation, and compatibility checks.
 
-**Architecture:** Keep plugin-specific contracts in `agent-plugin`. The crate may depend on `agent-tool`, `agent-policy`, `agent-types`, `serde`, `serde_json`, and `thiserror`; it must not depend on `agent-core` or UI crates.
+**Architecture:** Keep plugin-specific contracts in `ruse-plugin`. The crate may depend on `ruse-tool`, `ruse-policy`, `ruse-types`, `serde`, `serde_json`, and `thiserror`; it must not depend on `ruse-core` or UI crates.
 
 **Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `serde_json`, `thiserror`, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -32,7 +32,7 @@ Expected: both documents define manifest ownership, schema, compatibility, valid
 ### Task 2: Write RED Manifest Tests
 
 **Files:**
-- Create: `crates/agent-plugin/tests/manifest.rs`
+- Create: `crates/ruse-plugin/tests/manifest.rs`
 
 - [x] **Step 1: Create the manifest tests before implementation**
 
@@ -71,24 +71,24 @@ Use `include_str!("../../../docs/templates/plugin-manifest.template.json")` for 
 Run:
 
 ```bash
-cargo test -p agent-plugin manifest
+cargo test -p ruse-plugin manifest
 ```
 
-Expected: command fails because `agent-plugin` is not yet a workspace crate.
+Expected: command fails because `ruse-plugin` is not yet a workspace crate.
 
-### Task 3: Add `agent-plugin` Crate Skeleton
+### Task 3: Add `ruse-plugin` Crate Skeleton
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-plugin/Cargo.toml`
-- Create: `crates/agent-plugin/src/lib.rs`
-- Create: `crates/agent-plugin/src/error.rs`
-- Create: `crates/agent-plugin/src/compatibility.rs`
-- Create: `crates/agent-plugin/src/manifest.rs`
+- Create: `crates/ruse-plugin/Cargo.toml`
+- Create: `crates/ruse-plugin/src/lib.rs`
+- Create: `crates/ruse-plugin/src/error.rs`
+- Create: `crates/ruse-plugin/src/compatibility.rs`
+- Create: `crates/ruse-plugin/src/manifest.rs`
 
 - [x] **Step 1: Add workspace member**
 
-Add `"crates/agent-plugin"` to the workspace members after `agent-skill` and before `agent-ui-bridge`.
+Add `"crates/ruse-plugin"` to the workspace members after `ruse-skill` and before `ruse-ui-bridge`.
 
 - [x] **Step 2: Add crate manifest**
 
@@ -96,9 +96,9 @@ Use this dependency shape:
 
 ```toml
 [dependencies]
-agent-policy = { path = "../agent-policy" }
-agent-tool = { path = "../agent-tool" }
-agent-types = { path = "../agent-types" }
+ruse-policy = { path = "../ruse-policy" }
+ruse-tool = { path = "../ruse-tool" }
+ruse-types = { path = "../ruse-types" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
@@ -130,9 +130,9 @@ pub use manifest::{
 ### Task 4: Implement Manifest Contracts
 
 **Files:**
-- Modify: `crates/agent-plugin/src/error.rs`
-- Modify: `crates/agent-plugin/src/compatibility.rs`
-- Modify: `crates/agent-plugin/src/manifest.rs`
+- Modify: `crates/ruse-plugin/src/error.rs`
+- Modify: `crates/ruse-plugin/src/compatibility.rs`
+- Modify: `crates/ruse-plugin/src/manifest.rs`
 
 - [x] **Step 1: Add typed errors**
 
@@ -165,7 +165,7 @@ Implement serde-compatible structs and validation from the spec:
 - plugin name uses lowercase ASCII, digits, `_`, `-`, `.`
 - process and WASM require non-empty entrypoint
 - built-in rejects entrypoint
-- tool names are validated through `agent_tool::ToolName`
+- tool names are validated through `ruse_tool::ToolName`
 - duplicate tool names fail
 - duplicate hook names fail
 - `configuration_schema` must be a JSON object
@@ -173,14 +173,14 @@ Implement serde-compatible structs and validation from the spec:
 ### Task 5: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-plugin/tests/manifest.rs`
+- Read: `crates/ruse-plugin/tests/manifest.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-plugin manifest
+cargo test -p ruse-plugin manifest
 ```
 
 Expected: all manifest tests pass.

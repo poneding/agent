@@ -25,12 +25,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-scheduler` owns quota and retry decisions. `agent-core` reports usage snapshots and obeys cancellation. Storage or future durable runtime keeps recovery inputs.
+`ruse-scheduler` owns quota and retry decisions. `ruse-core` reports usage snapshots and obeys cancellation. Storage or future durable runtime keeps recovery inputs.
 
 ```mermaid
 flowchart TD
   Runner["BackgroundTaskRunner"] --> Usage["TaskUsageSnapshot"]
-  Usage --> Quota["agent-scheduler quota"]
+  Usage --> Quota["ruse-scheduler quota"]
   Queue["leases"] --> Recovery["stale lease recovery"]
   Recovery --> Queue
 ```
@@ -79,7 +79,7 @@ pub struct TaskRecoveryReport {
 
 - Tasks respect configured quotas.
 - Retry and recovery decisions are deterministic and inspectable.
-- Focused tests pass with `cargo test -p agent-scheduler task_quotas_retries_recovery`.
+- Focused tests pass with `cargo test -p ruse-scheduler task_quotas_retries_recovery`.
 
 ## Completion Signal
 

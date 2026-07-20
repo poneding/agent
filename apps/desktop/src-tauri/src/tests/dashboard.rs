@@ -1,8 +1,8 @@
-use agent_desktop::{
+use ruse_desktop::{
     DesktopConfigSnapshot, DesktopDashboardDiagnostic, DesktopDashboardDiagnosticSeverity,
     DesktopSessionReadinessState,
 };
-use agent_ui_bridge::{UiConfigSnapshot, UiModelProviderCapabilities, UiModelProviderSummary};
+use ruse_ui_bridge::{UiConfigSnapshot, UiModelProviderCapabilities, UiModelProviderSummary};
 
 use crate::{
     bridge::{DesktopRuntimeSession, DesktopStartSessionRequest},

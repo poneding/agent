@@ -4,7 +4,7 @@
 
 **Goal:** Add UI-safe prompt summary contracts shared by CLI JSON, future TUI, and Desktop clients.
 
-**Architecture:** `agent-ui-bridge` owns UI view models and normalization. It consumes prompt snapshot metadata from `agent-types` and mirrors only safe prompt summary fields.
+**Architecture:** `ruse-ui-bridge` owns UI view models and normalization. It consumes prompt snapshot metadata from `ruse-types` and mirrors only safe prompt summary fields.
 
 **Tech Stack:** Rust 2024 edition, serde UI bridge contracts, runtime event normalization, JSON frame snapshots, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,10 +14,10 @@
 
 **Files:**
 - Read: `docs/specs/M16-05-ui-prompt-summary.spec.md`
-- Read: `crates/agent-ui-bridge/src/event.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-ui-bridge/tests/bridge_snapshots.rs`
-- Read: `crates/agent-types/src/event.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-ui-bridge/tests/bridge_snapshots.rs`
+- Read: `crates/ruse-types/src/event.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -32,8 +32,8 @@ Expected: the spec defines UI-safe prompt summary contracts and redaction requir
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/prompt_summary.rs`
-- Modify: `crates/agent-ui-bridge/tests/bridge_snapshots.rs`
+- Create: `crates/ruse-ui-bridge/tests/prompt_summary.rs`
+- Modify: `crates/ruse-ui-bridge/tests/bridge_snapshots.rs`
 
 - [x] **Step 1: Add prompt summary tests**
 
@@ -55,8 +55,8 @@ Add test named:
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test prompt_summary
-cargo test -p agent-ui-bridge --test bridge_snapshots
+cargo test -p ruse-ui-bridge --test prompt_summary
+cargo test -p ruse-ui-bridge --test bridge_snapshots
 ```
 
 Expected: tests fail because prompt summary bridge contracts are not implemented.
@@ -64,9 +64,9 @@ Expected: tests fail because prompt summary bridge contracts are not implemented
 ### Task 3: Implement UI Prompt Summary
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/event.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/event.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add UI summary contracts**
 
@@ -101,8 +101,8 @@ Ensure hidden and secret-like summaries never include prompt content previews.
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test prompt_summary
-cargo test -p agent-ui-bridge --test bridge_snapshots
+cargo test -p ruse-ui-bridge --test prompt_summary
+cargo test -p ruse-ui-bridge --test bridge_snapshots
 ```
 
 Expected: focused tests pass.
@@ -126,7 +126,7 @@ Update M16 milestone status and active focus to M17.
 Run:
 
 ```bash
-git add crates/agent-ui-bridge docs README.md
+git add crates/ruse-ui-bridge docs README.md
 git commit -m "feat: complete m16 ui prompt summary"
 ```
 

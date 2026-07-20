@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-Documentation-only hardening over runtime changes in `agent-mcp`.
+Documentation-only hardening over runtime changes in `ruse-mcp`.
 
 ```mermaid
 flowchart TD
@@ -56,10 +56,10 @@ No new runtime contracts are introduced by this slice.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_request`
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_transport`
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_resume`
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_drain`
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_request`
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_transport`
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_resume`
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_drain`
 - `CARGO_TARGET_DIR=target/codex-m48 cargo xtask ci`
 
 ## Completion Signal

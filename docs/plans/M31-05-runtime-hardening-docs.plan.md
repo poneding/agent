@@ -4,7 +4,7 @@
 
 **Goal:** Complete M31 documentation, hardening checks, and final milestone status.
 
-**Architecture:** Documentation and final verification slice. Runtime ownership remains in `agent-mcp`; CLI remains an IO shell.
+**Architecture:** Documentation and final verification slice. Runtime ownership remains in `ruse-mcp`; CLI remains an IO shell.
 
 **Tech Stack:** Markdown docs, Cargo workspace quality gates.
 
@@ -27,10 +27,10 @@
 Verified:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp mcp_server_session
-CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp mcp_server_profile
-CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp mcp_server_trace
-CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-cli mcp_server_stdio_command
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p ruse-mcp mcp_server_session
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p ruse-mcp mcp_server_profile
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p ruse-mcp mcp_server_trace
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p ruse-cli mcp_server_stdio_command
 CARGO_TARGET_DIR=target/codex-m31 cargo xtask ci
 ```
 

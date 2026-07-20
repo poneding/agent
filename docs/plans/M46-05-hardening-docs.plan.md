@@ -4,7 +4,7 @@
 
 **Goal:** Document MCP HTTP SSE response behavior and complete M46 verification.
 
-**Architecture:** Documentation hardening over runtime changes implemented in `agent-mcp`.
+**Architecture:** Documentation hardening over runtime changes implemented in `ruse-mcp`.
 
 **Tech Stack:** Markdown docs, Cargo workspace gates.
 
@@ -37,10 +37,10 @@
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts
-CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode
-CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_transport
-CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_dispatch
+CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_contracts
+CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_response_mode
+CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_transport
+CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_dispatch
 ```
 
 - [x] **Step 2: Run final workspace gate**
@@ -68,10 +68,10 @@ git commit -m "feat: complete m46 mcp http sse response runtime"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts` passed.
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode` passed.
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_transport` passed.
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_dispatch` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_response_mode` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_dispatch` passed.
 - `git diff --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m46 cargo fmt --all -- --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m46 cargo xtask ci` passed.

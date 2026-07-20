@@ -29,7 +29,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` owns template contracts, matching, validation, policy mapping, and JSON-RPC behavior. `agent-cli` only loads manifest declarations and passes profile runtime data into `agent-mcp`.
+`ruse-mcp` owns template contracts, matching, validation, policy mapping, and JSON-RPC behavior. `ruse-cli` only loads manifest declarations and passes profile runtime data into `ruse-mcp`.
 
 ```mermaid
 flowchart TD
@@ -69,8 +69,8 @@ flowchart TD
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_resource_template`
-- `CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-cli mcp_server_resource_template`
+- `CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-mcp mcp_server_resource_template`
+- `CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-cli mcp_server_resource_template`
 - `CARGO_TARGET_DIR=target/codex-m37 cargo xtask ci`
 
 ## Completion Signal

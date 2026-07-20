@@ -25,7 +25,7 @@ Owned by later M42 specs:
 
 ## Architecture
 
-Contracts live in `agent-mcp`, likely in a new `client_sampling_stdio` module or equivalent. They reuse existing JSON-RPC envelope types from `server.rs` rather than introducing a second envelope schema.
+Contracts live in `ruse-mcp`, likely in a new `client_sampling_stdio` module or equivalent. They reuse existing JSON-RPC envelope types from `server.rs` rather than introducing a second envelope schema.
 
 ## Public Contracts
 
@@ -60,8 +60,8 @@ Notifications without `id` return `Ok(None)` because JSON-RPC notifications do n
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_contracts`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_contracts`
 
 ## Completion Signal
 
-M42-01 is complete when sampling stdio frame contracts are public, tested, and exported from `agent-mcp`.
+M42-01 is complete when sampling stdio frame contracts are public, tested, and exported from `ruse-mcp`.

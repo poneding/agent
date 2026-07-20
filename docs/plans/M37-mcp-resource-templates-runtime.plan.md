@@ -4,7 +4,7 @@
 
 **Goal:** Add explicit, safe MCP resource templates for parameterized resource reads.
 
-**Architecture:** `agent-mcp` owns resource template contracts, matching, validation, policy, and JSON-RPC behavior. `agent-cli` owns manifest file IO and stdio startup wiring.
+**Architecture:** `ruse-mcp` owns resource template contracts, matching, validation, policy, and JSON-RPC behavior. `ruse-cli` owns manifest file IO and stdio startup wiring.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

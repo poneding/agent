@@ -30,30 +30,30 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-context` owns prompt runtime contracts and pure assembly behavior. It may depend on `agent-types` for ids and timestamps, but it must not depend on `agent-core`, model providers, storage, CLI, TUI, or Desktop. `agent-core` calls `agent-context` during turn preparation, records prompt snapshot metadata, and emits runtime events. UI crates consume summaries from `agent-ui-bridge`.
+`ruse-context` owns prompt runtime contracts and pure assembly behavior. It may depend on `ruse-types` for ids and timestamps, but it must not depend on `ruse-core`, model providers, storage, CLI, TUI, or Desktop. `ruse-core` calls `ruse-context` during turn preparation, records prompt snapshot metadata, and emits runtime events. UI crates consume summaries from `ruse-ui-bridge`.
 
 ```mermaid
 flowchart TD
   Project["Project files / AGENTS.md"] --> Request["PromptAssemblyRequest"]
   User["User preferences"] --> Request
-  Skill["agent-skill contributions"] --> Request
-  Memory["agent-memory retrieval"] --> Request
-  Request --> Runtime["agent-context PromptRuntime"]
+  Skill["ruse-skill contributions"] --> Request
+  Memory["ruse-memory retrieval"] --> Request
+  Request --> Runtime["ruse-context PromptRuntime"]
   Runtime --> Bundle["PromptBundle"]
   Runtime --> Snapshot["PromptSnapshot"]
   Runtime --> Report["PromptAssemblyReport"]
-  Core["agent-core turn"] --> Runtime
+  Core["ruse-core turn"] --> Runtime
   Core --> Events["Prompt snapshot events"]
-  Events --> Bridge["agent-ui-bridge summary"]
+  Events --> Bridge["ruse-ui-bridge summary"]
 ```
 
 Dependency rules:
 
-- `agent-context` defines prompt structures and pure assembly algorithms.
-- `agent-core` owns persistence, event emission, and failure mapping.
-- `agent-skill` may convert discovered skills into prompt contributions, but does not assemble the final prompt.
-- `agent-memory` returns candidate memory records; `agent-context` decides which prompt layer shape they become.
-- `agent-cli`, `agent-tui`, and `agent-desktop` only render UI-safe summaries.
+- `ruse-context` defines prompt structures and pure assembly algorithms.
+- `ruse-core` owns persistence, event emission, and failure mapping.
+- `ruse-skill` may convert discovered skills into prompt contributions, but does not assemble the final prompt.
+- `ruse-memory` returns candidate memory records; `ruse-context` decides which prompt layer shape they become.
+- `ruse-cli`, `ruse-tui`, and `ruse-desktop` only render UI-safe summaries.
 
 ## Runtime Model
 
@@ -76,7 +76,7 @@ The model-facing bundle is immutable after turn preparation. Later tool observat
 
 ## Public Contracts
 
-Core contracts live in `agent-context`:
+Core contracts live in `ruse-context`:
 
 ```rust
 pub struct PromptProfile {
@@ -138,7 +138,7 @@ Profiles should prefer additive overlays. Replacement is allowed only for named 
 
 ## Persistence and Replay
 
-`agent-core` persists prompt snapshot metadata before model invocation. The event payload should include hashes and UI-safe metadata, not full hidden prompt text. If later replay requires exact hidden content, storage must reference an encrypted or local-only artifact outside UI bridge payloads.
+`ruse-core` persists prompt snapshot metadata before model invocation. The event payload should include hashes and UI-safe metadata, not full hidden prompt text. If later replay requires exact hidden content, storage must reference an encrypted or local-only artifact outside UI bridge payloads.
 
 Replay validates:
 

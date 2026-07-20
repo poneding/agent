@@ -15,7 +15,7 @@ This milestone delivers:
 - plugin install, list, enable, disable, remove, and inspect commands
 - skill root management and skill diagnostics
 - MCP server lifecycle management with stdio and HTTP transports
-- MCP gateway that exposes remote tools as local `agent-tool` entries
+- MCP gateway that exposes remote tools as local `ruse-tool` entries
 - per-plugin and per-MCP capability review
 - extension health reports and traceability in UI bridge
 - process plugin runtime hardening for production use
@@ -28,16 +28,16 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-plugin`, `agent-skill`, and `agent-mcp` own extension contracts and discovery. `agent-core` coordinates registration and traceability. UI clients call extension management through typed bridge commands and render summaries.
+`ruse-plugin`, `ruse-skill`, and `ruse-mcp` own extension contracts and discovery. `ruse-core` coordinates registration and traceability. UI clients call extension management through typed bridge commands and render summaries.
 
 ```mermaid
 flowchart TD
-  UI["CLI/TUI/Desktop"] --> Bridge["agent-ui-bridge extension commands"]
-  Bridge --> Core["agent-core extension manager"]
-  Core --> Plugin["agent-plugin"]
-  Core --> Skill["agent-skill"]
-  Core --> MCP["agent-mcp gateway"]
-  Core --> Policy["agent-policy"]
+  UI["CLI/TUI/Desktop"] --> Bridge["ruse-ui-bridge extension commands"]
+  Bridge --> Core["ruse-core extension manager"]
+  Core --> Plugin["ruse-plugin"]
+  Core --> Skill["ruse-skill"]
+  Core --> MCP["ruse-mcp gateway"]
+  Core --> Policy["ruse-policy"]
 ```
 
 ## Key Contracts

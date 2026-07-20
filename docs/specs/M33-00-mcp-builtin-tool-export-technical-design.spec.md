@@ -26,11 +26,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` is the boundary between export manifests and MCP server profiles. It may create an export catalog from `agent-tool` built-ins and an `agent-sandbox::WorkspaceSandbox`. `agent-cli` passes an explicit workspace path into that runtime helper.
+`ruse-mcp` is the boundary between export manifests and MCP server profiles. It may create an export catalog from `ruse-tool` built-ins and an `ruse-sandbox::WorkspaceSandbox`. `ruse-cli` passes an explicit workspace path into that runtime helper.
 
 ```mermaid
 flowchart TD
-  Manifest["MCP export manifest"] --> Builder["agent-mcp profile builder"]
+  Manifest["MCP export manifest"] --> Builder["ruse-mcp profile builder"]
   Workspace["--workspace path"] --> Sandbox["WorkspaceSandbox"]
   Sandbox --> Catalog["Built-in export catalog"]
   Catalog --> Builder
@@ -41,10 +41,10 @@ flowchart TD
 
 ```text
 crates/
-  agent-mcp/src/
+  ruse-mcp/src/
     server_manifest.rs
     server_profile.rs
-  agent-cli/src/
+  ruse-cli/src/
     command.rs
 docs/
   specs/M33-*.spec.md

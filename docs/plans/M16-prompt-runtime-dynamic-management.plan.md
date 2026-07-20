@@ -4,7 +4,7 @@
 
 **Goal:** Build a versioned dynamic prompt runtime with profiles, overlays, source diagnostics, and per-turn prompt snapshots.
 
-**Architecture:** Treat this file as the M16 coordination plan. `agent-context` owns prompt contracts and assembly, `agent-core` records snapshots and diagnostics, and UI crates render summaries through `agent-ui-bridge`.
+**Architecture:** Treat this file as the M16 coordination plan. `ruse-context` owns prompt contracts and assembly, `ruse-core` records snapshots and diagnostics, and UI crates render summaries through `ruse-ui-bridge`.
 
 **Tech Stack:** Rust 2024 edition, Cargo workspace, serde contracts, SQLite-backed event/checkpoint persistence, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -57,7 +57,7 @@ Each slice plan starts with failing tests, exact files, focused commands, worksp
 
 - [x] **Step 1: Implement prompt profile contracts**
 
-Add typed profile, layer, source, visibility, sensitivity, and version contracts in `agent-context`.
+Add typed profile, layer, source, visibility, sensitivity, and version contracts in `ruse-context`.
 
 - [x] **Step 2: Implement overlays and diagnostics**
 

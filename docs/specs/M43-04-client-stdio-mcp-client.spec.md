@@ -24,7 +24,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` maps JSON-RPC result values into existing `McpInitializeResult` and `McpToolListResult` contracts. `McpClient` consumers stay provider-agnostic.
+`ruse-mcp` maps JSON-RPC result values into existing `McpInitializeResult` and `McpToolListResult` contracts. `McpClient` consumers stay provider-agnostic.
 
 ## Public Contracts
 
@@ -68,7 +68,7 @@ Final mutability or locking shape may differ if required by the transport trait.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_mcp_client`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_mcp_client`
 
 ## Completion Signal
 

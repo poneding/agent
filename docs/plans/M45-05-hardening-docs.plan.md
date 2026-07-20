@@ -4,7 +4,7 @@
 
 **Goal:** Document MCP streamable HTTP client behavior and complete M45 verification.
 
-**Architecture:** Documentation hardening over runtime changes implemented in `agent-mcp`.
+**Architecture:** Documentation hardening over runtime changes implemented in `ruse-mcp`.
 
 **Tech Stack:** Markdown docs, Cargo workspace gates.
 
@@ -37,9 +37,9 @@
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_contracts
-CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_mcp_client
-CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_gateway_http_tool_call
+CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_contracts
+CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_mcp_client
+CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_gateway_http_tool_call
 ```
 
 - [x] **Step 2: Run final workspace gate**
@@ -67,10 +67,10 @@ git commit -m "feat: complete m45 mcp client streamable http"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_contracts` passed.
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_transport` passed.
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_mcp_client` passed.
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_gateway_http_tool_call` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_mcp_client` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_gateway_http_tool_call` passed.
 - `git diff --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m45 cargo fmt --all -- --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m45 cargo xtask ci` passed.

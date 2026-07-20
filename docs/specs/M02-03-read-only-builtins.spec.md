@@ -12,7 +12,7 @@ This slice makes the tool kernel useful while preserving a conservative M02 secu
 
 This spec delivers:
 
-- `agent-sandbox` crate
+- `ruse-sandbox` crate
 - workspace path confinement
 - read-only file tool
 - text search tool
@@ -28,26 +28,26 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-sandbox` owns path resolution and traversal rejection. `agent-tool` owns built-in tool implementations and calls the sandbox before reading files.
+`ruse-sandbox` owns path resolution and traversal rejection. `ruse-tool` owns built-in tool implementations and calls the sandbox before reading files.
 
 ```mermaid
 flowchart TD
-  agent_tool["agent-tool built-ins"] --> agent_sandbox["agent-sandbox"]
-  agent_sandbox --> agent_types["agent-types"]
+  ruse_tool["ruse-tool built-ins"] --> ruse_sandbox["ruse-sandbox"]
+  ruse_sandbox --> ruse_types["ruse-types"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-sandbox/
+  ruse-sandbox/
     Cargo.toml
     src/
       lib.rs
       path.rs
     tests/
       path.rs
-  agent-tool/
+  ruse-tool/
     src/
       builtins/
         mod.rs

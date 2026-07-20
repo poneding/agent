@@ -1,7 +1,7 @@
-use agent_desktop::{
+use ruse_desktop::{
     DesktopConfigSnapshot, DesktopError, DesktopSettings, validate_desktop_settings,
 };
-use agent_ui_bridge::{UiConfigDiagnostic, UiConfigSnapshot};
+use ruse_ui_bridge::{UiConfigDiagnostic, UiConfigSnapshot};
 
 use crate::{
     bootstrap::{DesktopBootstrapDiagnostic, DesktopBootstrapError},

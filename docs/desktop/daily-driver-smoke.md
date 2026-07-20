@@ -11,8 +11,8 @@ cargo xtask desktop-test
 The gate runs:
 
 ```bash
-cargo test -p agent-desktop
-cargo test -p agent-ui-bridge --test desktop_daily_driver
+cargo test -p ruse-desktop
+cargo test -p ruse-ui-bridge --test desktop_daily_driver
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 npm --prefix apps/desktop test
 npm --prefix apps/desktop run build

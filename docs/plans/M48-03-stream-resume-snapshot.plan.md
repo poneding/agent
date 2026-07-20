@@ -14,23 +14,23 @@
 
 **Files:**
 - Read: `docs/specs/M48-03-stream-resume-snapshot.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_session_headers.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_sse_checkpoints.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_session_headers.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_sse_checkpoints.rs`
 
 - [x] **Step 1: Review resume snapshot spec and existing session tests**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_stream_resume.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_stream_resume.rs`
 
 - [x] **Step 1: Add initialized stream snapshot tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_resume
+CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_resume
 ```
 
 Expected: tests fail before snapshot API exists.
@@ -38,8 +38,8 @@ Expected: tests fail before snapshot API exists.
 ### Task 3: Implement Snapshot API
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add stream request snapshot method**
 - [x] **Step 2: Require initialized matching server id**
@@ -50,7 +50,7 @@ Expected: tests fail before snapshot API exists.
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_resume
+CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_resume
 ```
 
 Expected: focused tests pass.
@@ -63,7 +63,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m48 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Expected: checks pass.
@@ -75,7 +75,7 @@ Expected: checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp http stream resume snapshots"
 ```
 
@@ -83,6 +83,6 @@ git commit -m "feat: add mcp http stream resume snapshots"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_resume` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_resume` passed.
 - `CARGO_TARGET_DIR=target/codex-m48 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

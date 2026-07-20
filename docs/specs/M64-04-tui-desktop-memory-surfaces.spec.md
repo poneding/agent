@@ -12,7 +12,7 @@ M64-01 created safe memory product snapshots. M64-02 exposed CLI review commands
 
 This spec delivers:
 
-- `agent-ui-bridge` memory snapshot frame contracts
+- `ruse-ui-bridge` memory snapshot frame contracts
 - TUI task/memory panel state that consumes memory frames
 - TUI text rendering for records, proposals, retrieval influence, diagnostics, tombstones, and privacy/retention state
 - Desktop TypeScript types for memory frames
@@ -30,12 +30,12 @@ Out of scope:
 
 ## Architecture
 
-`agent-memory` and `agent-core` own memory state and evidence. `agent-ui-bridge` maps runtime evidence into bridge-safe, Eq-friendly UI structs. TUI/Desktop reduce bridge frames and render them without recalculating privacy, retrieval, proposal, retention, or influence decisions.
+`ruse-memory` and `ruse-core` own memory state and evidence. `ruse-ui-bridge` maps runtime evidence into bridge-safe, Eq-friendly UI structs. TUI/Desktop reduce bridge frames and render them without recalculating privacy, retrieval, proposal, retention, or influence decisions.
 
 ```mermaid
 flowchart TD
-  Core["agent-core RuntimeMemoryTurnEvidence"] --> Bridge["agent-ui-bridge UiMemorySnapshot"]
-  Bridge --> TUI["agent-tui memory/task panel"]
+  Core["ruse-core RuntimeMemoryTurnEvidence"] --> Bridge["ruse-ui-bridge UiMemorySnapshot"]
+  Bridge --> TUI["ruse-tui memory/task panel"]
   Bridge --> Desktop["apps/desktop memory view"]
 ```
 
@@ -77,12 +77,12 @@ Bridge contracts should use Eq-friendly fields:
 
 ## Testing Strategy
 
-- `crates/agent-ui-bridge/tests/memory_snapshot.rs`
+- `crates/ruse-ui-bridge/tests/memory_snapshot.rs`
   - converts runtime memory evidence into safe bridge snapshot
   - serializes/deserializes `memory_snapshot` frame
   - redacts sensitive previews and proposal content
 
-- `crates/agent-tui/tests/task_panel.rs`
+- `crates/ruse-tui/tests/task_panel.rs`
   - reduces memory snapshot frames
   - renders memory counts, proposals, retrieval influence, diagnostics, and redacted previews
 
@@ -94,8 +94,8 @@ Bridge contracts should use Eq-friendly fields:
 Focused checks:
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-ui-bridge --test memory_snapshot
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-tui --test task_panel
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-ui-bridge --test memory_snapshot
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-tui --test task_panel
 npm --prefix apps/desktop test -- --run src/__tests__/memory-ui.test.tsx
 npm --prefix apps/desktop run build
 cargo fmt --all -- --check

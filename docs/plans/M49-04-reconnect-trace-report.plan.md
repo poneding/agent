@@ -4,7 +4,7 @@
 
 **Goal:** Add typed, redacted reconnect trace reports for reconnect outcomes.
 
-**Architecture:** `agent-mcp::client_http` owns report DTOs; UI crates only consume serialized safe summaries.
+**Architecture:** `ruse-mcp::client_http` owns report DTOs; UI crates only consume serialized safe summaries.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M49-04-reconnect-trace-report.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/src/lib.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Review report spec and existing redaction helpers**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_reconnect_trace.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_reconnect_trace.rs`
 
 - [x] **Step 1: Add reconnect report tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_trace
+CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_reconnect_trace
 ```
 
 Expected: tests fail before reconnect trace reports exist.
@@ -37,8 +37,8 @@ Expected: tests fail before reconnect trace reports exist.
 ### Task 3: Implement Reports
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add attempt and final report contracts**
 - [x] **Step 2: Add redacted failure summaries**
@@ -49,7 +49,7 @@ Expected: tests fail before reconnect trace reports exist.
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_trace
+CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_reconnect_trace
 ```
 
 Expected: focused tests pass.
@@ -62,7 +62,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Expected: checks pass.
@@ -74,7 +74,7 @@ Expected: checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp http reconnect trace reports"
 ```
 
@@ -82,7 +82,7 @@ git commit -m "feat: add mcp http reconnect trace reports"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_trace` passed.
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_missed_event_replay` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_reconnect_trace` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_missed_event_replay` passed.
 - `CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

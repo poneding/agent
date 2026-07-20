@@ -4,7 +4,7 @@
 
 **Goal:** Establish the architecture baseline for M27 evaluation harness work.
 
-**Architecture:** `agent-eval` owns evaluation contracts and depends on runtime crates. `agent-cli` and CI surfaces consume typed reports.
+**Architecture:** `ruse-eval` owns evaluation contracts and depends on runtime crates. `ruse-cli` and CI surfaces consume typed reports.
 
 **Tech Stack:** Markdown specs/plans, Rust workspace architecture docs, Cargo workspace conventions.
 

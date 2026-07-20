@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add redacted, bounded, filterable telemetry export bundles in `agent-telemetry`.
+**Goal:** Add redacted, bounded, filterable telemetry export bundles in `ruse-telemetry`.
 
-**Architecture:** `agent-telemetry` owns telemetry export contracts and depends only on `agent-types`, serde, and local telemetry types.
+**Architecture:** `ruse-telemetry` owns telemetry export contracts and depends only on `ruse-types`, serde, and local telemetry types.
 
-**Tech Stack:** Rust 2024 edition, serde, agent-types `Timestamp`, existing telemetry span/metric records, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, serde, ruse-types `Timestamp`, existing telemetry span/metric records, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,18 +14,18 @@
 
 **Files:**
 - Read: `docs/specs/M26-01-telemetry-export-bundles.spec.md`
-- Read: `crates/agent-telemetry/src/lib.rs`
-- Read: `crates/agent-telemetry/src/sink.rs`
-- Read: `crates/agent-telemetry/tests/telemetry.rs`
+- Read: `crates/ruse-telemetry/src/lib.rs`
+- Read: `crates/ruse-telemetry/src/sink.rs`
+- Read: `crates/ruse-telemetry/tests/telemetry.rs`
 
 - [x] **Step 1: Review the spec and current telemetry contracts**
 
-Expected: export belongs in `agent-telemetry` and must not depend on core or UI crates.
+Expected: export belongs in `ruse-telemetry` and must not depend on core or UI crates.
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-telemetry/tests/telemetry_export.rs`
+- Create: `crates/ruse-telemetry/tests/telemetry_export.rs`
 
 - [x] **Step 1: Add telemetry export tests**
 
@@ -36,7 +36,7 @@ Cover stable serde shape, filtering, redaction, truncation diagnostics, invalid 
 Run:
 
 ```bash
-cargo test -p agent-telemetry telemetry_export
+cargo test -p ruse-telemetry telemetry_export
 ```
 
 Expected: tests fail before export contracts exist.
@@ -44,8 +44,8 @@ Expected: tests fail before export contracts exist.
 ### Task 3: Implement Telemetry Export
 
 **Files:**
-- Create: `crates/agent-telemetry/src/export.rs`
-- Modify: `crates/agent-telemetry/src/lib.rs`
+- Create: `crates/ruse-telemetry/src/export.rs`
+- Modify: `crates/ruse-telemetry/src/lib.rs`
 
 - [x] **Step 1: Add export contracts and validation**
 
@@ -60,7 +60,7 @@ Reuse existing telemetry redaction before applying bounded attribute values and 
 Run:
 
 ```bash
-cargo test -p agent-telemetry telemetry_export
+cargo test -p ruse-telemetry telemetry_export
 ```
 
 Expected: focused tests pass.
@@ -77,8 +77,8 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-telemetry --all-targets -- -D warnings
-cargo test -p agent-telemetry
+cargo clippy -p ruse-telemetry --all-targets -- -D warnings
+cargo test -p ruse-telemetry
 ```
 
 Expected: all focused checks pass.
@@ -99,7 +99,7 @@ Record M26-02 as the next implementation slice.
 Run:
 
 ```bash
-git add crates/agent-telemetry docs
+git add crates/ruse-telemetry docs
 git commit -m "feat: add telemetry export bundles"
 ```
 

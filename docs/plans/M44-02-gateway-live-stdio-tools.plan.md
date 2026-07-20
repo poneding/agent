@@ -14,23 +14,23 @@
 
 **Files:**
 - Read: `docs/specs/M44-02-gateway-live-stdio-tools.spec.md`
-- Read: `crates/agent-mcp/src/gateway.rs`
-- Read: `crates/agent-mcp/src/client_stdio.rs`
+- Read: `crates/ruse-mcp/src/gateway.rs`
+- Read: `crates/ruse-mcp/src/client_stdio.rs`
 
 - [x] **Step 1: Review gateway registration and execution path**
 
 ### Task 2: Write Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_gateway_stdio_tool_call.rs`
+- Create: `crates/ruse-mcp/tests/mcp_gateway_stdio_tool_call.rs`
 
 - [x] **Step 1: Add gateway stdio execution tests**
 
 ### Task 3: Implement Fixes If Needed
 
 **Files:**
-- Modify: `crates/agent-mcp/src/gateway.rs`
-- Modify: `crates/agent-mcp/src/client_stdio.rs`
+- Modify: `crates/ruse-mcp/src/gateway.rs`
+- Modify: `crates/ruse-mcp/src/client_stdio.rs`
 
 - [x] **Step 1: Keep gateway compatible with stdio client**
 
@@ -42,8 +42,8 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m44 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m44 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool_call
+CARGO_TARGET_DIR=target/codex-m44 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_gateway_stdio_tool_call
 ```
 
 ### Task 5: Commit
@@ -53,6 +53,6 @@ CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: execute gateway tools over mcp stdio"
 ```

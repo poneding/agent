@@ -28,7 +28,7 @@ Owned by later M39 specs:
 
 ## Architecture
 
-Contracts live in `agent-mcp`, independent from CLI and Desktop presentation.
+Contracts live in `ruse-mcp`, independent from CLI and Desktop presentation.
 
 ```mermaid
 flowchart TD
@@ -85,8 +85,8 @@ Serde must use MCP-compatible camelCase for `listChanged`.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_contracts`
-- `CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_contracts`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

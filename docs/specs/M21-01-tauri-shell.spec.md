@@ -28,13 +28,13 @@ Owned by other specs:
 
 ## Architecture
 
-`apps/desktop` owns GUI presentation and the Tauri command boundary. `crates/agent-desktop` remains reusable view-model contracts. Runtime logic stays in shared Rust crates and is not implemented in the frontend.
+`apps/desktop` owns GUI presentation and the Tauri command boundary. `crates/ruse-desktop` remains reusable view-model contracts. Runtime logic stays in shared Rust crates and is not implemented in the frontend.
 
 ```mermaid
 flowchart TD
   Frontend["apps/desktop/src"] --> TauriCommands["apps/desktop/src-tauri commands"]
-  TauriCommands --> DesktopContracts["crates/agent-desktop"]
-  TauriCommands --> UiBridge["crates/agent-ui-bridge"]
+  TauriCommands --> DesktopContracts["crates/ruse-desktop"]
+  TauriCommands --> UiBridge["crates/ruse-ui-bridge"]
 ```
 
 Dependency rules:

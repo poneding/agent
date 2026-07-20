@@ -4,7 +4,7 @@
 
 **Goal:** Add a safe MCP sampling runtime foundation for `sampling/createMessage` client requests.
 
-**Architecture:** `agent-mcp` owns sampling protocol contracts, safe-subset validation, fixture provider behavior, and gateway diagnostics. Later milestones can bridge approved requests into `agent-model` and UI approval surfaces.
+**Architecture:** `ruse-mcp` owns sampling protocol contracts, safe-subset validation, fixture provider behavior, and gateway diagnostics. Later milestones can bridge approved requests into `ruse-model` and UI approval surfaces.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, async-trait, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

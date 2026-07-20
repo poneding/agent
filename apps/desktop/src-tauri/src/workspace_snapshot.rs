@@ -1,7 +1,7 @@
-use agent_desktop::{
+use ruse_desktop::{
     DesktopConversationItem, DesktopTaskItem, DesktopWorkspaceSnapshot, build_workspace_snapshot,
 };
-use agent_types::{ConversationId, WorkspaceId};
+use ruse_types::{ConversationId, WorkspaceId};
 
 use crate::bridge::DesktopRuntimeSession;
 use crate::commands::DesktopCommandError;

@@ -4,7 +4,7 @@
 
 **Goal:** Load prompt argument declarations from export manifests.
 
-**Architecture:** `agent-mcp` manifest code owns parsing and profile construction.
+**Architecture:** `ruse-mcp` manifest code owns parsing and profile construction.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -30,8 +30,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m36 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_manifest_prompt_arguments
+CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-mcp mcp_server_manifest_prompt_arguments
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -40,8 +40,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m36 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_manifest_prompt_arguments
+CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-mcp mcp_server_manifest_prompt_arguments
 ```
 
 ### Task 5: Commit

@@ -4,17 +4,17 @@
 
 **Goal:** Add typed runtime event payloads for tool proposals, permission decisions, executions, failures, and observations.
 
-**Architecture:** Durable audit contracts live in `agent-types`. `agent-storage` replay tests prove the events are append-only observations rather than side-effect re-execution.
+**Architecture:** Durable audit contracts live in `ruse-types`. `ruse-storage` replay tests prove the events are append-only observations rather than side-effect re-execution.
 
-**Tech Stack:** Rust 2024 edition, `agent-types`, `agent-storage`, `serde_json`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-types`, `ruse-storage`, `serde_json`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Add Failing Audit Event Tests
 
 **Files:**
-- Create: `crates/agent-types/tests/tool_audit_json.rs`
-- Create: `crates/agent-storage/tests/tool_audit_replay.rs`
+- Create: `crates/ruse-types/tests/tool_audit_json.rs`
+- Create: `crates/ruse-storage/tests/tool_audit_replay.rs`
 
 - [x] **Step 1: Add JSON shape tests**
 
@@ -27,8 +27,8 @@ Persist proposed, decision, started, completed, and observed events, then replay
 - [x] **Step 3: Verify RED**
 
 ```bash
-cargo test -p agent-types tool_audit_json
-cargo test -p agent-storage tool_audit_replay
+cargo test -p ruse-types tool_audit_json
+cargo test -p ruse-storage tool_audit_replay
 ```
 
 Expected: tests fail before payload variants exist.
@@ -36,10 +36,10 @@ Expected: tests fail before payload variants exist.
 ### Task 2: Implement Audit Payloads
 
 **Files:**
-- Modify: `crates/agent-types/Cargo.toml`
-- Modify: `crates/agent-types/src/lib.rs`
-- Modify: `crates/agent-types/src/event.rs`
-- Create: `crates/agent-types/src/tool.rs`
+- Modify: `crates/ruse-types/Cargo.toml`
+- Modify: `crates/ruse-types/src/lib.rs`
+- Modify: `crates/ruse-types/src/event.rs`
+- Create: `crates/ruse-types/src/tool.rs`
 
 - [x] **Step 1: Promote `serde_json` to normal dependency**
 
@@ -56,8 +56,8 @@ Add variants for every audit payload.
 - [x] **Step 4: Verify GREEN**
 
 ```bash
-cargo test -p agent-types tool_audit_json
-cargo test -p agent-storage tool_audit_replay
+cargo test -p ruse-types tool_audit_json
+cargo test -p ruse-storage tool_audit_replay
 ```
 
 Expected: focused audit tests pass.

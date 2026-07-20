@@ -34,8 +34,8 @@ flowchart TD
   Xtask["cargo xtask support-bundle"] --> Manifest["support-bundle-manifest.json"]
   Xtask --> Summary["support-bundle-summary.txt"]
   Release["target/agent-release"] --> Xtask
-  Quality["target/agent-ci"] --> Xtask
-  Eval["target/agent-eval"] --> Xtask
+  Quality["target/ruse-ci"] --> Xtask
+  Eval["target/ruse-eval"] --> Xtask
   Onboarding["OnboardingReadinessSnapshot"] --> Xtask
 ```
 

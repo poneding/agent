@@ -13,7 +13,7 @@ Protected MCP HTTP servers need more than a one-shot bearer header. CLI, TUI, De
 This spec delivers:
 
 - redacted token lease and token status contracts
-- token source references that avoid durable raw-token storage in `agent-mcp`
+- token source references that avoid durable raw-token storage in `ruse-mcp`
 - refresh planning diagnostics based on expiry/skew/scope metadata
 - request factory helpers that apply valid token leases through the M51 bearer boundary
 - docs and final verification evidence
@@ -27,11 +27,11 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-mcp::client_http` owns pure OAuth token lifecycle contracts and request-factory helpers. Secret storage and token acquisition remain outside `agent-mcp`; callers pass token leases or token source references into the runtime boundary.
+`ruse-mcp::client_http` owns pure OAuth token lifecycle contracts and request-factory helpers. Secret storage and token acquisition remain outside `ruse-mcp`; callers pass token leases or token source references into the runtime boundary.
 
 ```mermaid
 flowchart TD
-  SecretLayer["Secret/Auth Layer"] --> AgentMcp["agent-mcp::client_http"]
+  SecretLayer["Secret/Auth Layer"] --> AgentMcp["ruse-mcp::client_http"]
   AgentMcp --> Request["McpClientHttpRequest / McpClientHttpStreamRequest"]
   AgentMcp --> Report["Token Status / Refresh Plan"]
 ```
@@ -62,7 +62,7 @@ pub struct McpClientHttpOAuthTokenStatus {
 ## Security and Privacy
 
 - `Debug` and public diagnostics redact token material.
-- `agent-mcp` does not persist raw tokens.
+- `ruse-mcp` does not persist raw tokens.
 - Token source references are identifiers, not secrets.
 - Authorization headers conflict with explicit token application.
 
@@ -76,9 +76,9 @@ pub struct McpClientHttpOAuthTokenStatus {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token`
-- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token_refresh`
-- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token_requests`
+- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p ruse-mcp mcp_client_http_oauth_token`
+- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p ruse-mcp mcp_client_http_oauth_token_refresh`
+- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p ruse-mcp mcp_client_http_oauth_token_requests`
 - `CARGO_TARGET_DIR=target/codex-m52 cargo xtask ci`
 
 ## Completion Signal

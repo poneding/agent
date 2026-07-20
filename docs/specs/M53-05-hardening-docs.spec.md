@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-Documentation-only hardening over runtime changes in `agent-mcp`.
+Documentation-only hardening over runtime changes in `ruse-mcp`.
 
 ## Public Contracts
 
@@ -50,10 +50,10 @@ No new runtime contracts are introduced by this slice.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_pkce_state`
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_authorization_request`
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_callback`
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_flow_diagnostics`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_pkce_state`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_authorization_request`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_callback`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_flow_diagnostics`
 - `CARGO_TARGET_DIR=target/codex-m53 cargo xtask ci`
 
 ## Completion Signal

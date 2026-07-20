@@ -11,19 +11,19 @@ Thread scheduler-owned wait/control evidence through task summaries so CLI, JSON
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Modify: `docs/plans/M61-plan-todo-task-ux.plan.md`
-- Modify: `crates/agent-scheduler/src/notification.rs`
-- Modify: `crates/agent-scheduler/src/task.rs`
-- Modify: `crates/agent-scheduler/src/queue.rs`
-- Modify: `crates/agent-scheduler/src/command.rs`
-- Modify: `crates/agent-scheduler/src/lib.rs`
-- Modify: `crates/agent-scheduler/tests/task_command_bridge.rs`
-- Modify: `crates/agent-core/tests/background_task_approvals.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/tests/task_command_bridge.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/tests/task_commands.rs`
-- Modify: `crates/agent-desktop/src/task.rs`
-- Modify: `crates/agent-desktop/tests/conversation_tasks.rs`
+- Modify: `crates/ruse-scheduler/src/notification.rs`
+- Modify: `crates/ruse-scheduler/src/task.rs`
+- Modify: `crates/ruse-scheduler/src/queue.rs`
+- Modify: `crates/ruse-scheduler/src/command.rs`
+- Modify: `crates/ruse-scheduler/src/lib.rs`
+- Modify: `crates/ruse-scheduler/tests/task_command_bridge.rs`
+- Modify: `crates/ruse-core/tests/background_task_approvals.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/tests/task_command_bridge.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/tests/task_commands.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
+- Modify: `crates/ruse-desktop/tests/conversation_tasks.rs`
 - Modify: `apps/desktop/src/types.ts`
 - Modify: `apps/desktop/src/components/TaskDetail.tsx`
 
@@ -43,12 +43,12 @@ Run focused checks:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-scheduler -p agent-core -p agent-ui-bridge -p agent-cli -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-scheduler
-cargo test -p agent-core background
-cargo test -p agent-ui-bridge --test task_command_bridge
-cargo test -p agent-cli --test task_commands
-cargo test -p agent-desktop --test conversation_tasks
+cargo clippy -p ruse-scheduler -p ruse-core -p ruse-ui-bridge -p ruse-cli -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-scheduler
+cargo test -p ruse-core background
+cargo test -p ruse-ui-bridge --test task_command_bridge
+cargo test -p ruse-cli --test task_commands
+cargo test -p ruse-desktop --test conversation_tasks
 git diff --check
 ```
 

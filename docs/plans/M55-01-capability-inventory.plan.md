@@ -48,7 +48,7 @@ Run:
 ```bash
 cargo metadata --no-deps --format-version 1
 rg --files crates xtask docs | sort
-rg "agent-cli|cargo xtask|eval|desktop|mcp|replay|checkpoint|approval|provider" README.md docs crates xtask
+rg "ruse-cli|cargo xtask|eval|desktop|mcp|replay|checkpoint|approval|provider" README.md docs crates xtask
 ```
 
 Expected: enough evidence to map domains to concrete implementation and verification paths.

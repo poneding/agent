@@ -6,7 +6,7 @@
 
 **Architecture:** Use the M42 dispatcher with fixture providers whose call count can be asserted.
 
-**Tech Stack:** Rust 2024 edition, agent-mcp tests, serde JSON.
+**Tech Stack:** Rust 2024 edition, ruse-mcp tests, serde JSON.
 
 ---
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M42-03-sampling-stdio-validation.spec.md`
-- Read: `crates/agent-mcp/src/client_sampling.rs`
-- Read: `crates/agent-mcp/src/client_sampling_stdio.rs`
+- Read: `crates/ruse-mcp/src/client_sampling.rs`
+- Read: `crates/ruse-mcp/src/client_sampling_stdio.rs`
 
 - [x] **Step 1: Review validation behavior**
 
@@ -24,7 +24,7 @@ Expected: M40 default validation is still the source of truth.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_sampling_stdio_validation.rs`
+- Create: `crates/ruse-mcp/tests/mcp_sampling_stdio_validation.rs`
 
 - [x] **Step 1: Add validation tests**
 
@@ -42,7 +42,7 @@ mcp_sampling_stdio_validation_rejects_malformed_params_before_provider
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_validation
+CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_validation
 ```
 
 Expected: tests fail until dispatcher validation behavior is explicit and covered.
@@ -50,7 +50,7 @@ Expected: tests fail until dispatcher validation behavior is explicit and covere
 ### Task 3: Implement or Tighten Validation
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_sampling_stdio.rs`
+- Modify: `crates/ruse-mcp/src/client_sampling_stdio.rs`
 
 - [x] **Step 1: Ensure invalid params fail before provider**
 - [x] **Step 2: Ensure sampling validation failures fail before provider**
@@ -64,8 +64,8 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m42 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m42 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_validation
+CARGO_TARGET_DIR=target/codex-m42 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_validation
 ```
 
 Expected: focused checks pass.
@@ -77,6 +77,6 @@ Expected: focused checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: validate mcp sampling stdio dispatch"
 ```

@@ -76,9 +76,9 @@ pub fn parse_mcp_client_http_session_metadata(
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_session_metadata`
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_session_metadata`
 - `CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m47 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m47 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

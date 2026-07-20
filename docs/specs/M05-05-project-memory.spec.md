@@ -26,25 +26,25 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-memory` owns project memory storage behavior. `agent-core` owns integration tests that combine project memory records with prompt layers through `agent-context`.
+`ruse-memory` owns project memory storage behavior. `ruse-core` owns integration tests that combine project memory records with prompt layers through `ruse-context`.
 
 ```mermaid
 flowchart TD
-  memory["agent-memory project records"] --> context["agent-context PromptLayer"]
-  context --> core["agent-core integration test"]
+  memory["ruse-memory project records"] --> context["ruse-context PromptLayer"]
+  context --> core["ruse-core integration test"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-memory/
+  ruse-memory/
     src/
       audit.rs
       lib.rs
     tests/
       project_memory.rs
-  agent-core/
+  ruse-core/
     tests/
       m05_context_memory_integration.rs
 ```

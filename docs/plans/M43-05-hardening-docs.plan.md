@@ -4,7 +4,7 @@
 
 **Goal:** Document MCP client stdio transport behavior and complete M43 verification.
 
-**Architecture:** Documentation hardening over runtime changes implemented in `agent-mcp`.
+**Architecture:** Documentation hardening over runtime changes implemented in `ruse-mcp`.
 
 **Tech Stack:** Markdown docs, Cargo workspace gates.
 
@@ -44,10 +44,10 @@ Mark M43-01 through M43-05 complete only after implementation and verification a
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_codec
-CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_session
-CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_process
-CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_mcp_client
+CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_codec
+CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_session
+CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_process
+CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_mcp_client
 ```
 
 Expected: focused M43 tests pass.

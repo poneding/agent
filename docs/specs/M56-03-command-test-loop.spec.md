@@ -12,7 +12,7 @@ M55 backlog item `M56-GP-03` identified that shell command execution, streaming/
 
 This spec delivers:
 
-- `agent-core` command/test loop contracts for command intent, bounded output, result classification, cancellation readiness, diagnostics, and events
+- `ruse-core` command/test loop contracts for command intent, bounded output, result classification, cancellation readiness, diagnostics, and events
 - runtime orchestration over the existing `workspace.shell_command` tool through `ToolLoop` and policy
 - bounded, redacted stdout/stderr evidence suitable for final review and replay reconstruction
 - classification for success, non-zero exit, timeout, tool failure, policy denial/waiting, and invalid input
@@ -30,40 +30,40 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns the command/test loop report and coordinates the existing shell command tool. `agent-tool` remains the concrete process execution boundary. `agent-policy` and `ToolLoop` continue to produce permission and audit events. `agent-cli` renders commands and NDJSON frames. `agent-ui-bridge` owns UI-safe command snapshots; `agent-tui` consumes those snapshots without duplicating command execution logic.
+`ruse-core` owns the command/test loop report and coordinates the existing shell command tool. `ruse-tool` remains the concrete process execution boundary. `ruse-policy` and `ToolLoop` continue to produce permission and audit events. `ruse-cli` renders commands and NDJSON frames. `ruse-ui-bridge` owns UI-safe command snapshots; `ruse-tui` consumes those snapshots without duplicating command execution logic.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli repo command"] --> Core["agent-core command_test"]
-  Core --> Tools["agent-tool workspace.shell_command"]
-  Core --> Policy["agent-policy ToolLoop decisions"]
-  Core --> Types["agent-types runtime events"]
-  Core --> Bridge["agent-ui-bridge command/test snapshot"]
-  Bridge --> TUI["agent-tui command/test panel"]
+  CLI["ruse-cli repo command"] --> Core["ruse-core command_test"]
+  Core --> Tools["ruse-tool workspace.shell_command"]
+  Core --> Policy["ruse-policy ToolLoop decisions"]
+  Core --> Types["ruse-types runtime events"]
+  Core --> Bridge["ruse-ui-bridge command/test snapshot"]
+  Bridge --> TUI["ruse-tui command/test panel"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       command_test.rs
       lib.rs
     tests/
       command_test_loop.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       command_test_loop.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
       lib.rs
     tests/
       command_test_snapshot.rs
-  agent-tui/
+  ruse-tui/
     src/
       command_panel.rs
       render.rs
@@ -77,7 +77,7 @@ docs/
     M56-03-command-test-loop.plan.md
 ```
 
-If implementation finds an existing TUI panel is the correct home for command evidence, it may extend that file instead of creating `command_panel.rs`, but command execution logic must remain in `agent-core`.
+If implementation finds an existing TUI panel is the correct home for command evidence, it may extend that file instead of creating `command_panel.rs`, but command execution logic must remain in `ruse-core`.
 
 ## Public Contracts
 
@@ -156,10 +156,10 @@ pub struct CommandObservationSummary {
 CLI command shape:
 
 ```bash
-agent-cli repo command --workspace . -- cargo test -p agent-core command_test_loop
-agent-cli repo command --workspace . --cwd crates/agent-core --timeout-ms 30000 -- cargo test
-agent-cli repo test --workspace . -- cargo test -p agent-core command_test_loop
-agent-cli --json repo test --workspace . -- cargo test -p agent-core command_test_loop
+ruse-cli repo command --workspace . -- cargo test -p ruse-core command_test_loop
+ruse-cli repo command --workspace . --cwd crates/ruse-core --timeout-ms 30000 -- cargo test
+ruse-cli repo test --workspace . -- cargo test -p ruse-core command_test_loop
+ruse-cli --json repo test --workspace . -- cargo test -p ruse-core command_test_loop
 ```
 
 `repo test` is a product alias that sets `classify_as_test=true`; it must not bypass the same command execution path.
@@ -186,19 +186,19 @@ agent-cli --json repo test --workspace . -- cargo test -p agent-core command_tes
 
 ## Testing Strategy
 
-- `agent-core` tests for success, non-zero exit, test failure classification, timeout, bounded output, invalid workspace/cwd, policy event ordering, and redaction
-- `agent-cli` tests for text/JSON command parsing and rendering, `repo test` alias behavior, invalid input exit code `2`, and secret redaction
-- `agent-ui-bridge` tests for command/test snapshot serialization, truncation, classification labels, and redaction
-- `agent-tui` tests to ensure command/test snapshots can populate UI state without executing commands
+- `ruse-core` tests for success, non-zero exit, test failure classification, timeout, bounded output, invalid workspace/cwd, policy event ordering, and redaction
+- `ruse-cli` tests for text/JSON command parsing and rendering, `repo test` alias behavior, invalid input exit code `2`, and secret redaction
+- `ruse-ui-bridge` tests for command/test snapshot serialization, truncation, classification labels, and redaction
+- `ruse-tui` tests to ensure command/test snapshots can populate UI state without executing commands
 - existing shell/tool/model checks remain in scope:
 
 ```bash
-cargo test -p agent-tool shell_command_tool
-cargo test -p agent-core command_test_loop
-cargo test -p agent-core comprehensive_turn_observations
-cargo test -p agent-cli command_test_loop
-cargo test -p agent-ui-bridge command_test_snapshot
-cargo test -p agent-tui command_panel
+cargo test -p ruse-tool shell_command_tool
+cargo test -p ruse-core command_test_loop
+cargo test -p ruse-core comprehensive_turn_observations
+cargo test -p ruse-cli command_test_loop
+cargo test -p ruse-ui-bridge command_test_snapshot
+cargo test -p ruse-tui command_panel
 ```
 
 ## Acceptance Criteria

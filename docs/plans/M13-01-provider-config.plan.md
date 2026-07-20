@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add model provider config, endpoint config, secret references, catalog validation, and tests in `agent-model`.
+**Goal:** Add model provider config, endpoint config, secret references, catalog validation, and tests in `ruse-model`.
 
-**Architecture:** Keep config contracts inside `agent-model::config`. Do not add file loading, secret value resolution, live network calls, or runtime orchestration in this slice.
+**Architecture:** Keep config contracts inside `ruse-model::config`. Do not add file loading, secret value resolution, live network calls, or runtime orchestration in this slice.
 
 **Tech Stack:** Rust 2024 edition, serde, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,7 +15,7 @@
 **Files:**
 - Read: `docs/specs/M13-01-provider-config.spec.md`
 - Read: `docs/specs/M13-00-real-model-providers-config-technical-design.spec.md`
-- Read: `crates/agent-model/src/lib.rs`
+- Read: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -30,7 +30,7 @@ Expected: the spec defines provider config contracts, validation, security const
 ### Task 2: Write RED Provider Config Tests
 
 **Files:**
-- Create: `crates/agent-model/tests/provider_config.rs`
+- Create: `crates/ruse-model/tests/provider_config.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -49,7 +49,7 @@ Add tests:
 Run:
 
 ```bash
-cargo test -p agent-model --test provider_config
+cargo test -p ruse-model --test provider_config
 ```
 
 Expected: tests fail because provider config contracts do not exist.
@@ -57,8 +57,8 @@ Expected: tests fail because provider config contracts do not exist.
 ### Task 3: Implement Provider Config Contracts
 
 **Files:**
-- Create: `crates/agent-model/src/config.rs`
-- Modify: `crates/agent-model/src/lib.rs`
+- Create: `crates/ruse-model/src/config.rs`
+- Modify: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Add config types**
 
@@ -70,19 +70,19 @@ Implement constructors and `validate` methods that reject empty ids, unsafe ids,
 
 - [x] **Step 3: Export contracts**
 
-Export the config types and `ModelConfigError` from `crates/agent-model/src/lib.rs`.
+Export the config types and `ModelConfigError` from `crates/ruse-model/src/lib.rs`.
 
 ### Task 4: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-model/tests/provider_config.rs`
+- Read: `crates/ruse-model/tests/provider_config.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-model --test provider_config
+cargo test -p ruse-model --test provider_config
 ```
 
 Expected: focused tests pass.

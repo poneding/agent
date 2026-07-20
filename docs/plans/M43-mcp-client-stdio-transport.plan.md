@@ -4,7 +4,7 @@
 
 **Goal:** Add a real client-side MCP stdio transport path for initialize and tools/list.
 
-**Architecture:** `agent-mcp` owns frame codecs, client session state, transport abstraction, spawned process handling, typed result mapping, and redacted diagnostics. CLI/Desktop surfaces consume those contracts later.
+**Architecture:** `ruse-mcp` owns frame codecs, client session state, transport abstraction, spawned process handling, typed result mapping, and redacted diagnostics. CLI/Desktop surfaces consume those contracts later.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, Tokio process and IO, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -71,10 +71,10 @@ Expected: all checks pass.
 
 Verification evidence on 2026-06-29:
 
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_codec`
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_session`
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_process`
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_mcp_client`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_codec`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_session`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_process`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_mcp_client`
 - `git diff --check`
 - `CARGO_TARGET_DIR=target/codex-m43 cargo fmt --all -- --check`
 - `CARGO_TARGET_DIR=target/codex-m43 cargo xtask ci`

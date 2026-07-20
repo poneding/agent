@@ -4,7 +4,7 @@
 
 **Goal:** Match concrete resource URIs to declared templates and read resolved files safely.
 
-**Architecture:** `agent-mcp` keeps matching and file resolution in the resource export path.
+**Architecture:** `ruse-mcp` keeps matching and file resolution in the resource export path.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -31,8 +31,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m37 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_resource_template_matching
+CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-mcp mcp_server_resource_template_matching
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -41,8 +41,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m37 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_resource_template_matching
+CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-mcp mcp_server_resource_template_matching
 ```
 
 ### Task 5: Commit

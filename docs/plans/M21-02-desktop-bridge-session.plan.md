@@ -4,9 +4,9 @@
 
 **Goal:** Connect Desktop to the shared UI bridge through typed Tauri commands and bounded UI-safe frame delivery.
 
-**Architecture:** Tauri commands own `DesktopRuntimeSession`; frontend calls only typed command wrappers. `agent-ui-bridge` remains the durable UI command/event schema boundary.
+**Architecture:** Tauri commands own `DesktopRuntimeSession`; frontend calls only typed command wrappers. `ruse-ui-bridge` remains the durable UI command/event schema boundary.
 
-**Tech Stack:** Rust 2024 edition, Tauri 2 commands, `agent-ui-bridge`, `agent-desktop`, TypeScript, Vitest, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Tauri 2 commands, `ruse-ui-bridge`, `ruse-desktop`, TypeScript, Vitest, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M21-02-desktop-bridge-session.spec.md`
 - Read: `apps/desktop/src-tauri/src/state.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Review bridge contracts**
 

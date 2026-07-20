@@ -4,7 +4,7 @@
 
 **Goal:** Add safe MCP client roots support for external MCP servers connected through `agent` gateway flows.
 
-**Architecture:** `agent-mcp` owns root contracts, registry validation, fixture client behavior, and gateway diagnostics. CLI/Desktop remain consumers of typed runtime state.
+**Architecture:** `ruse-mcp` owns root contracts, registry validation, fixture client behavior, and gateway diagnostics. CLI/Desktop remain consumers of typed runtime state.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

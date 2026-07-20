@@ -4,7 +4,7 @@
 
 **Goal:** Persist safe HTTP session metadata after initialize and add session headers to later requests.
 
-**Architecture:** `McpHttpClientState` owns session metadata; request construction remains in `agent-mcp::client_http`.
+**Architecture:** `McpHttpClientState` owns session metadata; request construction remains in `ruse-mcp::client_http`.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, Cargo fmt, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M47-03-session-header-propagation.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_mcp_client.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_mcp_client.rs`
 
 - [x] **Step 1: Review client session state**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_session_headers.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_session_headers.rs`
 
 - [x] **Step 1: Add session header propagation tests**
 
 ### Task 3: Implement Session State
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Store metadata after successful initialize**
 - [x] **Step 2: Add session-aware request construction**
@@ -42,8 +42,8 @@
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_session_headers
-CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_mcp_client
+CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_session_headers
+CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_mcp_client
 CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check
 ```
 
@@ -54,7 +54,7 @@ CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: propagate mcp http session headers"
 ```
 
@@ -62,7 +62,7 @@ git commit -m "feat: propagate mcp http session headers"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_session_headers` passed.
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_mcp_client` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_session_headers` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_mcp_client` passed.
 - `CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m47 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

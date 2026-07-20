@@ -19,10 +19,10 @@ This milestone delivers:
 
 Implementation primarily touches:
 
-- `agent-ui-bridge`
-- `agent-cli`
-- `agent-core`
-- `agent-types`
+- `ruse-ui-bridge`
+- `ruse-cli`
+- `ruse-core`
+- `ruse-types`
 
 ## Dependencies
 
@@ -31,7 +31,7 @@ Implementation primarily touches:
 
 ## Architecture
 
-The milestone keeps the runtime layered: shared contracts live in lower-level crates, orchestration remains in `agent-core`, and presentation behavior stays outside core runtime crates. Each public contract must be typed, serializable when it crosses process or storage boundaries, and testable without a live model provider.
+The milestone keeps the runtime layered: shared contracts live in lower-level crates, orchestration remains in `ruse-core`, and presentation behavior stays outside core runtime crates. Each public contract must be typed, serializable when it crosses process or storage boundaries, and testable without a live model provider.
 
 ## Key Contracts
 
@@ -81,7 +81,7 @@ cargo test --workspace
 ## Acceptance Criteria
 
 - Interactive CLI and JSON mode observe the same runtime events.
-- A UI client can subscribe to progress without linking directly to agent-core.
+- A UI client can subscribe to progress without linking directly to ruse-core.
 
 ## Completion Signal
 

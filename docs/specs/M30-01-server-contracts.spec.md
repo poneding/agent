@@ -12,7 +12,7 @@ Tool and resource export need stable protocol shapes before executable behavior 
 
 This spec delivers:
 
-- `agent-mcp::server` module
+- `ruse-mcp::server` module
 - server info and capability structs
 - JSON-RPC request, response, and error contracts
 - method enum for supported server operations
@@ -25,12 +25,12 @@ Owned by other specs:
 
 ## Architecture
 
-Contracts live in `agent-mcp` and are serde-friendly. They do not depend on CLI, Desktop, storage, or runtime orchestration.
+Contracts live in `ruse-mcp` and are serde-friendly. They do not depend on CLI, Desktop, storage, or runtime orchestration.
 
 ## File Layout
 
 ```text
-crates/agent-mcp/
+crates/ruse-mcp/
   src/server.rs
   src/lib.rs
   tests/mcp_server_contracts.rs
@@ -76,8 +76,8 @@ pub enum McpServerMethod {
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_server_contracts` passes.
-- public contracts are exported from `agent_mcp`.
+- `cargo test -p ruse-mcp mcp_server_contracts` passes.
+- public contracts are exported from `ruse_mcp`.
 
 ## Completion Signal
 

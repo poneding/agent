@@ -4,9 +4,9 @@
 
 **Goal:** Add Desktop provider/settings diagnostics, task monitor summaries, and bounded runtime logs over typed shared bridge/Desktop contracts.
 
-**Architecture:** `agent-ui-bridge` carries UI-safe config/task/trace contracts; `agent-desktop` owns provider/settings, task monitor, and log view models; Tauri exposes narrow read-only settings and trace/log commands; React renders typed snapshots and local reducers. Runtime provider selection, scheduler semantics, trace generation, policy, and audit remain in shared runtime crates.
+**Architecture:** `ruse-ui-bridge` carries UI-safe config/task/trace contracts; `ruse-desktop` owns provider/settings, task monitor, and log view models; Tauri exposes narrow read-only settings and trace/log commands; React renders typed snapshots and local reducers. Runtime provider selection, scheduler semantics, trace generation, policy, and audit remain in shared runtime crates.
 
-**Tech Stack:** Rust 2024 edition, serde contracts, existing `agent-desktop`, `agent-ui-bridge`, and Tauri settings/trace modules, React 18, TypeScript, Vitest, Cargo fmt/clippy/test.
+**Tech Stack:** Rust 2024 edition, serde contracts, existing `ruse-desktop`, `ruse-ui-bridge`, and Tauri settings/trace modules, React 18, TypeScript, Vitest, Cargo fmt/clippy/test.
 
 ---
 
@@ -19,11 +19,11 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-desktop/src/settings.rs`
-- Read: `crates/agent-desktop/src/task.rs`
-- Read: `crates/agent-desktop/src/trace.rs`
-- Read: `crates/agent-desktop/tests/settings.rs`
-- Read: `crates/agent-desktop/tests/trace_timeline.rs`
+- Read: `crates/ruse-desktop/src/settings.rs`
+- Read: `crates/ruse-desktop/src/task.rs`
+- Read: `crates/ruse-desktop/src/trace.rs`
+- Read: `crates/ruse-desktop/tests/settings.rs`
+- Read: `crates/ruse-desktop/tests/trace_timeline.rs`
 - Read: `apps/desktop/src/components/SettingsView.tsx`
 - Read: `apps/desktop/src/components/TaskList.tsx`
 - Read: `apps/desktop/src/components/TaskDetail.tsx`
@@ -40,7 +40,7 @@
 
 Baseline reviewed before planning:
 
-- `agent-desktop` has basic settings validation, task items/reviews, and trace timelines.
+- `ruse-desktop` has basic settings validation, task items/reviews, and trace timelines.
 - Tauri has read-only config snapshot, settings validation, and trace loading commands.
 - React has settings, task list/detail, and trace timeline components.
 - Missing M60-04 pieces are provider capability summaries, task monitor aggregation/errors, runtime log entry contracts, richer task detail rendering, and explicit log rendering tests.
@@ -48,9 +48,9 @@ Baseline reviewed before planning:
 ### Task 2: Add Failing Provider/Task/Log Contract Tests
 
 **Files:**
-- Modify: `crates/agent-desktop/tests/settings.rs`
-- Modify: `crates/agent-desktop/tests/trace_timeline.rs`
-- Modify: `crates/agent-desktop/tests/conversation_tasks.rs`
+- Modify: `crates/ruse-desktop/tests/settings.rs`
+- Modify: `crates/ruse-desktop/tests/trace_timeline.rs`
+- Modify: `crates/ruse-desktop/tests/conversation_tasks.rs`
 - Modify: `apps/desktop/src-tauri/src/tests/trace_settings_commands.rs`
 - Modify: `apps/desktop/src/__tests__/trace-settings-ui.test.tsx`
 
@@ -92,25 +92,25 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-desktop --test settings
-cargo test -p agent-desktop --test trace_timeline
-cargo test -p agent-desktop --test conversation_tasks
+cargo test -p ruse-desktop --test settings
+cargo test -p ruse-desktop --test trace_timeline
+cargo test -p ruse-desktop --test conversation_tasks
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml trace_settings_commands
 npm --prefix apps/desktop test -- trace-settings-ui
 ```
 
 Expected: focused tests cover the new contracts. Implementation landed with the tests in this slice; final focused verification passed after the contracts were implemented.
 
-### Task 3: Implement `agent-desktop` Provider/Task/Log Models
+### Task 3: Implement `ruse-desktop` Provider/Task/Log Models
 
 **Files:**
-- Modify: `crates/agent-desktop/src/settings.rs`
-- Modify: `crates/agent-desktop/src/task.rs`
-- Modify: `crates/agent-desktop/src/trace.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
-- Modify: `crates/agent-desktop/tests/settings.rs`
-- Modify: `crates/agent-desktop/tests/trace_timeline.rs`
-- Modify: `crates/agent-desktop/tests/conversation_tasks.rs`
+- Modify: `crates/ruse-desktop/src/settings.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
+- Modify: `crates/ruse-desktop/src/trace.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
+- Modify: `crates/ruse-desktop/tests/settings.rs`
+- Modify: `crates/ruse-desktop/tests/trace_timeline.rs`
+- Modify: `crates/ruse-desktop/tests/conversation_tasks.rs`
 
 - [x] **Step 1: Add provider settings summary contracts**
 
@@ -129,9 +129,9 @@ Implement bounded runtime log entries and builders from trace timeline items or 
 Run:
 
 ```bash
-cargo test -p agent-desktop --test settings
-cargo test -p agent-desktop --test trace_timeline
-cargo test -p agent-desktop --test conversation_tasks
+cargo test -p ruse-desktop --test settings
+cargo test -p ruse-desktop --test trace_timeline
+cargo test -p ruse-desktop --test conversation_tasks
 ```
 
 Expected: Desktop provider/task/log contract tests pass.
@@ -221,10 +221,10 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-desktop --test settings
-cargo test -p agent-desktop --test trace_timeline
-cargo test -p agent-desktop --test conversation_tasks
+cargo clippy -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-desktop --test settings
+cargo test -p ruse-desktop --test trace_timeline
+cargo test -p ruse-desktop --test conversation_tasks
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml trace_settings_commands
 npm --prefix apps/desktop test -- trace-settings-ui
 npm --prefix apps/desktop run build
@@ -235,10 +235,10 @@ Expected: all focused M60-04 checks pass.
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
-- `cargo test -p agent-desktop --test settings`
-- `cargo test -p agent-desktop --test trace_timeline`
-- `cargo test -p agent-desktop --test conversation_tasks`
+- `cargo clippy -p ruse-desktop --all-targets -- -D warnings`
+- `cargo test -p ruse-desktop --test settings`
+- `cargo test -p ruse-desktop --test trace_timeline`
+- `cargo test -p ruse-desktop --test conversation_tasks`
 - `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml trace_settings_commands`
 - `npm --prefix apps/desktop test -- trace-settings-ui`
 - `npm --prefix apps/desktop run build`
@@ -254,13 +254,13 @@ git add docs/specs/M60-04-provider-task-log-surfaces.spec.md \
   docs/plans/M60-desktop-daily-driver.plan.md \
   docs/milestones/README.md \
   docs/roadmap/PRODUCT_ROADMAP.md \
-  crates/agent-desktop/src/settings.rs \
-  crates/agent-desktop/src/task.rs \
-  crates/agent-desktop/src/trace.rs \
-  crates/agent-desktop/src/lib.rs \
-  crates/agent-desktop/tests/settings.rs \
-  crates/agent-desktop/tests/trace_timeline.rs \
-  crates/agent-desktop/tests/conversation_tasks.rs \
+  crates/ruse-desktop/src/settings.rs \
+  crates/ruse-desktop/src/task.rs \
+  crates/ruse-desktop/src/trace.rs \
+  crates/ruse-desktop/src/lib.rs \
+  crates/ruse-desktop/tests/settings.rs \
+  crates/ruse-desktop/tests/trace_timeline.rs \
+  crates/ruse-desktop/tests/conversation_tasks.rs \
   apps/desktop/src-tauri/src/settings_commands.rs \
   apps/desktop/src-tauri/src/trace_commands.rs \
   apps/desktop/src-tauri/src/tests/trace_settings_commands.rs \

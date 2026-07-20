@@ -5,8 +5,8 @@
 ### Task 1: Add Manifest Capability Declarations
 
 **Files:**
-- Modify: `crates/agent-mcp/src/server_manifest.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/server_manifest.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add tool export capability enum and side-effecting declaration field**
 - [x] **Step 2: Validate enabled dangerous declarations as default-deny**
@@ -15,8 +15,8 @@
 ### Task 2: Add Policy Preview Contracts
 
 **Files:**
-- Modify: `crates/agent-mcp/src/server_manifest.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/server_manifest.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add policy preview DTOs**
 - [x] **Step 2: Add preview builder for selected profiles**
@@ -25,7 +25,7 @@
 ### Task 3: Add Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_server_export_guardrails.rs`
+- Create: `crates/ruse-mcp/tests/mcp_server_export_guardrails.rs`
 - Modify: existing manifest tests as needed for new struct fields
 
 - [x] **Step 1: Cover read-only export preview**
@@ -38,5 +38,5 @@
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-mcp mcp_server_export_guardrails
+cargo test -p ruse-mcp mcp_server_export_guardrails
 ```

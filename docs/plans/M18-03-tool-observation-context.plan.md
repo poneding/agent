@@ -4,7 +4,7 @@
 
 **Goal:** Execute ready tool calls and pass bounded observations into continuation model turns.
 
-**Architecture:** `ComprehensiveTurnRunner` uses `ToolCallAccumulator`, `ToolLoop`, `ToolRegistry`, and `PolicyEngine`. Observation shaping stays in `agent-core`; tool implementations stay in `agent-tool`.
+**Architecture:** `ComprehensiveTurnRunner` uses `ToolCallAccumulator`, `ToolLoop`, `ToolRegistry`, and `PolicyEngine`. Observation shaping stays in `ruse-core`; tool implementations stay in `ruse-tool`.
 
 **Tech Stack:** Rust 2024 edition, Tokio tests, serde_json, existing tool and policy crates, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -13,7 +13,7 @@
 ### Task 1: Write RED Observation Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/comprehensive_turn_observations.rs`
+- Create: `crates/ruse-core/tests/comprehensive_turn_observations.rs`
 
 - [x] **Step 1: Add tool observation continuation test**
 
@@ -44,7 +44,7 @@ assert!(outcome.events.iter().any(|event| matches!(
 Run:
 
 ```bash
-cargo test -p agent-core --test comprehensive_turn_observations
+cargo test -p ruse-core --test comprehensive_turn_observations
 ```
 
 Expected: fails because resource-aware comprehensive runner does not exist.
@@ -52,8 +52,8 @@ Expected: fails because resource-aware comprehensive runner does not exist.
 ### Task 2: Add Resource-Aware Runner API
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add resource contract**
 
@@ -66,8 +66,8 @@ Implement a runner entrypoint that executes tool calls and can continue model st
 ### Task 3: Convert Tool Outcomes To Observations
 
 **Files:**
-- Modify: `crates/agent-core/src/tool_loop.rs`
-- Modify: `crates/agent-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/tool_loop.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
 
 - [x] **Step 1: Build observation messages**
 
@@ -84,7 +84,7 @@ Apply a local redaction helper for `sk-`, `api_key`, `token`, and `password`.
 ### Task 4: Continue Model Loop
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
 
 - [x] **Step 1: Append observation messages**
 
@@ -104,8 +104,8 @@ Loop model turns until final response, waiting approval, failure, or budget exha
 Run:
 
 ```bash
-cargo test -p agent-core --test comprehensive_turn_observations
-cargo test -p agent-core --test tool_loop
+cargo test -p ruse-core --test comprehensive_turn_observations
+cargo test -p ruse-core --test tool_loop
 ```
 
 - [x] **Step 2: Run workspace gate**
@@ -121,6 +121,6 @@ cargo xtask check
 Run:
 
 ```bash
-git add crates/agent-core docs
+git add crates/ruse-core docs
 git commit -m "feat: feed tool observations into model loop"
 ```

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Create the `agent-plugin` crate and implement the typed plugin manifest contract, validation rules, and compatibility checks that all later M11 slices depend on.
+Create the `ruse-plugin` crate and implement the typed plugin manifest contract, validation rules, and compatibility checks that all later M11 slices depend on.
 
 ## Product Context
 
@@ -12,7 +12,7 @@ The plugin runtime starts with a trustworthy declaration boundary. Before `agent
 
 This spec delivers:
 
-- `agent-plugin` workspace crate
+- `ruse-plugin` workspace crate
 - `PluginManifest`
 - `PluginName`
 - `PluginRuntimeCompatibility`
@@ -34,13 +34,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-plugin` owns plugin contracts and depends only on lower-level crates and serde utilities. This slice does not touch `agent-core` orchestration.
+`ruse-plugin` owns plugin contracts and depends only on lower-level crates and serde utilities. This slice does not touch `ruse-core` orchestration.
 
 ```mermaid
 flowchart TD
-  plugin["agent-plugin"] --> tool["agent-tool"]
-  plugin --> policy["agent-policy"]
-  plugin --> types["agent-types"]
+  plugin["ruse-plugin"] --> tool["ruse-tool"]
+  plugin --> policy["ruse-policy"]
+  plugin --> types["ruse-types"]
 ```
 
 ## File Layout
@@ -48,7 +48,7 @@ flowchart TD
 ```text
 Cargo.toml
 crates/
-  agent-plugin/
+  ruse-plugin/
     Cargo.toml
     src/
       lib.rs
@@ -95,7 +95,7 @@ pub struct PluginIsolation {
 }
 
 pub struct PluginToolManifest {
-    pub name: agent_tool::ToolName,
+    pub name: ruse_tool::ToolName,
     pub description: String,
     pub input_schema: serde_json::Value,
     pub output_schema: serde_json::Value,
@@ -139,11 +139,11 @@ pub struct PluginHookManifest {
 
 ## Acceptance Criteria
 
-- `agent-plugin` is a workspace crate.
+- `ruse-plugin` is a workspace crate.
 - Template plugin manifest parses and validates.
 - Compatibility checks reject unsupported manifest/API versions.
 - Validation errors are typed and stable enough for CLI/Desktop diagnostics.
-- `cargo test -p agent-plugin manifest` passes.
+- `cargo test -p ruse-plugin manifest` passes.
 
 ## Completion Signal
 

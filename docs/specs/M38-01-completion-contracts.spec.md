@@ -27,7 +27,7 @@ Owned by later M38 specs:
 
 ## Architecture
 
-Contracts live in `agent-mcp`, independent from CLI presentation.
+Contracts live in `ruse-mcp`, independent from CLI presentation.
 
 ```mermaid
 flowchart TD
@@ -86,8 +86,8 @@ Serde output must use MCP-compatible fields: `ref` and `hasMore`.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_completion_contracts`
-- `CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_completion_contracts`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

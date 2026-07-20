@@ -28,7 +28,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns all MCP protocol state. A transport trait hides whether frames come from an in-memory fixture or a spawned process. Process-specific code remains behind the same interface.
+`ruse-mcp` owns all MCP protocol state. A transport trait hides whether frames come from an in-memory fixture or a spawned process. Process-specific code remains behind the same interface.
 
 ```mermaid
 flowchart TD
@@ -62,7 +62,7 @@ The design should lead to typed contracts for:
 
 - Public errors must not include raw child stderr, environment values, prompt text, tool arguments, or secret-like strings.
 - Process spawn only uses `McpTransportConfig::Stdio`; HTTP remains later work.
-- Secret refs are not resolved in `agent-mcp`.
+- Secret refs are not resolved in `ruse-mcp`.
 
 ## Testing Strategy
 

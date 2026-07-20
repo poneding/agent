@@ -13,7 +13,7 @@ M08 added scheduler queue, lease, notification, retry, and quota primitives. M21
 This spec delivers:
 
 - `BackgroundAgentTask` task definition contracts
-- task command request/response contracts in `agent-scheduler` and `agent-ui-bridge`
+- task command request/response contracts in `ruse-scheduler` and `ruse-ui-bridge`
 - CLI `agent task` commands for create, list, inspect, pause, resume, cancel, and schedule updates
 - TUI and Desktop-safe task summary models
 - JSON output shape for task commands
@@ -27,14 +27,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-scheduler` owns task definitions and command state transitions. `agent-ui-bridge` owns UI-safe command and snapshot schemas. `agent-cli`, `agent-tui`, and `agent-desktop` render the same bridge summaries and do not own mutation rules.
+`ruse-scheduler` owns task definitions and command state transitions. `ruse-ui-bridge` owns UI-safe command and snapshot schemas. `ruse-cli`, `ruse-tui`, and `ruse-desktop` render the same bridge summaries and do not own mutation rules.
 
 ```mermaid
 flowchart TD
-  CLI["agent task ..."] --> Bridge["agent-ui-bridge task command"]
+  CLI["agent task ..."] --> Bridge["ruse-ui-bridge task command"]
   TUI["Task panel"] --> Bridge
   Desktop["Task view"] --> Bridge
-  Bridge --> Scheduler["agent-scheduler task command service"]
+  Bridge --> Scheduler["ruse-scheduler task command service"]
 ```
 
 Dependency rules:
@@ -46,21 +46,21 @@ Dependency rules:
 ## File Layout
 
 ```text
-crates/agent-scheduler/src/
+crates/ruse-scheduler/src/
   command.rs
   lib.rs
-crates/agent-ui-bridge/src/
+crates/ruse-ui-bridge/src/
   frame.rs
   command.rs
-crates/agent-cli/src/
+crates/ruse-cli/src/
   command.rs
-crates/agent-tui/src/
+crates/ruse-tui/src/
   task_panel.rs
-crates/agent-desktop/src/
+crates/ruse-desktop/src/
   task.rs
-crates/agent-scheduler/tests/
+crates/ruse-scheduler/tests/
   task_command_bridge.rs
-crates/agent-cli/tests/
+crates/ruse-cli/tests/
   task_commands.rs
 ```
 
@@ -116,7 +116,7 @@ UI summaries expose ids, state, priority, schedule, timestamps, prompt summary, 
 - `agent task create --prompt ...` returns a created task summary.
 - `agent task list|inspect|pause|resume|cancel` works against a fixture runtime.
 - UI bridge serializes task snapshots with stable snake-case JSON.
-- Focused tests pass with `cargo test -p agent-scheduler task_command_bridge` and `cargo test -p agent-cli task_commands`.
+- Focused tests pass with `cargo test -p ruse-scheduler task_command_bridge` and `cargo test -p ruse-cli task_commands`.
 
 ## Completion Signal
 

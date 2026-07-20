@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-ui-bridge` owns wire-safe snapshots. `agent-desktop` can wrap them in presentation models. `agent-core` creates the effective config; UI crates do not load config files.
+`ruse-ui-bridge` owns wire-safe snapshots. `ruse-desktop` can wrap them in presentation models. `ruse-core` creates the effective config; UI crates do not load config files.
 
 ## Public Contracts
 

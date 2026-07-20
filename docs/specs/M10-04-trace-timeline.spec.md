@@ -20,18 +20,18 @@ This spec delivers:
 
 Owned by other specs:
 
-- trace extraction from event store: M04 `agent-core::build_trace`
+- trace extraction from event store: M04 `ruse-core::build_trace`
 - shell route/session: `M10-01-desktop-shell`
 - full visual timeline rendering: later native Desktop UI
 
 ## Architecture
 
-The Desktop timeline lives in `agent-desktop` and consumes `agent-core::TraceEntry`. It does not query storage directly and does not expose raw tool input JSON.
+The Desktop timeline lives in `ruse-desktop` and consumes `ruse-core::TraceEntry`. It does not query storage directly and does not expose raw tool input JSON.
 
 ```mermaid
 flowchart TD
-  storage["agent-storage event store"] --> core["agent-core build_trace"]
-  core --> desktop["agent-desktop trace timeline"]
+  storage["ruse-storage event store"] --> core["ruse-core build_trace"]
+  core --> desktop["ruse-desktop trace timeline"]
   desktop --> future_ui["future Desktop timeline view"]
 ```
 
@@ -39,7 +39,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     Cargo.toml
     src/
       trace.rs
@@ -86,7 +86,7 @@ pub fn build_trace_timeline(
 
 ## Security and Privacy
 
-- Timeline items use redacted trace summaries from `agent-core::build_trace`.
+- Timeline items use redacted trace summaries from `ruse-core::build_trace`.
 - Desktop timeline must not reintroduce raw tool input JSON or secret fields.
 - Trace entries are treated as untrusted input and validated.
 
@@ -101,7 +101,7 @@ pub fn build_trace_timeline(
 
 - Desktop can represent runtime traces as ordered timeline items.
 - Timeline output is deterministic and UI-safe.
-- `cargo test -p agent-desktop trace_timeline` passes.
+- `cargo test -p ruse-desktop trace_timeline` passes.
 
 ## Completion Signal
 

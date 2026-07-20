@@ -26,19 +26,19 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-storage` owns checkpoint persistence. `agent-types` already owns `CheckpointId`, `ConversationId`, `TurnId`, `EventSeq`, `SchemaVersion`, and `Timestamp`, so the checkpoint store should reuse those types rather than inventing string IDs.
+`ruse-storage` owns checkpoint persistence. `ruse-types` already owns `CheckpointId`, `ConversationId`, `TurnId`, `EventSeq`, `SchemaVersion`, and `Timestamp`, so the checkpoint store should reuse those types rather than inventing string IDs.
 
 ```mermaid
 flowchart TD
-  agent_core["agent-core recovery"] --> agent_storage["agent-storage CheckpointStore"]
-  agent_storage --> agent_types["agent-types IDs and schema"]
+  ruse_core["ruse-core recovery"] --> ruse_storage["ruse-storage CheckpointStore"]
+  ruse_storage --> ruse_types["ruse-types IDs and schema"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-storage/
+  ruse-storage/
     src/
       checkpoint.rs
       lib.rs
@@ -96,7 +96,7 @@ pub trait CheckpointStore {
 
 ## Acceptance Criteria
 
-- `agent-storage` exposes `CheckpointRecord` and `CheckpointStore`.
+- `ruse-storage` exposes `CheckpointRecord` and `CheckpointStore`.
 - In-memory and SQLite checkpoint stores pass the same behavior tests.
 - Existing event-store tests continue to pass.
 

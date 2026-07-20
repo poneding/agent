@@ -4,7 +4,7 @@
 
 **Goal:** Add typed reviewer/merge readiness reports with explicit blockers for review, artifact, conflict, stale worktree, pending approval, and policy states.
 
-**Architecture:** `agent-team` owns reviewer/merge-readiness contracts and readiness derivation. `agent-worktree` remains the source for worktree lease/conflict primitives. CLI/TUI/Desktop continue to consume typed snapshots/frames without duplicating readiness logic.
+**Architecture:** `ruse-team` owns reviewer/merge-readiness contracts and readiness derivation. `ruse-worktree` remains the source for worktree lease/conflict primitives. CLI/TUI/Desktop continue to consume typed snapshots/frames without duplicating readiness logic.
 
 ---
 
@@ -25,10 +25,10 @@ Define a merge readiness report derived from `TeamWorkflowSnapshot`.
 ### Task 2: Implement Agent-Team Contracts
 
 **Files:**
-- Modify: `crates/agent-team/src/workflow.rs`
-- Create: `crates/agent-team/src/merge_review.rs`
-- Modify: `crates/agent-team/src/lib.rs`
-- Create: `crates/agent-team/tests/team_merge_readiness.rs`
+- Modify: `crates/ruse-team/src/workflow.rs`
+- Create: `crates/ruse-team/src/merge_review.rs`
+- Modify: `crates/ruse-team/src/lib.rs`
+- Create: `crates/ruse-team/tests/team_merge_readiness.rs`
 
 - [x] **Step 1: Add pending approval support**
 
@@ -60,14 +60,14 @@ cargo fmt --all -- --check
 - [x] **Step 2: Focused tests**
 
 ```bash
-CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team --test team_merge_readiness
-CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team
+CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-team --test team_merge_readiness
+CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-team
 ```
 
 - [x] **Step 3: Focused clippy**
 
 ```bash
-CARGO_TARGET_DIR=target/m63-gate cargo clippy -p agent-team --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m63-gate cargo clippy -p ruse-team --all-targets -- -D warnings
 ```
 
 - [x] **Step 4: Diff check**
@@ -79,7 +79,7 @@ git diff --check
 ### Task 4: Status And Commit
 
 **Files:**
-- Modify: `docs/plans/M63-worktree-agent-team-workflows.plan.md`
+- Modify: `docs/plans/M63-worktree-ruse-team-workflows.plan.md`
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
@@ -87,7 +87,7 @@ git diff --check
 
 Mark M63-03 implementation complete only after focused gates pass. Keep M63 overall in progress.
 
-Result: focused gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team --test team_merge_readiness`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-team`, `CARGO_TARGET_DIR=target/m63-gate cargo clippy -p agent-team --all-targets -- -D warnings`, and `git diff --check`.
+Result: focused gates passed with `cargo fmt --all -- --check`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-team --test team_merge_readiness`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-team`, `CARGO_TARGET_DIR=target/m63-gate cargo clippy -p ruse-team --all-targets -- -D warnings`, and `git diff --check`.
 
 - [ ] **Step 2: Commit**
 

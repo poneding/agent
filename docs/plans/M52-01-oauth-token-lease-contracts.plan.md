@@ -4,7 +4,7 @@
 
 **Goal:** Add redacted OAuth token lease contracts and token status reports.
 
-**Architecture:** Pure DTOs and validation helpers in `agent-mcp::client_http`.
+**Architecture:** Pure DTOs and validation helpers in `ruse-mcp::client_http`.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,28 +14,28 @@
 
 **Files:**
 - Read: `docs/specs/M52-01-oauth-token-lease-contracts.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review token lease contract scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_oauth_token.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_oauth_token.rs`
 
 - [x] **Step 1: Add token lease contract tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token
+CARGO_TARGET_DIR=target/codex-m52 cargo test -p ruse-mcp mcp_client_http_oauth_token
 ```
 
 ### Task 3: Implement Contracts
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add token lease DTO and validation**
 - [x] **Step 2: Add token status DTO and diagnostics**
@@ -51,7 +51,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m52 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit
@@ -61,7 +61,7 @@ CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p agent-mcp --all-targets -- -D 
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp http oauth token lease contracts"
 ```
 
@@ -69,6 +69,6 @@ git commit -m "feat: add mcp http oauth token lease contracts"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token`
+- `CARGO_TARGET_DIR=target/codex-m52 cargo test -p ruse-mcp mcp_client_http_oauth_token`
 - `CARGO_TARGET_DIR=target/codex-m52 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p ruse-mcp --all-targets -- -D warnings`

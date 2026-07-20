@@ -4,7 +4,7 @@
 
 **Goal:** Build MCP resource exports from manifest resource declarations.
 
-**Architecture:** `agent-mcp` owns file loading and profile construction; CLI remains path plumbing.
+**Architecture:** `ruse-mcp` owns file loading and profile construction; CLI remains path plumbing.
 
 **Tech Stack:** Rust 2024 edition, std fs/path APIs, Cargo tests.
 
@@ -30,18 +30,18 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m32 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp mcp_server_resource_loader
-CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp
+CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p ruse-mcp mcp_server_resource_loader
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p ruse-mcp
 ```
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-mcp --all-targets -- -D warnings
-cargo test -p agent-mcp mcp_server_resource_loader
+cargo clippy -p ruse-mcp --all-targets -- -D warnings
+cargo test -p ruse-mcp mcp_server_resource_loader
 ```
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: load mcp resource export profiles"
 ```

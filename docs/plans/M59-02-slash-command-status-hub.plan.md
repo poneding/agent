@@ -4,9 +4,9 @@
 
 **Goal:** Add a shared typed slash command catalog and bounded status hub for CLI/plain REPL and TUI daily-driver surfaces.
 
-**Architecture:** `agent-ui-bridge` owns UI-safe catalog/status contracts. `agent-cli` renders plain REPL slash output from those contracts. `agent-tui` parses catalog-backed slash commands and routes them to local panel/status state. Runtime side effects stay out of the slash parser.
+**Architecture:** `ruse-ui-bridge` owns UI-safe catalog/status contracts. `ruse-cli` renders plain REPL slash output from those contracts. `ruse-tui` parses catalog-backed slash commands and routes them to local panel/status state. Runtime side effects stay out of the slash parser.
 
-**Tech Stack:** Rust 2024 edition, serde contracts, existing `agent-types` ids where needed, CLI text tests, TUI reducer/render tests, Cargo fmt/clippy/test.
+**Tech Stack:** Rust 2024 edition, serde contracts, existing `ruse-types` ids where needed, CLI text tests, TUI reducer/render tests, Cargo fmt/clippy/test.
 
 ---
 
@@ -16,20 +16,20 @@
 - Read: `docs/specs/M59-02-slash-command-status-hub.spec.md`
 - Read: `docs/specs/M59-cli-tui-daily-driver.spec.md`
 - Read: `docs/architecture/crate-boundaries.md`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/src/repl.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-tui/src/slash.rs`
-- Read: `crates/agent-tui/src/app.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/src/repl.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-tui/src/slash.rs`
+- Read: `crates/ruse-tui/src/app.rs`
 
 - [x] **Step 1: Review slash/status baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-cli --test slash_commands
-cargo test -p agent-cli --test plain_repl
-cargo test -p agent-tui --test slash_commands
+cargo test -p ruse-cli --test slash_commands
+cargo test -p ruse-cli --test plain_repl
+cargo test -p ruse-tui --test slash_commands
 ```
 
 Expected: existing slash and plain REPL behavior passes before catalog changes.
@@ -37,7 +37,7 @@ Expected: existing slash and plain REPL behavior passes before catalog changes.
 ### Task 2: Add UI Bridge Catalog and Status Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/slash_catalog.rs`
+- Create: `crates/ruse-ui-bridge/tests/slash_catalog.rs`
 
 - [x] **Step 1: Add bridge tests**
 
@@ -54,7 +54,7 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test slash_catalog
+cargo test -p ruse-ui-bridge --test slash_catalog
 ```
 
 Expected: tests fail before slash catalog contracts exist.
@@ -62,9 +62,9 @@ Expected: tests fail before slash catalog contracts exist.
 ### Task 3: Implement UI Bridge Catalog and Status Contracts
 
 **Files:**
-- Create if needed: `crates/agent-ui-bridge/src/slash.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
+- Create if needed: `crates/ruse-ui-bridge/src/slash.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add typed catalog contracts**
 
@@ -79,7 +79,7 @@ Implement bounded/redacted terminal status summary and JSON frame variants.
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test slash_catalog
+cargo test -p ruse-ui-bridge --test slash_catalog
 ```
 
 Expected: bridge catalog/status tests pass.
@@ -87,10 +87,10 @@ Expected: bridge catalog/status tests pass.
 ### Task 4: Add CLI and Plain REPL Catalog Rendering
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify if needed: `crates/agent-cli/src/repl.rs`
-- Modify: `crates/agent-cli/tests/slash_commands.rs`
-- Modify: `crates/agent-cli/tests/plain_repl.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify if needed: `crates/ruse-cli/src/repl.rs`
+- Modify: `crates/ruse-cli/tests/slash_commands.rs`
+- Modify: `crates/ruse-cli/tests/plain_repl.rs`
 
 - [x] **Step 1: Add CLI/plain REPL tests**
 
@@ -111,8 +111,8 @@ Use bridge catalog/status helpers in `handle_slash_command`; keep prompt executi
 Run:
 
 ```bash
-cargo test -p agent-cli --test slash_commands
-cargo test -p agent-cli --test plain_repl
+cargo test -p ruse-cli --test slash_commands
+cargo test -p ruse-cli --test plain_repl
 ```
 
 Expected: CLI and plain REPL slash tests pass.
@@ -120,13 +120,13 @@ Expected: CLI and plain REPL slash tests pass.
 ### Task 5: Add TUI Catalog Parsing and Status State
 
 **Files:**
-- Modify: `crates/agent-tui/src/slash.rs`
-- Modify: `crates/agent-tui/src/app.rs`
-- Create if needed: `crates/agent-tui/src/status_panel.rs`
-- Modify: `crates/agent-tui/src/render.rs`
-- Modify: `crates/agent-tui/src/lib.rs`
-- Modify: `crates/agent-tui/tests/slash_commands.rs`
-- Create if needed: `crates/agent-tui/tests/status_panel.rs`
+- Modify: `crates/ruse-tui/src/slash.rs`
+- Modify: `crates/ruse-tui/src/app.rs`
+- Create if needed: `crates/ruse-tui/src/status_panel.rs`
+- Modify: `crates/ruse-tui/src/render.rs`
+- Modify: `crates/ruse-tui/src/lib.rs`
+- Modify: `crates/ruse-tui/tests/slash_commands.rs`
+- Create if needed: `crates/ruse-tui/tests/status_panel.rs`
 
 - [x] **Step 1: Add TUI tests**
 
@@ -141,8 +141,8 @@ Add status panel state derived from app status and bridge status snapshots. Rout
 Run:
 
 ```bash
-cargo test -p agent-tui --test slash_commands
-cargo test -p agent-tui --test status_panel
+cargo test -p ruse-tui --test slash_commands
+cargo test -p ruse-tui --test status_panel
 ```
 
 Expected: TUI slash/status tests pass.
@@ -161,12 +161,12 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
-cargo test -p agent-ui-bridge --test slash_catalog
-cargo test -p agent-cli --test slash_commands
-cargo test -p agent-cli --test plain_repl
-cargo test -p agent-tui --test slash_commands
-cargo test -p agent-tui --test status_panel
+cargo clippy -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
+cargo test -p ruse-ui-bridge --test slash_catalog
+cargo test -p ruse-cli --test slash_commands
+cargo test -p ruse-cli --test plain_repl
+cargo test -p ruse-tui --test slash_commands
+cargo test -p ruse-tui --test status_panel
 ```
 
 Expected: focused checks pass.

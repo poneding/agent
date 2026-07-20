@@ -4,7 +4,7 @@
 
 **Goal:** Add a safe OAuth authorization foundation for MCP streamable HTTP clients without owning browser login, token storage, or provider-specific auth flows.
 
-**Architecture:** `agent-mcp` owns OAuth metadata contracts, diagnostics, and explicit bearer-token request construction. Secret/auth layers supply token material later.
+**Architecture:** `ruse-mcp` owns OAuth metadata contracts, diagnostics, and explicit bearer-token request construction. Secret/auth layers supply token material later.
 
 **Tech Stack:** Rust 2024 edition, serde, fixture transports, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

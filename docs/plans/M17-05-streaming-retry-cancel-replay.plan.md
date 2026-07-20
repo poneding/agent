@@ -4,7 +4,7 @@
 
 **Goal:** Make streaming model execution retryable, cancellable, and replayable.
 
-**Architecture:** `agent-core` owns policy and event sourcing. Providers classify errors; core decides retry, fallback, cancellation, and replay behavior.
+**Architecture:** `ruse-core` owns policy and event sourcing. Providers classify errors; core decides retry, fallback, cancellation, and replay behavior.
 
 **Tech Stack:** Rust 2024 edition, Tokio cancellation primitives, futures streams, existing event store/replay contracts, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -13,9 +13,9 @@
 ### Task 1: Write RED Policy Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/streaming_retry_cancel_replay.rs`
-- Modify: `crates/agent-core/tests/model_invocation_policy_runner.rs`
-- Modify: `crates/agent-storage/tests/replay_integration.rs`
+- Create: `crates/ruse-core/tests/streaming_retry_cancel_replay.rs`
+- Modify: `crates/ruse-core/tests/model_invocation_policy_runner.rs`
+- Modify: `crates/ruse-storage/tests/replay_integration.rs`
 
 - [x] **Step 1: Add retryable stream failure test**
 
@@ -42,9 +42,9 @@ Add `streaming_replay_reconstructs_final_response_from_events`.
 Run:
 
 ```bash
-cargo test -p agent-core --test streaming_retry_cancel_replay
-cargo test -p agent-core --test model_invocation_policy_runner
-cargo test -p agent-storage --test replay_integration
+cargo test -p ruse-core --test streaming_retry_cancel_replay
+cargo test -p ruse-core --test model_invocation_policy_runner
+cargo test -p ruse-storage --test replay_integration
 ```
 
 Expected: failures because stream item retry/cancel/replay behavior is incomplete.
@@ -52,9 +52,9 @@ Expected: failures because stream item retry/cancel/replay behavior is incomplet
 ### Task 2: Extend Invocation Policy Over Streams
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
-- Modify: `crates/agent-model/src/provider.rs`
-- Modify: `crates/agent-model/src/stream.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
+- Modify: `crates/ruse-model/src/provider.rs`
+- Modify: `crates/ruse-model/src/stream.rs`
 
 - [x] **Step 1: Track attempt state**
 
@@ -71,9 +71,9 @@ Fallback attempts preserve attempt indices and model override behavior.
 ### Task 3: Add Cancellation
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
-- Modify: `crates/agent-types/src/event.rs`
-- Modify: `crates/agent-ui-bridge/src/event.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
+- Modify: `crates/ruse-types/src/event.rs`
+- Modify: `crates/ruse-ui-bridge/src/event.rs`
 
 - [x] **Step 1: Add cancellation input**
 
@@ -90,8 +90,8 @@ Dropping the stream is sufficient for M17 model cancellation.
 ### Task 4: Add Replay Coverage
 
 **Files:**
-- Modify: `crates/agent-core/src/trace.rs`
-- Modify: `crates/agent-storage/tests/replay_integration.rs`
+- Modify: `crates/ruse-core/src/trace.rs`
+- Modify: `crates/ruse-storage/tests/replay_integration.rs`
 
 - [x] **Step 1: Reconstruct final text from persisted deltas**
 
@@ -114,9 +114,9 @@ Replay output must not include raw provider secrets or request bodies.
 Run:
 
 ```bash
-cargo test -p agent-core --test streaming_retry_cancel_replay
-cargo test -p agent-core --test model_invocation_policy_runner
-cargo test -p agent-storage --test replay_integration
+cargo test -p ruse-core --test streaming_retry_cancel_replay
+cargo test -p ruse-core --test model_invocation_policy_runner
+cargo test -p ruse-storage --test replay_integration
 ```
 
 - [x] **Step 2: Run workspace gate**

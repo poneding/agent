@@ -26,7 +26,7 @@ Out of scope:
 
 ## Architecture
 
-`agent-core::ModelInvocationRunner` owns policy. Providers emit streams and classify errors; core decides whether to retry or fall back. Runtime events record attempts, deltas, completion, failure, and cancellation in order. Existing event sourcing remains the replay source of truth.
+`ruse-core::ModelInvocationRunner` owns policy. Providers emit streams and classify errors; core decides whether to retry or fall back. Runtime events record attempts, deltas, completion, failure, and cancellation in order. Existing event sourcing remains the replay source of truth.
 
 ## State And Failure Handling
 

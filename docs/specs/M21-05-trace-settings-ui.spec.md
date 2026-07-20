@@ -12,7 +12,7 @@ M21-03 and M21-04 cover daily agent interaction. Users also need trace visibilit
 
 This spec delivers:
 
-- trace timeline view backed by `agent-desktop` trace contracts
+- trace timeline view backed by `ruse-desktop` trace contracts
 - config/settings view backed by UI-safe config snapshots
 - `load_trace` and `load_config_snapshot` Desktop commands
 - settings validation diagnostics without raw secret values
@@ -74,7 +74,7 @@ pub async fn validate_settings(settings: DesktopSettings) -> Result<Vec<DesktopB
 
 ## Security and Privacy
 
-- traces redact secret-like values using `agent-desktop` trace sanitization
+- traces redact secret-like values using `ruse-desktop` trace sanitization
 - settings snapshots store secret refs and redacted diagnostics only
 - raw secrets never enter frontend local storage
 - export/update/signing flows are out of scope for M21

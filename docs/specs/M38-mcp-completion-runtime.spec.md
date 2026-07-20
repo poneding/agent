@@ -15,7 +15,7 @@ This milestone delivers:
 - typed MCP completion request and response contracts
 - completion source declarations for prompt arguments
 - completion source declarations for resource template variables
-- `completion/complete` JSON-RPC support in `agent-mcp`
+- `completion/complete` JSON-RPC support in `ruse-mcp`
 - manifest-backed static completion values
 - CLI stdio e2e coverage and hardening docs
 
@@ -29,7 +29,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` owns completion contracts, validation, source lookup, redaction, and JSON-RPC behavior. `agent-cli` only loads manifest completion declarations and passes profile runtime data into `agent-mcp`.
+`ruse-mcp` owns completion contracts, validation, source lookup, redaction, and JSON-RPC behavior. `ruse-cli` only loads manifest completion declarations and passes profile runtime data into `ruse-mcp`.
 
 ```mermaid
 flowchart TD
@@ -69,8 +69,8 @@ flowchart TD
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_completion`
-- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-cli mcp_server_completions`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_completion`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-cli mcp_server_completions`
 - `CARGO_TARGET_DIR=target/codex-m38 cargo xtask ci`
 
 ## Completion Signal

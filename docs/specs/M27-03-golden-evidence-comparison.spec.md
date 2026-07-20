@@ -26,11 +26,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-eval::golden` compares selected fields from `EvalScenarioReport` and evidence summaries. It does not know about CLI formatting.
+`ruse-eval::golden` compares selected fields from `EvalScenarioReport` and evidence summaries. It does not know about CLI formatting.
 
 ```mermaid
 flowchart TD
-  Actual["Eval report"] --> Golden["agent-eval::golden"]
+  Actual["Eval report"] --> Golden["ruse-eval::golden"]
   Expected["Golden file"] --> Golden
   Golden --> Result["Comparison result"]
 ```
@@ -39,7 +39,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-eval/
+  ruse-eval/
     src/golden.rs
     tests/golden.rs
 ```
@@ -84,7 +84,7 @@ pub struct GoldenMismatch {
 
 - actual reports can be compared against golden expectations.
 - mismatch diagnostics are stable and redacted.
-- `cargo test -p agent-eval golden` passes.
+- `cargo test -p ruse-eval golden` passes.
 
 ## Completion Signal
 

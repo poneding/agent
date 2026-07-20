@@ -29,7 +29,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::client_http` remains the owner of MCP HTTP auth runtime contracts. Flow helpers are pure and accept caller-provided entropy, metadata, redirect URI, client id, requested scopes, and callback fields. UI and storage layers consume flow plans and own side effects.
+`ruse-mcp::client_http` remains the owner of MCP HTTP auth runtime contracts. Flow helpers are pure and accept caller-provided entropy, metadata, redirect URI, client id, requested scopes, and callback fields. UI and storage layers consume flow plans and own side effects.
 
 ## Public Contracts
 
@@ -54,7 +54,7 @@ Owned by other specs:
 - Verifiers, authorization codes, state values, callback queries, provider error descriptions, client secrets, token responses, and token endpoint request bodies never appear in public errors.
 - `Debug` for secret-bearing flow types is redacted.
 - Public DTOs intended for UI navigation contain only user-safe fields.
-- `agent-mcp` does not store flow state durably.
+- `ruse-mcp` does not store flow state durably.
 
 ## Testing Strategy
 

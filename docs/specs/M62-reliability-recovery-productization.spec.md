@@ -32,17 +32,17 @@ Owned by other specs:
 
 ## Architecture
 
-Runtime truth stays in shared Rust crates. `agent-storage` owns durable checkpoint, replay, event, and idempotency stores. `agent-core` owns recovery planning, resume validation, idempotent tool recovery, failed-command retry planning, and crash-smoke orchestration. `agent-worktree` owns conflict detection and conflict report contracts. `agent-ui-bridge` owns UI-safe recovery snapshots, commands, and frames. CLI, TUI, Desktop Rust, and Desktop TypeScript render or submit typed commands without duplicating recovery rules.
+Runtime truth stays in shared Rust crates. `ruse-storage` owns durable checkpoint, replay, event, and idempotency stores. `ruse-core` owns recovery planning, resume validation, idempotent tool recovery, failed-command retry planning, and crash-smoke orchestration. `ruse-worktree` owns conflict detection and conflict report contracts. `ruse-ui-bridge` owns UI-safe recovery snapshots, commands, and frames. CLI, TUI, Desktop Rust, and Desktop TypeScript render or submit typed commands without duplicating recovery rules.
 
 ```mermaid
 flowchart TD
-  Storage["agent-storage checkpoints, events, replay, idempotency"] --> Core["agent-core recovery and retry planning"]
-  Worktree["agent-worktree conflict reports"] --> Core
-  Core --> Bridge["agent-ui-bridge recovery snapshots and commands"]
-  Bridge --> CLI["agent-cli text/json"]
-  Bridge --> TUI["agent-tui recovery status"]
-  Bridge --> Desktop["agent-desktop and Desktop UI"]
-  Core --> Eval["agent-eval / xtask crash smoke"]
+  Storage["ruse-storage checkpoints, events, replay, idempotency"] --> Core["ruse-core recovery and retry planning"]
+  Worktree["ruse-worktree conflict reports"] --> Core
+  Core --> Bridge["ruse-ui-bridge recovery snapshots and commands"]
+  Bridge --> CLI["ruse-cli text/json"]
+  Bridge --> TUI["ruse-tui recovery status"]
+  Bridge --> Desktop["ruse-desktop and Desktop UI"]
+  Core --> Eval["ruse-eval / xtask crash smoke"]
 ```
 
 Dependency rules:
@@ -56,12 +56,12 @@ Dependency rules:
 
 ```text
 crates/
-  agent-types/
+  ruse-types/
     src/
       recovery.rs
       event.rs
       lib.rs
-  agent-core/
+  ruse-core/
     src/
       recovery.rs
       idempotency.rs
@@ -71,7 +71,7 @@ crates/
       recovery_snapshot.rs
       crash_resume_smoke.rs
       failed_command_retry.rs
-  agent-storage/
+  ruse-storage/
     src/
       checkpoint.rs
       replay.rs
@@ -79,29 +79,29 @@ crates/
     tests/
       checkpoint_store.rs
       replay_integration.rs
-  agent-worktree/
+  ruse-worktree/
     src/
       conflict.rs
     tests/
       conflict_detection.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       command.rs
       frame.rs
       event.rs
     tests/
       recovery_bridge.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       recovery_commands.rs
-  agent-tui/
+  ruse-tui/
     src/
       task_panel.rs
     tests/
       recovery_panel.rs
-  agent-desktop/
+  ruse-desktop/
     src/
       recovery.rs
       task.rs
@@ -179,12 +179,12 @@ pub struct FailedCommandRetryRequest {
 CLI and bridge surfaces should expose stable user actions such as:
 
 ```text
-agent-cli recovery status --conversation <id>
-agent-cli recovery resume --conversation <id> [--turn <id>] [--dry-run]
-agent-cli replay inspect --conversation <id> [--from-checkpoint <id>]
-agent-cli replay fork --conversation <id> --label <name>
-agent-cli command retry <command-run-id> --reason <text>
-agent-cli conflict inspect --task <task-id>
+ruse-cli recovery status --conversation <id>
+ruse-cli recovery resume --conversation <id> [--turn <id>] [--dry-run]
+ruse-cli replay inspect --conversation <id> [--from-checkpoint <id>]
+ruse-cli replay fork --conversation <id> --label <name>
+ruse-cli command retry <command-run-id> --reason <text>
+ruse-cli conflict inspect --task <task-id>
 ```
 
 ## State and Failure Handling
@@ -208,12 +208,12 @@ agent-cli conflict inspect --task <task-id>
 
 ## Testing Strategy
 
-- `agent-core` unit/integration tests for recovery snapshot construction, corrupt checkpoint diagnostics, pending tool call filtering, idempotent effect visibility, approval-wait resume, and failed-command retry planning
-- `agent-storage` tests for checkpoint/replay/idempotency behavior used by recovery snapshots
-- `agent-worktree` tests for conflict diagnostic mapping and relative path validation
-- `agent-ui-bridge` snapshot tests for recovery commands, frames, bounded summaries, and stable JSON shape
-- `agent-cli` tests for text and JSON recovery status, resume dry-run, replay inspect/fork, retry, and conflict inspection commands
-- `agent-tui`, `agent-desktop`, and Vitest tests for recovery status surfaces using typed fixtures
+- `ruse-core` unit/integration tests for recovery snapshot construction, corrupt checkpoint diagnostics, pending tool call filtering, idempotent effect visibility, approval-wait resume, and failed-command retry planning
+- `ruse-storage` tests for checkpoint/replay/idempotency behavior used by recovery snapshots
+- `ruse-worktree` tests for conflict diagnostic mapping and relative path validation
+- `ruse-ui-bridge` snapshot tests for recovery commands, frames, bounded summaries, and stable JSON shape
+- `ruse-cli` tests for text and JSON recovery status, resume dry-run, replay inspect/fork, retry, and conflict inspection commands
+- `ruse-tui`, `ruse-desktop`, and Vitest tests for recovery status surfaces using typed fixtures
 - deterministic crash/restart smoke coverage in the default eval or xtask gate
 - final M62 gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`
 

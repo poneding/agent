@@ -4,9 +4,9 @@
 
 **Goal:** Add a typed Desktop dashboard/readiness slice that summarizes workspace, session, provider, task, approval, and diagnostic state without moving runtime behavior into Desktop presentation code.
 
-**Architecture:** `agent-desktop` owns dashboard view models and pure aggregation helpers; Tauri adapts current bridge/session state into typed commands; React renders a dashboard route from typed API responses. Runtime side effects remain in shared runtime/bridge/policy paths.
+**Architecture:** `ruse-desktop` owns dashboard view models and pure aggregation helpers; Tauri adapts current bridge/session state into typed commands; React renders a dashboard route from typed API responses. Runtime side effects remain in shared runtime/bridge/policy paths.
 
-**Tech Stack:** Rust 2024 edition, serde contracts, existing `agent-desktop` and Tauri modules, React 18, TypeScript, Vitest, Cargo fmt/clippy/test.
+**Tech Stack:** Rust 2024 edition, serde contracts, existing `ruse-desktop` and Tauri modules, React 18, TypeScript, Vitest, Cargo fmt/clippy/test.
 
 ---
 
@@ -19,10 +19,10 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-desktop/src/snapshot.rs`
-- Read: `crates/agent-desktop/src/session.rs`
-- Read: `crates/agent-desktop/src/task.rs`
-- Read: `crates/agent-desktop/src/settings.rs`
+- Read: `crates/ruse-desktop/src/snapshot.rs`
+- Read: `crates/ruse-desktop/src/session.rs`
+- Read: `crates/ruse-desktop/src/task.rs`
+- Read: `crates/ruse-desktop/src/settings.rs`
 - Read: `apps/desktop/src/App.tsx`
 - Read: `apps/desktop/src/types.ts`
 - Read: `apps/desktop/src/app.css`
@@ -34,7 +34,7 @@
 Run:
 
 ```bash
-cargo test -p agent-desktop desktop_shell
+cargo test -p ruse-desktop desktop_shell
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml workspace_snapshot
 npm --prefix apps/desktop test -- app-shell
 ```
@@ -43,14 +43,14 @@ Expected: current Desktop session, workspace snapshot, and shell tests pass befo
 
 Baseline verification passed during M60-01:
 
-- `cargo test -p agent-desktop desktop_shell`
+- `cargo test -p ruse-desktop desktop_shell`
 - `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml workspace_snapshot`
 - `npm --prefix apps/desktop test -- app-shell`
 
 ### Task 2: Add Failing Dashboard Contract Tests
 
 **Files:**
-- Create: `crates/agent-desktop/tests/desktop_dashboard.rs`
+- Create: `crates/ruse-desktop/tests/desktop_dashboard.rs`
 
 - [x] **Step 1: Add serialization and aggregation tests**
 
@@ -68,21 +68,21 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-desktop --test desktop_dashboard
+cargo test -p ruse-desktop --test desktop_dashboard
 ```
 
 Expected: tests fail before the dashboard contract exists.
 
 Confirmed failing before implementation because the dashboard exports did not exist.
 
-### Task 3: Implement `agent-desktop` Dashboard Model
+### Task 3: Implement `ruse-desktop` Dashboard Model
 
 **Files:**
-- Create: `crates/agent-desktop/src/dashboard.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
-- Modify: `crates/agent-desktop/src/session.rs`
-- Modify: `crates/agent-desktop/src/settings.rs`
-- Modify: `crates/agent-desktop/tests/desktop_dashboard.rs`
+- Create: `crates/ruse-desktop/src/dashboard.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
+- Modify: `crates/ruse-desktop/src/session.rs`
+- Modify: `crates/ruse-desktop/src/settings.rs`
+- Modify: `crates/ruse-desktop/tests/desktop_dashboard.rs`
 
 - [x] **Step 1: Add dashboard contracts**
 
@@ -97,7 +97,7 @@ Implement helpers that derive dashboard state from workspace snapshot, session r
 Run:
 
 ```bash
-cargo test -p agent-desktop --test desktop_dashboard
+cargo test -p ruse-desktop --test desktop_dashboard
 ```
 
 Expected: dashboard contract tests pass.
@@ -116,7 +116,7 @@ Passed with six dashboard contract tests.
 
 - [x] **Step 1: Add dashboard helper/command**
 
-Expose a typed read-only dashboard snapshot helper or command that adapts the active bridge session, workspace snapshot, config snapshot, settings, and diagnostics into `agent-desktop` dashboard contracts.
+Expose a typed read-only dashboard snapshot helper or command that adapts the active bridge session, workspace snapshot, config snapshot, settings, and diagnostics into `ruse-desktop` dashboard contracts.
 
 - [x] **Step 2: Add Tauri tests**
 
@@ -181,8 +181,8 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-desktop --test desktop_dashboard
+cargo clippy -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-desktop --test desktop_dashboard
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml dashboard
 npm --prefix apps/desktop test -- workspace-dashboard
 ```
@@ -192,9 +192,9 @@ Expected: all focused M60-01 checks pass.
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m60 cargo clippy -p agent-desktop --all-targets -- -D warnings`
-- `CARGO_TARGET_DIR=target/codex-m60 cargo test -p agent-desktop desktop_shell`
-- `CARGO_TARGET_DIR=target/codex-m60 cargo test -p agent-desktop --test desktop_dashboard`
+- `CARGO_TARGET_DIR=target/codex-m60 cargo clippy -p ruse-desktop --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m60 cargo test -p ruse-desktop desktop_shell`
+- `CARGO_TARGET_DIR=target/codex-m60 cargo test -p ruse-desktop --test desktop_dashboard`
 - `CARGO_TARGET_DIR=target/codex-m60-tauri cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml dashboard`
 - `npm --prefix apps/desktop test`
 - `npm --prefix apps/desktop run build`
@@ -209,11 +209,11 @@ git add docs/specs/M60-01-workspace-dashboard-session.spec.md \
   docs/plans/M60-01-workspace-dashboard-session.plan.md \
   docs/plans/M60-desktop-daily-driver.plan.md \
   docs/milestones/README.md \
-  crates/agent-desktop/src/dashboard.rs \
-  crates/agent-desktop/src/lib.rs \
-  crates/agent-desktop/src/session.rs \
-  crates/agent-desktop/src/settings.rs \
-  crates/agent-desktop/tests/desktop_dashboard.rs \
+  crates/ruse-desktop/src/dashboard.rs \
+  crates/ruse-desktop/src/lib.rs \
+  crates/ruse-desktop/src/session.rs \
+  crates/ruse-desktop/src/settings.rs \
+  crates/ruse-desktop/tests/desktop_dashboard.rs \
   apps/desktop/src-tauri/src/dashboard.rs \
   apps/desktop/src-tauri/src/commands.rs \
   apps/desktop/src-tauri/src/lib.rs \

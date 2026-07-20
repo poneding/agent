@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add typed extension registry contracts in `agent-core` for plugin, skill root, and MCP server extension state.
+**Goal:** Add typed extension registry contracts in `ruse-core` for plugin, skill root, and MCP server extension state.
 
-**Architecture:** `agent-core` owns cross-kind registry state. Domain crates keep native validation. Bridge/UI crates consume snapshots later and do not own registry mutation.
+**Architecture:** `ruse-core` owns cross-kind registry state. Domain crates keep native validation. Bridge/UI crates consume snapshots later and do not own registry mutation.
 
-**Tech Stack:** Rust 2024 edition, serde, agent-policy capability leases, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, serde, ruse-policy capability leases, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -30,7 +30,7 @@ Expected: registry state, failure behavior, privacy, and test expectations are c
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/extension_registry.rs`
+- Create: `crates/ruse-core/tests/extension_registry.rs`
 
 - [x] **Step 1: Add registry construction tests**
 
@@ -49,7 +49,7 @@ Cover health/source messages containing `token`, `password`, `api_key`, `secret`
 Run:
 
 ```bash
-cargo test -p agent-core extension_registry
+cargo test -p ruse-core extension_registry
 ```
 
 Expected: tests fail because registry contracts are missing.
@@ -57,8 +57,8 @@ Expected: tests fail because registry contracts are missing.
 ### Task 3: Implement Registry Contracts
 
 **Files:**
-- Create: `crates/agent-core/src/extension.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/src/extension.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add typed records and validation**
 
@@ -74,19 +74,19 @@ Redact health and source display fields before serialization or snapshot constru
 
 - [x] **Step 4: Export contracts**
 
-Re-export public types from `agent-core`.
+Re-export public types from `ruse-core`.
 
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-core/tests/extension_registry.rs`
+- Read: `crates/ruse-core/tests/extension_registry.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-core extension_registry
+cargo test -p ruse-core extension_registry
 ```
 
 Expected: focused registry tests pass.
@@ -119,7 +119,7 @@ Update M22 progress so the active implementation focus advances to M22-02.
 Run:
 
 ```bash
-git add crates/agent-core docs
+git add crates/ruse-core docs
 git commit -m "feat: add extension registry"
 ```
 

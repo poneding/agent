@@ -27,15 +27,15 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-telemetry` remains independent from `agent-core` and owns telemetry export shape. `agent-core` composes evidence by reading runtime events, building trace entries, exporting audit records, accepting telemetry records, and deriving replay summaries. UI crates receive only bounded snapshots.
+`ruse-telemetry` remains independent from `ruse-core` and owns telemetry export shape. `ruse-core` composes evidence by reading runtime events, building trace entries, exporting audit records, accepting telemetry records, and deriving replay summaries. UI crates receive only bounded snapshots.
 
 ```mermaid
 flowchart TD
-  Telemetry["agent-telemetry"] --> Core["agent-core"]
-  Storage["agent-storage"] --> Core
-  Core --> CLI["agent-cli"]
-  Core --> Bridge["agent-ui-bridge"]
-  Bridge --> Desktop["agent-desktop"]
+  Telemetry["ruse-telemetry"] --> Core["ruse-core"]
+  Storage["ruse-storage"] --> Core
+  Core --> CLI["ruse-cli"]
+  Core --> Bridge["ruse-ui-bridge"]
+  Bridge --> Desktop["ruse-desktop"]
 ```
 
 ## Public Contracts

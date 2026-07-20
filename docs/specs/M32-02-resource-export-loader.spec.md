@@ -24,13 +24,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns loading from a caller-provided base directory/path context. CLI passes paths but does not inspect contents.
+`ruse-mcp` owns loading from a caller-provided base directory/path context. CLI passes paths but does not inspect contents.
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_manifest.rs
-crates/agent-mcp/tests/mcp_server_resource_loader.rs
+crates/ruse-mcp/src/server_manifest.rs
+crates/ruse-mcp/tests/mcp_server_resource_loader.rs
 ```
 
 ## Public Contracts

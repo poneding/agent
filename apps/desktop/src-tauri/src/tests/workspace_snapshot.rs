@@ -1,5 +1,5 @@
-use agent_desktop::{DesktopConversationItem, DesktopTaskItem};
-use agent_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
+use ruse_desktop::{DesktopConversationItem, DesktopTaskItem};
+use ruse_types::{ConversationId, TaskId, TaskState, Timestamp, WorkspaceId};
 
 use crate::bridge::{DesktopRuntimeSession, DesktopStartSessionRequest};
 use crate::workspace_snapshot::{

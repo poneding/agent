@@ -26,7 +26,7 @@ Out of scope:
 
 ## Architecture
 
-`agent-model` owns the stream type and provider trait. `agent-core` consumes streams but remains provider-neutral. Existing tests that need a complete result use an explicit collection helper so collecting is a test/runtime choice, not the provider contract.
+`ruse-model` owns the stream type and provider trait. `ruse-core` consumes streams but remains provider-neutral. Existing tests that need a complete result use an explicit collection helper so collecting is a test/runtime choice, not the provider contract.
 
 Target contract:
 
@@ -77,4 +77,4 @@ The stream type carries provider-neutral events only. Provider-specific raw SSE 
 
 ## Completion Signal
 
-M17-01 is complete when focused `agent-model` and `agent-core` stream migration tests pass and `cargo xtask check` is green.
+M17-01 is complete when focused `ruse-model` and `ruse-core` stream migration tests pass and `cargo xtask check` is green.

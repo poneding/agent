@@ -28,7 +28,7 @@ Owned by other specs:
 
 ## Architecture
 
-Process host code lives in `agent-plugin`. It does not register tools directly and does not evaluate policy.
+Process host code lives in `ruse-plugin`. It does not register tools directly and does not evaluate policy.
 
 M11 process calls use one newline-terminated JSON request and one newline-terminated JSON response per invocation.
 
@@ -44,7 +44,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-plugin/
+  ruse-plugin/
     src/
       host.rs
       process.rs
@@ -67,7 +67,7 @@ pub struct PluginProcessRequest {
     pub protocol_version: u32,
     pub kind: PluginProcessRequestKind,
     pub call_id: String,
-    pub tool_name: agent_tool::ToolName,
+    pub tool_name: ruse_tool::ToolName,
     pub input: serde_json::Value,
 }
 
@@ -111,7 +111,7 @@ pub struct PluginProcessResponse {
 
 - A fixture process can receive one tool call request and return one typed result.
 - Host failures are typed and recoverable.
-- `cargo test -p agent-plugin process_host` passes.
+- `cargo test -p ruse-plugin process_host` passes.
 
 ## Completion Signal
 

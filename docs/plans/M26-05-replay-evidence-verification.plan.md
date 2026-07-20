@@ -4,9 +4,9 @@
 
 **Goal:** Verify that observability evidence can be regenerated from replay fixtures and stored event logs.
 
-**Architecture:** `agent-core` verifies evidence from `agent-storage` replay fixtures; CLI/UI remain consumers of verified contracts.
+**Architecture:** `ruse-core` verifies evidence from `ruse-storage` replay fixtures; CLI/UI remain consumers of verified contracts.
 
-**Tech Stack:** Rust 2024 edition, agent-storage replay fixtures, agent-core evidence builder, Cargo xtask check.
+**Tech Stack:** Rust 2024 edition, ruse-storage replay fixtures, ruse-core evidence builder, Cargo xtask check.
 
 ---
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M26-05-replay-evidence-verification.spec.md`
-- Read: `crates/agent-storage/tests/fixtures/m04_trace_v1.json`
-- Read: `crates/agent-storage/src/compatibility.rs`
+- Read: `crates/ruse-storage/tests/fixtures/m04_trace_v1.json`
+- Read: `crates/ruse-storage/src/compatibility.rs`
 
 - [x] **Step 1: Review replay fixture contracts**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/evidence_replay_verification.rs`
+- Create: `crates/ruse-core/tests/evidence_replay_verification.rs`
 
 - [x] **Step 1: Add replay evidence verification tests**
 
 ### Task 3: Implement Verification
 
 **Files:**
-- Modify: `crates/agent-core/src/observability.rs`
+- Modify: `crates/ruse-core/src/observability.rs`
 
 - [x] **Step 1: Add verification report and checker**
 

@@ -4,7 +4,7 @@
 
 **Goal:** Document MCP sampling runtime behavior and complete M40 verification.
 
-**Architecture:** Documentation-only hardening over runtime changes already implemented in `agent-mcp`.
+**Architecture:** Documentation-only hardening over runtime changes already implemented in `ruse-mcp`.
 
 **Tech Stack:** Markdown docs, Cargo workspace gates.
 
@@ -51,19 +51,19 @@ Mark M40-01 through M40-05 complete only after implementation and verification a
 Verified:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_validation
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_contracts
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_validation
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_client_session_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_gateway_sampling
 ```
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_validation
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_contracts
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_validation
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_client_session_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_gateway_sampling
 ```
 
 Expected: focused M40 tests pass.

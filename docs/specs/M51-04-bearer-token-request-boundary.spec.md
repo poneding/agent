@@ -57,9 +57,9 @@ pub struct McpClientHttpAuthorization {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_bearer_authorization`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_bearer_authorization`
 - `CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

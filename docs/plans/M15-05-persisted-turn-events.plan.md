@@ -4,7 +4,7 @@
 
 **Goal:** Persist config-driven turn events and emit JSON prompt frames that replay cleanly.
 
-**Architecture:** Extend `agent-core::model_runtime` with event-store persistence helpers. CLI JSON prompt output normalizes emitted runtime events through `agent-ui-bridge`.
+**Architecture:** Extend `ruse-core::model_runtime` with event-store persistence helpers. CLI JSON prompt output normalizes emitted runtime events through `ruse-ui-bridge`.
 
 **Tech Stack:** Rust 2024 edition, existing `EventStore`, in-memory storage, UI bridge frames, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M15-05-persisted-turn-events.spec.md`
-- Read: `crates/agent-core/src/model_runtime.rs`
-- Read: `crates/agent-storage/src/lib.rs`
-- Read: `crates/agent-cli/tests/json_mode.rs`
+- Read: `crates/ruse-core/src/model_runtime.rs`
+- Read: `crates/ruse-storage/src/lib.rs`
+- Read: `crates/ruse-cli/tests/json_mode.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -31,8 +31,8 @@ Expected: the spec defines persistence, replay, JSON output, and privacy require
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/configured_turn_persistence.rs`
-- Modify: `crates/agent-cli/tests/json_mode.rs`
+- Create: `crates/ruse-core/tests/configured_turn_persistence.rs`
+- Modify: `crates/ruse-cli/tests/json_mode.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -48,8 +48,8 @@ Add tests named:
 Run:
 
 ```bash
-cargo test -p agent-core --test configured_turn_persistence
-cargo test -p agent-cli --test json_mode json_mode_prompt_runtime
+cargo test -p ruse-core --test configured_turn_persistence
+cargo test -p ruse-cli --test json_mode json_mode_prompt_runtime
 ```
 
 Expected: tests fail because persistence and JSON prompt frames are not implemented for configured prompt turns.
@@ -57,8 +57,8 @@ Expected: tests fail because persistence and JSON prompt frames are not implemen
 ### Task 3: Implement Persistence And JSON Prompt Frames
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add persistence helper**
 
@@ -73,8 +73,8 @@ For `--json --prompt`, emit normalized `UiJsonFrame::Event` lines followed by `D
 Run:
 
 ```bash
-cargo test -p agent-core --test configured_turn_persistence
-cargo test -p agent-cli --test json_mode json_mode_prompt_runtime
+cargo test -p ruse-core --test configured_turn_persistence
+cargo test -p ruse-cli --test json_mode json_mode_prompt_runtime
 ```
 
 Expected: focused tests pass.

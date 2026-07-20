@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add typed MCP prompt export contracts in `agent-mcp`.
+Add typed MCP prompt export contracts in `ruse-mcp`.
 
 ## Product Context
 
@@ -25,14 +25,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns MCP wire-safe prompt contracts. It must not depend on `agent-cli`.
+`ruse-mcp` owns MCP wire-safe prompt contracts. It must not depend on `ruse-cli`.
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_prompt.rs
-crates/agent-mcp/src/lib.rs
-crates/agent-mcp/tests/mcp_server_prompt_export.rs
+crates/ruse-mcp/src/server_prompt.rs
+crates/ruse-mcp/src/lib.rs
+crates/ruse-mcp/tests/mcp_server_prompt_export.rs
 ```
 
 ## Public Contracts
@@ -64,7 +64,7 @@ crates/agent-mcp/tests/mcp_server_prompt_export.rs
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_export`
+- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_prompt_export`
 
 ## Completion Signal
 

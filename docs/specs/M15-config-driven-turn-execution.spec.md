@@ -6,7 +6,7 @@ Make the effective runtime configuration from M14 actually drive model-backed tu
 
 ## Product Context
 
-M13 added provider contracts and an OpenAI-compatible adapter boundary. M14 added durable config, layering, CLI diagnostics, and UI-safe snapshots. The next product gap is that `agent-cli --prompt` still does not run a configured runtime turn. M15 turns configuration into execution while preserving deterministic tests and keeping live HTTP transport as a later milestone.
+M13 added provider contracts and an OpenAI-compatible adapter boundary. M14 added durable config, layering, CLI diagnostics, and UI-safe snapshots. The next product gap is that `ruse-cli --prompt` still does not run a configured runtime turn. M15 turns configuration into execution while preserving deterministic tests and keeping live HTTP transport as a later milestone.
 
 ## Scope
 
@@ -15,7 +15,7 @@ This milestone delivers:
 - configured model runtime resolution from `EffectiveRuntimeConfig`
 - provider registry capability checks before turn execution
 - invocation policy execution with retry/fallback contracts
-- config-driven `TurnEngine` runner in `agent-core`
+- config-driven `TurnEngine` runner in `ruse-core`
 - CLI `--prompt` execution through the configured runtime path
 - JSON prompt output as UI bridge event frames
 - persisted turn event fixture coverage
@@ -30,11 +30,11 @@ Owned by later specs:
 
 Implementation primarily touches:
 
-- `agent-core`
-- `agent-cli`
-- `agent-model`
-- `agent-storage`
-- `agent-ui-bridge`
+- `ruse-core`
+- `ruse-cli`
+- `ruse-model`
+- `ruse-storage`
+- `ruse-ui-bridge`
 - `docs/milestones/README.md`
 
 ## Dependencies
@@ -48,16 +48,16 @@ Implementation primarily touches:
 
 ## Architecture
 
-`agent-core` owns configured turn orchestration. It receives an `EffectiveRuntimeConfig`, a model provider registry, and runtime IDs, then resolves the selected provider, checks capabilities, runs invocation policy, calls `TurnEngine`, and optionally persists emitted events. `agent-cli` remains presentation code: it loads config, builds a small default fake-provider registry for local execution, delegates execution to core, and renders text or UI bridge JSON frames.
+`ruse-core` owns configured turn orchestration. It receives an `EffectiveRuntimeConfig`, a model provider registry, and runtime IDs, then resolves the selected provider, checks capabilities, runs invocation policy, calls `TurnEngine`, and optionally persists emitted events. `ruse-cli` remains presentation code: it loads config, builds a small default fake-provider registry for local execution, delegates execution to core, and renders text or UI bridge JSON frames.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli prompt"] --> CoreConfig["agent-core::config"]
-  CLI --> CoreRuntime["agent-core::model_runtime"]
-  CoreRuntime --> Turn["agent-core::turn"]
-  CoreRuntime --> Model["agent-model registry/providers"]
-  CoreRuntime --> Storage["agent-storage EventStore"]
-  CLI --> Bridge["agent-ui-bridge frames"]
+  CLI["ruse-cli prompt"] --> CoreConfig["ruse-core::config"]
+  CLI --> CoreRuntime["ruse-core::model_runtime"]
+  CoreRuntime --> Turn["ruse-core::turn"]
+  CoreRuntime --> Model["ruse-model registry/providers"]
+  CoreRuntime --> Storage["ruse-storage EventStore"]
+  CLI --> Bridge["ruse-ui-bridge frames"]
 ```
 
 ## Key Contracts

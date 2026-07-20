@@ -29,11 +29,11 @@ Owned by later specs:
 
 Implementation primarily touches:
 
-- `agent-model`
-- `agent-core`
-- `agent-cli`
-- `agent-ui-bridge`
-- `agent-desktop`
+- `ruse-model`
+- `ruse-core`
+- `ruse-cli`
+- `ruse-ui-bridge`
+- `ruse-desktop`
 - `docs/milestones/README.md`
 
 ## Dependencies
@@ -46,15 +46,15 @@ Implementation primarily touches:
 
 ## Architecture
 
-`agent-model` owns secret reference resolution contracts because they validate model-provider authentication without knowing runtime or UI behavior. `agent-core` owns runtime configuration loading and layering because it composes model config with runtime policy. CLI and Desktop expose only safe summaries through typed command/output and UI bridge contracts.
+`ruse-model` owns secret reference resolution contracts because they validate model-provider authentication without knowing runtime or UI behavior. `ruse-core` owns runtime configuration loading and layering because it composes model config with runtime policy. CLI and Desktop expose only safe summaries through typed command/output and UI bridge contracts.
 
 ```mermaid
 flowchart TD
-  cli["agent-cli"] --> core["agent-core config"]
-  desktop["agent-desktop"] --> bridge["agent-ui-bridge"]
+  cli["ruse-cli"] --> core["ruse-core config"]
+  desktop["ruse-desktop"] --> bridge["ruse-ui-bridge"]
   bridge --> core
-  core --> model["agent-model config/secrets"]
-  core --> storage["agent-storage migrations"]
+  core --> model["ruse-model config/secrets"]
+  core --> storage["ruse-storage migrations"]
 ```
 
 ## Key Contracts

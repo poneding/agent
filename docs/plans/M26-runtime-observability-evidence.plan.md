@@ -4,7 +4,7 @@
 
 **Goal:** Build a durable, redacted, replayable observability evidence layer shared by CLI, TUI, Desktop, and support workflows.
 
-**Architecture:** `agent-telemetry` exports provider-neutral telemetry records, `agent-core` composes runtime evidence from events/audit/telemetry/replay, and UI crates only render typed summaries.
+**Architecture:** `ruse-telemetry` exports provider-neutral telemetry records, `ruse-core` composes runtime evidence from events/audit/telemetry/replay, and UI crates only render typed summaries.
 
 **Tech Stack:** Rust 2024 edition, serde, typed runtime events, audit export, telemetry records, storage replay, Cargo fmt, Cargo clippy, Cargo test.
 

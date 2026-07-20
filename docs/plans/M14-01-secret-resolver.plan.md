@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add redacted secret value and resolver contracts to `agent-model`.
+**Goal:** Add redacted secret value and resolver contracts to `ruse-model`.
 
-**Architecture:** Implement `agent-model::secrets` with no dependency on runtime, storage, CLI, Desktop, or UI bridge. Export stable contracts from `agent-model::lib`.
+**Architecture:** Implement `ruse-model::secrets` with no dependency on runtime, storage, CLI, Desktop, or UI bridge. Export stable contracts from `ruse-model::lib`.
 
 **Tech Stack:** Rust 2024 edition, thiserror, standard environment access, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M14-01-secret-resolver.spec.md`
-- Read: `crates/agent-model/src/config.rs`
-- Read: `crates/agent-model/src/lib.rs`
+- Read: `crates/ruse-model/src/config.rs`
+- Read: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -30,7 +30,7 @@ Expected: the spec defines resolver contracts, privacy rules, tests, and accepta
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-model/tests/secret_resolver.rs`
+- Create: `crates/ruse-model/tests/secret_resolver.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -48,16 +48,16 @@ Add tests named:
 Run:
 
 ```bash
-cargo test -p agent-model --test secret_resolver
+cargo test -p ruse-model --test secret_resolver
 ```
 
-Expected: tests fail because `agent_model::secrets` does not exist.
+Expected: tests fail because `ruse_model::secrets` does not exist.
 
 ### Task 3: Implement Secret Resolver Contracts
 
 **Files:**
-- Create: `crates/agent-model/src/secrets.rs`
-- Modify: `crates/agent-model/src/lib.rs`
+- Create: `crates/ruse-model/src/secrets.rs`
+- Modify: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Add implementation**
 
@@ -73,7 +73,7 @@ Ensure `SecretValue` does not derive `Serialize` and formats as `<redacted>`.
 
 - [x] **Step 2: Export contracts**
 
-Update `crates/agent-model/src/lib.rs` with:
+Update `crates/ruse-model/src/lib.rs` with:
 
 ```rust
 pub mod secrets;
@@ -88,7 +88,7 @@ pub use secrets::{
 Run:
 
 ```bash
-cargo test -p agent-model --test secret_resolver
+cargo test -p ruse-model --test secret_resolver
 ```
 
 Expected: all secret resolver tests pass.

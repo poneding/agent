@@ -68,7 +68,7 @@ const teamWorkflow: UiTeamWorkflowSnapshot = {
         {
           action: 'read',
           scope_kind: 'file',
-          scope_pattern: 'crates/agent-team/**',
+          scope_pattern: 'crates/ruse-team/**',
         },
       ],
       policy_blocked: false,
@@ -76,7 +76,7 @@ const teamWorkflow: UiTeamWorkflowSnapshot = {
     pending_approval_count: 0,
     conflicts: [
       {
-        path: 'crates/agent-team/src/workflow.rs',
+        path: 'crates/ruse-team/src/workflow.rs',
         kind: 'both_modified',
         lead_change: {
           source: 'lead',
@@ -149,7 +149,7 @@ describe('team workflow UI', () => {
     expect(within(panel).getByText('1 grants, policy clear')).toBeInTheDocument();
     expect(within(panel).getByText('0/1 approvals, 1 blocks, 1 artifacts')).toBeInTheDocument();
     expect(within(panel).getByText('Implement UI team surface')).toBeInTheDocument();
-    expect(within(panel).getByText('crates/agent-team/src/workflow.rs')).toBeInTheDocument();
+    expect(within(panel).getByText('crates/ruse-team/src/workflow.rs')).toBeInTheDocument();
     expect(within(panel).getByText('team.ui.fixture')).toBeInTheDocument();
   });
 

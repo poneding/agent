@@ -4,9 +4,9 @@
 
 **Goal:** Add trace-safe runtime and UI event contracts for MCP and skill source metadata.
 
-**Architecture:** Runtime trace payloads live in `agent-types`; UI-safe summaries live in `agent-ui-bridge`. The slice avoids raw MCP schemas, raw tool input/output, raw skill prompt bodies, and secret values in trace payloads.
+**Architecture:** Runtime trace payloads live in `ruse-types`; UI-safe summaries live in `ruse-ui-bridge`. The slice avoids raw MCP schemas, raw tool input/output, raw skill prompt bodies, and secret values in trace payloads.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, existing `agent-types`, `agent-ui-bridge`, `agent-core` tests, `serde`, `serde_json`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, existing `ruse-types`, `ruse-ui-bridge`, `ruse-core` tests, `serde`, `serde_json`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M07-04-mcp-skill-traceability.spec.md`
-- Read: `crates/agent-types/src/event.rs`
-- Read: `crates/agent-ui-bridge/src/event.rs`
-- Read: `crates/agent-core/tests`
+- Read: `crates/ruse-types/src/event.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
+- Read: `crates/ruse-core/tests`
 
 - [x] **Step 1: Review the spec**
 
@@ -31,11 +31,11 @@ Expected: the spec defines trace payloads, serialization requirements, UI normal
 ### Task 2: Write Traceability RED Tests
 
 **Files:**
-- Create: `crates/agent-types/tests/m07_external_trace.rs`
-- Create: `crates/agent-ui-bridge/tests/m07_traceability.rs`
-- Create: `crates/agent-core/tests/m07_mcp_skill_traceability.rs`
+- Create: `crates/ruse-types/tests/m07_external_trace.rs`
+- Create: `crates/ruse-ui-bridge/tests/m07_traceability.rs`
+- Create: `crates/ruse-core/tests/m07_mcp_skill_traceability.rs`
 
-- [x] **Step 1: Add agent-types serialization tests**
+- [x] **Step 1: Add ruse-types serialization tests**
 
 Cover:
 
@@ -68,9 +68,9 @@ Expected: fails because trace payloads do not exist.
 ### Task 3: Add Runtime Trace Payloads
 
 **Files:**
-- Create: `crates/agent-types/src/external.rs`
-- Modify: `crates/agent-types/src/event.rs`
-- Modify: `crates/agent-types/src/lib.rs`
+- Create: `crates/ruse-types/src/external.rs`
+- Modify: `crates/ruse-types/src/event.rs`
+- Modify: `crates/ruse-types/src/lib.rs`
 
 - [x] **Step 1: Add external trace contracts**
 
@@ -90,14 +90,14 @@ SkillPromptContributionRecorded(crate::external::SkillPromptContributionRecorded
 
 - [x] **Step 3: Export `external` module**
 
-Update `agent-types/src/lib.rs`.
+Update `ruse-types/src/lib.rs`.
 
-- [x] **Step 4: Run agent-types tests**
+- [x] **Step 4: Run ruse-types tests**
 
 Run:
 
 ```bash
-cargo test -p agent-types m07_external_trace
+cargo test -p ruse-types m07_external_trace
 ```
 
 Expected: trace serialization tests pass.
@@ -105,8 +105,8 @@ Expected: trace serialization tests pass.
 ### Task 4: Normalize Trace Payloads for UI
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/event.rs`
-- Modify: `crates/agent-ui-bridge/tests/m07_traceability.rs`
+- Modify: `crates/ruse-ui-bridge/src/event.rs`
+- Modify: `crates/ruse-ui-bridge/tests/m07_traceability.rs`
 
 - [x] **Step 1: Add UI payload variants or progress mapping**
 
@@ -121,7 +121,7 @@ Assertions must serialize the UI payload and check that known raw prompt body an
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge m07_traceability
+cargo test -p ruse-ui-bridge m07_traceability
 ```
 
 Expected: UI traceability tests pass.
@@ -138,7 +138,7 @@ Expected: UI traceability tests pass.
 Run:
 
 ```bash
-cargo test -p agent-core m07_mcp_skill_traceability
+cargo test -p ruse-core m07_mcp_skill_traceability
 ```
 
 Expected: core trace fixture test passes.

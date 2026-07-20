@@ -4,9 +4,9 @@
 
 **Goal:** Add team blackboard contracts and an in-memory store for subagent findings, artifact references, reviews, and trace links.
 
-**Architecture:** Blackboard behavior lives in `agent-team` and builds on the crate introduced in M09-03. It stores references and safe summaries, not raw artifacts.
+**Architecture:** Blackboard behavior lives in `ruse-team` and builds on the crate introduced in M09-03. It stores references and safe summaries, not raw artifacts.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `agent-team`, `agent-types`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `ruse-team`, `ruse-types`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,7 +14,7 @@
 
 **Files:**
 - Read: `docs/specs/M09-04-team-blackboard.spec.md`
-- Read: `crates/agent-team/src/lib.rs`
+- Read: `crates/ruse-team/src/lib.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -25,7 +25,7 @@ sed -n '1,260p' docs/specs/M09-04-team-blackboard.spec.md
 ### Task 2: Write Blackboard RED Tests
 
 **Files:**
-- Create: `crates/agent-team/tests/team_blackboard.rs`
+- Create: `crates/ruse-team/tests/team_blackboard.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -40,7 +40,7 @@ Cover:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-team team_blackboard
+cargo test -p ruse-team team_blackboard
 ```
 
 Expected: fails because blackboard APIs do not exist.
@@ -48,8 +48,8 @@ Expected: fails because blackboard APIs do not exist.
 ### Task 3: Implement Blackboard Contracts
 
 **Files:**
-- Create: `crates/agent-team/src/blackboard.rs`
-- Modify: `crates/agent-team/src/lib.rs`
+- Create: `crates/ruse-team/src/blackboard.rs`
+- Modify: `crates/ruse-team/src/lib.rs`
 
 - [x] **Step 1: Add blackboard data contracts**
 
@@ -62,7 +62,7 @@ Implement `BlackboardStore` and `InMemoryBlackboardStore`.
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-team team_blackboard
+cargo test -p ruse-team team_blackboard
 ```
 
 ### Task 4: Complete M09

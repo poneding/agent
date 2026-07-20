@@ -4,7 +4,7 @@
 
 **Goal:** Add a startup migration runner that plans, applies, verifies, and audits local-state upgrades before runtime side effects.
 
-**Architecture:** `agent-core` orchestrates; storage, memory, plugin, and prompt crates expose migration participants.
+**Architecture:** `ruse-core` orchestrates; storage, memory, plugin, and prompt crates expose migration participants.
 
 **Tech Stack:** Rust 2024 edition, serde, schema version records, idempotent migration fixtures, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M25-03-startup-migrations.spec.md`
 - Read: `docs/architecture/storage.md`
-- Read: `crates/agent-storage/src/migration.rs`
-- Read: `crates/agent-storage/tests/schema_migration.rs`
+- Read: `crates/ruse-storage/src/migration.rs`
+- Read: `crates/ruse-storage/tests/schema_migration.rs`
 
 - [x] **Step 1: Review migration boundaries**
 
@@ -25,8 +25,8 @@ Expected: existing schema migration code can be reused behind startup orchestrat
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/startup_migrations.rs`
-- Modify if needed: `crates/agent-storage/tests/schema_migration.rs`
+- Create: `crates/ruse-core/tests/startup_migrations.rs`
+- Modify if needed: `crates/ruse-storage/tests/schema_migration.rs`
 
 - [x] **Step 1: Add runner plan/apply tests**
 
@@ -39,17 +39,17 @@ Prove runtime startup does not proceed after migration failure.
 - [x] **Step 3: Verify RED**
 
 ```bash
-cargo test -p agent-core startup_migrations
+cargo test -p ruse-core startup_migrations
 ```
 
 ### Task 3: Implement Startup Migration Runner
 
 **Files:**
-- Modify: `crates/agent-core/src/lib.rs`
-- Create if needed: `crates/agent-core/src/startup_migration.rs`
-- Modify if needed: `crates/agent-storage/src/lib.rs`
-- Modify if needed: `crates/agent-memory/src/lib.rs`
-- Modify if needed: `crates/agent-plugin/src/lib.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Create if needed: `crates/ruse-core/src/startup_migration.rs`
+- Modify if needed: `crates/ruse-storage/src/lib.rs`
+- Modify if needed: `crates/ruse-memory/src/lib.rs`
+- Modify if needed: `crates/ruse-plugin/src/lib.rs`
 
 - [x] **Step 1: Add migration contracts**
 
@@ -68,8 +68,8 @@ Return recoverable startup diagnostics before any agent turn or background task 
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-core startup_migrations
-cargo test -p agent-storage schema_migration
+cargo test -p ruse-core startup_migrations
+cargo test -p ruse-storage schema_migration
 ```
 
 - [x] **Step 2: Run workspace gates**

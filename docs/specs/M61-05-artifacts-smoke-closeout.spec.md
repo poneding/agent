@@ -27,7 +27,7 @@ Out of scope:
 
 ## Public Contracts
 
-`agent-core` adds a runtime helper that updates the existing `PlanTodoSnapshot` contract without changing its serde shape:
+`ruse-core` adds a runtime helper that updates the existing `PlanTodoSnapshot` contract without changing its serde shape:
 
 ```rust
 pub fn append_task_review_evidence(
@@ -68,10 +68,10 @@ If the target todo item has no task id, it is linked to `review.task_id`. Existi
 
 ## Testing Strategy
 
-- `agent-core` tests for review-to-plan evidence linking, stale revisions, missing artifacts, redaction, and terminal todo preservation
-- `agent-ui-bridge` task review snapshot coverage for safe review/artifact metadata
-- `agent-cli` daily-driver recipe parsing for new plan/todo/task review workflow commands
-- `agent-desktop` smoke fixture coverage for active todo evidence counts and task review artifact conversion
+- `ruse-core` tests for review-to-plan evidence linking, stale revisions, missing artifacts, redaction, and terminal todo preservation
+- `ruse-ui-bridge` task review snapshot coverage for safe review/artifact metadata
+- `ruse-cli` daily-driver recipe parsing for new plan/todo/task review workflow commands
+- `ruse-desktop` smoke fixture coverage for active todo evidence counts and task review artifact conversion
 - `apps/desktop` Vitest smoke coverage for plan/todo/task evidence rendering without secret leaks
 - final M61 gates: Rust fmt, workspace clippy, workspace tests, Desktop Vitest, Desktop build, and `cargo xtask eval`
 

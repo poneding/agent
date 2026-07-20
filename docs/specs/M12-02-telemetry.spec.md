@@ -12,7 +12,7 @@ Users and developers need runtime behavior to be observable without binding the 
 
 This spec delivers:
 
-- `agent-telemetry` crate
+- `ruse-telemetry` crate
 - `TelemetrySpan`
 - `TelemetryMetric`
 - `TraceContext`
@@ -27,12 +27,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-telemetry` is a low-level crate. It may depend on `agent-types` for ids and correlation data, but it must not depend on `agent-core`, storage, UI, models, MCP, or plugins.
+`ruse-telemetry` is a low-level crate. It may depend on `ruse-types` for ids and correlation data, but it must not depend on `ruse-core`, storage, UI, models, MCP, or plugins.
 
 ```mermaid
 flowchart TD
-  core["agent-core"] --> telemetry["agent-telemetry"]
-  telemetry --> types["agent-types"]
+  core["ruse-core"] --> telemetry["ruse-telemetry"]
+  telemetry --> types["ruse-types"]
   telemetry --> sink["TelemetrySink"]
 ```
 
@@ -40,7 +40,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-telemetry/
+  ruse-telemetry/
     Cargo.toml
     src/
       lib.rs
@@ -104,9 +104,9 @@ pub trait TelemetrySink {
 
 ## Acceptance Criteria
 
-- `agent-telemetry` is a workspace crate.
+- `ruse-telemetry` is a workspace crate.
 - Telemetry spans and metrics are typed, serializable, validated, and redacted.
-- `cargo test -p agent-telemetry telemetry` passes.
+- `cargo test -p ruse-telemetry telemetry` passes.
 
 ## Completion Signal
 

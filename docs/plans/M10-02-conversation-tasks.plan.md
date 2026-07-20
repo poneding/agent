@@ -4,9 +4,9 @@
 
 **Goal:** Add Desktop conversation, task, and workspace snapshot view-model contracts.
 
-**Architecture:** Implement view models inside `agent-desktop`. Keep the contracts UI-safe and independent of CLI formatting, storage rows, and model provider types.
+**Architecture:** Implement view models inside `ruse-desktop`. Keep the contracts UI-safe and independent of CLI formatting, storage rows, and model provider types.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `agent-desktop`, `agent-types`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `ruse-desktop`, `ruse-types`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,7 +14,7 @@
 
 **Files:**
 - Read: `docs/specs/M10-02-conversation-tasks.spec.md`
-- Read: `crates/agent-desktop/src/lib.rs`
+- Read: `crates/ruse-desktop/src/lib.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -25,7 +25,7 @@ sed -n '1,260p' docs/specs/M10-02-conversation-tasks.spec.md
 ### Task 2: Write Conversation and Task RED Tests
 
 **Files:**
-- Create: `crates/agent-desktop/tests/conversation_tasks.rs`
+- Create: `crates/ruse-desktop/tests/conversation_tasks.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -40,7 +40,7 @@ Cover:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-desktop conversation_tasks
+cargo test -p ruse-desktop conversation_tasks
 ```
 
 Expected: fails because conversation/task contracts do not exist.
@@ -48,11 +48,11 @@ Expected: fails because conversation/task contracts do not exist.
 ### Task 3: Implement Conversation and Task Contracts
 
 **Files:**
-- Create: `crates/agent-desktop/src/conversation.rs`
-- Create: `crates/agent-desktop/src/task.rs`
-- Create: `crates/agent-desktop/src/snapshot.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
-- Modify: `crates/agent-desktop/src/error.rs`
+- Create: `crates/ruse-desktop/src/conversation.rs`
+- Create: `crates/ruse-desktop/src/task.rs`
+- Create: `crates/ruse-desktop/src/snapshot.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
+- Modify: `crates/ruse-desktop/src/error.rs`
 
 - [x] **Step 1: Add view-model structs**
 
@@ -65,7 +65,7 @@ Implement `build_workspace_snapshot` with validation and deterministic sorting.
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-desktop conversation_tasks
+cargo test -p ruse-desktop conversation_tasks
 ```
 
 ### Task 4: Update Progress and Commit

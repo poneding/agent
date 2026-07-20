@@ -12,7 +12,7 @@ M46 can parse bounded SSE response bodies, but it discards HTTP response metadat
 
 This spec delivers:
 
-- ownership boundaries for HTTP session metadata in `agent-mcp`
+- ownership boundaries for HTTP session metadata in `ruse-mcp`
 - typed validation rules for session ids, protocol versions, and SSE event ids
 - response-envelope boundaries for body mode plus safe metadata
 - client-state rules for session header propagation
@@ -83,7 +83,7 @@ Names may change during implementation, but contracts must remain typed and fixt
 - response-envelope tests proving body-mode compatibility
 - fixture tests for session state transitions and request headers
 - SSE checkpoint tests over bounded events
-- final `agent-mcp` clippy and workspace CI gates
+- final `ruse-mcp` clippy and workspace CI gates
 
 ## Acceptance Criteria
 

@@ -31,7 +31,7 @@ Owned by later M40 specs:
 
 ## Architecture
 
-Contracts live in `agent-mcp`, independent from CLI and Desktop presentation. The module should stay protocol-focused and not depend on `agent-model`.
+Contracts live in `ruse-mcp`, independent from CLI and Desktop presentation. The module should stay protocol-focused and not depend on `ruse-model`.
 
 ```mermaid
 flowchart TD
@@ -108,8 +108,8 @@ Serde must use MCP-compatible field names: `modelPreferences`, `systemPrompt`, `
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts`
-- `CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_contracts`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

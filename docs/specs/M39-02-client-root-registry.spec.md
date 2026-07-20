@@ -27,7 +27,7 @@ Owned by later M39 specs:
 
 ## Architecture
 
-The registry lives in `agent-mcp` and accepts approved root candidates from runtime configuration or workspace setup code. It does not scan directories.
+The registry lives in `ruse-mcp` and accepts approved root candidates from runtime configuration or workspace setup code. It does not scan directories.
 
 ```mermaid
 flowchart TD
@@ -78,8 +78,8 @@ The registry should provide:
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_registry`
-- `CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_registry`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

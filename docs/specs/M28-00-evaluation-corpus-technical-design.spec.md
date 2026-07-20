@@ -12,7 +12,7 @@ The runtime now has single-scenario evaluation. Long-term quality needs named su
 
 This spec delivers:
 
-- scenario suite ownership in `agent-eval`
+- scenario suite ownership in `ruse-eval`
 - corpus file layout and fixture resolution rules
 - golden update separation from normal run mode
 - CLI and `xtask` integration boundaries
@@ -28,14 +28,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-eval::suite` validates suite manifests and expands them into validated M27 scenarios. It may call M27 manifest validation but must not run CLI commands. `agent-cli` renders suite results. `xtask` plans or invokes CLI commands.
+`ruse-eval::suite` validates suite manifests and expands them into validated M27 scenarios. It may call M27 manifest validation but must not run CLI commands. `ruse-cli` renders suite results. `xtask` plans or invokes CLI commands.
 
 ```mermaid
 flowchart TD
-  Suite["agent-eval::suite"] --> Manifest["agent-eval::manifest"]
-  Suite --> Runner["agent-eval::runner"]
-  Runner --> Report["agent-eval::report"]
-  CLI["agent-cli"] --> Suite
+  Suite["ruse-eval::suite"] --> Manifest["ruse-eval::manifest"]
+  Suite --> Runner["ruse-eval::runner"]
+  Runner --> Report["ruse-eval::report"]
+  CLI["ruse-cli"] --> Suite
   Xtask["xtask"] --> CLI
 ```
 
@@ -43,7 +43,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-eval/
+  ruse-eval/
     src/suite.rs
     tests/suite.rs
 docs/

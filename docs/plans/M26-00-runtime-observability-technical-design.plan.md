@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M26 architecture baseline for observability evidence.
 
-**Architecture:** Documentation-only slice covering `agent-telemetry`, `agent-core`, `agent-storage`, `agent-cli`, `agent-ui-bridge`, `agent-tui`, and `agent-desktop` boundaries.
+**Architecture:** Documentation-only slice covering `ruse-telemetry`, `ruse-core`, `ruse-storage`, `ruse-cli`, `ruse-ui-bridge`, `ruse-tui`, and `ruse-desktop` boundaries.
 
 **Tech Stack:** Markdown docs, existing architecture docs, telemetry/audit/replay contracts, Cargo workspace verification.
 

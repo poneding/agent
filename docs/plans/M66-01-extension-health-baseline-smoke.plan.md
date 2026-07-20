@@ -4,20 +4,20 @@
 
 **Goal:** Add a typed, deterministic, redacted extension health smoke report that covers plugin, skill root, and MCP server records.
 
-**Architecture:** `agent-core` owns the health aggregation. CLI/Desktop may render typed snapshots, but no presentation layer owns extension health policy.
+**Architecture:** `ruse-core` owns the health aggregation. CLI/Desktop may render typed snapshots, but no presentation layer owns extension health policy.
 
-**Tech Stack:** Rust 2024 edition, `agent-core`, existing CLI extension health command tests, serde JSON, Cargo fmt/clippy/test.
+**Tech Stack:** Rust 2024 edition, `ruse-core`, existing CLI extension health command tests, serde JSON, Cargo fmt/clippy/test.
 
 ---
 
 ### Task 1: Confirm Existing Baseline
 
 **Files:**
-- Read: `crates/agent-core/src/extension.rs`
-- Read: `crates/agent-core/tests/extension_registry.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/extension_health_commands.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-core/src/extension.rs`
+- Read: `crates/ruse-core/tests/extension_registry.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/extension_health_commands.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Verify existing extension records and snapshots**
 
@@ -26,9 +26,9 @@ Existing `ExtensionRegistry`, `ExtensionRecord`, health statuses, CLI `extension
 ### Task 2: Add Core Health Smoke Report
 
 **Files:**
-- Modify: `crates/agent-core/src/extension.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Modify: `crates/agent-core/tests/extension_registry.rs`
+- Modify: `crates/ruse-core/src/extension.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Modify: `crates/ruse-core/tests/extension_registry.rs`
 
 - [x] **Step 1: Define report types**
 
@@ -45,7 +45,7 @@ Reuse existing redaction helpers and cap message length and diagnostic count.
 ### Task 3: Prove Plugin, Skill, and MCP Baseline
 
 **Files:**
-- Modify: `crates/agent-core/tests/extension_registry.rs`
+- Modify: `crates/ruse-core/tests/extension_registry.rs`
 
 - [x] **Step 1: Add all-kind smoke fixture**
 
@@ -79,9 +79,9 @@ Only mark complete after focused checks pass.
 **Commands:**
 
 ```bash
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-core extension
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-cli extension_health_commands
-CARGO_TARGET_DIR=target/m66-dev cargo clippy -p agent-core -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-core extension
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-cli extension_health_commands
+CARGO_TARGET_DIR=target/m66-dev cargo clippy -p ruse-core -p ruse-cli --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

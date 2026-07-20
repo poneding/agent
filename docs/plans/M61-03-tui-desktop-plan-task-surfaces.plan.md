@@ -4,7 +4,7 @@
 
 **Goal:** Render shared plan/todo/task state in TUI and Desktop surfaces from typed bridge snapshots.
 
-**Architecture:** `agent-ui-bridge` owns UI-safe snapshot contracts, `agent-tui` and `agent-desktop` render/shape presentation state, and `apps/desktop` reduces/render frames. Runtime transition validation stays in `agent-core`.
+**Architecture:** `ruse-ui-bridge` owns UI-safe snapshot contracts, `ruse-tui` and `ruse-desktop` render/shape presentation state, and `apps/desktop` reduces/render frames. Runtime transition validation stays in `ruse-core`.
 
 **Tech Stack:** Rust 2024, serde, existing TUI task panel state, Desktop Rust view models, React/TypeScript/Vitest, Cargo fmt/clippy/test, npm test/build.
 
@@ -16,11 +16,11 @@
 - Read: `docs/specs/M61-plan-todo-task-ux.spec.md`
 - Read: `docs/plans/M61-plan-todo-task-ux.plan.md`
 - Read: `docs/specs/M61-02-cli-json-plan-todo.spec.md`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-tui/src/task_panel.rs`
-- Read: `crates/agent-tui/tests/task_panel.rs`
-- Read: `crates/agent-desktop/src/task.rs`
-- Read: `crates/agent-desktop/tests/conversation_tasks.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-tui/src/task_panel.rs`
+- Read: `crates/ruse-tui/tests/task_panel.rs`
+- Read: `crates/ruse-desktop/src/task.rs`
+- Read: `crates/ruse-desktop/tests/conversation_tasks.rs`
 - Read: `apps/desktop/src/types.ts`
 - Read: `apps/desktop/src/state/conversation.ts`
 - Read: `apps/desktop/src/state/tasks.ts`
@@ -37,9 +37,9 @@ Confirm current task, review, notification, and plan/todo frame shapes and exist
 ### Task 2: Add Bridge Presentation Fields
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify: `crates/agent-ui-bridge/tests/task_command_bridge.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/tests/task_command_bridge.rs`
 
 - [x] **Step 1: Add optional task plan fields**
 
@@ -52,8 +52,8 @@ Existing task fixtures without new fields must still deserialize and render.
 ### Task 3: Implement TUI Plan Rendering
 
 **Files:**
-- Modify: `crates/agent-tui/src/task_panel.rs`
-- Modify: `crates/agent-tui/tests/task_panel.rs`
+- Modify: `crates/ruse-tui/src/task_panel.rs`
+- Modify: `crates/ruse-tui/tests/task_panel.rs`
 
 - [x] **Step 1: Store latest plan snapshot in task panel**
 
@@ -68,7 +68,7 @@ Show revision, counts, active todo content, diagnostics/errors, task statuses, r
 Run:
 
 ```bash
-cargo test -p agent-tui --test task_panel
+cargo test -p ruse-tui --test task_panel
 ```
 
 Expected: task panel renders plan progress and remains compatible with task-only frames.
@@ -76,9 +76,9 @@ Expected: task panel renders plan progress and remains compatible with task-only
 ### Task 4: Implement Desktop Rust View Models
 
 **Files:**
-- Modify: `crates/agent-desktop/src/task.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
-- Create: `crates/agent-desktop/tests/plan_todo_tasks.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
+- Create: `crates/ruse-desktop/tests/plan_todo_tasks.rs`
 
 - [x] **Step 1: Add typed Desktop plan fields**
 
@@ -89,7 +89,7 @@ Add Desktop task monitor fields for plan progress, active todo, waiting approval
 Run:
 
 ```bash
-cargo test -p agent-desktop --test plan_todo_tasks
+cargo test -p ruse-desktop --test plan_todo_tasks
 ```
 
 Expected: Desktop Rust view models serialize safe plan/task details without secrets.
@@ -138,9 +138,9 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-tui -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-tui --test task_panel
-cargo test -p agent-desktop --test plan_todo_tasks
+cargo clippy -p ruse-tui -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-tui --test task_panel
+cargo test -p ruse-desktop --test plan_todo_tasks
 npm --prefix apps/desktop test -- conversation-task-ui trace-settings-ui desktop-smoke
 npm --prefix apps/desktop run build
 git diff --check

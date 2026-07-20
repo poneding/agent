@@ -23,7 +23,7 @@ Not included:
 
 ## Architecture
 
-`agent-mcp::client_events` owns protocol event reports and redaction. The output is serializable and can be passed through CLI JSON or bridge frames later.
+`ruse-mcp::client_events` owns protocol event reports and redaction. The output is serializable and can be passed through CLI JSON or bridge frames later.
 
 ## Security
 
@@ -31,4 +31,4 @@ Reports include method, event kind, counts, bounded status strings, and redacted
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_client_protocol_events`
+- `cargo test -p ruse-mcp mcp_client_protocol_events`

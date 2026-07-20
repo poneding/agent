@@ -4,7 +4,7 @@
 
 **Goal:** Build the comprehensive model-tool-observation loop that powers real coding-agent turns.
 
-**Architecture:** `agent-core` owns loop orchestration. It consumes `agent-model` stream events, executes `agent-tool` calls through `agent-policy`, records events in `agent-storage`, and uses `agent-context` to add compressed observations back to model input.
+**Architecture:** `ruse-core` owns loop orchestration. It consumes `ruse-model` stream events, executes `ruse-tool` calls through `ruse-policy`, records events in `ruse-storage`, and uses `ruse-context` to add compressed observations back to model input.
 
 **Tech Stack:** Rust 2024 edition, Tokio, serde, existing tool/policy/storage crates, deterministic fake models, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -13,8 +13,8 @@
 ### Task 1: Establish M18 Technical Design
 
 **Files:**
-- Create: `docs/specs/M18-00-agent-tool-loop-technical-design.spec.md`
-- Create: `docs/plans/M18-00-agent-tool-loop-technical-design.plan.md`
+- Create: `docs/specs/M18-00-ruse-tool-loop-technical-design.spec.md`
+- Create: `docs/plans/M18-00-ruse-tool-loop-technical-design.plan.md`
 
 - [x] **Step 1: Write the M18 technical design baseline**
 
@@ -80,7 +80,7 @@ Run a deterministic model-driven edit, shell, Git, and final response workflow.
 **Files:**
 - Modify: `README.md`
 - Modify: `docs/milestones/README.md`
-- Modify: `docs/plans/M18-agent-tool-loop-runtime.plan.md`
+- Modify: `docs/plans/M18-ruse-tool-loop-runtime.plan.md`
 
 - [x] **Step 1: Run final workspace gates**
 

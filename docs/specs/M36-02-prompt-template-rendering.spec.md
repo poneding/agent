@@ -16,11 +16,11 @@ This spec delivers:
 
 ## Architecture
 
-`agent-mcp::server_prompt` owns rendering inside `McpPromptExport`. The registry passes `prompts/get` arguments into the export and receives an `McpPromptGetResult`.
+`ruse-mcp::server_prompt` owns rendering inside `McpPromptExport`. The registry passes `prompts/get` arguments into the export and receives an `McpPromptGetResult`.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_prompt_rendering`
+- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-mcp mcp_server_prompt_rendering`
 
 ## Completion Signal
 

@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M30 MCP server design baseline and implementation slices.
 
-**Architecture:** Documentation-only slice. `agent-mcp` owns server contracts and export normalization; runtime and UI crates consume typed surfaces.
+**Architecture:** Documentation-only slice. `ruse-mcp` owns server contracts and export normalization; runtime and UI crates consume typed surfaces.
 
 **Tech Stack:** Markdown specs and plans.
 
@@ -12,7 +12,7 @@
 
 ### Task 1: Confirm Inputs
 
-- [x] **Step 1: Read PRD MCP server requirement and current `agent-mcp` modules**
+- [x] **Step 1: Read PRD MCP server requirement and current `ruse-mcp` modules**
 
 ### Task 2: Write Design
 

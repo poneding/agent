@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add prompt composition, multiline input, history, slash commands, and submit effects to `agent-tui`.
+**Goal:** Add prompt composition, multiline input, history, slash commands, and submit effects to `ruse-tui`.
 
 **Architecture:** Composer state is pure and emits effects. The app loop maps submit effects to UI bridge commands but does not run runtime logic directly.
 
-**Tech Stack:** Rust 2024 edition, `agent-tui`, `agent-ui-bridge`, Ratatui buffer tests, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-tui`, `ruse-ui-bridge`, Ratatui buffer tests, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M20-03-tui-composer-repl.spec.md`
-- Read: `crates/agent-tui/src/app.rs`
-- Read: `crates/agent-cli/src/command.rs`
+- Read: `crates/ruse-tui/src/app.rs`
+- Read: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Review composer boundary**
 
@@ -30,8 +30,8 @@ Expected: composer emits effects and does not call runtime crates.
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-tui/tests/composer.rs`
-- Create: `crates/agent-tui/tests/slash_commands.rs`
+- Create: `crates/ruse-tui/tests/composer.rs`
+- Create: `crates/ruse-tui/tests/slash_commands.rs`
 
 - [x] **Step 1: Add composer reducer tests**
 
@@ -46,8 +46,8 @@ Cover `/help`, `/status`, `/trace`, `/tasks`, `/settings`, `/clear`, `/quit`, an
 Run:
 
 ```bash
-cargo test -p agent-tui --test composer
-cargo test -p agent-tui --test slash_commands
+cargo test -p ruse-tui --test composer
+cargo test -p ruse-tui --test slash_commands
 ```
 
 Expected: fails because composer contracts are missing.
@@ -55,11 +55,11 @@ Expected: fails because composer contracts are missing.
 ### Task 3: Implement Composer
 
 **Files:**
-- Create: `crates/agent-tui/src/composer.rs`
-- Create: `crates/agent-tui/src/slash.rs`
-- Modify: `crates/agent-tui/src/app.rs`
-- Modify: `crates/agent-tui/src/render.rs`
-- Modify: `crates/agent-tui/src/lib.rs`
+- Create: `crates/ruse-tui/src/composer.rs`
+- Create: `crates/ruse-tui/src/slash.rs`
+- Modify: `crates/ruse-tui/src/app.rs`
+- Modify: `crates/ruse-tui/src/render.rs`
+- Modify: `crates/ruse-tui/src/lib.rs`
 
 - [x] **Step 1: Add composer state**
 
@@ -80,16 +80,16 @@ Render composer content with stable height and truncation for narrow widths.
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-tui/tests/composer.rs`
-- Read: `crates/agent-tui/tests/slash_commands.rs`
+- Read: `crates/ruse-tui/tests/composer.rs`
+- Read: `crates/ruse-tui/tests/slash_commands.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-tui --test composer
-cargo test -p agent-tui --test slash_commands
+cargo test -p ruse-tui --test composer
+cargo test -p ruse-tui --test slash_commands
 ```
 
 Expected: focused tests pass.
@@ -99,7 +99,7 @@ Expected: focused tests pass.
 Run:
 
 ```bash
-cargo test -p agent-tui
+cargo test -p ruse-tui
 ```
 
 Expected: all TUI tests pass.

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add registry-backed skill root management and diagnostics while keeping prompt contribution logic in `agent-skill` and `agent-context`.
+**Goal:** Add registry-backed skill root management and diagnostics while keeping prompt contribution logic in `ruse-skill` and `ruse-context`.
 
-**Architecture:** `agent-skill` owns root validation and discovery diagnostics. `agent-core` stores root extension state. `agent-cli` renders skill root commands.
+**Architecture:** `ruse-skill` owns root validation and discovery diagnostics. `ruse-core` stores root extension state. `ruse-cli` renders skill root commands.
 
 **Tech Stack:** Rust 2024 edition, tempfile fixtures, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M22-03-skill-root-management.spec.md`
-- Read: `crates/agent-skill/src/discovery.rs`
-- Read: `crates/agent-skill/tests/skill_discovery.rs`
-- Read: `crates/agent-cli/src/command.rs`
+- Read: `crates/ruse-skill/src/discovery.rs`
+- Read: `crates/ruse-skill/tests/skill_discovery.rs`
+- Read: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Review skill root scope**
 
@@ -31,8 +31,8 @@ Expected: root commands, diagnostics, prompt boundaries, and redaction requireme
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-skill/tests/skill_roots.rs`
-- Create: `crates/agent-cli/tests/skill_root_commands.rs`
+- Create: `crates/ruse-skill/tests/skill_roots.rs`
+- Create: `crates/ruse-cli/tests/skill_root_commands.rs`
 
 - [x] **Step 1: Add root model tests**
 
@@ -51,8 +51,8 @@ Cover text and JSON output for root list, add, inspect, enable, disable, and rem
 Run:
 
 ```bash
-cargo test -p agent-skill skill_roots
-cargo test -p agent-cli skill_root_commands
+cargo test -p ruse-skill skill_roots
+cargo test -p ruse-cli skill_root_commands
 ```
 
 Expected: tests fail because managed skill roots and commands are missing.
@@ -60,9 +60,9 @@ Expected: tests fail because managed skill roots and commands are missing.
 ### Task 3: Implement Skill Root Management
 
 **Files:**
-- Create: `crates/agent-skill/src/roots.rs`
-- Modify: `crates/agent-skill/src/lib.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Create: `crates/ruse-skill/src/roots.rs`
+- Modify: `crates/ruse-skill/src/lib.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add managed root contracts**
 
@@ -83,16 +83,16 @@ Render stable text and JSON outputs for skill root commands.
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-skill/tests/skill_roots.rs`
-- Read: `crates/agent-cli/tests/skill_root_commands.rs`
+- Read: `crates/ruse-skill/tests/skill_roots.rs`
+- Read: `crates/ruse-cli/tests/skill_root_commands.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-skill skill_roots
-cargo test -p agent-cli skill_root_commands
+cargo test -p ruse-skill skill_roots
+cargo test -p ruse-cli skill_root_commands
 ```
 
 Expected: focused tests pass.
@@ -125,7 +125,7 @@ Advance active implementation focus to M22-04.
 Run:
 
 ```bash
-git add crates/agent-skill crates/agent-cli docs Cargo.lock
+git add crates/ruse-skill crates/ruse-cli docs Cargo.lock
 git commit -m "feat: add skill root management"
 ```
 

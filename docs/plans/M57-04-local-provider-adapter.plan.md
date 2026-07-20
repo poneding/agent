@@ -4,7 +4,7 @@
 
 **Goal:** Add a local/Ollama-compatible provider adapter with local endpoint safety, fixture-backed streaming/tool-call mapping, typed capabilities, CLI registration, and redacted diagnostics.
 
-**Architecture:** Local provider protocol and endpoint safety live in `agent-model`; `agent-cli` only builds configured providers and renders typed config summaries.
+**Architecture:** Local provider protocol and endpoint safety live in `ruse-model`; `ruse-cli` only builds configured providers and renders typed config summaries.
 
 **Tech Stack:** Rust 2024 edition, async trait providers, serde JSONL fixtures, reqwest transport, Cargo fmt/clippy/test.
 
@@ -14,20 +14,20 @@
 
 **Files:**
 - Read: `docs/specs/M57-04-local-provider-adapter.spec.md`
-- Read: `crates/agent-model/src/gemini.rs`
-- Read: `crates/agent-model/tests/gemini.rs`
-- Read: `crates/agent-model/src/config.rs`
-- Read: `crates/agent-model/src/registry.rs`
-- Read: `crates/agent-cli/src/providers.rs`
-- Read: `crates/agent-cli/tests/live_provider_registration.rs`
+- Read: `crates/ruse-model/src/gemini.rs`
+- Read: `crates/ruse-model/tests/gemini.rs`
+- Read: `crates/ruse-model/src/config.rs`
+- Read: `crates/ruse-model/src/registry.rs`
+- Read: `crates/ruse-cli/src/providers.rs`
+- Read: `crates/ruse-cli/tests/live_provider_registration.rs`
 
 - [x] **Step 1: Review current provider adapter baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-model gemini
-cargo test -p agent-cli live_provider_registration
+cargo test -p ruse-model gemini
+cargo test -p ruse-cli live_provider_registration
 ```
 
 Expected: Gemini adapter behavior and CLI provider registration pass before adding local provider support.
@@ -35,13 +35,13 @@ Expected: Gemini adapter behavior and CLI provider registration pass before addi
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-model/tests/local_provider.rs`
-- Modify: `crates/agent-model/tests/provider_config.rs`
-- Modify: `crates/agent-model/tests/provider_capability_matrix.rs`
-- Modify: `crates/agent-cli/tests/config_diagnostics.rs`
-- Modify: `crates/agent-cli/tests/live_provider_registration.rs`
+- Create: `crates/ruse-model/tests/local_provider.rs`
+- Modify: `crates/ruse-model/tests/provider_config.rs`
+- Modify: `crates/ruse-model/tests/provider_capability_matrix.rs`
+- Modify: `crates/ruse-cli/tests/config_diagnostics.rs`
+- Modify: `crates/ruse-cli/tests/live_provider_registration.rs`
 
-- [x] **Step 1: Add agent-model local provider tests**
+- [x] **Step 1: Add ruse-model local provider tests**
 
 Cover:
 
@@ -77,11 +77,11 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-model local_provider
-cargo test -p agent-model provider_config
-cargo test -p agent-model provider_capability_matrix
-cargo test -p agent-cli config_diagnostics
-cargo test -p agent-cli live_provider_registration
+cargo test -p ruse-model local_provider
+cargo test -p ruse-model provider_config
+cargo test -p ruse-model provider_capability_matrix
+cargo test -p ruse-cli config_diagnostics
+cargo test -p ruse-cli live_provider_registration
 ```
 
 Expected: tests fail before local provider contracts and implementation exist.
@@ -89,10 +89,10 @@ Expected: tests fail before local provider contracts and implementation exist.
 ### Task 3: Implement Local Model Adapter
 
 **Files:**
-- Create: `crates/agent-model/src/local.rs`
-- Modify: `crates/agent-model/src/lib.rs`
-- Modify: `crates/agent-model/src/config.rs`
-- Modify: `crates/agent-model/src/registry.rs`
+- Create: `crates/ruse-model/src/local.rs`
+- Modify: `crates/ruse-model/src/lib.rs`
+- Modify: `crates/ruse-model/src/config.rs`
+- Modify: `crates/ruse-model/src/registry.rs`
 
 - [x] **Step 1: Extend typed provider kind and endpoint validation**
 
@@ -113,10 +113,10 @@ Add `ModelCapabilities::local_default()` and update `default_for_provider_kind`.
 ### Task 4: Wire CLI and Config Surfaces
 
 **Files:**
-- Modify: `crates/agent-cli/src/providers.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify if needed: `crates/agent-core/src/repo_session.rs`
-- Modify if needed: `crates/agent-cli/tests/config_diagnostics.rs`
+- Modify: `crates/ruse-cli/src/providers.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify if needed: `crates/ruse-core/src/repo_session.rs`
+- Modify if needed: `crates/ruse-cli/tests/config_diagnostics.rs`
 
 - [x] **Step 1: Register configured local providers**
 
@@ -139,12 +139,12 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-model -p agent-core -p agent-cli -p agent-ui-bridge --all-targets -- -D warnings
-cargo test -p agent-model local_provider
-cargo test -p agent-model provider_config
-cargo test -p agent-model provider_capability_matrix
-cargo test -p agent-cli config_diagnostics
-cargo test -p agent-cli live_provider_registration
+cargo clippy -p ruse-model -p ruse-core -p ruse-cli -p ruse-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-model local_provider
+cargo test -p ruse-model provider_config
+cargo test -p ruse-model provider_capability_matrix
+cargo test -p ruse-cli config_diagnostics
+cargo test -p ruse-cli live_provider_registration
 ```
 
 Expected: focused checks pass.

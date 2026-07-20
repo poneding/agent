@@ -26,19 +26,19 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns recovery planning and execution. It consumes `agent-storage` traits and existing runtime events, but it does not depend on CLI or Desktop code.
+`ruse-core` owns recovery planning and execution. It consumes `ruse-storage` traits and existing runtime events, but it does not depend on CLI or Desktop code.
 
 ```mermaid
 flowchart TD
-  agent_core["agent-core RecoveryEngine"] --> agent_storage["CheckpointStore + EventStore + IdempotencyStore"]
-  agent_core --> agent_types["RuntimeEvent"]
+  ruse_core["ruse-core RecoveryEngine"] --> ruse_storage["CheckpointStore + EventStore + IdempotencyStore"]
+  ruse_core --> ruse_types["RuntimeEvent"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       recovery.rs
       lib.rs

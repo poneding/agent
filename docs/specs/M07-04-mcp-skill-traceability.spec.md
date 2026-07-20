@@ -26,13 +26,13 @@ Owned by other specs:
 
 ## Architecture
 
-Traceable source metadata belongs in `agent-types` runtime events. UI-safe summaries belong in `agent-ui-bridge`. Runtime orchestration can emit these events later through `agent-core`, but this slice keeps event contracts and normalization deterministic and testable without live model, MCP server, or Desktop code.
+Traceable source metadata belongs in `ruse-types` runtime events. UI-safe summaries belong in `ruse-ui-bridge`. Runtime orchestration can emit these events later through `ruse-core`, but this slice keeps event contracts and normalization deterministic and testable without live model, MCP server, or Desktop code.
 
 ```mermaid
 flowchart TD
-  mcp["agent-mcp metadata"] --> types["agent-types RuntimeEventPayload"]
-  skill["agent-skill metadata"] --> types
-  types --> bridge["agent-ui-bridge normalized events"]
+  mcp["ruse-mcp metadata"] --> types["ruse-types RuntimeEventPayload"]
+  skill["ruse-skill metadata"] --> types
+  types --> bridge["ruse-ui-bridge normalized events"]
   types --> storage["event log / trace replay"]
 ```
 
@@ -40,17 +40,17 @@ flowchart TD
 
 ```text
 crates/
-  agent-types/
+  ruse-types/
     src/
       external.rs
       event.rs
       lib.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       event.rs
     tests/
       m07_traceability.rs
-  crates/agent-core/
+  crates/ruse-core/
     tests/
       m07_mcp_skill_traceability.rs
 ```
@@ -123,9 +123,9 @@ Serialization rules:
 
 ## Testing Strategy
 
-- `agent-types` serialization tests prove stable snake_case event shape.
-- `agent-ui-bridge` tests prove new payloads normalize without leaking raw prompt bodies or schemas.
-- `agent-core` integration tests build deterministic event fixtures for MCP discovery and skill prompt contribution.
+- `ruse-types` serialization tests prove stable snake_case event shape.
+- `ruse-ui-bridge` tests prove new payloads normalize without leaking raw prompt bodies or schemas.
+- `ruse-core` integration tests build deterministic event fixtures for MCP discovery and skill prompt contribution.
 - Replay compatibility tests run with the full workspace test suite.
 
 ## Acceptance Criteria

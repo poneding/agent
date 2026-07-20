@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-The runner remains a composition layer in `agent-mcp`.
+The runner remains a composition layer in `ruse-mcp`.
 
 ```mermaid
 flowchart TD
@@ -65,9 +65,9 @@ Concrete names may change during implementation.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_runner`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_runner`
 - `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

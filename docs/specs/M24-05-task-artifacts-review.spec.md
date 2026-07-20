@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` produces task artifact metadata and review summaries. `agent-scheduler` links artifacts to task runs. `agent-ui-bridge`, CLI, TUI, and Desktop render safe summaries.
+`ruse-core` produces task artifact metadata and review summaries. `ruse-scheduler` links artifacts to task runs. `ruse-ui-bridge`, CLI, TUI, and Desktop render safe summaries.
 
 ```mermaid
 flowchart TD
@@ -81,7 +81,7 @@ pub struct TaskReviewSummary {
 
 - Completed background tasks produce reviewable summaries and artifact metadata.
 - Failed tasks keep trace and failure context.
-- Focused tests pass with `cargo test -p agent-core task_artifacts_review` and `cargo test -p agent-ui-bridge task_review`.
+- Focused tests pass with `cargo test -p ruse-core task_artifacts_review` and `cargo test -p ruse-ui-bridge task_review`.
 
 ## Completion Signal
 

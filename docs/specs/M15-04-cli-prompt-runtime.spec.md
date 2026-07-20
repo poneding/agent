@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Make `agent-cli --prompt` execute a configured runtime turn instead of returning a static echo.
+Make `ruse-cli --prompt` execute a configured runtime turn instead of returning a static echo.
 
 ## Product Context
 
@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-CLI parses flags and builds an effective config using `agent-core::config`. It registers fake providers for executable fake configs, calls `ConfiguredTurnRunner`, and renders the final message. CLI does not parse YAML/TOML internals or call provider transports directly.
+CLI parses flags and builds an effective config using `ruse-core::config`. It registers fake providers for executable fake configs, calls `ConfiguredTurnRunner`, and renders the final message. CLI does not parse YAML/TOML internals or call provider transports directly.
 
 ## State And Failure Handling
 
@@ -55,4 +55,4 @@ CLI parses flags and builds an effective config using `agent-core::config`. It r
 
 ## Completion Signal
 
-M15-04 is complete when `cargo test -p agent-cli --test prompt_runtime` and workspace gates pass, status advances to M15-05, and the slice is committed.
+M15-04 is complete when `cargo test -p ruse-cli --test prompt_runtime` and workspace gates pass, status advances to M15-05, and the slice is committed.

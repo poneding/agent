@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-The corpus is repository data. Tests load it through `agent-eval::suite`, not bespoke file parsing.
+The corpus is repository data. Tests load it through `ruse-eval::suite`, not bespoke file parsing.
 
 ## File Layout
 
@@ -61,7 +61,7 @@ The default suite ID is `default-regression`.
 ## Acceptance Criteria
 
 - default suite exists and runs locally.
-- focused `agent-eval` corpus tests pass.
+- focused `ruse-eval` corpus tests pass.
 
 ## Completion Signal
 

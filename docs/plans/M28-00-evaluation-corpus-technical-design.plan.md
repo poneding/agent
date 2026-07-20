@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M28 suite/corpus/gate design baseline.
 
-**Architecture:** `agent-eval` owns suite expansion. `agent-cli` and `xtask` consume typed contracts.
+**Architecture:** `ruse-eval` owns suite expansion. `ruse-cli` and `xtask` consume typed contracts.
 
 **Tech Stack:** Markdown specs/plans, existing M27 eval contracts, Cargo workspace conventions.
 
@@ -18,7 +18,7 @@
 
 - [x] **Step 1: Review architecture boundaries**
 
-Expected: suite logic belongs in `agent-eval`, not CLI or Desktop.
+Expected: suite logic belongs in `ruse-eval`, not CLI or Desktop.
 
 ### Task 2: Write Design and Slice Plans
 

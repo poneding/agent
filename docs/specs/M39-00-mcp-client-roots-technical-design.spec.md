@@ -29,7 +29,7 @@ Owned by implementation slices:
 
 ## Architecture
 
-Root data lives in `agent-mcp` because it is MCP protocol state. The registry accepts only explicit file roots supplied by trusted runtime configuration or workspace setup code. Tool execution still depends on local policy.
+Root data lives in `ruse-mcp` because it is MCP protocol state. The registry accepts only explicit file roots supplied by trusted runtime configuration or workspace setup code. Tool execution still depends on local policy.
 
 ```mermaid
 flowchart TD

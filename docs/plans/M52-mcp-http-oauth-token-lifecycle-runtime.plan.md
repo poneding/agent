@@ -4,7 +4,7 @@
 
 **Goal:** Add safe token lifecycle contracts, diagnostics, refresh planning, and request factories for MCP HTTP OAuth authorization.
 
-**Architecture:** `agent-mcp` owns typed, pure token lifecycle contracts and request factory helpers; external auth/storage layers own login, refresh network calls, and durable secret storage.
+**Architecture:** `ruse-mcp` owns typed, pure token lifecycle contracts and request factory helpers; external auth/storage layers own login, refresh network calls, and durable secret storage.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

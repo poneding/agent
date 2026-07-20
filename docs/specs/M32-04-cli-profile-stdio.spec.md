@@ -2,17 +2,17 @@
 
 ## Purpose
 
-Expose manifest-backed MCP stdio startup through `agent-cli` while preserving protocol-only stdout.
+Expose manifest-backed MCP stdio startup through `ruse-cli` while preserving protocol-only stdout.
 
 ## Product Context
 
-Users need to run an MCP stdio server from an explicit export manifest. CLI should handle path/profile arguments and leave runtime semantics in `agent-mcp`.
+Users need to run an MCP stdio server from an explicit export manifest. CLI should handle path/profile arguments and leave runtime semantics in `ruse-mcp`.
 
 ## Scope
 
 This spec delivers:
 
-- `agent-cli mcp server stdio --profile <path>` parsing
+- `ruse-cli mcp server stdio --profile <path>` parsing
 - optional `--profile-name <name>` selection
 - manifest load/bootstrap errors on stderr
 - subprocess tests for protocol-only stdout
@@ -24,19 +24,19 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` reads the manifest file and calls `agent-mcp` bootstrap helpers. The running stdio loop remains unchanged.
+`ruse-cli` reads the manifest file and calls `ruse-mcp` bootstrap helpers. The running stdio loop remains unchanged.
 
 ## File Layout
 
 ```text
-crates/agent-cli/src/command.rs
-crates/agent-cli/tests/mcp_server_profile_command.rs
+crates/ruse-cli/src/command.rs
+crates/ruse-cli/tests/mcp_server_profile_command.rs
 ```
 
 ## Public Contracts
 
 ```bash
-agent-cli mcp server stdio --profile path/to/mcp-server-exports.json --profile-name default
+ruse-cli mcp server stdio --profile path/to/mcp-server-exports.json --profile-name default
 ```
 
 ## State and Failure Handling

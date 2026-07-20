@@ -2,20 +2,20 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `agent-scheduler` with task run contracts and legal task state transitions.
+**Goal:** Add `ruse-scheduler` with task run contracts and legal task state transitions.
 
-**Architecture:** `agent-scheduler` depends on `agent-types` only in this slice. It owns task metadata and transition validation; queueing, leases, quotas, and notifications are later M08 slices.
+**Architecture:** `ruse-scheduler` depends on `ruse-types` only in this slice. It owns task metadata and transition validation; queueing, leases, quotas, and notifications are later M08 slices.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `agent-types`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `ruse-types`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
-### Task 1: Scaffold `agent-scheduler`
+### Task 1: Scaffold `ruse-scheduler`
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-scheduler/Cargo.toml`
-- Create: `crates/agent-scheduler/src/lib.rs`
+- Create: `crates/ruse-scheduler/Cargo.toml`
+- Create: `crates/ruse-scheduler/src/lib.rs`
 
 - [x] **Step 1: Add crate scaffold**
 
@@ -23,7 +23,7 @@ Create the crate with dependencies:
 
 ```toml
 [dependencies]
-agent-types = { path = "../agent-types" }
+ruse-types = { path = "../ruse-types" }
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
 ```
@@ -33,7 +33,7 @@ Export placeholder modules only after RED tests are written.
 ### Task 2: Write Task State RED Tests
 
 **Files:**
-- Create: `crates/agent-scheduler/tests/task_state_machine.rs`
+- Create: `crates/ruse-scheduler/tests/task_state_machine.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -50,7 +50,7 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-scheduler task_state_machine
+cargo test -p ruse-scheduler task_state_machine
 ```
 
 Expected: fails because task contracts do not exist.
@@ -58,9 +58,9 @@ Expected: fails because task contracts do not exist.
 ### Task 3: Implement Minimal State Machine
 
 **Files:**
-- Create: `crates/agent-scheduler/src/error.rs`
-- Create: `crates/agent-scheduler/src/task.rs`
-- Modify: `crates/agent-scheduler/src/lib.rs`
+- Create: `crates/ruse-scheduler/src/error.rs`
+- Create: `crates/ruse-scheduler/src/task.rs`
+- Modify: `crates/ruse-scheduler/src/lib.rs`
 
 - [x] **Step 1: Add `SchedulerError`**
 
@@ -79,7 +79,7 @@ Implement `transition_task_state` using the transition matrix from the spec.
 Run:
 
 ```bash
-cargo test -p agent-scheduler task_state_machine
+cargo test -p ruse-scheduler task_state_machine
 ```
 
 Expected: focused tests pass.

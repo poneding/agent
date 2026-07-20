@@ -12,9 +12,9 @@ M30 proved MCP server protocol contracts, export registries, deterministic frame
 
 This milestone delivers:
 
-- durable stdio server session contracts in `agent-mcp`
+- durable stdio server session contracts in `ruse-mcp`
 - bootstrap export profile for explicitly selected tools/resources
-- CLI command shape for `agent-cli mcp server stdio`
+- CLI command shape for `ruse-cli mcp server stdio`
 - server trace/audit summaries for initialize/list/call/read frames
 - lifecycle hardening, docs, and final quality gate
 
@@ -26,16 +26,16 @@ Owned by other milestones:
 
 ## Architecture
 
-`agent-mcp` owns protocol/session/runtime behavior. `agent-cli` owns process IO, argument parsing, and rendering only. `agent-policy` remains the permission boundary, and `agent-tool` remains the executable tool registry. Durable audit and trace summaries stay typed and redacted.
+`ruse-mcp` owns protocol/session/runtime behavior. `ruse-cli` owns process IO, argument parsing, and rendering only. `ruse-policy` remains the permission boundary, and `ruse-tool` remains the executable tool registry. Durable audit and trace summaries stay typed and redacted.
 
 ```mermaid
 flowchart TD
-  Client["MCP client"] --> Stdio["agent-cli stdio command"]
-  Stdio --> Session["agent-mcp server session"]
+  Client["MCP client"] --> Stdio["ruse-cli stdio command"]
+  Stdio --> Session["ruse-mcp server session"]
   Session --> Dispatcher["JSON-RPC dispatcher"]
   Dispatcher --> Exports["tool/resource exports"]
-  Exports --> Policy["agent-policy"]
-  Exports --> Tools["agent-tool"]
+  Exports --> Policy["ruse-policy"]
+  Exports --> Tools["ruse-tool"]
   Session --> Trace["trace/audit summaries"]
 ```
 
@@ -43,14 +43,14 @@ flowchart TD
 
 ```text
 crates/
-  agent-mcp/
+  ruse-mcp/
     src/server_session.rs
     src/server_profile.rs
     src/server_trace.rs
     tests/mcp_server_session.rs
     tests/mcp_server_profile.rs
     tests/mcp_server_trace.rs
-  agent-cli/
+  ruse-cli/
     tests/mcp_server_stdio_command.rs
 docs/
   specs/M31-*.spec.md
@@ -96,7 +96,7 @@ pub struct McpServerExportProfile {
 
 ## Acceptance Criteria
 
-- `agent-cli mcp server stdio` can initialize and list safe default exports over stdin/stdout.
+- `ruse-cli mcp server stdio` can initialize and list safe default exports over stdin/stdout.
 - server sessions preserve state across malformed frames.
 - all tool/resource access still uses M30 policy-aware export registries.
 - M31 focused tests and workspace quality gate pass.

@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Execute safe MCP sampling requests through an `agent-model::ModelProvider`.
+**Goal:** Execute safe MCP sampling requests through an `ruse-model::ModelProvider`.
 
-**Architecture:** Extend `agent-core::mcp_sampling` with `McpModelSamplingProvider`, backed by `Arc<dyn ModelProvider>`, and implement `agent_mcp::McpSamplingProvider`.
+**Architecture:** Extend `ruse-core::mcp_sampling` with `McpModelSamplingProvider`, backed by `Arc<dyn ModelProvider>`, and implement `ruse_mcp::McpSamplingProvider`.
 
-**Tech Stack:** Rust 2024 edition, async-trait, agent-core, agent-model, agent-mcp, Cargo tests.
+**Tech Stack:** Rust 2024 edition, async-trait, ruse-core, ruse-model, ruse-mcp, Cargo tests.
 
 ---
 
@@ -14,17 +14,17 @@
 
 **Files:**
 - Read: `docs/specs/M41-02-sampling-model-provider.spec.md`
-- Read: `crates/agent-model/src/stream.rs`
-- Read: `crates/agent-model/src/fake.rs`
-- Read: `crates/agent-core/src/mcp_sampling.rs`
+- Read: `crates/ruse-model/src/stream.rs`
+- Read: `crates/ruse-model/src/fake.rs`
+- Read: `crates/ruse-core/src/mcp_sampling.rs`
 
 - [x] **Step 1: Review stream and mapping contracts**
 
 Run:
 
 ```bash
-sed -n '1,180p' crates/agent-model/src/stream.rs
-sed -n '1,220p' crates/agent-core/src/mcp_sampling.rs
+sed -n '1,180p' crates/ruse-model/src/stream.rs
+sed -n '1,220p' crates/ruse-core/src/mcp_sampling.rs
 ```
 
 Expected: model stream events can be collected and mapping is already available.
@@ -32,7 +32,7 @@ Expected: model stream events can be collected and mapping is already available.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/mcp_sampling_model_provider.rs`
+- Create: `crates/ruse-core/tests/mcp_sampling_model_provider.rs`
 
 - [x] **Step 1: Add provider tests**
 
@@ -50,7 +50,7 @@ mcp_sampling_model_provider_debug_does_not_retain_prompt_text
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_provider
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_provider
 ```
 
 Expected: tests fail because `McpModelSamplingProvider` does not exist.
@@ -58,8 +58,8 @@ Expected: tests fail because `McpModelSamplingProvider` does not exist.
 ### Task 3: Implement Provider
 
 **Files:**
-- Modify: `crates/agent-core/src/mcp_sampling.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Modify: `crates/ruse-core/src/mcp_sampling.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add provider struct and constructor**
 
@@ -81,8 +81,8 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m41 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m41 cargo clippy -p agent-core --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_provider
+CARGO_TARGET_DIR=target/codex-m41 cargo clippy -p ruse-core --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_provider
 ```
 
 Expected: focused checks pass.
@@ -94,6 +94,6 @@ Expected: focused checks pass.
 Run:
 
 ```bash
-git add crates/agent-core docs
+git add crates/ruse-core docs
 git commit -m "feat: execute mcp sampling through model provider"
 ```

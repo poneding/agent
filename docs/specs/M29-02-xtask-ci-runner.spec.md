@@ -53,7 +53,7 @@ pub fn run_quality_gate(options: QualityGateOptions) -> Result<QualityGateReport
 
 ## Acceptance Criteria
 
-- `cargo xtask ci` runs locally and writes `target/agent-ci` artifacts.
+- `cargo xtask ci` runs locally and writes `target/ruse-ci` artifacts.
 
 ## Completion Signal
 

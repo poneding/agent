@@ -12,8 +12,8 @@
 - Read: `docs/specs/M64-memory-personalization.spec.md`
 - Read: `docs/specs/M64-05-memory-smoke-closeout.spec.md`
 - Read: `docs/eval/default.suite.json`
-- Read: `crates/agent-eval/src/manifest.rs`
-- Read: `crates/agent-eval/src/runner.rs`
+- Read: `crates/ruse-eval/src/manifest.rs`
+- Read: `crates/ruse-eval/src/runner.rs`
 - Read: `docs/cli/memory-review.md`
 - Read: `apps/desktop/src/components/MemoryView.tsx`
 
@@ -24,12 +24,12 @@ M64-01 through M64-04 are complete. M64-05 should close the milestone; it should
 ### Task 2: Add Deterministic Memory Smoke Eval
 
 **Files:**
-- Modify: `crates/agent-eval/Cargo.toml`
-- Modify: `crates/agent-eval/src/manifest.rs`
-- Modify: `crates/agent-eval/src/runner.rs`
-- Modify: `crates/agent-eval/src/report.rs`
-- Modify: `crates/agent-eval/src/lib.rs`
-- Modify: `crates/agent-eval/tests/`
+- Modify: `crates/ruse-eval/Cargo.toml`
+- Modify: `crates/ruse-eval/src/manifest.rs`
+- Modify: `crates/ruse-eval/src/runner.rs`
+- Modify: `crates/ruse-eval/src/report.rs`
+- Modify: `crates/ruse-eval/src/lib.rs`
+- Modify: `crates/ruse-eval/tests/`
 - Create: `docs/eval/scenarios/m64-memory-smoke.eval.json`
 - Create: `docs/eval/goldens/default-m64-memory-smoke.golden.json`
 - Modify: `docs/eval/default.suite.json`
@@ -71,9 +71,9 @@ Ensure CLI docs mention the default eval smoke, disabled-memory behavior, import
 - [x] **Step 1: Run focused gates**
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-eval --test runner memory
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-eval --test manifest memory
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-eval --test corpus
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-eval --test runner memory
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-eval --test manifest memory
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-eval --test corpus
 cargo xtask eval
 ```
 

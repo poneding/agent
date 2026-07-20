@@ -4,7 +4,7 @@
 
 **Goal:** Add fixture-grade stdio JSON-RPC dispatch for server-initiated MCP `sampling/createMessage` requests.
 
-**Architecture:** `agent-mcp` owns JSON-RPC frame parsing, validation, provider invocation through `McpSamplingProvider`, response rendering, and redacted diagnostics. `agent-core` remains the model-backed provider owner from M41.
+**Architecture:** `ruse-mcp` owns JSON-RPC frame parsing, validation, provider invocation through `McpSamplingProvider`, response rendering, and redacted diagnostics. `ruse-core` remains the model-backed provider owner from M41.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -73,10 +73,10 @@ Expected: all checks pass.
 
 Verification evidence on 2026-06-29:
 
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_contracts`
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_dispatch`
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_validation`
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_redaction`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_contracts`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_dispatch`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_validation`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_redaction`
 - `git diff --check`
 - `CARGO_TARGET_DIR=target/codex-m42 cargo fmt --all -- --check`
 - `CARGO_TARGET_DIR=target/codex-m42 cargo xtask ci`

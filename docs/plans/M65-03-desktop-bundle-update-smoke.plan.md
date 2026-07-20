@@ -1,10 +1,10 @@
 # M65-03 Desktop Bundle and Update Smoke Plan
 
-> **For agentic workers:** Keep update validation in `agent-desktop` and release orchestration in `xtask`. Do not add Desktop UI redesign work in this slice.
+> **For agentic workers:** Keep update validation in `ruse-desktop` and release orchestration in `xtask`. Do not add Desktop UI redesign work in this slice.
 
 **Goal:** Add beta-grade Desktop package/update smoke evidence with release-local roots, stable smoke check ids, Tauri metadata validation, update manifest evidence, focused tests, and docs.
 
-**Architecture:** `xtask` plans Desktop bundle/update smoke; `agent-desktop` validates update manifests; Tauri owns bundle metadata.
+**Architecture:** `xtask` plans Desktop bundle/update smoke; `ruse-desktop` validates update manifests; Tauri owns bundle metadata.
 
 **Tech Stack:** Rust 2024 edition, Tauri 2 config, existing `xtask` release structs, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -17,8 +17,8 @@
 - Read: `docs/specs/M25-05-desktop-bundle-updater.spec.md`
 - Read: `xtask/src/lib.rs`
 - Read: `xtask/tests/package_desktop.rs`
-- Read: `crates/agent-desktop/src/update.rs`
-- Read: `crates/agent-desktop/tests/update_manifest.rs`
+- Read: `crates/ruse-desktop/src/update.rs`
+- Read: `crates/ruse-desktop/tests/update_manifest.rs`
 - Read: `apps/desktop/src-tauri/tauri.conf.json`
 
 - [x] **Step 1: Review existing Desktop packaging path**
@@ -87,8 +87,8 @@ Mark M65-03 complete only after focused tests and docs pass. Set M65-04 as next 
 
 ```bash
 CARGO_TARGET_DIR=target/m65-dev cargo test -p xtask --test package_desktop
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-desktop update_manifest
-CARGO_TARGET_DIR=target/m65-dev cargo clippy -p xtask -p agent-desktop --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-desktop update_manifest
+CARGO_TARGET_DIR=target/m65-dev cargo clippy -p xtask -p ruse-desktop --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

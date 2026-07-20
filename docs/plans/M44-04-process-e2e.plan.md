@@ -14,23 +14,23 @@
 
 **Files:**
 - Read: `docs/specs/M44-04-process-e2e.spec.md`
-- Read: `crates/agent-mcp/tests/mcp_client_stdio_process.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_stdio_mcp_client.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_stdio_process.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_stdio_mcp_client.rs`
 
 - [x] **Step 1: Review existing process test helper pattern**
 
 ### Task 2: Add E2E Test
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_stdio_tool_call_process.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_stdio_tool_call_process.rs`
 
 - [x] **Step 1: Add helper process and gateway E2E test**
 
 ### Task 3: Fix Runtime Gaps
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_stdio.rs`
-- Modify: `crates/agent-mcp/src/gateway.rs`
+- Modify: `crates/ruse-mcp/src/client_stdio.rs`
+- Modify: `crates/ruse-mcp/src/gateway.rs`
 
 - [x] **Step 1: Fix issues revealed by process E2E**
 
@@ -42,8 +42,8 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m44 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m44 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call_process
+CARGO_TARGET_DIR=target/codex-m44 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_client_stdio_tool_call_process
 ```
 
 ### Task 5: Commit
@@ -53,6 +53,6 @@ CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp stdio tool call process e2e"
 ```

@@ -28,7 +28,7 @@ Owned by other specs:
 
 ## Architecture
 
-Local provider protocol logic lives in `agent-model`. Endpoint validation stays in shared model config, because CLI/Desktop should not duplicate local URL rules. CLI only constructs configured providers and renders typed summaries.
+Local provider protocol logic lives in `ruse-model`. Endpoint validation stays in shared model config, because CLI/Desktop should not duplicate local URL rules. CLI only constructs configured providers and renders typed summaries.
 
 ```mermaid
 flowchart TD
@@ -37,14 +37,14 @@ flowchart TD
   Registry --> Provider["LocalProvider"]
   Provider --> Transport["LocalTransport"]
   Transport --> Stream["ModelStreamEvent"]
-  CLI["agent-cli provider registration"] --> Registry
+  CLI["ruse-cli provider registration"] --> Registry
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-model/
+  ruse-model/
     src/
       local.rs
       config.rs
@@ -54,7 +54,7 @@ crates/
       local_provider.rs
       provider_capability_matrix.rs
       provider_config.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
       providers.rs
@@ -142,7 +142,7 @@ Expected stream mapping:
 
 ## Testing Strategy
 
-- `agent-model` tests for request body shape, endpoint URL construction, local endpoint validation, stream text/completion mapping, tool-call mapping, retryability, and redaction
+- `ruse-model` tests for request body shape, endpoint URL construction, local endpoint validation, stream text/completion mapping, tool-call mapping, retryability, and redaction
 - config tests for `ModelProviderKind::Local` serde, no-secret behavior, required local base URL, and remote endpoint rejection
 - capability matrix tests for local defaults
 - CLI config diagnostics tests for local provider summaries in text and JSON
@@ -150,11 +150,11 @@ Expected stream mapping:
 - focused commands:
 
 ```bash
-cargo test -p agent-model local_provider
-cargo test -p agent-model provider_config
-cargo test -p agent-model provider_capability_matrix
-cargo test -p agent-cli config_diagnostics
-cargo test -p agent-cli live_provider_registration
+cargo test -p ruse-model local_provider
+cargo test -p ruse-model provider_config
+cargo test -p ruse-model provider_capability_matrix
+cargo test -p ruse-cli config_diagnostics
+cargo test -p ruse-cli live_provider_registration
 ```
 
 ## Acceptance Criteria

@@ -4,7 +4,7 @@
 
 **Goal:** Add typed context quality traces, safe CLI/JSON and bridge evidence, and deterministic eval coverage for M58 project context assembly.
 
-**Architecture:** `agent-context` owns quality trace contracts and derivation from existing context reports. `agent-core` composes workspace scan/retrieve/plan helpers. CLI/TUI/bridge render typed summaries only. `agent-eval` runs deterministic fixture scenarios and writes redacted artifacts.
+**Architecture:** `ruse-context` owns quality trace contracts and derivation from existing context reports. `ruse-core` composes workspace scan/retrieve/plan helpers. CLI/TUI/bridge render typed summaries only. `ruse-eval` runs deterministic fixture scenarios and writes redacted artifacts.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing M58 project/retrieval/semantic/pinned reports, existing eval manifest/runner/golden infrastructure, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask eval`.
 
@@ -18,14 +18,14 @@
 - Read: `docs/specs/M58-02-relevant-file-retrieval.spec.md`
 - Read: `docs/specs/M58-03-semantic-hybrid-search.spec.md`
 - Read: `docs/specs/M58-04-pinned-context-budget-planning.spec.md`
-- Read: `crates/agent-context/src/retrieval.rs`
-- Read: `crates/agent-context/src/semantic.rs`
-- Read: `crates/agent-context/src/pins.rs`
-- Read: `crates/agent-core/src/project_context.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-eval/src/manifest.rs`
-- Read: `crates/agent-eval/src/runner.rs`
+- Read: `crates/ruse-context/src/retrieval.rs`
+- Read: `crates/ruse-context/src/semantic.rs`
+- Read: `crates/ruse-context/src/pins.rs`
+- Read: `crates/ruse-core/src/project_context.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-eval/src/manifest.rs`
+- Read: `crates/ruse-eval/src/runner.rs`
 - Read: `docs/eval/default.suite.json`
 
 - [x] **Step 1: Review current context and eval behavior**
@@ -33,14 +33,14 @@
 Run:
 
 ```bash
-cargo test -p agent-context --test context_retrieval
-cargo test -p agent-context --test context_semantic_retrieval
-cargo test -p agent-context --test pinned_context_budget
-cargo test -p agent-core --test project_context_pinned_budget
-cargo test -p agent-cli --test project_context_pinned_commands
-cargo test -p agent-ui-bridge --test project_context_pinned_snapshot
-cargo test -p agent-eval --test runner
-cargo test -p agent-eval --test golden
+cargo test -p ruse-context --test context_retrieval
+cargo test -p ruse-context --test context_semantic_retrieval
+cargo test -p ruse-context --test pinned_context_budget
+cargo test -p ruse-core --test project_context_pinned_budget
+cargo test -p ruse-cli --test project_context_pinned_commands
+cargo test -p ruse-ui-bridge --test project_context_pinned_snapshot
+cargo test -p ruse-eval --test runner
+cargo test -p ruse-eval --test golden
 cargo xtask eval
 ```
 
@@ -49,7 +49,7 @@ Expected: existing context retrieval, pinned budget, eval runner, golden compari
 ### Task 2: Write Failing Context Quality Contract Tests
 
 **Files:**
-- Create: `crates/agent-context/tests/context_quality_traces.rs`
+- Create: `crates/ruse-context/tests/context_quality_traces.rs`
 
 - [x] **Step 1: Add quality trace tests**
 
@@ -69,19 +69,19 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-context --test context_quality_traces
+cargo test -p ruse-context --test context_quality_traces
 ```
 
 Expected: tests fail before quality trace contracts exist.
 
-### Task 3: Implement `agent-context` Quality Traces
+### Task 3: Implement `ruse-context` Quality Traces
 
 **Files:**
-- Create: `crates/agent-context/src/quality.rs`
-- Modify: `crates/agent-context/src/lib.rs`
-- Modify if needed: `crates/agent-context/src/retrieval.rs`
-- Modify if needed: `crates/agent-context/src/semantic.rs`
-- Modify if needed: `crates/agent-context/src/pins.rs`
+- Create: `crates/ruse-context/src/quality.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
+- Modify if needed: `crates/ruse-context/src/retrieval.rs`
+- Modify if needed: `crates/ruse-context/src/semantic.rs`
+- Modify if needed: `crates/ruse-context/src/pins.rs`
 
 - [x] **Step 1: Add typed quality contracts**
 
@@ -100,7 +100,7 @@ Ensure task text, diagnostic messages, paths, pin reasons, and signal messages a
 Run:
 
 ```bash
-cargo test -p agent-context --test context_quality_traces
+cargo test -p ruse-context --test context_quality_traces
 ```
 
 Expected: context quality trace tests pass.
@@ -108,9 +108,9 @@ Expected: context quality trace tests pass.
 ### Task 4: Add Core Quality Orchestration
 
 **Files:**
-- Create: `crates/agent-core/tests/project_context_quality_traces.rs`
-- Modify: `crates/agent-core/src/project_context.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/tests/project_context_quality_traces.rs`
+- Modify: `crates/ruse-core/src/project_context.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add core orchestration tests**
 
@@ -125,14 +125,14 @@ Cover:
 
 - [x] **Step 2: Implement core helpers**
 
-Add typed input/report values or helper functions that compose existing M58 retrieval helpers with quality trace construction. Keep all quality decisions in `agent-context`.
+Add typed input/report values or helper functions that compose existing M58 retrieval helpers with quality trace construction. Keep all quality decisions in `ruse-context`.
 
 - [x] **Step 3: Run core quality tests**
 
 Run:
 
 ```bash
-cargo test -p agent-core --test project_context_quality_traces
+cargo test -p ruse-core --test project_context_quality_traces
 ```
 
 Expected: core quality trace tests pass.
@@ -140,8 +140,8 @@ Expected: core quality trace tests pass.
 ### Task 5: Add CLI Text and JSON Quality Surface
 
 **Files:**
-- Create: `crates/agent-cli/tests/project_context_quality_commands.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/project_context_quality_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add CLI tests**
 
@@ -169,7 +169,7 @@ Keep existing lexical, semantic, and pinned behavior unchanged unless the flag i
 Run:
 
 ```bash
-cargo test -p agent-cli --test project_context_quality_commands
+cargo test -p ruse-cli --test project_context_quality_commands
 ```
 
 Expected: CLI quality trace tests pass.
@@ -177,11 +177,11 @@ Expected: CLI quality trace tests pass.
 ### Task 6: Add UI Bridge Quality Snapshot
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/project_context_quality_snapshot.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify: `crates/agent-tui/src/trace_panel.rs`
-- Modify: `crates/agent-tui/src/transcript.rs`
+- Create: `crates/ruse-ui-bridge/tests/project_context_quality_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-tui/src/trace_panel.rs`
+- Modify: `crates/ruse-tui/src/transcript.rs`
 
 - [x] **Step 1: Add bridge tests**
 
@@ -202,7 +202,7 @@ Add a `UiJsonFrame` variant and UI summary structs derived from typed core/conte
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test project_context_quality_snapshot
+cargo test -p ruse-ui-bridge --test project_context_quality_snapshot
 ```
 
 Expected: bridge quality snapshot tests pass.
@@ -210,14 +210,14 @@ Expected: bridge quality snapshot tests pass.
 ### Task 7: Add Deterministic Context Quality Eval
 
 **Files:**
-- Create: `crates/agent-eval/tests/context_quality.rs`
+- Create: `crates/ruse-eval/tests/context_quality.rs`
 - Create: `docs/eval/scenarios/m58-context-quality.eval.json`
 - Create: `docs/eval/fixtures/m58-context-quality-workspace/README.md`
 - Create as needed: additional files under `docs/eval/fixtures/m58-context-quality-workspace/`
 - Create if stable: `docs/eval/goldens/default-m58-context-quality.golden.json`
-- Modify: `crates/agent-eval/src/manifest.rs`
-- Modify: `crates/agent-eval/src/runner.rs`
-- Modify: `crates/agent-eval/src/lib.rs`
+- Modify: `crates/ruse-eval/src/manifest.rs`
+- Modify: `crates/ruse-eval/src/runner.rs`
+- Modify: `crates/ruse-eval/src/lib.rs`
 - Modify: `docs/eval/default.suite.json`
 
 - [x] **Step 1: Add eval tests and fixture**
@@ -239,7 +239,7 @@ Add a deterministic context-quality scenario kind that runs core context selecti
 Run:
 
 ```bash
-cargo test -p agent-eval --test context_quality
+cargo test -p ruse-eval --test context_quality
 cargo xtask eval
 ```
 
@@ -260,12 +260,12 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui -p agent-eval --all-targets -- -D warnings
-cargo test -p agent-context --test context_quality_traces
-cargo test -p agent-core --test project_context_quality_traces
-cargo test -p agent-cli --test project_context_quality_commands
-cargo test -p agent-ui-bridge --test project_context_quality_snapshot
-cargo test -p agent-eval --test context_quality
+cargo clippy -p ruse-context -p ruse-core -p ruse-cli -p ruse-ui-bridge -p ruse-tui -p ruse-eval --all-targets -- -D warnings
+cargo test -p ruse-context --test context_quality_traces
+cargo test -p ruse-core --test project_context_quality_traces
+cargo test -p ruse-cli --test project_context_quality_commands
+cargo test -p ruse-ui-bridge --test project_context_quality_snapshot
+cargo test -p ruse-eval --test context_quality
 cargo xtask eval
 ```
 

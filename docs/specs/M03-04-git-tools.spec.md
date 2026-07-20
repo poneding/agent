@@ -25,18 +25,18 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-tool` owns Git tools and may use `std::process::Command` to invoke `git`. `agent-sandbox` validates repository cwd before execution.
+`ruse-tool` owns Git tools and may use `std::process::Command` to invoke `git`. `ruse-sandbox` validates repository cwd before execution.
 
 ```mermaid
 flowchart TD
-  agent_tool["agent-tool Git tools"] --> agent_sandbox["agent-sandbox"]
+  ruse_tool["ruse-tool Git tools"] --> ruse_sandbox["ruse-sandbox"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-tool/
+  ruse-tool/
     src/
       builtins/
         git_status.rs

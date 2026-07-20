@@ -4,16 +4,16 @@
 
 **Goal:** Build deterministic trace query contracts and a CLI trace summary command.
 
-**Architecture:** `agent-core` converts runtime events into trace entries. `agent-cli` renders trace entries as text and does not inspect storage internals.
+**Architecture:** `ruse-core` converts runtime events into trace entries. `ruse-cli` renders trace entries as text and does not inspect storage internals.
 
-**Tech Stack:** Rust 2024 edition, `agent-core`, `agent-cli`, `agent-storage`, `agent-types`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-core`, `ruse-cli`, `ruse-storage`, `ruse-types`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Core Trace Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/trace_query.rs`
+- Create: `crates/ruse-core/tests/trace_query.rs`
 
 - [x] **Step 1: Add failing trace tests**
 
@@ -22,7 +22,7 @@ Tests must prove tool/policy filtering, checkpoint rendering, final response ren
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-core trace_query
+cargo test -p ruse-core trace_query
 ```
 
 Expected: tests fail because trace contracts do not exist.
@@ -30,8 +30,8 @@ Expected: tests fail because trace contracts do not exist.
 ### Task 2: Implement Trace Contracts
 
 **Files:**
-- Create: `crates/agent-core/src/trace.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/src/trace.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Define `TraceQuery` and `TraceEntry`**
 
@@ -44,7 +44,7 @@ Map runtime events into stable summaries and apply query filters.
 - [x] **Step 3: Verify core GREEN**
 
 ```bash
-cargo test -p agent-core trace_query
+cargo test -p ruse-core trace_query
 ```
 
 Expected: focused trace tests pass.
@@ -52,12 +52,12 @@ Expected: focused trace tests pass.
 ### Task 3: Add CLI Trace Smoke
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Create: `crates/agent-cli/tests/trace_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/trace_commands.rs`
 
 - [x] **Step 1: Add failing CLI test**
 
-Test `agent-cli --trace-summary` prints deterministic trace entries for the local coding fixture.
+Test `ruse-cli --trace-summary` prints deterministic trace entries for the local coding fixture.
 
 - [x] **Step 2: Implement CLI renderer**
 
@@ -66,7 +66,7 @@ Render `TraceEntry` rows with `seq`, `kind`, and `summary`.
 - [x] **Step 3: Verify CLI GREEN**
 
 ```bash
-cargo test -p agent-cli trace_commands
+cargo test -p ruse-cli trace_commands
 ```
 
 Expected: CLI trace test passes.

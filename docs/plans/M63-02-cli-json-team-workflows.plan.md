@@ -2,9 +2,9 @@
 
 > **For agentic workers:** Follow this checklist task by task. Keep this slice focused on CLI/JSON and bridge-safe contracts. Do not implement live merge or subagent execution here.
 
-**Goal:** Add stable CLI/JSON commands for inspecting and dry-running team workflows using the typed M63-01 `agent-team` snapshot contracts.
+**Goal:** Add stable CLI/JSON commands for inspecting and dry-running team workflows using the typed M63-01 `ruse-team` snapshot contracts.
 
-**Architecture:** `agent-team` owns workflow readiness and summaries. `agent-ui-bridge` owns JSON frame shape. `agent-cli` parses commands and renders typed snapshots. CLI does not classify readiness or reduce policy independently.
+**Architecture:** `ruse-team` owns workflow readiness and summaries. `ruse-ui-bridge` owns JSON frame shape. `ruse-cli` parses commands and renders typed snapshots. CLI does not classify readiness or reduce policy independently.
 
 ---
 
@@ -31,12 +31,12 @@ Add `UiJsonFrame::TeamWorkflowSnapshot` wrapping operation, dry-run flag, typed 
 ### Task 2: Add Bridge Contract
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/Cargo.toml`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Create: `crates/agent-ui-bridge/tests/team_workflow_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/Cargo.toml`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Create: `crates/ruse-ui-bridge/tests/team_workflow_snapshot.rs`
 
-- [x] **Step 1: Add bridge dependency on `agent-team`**
+- [x] **Step 1: Add bridge dependency on `ruse-team`**
 
 The bridge may reference the typed workflow snapshot directly.
 
@@ -51,10 +51,10 @@ Verify stable JSON tag, operation, dry-run flag, snapshot readiness, and round-t
 ### Task 3: Add CLI Commands
 
 **Files:**
-- Modify: `crates/agent-cli/Cargo.toml`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/src/lib.rs`
-- Create: `crates/agent-cli/tests/team_workflow_commands.rs`
+- Modify: `crates/ruse-cli/Cargo.toml`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
+- Create: `crates/ruse-cli/tests/team_workflow_commands.rs`
 
 - [x] **Step 1: Add command enums and parser**
 
@@ -86,15 +86,15 @@ cargo fmt --all -- --check
 - [x] **Step 2: Focused tests**
 
 ```bash
-CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-ui-bridge --test team_workflow_snapshot
-CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-cli --test team_workflow_commands
-CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-tui
+CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-ui-bridge --test team_workflow_snapshot
+CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-cli --test team_workflow_commands
+CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-tui
 ```
 
 - [x] **Step 3: Focused clippy**
 
 ```bash
-CARGO_TARGET_DIR=target/m63-gate cargo clippy -p agent-ui-bridge -p agent-cli -p agent-tui --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m63-gate cargo clippy -p ruse-ui-bridge -p ruse-cli -p ruse-tui --all-targets -- -D warnings
 ```
 
 - [x] **Step 4: Diff check**
@@ -106,7 +106,7 @@ git diff --check
 ### Task 5: Status And Commit
 
 **Files:**
-- Modify: `docs/plans/M63-worktree-agent-team-workflows.plan.md`
+- Modify: `docs/plans/M63-worktree-ruse-team-workflows.plan.md`
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 
@@ -114,7 +114,7 @@ git diff --check
 
 Mark M63-02 implementation complete only after focused gates pass. Keep M63 overall in progress.
 
-Result: focused gates passed with `cargo fmt --all -- --check`, `git diff --check`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-ui-bridge --test team_workflow_snapshot`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-cli --test team_workflow_commands`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-tui`, and `CARGO_TARGET_DIR=target/m63-gate cargo clippy -p agent-ui-bridge -p agent-cli -p agent-tui --all-targets -- -D warnings`.
+Result: focused gates passed with `cargo fmt --all -- --check`, `git diff --check`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-ui-bridge --test team_workflow_snapshot`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-cli --test team_workflow_commands`, `CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-tui`, and `CARGO_TARGET_DIR=target/m63-gate cargo clippy -p ruse-ui-bridge -p ruse-cli -p ruse-tui --all-targets -- -D warnings`.
 
 - [ ] **Step 2: Commit**
 

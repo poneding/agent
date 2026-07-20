@@ -12,7 +12,7 @@ This slice starts M03 Local Coding Loop. It gives users a practical command entr
 
 This spec delivers:
 
-- `agent-cli` library module for command parsing
+- `ruse-cli` library module for command parsing
 - CLI mode detection for version, banner, batch prompt, and TTY shell
 - slash command parsing for `/help`, `/status`, and `/exit`
 - deterministic command output contract for tests
@@ -27,19 +27,19 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` owns presentation and command parsing. Runtime orchestration remains in `agent-core`; CLI commands call typed runtime/tool contracts rather than embedding runtime behavior in `main.rs`.
+`ruse-cli` owns presentation and command parsing. Runtime orchestration remains in `ruse-core`; CLI commands call typed runtime/tool contracts rather than embedding runtime behavior in `main.rs`.
 
 ```mermaid
 flowchart TD
-  agent_cli["agent-cli command surface"] --> agent_core["agent-core"]
-  agent_cli --> agent_tool["agent-tool"]
+  ruse_cli["ruse-cli command surface"] --> ruse_core["ruse-core"]
+  ruse_cli --> ruse_tool["ruse-tool"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-cli/
+  ruse-cli/
     src/
       lib.rs
       main.rs

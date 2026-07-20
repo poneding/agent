@@ -25,24 +25,24 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` builds an inspection from an already parsed manifest and optional workspace root. `agent-cli` reads files, parses args, and renders the typed result.
+`ruse-mcp` builds an inspection from an already parsed manifest and optional workspace root. `ruse-cli` reads files, parses args, and renders the typed result.
 
 ```mermaid
 flowchart TD
   Parsed["McpServerExportManifest"] --> Inspect["inspect_mcp_server_export_profile"]
   Workspace["optional workspace root"] --> Inspect
   Inspect --> Summary["McpServerProfileInspection"]
-  Summary --> CLI["agent-cli renderers"]
+  Summary --> CLI["ruse-cli renderers"]
 ```
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_manifest.rs
-crates/agent-mcp/src/lib.rs
-crates/agent-cli/src/command.rs
-crates/agent-mcp/tests/mcp_server_profile_inspection.rs
-crates/agent-cli/tests/mcp_server_profile_inspect_command.rs
+crates/ruse-mcp/src/server_manifest.rs
+crates/ruse-mcp/src/lib.rs
+crates/ruse-cli/src/command.rs
+crates/ruse-mcp/tests/mcp_server_profile_inspection.rs
+crates/ruse-cli/tests/mcp_server_profile_inspect_command.rs
 ```
 
 ## Public Contracts

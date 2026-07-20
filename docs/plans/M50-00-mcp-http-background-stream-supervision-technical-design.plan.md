@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M50 technical baseline and decomposition for MCP HTTP stream supervision.
 
-**Architecture:** Documentation-only planning slice. Runtime implementation remains in later `agent-mcp` slices.
+**Architecture:** Documentation-only planning slice. Runtime implementation remains in later `ruse-mcp` slices.
 
 **Tech Stack:** Markdown, Mermaid, Rust contract sketches.
 

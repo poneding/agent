@@ -4,7 +4,7 @@
 
 **Goal:** Add memory tombstones, rebuild/import/export safeguards, UI-safe summaries, and CLI memory inspection/editing commands.
 
-**Architecture:** `agent-memory` owns tombstone and portability semantics. `agent-cli` renders typed memory commands over memory runtime contracts. Durable platform paths remain in M25.
+**Architecture:** `ruse-memory` owns tombstone and portability semantics. `ruse-cli` renders typed memory commands over memory runtime contracts. Durable platform paths remain in M25.
 
 **Tech Stack:** Rust 2024 edition, serde, memory archive contracts, CLI JSON frames, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M23-05-memory-editor-portability.spec.md`
 - Read: `docs/specs/M23-00-memory-retrieval-technical-design.spec.md`
-- Read: `crates/agent-memory/src/archive.rs`
-- Read: `crates/agent-cli/src/command.rs`
+- Read: `crates/ruse-memory/src/archive.rs`
+- Read: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Review editor and portability scope**
 
@@ -31,8 +31,8 @@ Expected: tombstone, rebuild, import/export, CLI, and redaction requirements are
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-memory/tests/memory_editor_portability.rs`
-- Create: `crates/agent-cli/tests/memory_commands.rs`
+- Create: `crates/ruse-memory/tests/memory_editor_portability.rs`
+- Create: `crates/ruse-cli/tests/memory_commands.rs`
 
 - [x] **Step 1: Add tombstone and rebuild tests**
 
@@ -51,8 +51,8 @@ Cover `agent memory list|inspect|delete|export|import|rebuild-index` in text and
 Run:
 
 ```bash
-cargo test -p agent-memory memory_editor_portability
-cargo test -p agent-cli memory_commands
+cargo test -p ruse-memory memory_editor_portability
+cargo test -p ruse-cli memory_commands
 ```
 
 Expected: tests fail because editor, tombstone, and CLI contracts are missing.
@@ -60,12 +60,12 @@ Expected: tests fail because editor, tombstone, and CLI contracts are missing.
 ### Task 3: Implement Editor and Portability Contracts
 
 **Files:**
-- Create: `crates/agent-memory/src/tombstone.rs`
-- Create: `crates/agent-memory/src/editor.rs`
-- Modify: `crates/agent-memory/src/archive.rs`
-- Modify: `crates/agent-memory/src/lib.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify if needed: `crates/agent-ui-bridge/src/frame.rs`
+- Create: `crates/ruse-memory/src/tombstone.rs`
+- Create: `crates/ruse-memory/src/editor.rs`
+- Modify: `crates/ruse-memory/src/archive.rs`
+- Modify: `crates/ruse-memory/src/lib.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify if needed: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Add tombstone contracts**
 
@@ -86,16 +86,16 @@ Parse and render memory list, inspect, delete, export, import, and rebuild-index
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-memory/tests/memory_editor_portability.rs`
-- Read: `crates/agent-cli/tests/memory_commands.rs`
+- Read: `crates/ruse-memory/tests/memory_editor_portability.rs`
+- Read: `crates/ruse-cli/tests/memory_commands.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-memory memory_editor_portability
-cargo test -p agent-cli memory_commands
+cargo test -p ruse-memory memory_editor_portability
+cargo test -p ruse-cli memory_commands
 ```
 
 Expected: focused tests pass.

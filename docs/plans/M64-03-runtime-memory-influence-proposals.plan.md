@@ -1,10 +1,10 @@
 # M64-03 Runtime Memory Influence and Proposal Loop Plan
 
-> **For agentic workers:** Keep retrieval, rerank, proposal validation, product snapshots, and redaction in `agent-memory`. Keep prompt-layer construction in `agent-context`. `agent-core` should orchestrate turn-level memory evidence rather than owning memory policy.
+> **For agentic workers:** Keep retrieval, rerank, proposal validation, product snapshots, and redaction in `ruse-memory`. Keep prompt-layer construction in `ruse-context`. `ruse-core` should orchestrate turn-level memory evidence rather than owning memory policy.
 
 **Goal:** Let runtime turns include selected memory through typed prompt layers, expose safe influence evidence, and create reviewable memory write proposals from turn evidence without committing them.
 
-**Architecture:** `agent-core` accepts a typed runtime memory input, calls `agent-memory` retrieval/rerank/proposal contracts, asks `agent-context` to convert selected memories into prompt layers, and returns `RuntimeMemoryTurnEvidence` for CLI/bridge/UI consumers in later slices.
+**Architecture:** `ruse-core` accepts a typed runtime memory input, calls `ruse-memory` retrieval/rerank/proposal contracts, asks `ruse-context` to convert selected memories into prompt layers, and returns `RuntimeMemoryTurnEvidence` for CLI/bridge/UI consumers in later slices.
 
 ---
 
@@ -13,24 +13,24 @@
 **Files:**
 - Read: `docs/specs/M64-memory-personalization.spec.md`
 - Read: `docs/specs/M64-03-runtime-memory-influence-proposals.spec.md`
-- Read: `crates/agent-memory/src/product.rs`
-- Read: `crates/agent-memory/src/proposal.rs`
-- Read: `crates/agent-memory/src/rerank.rs`
-- Read: `crates/agent-context/src/memory_layers.rs`
-- Read: `crates/agent-context/src/prompt.rs`
-- Read: `crates/agent-core/src/turn.rs`
-- Read: `crates/agent-core/src/context.rs`
-- Read: `crates/agent-core/tests/m05_context_memory_integration.rs`
+- Read: `crates/ruse-memory/src/product.rs`
+- Read: `crates/ruse-memory/src/proposal.rs`
+- Read: `crates/ruse-memory/src/rerank.rs`
+- Read: `crates/ruse-context/src/memory_layers.rs`
+- Read: `crates/ruse-context/src/prompt.rs`
+- Read: `crates/ruse-core/src/turn.rs`
+- Read: `crates/ruse-core/src/context.rs`
+- Read: `crates/ruse-core/tests/m05_context_memory_integration.rs`
 
 - [x] **Step 1: Review current runtime/context memory baseline**
 
-Confirm `agent-context` already converts selected memory candidates into privacy-aware prompt layers, while `agent-core` turn assembly currently uses a minimal `ContextAssembler` and does not yet carry memory influence/proposal evidence.
+Confirm `ruse-context` already converts selected memory candidates into privacy-aware prompt layers, while `ruse-core` turn assembly currently uses a minimal `ContextAssembler` and does not yet carry memory influence/proposal evidence.
 
 ### Task 2: Write Focused Tests
 
 **Files:**
-- Modify: `crates/agent-context/tests/memory_prompt_layers.rs`
-- Create: `crates/agent-core/tests/runtime_memory_influence.rs`
+- Modify: `crates/ruse-context/tests/memory_prompt_layers.rs`
+- Create: `crates/ruse-core/tests/runtime_memory_influence.rs`
 
 - [x] **Step 1: Extend context tests**
 
@@ -49,7 +49,7 @@ Cover:
 - [x] **Step 3: Run focused tests and verify failure before implementation**
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-core --test runtime_memory_influence
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-core --test runtime_memory_influence
 ```
 
 Expected: new core tests fail until runtime memory contracts are implemented.
@@ -57,8 +57,8 @@ Expected: new core tests fail until runtime memory contracts are implemented.
 ### Task 3: Implement Context Assembly Support
 
 **Files:**
-- Modify: `crates/agent-context/src/memory_layers.rs`
-- Modify if needed: `crates/agent-context/src/lib.rs`
+- Modify: `crates/ruse-context/src/memory_layers.rs`
+- Modify if needed: `crates/ruse-context/src/lib.rs`
 
 - [x] **Step 1: Add convenience assembly helpers if needed**
 
@@ -71,10 +71,10 @@ Sensitive memory remains hidden/user-private. Public/internal visibility remains
 ### Task 4: Implement Core Runtime Memory Contracts
 
 **Files:**
-- Create or modify: `crates/agent-core/src/memory.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Modify if needed: `crates/agent-core/src/context.rs`
-- Modify if needed: `crates/agent-core/src/turn.rs`
+- Create or modify: `crates/ruse-core/src/memory.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Modify if needed: `crates/ruse-core/src/context.rs`
+- Modify if needed: `crates/ruse-core/src/turn.rs`
 
 - [x] **Step 1: Add public runtime memory structs**
 
@@ -105,9 +105,9 @@ Create pending `MemoryWriteProposal` values from bounded turn evidence. Return s
 - [x] **Step 1: Run focused gates**
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-context --test memory_prompt_layers
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-core --test runtime_memory_influence
-CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-context -p agent-core --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-context --test memory_prompt_layers
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-core --test runtime_memory_influence
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p ruse-context -p ruse-core --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

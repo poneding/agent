@@ -24,7 +24,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::client_stdio` owns the session runtime. The transport trait is async so both fixtures and process IO can implement it.
+`ruse-mcp::client_stdio` owns the session runtime. The transport trait is async so both fixtures and process IO can implement it.
 
 ## Public Contracts
 
@@ -63,7 +63,7 @@ pub struct McpClientStdioSession<T> {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_session`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_session`
 
 ## Completion Signal
 

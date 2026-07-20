@@ -10,7 +10,7 @@ Milestone 1 needs deterministic event replay before it can safely add storage, m
 
 ## Scope
 
-M01-02 delivers the event model inside `agent-types`:
+M01-02 delivers the event model inside `ruse-types`:
 
 - Domain ID newtypes.
 - Event sequence type.
@@ -32,26 +32,26 @@ The following capabilities are owned by later slices:
 
 ## Architecture
 
-The event model belongs in `agent-types` because every runtime crate needs to depend on it without creating dependency cycles.
+The event model belongs in `ruse-types` because every runtime crate needs to depend on it without creating dependency cycles.
 
 ```mermaid
 flowchart TD
-  Types[agent-types]
-  Storage[agent-storage] --> Types
-  Model[agent-model] --> Types
-  Core[agent-core] --> Types
+  Types[ruse-types]
+  Storage[ruse-storage] --> Types
+  Model[ruse-model] --> Types
+  Core[ruse-core] --> Types
   Core --> Model
   Core --> Storage
-  CLI[agent-cli] --> Core
+  CLI[ruse-cli] --> Core
 ```
 
-M01-02 should keep `agent-types` independent from runtime behavior. It defines data contracts only.
+M01-02 should keep `ruse-types` independent from runtime behavior. It defines data contracts only.
 
 ## File Layout
 
 ```text
 crates/
-  agent-types/
+  ruse-types/
     Cargo.toml
     src/
       lib.rs
@@ -68,7 +68,7 @@ crates/
 
 ## Dependencies
 
-M01-02 may add these dependencies to `agent-types`:
+M01-02 may add these dependencies to `ruse-types`:
 
 | Dependency | Purpose |
 |---|---|
@@ -393,11 +393,11 @@ M01-02 tests must prove:
 
 ## Acceptance Criteria
 
-- `agent-types` exposes the event model modules through `lib.rs`.
-- `cargo test -p agent-types` passes.
+- `ruse-types` exposes the event model modules through `lib.rs`.
+- `cargo test -p ruse-types` passes.
 - `cargo test --workspace` passes after M01-02 implementation.
 - Representative JSON snapshots are reviewed and committed.
-- No runtime crate outside `agent-types` defines duplicate ID, event, actor, or state types.
+- No runtime crate outside `ruse-types` defines duplicate ID, event, actor, or state types.
 
 ## Completion Signal
 

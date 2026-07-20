@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M36 technical design and implementation slice map.
 
-**Architecture:** Documentation-only baseline for `agent-mcp` prompt arguments and `agent-cli` stdio verification.
+**Architecture:** Documentation-only baseline for `ruse-mcp` prompt arguments and `ruse-cli` stdio verification.
 
 **Tech Stack:** Markdown docs.
 

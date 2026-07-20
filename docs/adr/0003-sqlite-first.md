@@ -10,7 +10,7 @@ The initial product is local-first and must persist event logs, checkpoints, tas
 
 ## Decision
 
-Use SQLite as the first durable storage backend behind `agent-storage` traits.
+Use SQLite as the first durable storage backend behind `ruse-storage` traits.
 
 ## Consequences
 

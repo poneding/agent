@@ -34,11 +34,11 @@ Owned by later M60 slices:
 
 ## Architecture
 
-`agent-desktop` owns the dashboard view model and pure aggregation helpers. `agent-ui-bridge` remains the owner of shared UI command/frame contracts. Tauri commands call the Desktop view-model helpers and current bridge session state. React renders the dashboard and route state from typed API responses and local UI state only.
+`ruse-desktop` owns the dashboard view model and pure aggregation helpers. `ruse-ui-bridge` remains the owner of shared UI command/frame contracts. Tauri commands call the Desktop view-model helpers and current bridge session state. React renders the dashboard and route state from typed API responses and local UI state only.
 
 ```mermaid
 flowchart TD
-  Workspace["DesktopWorkspaceSnapshot"] --> Dashboard["agent-desktop dashboard model"]
+  Workspace["DesktopWorkspaceSnapshot"] --> Dashboard["ruse-desktop dashboard model"]
   Settings["DesktopConfigSnapshot / DesktopSettings"] --> Dashboard
   Session["Desktop session snapshot"] --> Dashboard
   Dashboard --> Tauri["load_dashboard_snapshot command/helper"]
@@ -56,7 +56,7 @@ Dependency rules:
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     src/
       dashboard.rs
       lib.rs
@@ -91,7 +91,7 @@ docs/
     M60-desktop-daily-driver.plan.md
 ```
 
-Exact filenames can change if implementation finds a better local fit, but the public model should stay in `agent-desktop` and the UI command surface should stay typed.
+Exact filenames can change if implementation finds a better local fit, but the public model should stay in `ruse-desktop` and the UI command surface should stay typed.
 
 ## Public Contracts
 
@@ -169,7 +169,7 @@ All contracts must derive or map cleanly to `Serialize` and `Deserialize`. Works
 
 ## Testing Strategy
 
-- `agent-desktop` tests for dashboard serialization, task count grouping, provider readiness, disconnected/not-started states, diagnostic bounding, and redaction
+- `ruse-desktop` tests for dashboard serialization, task count grouping, provider readiness, disconnected/not-started states, diagnostic bounding, and redaction
 - Tauri tests for dashboard helper output from a new, connected, and disconnected bridge session
 - Vitest component tests for dashboard route rendering, action disabled states, counts, diagnostics, and safe provider display
 - regression assertions that serialized dashboard JSON excludes raw prompt, tool input, command output, and secret-like values
@@ -177,7 +177,7 @@ All contracts must derive or map cleanly to `Serialize` and `Deserialize`. Works
 Focused commands:
 
 ```bash
-cargo test -p agent-desktop --test desktop_dashboard
+cargo test -p ruse-desktop --test desktop_dashboard
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml dashboard
 npm --prefix apps/desktop test -- workspace-dashboard
 ```

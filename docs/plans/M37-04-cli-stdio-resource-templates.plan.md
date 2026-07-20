@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Verify resource templates through `agent-cli mcp server stdio`.
+**Goal:** Verify resource templates through `ruse-cli mcp server stdio`.
 
-**Architecture:** `agent-cli` stays an IO/bootstrap layer; `agent-mcp` owns protocol behavior.
+**Architecture:** `ruse-cli` stays an IO/bootstrap layer; `ruse-mcp` owns protocol behavior.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -31,8 +31,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m37 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-cli --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-cli mcp_server_resource_templates
+CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p ruse-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-cli mcp_server_resource_templates
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -41,9 +41,9 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m37 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-cli --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-cli mcp_server_resource_templates
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_contracts
+CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p ruse-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-cli mcp_server_resource_templates
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-mcp mcp_server_contracts
 ```
 
 ### Task 5: Commit

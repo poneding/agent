@@ -28,13 +28,13 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-ui-bridge` owns UI-safe catalog and status snapshot contracts. `agent-cli` renders catalog/status text for plain REPL and any CLI slash dispatch. `agent-tui` maps parsed slash commands to reducer effects and panels. Runtime execution, approval decisions, task mutation, and durable session state remain outside the slash parser.
+`ruse-ui-bridge` owns UI-safe catalog and status snapshot contracts. `ruse-cli` renders catalog/status text for plain REPL and any CLI slash dispatch. `ruse-tui` maps parsed slash commands to reducer effects and panels. Runtime execution, approval decisions, task mutation, and durable session state remain outside the slash parser.
 
 ```mermaid
 flowchart TD
-  Catalog["agent-ui-bridge slash catalog"] --> CLI["agent-cli plain REPL slash output"]
-  Catalog --> TUI["agent-tui slash parser/reducer"]
-  Status["agent-ui-bridge terminal status snapshot"] --> CLI
+  Catalog["ruse-ui-bridge slash catalog"] --> CLI["ruse-cli plain REPL slash output"]
+  Catalog --> TUI["ruse-tui slash parser/reducer"]
+  Status["ruse-ui-bridge terminal status snapshot"] --> CLI
   Status --> TUI
   TUI --> Panels["TUI panels and local effects"]
 ```
@@ -43,21 +43,21 @@ flowchart TD
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       slash.rs
       frame.rs
       lib.rs
     tests/
       slash_catalog.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
       repl.rs
     tests/
       slash_commands.rs
       plain_repl.rs
-  agent-tui/
+  ruse-tui/
     src/
       slash.rs
       app.rs
@@ -129,9 +129,9 @@ Expected command names:
 
 ## Testing Strategy
 
-- `agent-ui-bridge` tests for catalog ordering, JSON shape, alias coverage, status snapshot redaction, and single-line frame encoding
-- `agent-cli` tests for `/help`, `/status`, aliases, unknown commands, plain REPL slash handling, and redacted output
-- `agent-tui` tests for catalog-backed parsing, `/help`, `/status`, `/sessions`, `/trace`, `/tasks`, `/clear`, `/quit`, and status panel rendering
+- `ruse-ui-bridge` tests for catalog ordering, JSON shape, alias coverage, status snapshot redaction, and single-line frame encoding
+- `ruse-cli` tests for `/help`, `/status`, aliases, unknown commands, plain REPL slash handling, and redacted output
+- `ruse-tui` tests for catalog-backed parsing, `/help`, `/status`, `/sessions`, `/trace`, `/tasks`, `/clear`, `/quit`, and status panel rendering
 - regression tests for existing plain REPL prompt submission and exit behavior
 
 ## Acceptance Criteria

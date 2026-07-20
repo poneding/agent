@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add the `agent-tool` crate with typed tool definitions, execution contracts, and duplicate-safe registry lookup.
+**Goal:** Add the `ruse-tool` crate with typed tool definitions, execution contracts, and duplicate-safe registry lookup.
 
-**Architecture:** `agent-tool` owns provider-neutral tool contracts and depends only on `agent-types`, `serde`, `serde_json`, and `thiserror`. `agent-core` will consume these contracts in later slices.
+**Architecture:** `ruse-tool` owns provider-neutral tool contracts and depends only on `ruse-types`, `serde`, `serde_json`, and `thiserror`. `ruse-core` will consume these contracts in later slices.
 
-**Tech Stack:** Rust 2024 edition, `agent-types`, `serde`, `serde_json`, `thiserror`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-types`, `serde`, `serde_json`, `thiserror`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,12 +14,12 @@
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-tool/Cargo.toml`
-- Create: `crates/agent-tool/src/lib.rs`
+- Create: `crates/ruse-tool/Cargo.toml`
+- Create: `crates/ruse-tool/src/lib.rs`
 
 - [x] **Step 1: Add workspace member**
 
-Add `crates/agent-tool` to the root workspace members.
+Add `crates/ruse-tool` to the root workspace members.
 
 - [x] **Step 2: Add crate manifest**
 
@@ -27,7 +27,7 @@ Use dependencies:
 
 ```toml
 [dependencies]
-agent-types = { path = "../agent-types" }
+ruse-types = { path = "../ruse-types" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
@@ -40,7 +40,7 @@ thiserror = "2"
 ### Task 2: Write Failing Registry Tests
 
 **Files:**
-- Create: `crates/agent-tool/tests/registry.rs`
+- Create: `crates/ruse-tool/tests/registry.rs`
 
 - [x] **Step 1: Add contract tests**
 
@@ -57,7 +57,7 @@ Tests must prove:
 Run:
 
 ```bash
-cargo test -p agent-tool registry
+cargo test -p ruse-tool registry
 ```
 
 Expected: tests fail because contracts are not implemented.
@@ -65,10 +65,10 @@ Expected: tests fail because contracts are not implemented.
 ### Task 3: Implement Tool Contracts
 
 **Files:**
-- Create: `crates/agent-tool/src/definition.rs`
-- Create: `crates/agent-tool/src/error.rs`
-- Create: `crates/agent-tool/src/tool.rs`
-- Create: `crates/agent-tool/src/registry.rs`
+- Create: `crates/ruse-tool/src/definition.rs`
+- Create: `crates/ruse-tool/src/error.rs`
+- Create: `crates/ruse-tool/src/tool.rs`
+- Create: `crates/ruse-tool/src/registry.rs`
 
 - [x] **Step 1: Implement public types**
 
@@ -83,7 +83,7 @@ Use a `BTreeMap<ToolName, Arc<dyn Tool>>` so listing and lookup are deterministi
 Run:
 
 ```bash
-cargo test -p agent-tool registry
+cargo test -p ruse-tool registry
 ```
 
 Expected: focused tests pass.

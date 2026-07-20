@@ -4,7 +4,7 @@
 
 **Goal:** Add artifact metadata, review summaries, and final M24 smoke coverage for background tasks.
 
-**Architecture:** `agent-core` produces artifacts/reviews, `agent-scheduler` links them to task runs, `agent-ui-bridge` and UI crates render safe summaries.
+**Architecture:** `ruse-core` produces artifacts/reviews, `ruse-scheduler` links them to task runs, `ruse-ui-bridge` and UI crates render safe summaries.
 
 **Tech Stack:** Rust 2024 edition, serde, trace/checkpoint ids, UI bridge snapshots, CLI/TUI/Desktop summary models, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M24-05-task-artifacts-review.spec.md`
-- Read: `crates/agent-core/src/trace.rs`
-- Read: `crates/agent-storage/src/checkpoint.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-core/src/trace.rs`
+- Read: `crates/ruse-storage/src/checkpoint.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Review artifact and review scope**
 
@@ -25,9 +25,9 @@ Expected: artifact metadata and review summary contracts are safe and UI-ready.
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/task_artifacts_review.rs`
-- Create: `crates/agent-ui-bridge/tests/task_review.rs`
-- Create if needed: `crates/agent-cli/tests/task_review_commands.rs`
+- Create: `crates/ruse-core/tests/task_artifacts_review.rs`
+- Create: `crates/ruse-ui-bridge/tests/task_review.rs`
+- Create if needed: `crates/ruse-cli/tests/task_review_commands.rs`
 
 - [x] **Step 1: Add artifact serialization tests**
 
@@ -44,21 +44,21 @@ Cover create, run, approval/notification, quota/retry, artifact, and review fixt
 - [x] **Step 4: Verify RED**
 
 ```bash
-cargo test -p agent-core task_artifacts_review
-cargo test -p agent-ui-bridge task_review
+cargo test -p ruse-core task_artifacts_review
+cargo test -p ruse-ui-bridge task_review
 ```
 
 ### Task 3: Implement Artifacts and Reviews
 
 **Files:**
-- Create: `crates/agent-core/src/task_review.rs`
-- Modify: `crates/agent-core/src/background.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Modify: `crates/agent-scheduler/src/task.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-tui/src/task_panel.rs`
-- Modify: `crates/agent-desktop/src/task.rs`
+- Create: `crates/ruse-core/src/task_review.rs`
+- Modify: `crates/ruse-core/src/background.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Modify: `crates/ruse-scheduler/src/task.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-tui/src/task_panel.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
 
 - [x] **Step 1: Add artifact contracts**
 
@@ -81,8 +81,8 @@ Prove M24 lifecycle from command bridge through review output.
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-core task_artifacts_review
-cargo test -p agent-ui-bridge task_review
+cargo test -p ruse-core task_artifacts_review
+cargo test -p ruse-ui-bridge task_review
 ```
 
 - [x] **Step 2: Run final M24 checks**

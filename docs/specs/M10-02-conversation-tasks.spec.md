@@ -27,19 +27,19 @@ Owned by other specs:
 
 ## Architecture
 
-Conversation and task view models live in `agent-desktop`. They depend on `agent-types` state and ID contracts, not on CLI rendering or model providers.
+Conversation and task view models live in `ruse-desktop`. They depend on `ruse-types` state and ID contracts, not on CLI rendering or model providers.
 
 ```mermaid
 flowchart TD
-  types["agent-types ConversationId / TaskId / TaskState"] --> desktop["agent-desktop view models"]
-  scheduler["agent-scheduler future task source"] --> desktop
+  types["ruse-types ConversationId / TaskId / TaskState"] --> desktop["ruse-desktop view models"]
+  scheduler["ruse-scheduler future task source"] --> desktop
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     src/
       conversation.rs
       task.rs
@@ -106,7 +106,7 @@ pub fn build_workspace_snapshot(
 
 - Desktop can represent conversations and tasks using shared typed IDs.
 - Snapshot ordering is deterministic for repeated renders.
-- `cargo test -p agent-desktop conversation_tasks` passes.
+- `cargo test -p ruse-desktop conversation_tasks` passes.
 
 ## Completion Signal
 

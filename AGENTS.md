@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This repository builds `agent`: a Rust-based runtime for CLI/Desktop agents with typed events, tool policy, memory, MCP, plugins, checkpoints, and replay.
+This repository builds `ruse`: a Rust-based runtime for CLI/Desktop agents with typed events, tool policy, memory, MCP, plugins, checkpoints, and replay.
 
 Keep contributions aligned with the docs:
 

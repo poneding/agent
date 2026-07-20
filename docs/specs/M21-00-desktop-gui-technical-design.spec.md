@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define the architecture for a runnable Desktop MVP before M21 implementation begins. M21 turns the existing `agent-desktop` presentation contracts into a Tauri 2 application that shares runtime events, commands, approvals, diffs, traces, and settings with CLI and TUI.
+Define the architecture for a runnable Desktop MVP before M21 implementation begins. M21 turns the existing `ruse-desktop` presentation contracts into a Tauri 2 application that shares runtime events, commands, approvals, diffs, traces, and settings with CLI and TUI.
 
 ## Product Context
 
@@ -34,22 +34,22 @@ The Desktop app has three layers:
 
 1. TypeScript frontend: views, local UI state, routing, rendering, input.
 2. Tauri Rust command layer: typed commands, bridge session, platform integration.
-3. Shared runtime crates: `agent-ui-bridge`, `agent-desktop`, `agent-core`, storage, config, policy.
+3. Shared runtime crates: `ruse-ui-bridge`, `ruse-desktop`, `ruse-core`, storage, config, policy.
 
 ```mermaid
 flowchart TD
   Frontend["Desktop TypeScript UI"] --> Commands["Tauri commands"]
-  Commands --> Bridge["agent-ui-bridge"]
-  Commands --> ViewModels["agent-desktop view models"]
-  Bridge --> Runtime["agent-core runtime"]
-  Runtime --> Storage["agent-storage"]
+  Commands --> Bridge["ruse-ui-bridge"]
+  Commands --> ViewModels["ruse-desktop view models"]
+  Bridge --> Runtime["ruse-core runtime"]
+  Runtime --> Storage["ruse-storage"]
 ```
 
 Dependency rules:
 
 - frontend never calls model, tool, storage, or secret APIs directly
 - Tauri commands expose a narrow typed allowlist
-- `agent-desktop` remains view-model contracts and does not own runtime orchestration
+- `ruse-desktop` remains view-model contracts and does not own runtime orchestration
 - shared runtime behavior stays in core crates
 
 ## Application Layout
@@ -116,7 +116,7 @@ Tauri command allowlist must be narrow. Frontend receives only UI-safe payloads.
 Required coverage:
 
 - Rust command tests for bridge session lifecycle
-- `agent-desktop` view-model tests remain green
+- `ruse-desktop` view-model tests remain green
 - frontend component tests for conversation, task, approval, diff, trace, and settings views
 - Playwright smoke test for app launch and primary navigation
 - serialization snapshot tests for Tauri command payloads

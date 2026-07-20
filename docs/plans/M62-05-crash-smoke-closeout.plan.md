@@ -4,9 +4,9 @@
 
 **Goal:** Add deterministic crash/restart recovery smoke coverage, document CLI/Desktop recovery workflows, integrate closeout evidence, and mark M62 complete only after final gates pass.
 
-**Architecture:** `agent-core` owns crash/restart recovery fixture behavior. `agent-eval` may expose the fixture through the default credential-free eval suite. CLI/Desktop docs describe typed runtime/bridge recovery surfaces without implementing runtime logic in presentation layers.
+**Architecture:** `ruse-core` owns crash/restart recovery fixture behavior. `ruse-eval` may expose the fixture through the default credential-free eval suite. CLI/Desktop docs describe typed runtime/bridge recovery surfaces without implementing runtime logic in presentation layers.
 
-**Tech Stack:** Rust 2024 edition, serde contracts, existing checkpoint/replay/idempotency stores, `RecoveryEngine`, `CommandRetryPlanner`, conflict recovery summaries, `agent-eval` manifests/suites, Markdown docs, Cargo fmt/clippy/test, Vitest, Vite build, `cargo xtask eval`.
+**Tech Stack:** Rust 2024 edition, serde contracts, existing checkpoint/replay/idempotency stores, `RecoveryEngine`, `CommandRetryPlanner`, conflict recovery summaries, `ruse-eval` manifests/suites, Markdown docs, Cargo fmt/clippy/test, Vitest, Vite build, `cargo xtask eval`.
 
 ---
 
@@ -20,13 +20,13 @@
 - Read: `docs/specs/M62-02-cli-json-replay-resume-fork.spec.md`
 - Read: `docs/specs/M62-03-idempotent-retry-ux.spec.md`
 - Read: `docs/specs/M62-04-conflict-diagnostics.spec.md`
-- Read: `crates/agent-core/src/recovery.rs`
-- Read: `crates/agent-core/src/command_retry.rs`
-- Read: `crates/agent-core/src/conflict_recovery.rs`
-- Read: `crates/agent-core/tests/recovery_snapshot.rs`
-- Read: `crates/agent-core/tests/conflict_recovery.rs`
-- Read: `crates/agent-eval/src/manifest.rs`
-- Read: `crates/agent-eval/src/runner.rs`
+- Read: `crates/ruse-core/src/recovery.rs`
+- Read: `crates/ruse-core/src/command_retry.rs`
+- Read: `crates/ruse-core/src/conflict_recovery.rs`
+- Read: `crates/ruse-core/tests/recovery_snapshot.rs`
+- Read: `crates/ruse-core/tests/conflict_recovery.rs`
+- Read: `crates/ruse-eval/src/manifest.rs`
+- Read: `crates/ruse-eval/src/runner.rs`
 - Read: `docs/eval/default.suite.json`
 
 - [x] **Step 1: Review M62 recovery contracts**
@@ -36,7 +36,7 @@ Identify the exact contract fields needed for crash smoke evidence: checkpoint m
 ### Task 2: Add Runtime Crash/Restart Smoke
 
 **Files:**
-- Create: `crates/agent-core/tests/crash_resume_smoke.rs`
+- Create: `crates/ruse-core/tests/crash_resume_smoke.rs`
 
 - [x] **Step 1: Build fixture setup**
 
@@ -73,7 +73,7 @@ Assert:
 Run:
 
 ```bash
-cargo test -p agent-core --test crash_resume_smoke
+cargo test -p ruse-core --test crash_resume_smoke
 ```
 
 Expected: crash/restart recovery behavior is deterministic, redacted, and credential-free.
@@ -81,10 +81,10 @@ Expected: crash/restart recovery behavior is deterministic, redacted, and creden
 ### Task 3: Add Eval or Smoke Gate Integration
 
 **Files:**
-- Modify: `crates/agent-eval/src/manifest.rs`
-- Modify: `crates/agent-eval/src/runner.rs`
-- Modify: `crates/agent-eval/tests/runner.rs`
-- Modify: `crates/agent-eval/tests/corpus.rs`
+- Modify: `crates/ruse-eval/src/manifest.rs`
+- Modify: `crates/ruse-eval/src/runner.rs`
+- Modify: `crates/ruse-eval/tests/runner.rs`
+- Modify: `crates/ruse-eval/tests/corpus.rs`
 - Modify: `docs/eval/default.suite.json`
 - Create: `docs/eval/scenarios/m62-recovery-crash-smoke.eval.json`
 - Create or update: `docs/eval/goldens/default-m62-recovery-crash-smoke.golden.json`
@@ -103,8 +103,8 @@ The smoke must require no provider credentials, network, live shell command side
 Run:
 
 ```bash
-cargo test -p agent-eval
-cargo test -p agent-cli --test eval_suite_commands
+cargo test -p ruse-eval
+cargo test -p ruse-cli --test eval_suite_commands
 cargo xtask eval
 ```
 
@@ -116,7 +116,7 @@ Expected: the default eval or documented smoke gate includes M62 recovery eviden
 - Create: `docs/cli/recovery-workflows.md`
 - Create: `docs/desktop/recovery-workflows.md`
 - Modify: `README.md`
-- Modify if relevant: `crates/agent-cli/tests/daily_driver_recipes.rs`
+- Modify if relevant: `crates/ruse-cli/tests/daily_driver_recipes.rs`
 
 - [x] **Step 1: Document CLI workflows**
 
@@ -189,7 +189,7 @@ Exact-stage only M62-05 source, eval, docs, and status files:
 ```bash
 git status --short --branch
 git diff --check
-git add README.md docs/specs/M62-05-crash-smoke-closeout.spec.md docs/plans/M62-05-crash-smoke-closeout.plan.md docs/plans/M62-reliability-recovery-productization.plan.md docs/cli/recovery-workflows.md docs/desktop/recovery-workflows.md docs/eval/default.suite.json docs/eval/scenarios/m62-recovery-crash-smoke.eval.json docs/eval/goldens/default-m62-recovery-crash-smoke.golden.json docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md crates/agent-core/tests/crash_resume_smoke.rs crates/agent-eval/src/manifest.rs crates/agent-eval/src/runner.rs crates/agent-eval/tests/runner.rs crates/agent-eval/tests/corpus.rs xtask/src/lib.rs
+git add README.md docs/specs/M62-05-crash-smoke-closeout.spec.md docs/plans/M62-05-crash-smoke-closeout.plan.md docs/plans/M62-reliability-recovery-productization.plan.md docs/cli/recovery-workflows.md docs/desktop/recovery-workflows.md docs/eval/default.suite.json docs/eval/scenarios/m62-recovery-crash-smoke.eval.json docs/eval/goldens/default-m62-recovery-crash-smoke.golden.json docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md crates/ruse-core/tests/crash_resume_smoke.rs crates/ruse-eval/src/manifest.rs crates/ruse-eval/src/runner.rs crates/ruse-eval/tests/runner.rs crates/ruse-eval/tests/corpus.rs xtask/src/lib.rs
 git commit -m "feat: add m62-05 recovery crash smoke closeout"
 ```
 

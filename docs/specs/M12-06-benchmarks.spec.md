@@ -26,7 +26,7 @@ Owned by later milestones:
 
 ## Architecture
 
-Benchmark contracts live in `agent-core` because scenarios combine runtime, storage, tools, context, and model-free fake data. M12 benchmarks use deterministic iteration counts and local in-memory fixtures.
+Benchmark contracts live in `ruse-core` because scenarios combine runtime, storage, tools, context, and model-free fake data. M12 benchmarks use deterministic iteration counts and local in-memory fixtures.
 
 ```mermaid
 flowchart TD
@@ -39,7 +39,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       lib.rs
       benchmark.rs
@@ -89,7 +89,7 @@ pub struct BenchmarkResult {
 
 - Core benchmark scenarios are typed and repeatable.
 - Smoke benchmark tests run in the normal workspace test suite.
-- `cargo test -p agent-core benchmarks` passes.
+- `cargo test -p ruse-core benchmarks` passes.
 
 ## Completion Signal
 

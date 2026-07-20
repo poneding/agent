@@ -30,7 +30,7 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-core::model_runtime` is the new orchestration module. It depends on `agent-model`, `agent-storage`, `agent-types`, and existing `agent-core::config`/`turn` contracts. It does not parse CLI flags and does not format UI output. `agent-cli` loads configuration and renders output, but it delegates provider selection and turn execution to core.
+`ruse-core::model_runtime` is the new orchestration module. It depends on `ruse-model`, `ruse-storage`, `ruse-types`, and existing `ruse-core::config`/`turn` contracts. It does not parse CLI flags and does not format UI output. `ruse-cli` loads configuration and renders output, but it delegates provider selection and turn execution to core.
 
 ```mermaid
 flowchart TD
@@ -43,10 +43,10 @@ flowchart TD
 
 Dependency rules:
 
-- `agent-core::model_runtime` may depend on `agent-model`, `agent-storage`, and `agent-types`.
-- `agent-model` must not depend on `agent-core`.
-- `agent-cli` must not call provider transports directly.
-- `agent-ui-bridge` remains a wire-contract crate and does not depend on `agent-core`.
+- `ruse-core::model_runtime` may depend on `ruse-model`, `ruse-storage`, and `ruse-types`.
+- `ruse-model` must not depend on `ruse-core`.
+- `ruse-cli` must not call provider transports directly.
+- `ruse-ui-bridge` remains a wire-contract crate and does not depend on `ruse-core`.
 
 ## Runtime Contracts
 

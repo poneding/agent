@@ -4,7 +4,7 @@
 
 **Goal:** Add serializable, redacted OAuth flow diagnostics.
 
-**Architecture:** `agent-mcp::client_http` diagnostic contracts reused by M53 flow helpers.
+**Architecture:** `ruse-mcp::client_http` diagnostic contracts reused by M53 flow helpers.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M53-04-flow-diagnostics-redaction.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review diagnostic scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_oauth_flow_diagnostics.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_oauth_flow_diagnostics.rs`
 
 - [x] **Step 1: Add flow diagnostic tests**
 
 ### Task 3: Implement Diagnostics
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add diagnostic severity/code contracts**
 - [x] **Step 2: Add redacted builder helpers**
@@ -45,10 +45,10 @@ Evidence, 2026-06-30:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m53 cargo fmt --all
-CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_flow_diagnostics
-CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_callback
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_flow_diagnostics
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_callback
 CARGO_TARGET_DIR=target/codex-m53 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m53 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m53 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit

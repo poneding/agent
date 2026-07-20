@@ -4,9 +4,9 @@
 
 **Goal:** Add background task command contracts and thin CLI/TUI/Desktop-facing task summaries before runner execution.
 
-**Architecture:** `agent-scheduler` owns task commands and transitions. `agent-ui-bridge` owns task summary schemas. CLI/TUI/Desktop render bridge data only.
+**Architecture:** `ruse-scheduler` owns task commands and transitions. `ruse-ui-bridge` owns task summary schemas. CLI/TUI/Desktop render bridge data only.
 
-**Tech Stack:** Rust 2024 edition, serde, existing `agent-scheduler` queue/state contracts, CLI JSON/text output, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, serde, existing `ruse-scheduler` queue/state contracts, CLI JSON/text output, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -15,9 +15,9 @@
 **Files:**
 - Read: `docs/specs/M24-01-task-command-bridge.spec.md`
 - Read: `docs/specs/M24-00-background-agents-technical-design.spec.md`
-- Read: `crates/agent-scheduler/src/task.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-cli/src/command.rs`
+- Read: `crates/ruse-scheduler/src/task.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Review task command scope**
 
@@ -32,9 +32,9 @@ Expected: command contracts, UI summaries, CLI surface, and acceptance criteria 
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-scheduler/tests/task_command_bridge.rs`
-- Create: `crates/agent-ui-bridge/tests/task_command_bridge.rs`
-- Create: `crates/agent-cli/tests/task_commands.rs`
+- Create: `crates/ruse-scheduler/tests/task_command_bridge.rs`
+- Create: `crates/ruse-ui-bridge/tests/task_command_bridge.rs`
+- Create: `crates/ruse-cli/tests/task_commands.rs`
 
 - [x] **Step 1: Add scheduler command tests**
 
@@ -53,9 +53,9 @@ Cover `agent task create|list|inspect|pause|resume|cancel|schedule` in text and 
 Run:
 
 ```bash
-cargo test -p agent-scheduler task_command_bridge
-cargo test -p agent-ui-bridge task_command_bridge
-cargo test -p agent-cli task_commands
+cargo test -p ruse-scheduler task_command_bridge
+cargo test -p ruse-ui-bridge task_command_bridge
+cargo test -p ruse-cli task_commands
 ```
 
 Expected: tests fail because command bridge contracts are missing.
@@ -63,13 +63,13 @@ Expected: tests fail because command bridge contracts are missing.
 ### Task 3: Implement Task Command Bridge
 
 **Files:**
-- Create: `crates/agent-scheduler/src/command.rs`
-- Modify: `crates/agent-scheduler/src/lib.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-tui/src/task_panel.rs`
-- Modify: `crates/agent-desktop/src/task.rs`
+- Create: `crates/ruse-scheduler/src/command.rs`
+- Modify: `crates/ruse-scheduler/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-tui/src/task_panel.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
 
 - [x] **Step 1: Add task command contracts**
 
@@ -90,17 +90,17 @@ Add task commands and task summary panels/models without putting mutation logic 
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-scheduler/tests/task_command_bridge.rs`
-- Read: `crates/agent-cli/tests/task_commands.rs`
+- Read: `crates/ruse-scheduler/tests/task_command_bridge.rs`
+- Read: `crates/ruse-cli/tests/task_commands.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-scheduler task_command_bridge
-cargo test -p agent-ui-bridge task_command_bridge
-cargo test -p agent-cli task_commands
+cargo test -p ruse-scheduler task_command_bridge
+cargo test -p ruse-ui-bridge task_command_bridge
+cargo test -p ruse-cli task_commands
 ```
 
 Expected: focused tests pass.

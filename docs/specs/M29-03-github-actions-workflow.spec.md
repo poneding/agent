@@ -15,7 +15,7 @@ This spec delivers:
 - `.github/workflows/ci.yml`
 - Rust toolchain setup
 - cache-safe Cargo invocation
-- artifact upload for `target/agent-ci`
+- artifact upload for `target/ruse-ci`
 
 Owned by other specs:
 

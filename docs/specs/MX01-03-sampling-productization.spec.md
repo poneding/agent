@@ -22,7 +22,7 @@ Not included:
 
 ## Architecture
 
-`agent-mcp::client_sampling` owns approval/review DTOs next to existing sampling request validation. Approval requests summarize counts, token limits, task metadata, and policy flags without storing raw prompt content.
+`ruse-mcp::client_sampling` owns approval/review DTOs next to existing sampling request validation. Approval requests summarize counts, token limits, task metadata, and policy flags without storing raw prompt content.
 
 ## Security
 
@@ -30,4 +30,4 @@ Tool-enabled sampling is denied by default even when a request includes `tools` 
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_sampling_productization`
+- `cargo test -p ruse-mcp mcp_sampling_productization`

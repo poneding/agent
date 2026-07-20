@@ -27,12 +27,12 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-mcp` should depend only on typed prompt export data, not on CLI-only default prompt helpers. `agent-cli` may construct a built-in prompt export from existing CLI prompt defaults until a later milestone moves that default catalog into a runtime crate.
+`ruse-mcp` should depend only on typed prompt export data, not on CLI-only default prompt helpers. `ruse-cli` may construct a built-in prompt export from existing CLI prompt defaults until a later milestone moves that default catalog into a runtime crate.
 
 ```mermaid
 flowchart TD
-  Manifest["manifest prompts"] --> MCP["agent-mcp prompt exports"]
-  CLI["agent-cli stdio bootstrap"] --> MCP
+  Manifest["manifest prompts"] --> MCP["ruse-mcp prompt exports"]
+  CLI["ruse-cli stdio bootstrap"] --> MCP
   MCP --> List["prompts/list"]
   MCP --> Get["prompts/get"]
 ```

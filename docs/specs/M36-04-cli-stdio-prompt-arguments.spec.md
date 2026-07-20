@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Serve manifest-backed prompt arguments through `agent-cli mcp server stdio`.
+Serve manifest-backed prompt arguments through `ruse-cli mcp server stdio`.
 
 ## Scope
 
@@ -15,11 +15,11 @@ This spec delivers:
 
 ## Architecture
 
-`agent-cli` passes manifest-backed prompt exports into `agent-mcp`; it does not implement prompt rendering logic.
+`ruse-cli` passes manifest-backed prompt exports into `ruse-mcp`; it does not implement prompt rendering logic.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-cli mcp_server_prompt_arguments`
+- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-cli mcp_server_prompt_arguments`
 
 ## Completion Signal
 

@@ -26,11 +26,11 @@ Owned by other specs:
 
 ## Architecture
 
-Command contracts live in `agent-ui-bridge`. They depend on `agent-types` IDs and state filters, but they do not depend on `agent-core`.
+Command contracts live in `ruse-ui-bridge`. They depend on `ruse-types` IDs and state filters, but they do not depend on `ruse-core`.
 
 ```mermaid
 flowchart TD
-  cli["CLI JSON client"] --> command["agent-ui-bridge UiCommandEnvelope"]
+  cli["CLI JSON client"] --> command["ruse-ui-bridge UiCommandEnvelope"]
   desktop["Desktop client"] --> command
   command --> core["future runtime command handler"]
 ```
@@ -39,7 +39,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       command.rs
       lib.rs
@@ -120,10 +120,10 @@ Command structs use `#[serde(deny_unknown_fields)]` where practical. Empty promp
 
 ## Acceptance Criteria
 
-- UI command contracts are exported from `agent-ui-bridge`.
+- UI command contracts are exported from `ruse-ui-bridge`.
 - Command JSON shape is stable and snake_case.
 - Invalid commands fail before runtime execution.
-- `cargo test -p agent-ui-bridge ui_command_schema` passes.
+- `cargo test -p ruse-ui-bridge ui_command_schema` passes.
 
 ## Completion Signal
 

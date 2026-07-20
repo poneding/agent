@@ -26,7 +26,7 @@ Out of scope:
 
 ## Architecture
 
-`agent-core` should expose a streaming configured turn API that yields `RuntimeEvent` values. `agent-cli` consumes that event stream and renders either text deltas or `UiJsonFrame::Event` lines. Existing collected APIs may remain as compatibility wrappers that collect the streaming API.
+`ruse-core` should expose a streaming configured turn API that yields `RuntimeEvent` values. `ruse-cli` consumes that event stream and renders either text deltas or `UiJsonFrame::Event` lines. Existing collected APIs may remain as compatibility wrappers that collect the streaming API.
 
 ## State And Failure Handling
 
@@ -37,7 +37,7 @@ Out of scope:
 
 ## Security And Privacy
 
-JSON frames use `agent-ui-bridge` normalization. Text mode receives only model deltas after prompt/user secret redaction already applied by the runtime path.
+JSON frames use `ruse-ui-bridge` normalization. Text mode receives only model deltas after prompt/user secret redaction already applied by the runtime path.
 
 ## Testing Strategy
 

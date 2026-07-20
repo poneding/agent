@@ -1,4 +1,4 @@
-use agent_desktop::{
+use ruse_desktop::{
     DesktopConfigSnapshot, DesktopDashboardDiagnostic, DesktopDashboardInput,
     DesktopDashboardSnapshot, build_dashboard_snapshot,
 };

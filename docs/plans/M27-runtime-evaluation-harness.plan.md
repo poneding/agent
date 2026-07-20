@@ -4,7 +4,7 @@
 
 **Goal:** Build a deterministic evaluation and regression harness over existing runtime replay, fake-model, local-coding, and observability evidence fixtures.
 
-**Architecture:** `agent-eval` owns manifest, runner, golden comparison, and report contracts. `agent-cli` calls `agent-eval` for command surfaces. Runtime logic stays out of UI crates.
+**Architecture:** `ruse-eval` owns manifest, runner, golden comparison, and report contracts. `ruse-cli` calls `ruse-eval` for command surfaces. Runtime logic stays out of UI crates.
 
 **Tech Stack:** Rust 2024 edition, serde, typed runtime events, replay fixtures, observability evidence, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -53,7 +53,7 @@ Each plan names files, focused tests, verification commands, and commit points.
 
 - [x] **Step 1: Implement scenario manifest contracts**
 
-Add `agent-eval` crate, versioned scenario manifests, validation, path normalization, and serde tests.
+Add `ruse-eval` crate, versioned scenario manifests, validation, path normalization, and serde tests.
 
 - [x] **Step 2: Implement scenario runner core**
 

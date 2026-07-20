@@ -4,7 +4,7 @@
 
 **Goal:** Add plugin capability validation and policy request mapping.
 
-**Architecture:** Keep validation in `agent-plugin`; keep decisions in `agent-policy`; add only durable trace payloads to `agent-types` when needed.
+**Architecture:** Keep validation in `ruse-plugin`; keep decisions in `ruse-policy`; add only durable trace payloads to `ruse-types` when needed.
 
 **Tech Stack:** Rust 2024 edition, serde, existing policy/tool/types crates, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M11-03-plugin-capabilities.spec.md`
-- Read: `crates/agent-policy/src/capability.rs`
-- Read: `crates/agent-policy/src/request.rs`
+- Read: `crates/ruse-policy/src/capability.rs`
+- Read: `crates/ruse-policy/src/request.rs`
 
 - [x] **Step 1: Review capability mapping**
 
@@ -30,8 +30,8 @@ Expected: the spec maps plugin tool use into the current policy model.
 ### Task 2: Write RED Capability Tests
 
 **Files:**
-- Create: `crates/agent-plugin/tests/capabilities.rs`
-- Modify/Create: `crates/agent-types/tests/m11_plugin_capabilities.rs`
+- Create: `crates/ruse-plugin/tests/capabilities.rs`
+- Modify/Create: `crates/ruse-types/tests/m11_plugin_capabilities.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -50,8 +50,8 @@ Add tests:
 Run:
 
 ```bash
-cargo test -p agent-plugin capabilities
-cargo test -p agent-types m11_plugin_capabilities
+cargo test -p ruse-plugin capabilities
+cargo test -p ruse-types m11_plugin_capabilities
 ```
 
 Expected: tests fail because capability validation and event payloads do not exist yet.
@@ -59,12 +59,12 @@ Expected: tests fail because capability validation and event payloads do not exi
 ### Task 3: Implement Capability Contracts
 
 **Files:**
-- Modify: `crates/agent-plugin/src/lib.rs`
-- Create: `crates/agent-plugin/src/capability.rs`
-- Modify: `crates/agent-plugin/src/manifest.rs`
-- Modify: `crates/agent-plugin/src/error.rs`
-- Modify: `crates/agent-types/src/external.rs`
-- Modify: `crates/agent-types/src/event.rs`
+- Modify: `crates/ruse-plugin/src/lib.rs`
+- Create: `crates/ruse-plugin/src/capability.rs`
+- Modify: `crates/ruse-plugin/src/manifest.rs`
+- Modify: `crates/ruse-plugin/src/error.rs`
+- Modify: `crates/ruse-types/src/external.rs`
+- Modify: `crates/ruse-types/src/event.rs`
 
 - [x] **Step 1: Add capability types**
 
@@ -90,16 +90,16 @@ Add a stable external event payload for plugin capability validation summary.
 ### Task 4: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-plugin/tests/capabilities.rs`
-- Read: `crates/agent-types/tests/m11_plugin_capabilities.rs`
+- Read: `crates/ruse-plugin/tests/capabilities.rs`
+- Read: `crates/ruse-types/tests/m11_plugin_capabilities.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-plugin capabilities
-cargo test -p agent-types m11_plugin_capabilities
+cargo test -p ruse-plugin capabilities
+cargo test -p ruse-types m11_plugin_capabilities
 ```
 
 Expected: focused tests pass.

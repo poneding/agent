@@ -50,7 +50,7 @@ Owned by other specs:
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool_call`
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_gateway_stdio_tool_call`
 
 ## Completion Signal
 

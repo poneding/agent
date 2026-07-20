@@ -48,8 +48,8 @@ Next-action ids:
 
 ## Acceptance Criteria
 
-- `agent-mcp` exposes a typed status health report.
-- `agent-cli mcp server status --json` includes the additive health report.
+- `ruse-mcp` exposes a typed status health report.
+- `ruse-cli mcp server status --json` includes the additive health report.
 - Text status includes a concise health line.
 - Capability/export mismatch produces an error diagnostic and unhealthy report status.
 - Empty exports produce a warning diagnostic and configure-exports action.
@@ -59,9 +59,9 @@ Next-action ids:
 ## Verification
 
 ```bash
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-mcp mcp_server_status_health
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-cli --test mcp_server_commands
-CARGO_TARGET_DIR=target/m66-dev cargo clippy -p agent-mcp -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-mcp mcp_server_status_health
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-cli --test mcp_server_commands
+CARGO_TARGET_DIR=target/m66-dev cargo clippy -p ruse-mcp -p ruse-cli --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

@@ -12,7 +12,7 @@ The runtime records meaningful behavior as typed events. Events are the source o
 
 ## Event Envelope
 
-The durable event envelope is defined in `agent-types` and consumed by storage, core, CLI, Desktop, tests, and replay.
+The durable event envelope is defined in `ruse-types` and consumed by storage, core, CLI, Desktop, tests, and replay.
 
 Required fields:
 

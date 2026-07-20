@@ -4,7 +4,7 @@
 
 **Goal:** Implement one deterministic local coding-agent golden path from repository bootstrap through final review evidence.
 
-**Architecture:** Runtime behavior belongs in `agent-core` and supporting runtime crates. `agent-cli`, `agent-tui`, and `agent-desktop` must consume shared runtime contracts/events through `agent-ui-bridge` instead of owning separate coding-agent logic.
+**Architecture:** Runtime behavior belongs in `ruse-core` and supporting runtime crates. `ruse-cli`, `ruse-tui`, and `ruse-desktop` must consume shared runtime contracts/events through `ruse-ui-bridge` instead of owning separate coding-agent logic.
 
 **Tech Stack:** Rust 2024 edition, Tokio where async already exists, serde contracts, existing fake provider, built-in tools, policy/audit/replay crates, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

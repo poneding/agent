@@ -6,7 +6,7 @@ Expose prompt profile, layer, diagnostic, and snapshot metadata through UI bridg
 
 ## Product Context
 
-M16-04 gives CLI users prompt inspection. M16-05 formalizes the UI-safe summary contract so terminal TUI and Desktop can render the same prompt composition without learning `agent-context` internals or receiving hidden prompt content.
+M16-04 gives CLI users prompt inspection. M16-05 formalizes the UI-safe summary contract so terminal TUI and Desktop can render the same prompt composition without learning `ruse-context` internals or receiving hidden prompt content.
 
 ## Scope
 
@@ -27,7 +27,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-ui-bridge` owns UI-safe view models and runtime event normalization. It may depend on `agent-types` payloads and mirror `agent-context` summary concepts as strings, but it must not expose raw hidden prompt content. CLI can reuse the bridge payload after this slice, but the bridge remains independent from CLI rendering.
+`ruse-ui-bridge` owns UI-safe view models and runtime event normalization. It may depend on `ruse-types` payloads and mirror `ruse-context` summary concepts as strings, but it must not expose raw hidden prompt content. CLI can reuse the bridge payload after this slice, but the bridge remains independent from CLI rendering.
 
 ## Public Contracts
 

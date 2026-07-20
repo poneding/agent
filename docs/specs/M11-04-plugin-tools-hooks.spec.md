@@ -30,29 +30,29 @@ Owned by other specs:
 
 ## Architecture
 
-Plugin tools implement `agent_tool::Tool`. `agent-core::ToolLoop` remains the event and policy execution path.
+Plugin tools implement `ruse_tool::Tool`. `ruse-core::ToolLoop` remains the event and policy execution path.
 
 ```mermaid
 flowchart TD
   manifest["PluginManifest tools"] --> factory["PluginToolFactory"]
-  factory --> registry["agent-tool ToolRegistry"]
-  registry --> loop["agent-core ToolLoop"]
-  loop --> policy["agent-policy PolicyEngine"]
-  loop --> events["agent-types RuntimeEvent"]
+  factory --> registry["ruse-tool ToolRegistry"]
+  registry --> loop["ruse-core ToolLoop"]
+  loop --> policy["ruse-policy PolicyEngine"]
+  loop --> events["ruse-types RuntimeEvent"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-plugin/
+  ruse-plugin/
     src/
       tool.rs
       hook.rs
     tests/
       plugin_tools_hooks.rs
 crates/
-  agent-core/
+  ruse-core/
     tests/
       m11_plugin_runtime_integration.rs
 ```
@@ -62,19 +62,19 @@ crates/
 ```rust
 pub struct PluginTool {
     pub plugin_name: PluginName,
-    pub definition: agent_tool::ToolDefinition,
+    pub definition: ruse_tool::ToolDefinition,
     pub host: Arc<dyn PluginToolHost>,
 }
 
 pub trait PluginToolHost: Send + Sync {
-    fn invoke(&self, request: PluginToolInvocation) -> Result<agent_tool::ToolOutput, PluginProcessError>;
+    fn invoke(&self, request: PluginToolInvocation) -> Result<ruse_tool::ToolOutput, PluginProcessError>;
 }
 
 pub fn register_plugin_tools(
-    registry: &mut agent_tool::ToolRegistry,
+    registry: &mut ruse_tool::ToolRegistry,
     manifest: &PluginManifest,
     host: Arc<dyn PluginToolHost>,
-) -> Result<Vec<agent_tool::ToolName>, PluginManifestError>;
+) -> Result<Vec<ruse_tool::ToolName>, PluginManifestError>;
 ```
 
 Hook contracts:
@@ -123,7 +123,7 @@ pub struct PluginHookOutcome {
 - Plugin tools run through `ToolRegistry`.
 - Plugin tool calls run through `ToolLoop` policy and runtime event path.
 - Hook contracts are bounded and traceable.
-- `cargo test -p agent-plugin plugin_tools_hooks` and `cargo test -p agent-core m11_plugin_runtime_integration` pass.
+- `cargo test -p ruse-plugin plugin_tools_hooks` and `cargo test -p ruse-core m11_plugin_runtime_integration` pass.
 
 ## Completion Signal
 

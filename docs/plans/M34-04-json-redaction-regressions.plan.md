@@ -4,7 +4,7 @@
 
 **Goal:** Add stable JSON and redaction coverage for profile inspection.
 
-**Architecture:** `agent-mcp` produces safe data; `agent-cli` renders it unchanged.
+**Architecture:** `ruse-mcp` produces safe data; `ruse-cli` renders it unchanged.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -30,10 +30,10 @@ No implementation changes were needed beyond regression coverage; existing redac
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m34 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p agent-cli --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_inspection
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command
+CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p ruse-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-mcp mcp_server_profile_inspection
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-cli mcp_server_profile_inspect_command
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -42,10 +42,10 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m34 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p agent-cli --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_inspection
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command
+CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p ruse-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-mcp mcp_server_profile_inspection
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-cli mcp_server_profile_inspect_command
 ```
 
 ### Task 5: Commit

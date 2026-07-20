@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-Contracts live in `agent-mcp::client_http` next to existing OAuth metadata, flow, and token lifecycle contracts.
+Contracts live in `ruse-mcp::client_http` next to existing OAuth metadata, flow, and token lifecycle contracts.
 
 ## Public Contracts
 
@@ -67,8 +67,8 @@ pub struct McpClientHttpOAuthTokenErrorResponse {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_response`
-- focused fmt and clippy gates pass for `agent-mcp`
+- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_response`
+- focused fmt and clippy gates pass for `ruse-mcp`
 
 ## Completion Signal
 

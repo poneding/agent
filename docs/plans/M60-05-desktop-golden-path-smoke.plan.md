@@ -4,7 +4,7 @@
 
 **Goal:** Prove the M60 Desktop daily-driver workflow with a deterministic, credential-free smoke fixture and close out the milestone.
 
-**Architecture:** Existing `agent-ui-bridge` command/frame contracts feed existing `agent-desktop` view models; Tauri commands and React render typed snapshots. `xtask` orchestrates the Desktop product gate. Runtime behavior remains in shared runtime crates, not Desktop presentation code.
+**Architecture:** Existing `ruse-ui-bridge` command/frame contracts feed existing `ruse-desktop` view models; Tauri commands and React render typed snapshots. `xtask` orchestrates the Desktop product gate. Runtime behavior remains in shared runtime crates, not Desktop presentation code.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing Desktop and UI bridge test fixtures, Tauri 2 command tests, React 18, TypeScript, Vitest, npm build, Cargo fmt/clippy/test, `cargo xtask desktop-test`, and `cargo xtask eval`.
 
@@ -20,9 +20,9 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-desktop/src/lib.rs`
-- Read: `crates/agent-desktop/tests/*`
-- Read: `crates/agent-ui-bridge/tests/desktop_daily_driver.rs`
+- Read: `crates/ruse-desktop/src/lib.rs`
+- Read: `crates/ruse-desktop/tests/*`
+- Read: `crates/ruse-ui-bridge/tests/desktop_daily_driver.rs`
 - Read: `apps/desktop/src/App.tsx`
 - Read: `apps/desktop/src/types.ts`
 - Read: `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
@@ -35,14 +35,14 @@ Current baseline before implementation:
 
 - M60-01 through M60-04 are complete.
 - `apps/desktop/src/__tests__/desktop-smoke.test.tsx` navigates the Desktop routes but does not yet assert a full M56-shaped workflow.
-- `crates/agent-ui-bridge/tests/desktop_daily_driver.rs` covers start-turn serialization and basic frame encoding.
-- `crates/agent-desktop/tests/desktop_daily_driver.rs` does not exist yet and should be created for the full Desktop contract fixture.
-- `cargo xtask desktop-test` currently runs only `cargo test -p agent-desktop`.
+- `crates/ruse-ui-bridge/tests/desktop_daily_driver.rs` covers start-turn serialization and basic frame encoding.
+- `crates/ruse-desktop/tests/desktop_daily_driver.rs` does not exist yet and should be created for the full Desktop contract fixture.
+- `cargo xtask desktop-test` currently runs only `cargo test -p ruse-desktop`.
 
 ### Task 2: Add Desktop Daily-Driver Contract Smoke
 
 **Files:**
-- Create: `crates/agent-desktop/tests/desktop_daily_driver.rs`
+- Create: `crates/ruse-desktop/tests/desktop_daily_driver.rs`
 
 - [x] **Step 1: Build the Rust fixture**
 
@@ -65,12 +65,12 @@ Verify the fixture contains:
 
 Serialize the complete fixture and verify secret-like tokens, raw API keys, passwords, and hidden tool input names do not leak.
 
-Implemented in `crates/agent-desktop/tests/desktop_daily_driver.rs` with a full dashboard, conversation, approval, diff, provider/settings, task monitor, and trace/log aggregate fixture.
+Implemented in `crates/ruse-desktop/tests/desktop_daily_driver.rs` with a full dashboard, conversation, approval, diff, provider/settings, task monitor, and trace/log aggregate fixture.
 
 ### Task 3: Strengthen UI Bridge Smoke Frames
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/tests/desktop_daily_driver.rs`
+- Modify: `crates/ruse-ui-bridge/tests/desktop_daily_driver.rs`
 
 - [x] **Step 1: Add approval resolution command coverage**
 
@@ -84,7 +84,7 @@ Build a deterministic frame sequence for user message, model delta, task notific
 
 Ensure fixture frames do not expose secret-like values or unbounded raw payloads.
 
-Implemented in `crates/agent-ui-bridge/tests/desktop_daily_driver.rs` with Desktop start-turn, approval resolution, task notification, approval requested/resolved, final response, and done-frame coverage.
+Implemented in `crates/ruse-ui-bridge/tests/desktop_daily_driver.rs` with Desktop start-turn, approval resolution, task notification, approval requested/resolved, final response, and done-frame coverage.
 
 ### Task 4: Strengthen Frontend Smoke Fixture
 
@@ -117,8 +117,8 @@ Implemented in `apps/desktop/src/__tests__/desktop-smoke.test.tsx`; `ApprovalDet
 Expand `Task::DesktopTest` to run:
 
 ```bash
-cargo test -p agent-desktop
-cargo test -p agent-ui-bridge --test desktop_daily_driver
+cargo test -p ruse-desktop
+cargo test -p ruse-ui-bridge --test desktop_daily_driver
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 npm --prefix apps/desktop test
 npm --prefix apps/desktop run build
@@ -159,8 +159,8 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo test -p agent-desktop --test desktop_daily_driver
-cargo test -p agent-ui-bridge --test desktop_daily_driver
+cargo test -p ruse-desktop --test desktop_daily_driver
+cargo test -p ruse-ui-bridge --test desktop_daily_driver
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 npm --prefix apps/desktop test -- desktop-smoke
 npm --prefix apps/desktop run build
@@ -211,8 +211,8 @@ git commit -m "feat: add m60 desktop golden path smoke"
 ### Completion Checklist
 
 - [x] M60-05 spec and plan are written.
-- [x] `agent-desktop` has a full daily-driver contract smoke fixture.
-- [x] `agent-ui-bridge` has M56-shaped Desktop command/frame smoke coverage.
+- [x] `ruse-desktop` has a full daily-driver contract smoke fixture.
+- [x] `ruse-ui-bridge` has M56-shaped Desktop command/frame smoke coverage.
 - [x] Frontend Desktop smoke asserts dashboard, conversation, tasks, approvals, trace, settings, and redaction evidence.
 - [x] `cargo xtask desktop-test` runs the Desktop product gate.
 - [x] Desktop daily-driver smoke docs are written.

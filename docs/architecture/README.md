@@ -18,20 +18,20 @@ Architecture docs answer questions that should stay stable across milestones:
 
 ```mermaid
 flowchart TD
-  UI[CLI / Desktop / API] --> Bridge[agent-ui-bridge]
-  Bridge --> Core[agent-core]
-  Core --> Types[agent-types]
-  Core --> Model[agent-model]
-  Core --> Tool[agent-tool]
-  Core --> Policy[agent-policy]
-  Core --> Context[agent-context]
-  Core --> Memory[agent-memory]
-  Core --> Scheduler[agent-scheduler]
-  Core --> Storage[agent-storage]
-  Tool --> Sandbox[agent-sandbox]
-  Tool --> MCP[agent-mcp]
-  Tool --> Plugin[agent-plugin]
-  Core --> Telemetry[agent-telemetry]
+  UI[CLI / Desktop / API] --> Bridge[ruse-ui-bridge]
+  Bridge --> Core[ruse-core]
+  Core --> Types[ruse-types]
+  Core --> Model[ruse-model]
+  Core --> Tool[ruse-tool]
+  Core --> Policy[ruse-policy]
+  Core --> Context[ruse-context]
+  Core --> Memory[ruse-memory]
+  Core --> Scheduler[ruse-scheduler]
+  Core --> Storage[ruse-storage]
+  Tool --> Sandbox[ruse-sandbox]
+  Tool --> MCP[ruse-mcp]
+  Tool --> Plugin[ruse-plugin]
+  Core --> Telemetry[ruse-telemetry]
 ```
 
 ## Required Reading Order

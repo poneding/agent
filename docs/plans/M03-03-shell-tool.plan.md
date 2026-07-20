@@ -4,16 +4,16 @@
 
 **Goal:** Add a controlled shell command tool with cwd confinement, timeout handling, and captured output.
 
-**Architecture:** `agent-tool` implements `ShellCommandTool`. `agent-sandbox` validates cwd, and command execution uses program plus args rather than shell strings.
+**Architecture:** `ruse-tool` implements `ShellCommandTool`. `ruse-sandbox` validates cwd, and command execution uses program plus args rather than shell strings.
 
-**Tech Stack:** Rust 2024 edition, `agent-tool`, `agent-sandbox`, `serde_json`, `tempfile`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-tool`, `ruse-sandbox`, `serde_json`, `tempfile`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Shell Tool Tests
 
 **Files:**
-- Create: `crates/agent-tool/tests/shell_command_tool.rs`
+- Create: `crates/ruse-tool/tests/shell_command_tool.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -22,7 +22,7 @@ Tests must prove successful command capture, non-zero status capture, timeout, s
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-tool shell_command_tool
+cargo test -p ruse-tool shell_command_tool
 ```
 
 Expected: tests fail because `ShellCommandTool` does not exist.
@@ -30,8 +30,8 @@ Expected: tests fail because `ShellCommandTool` does not exist.
 ### Task 2: Implement Shell Tool
 
 **Files:**
-- Create: `crates/agent-tool/src/builtins/shell_command.rs`
-- Modify: `crates/agent-tool/src/builtins/mod.rs`
+- Create: `crates/ruse-tool/src/builtins/shell_command.rs`
+- Modify: `crates/ruse-tool/src/builtins/mod.rs`
 
 - [x] **Step 1: Implement input parsing**
 
@@ -44,7 +44,7 @@ Spawn the program with explicit args and kill it on timeout.
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-tool shell_command_tool
+cargo test -p ruse-tool shell_command_tool
 ```
 
 Expected: focused tests pass.

@@ -4,7 +4,7 @@
 
 **Goal:** Add explicit bearer-token application to MCP HTTP request construction.
 
-**Architecture:** `agent-mcp::client_http` applies caller-provided bearer authorization at request construction only.
+**Architecture:** `ruse-mcp::client_http` applies caller-provided bearer authorization at request construction only.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,28 +14,28 @@
 
 **Files:**
 - Read: `docs/specs/M51-04-bearer-token-request-boundary.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review request builder patterns**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_bearer_authorization.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_bearer_authorization.rs`
 
 - [x] **Step 1: Add bearer authorization tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_bearer_authorization
+CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_bearer_authorization
 ```
 
 ### Task 3: Implement Request Boundary
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add bearer authorization DTO**
 - [x] **Step 2: Add POST request builder with authorization**
@@ -51,7 +51,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit
@@ -61,7 +61,7 @@ CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D 
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp http bearer authorization boundary"
 ```
 
@@ -69,6 +69,6 @@ git commit -m "feat: add mcp http bearer authorization boundary"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_bearer_authorization`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_bearer_authorization`
 - `CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p ruse-mcp --all-targets -- -D warnings`

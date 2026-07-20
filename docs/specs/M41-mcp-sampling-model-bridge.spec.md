@@ -2,18 +2,18 @@
 
 ## Purpose
 
-Bridge validated MCP `sampling/createMessage` requests into controlled `agent-model` provider calls without giving external MCP servers model credentials, local tools, approval bypasses, or raw diagnostic surfaces.
+Bridge validated MCP `sampling/createMessage` requests into controlled `ruse-model` provider calls without giving external MCP servers model credentials, local tools, approval bypasses, or raw diagnostic surfaces.
 
 ## Product Context
 
-M40 made MCP sampling representable, validated, fixture-executable, and visible in gateway reports. M41 is the next narrow runtime step: use the existing `agent-model` abstraction to execute safe text-only sampling requests through a locally selected provider. This advances PRD 5.2, 5.4, 5.11, and 5.12 while preserving the M40 boundary that sampling is not a permission grant.
+M40 made MCP sampling representable, validated, fixture-executable, and visible in gateway reports. M41 is the next narrow runtime step: use the existing `ruse-model` abstraction to execute safe text-only sampling requests through a locally selected provider. This advances PRD 5.2, 5.4, 5.11, and 5.12 while preserving the M40 boundary that sampling is not a permission grant.
 
 ## Scope
 
 This milestone delivers:
 
-- an `agent-core` bridge module that maps safe MCP sampling requests to `agent-model::ModelRequest`
-- a deterministic `McpSamplingProvider` implementation backed by `agent-model::ModelProvider`
+- an `ruse-core` bridge module that maps safe MCP sampling requests to `ruse-model::ModelRequest`
+- a deterministic `McpSamplingProvider` implementation backed by `ruse-model::ModelProvider`
 - redacted bridge diagnostics for unsupported content and provider failures
 - guardrails that reject server-requested tools, context inclusion, tool-call stream events, and unsupported media conversion
 - README and milestone hardening docs with final verification evidence
@@ -29,14 +29,14 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` remains the MCP protocol owner. `agent-core` owns the bridge because it already depends on `agent-model` and can enforce runtime policy boundaries before model execution. `agent-model` providers do not learn about MCP; they receive ordinary `ModelRequest` values.
+`ruse-mcp` remains the MCP protocol owner. `ruse-core` owns the bridge because it already depends on `ruse-model` and can enforce runtime policy boundaries before model execution. `ruse-model` providers do not learn about MCP; they receive ordinary `ModelRequest` values.
 
 ```mermaid
 flowchart TD
-  Request["McpCreateMessageRequestParams"] --> Validate["agent-mcp validation"]
-  Validate --> Bridge["agent-core mcp_sampling bridge"]
-  Bridge --> ModelRequest["agent-model ModelRequest"]
-  ModelProvider["agent-model ModelProvider"] --> Stream["ModelStreamEvent"]
+  Request["McpCreateMessageRequestParams"] --> Validate["ruse-mcp validation"]
+  Validate --> Bridge["ruse-core mcp_sampling bridge"]
+  Bridge --> ModelRequest["ruse-model ModelRequest"]
+  ModelProvider["ruse-model ModelProvider"] --> Stream["ModelStreamEvent"]
   Stream --> Result["McpCreateMessageResult"]
 ```
 
@@ -74,7 +74,7 @@ pub struct McpModelSamplingProvider<P> {
 }
 ```
 
-The provider implements `agent_mcp::McpSamplingProvider` and returns an MCP assistant text result by concatenating model delta events.
+The provider implements `ruse_mcp::McpSamplingProvider` and returns an MCP assistant text result by concatenating model delta events.
 
 ## State and Failure Handling
 
@@ -90,7 +90,7 @@ The provider implements `agent_mcp::McpSamplingProvider` and returns an MCP assi
 - Raw prompt text and model response text are not included in errors, gateway reports, or public diagnostics.
 - Server model hints remain advisory; local bridge config chooses provider and model.
 - Sampling does not grant filesystem, command, Git, browser, Desktop, local secret, network, or local tool permissions.
-- Provider credentials stay inside `agent-model` configuration and secret resolution.
+- Provider credentials stay inside `ruse-model` configuration and secret resolution.
 
 ## Testing Strategy
 
@@ -102,11 +102,11 @@ The provider implements `agent_mcp::McpSamplingProvider` and returns an MCP assi
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_mapping`
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_provider`
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_redaction`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_mapping`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_provider`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_redaction`
 - `CARGO_TARGET_DIR=target/codex-m41 cargo xtask ci`
 
 ## Completion Signal
 
-M41 is complete when safe text-only MCP sampling can execute through an `agent-model` provider from `agent-core`, return typed MCP sampling results, reject unsupported paths safely, and pass focused and workspace gates.
+M41 is complete when safe text-only MCP sampling can execute through an `ruse-model` provider from `ruse-core`, return typed MCP sampling results, reject unsupported paths safely, and pass focused and workspace gates.

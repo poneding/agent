@@ -4,17 +4,17 @@
 
 **Goal:** Implement a minimal turn state machine that consumes user input, streams fake model output, emits runtime events, and reaches a final response.
 
-**Architecture:** `agent-core` owns turn orchestration. It accepts typed input, builds minimal context, calls a `ModelProvider`, emits `RuntimeEvent` values, and returns a `TurnOutcome`. It does not write to storage in this slice; persistence is covered by M01-06 integration.
+**Architecture:** `ruse-core` owns turn orchestration. It accepts typed input, builds minimal context, calls a `ModelProvider`, emits `RuntimeEvent` values, and returns a `TurnOutcome`. It does not write to storage in this slice; persistence is covered by M01-06 integration.
 
-**Tech Stack:** Rust 2024 edition, `agent-types`, `agent-model`, `thiserror`, `tokio` for async tests, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-types`, `ruse-model`, `thiserror`, `tokio` for async tests, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Add Core Dependencies and Modules
 
 **Files:**
-- Modify: `crates/agent-core/Cargo.toml`
-- Modify: `crates/agent-core/src/lib.rs`
+- Modify: `crates/ruse-core/Cargo.toml`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add dependencies**
 
@@ -22,9 +22,9 @@ Add:
 
 ```toml
 [dependencies]
-agent-model = { path = "../agent-model" }
-agent-storage = { path = "../agent-storage" }
-agent-types = { path = "../agent-types" }
+ruse-model = { path = "../ruse-model" }
+ruse-storage = { path = "../ruse-storage" }
+ruse-types = { path = "../ruse-types" }
 thiserror = "2"
 
 [dev-dependencies]
@@ -51,13 +51,13 @@ pub use turn::{TurnEngine, TurnError, TurnInput, TurnOutcome};
 ### Task 2: Define Runtime IDs and Context Assembly
 
 **Files:**
-- Create: `crates/agent-core/src/runtime.rs`
-- Create: `crates/agent-core/src/context.rs`
+- Create: `crates/ruse-core/src/runtime.rs`
+- Create: `crates/ruse-core/src/context.rs`
 
 - [x] **Step 1: Define runtime identity bundle**
 
 ```rust
-use agent_types::{ConversationId, CorrelationId, TurnId, WorkspaceId};
+use ruse_types::{ConversationId, CorrelationId, TurnId, WorkspaceId};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct RuntimeIds {
@@ -85,14 +85,14 @@ impl ContextAssembler {
 ### Task 3: Implement Turn Engine
 
 **Files:**
-- Create: `crates/agent-core/src/turn.rs`
-- Create: `crates/agent-core/tests/turn_engine.rs`
+- Create: `crates/ruse-core/src/turn.rs`
+- Create: `crates/ruse-core/tests/turn_engine.rs`
 
 - [x] **Step 1: Define turn input and outcome**
 
 ```rust
-use agent_model::{ModelProvider, ModelRequest, ModelStreamEvent};
-use agent_types::{
+use ruse_model::{ModelProvider, ModelRequest, ModelStreamEvent};
+use ruse_types::{
     ActorRef, FinalResponseProduced, ModelOutputDelta, RuntimeEvent, RuntimeEventPayload,
     SchemaVersion, Timestamp, TurnCompleted, TurnStarted, TurnState, TurnStateChanged,
     UserInputReceived,
@@ -153,7 +153,7 @@ Tests must prove:
 Run:
 
 ```bash
-cargo test -p agent-core turn_engine_aggregates_fake_model_output
+cargo test -p ruse-core turn_engine_aggregates_fake_model_output
 ```
 
 Expected: turn engine tests pass.

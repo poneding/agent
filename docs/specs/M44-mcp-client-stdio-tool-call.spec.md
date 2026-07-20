@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add live MCP `tools/call` execution over the existing client-side stdio runtime so discovered external MCP tools can be invoked through typed `agent-mcp` contracts and the existing gateway tool path.
+Add live MCP `tools/call` execution over the existing client-side stdio runtime so discovered external MCP tools can be invoked through typed `ruse-mcp` contracts and the existing gateway tool path.
 
 ## Product Context
 
@@ -29,7 +29,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` remains the sole owner of MCP client protocol behavior. `McpStdioClient` implements the existing `McpGatewayClient::call_tool` method by serializing one `tools/call` JSON-RPC request over its session and mapping a success result into `McpToolCallResult`. `McpGateway` continues to expose remote tools as local `agent-tool` tools and continues to bound returned output.
+`ruse-mcp` remains the sole owner of MCP client protocol behavior. `McpStdioClient` implements the existing `McpGatewayClient::call_tool` method by serializing one `tools/call` JSON-RPC request over its session and mapping a success result into `McpToolCallResult`. `McpGateway` continues to expose remote tools as local `ruse-tool` tools and continues to bound returned output.
 
 ```mermaid
 flowchart TD
@@ -80,7 +80,7 @@ pub struct McpToolCallRequest {
 - Local policy must approve the local gateway tool before a remote `tools/call` is sent.
 - Public diagnostics must not expose local tool arguments, remote stderr, process env, secret refs, prompt text, or raw remote failure details.
 - Remote success payloads are returned as tool output by design, then bounded by the gateway when surfaced as a local tool result.
-- Secret refs continue to be resolved outside `agent-mcp`.
+- Secret refs continue to be resolved outside `ruse-mcp`.
 
 ## Testing Strategy
 
@@ -92,9 +92,9 @@ pub struct McpToolCallRequest {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call`
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool_call`
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call_process`
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_client_stdio_tool_call`
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_gateway_stdio_tool_call`
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_client_stdio_tool_call_process`
 - `CARGO_TARGET_DIR=target/codex-m44 cargo xtask ci`
 
 ## Completion Signal

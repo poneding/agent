@@ -8,8 +8,8 @@ Provide UI-safe MCP management snapshot contracts for Desktop and bridge surface
 
 This slice delivers:
 
-- MCP management server snapshot DTOs in `agent-mcp`
-- bridge-consumable MCP snapshot DTOs in `agent-ui-bridge`
+- MCP management server snapshot DTOs in `ruse-mcp`
+- bridge-consumable MCP snapshot DTOs in `ruse-ui-bridge`
 - server status, transport kind, roots, sampling availability, stream status, auth status, last diagnostics, and extension health fields
 - bounded/redacted serialization tests
 
@@ -21,7 +21,7 @@ Not included:
 
 ## Architecture
 
-`agent-mcp` produces protocol-aware snapshots. `agent-ui-bridge` defines bridge DTOs that can be populated by callers without importing MCP internals into bridge normalization paths.
+`ruse-mcp` produces protocol-aware snapshots. `ruse-ui-bridge` defines bridge DTOs that can be populated by callers without importing MCP internals into bridge normalization paths.
 
 ## Security
 
@@ -29,5 +29,5 @@ Snapshots contain status metadata only. They do not include raw URLs with creden
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_management_snapshot`
-- `cargo test -p agent-ui-bridge mcp_management_snapshot`
+- `cargo test -p ruse-mcp mcp_management_snapshot`
+- `cargo test -p ruse-ui-bridge mcp_management_snapshot`

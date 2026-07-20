@@ -4,7 +4,7 @@
 
 **Goal:** Extend provider capabilities into a typed product matrix with deterministic mismatch diagnostics and CLI/JSON config visibility.
 
-**Architecture:** Capability matching lives in `agent-model`; CLI and UI bridge surfaces render summaries derived from the typed model contracts.
+**Architecture:** Capability matching lives in `ruse-model`; CLI and UI bridge surfaces render summaries derived from the typed model contracts.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing provider registry/config tests, Cargo fmt/clippy/test.
 
@@ -14,19 +14,19 @@
 
 **Files:**
 - Read: `docs/specs/M57-01-provider-capability-matrix.spec.md`
-- Read: `crates/agent-model/src/registry.rs`
-- Read: `crates/agent-model/src/config.rs`
-- Read: `crates/agent-model/tests/provider_registry.rs`
-- Read: `crates/agent-cli/tests/config_diagnostics.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-model/src/registry.rs`
+- Read: `crates/ruse-model/src/config.rs`
+- Read: `crates/ruse-model/tests/provider_registry.rs`
+- Read: `crates/ruse-cli/tests/config_diagnostics.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Review current capability behavior**
 
 Run:
 
 ```bash
-cargo test -p agent-model provider_registry
-cargo test -p agent-cli config_diagnostics
+cargo test -p ruse-model provider_registry
+cargo test -p ruse-cli config_diagnostics
 ```
 
 Expected: current streaming/tool/structured/context capability checks and config diagnostics pass.
@@ -34,11 +34,11 @@ Expected: current streaming/tool/structured/context capability checks and config
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-model/tests/provider_capability_matrix.rs`
-- Modify: `crates/agent-model/tests/provider_registry.rs`
-- Modify: `crates/agent-cli/tests/config_diagnostics.rs`
+- Create: `crates/ruse-model/tests/provider_capability_matrix.rs`
+- Modify: `crates/ruse-model/tests/provider_registry.rs`
+- Modify: `crates/ruse-cli/tests/config_diagnostics.rs`
 
-- [x] **Step 1: Add agent-model capability tests**
+- [x] **Step 1: Add ruse-model capability tests**
 
 Cover:
 
@@ -60,8 +60,8 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-model provider_capability_matrix
-cargo test -p agent-cli config_diagnostics
+cargo test -p ruse-model provider_capability_matrix
+cargo test -p ruse-cli config_diagnostics
 ```
 
 Expected: tests fail before capability matrix implementation exists.
@@ -69,9 +69,9 @@ Expected: tests fail before capability matrix implementation exists.
 ### Task 3: Implement Capability Matrix
 
 **Files:**
-- Modify: `crates/agent-model/src/registry.rs`
-- Modify if needed: `crates/agent-model/src/config.rs`
-- Modify: `crates/agent-model/src/lib.rs`
+- Modify: `crates/ruse-model/src/registry.rs`
+- Modify if needed: `crates/ruse-model/src/config.rs`
+- Modify: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Extend typed capability contracts**
 
@@ -88,8 +88,8 @@ Provide stable profiles for fake and OpenAI-compatible providers.
 ### Task 4: Surface Capabilities in CLI/Bridge
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify if needed: `crates/agent-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify if needed: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Render text summary**
 
@@ -111,10 +111,10 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-model -p agent-cli -p agent-ui-bridge --all-targets -- -D warnings
-cargo test -p agent-model provider_capability_matrix
-cargo test -p agent-model provider_registry
-cargo test -p agent-cli config_diagnostics
+cargo clippy -p ruse-model -p ruse-cli -p ruse-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-model provider_capability_matrix
+cargo test -p ruse-model provider_registry
+cargo test -p ruse-cli config_diagnostics
 ```
 
 Expected: focused checks pass.

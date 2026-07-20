@@ -57,8 +57,8 @@ pub enum McpClientHttpResponseMode {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode`
-- focused clippy for `agent-mcp`
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_response_mode`
+- focused clippy for `ruse-mcp`
 
 ## Completion Signal
 

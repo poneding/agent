@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` detects approval suspension from comprehensive turn output and asks `agent-scheduler` to transition the task to `WaitingApproval`. `agent-scheduler` emits `TaskNotification`. `agent-ui-bridge` normalizes notifications.
+`ruse-core` detects approval suspension from comprehensive turn output and asks `ruse-scheduler` to transition the task to `WaitingApproval`. `ruse-scheduler` emits `TaskNotification`. `ruse-ui-bridge` normalizes notifications.
 
 ```mermaid
 flowchart TD
@@ -79,7 +79,7 @@ pub struct UiTaskNotification {
 
 - Background tasks visibly enter waiting approval state.
 - Approval decisions resume, fail, or cancel tasks deterministically.
-- Focused tests pass with `cargo test -p agent-core background_task_approvals` and `cargo test -p agent-ui-bridge task_notifications`.
+- Focused tests pass with `cargo test -p ruse-core background_task_approvals` and `cargo test -p ruse-ui-bridge task_notifications`.
 
 ## Completion Signal
 

@@ -29,44 +29,44 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-ui-bridge` owns UI-safe approval queue snapshot contracts because approval requests already cross the UI bridge as normalized events. `agent-cli` renders text/JSON inspection and uses existing approval command parsing for explicit decisions. `agent-tui` owns panel focus/rendering and emits existing `UiCommand::ResolveApproval` commands. `agent-policy` and `agent-core` remain the source of permission decisions, pending approval records, leases, and approval resolution semantics.
+`ruse-ui-bridge` owns UI-safe approval queue snapshot contracts because approval requests already cross the UI bridge as normalized events. `ruse-cli` renders text/JSON inspection and uses existing approval command parsing for explicit decisions. `ruse-tui` owns panel focus/rendering and emits existing `UiCommand::ResolveApproval` commands. `ruse-policy` and `ruse-core` remain the source of permission decisions, pending approval records, leases, and approval resolution semantics.
 
 ```mermaid
 flowchart TD
-  Policy["agent-policy PendingApproval"] --> BridgeEvent["UiApprovalRequest event"]
+  Policy["ruse-policy PendingApproval"] --> BridgeEvent["UiApprovalRequest event"]
   BridgeEvent --> Queue["UiApprovalQueueSnapshot"]
-  Queue --> CLI["agent-cli approval queue text/json"]
-  Queue --> TUI["agent-tui approval panel"]
+  Queue --> CLI["ruse-cli approval queue text/json"]
+  Queue --> TUI["ruse-tui approval panel"]
   TUI --> Command["UiCommand::ResolveApproval"]
   CLI --> Command
 ```
 
 Dependency rules:
 
-- `agent-ui-bridge` may summarize `UiApprovalRequest` values into queue snapshots.
-- `agent-cli` may render snapshots and convert explicit user input into existing `UiCommand::ResolveApproval`.
-- `agent-tui` may reduce snapshots/events into panel state and emit bridge commands.
+- `ruse-ui-bridge` may summarize `UiApprovalRequest` values into queue snapshots.
+- `ruse-cli` may render snapshots and convert explicit user input into existing `UiCommand::ResolveApproval`.
+- `ruse-tui` may reduce snapshots/events into panel state and emit bridge commands.
 - No presentation crate may evaluate policy, mint leases, or mutate approval state directly.
 
 ## File Layout
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       approval_queue.rs
       frame.rs
       lib.rs
     tests/
       approval_queue_snapshot.rs
-  agent-cli/
+  ruse-cli/
     src/
       approval.rs
       command.rs
     tests/
       approval_queue_commands.rs
       approval_prompt.rs
-  agent-tui/
+  ruse-tui/
     src/
       approval_panel.rs
       app.rs
@@ -125,8 +125,8 @@ UiCommand::ResolveApproval {
 CLI shape should support:
 
 ```text
-agent-cli approval queue [--fixture empty|sample|expired]
-agent-cli --json approval queue [--fixture empty|sample|expired]
+ruse-cli approval queue [--fixture empty|sample|expired]
+ruse-cli --json approval queue [--fixture empty|sample|expired]
 ```
 
 ## State and Failure Handling
@@ -149,9 +149,9 @@ agent-cli --json approval queue [--fixture empty|sample|expired]
 
 ## Testing Strategy
 
-- `agent-ui-bridge` tests for snapshot derivation, grouping, duplicate collapse, redaction, expiration metadata, and JSON frame shape
-- `agent-cli` tests for text/JSON queue inspection, empty/sample/expired fixtures, stable exit codes, redaction, and existing approval prompt command conversion
-- `agent-tui` tests for snapshot reduction, event reduction, focus movement, allow/deny/abort effects, empty queue rendering, resolved/expired removal, and grouped render text
+- `ruse-ui-bridge` tests for snapshot derivation, grouping, duplicate collapse, redaction, expiration metadata, and JSON frame shape
+- `ruse-cli` tests for text/JSON queue inspection, empty/sample/expired fixtures, stable exit codes, redaction, and existing approval prompt command conversion
+- `ruse-tui` tests for snapshot reduction, event reduction, focus movement, allow/deny/abort effects, empty queue rendering, resolved/expired removal, and grouped render text
 - regression tests for existing approval prompt and approval bridge behavior
 
 ## Acceptance Criteria

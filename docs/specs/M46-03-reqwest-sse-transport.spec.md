@@ -52,8 +52,8 @@ The transport trait may evolve from returning `McpClientHttpResponse` to returni
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_transport`
-- focused clippy for `agent-mcp`
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_transport`
+- focused clippy for `ruse-mcp`
 
 ## Completion Signal
 

@@ -28,13 +28,13 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-memory` owns records, embeddings metadata, retrieval, retention, import/export, and memory mutation proposals. `agent-context` asks memory for scoped candidates and turns them into prompt layers. `agent-core` records memory retrieval and write events.
+`ruse-memory` owns records, embeddings metadata, retrieval, retention, import/export, and memory mutation proposals. `ruse-context` asks memory for scoped candidates and turns them into prompt layers. `ruse-core` records memory retrieval and write events.
 
 ```mermaid
 flowchart TD
-  Core["agent-core turn"] --> Memory["agent-memory retrieval"]
+  Core["ruse-core turn"] --> Memory["ruse-memory retrieval"]
   Memory --> Index["SQLite/vector index"]
-  Memory --> Context["agent-context prompt layers"]
+  Memory --> Context["ruse-context prompt layers"]
   Core --> Events["memory retrieval/write events"]
 ```
 

@@ -27,8 +27,8 @@
 Verified:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_prompt
-CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-cli mcp_server_prompt
+CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-mcp mcp_server_prompt
+CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-cli mcp_server_prompt
 CARGO_TARGET_DIR=target/codex-m36 cargo xtask ci
 ```
 

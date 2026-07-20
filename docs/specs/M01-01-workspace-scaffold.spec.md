@@ -14,11 +14,11 @@ M01-01 delivers:
 
 - Root Cargo workspace.
 - Minimal runtime-spine crate set:
-  - `agent-types`
-  - `agent-core`
-  - `agent-model`
-  - `agent-storage`
-  - `agent-cli`
+  - `ruse-types`
+  - `ruse-core`
+  - `ruse-model`
+  - `ruse-storage`
+  - `ruse-cli`
 - Workspace-level package metadata and lint policy.
 - Minimal crate APIs that prove crate linkage.
 - CLI smoke binary.
@@ -38,40 +38,40 @@ The scaffold creates only the crates required for the runtime spine. Later miles
 
 ```mermaid
 flowchart TD
-  CLI[agent-cli] --> Core[agent-core]
-  Core --> Types[agent-types]
-  Core --> Model[agent-model]
-  Core --> Storage[agent-storage]
+  CLI[ruse-cli] --> Core[ruse-core]
+  Core --> Types[ruse-types]
+  Core --> Model[ruse-model]
+  Core --> Storage[ruse-storage]
   Model --> Types
   Storage --> Types
 ```
 
 The crate dependency direction is intentionally one-way:
 
-- `agent-types` has no internal workspace dependencies.
-- `agent-model` may depend on `agent-types`.
-- `agent-storage` may depend on `agent-types`.
-- `agent-core` may depend on `agent-types`, `agent-model`, and `agent-storage`.
-- `agent-cli` may depend on `agent-core`.
+- `ruse-types` has no internal workspace dependencies.
+- `ruse-model` may depend on `ruse-types`.
+- `ruse-storage` may depend on `ruse-types`.
+- `ruse-core` may depend on `ruse-types`, `ruse-model`, and `ruse-storage`.
+- `ruse-cli` may depend on `ruse-core`.
 
 ## File Layout
 
 ```text
 Cargo.toml
 crates/
-  agent-types/
+  ruse-types/
     Cargo.toml
     src/lib.rs
-  agent-model/
+  ruse-model/
     Cargo.toml
     src/lib.rs
-  agent-storage/
+  ruse-storage/
     Cargo.toml
     src/lib.rs
-  agent-core/
+  ruse-core/
     Cargo.toml
     src/lib.rs
-  agent-cli/
+  ruse-cli/
     Cargo.toml
     src/main.rs
     tests/cli_smoke.rs
@@ -90,11 +90,11 @@ crates/
 
 | Crate | M01-01 Responsibility | Later Responsibility |
 |---|---|---|
-| `agent-types` | Shared crate identity and base compile target. | IDs, events, state enums, error types, serialization schemas. |
-| `agent-model` | Model layer compile target and dependency on `agent-types`. | Provider trait, model events, fake provider, provider capability model. |
-| `agent-storage` | Storage layer compile target and dependency on `agent-types`. | Event store traits, in-memory store, SQLite store, replay support. |
-| `agent-core` | Core compile target and dependency on model/storage/types. | Turn state machine, runtime orchestration, event emission, checkpoint hooks. |
-| `agent-cli` | Binary compile target and smoke test. | TTY, JSON mode, REPL, approvals, trace commands. |
+| `ruse-types` | Shared crate identity and base compile target. | IDs, events, state enums, error types, serialization schemas. |
+| `ruse-model` | Model layer compile target and dependency on `ruse-types`. | Provider trait, model events, fake provider, provider capability model. |
+| `ruse-storage` | Storage layer compile target and dependency on `ruse-types`. | Event store traits, in-memory store, SQLite store, replay support. |
+| `ruse-core` | Core compile target and dependency on model/storage/types. | Turn state machine, runtime orchestration, event emission, checkpoint hooks. |
+| `ruse-cli` | Binary compile target and smoke test. | TTY, JSON mode, REPL, approvals, trace commands. |
 
 ## API Contracts
 
@@ -104,16 +104,16 @@ M01-01 APIs are intentionally tiny and stable enough for smoke tests:
 pub fn crate_name() -> &'static str
 ```
 
-Each library crate exposes a crate identity function. `agent-core` also exposes:
+Each library crate exposes a crate identity function. `ruse-core` also exposes:
 
 ```rust
 pub fn runtime_banner() -> String
 ```
 
-`agent-cli --version` prints:
+`ruse-cli --version` prints:
 
 ```text
-agent-cli 0.1.0
+ruse-cli 0.1.0
 ```
 
 ## Testing Strategy
@@ -121,7 +121,7 @@ agent-cli 0.1.0
 M01-01 uses local, deterministic tests:
 
 - Unit tests in each library crate validate crate identity and dependency linkage.
-- Integration test in `agent-cli` validates the binary smoke path.
+- Integration test in `ruse-cli` validates the binary smoke path.
 - Workspace commands validate formatting, linting, and tests.
 
 Required verification commands:
@@ -138,7 +138,7 @@ cargo test --workspace
 - `cargo fmt --all -- --check` succeeds.
 - `cargo clippy --workspace --all-targets -- -D warnings` succeeds.
 - `cargo test --workspace` succeeds.
-- `cargo run -p agent-cli -- --version` prints `agent-cli 0.1.0`.
+- `cargo run -p ruse-cli -- --version` prints `ruse-cli 0.1.0`.
 - The workspace contains only runtime-spine crates needed by M01-01.
 
 ## Completion Signal

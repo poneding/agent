@@ -65,7 +65,7 @@ Add workflow configuration that invokes the shared `xtask ci` gate.
 
 - [x] **Step 4: Add artifact retention behavior**
 
-Persist JSON and text summaries under `target/agent-ci` and document upload paths.
+Persist JSON and text summaries under `target/ruse-ci` and document upload paths.
 
 - [x] **Step 5: Complete release-readiness docs**
 

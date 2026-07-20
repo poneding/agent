@@ -24,13 +24,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns generic catalog matching. Callers provide the catalog; the manifest never instantiates arbitrary code.
+`ruse-mcp` owns generic catalog matching. Callers provide the catalog; the manifest never instantiates arbitrary code.
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_manifest.rs
-crates/agent-mcp/tests/mcp_server_tool_catalog.rs
+crates/ruse-mcp/src/server_manifest.rs
+crates/ruse-mcp/tests/mcp_server_tool_catalog.rs
 ```
 
 ## Public Contracts

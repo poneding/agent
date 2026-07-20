@@ -4,7 +4,7 @@
 
 **Goal:** Enable safe parallel work through isolated worktrees, conflict detection, reduced-capability subagents, and a team blackboard.
 
-**Architecture:** Implement this milestone behind the crate boundaries named in the matching spec. Keep shared contracts in lower-level crates, route orchestration through `agent-core`, and expose user-facing behavior through CLI or UI bridge crates only when the spec calls for it.
+**Architecture:** Implement this milestone behind the crate boundaries named in the matching spec. Keep shared contracts in lower-level crates, route orchestration through `ruse-core`, and expose user-facing behavior through CLI or UI bridge crates only when the spec calls for it.
 
 **Tech Stack:** Rust 2024 edition, Cargo workspace, serde-compatible contracts where durable or wire formats are involved, Tokio for async runtime paths that need it, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -40,7 +40,7 @@ Expected: existing workspace tests pass before this milestone begins.
 ### Task 2: Add Contract Tests First
 
 **Files:**
-- Create/Modify: `crates/agent-core/tests/m09_worktree_subagents.rs`
+- Create/Modify: `crates/ruse-core/tests/m09_worktree_subagents.rs`
 
 - [ ] **Step 1: Write tests for milestone behavior**
 
@@ -75,12 +75,12 @@ Expected: tests fail because the milestone contracts are not implemented yet.
 ### Task 3: Implement Milestone Contracts
 
 **Files:**
-- Modify/Create: `crates/agent-worktree/src/lib.rs`
-- Modify/Create: `crates/agent-team/src/lib.rs`
-- Modify/Create: `crates/agent-policy/src/lib.rs`
-- Modify/Create: `crates/agent-storage/src/lib.rs`
-- Modify/Create: `crates/agent-core/src/lib.rs`
-- Modify/Create: `crates/agent-types/src/lib.rs`
+- Modify/Create: `crates/ruse-worktree/src/lib.rs`
+- Modify/Create: `crates/ruse-team/src/lib.rs`
+- Modify/Create: `crates/ruse-policy/src/lib.rs`
+- Modify/Create: `crates/ruse-storage/src/lib.rs`
+- Modify/Create: `crates/ruse-core/src/lib.rs`
+- Modify/Create: `crates/ruse-types/src/lib.rs`
 
 - [ ] **Step 1: Add or extend crate modules**
 
@@ -115,7 +115,7 @@ Expected: focused milestone tests pass.
 ### Task 4: Add Integration Coverage
 
 **Files:**
-- Create/Modify: `crates/agent-core/tests/m09_worktree_subagents_integration.rs`
+- Create/Modify: `crates/ruse-core/tests/m09_worktree_subagents_integration.rs`
 
 - [ ] **Step 1: Add integration assertions for acceptance criteria**
 

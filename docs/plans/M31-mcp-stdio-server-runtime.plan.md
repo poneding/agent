@@ -4,7 +4,7 @@
 
 **Goal:** Promote M30 MCP server fixtures into a runnable stdio server runtime and CLI command.
 
-**Architecture:** `agent-mcp` owns session, export profile, and trace contracts. `agent-cli` owns stdin/stdout process wiring only.
+**Architecture:** `ruse-mcp` owns session, export profile, and trace contracts. `ruse-cli` owns stdin/stdout process wiring only.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, stdio IO traits, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

@@ -4,7 +4,7 @@
 
 **Goal:** Add safe root metadata and diagnostics to MCP gateway reports.
 
-**Architecture:** `agent-mcp::gateway` consumes client root provider APIs and keeps policy/tool behavior unchanged.
+**Architecture:** `ruse-mcp::gateway` consumes client root provider APIs and keeps policy/tool behavior unchanged.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -31,8 +31,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_gateway_roots
+CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_gateway_roots
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -41,8 +41,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_gateway_roots
+CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_gateway_roots
 ```
 
 ### Task 5: Commit

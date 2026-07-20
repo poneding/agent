@@ -4,7 +4,7 @@
 
 **Goal:** Add MCP prompt registry behavior and `prompts/list`/`prompts/get` JSON-RPC handling.
 
-**Architecture:** `agent-mcp` owns the registry and protocol methods.
+**Architecture:** `ruse-mcp` owns the registry and protocol methods.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -30,8 +30,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m35 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_protocol
+CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_prompt_protocol
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -40,8 +40,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m35 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_protocol
+CARGO_TARGET_DIR=target/codex-m35 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_prompt_protocol
 ```
 
 ### Task 5: Commit

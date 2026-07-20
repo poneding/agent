@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add a pure, deterministic mapper from safe MCP sampling request data into `agent-model::ModelRequest`.
+Add a pure, deterministic mapper from safe MCP sampling request data into `ruse-model::ModelRequest`.
 
 ## Product Context
 
@@ -12,7 +12,7 @@ M40 validates MCP sampling requests but stops at fixture results. M41-01 creates
 
 This spec delivers:
 
-- `agent-core::mcp_sampling` module
+- `ruse-core::mcp_sampling` module
 - `McpSamplingModelBridgeConfig`
 - `McpSamplingModelBridgeIds`
 - `McpSamplingModelBridgeError`
@@ -27,7 +27,7 @@ Owned by later M41 specs:
 
 ## Architecture
 
-`agent-core` adds a normal dependency on `agent-mcp`. The mapper depends on `agent_mcp` contracts, `agent_model::ModelRequest`, and `agent_types` IDs.
+`ruse-core` adds a normal dependency on `ruse-mcp`. The mapper depends on `ruse_mcp` contracts, `ruse_model::ModelRequest`, and `ruse_types` IDs.
 
 ## Public Contracts
 
@@ -61,9 +61,9 @@ pub fn build_mcp_sampling_model_request(
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_mapping`
-- `CARGO_TARGET_DIR=target/codex-m41 cargo clippy -p agent-core --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_mapping`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo clippy -p ruse-core --all-targets -- -D warnings`
 
 ## Completion Signal
 
-M41-01 is complete when mapping tests pass and public contracts are exported from `agent-core`.
+M41-01 is complete when mapping tests pass and public contracts are exported from `ruse-core`.

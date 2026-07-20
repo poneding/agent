@@ -25,11 +25,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::server_stdio` routes prompt methods to a prompt registry owned by the fixture/session.
+`ruse-mcp::server_stdio` routes prompt methods to a prompt registry owned by the fixture/session.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_protocol`
+- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_prompt_protocol`
 
 ## Completion Signal
 

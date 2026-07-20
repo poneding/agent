@@ -25,7 +25,7 @@ Owned by later milestones:
 
 ## Architecture
 
-Documentation records root directionality and safety boundaries. Runtime logic remains in `agent-mcp`.
+Documentation records root directionality and safety boundaries. Runtime logic remains in `ruse-mcp`.
 
 ```mermaid
 flowchart TD
@@ -55,10 +55,10 @@ flowchart TD
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_contracts`
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_registry`
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_session_roots`
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_gateway_roots`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_contracts`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_registry`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_session_roots`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_gateway_roots`
 - `CARGO_TARGET_DIR=target/codex-m39 cargo xtask ci`
 
 ## Completion Signal

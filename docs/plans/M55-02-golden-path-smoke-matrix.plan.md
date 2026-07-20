@@ -34,11 +34,11 @@ Expected: smoke row contract and status labels are clear.
 **Files:**
 - Read: `README.md`
 - Read: `xtask/`
-- Read: `crates/agent-cli/`
-- Read: `crates/agent-tui/`
-- Read: `crates/agent-ui-bridge/`
-- Read: `crates/agent-core/`
-- Read: `crates/agent-eval/` if present
+- Read: `crates/ruse-cli/`
+- Read: `crates/ruse-tui/`
+- Read: `crates/ruse-ui-bridge/`
+- Read: `crates/ruse-core/`
+- Read: `crates/ruse-eval/` if present
 
 - [x] **Step 1: Map available commands**
 

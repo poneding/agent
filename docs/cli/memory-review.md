@@ -1,12 +1,12 @@
 # CLI Memory Review
 
-M64 adds credential-free memory review commands for inspecting records, previewing retrieval influence, deciding proposed writes, importing/exporting archives, deleting records with tombstones, and rebuilding index evidence. The CLI renders shared `agent-memory` contracts; privacy, proposal, retrieval, and retention rules stay in the memory crate.
+M64 adds credential-free memory review commands for inspecting records, previewing retrieval influence, deciding proposed writes, importing/exporting archives, deleting records with tombstones, and rebuilding index evidence. The CLI renders shared `ruse-memory` contracts; privacy, proposal, retrieval, and retention rules stay in the memory crate.
 
 ## Snapshot
 
 ```bash
-agent-cli memory snapshot
-agent-cli --json memory snapshot
+ruse-cli memory snapshot
+ruse-cli --json memory snapshot
 ```
 
 The snapshot summarizes active records, pending proposals, retention controls, tombstone counts, and privacy diagnostics. JSON mode emits a `memory_snapshot` frame with a `MemoryProductSnapshot`.
@@ -14,10 +14,10 @@ The snapshot summarizes active records, pending proposals, retention controls, t
 ## List And Inspect
 
 ```bash
-agent-cli memory list
-agent-cli memory inspect public-memory
-agent-cli --json memory list
-agent-cli --json memory inspect public-memory
+ruse-cli memory list
+ruse-cli memory inspect public-memory
+ruse-cli --json memory list
+ruse-cli --json memory inspect public-memory
 ```
 
 Default summaries include ids, scope-safe metadata, sensitivity, confidence, source descriptions, and bounded previews. Sensitive record text is redacted.
@@ -25,9 +25,9 @@ Default summaries include ids, scope-safe metadata, sensitivity, confidence, sou
 ## Retrieval Preview
 
 ```bash
-agent-cli memory retrieve --query "fixture memory"
-agent-cli memory retrieve --query "fixture memory" --max-selected 1
-agent-cli --json memory retrieve --query "fixture memory" --max-selected 1
+ruse-cli memory retrieve --query "fixture memory"
+ruse-cli memory retrieve --query "fixture memory" --max-selected 1
+ruse-cli --json memory retrieve --query "fixture memory" --max-selected 1
 ```
 
 Retrieval preview shows selected and rejected candidate counts, ranks, reasons, matched terms, bounded previews, and influence evidence. JSON mode emits a `memory_retrieval_preview` frame with retrieval and influence summaries.
@@ -35,12 +35,12 @@ Retrieval preview shows selected and rejected candidate counts, ranks, reasons, 
 ## Proposal Review
 
 ```bash
-agent-cli memory proposal list
-agent-cli memory proposal inspect proposal-public
-agent-cli memory proposal approve proposal-public
-agent-cli memory proposal reject proposal-sensitive --reason "not accurate"
-agent-cli memory proposal expire proposal-sensitive --reason "stale"
-agent-cli memory proposal commit proposal-public
+ruse-cli memory proposal list
+ruse-cli memory proposal inspect proposal-public
+ruse-cli memory proposal approve proposal-public
+ruse-cli memory proposal reject proposal-sensitive --reason "not accurate"
+ruse-cli memory proposal expire proposal-sensitive --reason "stale"
+ruse-cli memory proposal commit proposal-public
 ```
 
 Proposal summaries include status, sensitivity, confidence, review eligibility, source-event count, summary text, and redacted resolution reasons. Proposal content is not rendered in default text or JSON output.
@@ -48,10 +48,10 @@ Proposal summaries include status, sensitivity, confidence, review eligibility, 
 ## Import, Export, Delete, And Rebuild
 
 ```bash
-agent-cli --json memory export
-agent-cli --json memory import memory.json
-agent-cli memory delete public-memory --reason "cleanup"
-agent-cli memory rebuild-index
+ruse-cli --json memory export
+ruse-cli --json memory import memory.json
+ruse-cli memory delete public-memory --reason "cleanup"
+ruse-cli memory rebuild-index
 ```
 
 Export excludes sensitive records by default. Import reports accepted, skipped, rejected, and tombstone counts. Delete creates a tombstone with a redacted reason. Rebuild reports indexed records, skipped tombstones, and stale embedding removals.
@@ -63,8 +63,8 @@ When memory is disabled by config or policy, runtime memory assembly returns a d
 Use the snapshot and retrieval preview to confirm the disabled state:
 
 ```bash
-agent-cli memory snapshot
-agent-cli --json memory retrieve --query "fixture memory"
+ruse-cli memory snapshot
+ruse-cli --json memory retrieve --query "fixture memory"
 ```
 
 The CLI should render the runtime-provided diagnostic directly. It must not infer local privacy, retrieval, proposal, or retention rules.

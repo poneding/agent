@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M33 built-in MCP tool export design and implementation slice breakdown.
 
-**Architecture:** Documentation-only planning. Runtime logic remains in `agent-mcp` and `agent-tool`; CLI remains an IO shell.
+**Architecture:** Documentation-only planning. Runtime logic remains in `ruse-mcp` and `ruse-tool`; CLI remains an IO shell.
 
 **Tech Stack:** Markdown docs.
 

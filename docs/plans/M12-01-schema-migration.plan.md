@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add schema migration contracts, registry behavior, diagnostics, config permission-broadening checks, and fixture coverage in `agent-storage`.
+**Goal:** Add schema migration contracts, registry behavior, diagnostics, config permission-broadening checks, and fixture coverage in `ruse-storage`.
 
-**Architecture:** Keep migration contracts in `agent-storage`; do not make storage depend on core, UI, model, MCP, or plugin crates. Migrations operate on `serde_json::Value` in M12 so durable schema behavior can be tested before backend-specific migrations are added.
+**Architecture:** Keep migration contracts in `ruse-storage`; do not make storage depend on core, UI, model, MCP, or plugin crates. Migrations operate on `serde_json::Value` in M12 so durable schema behavior can be tested before backend-specific migrations are added.
 
-**Tech Stack:** Rust 2024 edition, existing `agent-storage` crate, serde, serde_json, thiserror, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, existing `ruse-storage` crate, serde, serde_json, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M12-01-schema-migration.spec.md`
 - Read: `docs/specs/M12-00-production-hardening-technical-design.spec.md`
-- Read: `crates/agent-storage/src/lib.rs`
-- Read: `crates/agent-storage/Cargo.toml`
+- Read: `crates/ruse-storage/src/lib.rs`
+- Read: `crates/ruse-storage/Cargo.toml`
 
 - [x] **Step 1: Review migration scope**
 
@@ -25,23 +25,23 @@ Run:
 ```bash
 sed -n '1,260p' docs/specs/M12-01-schema-migration.spec.md
 sed -n '1,220p' docs/specs/M12-00-production-hardening-technical-design.spec.md
-sed -n '1,180p' crates/agent-storage/src/lib.rs
-sed -n '1,120p' crates/agent-storage/Cargo.toml
+sed -n '1,180p' crates/ruse-storage/src/lib.rs
+sed -n '1,120p' crates/ruse-storage/Cargo.toml
 ```
 
-Expected: migration ownership stays in `agent-storage`, and `serde`, `serde_json`, and `thiserror` already exist as dependencies.
+Expected: migration ownership stays in `ruse-storage`, and `serde`, `serde_json`, and `thiserror` already exist as dependencies.
 
 ### Task 2: Write RED Migration Tests
 
 **Files:**
-- Create: `crates/agent-storage/tests/schema_migration.rs`
+- Create: `crates/ruse-storage/tests/schema_migration.rs`
 
 - [x] **Step 1: Add failing tests**
 
-Create `crates/agent-storage/tests/schema_migration.rs` with this content:
+Create `crates/ruse-storage/tests/schema_migration.rs` with this content:
 
 ```rust
-use agent_storage::{
+use ruse_storage::{
     MigrationDiagnostic, MigrationDiagnosticSeverity, MigrationError, MigrationRegistry,
     SchemaFamily, SchemaMigration, SchemaVersion,
 };
@@ -178,7 +178,7 @@ fn schema_migration_registry_rejects_missing_step() {
 
 #[test]
 fn schema_migration_report_serializes_stable_shape() {
-    let report = agent_storage::MigrationReport {
+    let report = ruse_storage::MigrationReport {
         family: SchemaFamily::Event,
         from_version: SchemaVersion(1),
         to_version: SchemaVersion(2),
@@ -388,7 +388,7 @@ fn schema_migration_fixture_upgrades_event_payload() {
 Run:
 
 ```bash
-cargo test -p agent-storage schema_migration
+cargo test -p ruse-storage schema_migration
 ```
 
 Expected: compile failure mentioning missing migration types such as `MigrationRegistry`, `SchemaMigration`, or `SchemaVersion`.
@@ -396,12 +396,12 @@ Expected: compile failure mentioning missing migration types such as `MigrationR
 ### Task 3: Implement Migration Contracts
 
 **Files:**
-- Modify: `crates/agent-storage/src/lib.rs`
-- Create: `crates/agent-storage/src/migration.rs`
+- Modify: `crates/ruse-storage/src/lib.rs`
+- Create: `crates/ruse-storage/src/migration.rs`
 
 - [x] **Step 1: Add module exports**
 
-Modify `crates/agent-storage/src/lib.rs`:
+Modify `crates/ruse-storage/src/lib.rs`:
 
 ```rust
 pub mod migration;
@@ -414,7 +414,7 @@ pub use migration::{
 
 - [x] **Step 2: Add public migration types**
 
-Create `crates/agent-storage/src/migration.rs` with these public contracts:
+Create `crates/ruse-storage/src/migration.rs` with these public contracts:
 
 ```rust
 use std::collections::BTreeSet;
@@ -701,16 +701,16 @@ Also add private helpers for `MigrationReport::blocked_missing_step`, `Migration
 ### Task 4: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-storage/tests/schema_migration.rs`
-- Read: `crates/agent-storage/src/migration.rs`
-- Read: `crates/agent-storage/src/lib.rs`
+- Read: `crates/ruse-storage/tests/schema_migration.rs`
+- Read: `crates/ruse-storage/src/migration.rs`
+- Read: `crates/ruse-storage/src/lib.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-storage schema_migration
+cargo test -p ruse-storage schema_migration
 ```
 
 Expected: all seven schema migration tests pass.
@@ -758,7 +758,7 @@ Current focus: M12-02 Telemetry
 Run:
 
 ```bash
-git add crates/agent-storage docs README.md AGENTS.md
+git add crates/ruse-storage docs README.md AGENTS.md
 git commit -m "feat: add m12 schema migration"
 ```
 

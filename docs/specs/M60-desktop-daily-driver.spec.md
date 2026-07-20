@@ -34,12 +34,12 @@ Owned by other specs:
 
 ## Architecture
 
-Runtime truth stays in shared Rust crates. `agent-core`, `agent-storage`, `agent-policy`, `agent-tool`, `agent-context`, and `agent-scheduler` own runtime behavior. `agent-ui-bridge` owns UI commands, frames, and UI-safe snapshots. `agent-desktop` owns Desktop view-model contracts that remain typed, serializable, bounded, and redacted. `apps/desktop/src-tauri` owns the Tauri command allowlist and bridge session wiring. `apps/desktop/src` owns React presentation, UI state reducers, and component tests.
+Runtime truth stays in shared Rust crates. `ruse-core`, `ruse-storage`, `ruse-policy`, `ruse-tool`, `ruse-context`, and `ruse-scheduler` own runtime behavior. `ruse-ui-bridge` owns UI commands, frames, and UI-safe snapshots. `ruse-desktop` owns Desktop view-model contracts that remain typed, serializable, bounded, and redacted. `apps/desktop/src-tauri` owns the Tauri command allowlist and bridge session wiring. `apps/desktop/src` owns React presentation, UI state reducers, and component tests.
 
 ```mermaid
 flowchart TD
-  Runtime["agent-core / storage / policy / tool / scheduler"] --> Bridge["agent-ui-bridge commands, frames, snapshots"]
-  Bridge --> DesktopContracts["agent-desktop view models"]
+  Runtime["ruse-core / storage / policy / tool / scheduler"] --> Bridge["ruse-ui-bridge commands, frames, snapshots"]
+  Bridge --> DesktopContracts["ruse-desktop view models"]
   DesktopContracts --> Tauri["apps/desktop/src-tauri commands"]
   Tauri --> React["apps/desktop React UI"]
 ```
@@ -55,7 +55,7 @@ Dependency rules:
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     src/
       conversation.rs
       diff.rs
@@ -70,7 +70,7 @@ crates/
       permissions_diffs.rs
       settings.rs
       trace_timeline.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       command.rs
       frame.rs
@@ -173,8 +173,8 @@ All bridge-facing and Tauri-facing contracts must derive or map cleanly to `Seri
 
 ## Testing Strategy
 
-- `agent-desktop` tests for dashboard snapshots, approval/diff review view models, provider/settings summaries, task monitor state, log bounding, and redaction
-- `agent-ui-bridge` tests for Desktop-safe command/frame contracts and M56-shaped fixture frames
+- `ruse-desktop` tests for dashboard snapshots, approval/diff review view models, provider/settings summaries, task monitor state, log bounding, and redaction
+- `ruse-ui-bridge` tests for Desktop-safe command/frame contracts and M56-shaped fixture frames
 - Tauri Rust tests for bridge session idempotency, command validation, approval resolution, settings validation, trace/log loading, and workspace snapshots
 - Vitest component/state tests for dashboard navigation, composer/transcript updates, approval popup, visual diff review, provider/settings diagnostics, task monitor, and log rendering
 - Desktop smoke fixture that runs a credential-free M56-equivalent UI flow or bridge simulation

@@ -4,7 +4,7 @@
 
 **Goal:** Add static completion lookup for declared MCP prompt arguments.
 
-**Architecture:** `agent-mcp` extends prompt export registry behavior while keeping completion contracts provider-agnostic.
+**Architecture:** `ruse-mcp` extends prompt export registry behavior while keeping completion contracts provider-agnostic.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -30,8 +30,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m38 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_prompt_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_prompt_completions
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -40,8 +40,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m38 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_prompt_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_prompt_completions
 ```
 
 ### Task 5: Commit

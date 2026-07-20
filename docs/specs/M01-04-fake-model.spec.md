@@ -20,12 +20,12 @@ This slice delivers:
 
 Primary implementation files:
 
-- `crates/agent-model/src/lib.rs`
-- `crates/agent-model/src/provider.rs`
-- `crates/agent-model/src/request.rs`
-- `crates/agent-model/src/stream.rs`
-- `crates/agent-model/src/fake.rs`
-- `crates/agent-model/tests/fake_model.rs`
+- `crates/ruse-model/src/lib.rs`
+- `crates/ruse-model/src/provider.rs`
+- `crates/ruse-model/src/request.rs`
+- `crates/ruse-model/src/stream.rs`
+- `crates/ruse-model/src/fake.rs`
+- `crates/ruse-model/tests/fake_model.rs`
 
 ## Boundaries
 

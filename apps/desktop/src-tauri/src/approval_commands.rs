@@ -1,5 +1,5 @@
-use agent_types::{ApprovalRequestId, ClientKind, CorrelationId, SchemaVersion};
-use agent_ui_bridge::{UiApprovalDecision, UiClientInfo, UiCommand, UiCommandEnvelope};
+use ruse_types::{ApprovalRequestId, ClientKind, CorrelationId, SchemaVersion};
+use ruse_ui_bridge::{UiApprovalDecision, UiClientInfo, UiCommand, UiCommandEnvelope};
 use serde::{Deserialize, Serialize};
 
 use crate::bridge::{DesktopCommandAck, DesktopRuntimeSession};

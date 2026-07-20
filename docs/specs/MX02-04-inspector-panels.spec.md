@@ -27,12 +27,12 @@ Owned by other specs:
 
 ## Architecture
 
-Inspector panels render `agent-desktop` view models and `agent-ui-bridge` frames. React owns active tab and panel expansion state only. Approval decisions still route through existing Tauri bridge commands and policy-backed runtime paths.
+Inspector panels render `ruse-desktop` view models and `ruse-ui-bridge` frames. React owns active tab and panel expansion state only. Approval decisions still route through existing Tauri bridge commands and policy-backed runtime paths.
 
 ## File Layout
 
 ```text
-crates/agent-desktop/src/
+crates/ruse-desktop/src/
   diff.rs
   permission.rs
   task.rs
@@ -85,7 +85,7 @@ pub struct DesktopArtifactPreview {
 
 ## Testing Strategy
 
-- `agent-desktop` tests for diff/approval/task/artifact/trace view models and redaction
+- `ruse-desktop` tests for diff/approval/task/artifact/trace view models and redaction
 - Vitest approval/diff, conversation/task, and desktop-smoke tests for inspector tabs and panel states
 - Build check for TypeScript/Vite
 

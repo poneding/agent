@@ -12,7 +12,7 @@ The runtime can now use stdio MCP servers through discovery and tool calls. HTTP
 
 This spec delivers:
 
-- ownership boundaries for HTTP client code in `agent-mcp`
+- ownership boundaries for HTTP client code in `ruse-mcp`
 - request/response contract shape for HTTP JSON-RPC exchanges
 - transport abstraction and fixture strategy
 - session state and error mapping rules
@@ -28,7 +28,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` adds an HTTP client module parallel to `client_stdio.rs`. The module should reuse existing server/result contract types where possible: `McpJsonRpcId`, `McpJsonRpcSuccess`, `McpJsonRpcFailure`, `McpInitializeResult`, `McpToolListResult`, and `McpToolCallResult`.
+`ruse-mcp` adds an HTTP client module parallel to `client_stdio.rs`. The module should reuse existing server/result contract types where possible: `McpJsonRpcId`, `McpJsonRpcSuccess`, `McpJsonRpcFailure`, `McpInitializeResult`, `McpToolListResult`, and `McpToolCallResult`.
 
 ```mermaid
 flowchart TD
@@ -68,7 +68,7 @@ Names may change during implementation, but durable behavior must remain typed a
 
 ## Security and Privacy
 
-- Secret refs in headers are rejected until resolved by a caller outside `agent-mcp`.
+- Secret refs in headers are rejected until resolved by a caller outside `ruse-mcp`.
 - Diagnostics redact header names/values and secret-like URL content.
 - Request params and tool arguments do not appear in public errors.
 - Success payloads are data and may contain remote output by design.
@@ -78,7 +78,7 @@ Names may change during implementation, but durable behavior must remain typed a
 - contract tests for request construction and response parsing
 - fixture transport tests for all state transitions
 - redaction regression tests
-- final `agent-mcp` clippy and workspace CI gates
+- final `ruse-mcp` clippy and workspace CI gates
 
 ## Acceptance Criteria
 

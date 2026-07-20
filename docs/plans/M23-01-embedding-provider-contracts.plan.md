@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add async embedding provider contracts and deterministic fixture embeddings in `agent-memory`.
+**Goal:** Add async embedding provider contracts and deterministic fixture embeddings in `ruse-memory`.
 
-**Architecture:** `agent-memory` owns embedding types, validation, and fixture providers. No core, UI, HTTP, or concrete model-provider dependency belongs in this slice.
+**Architecture:** `ruse-memory` owns embedding types, validation, and fixture providers. No core, UI, HTTP, or concrete model-provider dependency belongs in this slice.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde, deterministic hashing, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M23-01-embedding-provider-contracts.spec.md`
 - Read: `docs/specs/M23-00-memory-retrieval-technical-design.spec.md`
-- Read: `crates/agent-memory/src/record.rs`
-- Read: `crates/agent-memory/src/error.rs`
+- Read: `crates/ruse-memory/src/record.rs`
+- Read: `crates/ruse-memory/src/error.rs`
 
 - [x] **Step 1: Review embedding scope**
 
@@ -31,7 +31,7 @@ Expected: trait ownership, validation rules, and fixture behavior are clear.
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-memory/tests/embedding_provider.rs`
+- Create: `crates/ruse-memory/tests/embedding_provider.rs`
 
 - [x] **Step 1: Add fixture determinism tests**
 
@@ -50,7 +50,7 @@ Ensure errors do not include raw `sk-`, `token`, `password`, `api_key`, or memor
 Run:
 
 ```bash
-cargo test -p agent-memory embedding_provider
+cargo test -p ruse-memory embedding_provider
 ```
 
 Expected: tests fail because embedding contracts are missing.
@@ -58,9 +58,9 @@ Expected: tests fail because embedding contracts are missing.
 ### Task 3: Implement Embedding Contracts
 
 **Files:**
-- Create: `crates/agent-memory/src/embedding.rs`
-- Modify: `crates/agent-memory/src/lib.rs`
-- Modify: `crates/agent-memory/src/error.rs`
+- Create: `crates/ruse-memory/src/embedding.rs`
+- Modify: `crates/ruse-memory/src/lib.rs`
+- Modify: `crates/ruse-memory/src/error.rs`
 - Modify if needed: `Cargo.toml`
 
 - [x] **Step 1: Add public types and trait**
@@ -77,19 +77,19 @@ Generate stable vectors from record id and text hash without network, env, time,
 
 - [x] **Step 4: Export contracts**
 
-Re-export embedding contracts from `agent-memory`.
+Re-export embedding contracts from `ruse-memory`.
 
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-memory/tests/embedding_provider.rs`
+- Read: `crates/ruse-memory/tests/embedding_provider.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-memory embedding_provider
+cargo test -p ruse-memory embedding_provider
 ```
 
 Expected: focused tests pass.
@@ -122,7 +122,7 @@ Advance active implementation focus to M23-02.
 Run:
 
 ```bash
-git add crates/agent-memory docs Cargo.toml Cargo.lock
+git add crates/ruse-memory docs Cargo.toml Cargo.lock
 git commit -m "feat: add memory embedding contracts"
 ```
 

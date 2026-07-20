@@ -30,7 +30,7 @@ Owned by other specs:
 
 ## Architecture
 
-Queue and lease behavior lives in `agent-scheduler`. This slice remains deterministic and testable in memory. Durable SQLite integration can later implement the same trait through `agent-storage`.
+Queue and lease behavior lives in `ruse-scheduler`. This slice remains deterministic and testable in memory. Durable SQLite integration can later implement the same trait through `ruse-storage`.
 
 ```mermaid
 flowchart TD
@@ -43,7 +43,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-scheduler/
+  ruse-scheduler/
     src/
       queue.rs
       lease.rs
@@ -136,7 +136,7 @@ pub enum RetryDecision {
 - Active leases guard completion/failure operations.
 - Retry decisions are deterministic.
 - Cancellation, pause, and resume update task state.
-- `cargo test -p agent-scheduler queue_leases` passes.
+- `cargo test -p ruse-scheduler queue_leases` passes.
 
 ## Completion Signal
 

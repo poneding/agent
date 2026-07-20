@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add schema version 1 YAML runtime config loading in `agent-core`, with legacy TOML compatibility.
+**Goal:** Add schema version 1 YAML runtime config loading in `ruse-core`, with legacy TOML compatibility.
 
-**Architecture:** Keep YAML/TOML parsing and runtime composition in `agent-core::config`; reuse `agent-model` provider config and invocation policy contracts. Direct `apiKey` values are converted into an in-memory secret resolver; UI/CLI consumers still receive only redacted typed state.
+**Architecture:** Keep YAML/TOML parsing and runtime composition in `ruse-core::config`; reuse `ruse-model` provider config and invocation policy contracts. Direct `apiKey` values are converted into an in-memory secret resolver; UI/CLI consumers still receive only redacted typed state.
 
 **Tech Stack:** Rust 2024 edition, serde, serde_yaml, toml, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,9 +15,9 @@
 **Files:**
 - Read: `docs/specs/M14-02-config-file-loader.spec.md`
 - Read: `docs/specs/M14-00-runtime-configuration-secrets-technical-design.spec.md`
-- Read: `crates/agent-core/src/lib.rs`
-- Read: `crates/agent-model/src/config.rs`
-- Read: `crates/agent-model/src/invocation_policy.rs`
+- Read: `crates/ruse-core/src/lib.rs`
+- Read: `crates/ruse-model/src/config.rs`
+- Read: `crates/ruse-model/src/invocation_policy.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -32,7 +32,7 @@ Expected: the spec defines YAML schema, legacy TOML compatibility, contracts, va
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/runtime_config_loader.rs`
+- Create: `crates/ruse-core/tests/runtime_config_loader.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -53,7 +53,7 @@ Add tests named:
 Run:
 
 ```bash
-cargo test -p agent-core --test runtime_config_loader
+cargo test -p ruse-core --test runtime_config_loader
 ```
 
 Expected: tests fail because runtime config loading is not implemented.
@@ -61,13 +61,13 @@ Expected: tests fail because runtime config loading is not implemented.
 ### Task 3: Implement Config Loader
 
 **Files:**
-- Modify: `crates/agent-core/Cargo.toml`
-- Create: `crates/agent-core/src/config.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Modify: `crates/ruse-core/Cargo.toml`
+- Create: `crates/ruse-core/src/config.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add dependency**
 
-Add to `crates/agent-core/Cargo.toml`:
+Add to `crates/ruse-core/Cargo.toml`:
 
 ```toml
 serde_yaml = "0.9"
@@ -105,7 +105,7 @@ Use existing constructors for:
 Run:
 
 ```bash
-cargo test -p agent-core --test runtime_config_loader
+cargo test -p ruse-core --test runtime_config_loader
 ```
 
 Expected: focused tests pass.

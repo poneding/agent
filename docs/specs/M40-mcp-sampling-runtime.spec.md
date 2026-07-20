@@ -27,7 +27,7 @@ This milestone delivers:
 Owned by later milestones:
 
 - real bidirectional stdio transport dispatch for server-to-client sampling requests
-- live `agent-model` invocation from MCP sampling requests
+- live `ruse-model` invocation from MCP sampling requests
 - human approval UI for sampling prompt and response review
 - tool-enabled sampling loops using `sampling.tools`
 - task-augmented sampling, MCP elicitation, MCP logging, and MCP task utilities
@@ -35,12 +35,12 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` owns protocol contracts, validation, fixture behavior, and gateway diagnostics. `agent-model`, `agent-policy`, CLI, TUI, and Desktop are consumers of typed sampling state in later slices; they do not own MCP wire contracts.
+`ruse-mcp` owns protocol contracts, validation, fixture behavior, and gateway diagnostics. `ruse-model`, `ruse-policy`, CLI, TUI, and Desktop are consumers of typed sampling state in later slices; they do not own MCP wire contracts.
 
 ```mermaid
 flowchart TD
   Server["external MCP server"] --> Request["sampling/createMessage"]
-  Request --> Contracts["agent-mcp sampling contracts"]
+  Request --> Contracts["ruse-mcp sampling contracts"]
   Contracts --> Validator["safe subset validator"]
   Validator --> Provider["McpSamplingProvider"]
   Provider --> Result["CreateMessageResult"]
@@ -74,12 +74,12 @@ flowchart TD
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts`
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_validation`
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling`
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_contracts`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_validation`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_client_session_sampling`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_gateway_sampling`
 - `CARGO_TARGET_DIR=target/codex-m40 cargo xtask ci`
 
 ## Completion Signal
 
-M40 is complete when `agent-mcp` can represent, validate, fixture-execute, and diagnose safe MCP sampling requests without leaking prompt content or weakening local model/tool policy.
+M40 is complete when `ruse-mcp` can represent, validate, fixture-execute, and diagnose safe MCP sampling requests without leaking prompt content or weakening local model/tool policy.

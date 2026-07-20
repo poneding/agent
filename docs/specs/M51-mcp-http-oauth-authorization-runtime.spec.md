@@ -6,7 +6,7 @@ Add a typed, redacted OAuth authorization foundation for MCP streamable HTTP cli
 
 ## Product Context
 
-M45-M50 make streamable HTTP MCP usable for request/response calls, SSE responses, session resume, GET stream ownership, reconnect, and supervision. The next runtime gap is authorization: protected MCP HTTP servers need metadata discovery, authorization requirements, safe diagnostics, and a narrow token application boundary without moving browser login, token storage, or Desktop UX into `agent-mcp`.
+M45-M50 make streamable HTTP MCP usable for request/response calls, SSE responses, session resume, GET stream ownership, reconnect, and supervision. The next runtime gap is authorization: protected MCP HTTP servers need metadata discovery, authorization requirements, safe diagnostics, and a narrow token application boundary without moving browser login, token storage, or Desktop UX into `ruse-mcp`.
 
 ## Scope
 
@@ -29,7 +29,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` owns protocol-adjacent OAuth contracts and redacted diagnostics. Token acquisition remains outside `agent-mcp`; callers pass explicit token material only at the request construction boundary. CLI/Desktop consume safe DTOs and never receive raw bearer tokens through reports.
+`ruse-mcp` owns protocol-adjacent OAuth contracts and redacted diagnostics. Token acquisition remains outside `ruse-mcp`; callers pass explicit token material only at the request construction boundary. CLI/Desktop consume safe DTOs and never receive raw bearer tokens through reports.
 
 ```mermaid
 flowchart TD
@@ -64,14 +64,14 @@ Names may evolve during implementation, but contracts must remain typed, seriali
 
 - Metadata parsing validates URL shape and rejects unsupported malformed values.
 - Diagnostics explain missing or unusable authorization metadata without exposing secrets.
-- Bearer token application is explicit; no token lookup happens inside `agent-mcp`.
+- Bearer token application is explicit; no token lookup happens inside `ruse-mcp`.
 - Authorization headers are rejected if caller configuration already contains a conflicting authorization header.
 - Stream and POST request builders share the same redaction and validation behavior.
 
 ## Security and Privacy
 
 - Bearer tokens, authorization headers, client secrets, refresh tokens, raw metadata bodies, and remote error payloads are never exposed in public diagnostics or reports.
-- `agent-mcp` grants no filesystem, command, Git, browser, Desktop, plugin, or secret-store permission.
+- `ruse-mcp` grants no filesystem, command, Git, browser, Desktop, plugin, or secret-store permission.
 - Token acquisition and storage are owned by later auth/secret layers.
 
 ## Testing Strategy
@@ -84,10 +84,10 @@ Names may evolve during implementation, but contracts must remain typed, seriali
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_metadata`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_discovery`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_authorization_diagnostics`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_bearer_authorization`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_metadata`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_discovery`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_authorization_diagnostics`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_bearer_authorization`
 - `CARGO_TARGET_DIR=target/codex-m51 cargo xtask ci`
 
 ## Completion Signal

@@ -95,7 +95,7 @@ pub enum QualityGateStatus {
 ## Acceptance Criteria
 
 - M29 milestone-level and slice-level docs exist.
-- `cargo xtask ci` produces `target/agent-ci/quality-gate-report.json` and summary text.
+- `cargo xtask ci` produces `target/ruse-ci/quality-gate-report.json` and summary text.
 - hosted CI invokes the shared gate.
 - final workspace checks pass before M29 is marked complete.
 

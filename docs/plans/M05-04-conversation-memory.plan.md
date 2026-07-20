@@ -2,30 +2,30 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `agent-memory` with conversation-scoped memory records and an in-memory store.
+**Goal:** Add `ruse-memory` with conversation-scoped memory records and an in-memory store.
 
-**Architecture:** `agent-memory` owns memory records, validation, and scoped retrieval. It depends on `agent-types`, `serde`, `serde_json`, and `thiserror`; it does not depend on `agent-context` or `agent-core`.
+**Architecture:** `ruse-memory` owns memory records, validation, and scoped retrieval. It depends on `ruse-types`, `serde`, `serde_json`, and `thiserror`; it does not depend on `ruse-context` or `ruse-core`.
 
 **Tech Stack:** Rust 2024 edition, Cargo workspace, serde, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
-### Task 1: Scaffold `agent-memory`
+### Task 1: Scaffold `ruse-memory`
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-memory/Cargo.toml`
-- Create: `crates/agent-memory/src/lib.rs`
-- Create: `crates/agent-memory/src/error.rs`
-- Create: `crates/agent-memory/src/record.rs`
-- Create: `crates/agent-memory/src/store.rs`
+- Create: `crates/ruse-memory/Cargo.toml`
+- Create: `crates/ruse-memory/src/lib.rs`
+- Create: `crates/ruse-memory/src/error.rs`
+- Create: `crates/ruse-memory/src/record.rs`
+- Create: `crates/ruse-memory/src/store.rs`
 
 - [x] **Step 1: Add failing crate smoke test**
 
-Create `crates/agent-memory/tests/conversation_memory.rs` with:
+Create `crates/ruse-memory/tests/conversation_memory.rs` with:
 
 ```rust
-use agent_memory::MemorySensitivity;
+use ruse_memory::MemorySensitivity;
 
 #[test]
 fn memory_sensitivity_uses_snake_case_json() {
@@ -36,19 +36,19 @@ fn memory_sensitivity_uses_snake_case_json() {
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-memory memory_sensitivity_uses_snake_case_json
+cargo test -p ruse-memory memory_sensitivity_uses_snake_case_json
 ```
 
-Expected: fails because `agent-memory` is not a workspace crate yet.
+Expected: fails because `ruse-memory` is not a workspace crate yet.
 
 - [x] **Step 3: Add crate scaffold**
 
-Add `crates/agent-memory` to workspace members. Create crate dependencies on `agent-types`, `serde`, `serde_json`, and `thiserror`. Export `MemoryError`, `MemoryRecord`, `MemoryScope`, `MemorySensitivity`, `MemorySource`, `MemoryStore`, and `InMemoryMemoryStore`.
+Add `crates/ruse-memory` to workspace members. Create crate dependencies on `ruse-types`, `serde`, `serde_json`, and `thiserror`. Export `MemoryError`, `MemoryRecord`, `MemoryScope`, `MemorySensitivity`, `MemorySource`, `MemoryStore`, and `InMemoryMemoryStore`.
 
 - [x] **Step 4: Verify crate smoke GREEN**
 
 ```bash
-cargo test -p agent-memory memory_sensitivity_uses_snake_case_json
+cargo test -p ruse-memory memory_sensitivity_uses_snake_case_json
 ```
 
 Expected: smoke test passes.
@@ -56,7 +56,7 @@ Expected: smoke test passes.
 ### Task 2: Write Conversation Memory Tests
 
 **Files:**
-- Modify: `crates/agent-memory/tests/conversation_memory.rs`
+- Modify: `crates/ruse-memory/tests/conversation_memory.rs`
 
 - [x] **Step 1: Add failing behavior tests**
 
@@ -73,7 +73,7 @@ Use two conversation IDs and records with confidence `80`.
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-memory conversation_memory
+cargo test -p ruse-memory conversation_memory
 ```
 
 Expected: behavior tests fail because store contracts are not implemented.
@@ -81,10 +81,10 @@ Expected: behavior tests fail because store contracts are not implemented.
 ### Task 3: Implement Conversation Memory Store
 
 **Files:**
-- Modify: `crates/agent-memory/src/error.rs`
-- Modify: `crates/agent-memory/src/record.rs`
-- Modify: `crates/agent-memory/src/store.rs`
-- Modify: `crates/agent-memory/src/lib.rs`
+- Modify: `crates/ruse-memory/src/error.rs`
+- Modify: `crates/ruse-memory/src/record.rs`
+- Modify: `crates/ruse-memory/src/store.rs`
+- Modify: `crates/ruse-memory/src/lib.rs`
 
 - [x] **Step 1: Implement memory contracts**
 
@@ -101,7 +101,7 @@ Use `BTreeMap<MemoryScope, BTreeMap<String, MemoryRecord>>` so list order is det
 - [x] **Step 4: Verify GREEN**
 
 ```bash
-cargo test -p agent-memory --test conversation_memory
+cargo test -p ruse-memory --test conversation_memory
 ```
 
 Expected: all conversation memory tests pass.

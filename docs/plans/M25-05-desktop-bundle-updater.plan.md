@@ -4,7 +4,7 @@
 
 **Goal:** Add Desktop bundle packaging, update manifest validation, and local Desktop release smoke checks.
 
-**Architecture:** `xtask` orchestrates packaging, Tauri owns bundle config, and `agent-desktop` owns updater-safe contracts.
+**Architecture:** `xtask` orchestrates packaging, Tauri owns bundle config, and `ruse-desktop` owns updater-safe contracts.
 
 **Tech Stack:** Rust 2024 edition, Tauri bundle config, update manifest schema, xtask command planning, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -16,7 +16,7 @@
 - Read: `docs/specs/M25-05-desktop-bundle-updater.spec.md`
 - Read: `apps/desktop/src-tauri/tauri.conf.json`
 - Read: `apps/desktop/package.json`
-- Read: `crates/agent-desktop/src/lib.rs`
+- Read: `crates/ruse-desktop/src/lib.rs`
 
 - [x] **Step 1: Review Desktop packaging scope**
 
@@ -25,7 +25,7 @@ Expected: bundle metadata, update manifest contracts, smoke checks, and local fa
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-desktop/tests/update_manifest.rs`
+- Create: `crates/ruse-desktop/tests/update_manifest.rs`
 - Modify: `xtask/tests/xtask_plan.rs`
 - Create if needed: `xtask/tests/package_desktop.rs`
 
@@ -40,15 +40,15 @@ Cover command planning for local Desktop bundle and smoke checks.
 - [x] **Step 3: Verify RED**
 
 ```bash
-cargo test -p agent-desktop update_manifest
+cargo test -p ruse-desktop update_manifest
 cargo test -p xtask package_desktop
 ```
 
 ### Task 3: Implement Desktop Packaging and Updater Contracts
 
 **Files:**
-- Modify: `crates/agent-desktop/src/lib.rs`
-- Create if needed: `crates/agent-desktop/src/update.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
+- Create if needed: `crates/ruse-desktop/src/update.rs`
 - Modify: `xtask/src/lib.rs`
 - Modify: `xtask/src/main.rs`
 - Modify if needed: `apps/desktop/src-tauri/tauri.conf.json`
@@ -70,7 +70,7 @@ Ensure invalid manifests and missing artifacts preserve current app state.
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-desktop update_manifest
+cargo test -p ruse-desktop update_manifest
 cargo test -p xtask package_desktop
 ```
 

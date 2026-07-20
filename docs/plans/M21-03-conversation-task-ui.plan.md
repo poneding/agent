@@ -4,9 +4,9 @@
 
 **Goal:** Render Desktop conversation, transcript, composer, task list, and task detail views from UI-safe snapshots and frames.
 
-**Architecture:** `agent-desktop` owns snapshot contracts; Tauri exposes `load_workspace_snapshot`; frontend reducers derive conversation and task UI state from snapshots plus `UiJsonFrame`s.
+**Architecture:** `ruse-desktop` owns snapshot contracts; Tauri exposes `load_workspace_snapshot`; frontend reducers derive conversation and task UI state from snapshots plus `UiJsonFrame`s.
 
-**Tech Stack:** Rust 2024 edition, Tauri 2 commands, `agent-desktop`, `agent-ui-bridge`, TypeScript, React, Vitest, Testing Library, Cargo test.
+**Tech Stack:** Rust 2024 edition, Tauri 2 commands, `ruse-desktop`, `ruse-ui-bridge`, TypeScript, React, Vitest, Testing Library, Cargo test.
 
 ---
 
@@ -14,10 +14,10 @@
 
 **Files:**
 - Read: `docs/specs/M21-03-conversation-task-ui.spec.md`
-- Read: `crates/agent-desktop/src/snapshot.rs`
-- Read: `crates/agent-desktop/src/conversation.rs`
-- Read: `crates/agent-desktop/src/task.rs`
-- Read: `crates/agent-ui-bridge/src/event.rs`
+- Read: `crates/ruse-desktop/src/snapshot.rs`
+- Read: `crates/ruse-desktop/src/conversation.rs`
+- Read: `crates/ruse-desktop/src/task.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
 
 - [x] **Step 1: Review view-model contracts**
 

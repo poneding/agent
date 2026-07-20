@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-`client_http.rs` owns the parser and exports it through `agent-mcp`.
+`client_http.rs` owns the parser and exports it through `ruse-mcp`.
 
 ```mermaid
 flowchart TD
@@ -74,9 +74,9 @@ pub fn parse_mcp_client_http_sse_events(
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts`
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_contracts`
 - `CARGO_TARGET_DIR=target/codex-m46 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m46 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m46 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

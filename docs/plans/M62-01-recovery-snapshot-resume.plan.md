@@ -4,7 +4,7 @@
 
 **Goal:** Add typed recovery snapshots and resume dry-run reports over existing checkpoint, replay, idempotency, and approval-resume foundations.
 
-**Architecture:** `agent-types` owns serde recovery contracts. `agent-core` builds recovery snapshots and dry-run reports from `agent-storage` traits. `agent-storage` remains the owner of checkpoint, replay, event, and idempotency stores. UI crates are not part of this slice except for additive bridge compatibility if needed by compile/tests.
+**Architecture:** `ruse-types` owns serde recovery contracts. `ruse-core` builds recovery snapshots and dry-run reports from `ruse-storage` traits. `ruse-storage` remains the owner of checkpoint, replay, event, and idempotency stores. UI crates are not part of this slice except for additive bridge compatibility if needed by compile/tests.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing `RecoveryEngine`, `CheckpointStore`, `ReplayCursor`, `IdempotencyStore`, runtime events, Cargo fmt/clippy/test.
 
@@ -20,45 +20,45 @@
 - Read: `docs/architecture/storage.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-core/src/recovery.rs`
-- Read: `crates/agent-core/src/idempotency.rs`
-- Read: `crates/agent-core/tests/approval_resume_recovery.rs`
-- Read: `crates/agent-storage/src/checkpoint.rs`
-- Read: `crates/agent-storage/src/replay.rs`
-- Read: `crates/agent-storage/src/idempotency.rs`
-- Read: `crates/agent-types/src/event.rs`
-- Read: `crates/agent-types/src/lib.rs`
+- Read: `crates/ruse-core/src/recovery.rs`
+- Read: `crates/ruse-core/src/idempotency.rs`
+- Read: `crates/ruse-core/tests/approval_resume_recovery.rs`
+- Read: `crates/ruse-storage/src/checkpoint.rs`
+- Read: `crates/ruse-storage/src/replay.rs`
+- Read: `crates/ruse-storage/src/idempotency.rs`
+- Read: `crates/ruse-types/src/event.rs`
+- Read: `crates/ruse-types/src/lib.rs`
 
 - [x] **Step 1: Run baseline focused checks**
 
 Run:
 
 ```bash
-cargo test -p agent-core --test approval_resume_recovery
-cargo test -p agent-core --test comprehensive_turn_idempotency
-cargo test -p agent-core --test comprehensive_turn_guards
-cargo test -p agent-storage --test checkpoint_store
-cargo test -p agent-storage --test replay_integration
-cargo test -p agent-worktree --test conflict_detection
+cargo test -p ruse-core --test approval_resume_recovery
+cargo test -p ruse-core --test comprehensive_turn_idempotency
+cargo test -p ruse-core --test comprehensive_turn_guards
+cargo test -p ruse-storage --test checkpoint_store
+cargo test -p ruse-storage --test replay_integration
+cargo test -p ruse-worktree --test conflict_detection
 ```
 
 Expected: existing recovery, idempotency, guard, checkpoint, replay, and conflict foundations pass before implementation.
 
 Verification passed:
 
-- `cargo test -p agent-core --test approval_resume_recovery`
-- `cargo test -p agent-core --test comprehensive_turn_idempotency`
-- `cargo test -p agent-core --test comprehensive_turn_guards`
-- `cargo test -p agent-storage --test checkpoint_store`
-- `cargo test -p agent-storage --test replay_integration`
-- `cargo test -p agent-worktree --test conflict_detection`
+- `cargo test -p ruse-core --test approval_resume_recovery`
+- `cargo test -p ruse-core --test comprehensive_turn_idempotency`
+- `cargo test -p ruse-core --test comprehensive_turn_guards`
+- `cargo test -p ruse-storage --test checkpoint_store`
+- `cargo test -p ruse-storage --test replay_integration`
+- `cargo test -p ruse-worktree --test conflict_detection`
 
 ### Task 2: Add Typed Recovery Contracts
 
 **Files:**
-- Create: `crates/agent-types/src/recovery.rs`
-- Modify: `crates/agent-types/src/lib.rs`
-- Optionally modify: `crates/agent-types/src/event.rs` only if recovery events become necessary for compile or serde coverage
+- Create: `crates/ruse-types/src/recovery.rs`
+- Modify: `crates/ruse-types/src/lib.rs`
+- Optionally modify: `crates/ruse-types/src/event.rs` only if recovery events become necessary for compile or serde coverage
 
 - [x] **Step 1: Define snapshot contracts**
 
@@ -85,12 +85,12 @@ Requirements:
 
 - [x] **Step 2: Re-export contracts**
 
-Update `agent-types/src/lib.rs` so downstream crates can use the new recovery contracts.
+Update `ruse-types/src/lib.rs` so downstream crates can use the new recovery contracts.
 
 ### Task 3: Write Focused Tests First
 
 **Files:**
-- Create: `crates/agent-core/tests/recovery_snapshot.rs`
+- Create: `crates/ruse-core/tests/recovery_snapshot.rs`
 
 - [x] **Step 1: Add snapshot tests**
 
@@ -109,7 +109,7 @@ Add tests for:
 Run:
 
 ```bash
-cargo test -p agent-core --test recovery_snapshot
+cargo test -p ruse-core --test recovery_snapshot
 ```
 
 Expected: tests fail because contracts and snapshot APIs do not exist yet.
@@ -119,8 +119,8 @@ Note: tests were added before the final implementation and then passed after con
 ### Task 4: Implement Snapshot Construction and Dry-Run
 
 **Files:**
-- Modify: `crates/agent-core/src/recovery.rs`
-- Modify: `crates/agent-core/src/lib.rs` if re-export changes are needed
+- Modify: `crates/ruse-core/src/recovery.rs`
+- Modify: `crates/ruse-core/src/lib.rs` if re-export changes are needed
 
 - [x] **Step 1: Add recovery snapshot API**
 
@@ -196,13 +196,13 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-types -p agent-core -p agent-storage -p agent-ui-bridge --all-targets -- -D warnings
-cargo test -p agent-types
-cargo test -p agent-core --test recovery_snapshot
-cargo test -p agent-core --test approval_resume_recovery
-cargo test -p agent-core --test comprehensive_turn_idempotency
-cargo test -p agent-storage --test checkpoint_store
-cargo test -p agent-storage --test replay_integration
+cargo clippy -p ruse-types -p ruse-core -p ruse-storage -p ruse-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-types
+cargo test -p ruse-core --test recovery_snapshot
+cargo test -p ruse-core --test approval_resume_recovery
+cargo test -p ruse-core --test comprehensive_turn_idempotency
+cargo test -p ruse-storage --test checkpoint_store
+cargo test -p ruse-storage --test replay_integration
 ```
 
 Expected: all focused checks pass.
@@ -210,13 +210,13 @@ Expected: all focused checks pass.
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-types -p agent-core -p agent-storage -p agent-ui-bridge --all-targets -- -D warnings`
-- `cargo test -p agent-types`
-- `cargo test -p agent-core --test recovery_snapshot`
-- `cargo test -p agent-core --test approval_resume_recovery`
-- `cargo test -p agent-core --test comprehensive_turn_idempotency`
-- `cargo test -p agent-storage --test checkpoint_store`
-- `cargo test -p agent-storage --test replay_integration`
+- `cargo clippy -p ruse-types -p ruse-core -p ruse-storage -p ruse-ui-bridge --all-targets -- -D warnings`
+- `cargo test -p ruse-types`
+- `cargo test -p ruse-core --test recovery_snapshot`
+- `cargo test -p ruse-core --test approval_resume_recovery`
+- `cargo test -p ruse-core --test comprehensive_turn_idempotency`
+- `cargo test -p ruse-storage --test checkpoint_store`
+- `cargo test -p ruse-storage --test replay_integration`
 
 ### Task 6: Status Docs and Commit
 
@@ -250,7 +250,7 @@ After focused verification passes, exact-stage only M62-01 code, tests, and stat
 ```bash
 git status --short --branch
 git diff --check
-git add crates/agent-types/src/recovery.rs crates/agent-types/src/lib.rs crates/agent-core/src/recovery.rs crates/agent-core/src/lib.rs crates/agent-core/tests/recovery_snapshot.rs docs/milestones/README.md
+git add crates/ruse-types/src/recovery.rs crates/ruse-types/src/lib.rs crates/ruse-core/src/recovery.rs crates/ruse-core/src/lib.rs crates/ruse-core/tests/recovery_snapshot.rs docs/milestones/README.md
 git commit -m "feat: add m62-01 recovery snapshots"
 ```
 

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** Keep this slice contract-only. Do not add CLI commands, Desktop UI, or runtime prompt influence in M64-01.
 
-**Goal:** Add typed, serializable, bounded, redacted memory product snapshot contracts in `agent-memory`.
+**Goal:** Add typed, serializable, bounded, redacted memory product snapshot contracts in `ruse-memory`.
 
-**Architecture:** `agent-memory` owns memory privacy and product summaries. Later slices may expose snapshots through `agent-ui-bridge` and render them in CLI/TUI/Desktop.
+**Architecture:** `ruse-memory` owns memory privacy and product summaries. Later slices may expose snapshots through `ruse-ui-bridge` and render them in CLI/TUI/Desktop.
 
 ---
 
@@ -13,13 +13,13 @@
 **Files:**
 - Read: `docs/specs/M64-memory-personalization.spec.md`
 - Read: `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md`
-- Read: `crates/agent-memory/src/record.rs`
-- Read: `crates/agent-memory/src/proposal.rs`
-- Read: `crates/agent-memory/src/rerank.rs`
-- Read: `crates/agent-memory/src/trace.rs`
-- Read: `crates/agent-memory/src/archive.rs`
-- Read: `crates/agent-memory/src/tombstone.rs`
-- Read: `crates/agent-memory/tests/`
+- Read: `crates/ruse-memory/src/record.rs`
+- Read: `crates/ruse-memory/src/proposal.rs`
+- Read: `crates/ruse-memory/src/rerank.rs`
+- Read: `crates/ruse-memory/src/trace.rs`
+- Read: `crates/ruse-memory/src/archive.rs`
+- Read: `crates/ruse-memory/src/tombstone.rs`
+- Read: `crates/ruse-memory/tests/`
 
 - [x] **Step 1: Review existing contracts**
 
@@ -28,7 +28,7 @@ Identify existing structs and redaction helpers that can feed product summaries 
 ### Task 2: Write Focused Tests
 
 **Files:**
-- Create: `crates/agent-memory/tests/memory_product_snapshot.rs`
+- Create: `crates/ruse-memory/tests/memory_product_snapshot.rs`
 
 - [x] **Step 1: Add serialization and privacy tests**
 
@@ -46,7 +46,7 @@ Cover:
 - [x] **Step 2: Run focused test and verify failure**
 
 ```bash
-cargo test -p agent-memory --test memory_product_snapshot
+cargo test -p ruse-memory --test memory_product_snapshot
 ```
 
 Expected: tests fail before the snapshot contract exists.
@@ -54,8 +54,8 @@ Expected: tests fail before the snapshot contract exists.
 ### Task 3: Implement Snapshot Contracts
 
 **Files:**
-- Create or modify: `crates/agent-memory/src/product.rs`
-- Modify: `crates/agent-memory/src/lib.rs`
+- Create or modify: `crates/ruse-memory/src/product.rs`
+- Modify: `crates/ruse-memory/src/lib.rs`
 
 - [x] **Step 1: Add public summary structs**
 
@@ -85,9 +85,9 @@ Use consistent limits and secret-like redaction for previews, source labels, rea
 - [x] **Step 1: Run focused checks**
 
 ```bash
-cargo test -p agent-memory --test memory_product_snapshot
-cargo test -p agent-memory
-cargo clippy -p agent-memory --all-targets -- -D warnings
+cargo test -p ruse-memory --test memory_product_snapshot
+cargo test -p ruse-memory
+cargo clippy -p ruse-memory --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

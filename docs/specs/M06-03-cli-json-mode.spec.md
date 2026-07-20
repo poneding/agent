@@ -28,26 +28,26 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` depends on `agent-ui-bridge` only at the UI boundary. Runtime fixture execution stays in `agent-core`; normalization and JSON frame shape stay in `agent-ui-bridge`.
+`ruse-cli` depends on `ruse-ui-bridge` only at the UI boundary. Runtime fixture execution stays in `ruse-core`; normalization and JSON frame shape stay in `ruse-ui-bridge`.
 
 ```mermaid
 flowchart TD
-  core["agent-core local coding fixture"] --> events["RuntimeEvent list"]
-  events --> bridge["agent-ui-bridge normalize + frame"]
-  bridge --> cli["agent-cli --json --local-summary"]
+  core["ruse-core local coding fixture"] --> events["RuntimeEvent list"]
+  events --> bridge["ruse-ui-bridge normalize + frame"]
+  bridge --> cli["ruse-cli --json --local-summary"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
       lib.rs
     tests/
       json_frame.rs
-  agent-cli/
+  ruse-cli/
     Cargo.toml
     src/
       command.rs
@@ -97,7 +97,7 @@ where
 
 ## Security and Privacy
 
-- JSON mode must use `agent-ui-bridge` normalization so raw tool input/output remains excluded.
+- JSON mode must use `ruse-ui-bridge` normalization so raw tool input/output remains excluded.
 - The CLI must not invent a second JSON shape outside the bridge.
 
 ## Testing Strategy
@@ -109,9 +109,9 @@ where
 
 ## Acceptance Criteria
 
-- `agent-cli --json --local-summary` prints NDJSON bridge frames.
+- `ruse-cli --json --local-summary` prints NDJSON bridge frames.
 - Existing text commands still render the same output.
-- `cargo test -p agent-cli json_mode` and `cargo test -p agent-ui-bridge json_frame` pass.
+- `cargo test -p ruse-cli json_mode` and `cargo test -p ruse-ui-bridge json_frame` pass.
 
 ## Completion Signal
 

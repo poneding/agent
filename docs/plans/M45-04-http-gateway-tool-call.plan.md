@@ -14,15 +14,15 @@
 
 **Files:**
 - Read: `docs/specs/M45-04-http-gateway-tool-call.spec.md`
-- Read: `crates/agent-mcp/src/gateway.rs`
-- Read: `crates/agent-mcp/tests/mcp_gateway_stdio_tool_call.rs`
+- Read: `crates/ruse-mcp/src/gateway.rs`
+- Read: `crates/ruse-mcp/tests/mcp_gateway_stdio_tool_call.rs`
 
 - [x] **Step 1: Review stdio gateway execution coverage**
 
 ### Task 2: Write Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_gateway_http_tool_call.rs`
+- Create: `crates/ruse-mcp/tests/mcp_gateway_http_tool_call.rs`
 
 - [x] **Step 1: Add gateway discover/register/execute test**
 - [x] **Step 2: Add redaction and output-bound assertions**
@@ -30,7 +30,7 @@
 ### Task 3: Implement Tool Calls
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Implement `McpGatewayClient` for `McpHttpClient<T>`**
 
@@ -41,9 +41,9 @@
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_gateway_http_tool_call
+CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_gateway_http_tool_call
 CARGO_TARGET_DIR=target/codex-m45 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m45 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m45 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit
@@ -53,6 +53,6 @@ CARGO_TARGET_DIR=target/codex-m45 cargo clippy -p agent-mcp --all-targets -- -D 
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: execute gateway tools over mcp http"
 ```

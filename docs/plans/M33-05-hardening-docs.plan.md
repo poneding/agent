@@ -27,10 +27,10 @@
 Verified:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-mcp mcp_server_builtin_tool_catalog
-CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-mcp mcp_server_manifest_tool_diagnostics
-CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-mcp mcp_server_builtin_tool_call
-CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-cli mcp_server_workspace_tool_profile
+CARGO_TARGET_DIR=target/codex-m33 cargo test -p ruse-mcp mcp_server_builtin_tool_catalog
+CARGO_TARGET_DIR=target/codex-m33 cargo test -p ruse-mcp mcp_server_manifest_tool_diagnostics
+CARGO_TARGET_DIR=target/codex-m33 cargo test -p ruse-mcp mcp_server_builtin_tool_call
+CARGO_TARGET_DIR=target/codex-m33 cargo test -p ruse-cli mcp_server_workspace_tool_profile
 CARGO_TARGET_DIR=target/codex-m33 cargo xtask ci
 ```
 

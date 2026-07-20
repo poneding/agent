@@ -32,9 +32,9 @@ Owned by other specs:
 
 ```mermaid
 flowchart TD
-  Xtask["xtask quality gate"] --> Commands["Cargo / agent-cli commands"]
+  Xtask["xtask quality gate"] --> Commands["Cargo / ruse-cli commands"]
   Commands --> Report["typed report"]
-  Report --> Artifacts["target/agent-ci"]
+  Report --> Artifacts["target/ruse-ci"]
   Workflow["CI workflow"] --> Xtask
 ```
 

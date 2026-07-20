@@ -4,9 +4,9 @@
 
 **Goal:** Add explicit Desktop approval popup and visual diff review flows with typed decisions, lease/expiry display, disabled terminal states, bounded redacted previews, and focused verification.
 
-**Architecture:** `agent-ui-bridge` carries approval request/resolution frames and `ResolveApproval` commands; `agent-desktop` owns Desktop-safe approval/diff review models and pure transitions; Tauri validates and forwards typed approval commands; React renders review controls and diff previews from typed state. Runtime policy, sandbox, leases, and audit remain in shared runtime crates.
+**Architecture:** `ruse-ui-bridge` carries approval request/resolution frames and `ResolveApproval` commands; `ruse-desktop` owns Desktop-safe approval/diff review models and pure transitions; Tauri validates and forwards typed approval commands; React renders review controls and diff previews from typed state. Runtime policy, sandbox, leases, and audit remain in shared runtime crates.
 
-**Tech Stack:** Rust 2024 edition, serde contracts, existing `agent-desktop`, `agent-ui-bridge`, and Tauri approval modules, React 18, TypeScript, Vitest, Cargo fmt/clippy/test.
+**Tech Stack:** Rust 2024 edition, serde contracts, existing `ruse-desktop`, `ruse-ui-bridge`, and Tauri approval modules, React 18, TypeScript, Vitest, Cargo fmt/clippy/test.
 
 ---
 
@@ -19,9 +19,9 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-desktop/src/permission.rs`
-- Read: `crates/agent-desktop/src/diff.rs`
-- Read: `crates/agent-desktop/tests/permissions_diffs.rs`
+- Read: `crates/ruse-desktop/src/permission.rs`
+- Read: `crates/ruse-desktop/src/diff.rs`
+- Read: `crates/ruse-desktop/tests/permissions_diffs.rs`
 - Read: `apps/desktop/src/state/approvals.ts`
 - Read: `apps/desktop/src/components/ApprovalQueue.tsx`
 - Read: `apps/desktop/src/components/ApprovalDetail.tsx`
@@ -34,7 +34,7 @@
 
 Baseline reviewed before planning:
 
-- `agent-desktop` has basic `PermissionDialog` and `DiffReview` transitions.
+- `ruse-desktop` has basic `PermissionDialog` and `DiffReview` transitions.
 - Tauri already converts `DesktopResolveApprovalRequest` into `UiCommand::ResolveApproval`.
 - React already queues approval requests, validates deny reason, and renders a basic `DiffPreview`.
 - The app does not yet model lease/expiry disabled states, resolved terminal controls, command acknowledgement display, file-level diff review selection, or hunk previews.
@@ -42,11 +42,11 @@ Baseline reviewed before planning:
 ### Task 2: Add Failing Approval/Diff Contract Tests
 
 **Files:**
-- Modify: `crates/agent-desktop/tests/permissions_diffs.rs`
+- Modify: `crates/ruse-desktop/tests/permissions_diffs.rs`
 - Modify: `apps/desktop/src/__tests__/approval-diff-ui.test.tsx`
 - Modify: `apps/desktop/src-tauri/src/tests/approval_commands.rs`
 
-- [x] **Step 1: Add `agent-desktop` review tests**
+- [x] **Step 1: Add `ruse-desktop` review tests**
 
 Cover:
 
@@ -80,20 +80,20 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-desktop --test permissions_diffs
+cargo test -p ruse-desktop --test permissions_diffs
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml approval_commands
 npm --prefix apps/desktop test -- approval-diff-ui
 ```
 
 Expected: focused tests cover the new contracts. Implementation landed with the tests in this slice; final focused verification passed after the contracts were implemented.
 
-### Task 3: Implement `agent-desktop` Approval/Diff Review Models
+### Task 3: Implement `ruse-desktop` Approval/Diff Review Models
 
 **Files:**
-- Modify: `crates/agent-desktop/src/permission.rs`
-- Modify: `crates/agent-desktop/src/diff.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
-- Modify: `crates/agent-desktop/tests/permissions_diffs.rs`
+- Modify: `crates/ruse-desktop/src/permission.rs`
+- Modify: `crates/ruse-desktop/src/diff.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
+- Modify: `crates/ruse-desktop/tests/permissions_diffs.rs`
 
 - [x] **Step 1: Add approval review contracts**
 
@@ -108,7 +108,7 @@ Implement diff file review and hunk preview contracts with bounded/redacted line
 Run:
 
 ```bash
-cargo test -p agent-desktop --test permissions_diffs
+cargo test -p ruse-desktop --test permissions_diffs
 ```
 
 Expected: approval/diff contract tests pass.
@@ -194,9 +194,9 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-desktop --test permissions_diffs
-cargo test -p agent-ui-bridge approval_bridge
+cargo clippy -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-desktop --test permissions_diffs
+cargo test -p ruse-ui-bridge approval_bridge
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml approval_commands
 npm --prefix apps/desktop test -- approval-diff-ui
 npm --prefix apps/desktop run build
@@ -207,9 +207,9 @@ Expected: all focused M60-03 checks pass.
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
-- `cargo test -p agent-desktop --test permissions_diffs`
-- `cargo test -p agent-ui-bridge --test approval_bridge`
+- `cargo clippy -p ruse-desktop --all-targets -- -D warnings`
+- `cargo test -p ruse-desktop --test permissions_diffs`
+- `cargo test -p ruse-ui-bridge --test approval_bridge`
 - `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml approval_commands`
 - `npm --prefix apps/desktop test -- approval-diff-ui`
 - `npm --prefix apps/desktop run build`
@@ -225,10 +225,10 @@ git add docs/specs/M60-03-approval-diff-review.spec.md \
   docs/plans/M60-desktop-daily-driver.plan.md \
   docs/milestones/README.md \
   docs/roadmap/PRODUCT_ROADMAP.md \
-  crates/agent-desktop/src/permission.rs \
-  crates/agent-desktop/src/diff.rs \
-  crates/agent-desktop/src/lib.rs \
-  crates/agent-desktop/tests/permissions_diffs.rs \
+  crates/ruse-desktop/src/permission.rs \
+  crates/ruse-desktop/src/diff.rs \
+  crates/ruse-desktop/src/lib.rs \
+  crates/ruse-desktop/tests/permissions_diffs.rs \
   apps/desktop/src-tauri/src/approval_commands.rs \
   apps/desktop/src-tauri/src/tests/approval_commands.rs \
   apps/desktop/src/App.tsx \

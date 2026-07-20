@@ -29,15 +29,15 @@ Owned by later M59 specs:
 
 ## Architecture
 
-`agent-core` owns session directory construction and restore validation. It may consume in-memory or durable event-store data through typed inputs. `agent-storage` owns event access and must not know about terminal rendering. `agent-ui-bridge` exposes UI-safe session snapshots and switch commands. `agent-cli` renders text/JSON and maps command-line inputs to core helpers. `agent-tui` stores only panel state derived from bridge snapshots.
+`ruse-core` owns session directory construction and restore validation. It may consume in-memory or durable event-store data through typed inputs. `ruse-storage` owns event access and must not know about terminal rendering. `ruse-ui-bridge` exposes UI-safe session snapshots and switch commands. `ruse-cli` renders text/JSON and maps command-line inputs to core helpers. `ruse-tui` stores only panel state derived from bridge snapshots.
 
 ```mermaid
 flowchart TD
-  Events["Runtime events"] --> Core["agent-core TerminalSessionDirectory"]
+  Events["Runtime events"] --> Core["ruse-core TerminalSessionDirectory"]
   Repo["RepoSessionBootstrapReport"] --> Core
   Core --> Bridge["UiTerminalSessionSnapshot"]
-  CLI["agent-cli repo session list/resume"] --> Core
-  TUI["agent-tui session panel"] --> Bridge
+  CLI["ruse-cli repo session list/resume"] --> Core
+  TUI["ruse-tui session panel"] --> Bridge
   TUI --> Switch["UiCommand::SwitchSession"]
 ```
 
@@ -45,25 +45,25 @@ flowchart TD
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       terminal_session.rs
       lib.rs
     tests/
       terminal_session_directory.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       command.rs
       frame.rs
       lib.rs
     tests/
       terminal_session_snapshot.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       terminal_session_commands.rs
-  agent-tui/
+  ruse-tui/
     src/
       app.rs
       slash.rs
@@ -146,10 +146,10 @@ pub enum UiCommand {
 CLI shape should support:
 
 ```text
-agent-cli repo session list [--workspace <path>]
-agent-cli repo session resume --conversation-id <id>
-agent-cli --json repo session list
-agent-cli --json repo session resume --conversation-id <id>
+ruse-cli repo session list [--workspace <path>]
+ruse-cli repo session resume --conversation-id <id>
+ruse-cli --json repo session list
+ruse-cli --json repo session resume --conversation-id <id>
 ```
 
 If implementation discovers that `repo session` should be renamed to avoid ambiguity, the final command may differ, but it must remain documented, script-safe, and tested.
@@ -173,10 +173,10 @@ If implementation discovers that `repo session` should be renamed to avoid ambig
 
 ## Testing Strategy
 
-- `agent-core` tests for directory construction, deterministic sorting, status derivation, duplicate collapse, restore validation, and redaction
-- `agent-ui-bridge` tests for stable snapshot JSON, command validation, and bounded diagnostics
-- `agent-cli` tests for text and JSON list/resume commands, invalid id exit behavior, and redaction
-- `agent-tui` tests for session panel snapshot reduction, focus movement, switch effect emission, and slash command opening
+- `ruse-core` tests for directory construction, deterministic sorting, status derivation, duplicate collapse, restore validation, and redaction
+- `ruse-ui-bridge` tests for stable snapshot JSON, command validation, and bounded diagnostics
+- `ruse-cli` tests for text and JSON list/resume commands, invalid id exit behavior, and redaction
+- `ruse-tui` tests for session panel snapshot reduction, focus movement, switch effect emission, and slash command opening
 - regression tests for existing `repo session` bootstrap behavior
 
 ## Acceptance Criteria

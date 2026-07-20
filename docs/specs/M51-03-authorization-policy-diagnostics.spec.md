@@ -23,7 +23,7 @@ Owned by other specs:
 
 ## Architecture
 
-Diagnostics live in `agent-mcp::client_http` and are pure functions over config plus metadata DTOs.
+Diagnostics live in `ruse-mcp::client_http` and are pure functions over config plus metadata DTOs.
 
 ## Public Contracts
 
@@ -53,9 +53,9 @@ pub struct McpClientHttpAuthorizationReport {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_authorization_diagnostics`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_authorization_diagnostics`
 - `CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

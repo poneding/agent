@@ -4,7 +4,7 @@
 
 **Goal:** Register and execute MCP tools through the normal local tool registry, policy, audit, and comprehensive turn path.
 
-**Architecture:** `agent-mcp` owns gateway discovery and remote calls. `agent-tool` owns local executable tool contracts. `agent-core` wires gateway tools into comprehensive turn resources.
+**Architecture:** `ruse-mcp` owns gateway discovery and remote calls. `ruse-tool` owns local executable tool contracts. `ruse-core` wires gateway tools into comprehensive turn resources.
 
 **Tech Stack:** Rust 2024 edition, async traits, fixture MCP client, serde_json, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,10 +14,10 @@
 
 **Files:**
 - Read: `docs/specs/M22-04-mcp-gateway-tools.spec.md`
-- Read: `crates/agent-mcp/src/client.rs`
-- Read: `crates/agent-mcp/src/tool_mapping.rs`
-- Read: `crates/agent-mcp/src/policy.rs`
-- Read: `crates/agent-core/src/tool_loop.rs`
+- Read: `crates/ruse-mcp/src/client.rs`
+- Read: `crates/ruse-mcp/src/tool_mapping.rs`
+- Read: `crates/ruse-mcp/src/policy.rs`
+- Read: `crates/ruse-core/src/tool_loop.rs`
 
 - [x] **Step 1: Review MCP gateway scope**
 
@@ -32,8 +32,8 @@ Expected: gateway discovery, policy, execution, and failure requirements are cle
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_gateway.rs`
-- Create: `crates/agent-core/tests/mcp_gateway_tool_loop.rs`
+- Create: `crates/ruse-mcp/tests/mcp_gateway.rs`
+- Create: `crates/ruse-core/tests/mcp_gateway_tool_loop.rs`
 
 - [x] **Step 1: Add discovery tests**
 
@@ -52,8 +52,8 @@ Prove a comprehensive turn can execute an MCP-backed tool through `ToolLoop` and
 Run:
 
 ```bash
-cargo test -p agent-mcp mcp_gateway
-cargo test -p agent-core mcp_gateway_tool_loop
+cargo test -p ruse-mcp mcp_gateway
+cargo test -p ruse-core mcp_gateway_tool_loop
 ```
 
 Expected: tests fail because gateway contracts are missing.
@@ -61,10 +61,10 @@ Expected: tests fail because gateway contracts are missing.
 ### Task 3: Implement MCP Gateway
 
 **Files:**
-- Create: `crates/agent-mcp/src/gateway.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
-- Modify: `crates/agent-mcp/src/client.rs`
-- Modify: `crates/agent-core/src/model_runtime.rs`
+- Create: `crates/ruse-mcp/src/gateway.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
 
 - [x] **Step 1: Add gateway client and report contracts**
 
@@ -72,7 +72,7 @@ Implement `McpGatewayClient`, `McpGateway`, `McpGatewayReport`, `McpGatewayTool`
 
 - [x] **Step 2: Register local tools**
 
-Convert healthy descriptors into `agent-tool` entries named `mcp.<server>.<tool>` with source metadata.
+Convert healthy descriptors into `ruse-tool` entries named `mcp.<server>.<tool>` with source metadata.
 
 - [x] **Step 3: Enforce policy**
 
@@ -85,16 +85,16 @@ Bound remote responses and convert them to normal tool outputs and observations.
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-mcp/tests/mcp_gateway.rs`
-- Read: `crates/agent-core/tests/mcp_gateway_tool_loop.rs`
+- Read: `crates/ruse-mcp/tests/mcp_gateway.rs`
+- Read: `crates/ruse-core/tests/mcp_gateway_tool_loop.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-mcp mcp_gateway
-cargo test -p agent-core mcp_gateway_tool_loop
+cargo test -p ruse-mcp mcp_gateway
+cargo test -p ruse-core mcp_gateway_tool_loop
 ```
 
 Expected: focused tests pass.
@@ -127,7 +127,7 @@ Advance active implementation focus to M22-05.
 Run:
 
 ```bash
-git add crates/agent-mcp crates/agent-core docs Cargo.lock
+git add crates/ruse-mcp crates/ruse-core docs Cargo.lock
 git commit -m "feat: add mcp gateway tools"
 ```
 

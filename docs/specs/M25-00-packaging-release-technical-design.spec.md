@@ -31,14 +31,14 @@ Owned by implementation slices:
 
 ## Architecture
 
-Packaging and startup behavior are shared across surfaces. `agent-cli` exposes the `agent` binary. The Desktop app bundles runtime through Tauri. `agent-core` loads effective settings after migrations. `agent-storage`, `agent-memory`, and plugin/config stores participate in migration planning. `agent-model` owns secret resolver traits and keychain adapters.
+Packaging and startup behavior are shared across surfaces. `ruse-cli` exposes the `agent` binary. The Desktop app bundles runtime through Tauri. `ruse-core` loads effective settings after migrations. `ruse-storage`, `ruse-memory`, and plugin/config stores participate in migration planning. `ruse-model` owns secret resolver traits and keychain adapters.
 
 ```mermaid
 flowchart TD
   Startup["agent startup"] --> Paths["PlatformPaths"]
   Paths --> Settings["SettingsProfile"]
   Settings --> Migrations["StartupMigrationRunner"]
-  Migrations --> Core["agent-core runtime"]
+  Migrations --> Core["ruse-core runtime"]
   Settings --> Secrets["SecretStoreBackend"]
   Release["release pipeline"] --> CLI["agent binary"]
   Release --> Desktop["Tauri bundle"]

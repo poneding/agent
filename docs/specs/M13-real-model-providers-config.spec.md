@@ -21,11 +21,11 @@ This milestone delivers:
 
 Implementation primarily touches:
 
-- `agent-model`
-- `agent-core`
-- `agent-cli`
-- `agent-desktop`
-- `agent-storage`
+- `ruse-model`
+- `ruse-core`
+- `ruse-cli`
+- `ruse-desktop`
+- `ruse-storage`
 - `docs/milestones/README.md`
 
 ## Dependencies
@@ -38,14 +38,14 @@ Implementation primarily touches:
 
 ## Architecture
 
-M13 keeps provider-specific behavior inside `agent-model`. Runtime orchestration in `agent-core` selects providers through typed registries and invocation policies. CLI and Desktop expose model selection through existing command/settings surfaces, but do not know provider transport details. Secret values remain behind named secret references.
+M13 keeps provider-specific behavior inside `ruse-model`. Runtime orchestration in `ruse-core` selects providers through typed registries and invocation policies. CLI and Desktop expose model selection through existing command/settings surfaces, but do not know provider transport details. Secret values remain behind named secret references.
 
 ```mermaid
 flowchart TD
-  cli["agent-cli"] --> core["agent-core"]
-  desktop["agent-desktop"] --> bridge["agent-ui-bridge"]
+  cli["ruse-cli"] --> core["ruse-core"]
+  desktop["ruse-desktop"] --> bridge["ruse-ui-bridge"]
   bridge --> core
-  core --> model["agent-model"]
+  core --> model["ruse-model"]
   model --> config["Provider Config"]
   model --> registry["Provider Registry"]
   model --> policy["Invocation Policy"]

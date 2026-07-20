@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Make `agent` with no arguments open a production terminal application comparable to Codex CLI and Claude Code instead of a toy line loop. M67 productizes the terminal surface around the existing shared runtime, UI bridge, and `agent-tui` state so interactive coding turns can be streamed, inspected, approved, recovered, and tested from one terminal-first shell.
+Make `agent` with no arguments open a production terminal application comparable to Codex CLI and Claude Code instead of a toy line loop. M67 productizes the terminal surface around the existing shared runtime, UI bridge, and `ruse-tui` state so interactive coding turns can be streamed, inspected, approved, recovered, and tested from one terminal-first shell.
 
 ## Product Context
 
@@ -12,11 +12,11 @@ The PRD requires a CLI and terminal TUI that can run complete agent turns with m
 
 | Product | Reference signal | Production terminal pattern | Current `agent` status |
 |---|---|---|---|
-| Codex CLI | [openai/codex README](https://github.com/openai/codex), [Codex docs](https://developers.openai.com/codex) | Local fullscreen coding agent with streaming turns, approval/sandbox controls, MCP/configuration, noninteractive automation, transcripts, slash-style controls, prompt history, queued input, copy, review, diff, and JSON/exec paths. | M67 routes interactive TTY startup into `agent-tui`, streams typed turn frames, preserves JSON/prompt/MCP stdio, and has slash, copy, diff, command, approval, retry, recovery, extension/MCP, and session panels. Remaining gaps are broader coding-loop UX depth such as review-first workflows and multi-root/web-search affordances, not the terminal shell foundation. |
-| Claude Code | [Claude Code docs index](https://code.claude.com/docs/llms.txt), [overview](https://code.claude.com/docs/en/overview) | Terminal-first agent shared with IDE/Desktop/web surfaces, permission modes, plan mode, skills, commands, MCP, sessions, hooks, scheduled tasks, remote/desktop handoff, and durable session workflows. | `agent` matches the shared-runtime direction through `agent-core` plus `agent-ui-bridge`, with terminal sessions, plan/task, memory, MCP, recovery, and plugin snapshots. Remaining gap is live hook/scheduled-task control from the terminal shell. |
+| Codex CLI | [openai/codex README](https://github.com/openai/codex), [Codex docs](https://developers.openai.com/codex) | Local fullscreen coding agent with streaming turns, approval/sandbox controls, MCP/configuration, noninteractive automation, transcripts, slash-style controls, prompt history, queued input, copy, review, diff, and JSON/exec paths. | M67 routes interactive TTY startup into `ruse-tui`, streams typed turn frames, preserves JSON/prompt/MCP stdio, and has slash, copy, diff, command, approval, retry, recovery, extension/MCP, and session panels. Remaining gaps are broader coding-loop UX depth such as review-first workflows and multi-root/web-search affordances, not the terminal shell foundation. |
+| Claude Code | [Claude Code docs index](https://code.claude.com/docs/llms.txt), [overview](https://code.claude.com/docs/en/overview) | Terminal-first agent shared with IDE/Desktop/web surfaces, permission modes, plan mode, skills, commands, MCP, sessions, hooks, scheduled tasks, remote/desktop handoff, and durable session workflows. | `agent` matches the shared-runtime direction through `ruse-core` plus `ruse-ui-bridge`, with terminal sessions, plan/task, memory, MCP, recovery, and plugin snapshots. Remaining gap is live hook/scheduled-task control from the terminal shell. |
 | Gemini CLI | [google-gemini/gemini-cli README](https://github.com/google-gemini/gemini-cli) | Terminal-first CLI with built-in search/file/shell/web fetch tools, MCP, checkpoint/resume, multi-directory context, noninteractive automation, and stream/JSON oriented scriptability. | `agent` keeps `--prompt` and `--json --prompt` machine paths, MCP stdio, checkpoint/recovery frames, and local-first tool/policy foundations. Remaining gap is broader first-class terminal affordances for multi-root context and web/search tool UX. |
 | Aider | [Aider README](https://github.com/Aider-AI/aider), [docs](https://aider.chat/docs/) | Repo map, Git-centric edit workflow, lint/test feedback loop, broad model backends, image/web context, and deterministic developer control. | `agent` has project-context retrieval, command/test snapshots, edit diff/final review, multi-provider runtime, and JSON fixtures. Remaining gap is a more opinionated coding-loop surface that continuously explains repo map, Git, lint, and test evidence in the TUI. |
-| OpenCode | [OpenCode README](https://github.com/sst/opencode), [docs](https://opencode.ai/docs) | Full TUI, build/plan agent modes, read-only plan mode, subagent affordances, permissions, and desktop companion. | `agent-tui` has chat, status, trace, task, session, approval, diff, and command panels, with plan/task and team snapshots. Remaining gap is switching explicit build/plan/subagent modes from the terminal shell with runtime-enforced capability scopes. |
+| OpenCode | [OpenCode README](https://github.com/sst/opencode), [docs](https://opencode.ai/docs) | Full TUI, build/plan agent modes, read-only plan mode, subagent affordances, permissions, and desktop companion. | `ruse-tui` has chat, status, trace, task, session, approval, diff, and command panels, with plan/task and team snapshots. Remaining gap is switching explicit build/plan/subagent modes from the terminal shell with runtime-enforced capability scopes. |
 
 The product conclusion is that the fullscreen terminal app is not decoration. It is the primary command surface, and the plain line REPL must stay an explicit fallback and test harness only.
 
@@ -24,11 +24,11 @@ The product conclusion is that the fullscreen terminal app is not decoration. It
 
 This spec delivers:
 
-- `agent` interactive TTY default entry into a fullscreen `agent-tui` terminal app
+- `agent` interactive TTY default entry into a fullscreen `ruse-tui` terminal app
 - preserved `agent --prompt`, `--json --prompt`, MCP stdio, non-TTY, and explicit `agent repl --plain` behavior
 - terminal lifecycle with alternate screen, raw mode, resize, panic/drop restore, and focused input handling
 - bottom composer, transcript records, status bar, side panels, and local M1 diagnostics
-- streaming turn bridge from `ConfiguredTurnRunner` / `TurnEventStream` into `agent-ui-bridge` frames
+- streaming turn bridge from `ConfiguredTurnRunner` / `TurnEventStream` into `ruse-ui-bridge` frames
 - model delta, thinking/progress, tool call, tool result, approval, diff, command/test, task, recovery, and error rendering
 - slash command contract for status, model, permissions, plan, diff, tools, MCP, memory, compact, retry, clear, and exit
 - cancellation, retry, recovery, and provider health diagnostics visible in the terminal surface
@@ -38,23 +38,23 @@ Owned by other specs:
 
 - Desktop-specific shell polish stays in MX02 and later Desktop productization specs
 - long-running cloud or hosted agents stay outside this local-first terminal milestone
-- new provider protocols or model API semantics stay in `agent-model` specs unless needed for terminal display
+- new provider protocols or model API semantics stay in `ruse-model` specs unless needed for terminal display
 
 ## Architecture
 
-`agent-cli` owns argument parsing, TTY detection, and mode dispatch. `agent-tui` owns terminal lifecycle, event input, app state, rendering, and UI-only reducer behavior. `agent-ui-bridge` owns UI-safe frames and commands. `agent-core` owns turn execution, cancellation, checkpointing, recovery, tool policy, and durable runtime events. `agent-model`, `agent-tool`, `agent-policy`, `agent-storage`, `agent-mcp`, and plugin crates keep their existing runtime responsibilities.
+`ruse-cli` owns argument parsing, TTY detection, and mode dispatch. `ruse-tui` owns terminal lifecycle, event input, app state, rendering, and UI-only reducer behavior. `ruse-ui-bridge` owns UI-safe frames and commands. `ruse-core` owns turn execution, cancellation, checkpointing, recovery, tool policy, and durable runtime events. `ruse-model`, `ruse-tool`, `ruse-policy`, `ruse-storage`, `ruse-mcp`, and plugin crates keep their existing runtime responsibilities.
 
-The selected approach is to productize `agent-tui`, not continue expanding `plain_repl.rs`. `plain_repl.rs` remains a fallback and test harness for constrained terminals and script fixtures.
+The selected approach is to productize `ruse-tui`, not continue expanding `plain_repl.rs`. `plain_repl.rs` remains a fallback and test harness for constrained terminals and script fixtures.
 
 ```mermaid
 flowchart TD
-  Bin["agent binary"] --> CLI["agent-cli dispatch"]
-  CLI --> TUI["agent-tui terminal app runner"]
+  Bin["agent binary"] --> CLI["ruse-cli dispatch"]
+  CLI --> TUI["ruse-tui terminal app runner"]
   CLI --> Plain["plain repl fallback"]
   CLI --> Batch["prompt/json/mcp/batch commands"]
-  TUI --> Bridge["agent-ui-bridge frames and commands"]
-  Bridge --> Core["agent-core turn runtime"]
-  Core --> Model["agent-model streaming providers"]
+  TUI --> Bridge["ruse-ui-bridge frames and commands"]
+  Bridge --> Core["ruse-core turn runtime"]
+  Core --> Model["ruse-model streaming providers"]
   Core --> Tools["tool/policy/storage/mcp/plugin crates"]
 ```
 
@@ -62,12 +62,12 @@ flowchart TD
 
 ```text
 crates/
-  agent-cli/
+  ruse-cli/
     src/
       bin/agent.rs
-      bin/agent-cli.rs
+      bin/ruse-cli.rs
       command.rs
-  agent-tui/
+  ruse-tui/
     src/
       terminal_app.rs
       terminal.rs
@@ -79,11 +79,11 @@ crates/
       terminal_app.rs
       shell_render.rs
       shell_state.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
       slash.rs
-  agent-core/
+  ruse-core/
     src/
       turn.rs
 ```
@@ -149,17 +149,17 @@ pub fn run_terminal_app_stdio(config: TerminalAppConfig) -> Result<(), TerminalA
 
 The M2 streaming bridge should translate `TurnEventStream` into `UiJsonFrame` without parsing terminal text. The TUI consumes frames and emits bridge commands; it does not own model, tool, policy, approval, or storage semantics. Runtime-facing panel commands are routed through a terminal command runtime interface so presentation code can emit typed effects without mutating policy/session state directly.
 
-For production tool turns, terminal mode uses the comprehensive runner in `agent-core`, not a CLI-owned loop. `ComprehensiveTurnRunner::run_with_resources_streaming` accepts `ComprehensiveTurnResources`, `ComprehensiveTurnStreamOptions`, and a typed runtime-event sink. The sink emits model, tool, approval, observation, and guard-failure events as they happen while the runner still returns an `AgentLoopOutcome` for recovery and tests. `agent-model::ModelRequest` carries provider-neutral tool definitions so OpenAI-compatible, Anthropic, Gemini, and local providers can receive real tool schemas instead of relying on prompt text. Providers that do not advertise `tool_calls` must fall back to the model-only `ConfiguredTurnRunner` stream with a recoverable diagnostic rather than breaking interactive chat.
+For production tool turns, terminal mode uses the comprehensive runner in `ruse-core`, not a CLI-owned loop. `ComprehensiveTurnRunner::run_with_resources_streaming` accepts `ComprehensiveTurnResources`, `ComprehensiveTurnStreamOptions`, and a typed runtime-event sink. The sink emits model, tool, approval, observation, and guard-failure events as they happen while the runner still returns an `AgentLoopOutcome` for recovery and tests. `ruse-model::ModelRequest` carries provider-neutral tool definitions so OpenAI-compatible, Anthropic, Gemini, and local providers can receive real tool schemas instead of relying on prompt text. Providers that do not advertise `tool_calls` must fall back to the model-only `ConfiguredTurnRunner` stream with a recoverable diagnostic rather than breaking interactive chat.
 
 Approval interaction must also remain runtime-owned. Comprehensive turns expose a suspended approval record and continuation before the corresponding `ApprovalRequested` frame is streamed, allowing the terminal command runtime to register it with `ApprovalCoordinator`. TUI allow/deny effects then resolve through `ApprovalCoordinator::resume_tool_approval`, persist the resulting typed events, feed the approved or denied observation back into the comprehensive turn continuation, and stream subsequent model/tool frames back into the UI. The TUI never executes a tool directly and must keep the turn active until the continuation reaches a final state or another approval.
 
 Approval abort controls are not presentation-only escapes. They route to the same terminal approval resolution path as a deny decision with a bounded reason, so aborting a focused pending approval still persists typed approval resolution/error frames and does not bypass `ApprovalCoordinator`.
 
-Slash command descriptors are owned by `agent-ui-bridge` and shared by TUI and explicit plain REPL fallback. The catalog must include `/status`, `/model`, `/permissions`, `/plan`, `/diff`, `/tools`, `/mcp`, `/memory`, `/compact`, `/retry`, `/resume`, `/sessions`, `/copy`, `/theme`, `/clear`, `/exit`, and `/help`. Commands may open local panels or emit typed runtime commands, but they must never bypass policy, sandbox, approval, or audit checks.
+Slash command descriptors are owned by `ruse-ui-bridge` and shared by TUI and explicit plain REPL fallback. The catalog must include `/status`, `/model`, `/permissions`, `/plan`, `/diff`, `/tools`, `/mcp`, `/memory`, `/compact`, `/retry`, `/resume`, `/sessions`, `/copy`, `/theme`, `/clear`, `/exit`, and `/help`. Commands may open local panels or emit typed runtime commands, but they must never bypass policy, sandbox, approval, or audit checks.
 
 `/tools` and `/mcp` open a typed extension/MCP panel, not a generic trace fallback. Terminal startup should hydrate that panel from `ExtensionSnapshot` frames so plugin, skill-root, and MCP-server health is visible before the first turn; live extension frames continue to update the same panel.
 
-M67 also tracks the product-grade interactive affordances from benchmark CLIs in the same typed catalog. `/resume` opens the terminal sessions workflow and emits a core-owned recovery resume report instead of relying on an out-of-band command or local-only dry run, `/copy` targets the latest completed assistant output instead of in-progress stream text and emits a terminal clipboard effect through OSC52 plus platform clipboard fallback where available, `/compact` emits a typed `ConversationCompaction` frame built from the current terminal conversation event store through `agent-core` context compaction, `/retry` targets the latest non-succeeded `CommandTestSnapshot.command_run_id` plus UI-safe snapshot evidence instead of a hard-coded placeholder, and `/theme` cycles terminal themes through a typed terminal command runtime effect. Command retry evidence must preserve structured `program`, `args`, and `timeout_ms` in typed command/test and retry summaries; terminal code must not reconstruct argv by parsing display text. With live command evidence, `/retry` may execute through the core command retry executor and emit a new `CommandTestSnapshot`; without evidence it must emit a typed missing-evidence plan. Compaction reports must include source, summary, dropped-message, and estimated-token counts plus a bounded redacted summary preview; the terminal UI must render the report in transcript and trace without owning compaction semantics. The initial theme is read from the typed runtime config `terminal.theme`; `/theme` updates the active session immediately and asks the terminal command runtime to persist the selected `terminal.theme` to the configured `config.yaml` through a core-owned atomic YAML mutation helper, reporting success or recoverable failure as typed config diagnostics. Explicit legacy TOML config files remain writable through the same typed helper.
+M67 also tracks the product-grade interactive affordances from benchmark CLIs in the same typed catalog. `/resume` opens the terminal sessions workflow and emits a core-owned recovery resume report instead of relying on an out-of-band command or local-only dry run, `/copy` targets the latest completed assistant output instead of in-progress stream text and emits a terminal clipboard effect through OSC52 plus platform clipboard fallback where available, `/compact` emits a typed `ConversationCompaction` frame built from the current terminal conversation event store through `ruse-core` context compaction, `/retry` targets the latest non-succeeded `CommandTestSnapshot.command_run_id` plus UI-safe snapshot evidence instead of a hard-coded placeholder, and `/theme` cycles terminal themes through a typed terminal command runtime effect. Command retry evidence must preserve structured `program`, `args`, and `timeout_ms` in typed command/test and retry summaries; terminal code must not reconstruct argv by parsing display text. With live command evidence, `/retry` may execute through the core command retry executor and emit a new `CommandTestSnapshot`; without evidence it must emit a typed missing-evidence plan. Compaction reports must include source, summary, dropped-message, and estimated-token counts plus a bounded redacted summary preview; the terminal UI must render the report in transcript and trace without owning compaction semantics. The initial theme is read from the typed runtime config `terminal.theme`; `/theme` updates the active session immediately and asks the terminal command runtime to persist the selected `terminal.theme` to the configured `config.yaml` through a core-owned atomic YAML mutation helper, reporting success or recoverable failure as typed config diagnostics. Explicit legacy TOML config files remain writable through the same typed helper.
 
 Recovery resume reports may include a core-owned `RecoveryContinuation` with a bounded redacted summary, a next-prompt payload, readiness counts, and a `can_start_turn` flag. The terminal UI may render and explicitly schedule that continuation, but it must not synthesize the continuation prompt in presentation code or auto-start a recovered turn outside the TUI active-turn queue and cancellation model. `Ctrl+R` starts the pending recovered continuation only after `/resume` has produced one; if another turn is active, it is queued through the same prompt queue.
 
@@ -178,7 +178,7 @@ Tool display contracts use `UiEventPayload::ToolCall`, `ToolStarted`, `ToolObser
 - `/copy` and `Ctrl+O` ignore streaming assistant text, record only the latest completed assistant output, emit an OSC52 terminal clipboard sequence, and report a local diagnostic when no completed output exists.
 - `/resume` opens the sessions panel and uses the same typed session switching path as the panel keyboard affordances.
 - `/status` emits a typed recovery snapshot for the current interactive conversation, and `/resume` emits a typed recovery resume report plus optional core-owned continuation evidence through `RecoveryEngine.resume` for the persistent terminal SQLite event store while still opening the sessions panel. `Ctrl+R` explicitly starts a startable recovery continuation via the normal terminal turn queue. Explicit dry-run commands remain available for scriptable CLI recovery inspection.
-- `/compact` emits a typed redacted `ConversationCompaction` report for the current interactive conversation through `agent-core::compact_conversation_events`.
+- `/compact` emits a typed redacted `ConversationCompaction` report for the current interactive conversation through `ruse-core::compact_conversation_events`.
 - `/theme` opens status/theme state, cycles the current terminal session theme, and persists the selected theme to `config.yaml` when a writable config path exists; missing or failed writes remain recoverable diagnostics and must not corrupt the terminal. Explicit legacy TOML paths keep TOML write-back for compatibility.
 - `terminal.theme` in `config.yaml` initializes the terminal app theme; supported values are `system`, `light`, `dark`, and `high-contrast`.
 - M1 local diagnostics explain that live streaming is not attached yet; M2 replaces this with real turn execution.
@@ -198,10 +198,10 @@ Tool display contracts use `UiEventPayload::ToolCall`, `ToolStarted`, `ToolObser
 
 ## Security and Privacy
 
-- TUI renders only UI-safe frames from `agent-ui-bridge`; hidden prompts, raw secrets, and unbounded command output must stay out of presentation state.
+- TUI renders only UI-safe frames from `ruse-ui-bridge`; hidden prompts, raw secrets, and unbounded command output must stay out of presentation state.
 - tool approvals, diffs, and command outputs use bounded redacted summaries.
 - slash commands cannot bypass policy, sandbox, approval, or audit paths.
-- permission mode display is descriptive; actual allow/deny/ask decisions remain in `agent-policy` and `agent-core`.
+- permission mode display is descriptive; actual allow/deny/ask decisions remain in `ruse-policy` and `ruse-core`.
 - noninteractive JSON output remains machine-readable and unaffected by TUI formatting.
 
 ## Testing Strategy
@@ -214,7 +214,7 @@ Tool display contracts use `UiEventPayload::ToolCall`, `ToolStarted`, `ToolObser
 - tool/approval/diff rendering tests using `UiJsonFrame` fixtures
 - PTY or integration smoke for alternate-screen startup, resize, quit, and panic restore
 - non-TTY regression tests for help, prompt, JSON, and MCP stdio
-- provider fallback and invalid stream-event regression tests in `agent-model` when terminal behavior depends on them
+- provider fallback and invalid stream-event regression tests in `ruse-model` when terminal behavior depends on them
 
 ## Acceptance Criteria
 

@@ -6,7 +6,7 @@ Define the terminal product architecture before M20 implementation begins. M20 m
 
 ## Product Context
 
-The user-facing goal is simple: open any terminal, type `agent`, and enter an agent REPL. Engineering-wise, the TUI must stay separate from runtime business logic and batch/JSON CLI behavior. This design establishes `agent-cli` as the entrypoint and `agent-tui` as the full-screen terminal application.
+The user-facing goal is simple: open any terminal, type `agent`, and enter an agent REPL. Engineering-wise, the TUI must stay separate from runtime business logic and batch/JSON CLI behavior. This design establishes `ruse-cli` as the entrypoint and `ruse-tui` as the full-screen terminal application.
 
 ## Scope
 
@@ -14,7 +14,7 @@ This design governs:
 
 - binary naming and mode dispatch
 - TTY detection and fallback behavior
-- `agent-tui` crate ownership
+- `ruse-tui` crate ownership
 - Ratatui, Crossterm, and `tui-textarea` usage
 - terminal lifecycle and cleanup
 - TUI app state, panels, and runtime bridge client
@@ -32,25 +32,25 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-cli` owns the binary, command-line parsing, TTY detection, and mode dispatch. `agent-tui` owns full-screen terminal state, rendering, input handling, and terminal cleanup. Runtime communication goes through `agent-ui-bridge`; neither CLI nor TUI directly executes models, tools, storage, policy, or plugins.
+`ruse-cli` owns the binary, command-line parsing, TTY detection, and mode dispatch. `ruse-tui` owns full-screen terminal state, rendering, input handling, and terminal cleanup. Runtime communication goes through `ruse-ui-bridge`; neither CLI nor TUI directly executes models, tools, storage, policy, or plugins.
 
 ```mermaid
 flowchart TD
-  Binary["agent binary"] --> CLI["agent-cli dispatch"]
+  Binary["agent binary"] --> CLI["ruse-cli dispatch"]
   CLI --> Batch["batch prompt"]
   CLI --> Json["NDJSON mode"]
   CLI --> Plain["plain REPL"]
-  CLI --> TUI["agent-tui"]
-  TUI --> Bridge["agent-ui-bridge"]
-  Bridge --> Runtime["agent-core session"]
+  CLI --> TUI["ruse-tui"]
+  TUI --> Bridge["ruse-ui-bridge"]
+  Bridge --> Runtime["ruse-core session"]
 ```
 
 Dependency rules:
 
-- `agent-cli` may depend on `agent-tui`.
-- `agent-tui` may depend on `agent-ui-bridge`, `agent-types`, Ratatui, Crossterm, and `tui-textarea`.
-- `agent-tui` must not depend on `agent-model`, `agent-tool`, `agent-policy`, or `agent-storage` directly.
-- `agent-core` must not depend on `agent-tui`.
+- `ruse-cli` may depend on `ruse-tui`.
+- `ruse-tui` may depend on `ruse-ui-bridge`, `ruse-types`, Ratatui, Crossterm, and `tui-textarea`.
+- `ruse-tui` must not depend on `ruse-model`, `ruse-tool`, `ruse-policy`, or `ruse-storage` directly.
+- `ruse-core` must not depend on `ruse-tui`.
 
 ## Command Model
 
@@ -72,11 +72,11 @@ Rules:
 - `agent tui` requires terminal capabilities and fails with a clear diagnostic when unavailable.
 - non-TTY no-arg invocation prints help and exits non-zero.
 - batch and JSON modes remain script-safe and never enter raw terminal mode.
-- package crate can remain `agent-cli`, but `[[bin]] name = "agent"` is the installed binary target.
+- package crate can remain `ruse-cli`, but `[[bin]] name = "agent"` is the installed binary target.
 
 ## TUI State Model
 
-`agent-tui` uses a pure app state that can be tested without a real terminal:
+`ruse-tui` uses a pure app state that can be tested without a real terminal:
 
 - `TuiApp`: top-level app state and event reducer
 - `TuiScreen`: chat, trace, tasks, settings, help
@@ -150,7 +150,7 @@ cargo xtask check
 - `agent` is the installed binary name.
 - `agent` in an interactive terminal opens TUI REPL.
 - `agent --json --prompt` remains NDJSON and script-safe.
-- `agent-tui` is isolated from runtime business logic.
+- `ruse-tui` is isolated from runtime business logic.
 - Terminal state is restored after exit or error.
 
 ## Completion Signal

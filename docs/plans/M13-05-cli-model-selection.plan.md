@@ -4,7 +4,7 @@
 
 **Goal:** Add CLI provider/model selection flags and UI-safe output.
 
-**Architecture:** Keep parsing and presentation in `agent-cli`; use `agent-model` config contracts for validation. Do not add live provider invocation in this slice.
+**Architecture:** Keep parsing and presentation in `ruse-cli`; use `ruse-model` config contracts for validation. Do not add live provider invocation in this slice.
 
 **Tech Stack:** Rust 2024 edition, existing CLI parser style, serde_json for JSON mode, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M13-05-cli-model-selection.spec.md`
-- Read: `crates/agent-cli/src/lib.rs`
-- Read: `crates/agent-cli/tests/cli_modes.rs`
-- Read: `crates/agent-cli/tests/json_mode.rs`
+- Read: `crates/ruse-cli/src/lib.rs`
+- Read: `crates/ruse-cli/tests/cli_modes.rs`
+- Read: `crates/ruse-cli/tests/json_mode.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -31,8 +31,8 @@ Expected: the spec defines provider/model CLI selection and JSON output behavior
 ### Task 2: Write RED CLI Tests
 
 **Files:**
-- Modify: `crates/agent-cli/tests/cli_modes.rs`
-- Modify: `crates/agent-cli/tests/json_mode.rs`
+- Modify: `crates/ruse-cli/tests/cli_modes.rs`
+- Modify: `crates/ruse-cli/tests/json_mode.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -48,7 +48,7 @@ Add tests:
 Run:
 
 ```bash
-cargo test -p agent-cli --test cli_modes --test json_mode
+cargo test -p ruse-cli --test cli_modes --test json_mode
 ```
 
 Expected: tests fail because CLI selection is not implemented.
@@ -56,8 +56,8 @@ Expected: tests fail because CLI selection is not implemented.
 ### Task 3: Implement CLI Selection
 
 **Files:**
-- Modify: `crates/agent-cli/src/lib.rs`
-- Modify: `crates/agent-cli/src/main.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
+- Modify: `crates/ruse-cli/src/main.rs`
 
 - [x] **Step 1: Extend CLI options**
 
@@ -80,7 +80,7 @@ Include selected provider/model in JSON mode and avoid secret reference output.
 Run:
 
 ```bash
-cargo test -p agent-cli --test cli_modes --test json_mode
+cargo test -p ruse-cli --test cli_modes --test json_mode
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace

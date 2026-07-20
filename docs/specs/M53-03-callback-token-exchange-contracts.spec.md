@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-Pure helpers in `agent-mcp::client_http` validate callback values against expected state and compose a token endpoint form request DTO from validated code plus PKCE verifier.
+Pure helpers in `ruse-mcp::client_http` validate callback values against expected state and compose a token endpoint form request DTO from validated code plus PKCE verifier.
 
 ## Public Contracts
 
@@ -67,7 +67,7 @@ pub struct McpClientHttpOAuthTokenExchangeRequest {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_callback`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_callback`
 - fmt and clippy focused gates pass
 
 ## Completion Signal

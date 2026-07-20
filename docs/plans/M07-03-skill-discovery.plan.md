@@ -2,31 +2,31 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `agent-skill` for deterministic local skill discovery and prompt contribution creation.
+**Goal:** Add `ruse-skill` for deterministic local skill discovery and prompt contribution creation.
 
-**Architecture:** `agent-skill` reads local `SKILL.md` files and emits typed discovery records plus `agent-context` prompt layers. It does not execute skill code, load arbitrary assets, or depend on runtime orchestration.
+**Architecture:** `ruse-skill` reads local `SKILL.md` files and emits typed discovery records plus `ruse-context` prompt layers. It does not execute skill code, load arbitrary assets, or depend on runtime orchestration.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `serde_yaml`, `thiserror`, `tempfile`, existing `agent-context`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `serde_yaml`, `thiserror`, `tempfile`, existing `ruse-context`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
-### Task 1: Scaffold `agent-skill`
+### Task 1: Scaffold `ruse-skill`
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-skill/Cargo.toml`
-- Create: `crates/agent-skill/src/lib.rs`
-- Create: `crates/agent-skill/src/error.rs`
+- Create: `crates/ruse-skill/Cargo.toml`
+- Create: `crates/ruse-skill/src/lib.rs`
+- Create: `crates/ruse-skill/src/error.rs`
 
 - [x] **Step 1: Add crate scaffold**
 
-Add `crates/agent-skill` to workspace members.
+Add `crates/ruse-skill` to workspace members.
 
-Create `crates/agent-skill/Cargo.toml`:
+Create `crates/ruse-skill/Cargo.toml`:
 
 ```toml
 [package]
-name = "agent-skill"
+name = "ruse-skill"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -34,7 +34,7 @@ license.workspace = true
 authors.workspace = true
 
 [dependencies]
-agent-context = { path = "../agent-context" }
+ruse-context = { path = "../ruse-context" }
 serde = { version = "1", features = ["derive"] }
 serde_yaml = "0.9"
 thiserror = "2"
@@ -68,7 +68,7 @@ pub use prompt::{skill_prompt_layer, SkillPromptContribution};
 Run:
 
 ```bash
-cargo test -p agent-skill
+cargo test -p ruse-skill
 ```
 
 Expected: fails because modules are declared but not implemented.
@@ -76,7 +76,7 @@ Expected: fails because modules are declared but not implemented.
 ### Task 2: Write Skill Discovery RED Tests
 
 **Files:**
-- Create: `crates/agent-skill/tests/skill_discovery.rs`
+- Create: `crates/ruse-skill/tests/skill_discovery.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -94,8 +94,8 @@ fn skill_discovery_loads_valid_skill_root() {
     )
     .unwrap();
 
-    let skills = agent_skill::discover_skills(&agent_skill::SkillDiscoveryConfig {
-        roots: vec![agent_skill::SkillRoot {
+    let skills = ruse_skill::discover_skills(&ruse_skill::SkillDiscoveryConfig {
+        roots: vec![ruse_skill::SkillRoot {
             path: skill_dir.clone(),
             enabled: true,
         }],
@@ -114,8 +114,8 @@ fn skill_discovery_ignores_disabled_root() {
     let temp = tempfile::tempdir().unwrap();
     let missing = temp.path().join("missing");
 
-    let skills = agent_skill::discover_skills(&agent_skill::SkillDiscoveryConfig {
-        roots: vec![agent_skill::SkillRoot {
+    let skills = ruse_skill::discover_skills(&ruse_skill::SkillDiscoveryConfig {
+        roots: vec![ruse_skill::SkillRoot {
             path: missing,
             enabled: false,
         }],
@@ -130,21 +130,21 @@ fn skill_discovery_rejects_invalid_manifest() {
     let temp = tempfile::tempdir().unwrap();
     std::fs::write(temp.path().join("SKILL.md"), "---\nname: Broken\n---\nBody\n").unwrap();
 
-    let err = agent_skill::discover_skills(&agent_skill::SkillDiscoveryConfig {
-        roots: vec![agent_skill::SkillRoot {
+    let err = ruse_skill::discover_skills(&ruse_skill::SkillDiscoveryConfig {
+        roots: vec![ruse_skill::SkillRoot {
             path: temp.path().to_path_buf(),
             enabled: true,
         }],
     })
     .unwrap_err();
 
-    assert!(matches!(err, agent_skill::SkillError::InvalidManifest(_)));
+    assert!(matches!(err, ruse_skill::SkillError::InvalidManifest(_)));
 }
 
 #[test]
 fn skill_discovery_converts_prompt_to_context_layer() {
-    let contribution = agent_skill::SkillPromptContribution {
-        skill_id: agent_skill::SkillId::new("code-review").unwrap(),
+    let contribution = ruse_skill::SkillPromptContribution {
+        skill_id: ruse_skill::SkillId::new("code-review").unwrap(),
         layer_id: "skill:code-review".to_string(),
         content: "Check diffs carefully.".to_string(),
         priority: 600,
@@ -152,10 +152,10 @@ fn skill_discovery_converts_prompt_to_context_layer() {
         source_path: std::path::PathBuf::from("/tmp/SKILL.md"),
     };
 
-    let layer = agent_skill::skill_prompt_layer(&contribution);
+    let layer = ruse_skill::skill_prompt_layer(&contribution);
 
     assert_eq!(layer.id, "skill:code-review");
-    assert_eq!(layer.kind, agent_context::PromptLayerKind::Skill);
+    assert_eq!(layer.kind, ruse_context::PromptLayerKind::Skill);
     assert_eq!(layer.priority, 600);
     assert_eq!(layer.content, "Check diffs carefully.");
 }
@@ -166,7 +166,7 @@ fn skill_discovery_converts_prompt_to_context_layer() {
 Run:
 
 ```bash
-cargo test -p agent-skill skill_discovery
+cargo test -p ruse-skill skill_discovery
 ```
 
 Expected: fails because skill contracts do not exist.
@@ -174,9 +174,9 @@ Expected: fails because skill contracts do not exist.
 ### Task 3: Implement Manifest and Prompt Contracts
 
 **Files:**
-- Create: `crates/agent-skill/src/manifest.rs`
-- Create: `crates/agent-skill/src/prompt.rs`
-- Modify: `crates/agent-skill/src/error.rs`
+- Create: `crates/ruse-skill/src/manifest.rs`
+- Create: `crates/ruse-skill/src/prompt.rs`
+- Modify: `crates/ruse-skill/src/error.rs`
 
 - [x] **Step 1: Add error type**
 
@@ -195,7 +195,7 @@ Implement `SkillPromptContribution` and `skill_prompt_layer`.
 Run:
 
 ```bash
-cargo test -p agent-skill skill_discovery_converts_prompt_to_context_layer
+cargo test -p ruse-skill skill_discovery_converts_prompt_to_context_layer
 ```
 
 Expected: prompt conversion test passes.
@@ -203,7 +203,7 @@ Expected: prompt conversion test passes.
 ### Task 4: Implement Skill Discovery
 
 **Files:**
-- Create: `crates/agent-skill/src/discovery.rs`
+- Create: `crates/ruse-skill/src/discovery.rs`
 
 - [x] **Step 1: Add discovery contracts**
 
@@ -218,7 +218,7 @@ Split front matter between the first two `---` separators, parse YAML metadata, 
 Run:
 
 ```bash
-cargo test -p agent-skill skill_discovery
+cargo test -p ruse-skill skill_discovery
 ```
 
 Expected: all skill discovery tests pass.

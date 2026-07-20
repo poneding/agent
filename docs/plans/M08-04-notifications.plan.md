@@ -4,9 +4,9 @@
 
 **Goal:** Add trace-safe task notification contracts, runtime events, and UI bridge normalization.
 
-**Architecture:** `agent-scheduler` owns notification contracts, `agent-types` owns durable runtime payloads, and `agent-ui-bridge` owns UI-safe summaries.
+**Architecture:** `ruse-scheduler` owns notification contracts, `ruse-types` owns durable runtime payloads, and `ruse-ui-bridge` owns UI-safe summaries.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `agent-scheduler`, `agent-types`, `agent-ui-bridge`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `ruse-scheduler`, `ruse-types`, `ruse-ui-bridge`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M08-04-notifications.spec.md`
-- Read: `crates/agent-types/src/event.rs`
-- Read: `crates/agent-ui-bridge/src/event.rs`
+- Read: `crates/ruse-types/src/event.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -26,9 +26,9 @@ sed -n '1,280p' docs/specs/M08-04-notifications.spec.md
 ### Task 2: Write Notification RED Tests
 
 **Files:**
-- Create: `crates/agent-scheduler/tests/notifications.rs`
-- Create: `crates/agent-types/tests/m08_task_notifications.rs`
-- Create: `crates/agent-ui-bridge/tests/m08_task_notifications.rs`
+- Create: `crates/ruse-scheduler/tests/notifications.rs`
+- Create: `crates/ruse-types/tests/m08_task_notifications.rs`
+- Create: `crates/ruse-ui-bridge/tests/m08_task_notifications.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -43,7 +43,7 @@ Cover:
 
 ```bash
 cargo test --workspace m08_task_notifications
-cargo test -p agent-scheduler notifications
+cargo test -p ruse-scheduler notifications
 ```
 
 Expected: fails because notification contracts do not exist.
@@ -51,11 +51,11 @@ Expected: fails because notification contracts do not exist.
 ### Task 3: Implement Notifications
 
 **Files:**
-- Create: `crates/agent-scheduler/src/notification.rs`
-- Create/Modify: `crates/agent-types/src/task.rs`
-- Modify: `crates/agent-types/src/event.rs`
-- Modify: `crates/agent-types/src/lib.rs`
-- Modify: `crates/agent-ui-bridge/src/event.rs`
+- Create: `crates/ruse-scheduler/src/notification.rs`
+- Create/Modify: `crates/ruse-types/src/task.rs`
+- Modify: `crates/ruse-types/src/event.rs`
+- Modify: `crates/ruse-types/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/event.rs`
 
 - [x] **Step 1: Add scheduler notification contracts**
 
@@ -73,7 +73,7 @@ Map task notification events to UI-safe summaries.
 
 ```bash
 cargo test --workspace m08_task_notifications
-cargo test -p agent-scheduler notifications
+cargo test -p ruse-scheduler notifications
 ```
 
 ### Task 4: Complete M08

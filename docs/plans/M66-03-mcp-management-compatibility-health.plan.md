@@ -4,17 +4,17 @@
 
 **Goal:** Add a typed MCP status health report and expose it through existing status CLI output.
 
-**Architecture:** `agent-mcp` owns MCP status health contracts. `agent-cli` renders the report. Bridge/support integrations remain future slices unless required by tests.
+**Architecture:** `ruse-mcp` owns MCP status health contracts. `ruse-cli` renders the report. Bridge/support integrations remain future slices unless required by tests.
 
 ---
 
 ### Task 1: Confirm Baseline
 
 **Files:**
-- Read: `crates/agent-mcp/src/server_status.rs`
-- Read: `crates/agent-mcp/src/management_snapshot.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/mcp_server_commands.rs`
+- Read: `crates/ruse-mcp/src/server_status.rs`
+- Read: `crates/ruse-mcp/src/management_snapshot.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/mcp_server_commands.rs`
 
 - [x] **Step 1: Inspect status and management snapshots**
 
@@ -23,9 +23,9 @@ Existing MCP status summaries and management snapshots are typed, redacted, boun
 ### Task 2: Add MCP Status Health Report
 
 **Files:**
-- Modify: `crates/agent-mcp/src/server_status.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
-- Add/modify tests under `crates/agent-mcp/tests/`
+- Modify: `crates/ruse-mcp/src/server_status.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
+- Add/modify tests under `crates/ruse-mcp/tests/`
 
 - [x] **Step 1: Define typed report**
 
@@ -42,8 +42,8 @@ Limit diagnostics and sanitize secret-like text.
 ### Task 3: Expose Through CLI Status
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/tests/mcp_server_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/tests/mcp_server_commands.rs`
 
 - [x] **Step 1: Add JSON health field**
 
@@ -69,9 +69,9 @@ Update milestone status and identify M66-04 as the next slice.
 **Commands:**
 
 ```bash
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-mcp mcp_server_status_health
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-cli --test mcp_server_commands
-CARGO_TARGET_DIR=target/m66-dev cargo clippy -p agent-mcp -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-mcp mcp_server_status_health
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-cli --test mcp_server_commands
+CARGO_TARGET_DIR=target/m66-dev cargo clippy -p ruse-mcp -p ruse-cli --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

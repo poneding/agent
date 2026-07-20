@@ -1,0 +1,24 @@
+[package]
+name = "ruse-tui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+ruse-types = { path = "../ruse-types" }
+ruse-ui-bridge = { path = "../ruse-ui-bridge" }
+base64 = "0.22"
+crossterm = "0.28.1"
+ratatui = "0.29.0"
+serde_json = "1"
+thiserror = "2"
+tui-textarea = "0.7.0"
+unicode-width = "0.2"
+
+[dev-dependencies]
+insta = "1"
+
+[lints]
+workspace = true

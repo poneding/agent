@@ -4,9 +4,9 @@
 
 **Goal:** Add reviewed memory write proposals and safe transition logic before committing new memories.
 
-**Architecture:** `agent-memory` owns proposal records, stores, validation, transitions, and conversion to `MemoryRecord`. Core/UI integration remains outside this slice unless needed for typed events.
+**Architecture:** `ruse-memory` owns proposal records, stores, validation, transitions, and conversion to `MemoryRecord`. Core/UI integration remains outside this slice unless needed for typed events.
 
-**Tech Stack:** Rust 2024 edition, serde, agent-types event ids, deterministic state transitions, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, serde, ruse-types event ids, deterministic state transitions, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M23-04-memory-write-proposals.spec.md`
 - Read: `docs/specs/M23-00-memory-retrieval-technical-design.spec.md`
-- Read: `crates/agent-memory/src/store.rs`
-- Read: `crates/agent-memory/src/audit.rs`
+- Read: `crates/ruse-memory/src/store.rs`
+- Read: `crates/ruse-memory/src/audit.rs`
 
 - [x] **Step 1: Review proposal scope**
 
@@ -31,7 +31,7 @@ Expected: proposal contracts, transition rules, and privacy behavior are clear.
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-memory/tests/memory_write_proposals.rs`
+- Create: `crates/ruse-memory/tests/memory_write_proposals.rs`
 
 - [x] **Step 1: Add validation tests**
 
@@ -50,7 +50,7 @@ Cover approved proposal conversion to `MemoryRecord` and advisory auto-approval 
 Run:
 
 ```bash
-cargo test -p agent-memory memory_write_proposals
+cargo test -p ruse-memory memory_write_proposals
 ```
 
 Expected: tests fail because proposal contracts are missing.
@@ -58,9 +58,9 @@ Expected: tests fail because proposal contracts are missing.
 ### Task 3: Implement Proposal Store
 
 **Files:**
-- Create: `crates/agent-memory/src/proposal.rs`
-- Modify: `crates/agent-memory/src/lib.rs`
-- Modify: `crates/agent-memory/src/error.rs`
+- Create: `crates/ruse-memory/src/proposal.rs`
+- Modify: `crates/ruse-memory/src/lib.rs`
+- Modify: `crates/ruse-memory/src/error.rs`
 
 - [x] **Step 1: Add proposal contracts**
 
@@ -81,14 +81,14 @@ Ensure transition errors and proposal summaries do not expose raw secret-like co
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-memory/tests/memory_write_proposals.rs`
+- Read: `crates/ruse-memory/tests/memory_write_proposals.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-memory memory_write_proposals
+cargo test -p ruse-memory memory_write_proposals
 ```
 
 Expected: focused tests pass.
@@ -121,7 +121,7 @@ Advance active implementation focus to M23-05.
 Run:
 
 ```bash
-git add crates/agent-memory docs Cargo.toml Cargo.lock
+git add crates/ruse-memory docs Cargo.toml Cargo.lock
 git commit -m "feat: add memory write proposals"
 ```
 

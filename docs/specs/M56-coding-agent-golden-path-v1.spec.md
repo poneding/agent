@@ -30,34 +30,34 @@ Owned by other specs:
 
 ## Architecture
 
-M56 must preserve the shared-runtime rule: runtime behavior lives in `agent-core` and adjacent runtime crates; CLI/TUI/Desktop are presentation and command surfaces over typed events and UI bridge frames.
+M56 must preserve the shared-runtime rule: runtime behavior lives in `ruse-core` and adjacent runtime crates; CLI/TUI/Desktop are presentation and command surfaces over typed events and UI bridge frames.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli"] --> Core["agent-core"]
-  TUI["agent-tui"] --> Bridge["agent-ui-bridge"]
-  Desktop["agent-desktop"] --> Bridge
+  CLI["ruse-cli"] --> Core["ruse-core"]
+  TUI["ruse-tui"] --> Bridge["ruse-ui-bridge"]
+  Desktop["ruse-desktop"] --> Bridge
   Bridge --> Core
-  Core --> Types["agent-types"]
-  Core --> Model["agent-model"]
-  Core --> Tools["agent-tool"]
-  Core --> Policy["agent-policy"]
-  Core --> Storage["agent-storage"]
-  Core --> Context["agent-context"]
+  Core --> Types["ruse-types"]
+  Core --> Model["ruse-model"]
+  Core --> Tools["ruse-tool"]
+  Core --> Policy["ruse-policy"]
+  Core --> Storage["ruse-storage"]
+  Core --> Context["ruse-context"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       repo_session.rs
       local_coding.rs
     tests/
       repo_session_bootstrap.rs
       comprehensive_local_coding_e2e.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
       output.rs
@@ -65,7 +65,7 @@ crates/
       repo_session_bootstrap.rs
       local_coding.rs
       json_mode.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       event.rs
       frame.rs
@@ -112,7 +112,7 @@ pub struct CodingFinalReview {
 }
 ```
 
-Durable/wire-visible contracts must be serializable, redacted, and versionable. UI-facing forms must pass through `agent-ui-bridge`; CLI text rendering may be separate but must derive from the same report data.
+Durable/wire-visible contracts must be serializable, redacted, and versionable. UI-facing forms must pass through `ruse-ui-bridge`; CLI text rendering may be separate but must derive from the same report data.
 
 ## State and Failure Handling
 

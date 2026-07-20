@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-eval::golden` owns update result contracts. Suite commands call it after running scenarios.
+`ruse-eval::golden` owns update result contracts. Suite commands call it after running scenarios.
 
 ## Public Contracts
 

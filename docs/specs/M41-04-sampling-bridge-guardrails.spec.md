@@ -25,7 +25,7 @@ Owned by later specs:
 
 ## Architecture
 
-Guardrails live in `agent-core::mcp_sampling` around mapping and stream collection. They reuse `agent-mcp` validation and bridge diagnostics.
+Guardrails live in `ruse-core::mcp_sampling` around mapping and stream collection. They reuse `ruse-mcp` validation and bridge diagnostics.
 
 ## State and Failure Handling
 
@@ -47,7 +47,7 @@ Guardrails live in `agent-core::mcp_sampling` around mapping and stream collecti
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_guardrails`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_guardrails`
 
 ## Completion Signal
 

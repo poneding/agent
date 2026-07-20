@@ -12,7 +12,7 @@ M45 implemented JSON request/response HTTP calls. Streamable HTTP servers can al
 
 This spec delivers:
 
-- ownership boundaries for SSE response code in `agent-mcp`
+- ownership boundaries for SSE response code in `ruse-mcp`
 - event parsing rules compatible with server-sent event text
 - response-mode contracts that preserve existing JSON behavior
 - stream bounding and error mapping rules
@@ -79,7 +79,7 @@ Names may change during implementation, but contracts must remain typed and fixt
 - contract tests for response-mode frame extraction
 - transport tests with local HTTP fixture returning `text/event-stream`
 - dispatch tests proving matching id selection and safe errors
-- final `agent-mcp` clippy and workspace CI gates
+- final `ruse-mcp` clippy and workspace CI gates
 
 ## Acceptance Criteria
 

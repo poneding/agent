@@ -4,7 +4,7 @@
 
 **Goal:** Enforce background task resource limits and recover stale leases/retryable failures deterministically.
 
-**Architecture:** `agent-scheduler` owns quota/retry/recovery state; `agent-core` reports usage and observes cancellation; UI crates render summaries only.
+**Architecture:** `ruse-scheduler` owns quota/retry/recovery state; `ruse-core` reports usage and observes cancellation; UI crates render summaries only.
 
 **Tech Stack:** Rust 2024 edition, scheduler quota/retry primitives, fake usage snapshots, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M24-04-task-quotas-retries-recovery.spec.md`
-- Read: `crates/agent-scheduler/src/quota.rs`
-- Read: `crates/agent-scheduler/src/retry.rs`
-- Read: `crates/agent-scheduler/src/queue.rs`
+- Read: `crates/ruse-scheduler/src/quota.rs`
+- Read: `crates/ruse-scheduler/src/retry.rs`
+- Read: `crates/ruse-scheduler/src/queue.rs`
 
 - [x] **Step 1: Review quota and recovery scope**
 
@@ -25,8 +25,8 @@ Expected: quota dimensions, retry decisions, stale lease recovery, and cancellat
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-scheduler/tests/task_quotas_retries_recovery.rs`
-- Create if needed: `crates/agent-core/tests/background_task_cancellation.rs`
+- Create: `crates/ruse-scheduler/tests/task_quotas_retries_recovery.rs`
+- Create if needed: `crates/ruse-core/tests/background_task_cancellation.rs`
 
 - [x] **Step 1: Add quota tests**
 
@@ -43,18 +43,18 @@ Cover expired active leases requeue/fail according to policy.
 - [x] **Step 4: Verify RED**
 
 ```bash
-cargo test -p agent-scheduler task_quotas_retries_recovery
+cargo test -p ruse-scheduler task_quotas_retries_recovery
 ```
 
 ### Task 3: Implement Quotas, Retries, Recovery
 
 **Files:**
-- Modify: `crates/agent-scheduler/src/quota.rs`
-- Modify: `crates/agent-scheduler/src/retry.rs`
-- Modify: `crates/agent-scheduler/src/queue.rs`
-- Create: `crates/agent-scheduler/src/recovery.rs`
-- Modify: `crates/agent-scheduler/src/lib.rs`
-- Modify if needed: `crates/agent-core/src/background.rs`
+- Modify: `crates/ruse-scheduler/src/quota.rs`
+- Modify: `crates/ruse-scheduler/src/retry.rs`
+- Modify: `crates/ruse-scheduler/src/queue.rs`
+- Create: `crates/ruse-scheduler/src/recovery.rs`
+- Modify: `crates/ruse-scheduler/src/lib.rs`
+- Modify if needed: `crates/ruse-core/src/background.rs`
 
 - [x] **Step 1: Add usage quota contracts**
 
@@ -77,7 +77,7 @@ Runner observes cancellation and maps it to scheduler state.
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-scheduler task_quotas_retries_recovery
+cargo test -p ruse-scheduler task_quotas_retries_recovery
 ```
 
 - [x] **Step 2: Run workspace checks**

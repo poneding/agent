@@ -28,27 +28,27 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` orchestrates the loop by depending on `agent-model`, `agent-tool`, `agent-policy`, and `agent-types`. Tool implementations and policy engines stay replaceable through traits.
+`ruse-core` orchestrates the loop by depending on `ruse-model`, `ruse-tool`, `ruse-policy`, and `ruse-types`. Tool implementations and policy engines stay replaceable through traits.
 
 ```mermaid
 flowchart TD
-  agent_core["agent-core tool loop"] --> agent_model["agent-model"]
-  agent_core --> agent_tool["agent-tool"]
-  agent_core --> agent_policy["agent-policy"]
-  agent_core --> agent_types["agent-types"]
+  ruse_core["ruse-core tool loop"] --> ruse_model["ruse-model"]
+  ruse_core --> ruse_tool["ruse-tool"]
+  ruse_core --> ruse_policy["ruse-policy"]
+  ruse_core --> ruse_types["ruse-types"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-model/
+  ruse-model/
     src/
       stream.rs
       fake.rs
     tests/
       fake_tool_call.rs
-  agent-core/
+  ruse-core/
     src/
       tool_loop.rs
       lib.rs

@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-Lease conversion stays in `agent-mcp::client_http` and reuses `McpClientHttpOAuthTokenLease::new`.
+Lease conversion stays in `ruse-mcp::client_http` and reuses `McpClientHttpOAuthTokenLease::new`.
 
 ## Public Contracts
 
@@ -59,8 +59,8 @@ pub fn build_mcp_client_http_oauth_token_lease_from_exchange_response(
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_exchange_lease`
-- focused fmt and clippy gates pass for `agent-mcp`
+- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_exchange_lease`
+- focused fmt and clippy gates pass for `ruse-mcp`
 
 ## Completion Signal
 

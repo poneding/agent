@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M46 architecture baseline and implementation slice map.
 
-**Architecture:** `agent-mcp` owns HTTP SSE response parsing and client integration; CLI/Desktop remain presentation clients.
+**Architecture:** `ruse-mcp` owns HTTP SSE response parsing and client integration; CLI/Desktop remain presentation clients.
 
 **Tech Stack:** Markdown specs/plans, existing Rust workspace.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M45-mcp-client-streamable-http.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_contracts.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_contracts.rs`
 
 - [x] **Step 1: Review completed HTTP client shape**
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add the interactive composer and REPL input model to `agent-tui`.
+Add the interactive composer and REPL input model to `ruse-tui`.
 
 ## Product Context
 

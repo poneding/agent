@@ -4,7 +4,7 @@
 
 **Goal:** Add deterministic MCP server JSON-RPC frame handling.
 
-**Architecture:** `agent-mcp` handles protocol frames; production process lifecycle stays out of this slice.
+**Architecture:** `ruse-mcp` handles protocol frames; production process lifecycle stays out of this slice.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -28,20 +28,20 @@
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-mcp --all-targets -- -D warnings
-cargo test -p agent-mcp mcp_server_stdio
+cargo clippy -p ruse-mcp --all-targets -- -D warnings
+cargo test -p ruse-mcp mcp_server_stdio
 ```
 
 Verified with:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m30 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m30 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m30 cargo test -p agent-mcp mcp_server_stdio
-CARGO_TARGET_DIR=target/codex-m30 cargo test -p agent-mcp
+CARGO_TARGET_DIR=target/codex-m30 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m30 cargo test -p ruse-mcp mcp_server_stdio
+CARGO_TARGET_DIR=target/codex-m30 cargo test -p ruse-mcp
 ```
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp server stdio fixture"
 ```

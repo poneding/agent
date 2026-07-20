@@ -4,7 +4,7 @@
 
 **Goal:** Add pure OAuth metadata contracts for MCP HTTP authorization.
 
-**Architecture:** `agent-mcp::client_http` owns metadata contracts and exports them through `agent-mcp`.
+**Architecture:** `ruse-mcp::client_http` owns metadata contracts and exports them through `ruse-mcp`.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M51-01-oauth-metadata-contracts.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/src/lib.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Review metadata spec and existing HTTP contract patterns**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_oauth_metadata.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_oauth_metadata.rs`
 
 - [x] **Step 1: Add focused OAuth metadata tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_metadata
+CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_metadata
 ```
 
 Expected: tests fail before metadata contracts exist.
@@ -37,8 +37,8 @@ Expected: tests fail before metadata contracts exist.
 ### Task 3: Implement Contracts
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add OAuth metadata DTO**
 - [x] **Step 2: Add protected resource metadata DTO**
@@ -54,7 +54,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit
@@ -64,7 +64,7 @@ CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D 
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp http oauth metadata contracts"
 ```
 
@@ -72,6 +72,6 @@ git commit -m "feat: add mcp http oauth metadata contracts"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p agent-mcp mcp_client_http_oauth_metadata` passed.
+- `CARGO_TARGET_DIR=target/codex-m51 cargo test -p ruse-mcp mcp_client_http_oauth_metadata` passed.
 - `CARGO_TARGET_DIR=target/codex-m51 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m51 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

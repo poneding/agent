@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add a native Gemini provider adapter so configured Google Gemini providers can be registered, capability-checked, and invoked through the shared `agent-model` provider runtime.
+Add a native Gemini provider adapter so configured Google Gemini providers can be registered, capability-checked, and invoked through the shared `ruse-model` provider runtime.
 
 ## Product Context
 
@@ -28,7 +28,7 @@ Owned by other specs:
 
 ## Architecture
 
-Gemini protocol logic lives in `agent-model`. CLI wiring constructs configured providers and renders existing typed summaries. UI bridge consumers continue to receive provider capability metadata through config snapshots and do not own Gemini behavior.
+Gemini protocol logic lives in `ruse-model`. CLI wiring constructs configured providers and renders existing typed summaries. UI bridge consumers continue to receive provider capability metadata through config snapshots and do not own Gemini behavior.
 
 ```mermaid
 flowchart TD
@@ -36,14 +36,14 @@ flowchart TD
   Registry --> Provider["GeminiProvider"]
   Provider --> Transport["GeminiTransport"]
   Transport --> Stream["ModelStreamEvent"]
-  CLI["agent-cli provider registration"] --> Registry
+  CLI["ruse-cli provider registration"] --> Registry
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-model/
+  ruse-model/
     src/
       gemini.rs
       config.rs
@@ -53,7 +53,7 @@ crates/
       gemini.rs
       provider_capability_matrix.rs
       provider_config.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
       providers.rs
@@ -148,7 +148,7 @@ Expected stream mapping:
 
 ## Testing Strategy
 
-- `agent-model` tests for request body shape, endpoint URL construction, required secret refs, invalid provider kind, stream text/completion mapping, function-call mapping, retryability, and redaction
+- `ruse-model` tests for request body shape, endpoint URL construction, required secret refs, invalid provider kind, stream text/completion mapping, function-call mapping, retryability, and redaction
 - config tests for `ModelProviderKind::Gemini` serde and secret requirement
 - capability matrix tests for Gemini defaults
 - CLI config diagnostics tests for Gemini provider summaries in text and JSON
@@ -156,11 +156,11 @@ Expected stream mapping:
 - focused commands:
 
 ```bash
-cargo test -p agent-model gemini
-cargo test -p agent-model provider_config
-cargo test -p agent-model provider_capability_matrix
-cargo test -p agent-cli config_diagnostics
-cargo test -p agent-cli live_provider_registration
+cargo test -p ruse-model gemini
+cargo test -p ruse-model provider_config
+cargo test -p ruse-model provider_capability_matrix
+cargo test -p ruse-cli config_diagnostics
+cargo test -p ruse-cli live_provider_registration
 ```
 
 ## Acceptance Criteria

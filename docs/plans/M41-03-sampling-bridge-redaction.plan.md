@@ -4,9 +4,9 @@
 
 **Goal:** Add stable redacted diagnostics for MCP sampling model bridge failures.
 
-**Architecture:** Keep redaction helpers inside `agent-core::mcp_sampling` and expose only bounded diagnostic contracts.
+**Architecture:** Keep redaction helpers inside `ruse-core::mcp_sampling` and expose only bounded diagnostic contracts.
 
-**Tech Stack:** Rust 2024 edition, serde, agent-core tests.
+**Tech Stack:** Rust 2024 edition, serde, ruse-core tests.
 
 ---
 
@@ -14,14 +14,14 @@
 
 **Files:**
 - Read: `docs/specs/M41-03-sampling-bridge-redaction.spec.md`
-- Read: `crates/agent-core/src/mcp_sampling.rs`
+- Read: `crates/ruse-core/src/mcp_sampling.rs`
 
 - [x] **Step 1: Review current bridge errors**
 
 Run:
 
 ```bash
-sed -n '1,260p' crates/agent-core/src/mcp_sampling.rs
+sed -n '1,260p' crates/ruse-core/src/mcp_sampling.rs
 ```
 
 Expected: bridge errors exist and need stable public diagnostics.
@@ -29,7 +29,7 @@ Expected: bridge errors exist and need stable public diagnostics.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/mcp_sampling_model_redaction.rs`
+- Create: `crates/ruse-core/tests/mcp_sampling_model_redaction.rs`
 
 - [x] **Step 1: Add redaction tests**
 
@@ -47,7 +47,7 @@ mcp_sampling_model_redaction_serializes_stable_diagnostic_shape
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_redaction
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_redaction
 ```
 
 Expected: tests fail because diagnostics are not yet explicit.
@@ -55,8 +55,8 @@ Expected: tests fail because diagnostics are not yet explicit.
 ### Task 3: Implement Diagnostics
 
 **Files:**
-- Modify: `crates/agent-core/src/mcp_sampling.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Modify: `crates/ruse-core/src/mcp_sampling.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add `McpSamplingBridgeDiagnostic`**
 
@@ -68,7 +68,7 @@ Convert bridge errors and model errors into stable codes and bounded redacted me
 
 - [x] **Step 3: Export diagnostic contract**
 
-Export from `agent-core`.
+Export from `ruse-core`.
 
 ### Task 4: Verify
 
@@ -78,8 +78,8 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m41 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m41 cargo clippy -p agent-core --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_redaction
+CARGO_TARGET_DIR=target/codex-m41 cargo clippy -p ruse-core --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_redaction
 ```
 
 Expected: focused checks pass.
@@ -91,6 +91,6 @@ Expected: focused checks pass.
 Run:
 
 ```bash
-git add crates/agent-core docs
+git add crates/ruse-core docs
 git commit -m "feat: redact mcp sampling model bridge diagnostics"
 ```

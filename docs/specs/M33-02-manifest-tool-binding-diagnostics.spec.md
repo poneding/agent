@@ -37,9 +37,9 @@ flowchart TD
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_manifest.rs
-crates/agent-mcp/tests/mcp_server_tool_catalog.rs
-crates/agent-mcp/tests/mcp_server_manifest_tool_diagnostics.rs
+crates/ruse-mcp/src/server_manifest.rs
+crates/ruse-mcp/tests/mcp_server_tool_catalog.rs
+crates/ruse-mcp/tests/mcp_server_manifest_tool_diagnostics.rs
 ```
 
 ## Public Contracts
@@ -67,9 +67,9 @@ No new protocol contracts are required. The existing `McpServerToolExportCatalog
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-mcp mcp_server_manifest_tool_diagnostics`
+- `CARGO_TARGET_DIR=target/codex-m33 cargo test -p ruse-mcp mcp_server_manifest_tool_diagnostics`
 - Existing M32 manifest and catalog tests still pass.
 
 ## Completion Signal
 
-M33-02 is complete when manifest tool binding reports safe, deterministic diagnostics and all agent-mcp focused tests pass.
+M33-02 is complete when manifest tool binding reports safe, deterministic diagnostics and all ruse-mcp focused tests pass.

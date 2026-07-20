@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add versioned prompt profile and prompt layer metadata contracts in `agent-context`.
+**Goal:** Add versioned prompt profile and prompt layer metadata contracts in `ruse-context`.
 
-**Architecture:** Keep M16-01 entirely inside `agent-context`. Extend existing prompt contracts without introducing runtime persistence, CLI commands, UI bridge payloads, or model-provider dependencies.
+**Architecture:** Keep M16-01 entirely inside `ruse-context`. Extend existing prompt contracts without introducing runtime persistence, CLI commands, UI bridge payloads, or model-provider dependencies.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing `ContextError`, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M16-01-prompt-profile-contracts.spec.md`
 - Read: `docs/specs/M16-00-prompt-runtime-technical-design.spec.md`
-- Read: `crates/agent-context/src/prompt.rs`
-- Read: `crates/agent-context/tests/prompt_layers.rs`
+- Read: `crates/ruse-context/src/prompt.rs`
+- Read: `crates/ruse-context/tests/prompt_layers.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -31,8 +31,8 @@ Expected: the spec defines foundational prompt profile and layer metadata contra
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-context/tests/prompt_profiles.rs`
-- Modify: `crates/agent-context/tests/prompt_layers.rs`
+- Create: `crates/ruse-context/tests/prompt_profiles.rs`
+- Modify: `crates/ruse-context/tests/prompt_layers.rs`
 
 - [x] **Step 1: Add prompt profile tests**
 
@@ -57,8 +57,8 @@ Add or update tests named:
 Run:
 
 ```bash
-cargo test -p agent-context --test prompt_profiles
-cargo test -p agent-context --test prompt_layers
+cargo test -p ruse-context --test prompt_profiles
+cargo test -p ruse-context --test prompt_layers
 ```
 
 Expected: tests fail because profile ids, profile contracts, source metadata, visibility, sensitivity, policy, and version fields are not implemented.
@@ -66,9 +66,9 @@ Expected: tests fail because profile ids, profile contracts, source metadata, vi
 ### Task 3: Implement Contracts
 
 **Files:**
-- Modify: `crates/agent-context/src/prompt.rs`
-- Modify: `crates/agent-context/src/error.rs`
-- Modify: `crates/agent-context/src/lib.rs`
+- Modify: `crates/ruse-context/src/prompt.rs`
+- Modify: `crates/ruse-context/src/error.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
 
 - [x] **Step 1: Add ids and profile contracts**
 
@@ -110,7 +110,7 @@ Update `assemble_prompt_bundle` and existing tests so prompt layers still sort b
 
 - [x] **Step 4: Export contracts**
 
-Update `crates/agent-context/src/lib.rs` so downstream crates can use the new contracts.
+Update `crates/ruse-context/src/lib.rs` so downstream crates can use the new contracts.
 
 ### Task 4: Verify And Update Status
 
@@ -124,8 +124,8 @@ Update `crates/agent-context/src/lib.rs` so downstream crates can use the new co
 Run:
 
 ```bash
-cargo test -p agent-context --test prompt_profiles
-cargo test -p agent-context --test prompt_layers
+cargo test -p ruse-context --test prompt_profiles
+cargo test -p ruse-context --test prompt_layers
 ```
 
 Expected: focused tests pass.
@@ -149,7 +149,7 @@ Update M16 planning status so active work advances to M16-02.
 Run:
 
 ```bash
-git add crates/agent-context docs
+git add crates/ruse-context docs
 git commit -m "feat: add m16 prompt profile contracts"
 ```
 

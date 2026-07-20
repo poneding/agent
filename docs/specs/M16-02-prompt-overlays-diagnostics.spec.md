@@ -18,7 +18,7 @@ This slice delivers:
 - `PromptAssemblyReport`
 - `PromptDiagnostic`
 - `PromptDiagnosticSeverity`
-- pure `PromptRuntime` assembly in `agent-context`
+- pure `PromptRuntime` assembly in `ruse-context`
 - required and optional layer enforcement
 - budget integration and omission diagnostics
 
@@ -30,7 +30,7 @@ Owned by later slices:
 
 ## Architecture
 
-`agent-context` owns the complete pure assembly algorithm. `PromptRuntime` accepts a profile, candidate layers, overlays, and budget hints, then returns a model-facing `PromptBundle` plus a report containing diagnostics and UI-safe metadata.
+`ruse-context` owns the complete pure assembly algorithm. `PromptRuntime` accepts a profile, candidate layers, overlays, and budget hints, then returns a model-facing `PromptBundle` plus a report containing diagnostics and UI-safe metadata.
 
 Overlay rules must be deterministic and source-aware:
 
@@ -105,11 +105,11 @@ Diagnostic messages must mention ids, source labels, and policy outcomes only. T
 
 ## Acceptance Criteria
 
-- `agent-context` can assemble an effective prompt from a profile, layers, and overlays.
+- `ruse-context` can assemble an effective prompt from a profile, layers, and overlays.
 - Assembly reports explain included, omitted, and conflicting layers.
 - Prompt diagnostics are deterministic and safe for CLI/Desktop display.
 - Later snapshot and UI slices can consume report metadata without re-running assembly.
 
 ## Completion Signal
 
-M16-02 is complete when focused `agent-context` overlay and diagnostics tests pass, workspace gates pass, and active implementation advances to M16-03.
+M16-02 is complete when focused `ruse-context` overlay and diagnostics tests pass, workspace gates pass, and active implementation advances to M16-03.

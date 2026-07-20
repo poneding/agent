@@ -20,11 +20,11 @@ This slice delivers:
 
 Primary implementation files:
 
-- `crates/agent-core/src/lib.rs`
-- `crates/agent-core/src/turn.rs`
-- `crates/agent-core/src/runtime.rs`
-- `crates/agent-core/src/context.rs`
-- `crates/agent-core/tests/turn_engine.rs`
+- `crates/ruse-core/src/lib.rs`
+- `crates/ruse-core/src/turn.rs`
+- `crates/ruse-core/src/runtime.rs`
+- `crates/ruse-core/src/context.rs`
+- `crates/ruse-core/tests/turn_engine.rs`
 
 ## Boundaries
 

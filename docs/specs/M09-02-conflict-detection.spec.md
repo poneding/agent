@@ -28,7 +28,7 @@ Owned by other specs:
 
 ## Architecture
 
-Conflict detection lives in `agent-worktree`. It is a pure function over normalized path/change metadata and does not read the filesystem or execute Git.
+Conflict detection lives in `ruse-worktree`. It is a pure function over normalized path/change metadata and does not read the filesystem or execute Git.
 
 ```mermaid
 flowchart TD
@@ -41,7 +41,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-worktree/
+  ruse-worktree/
     src/
       conflict.rs
     tests/
@@ -113,7 +113,7 @@ pub fn detect_conflicts(
 
 - Conflict reports are deterministic and sorted by path.
 - Reports do not contain raw file contents.
-- `cargo test -p agent-worktree conflict_detection` passes.
+- `cargo test -p ruse-worktree conflict_detection` passes.
 
 ## Completion Signal
 

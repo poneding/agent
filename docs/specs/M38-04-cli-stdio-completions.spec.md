@@ -25,11 +25,11 @@ Owned by later M38 specs:
 
 ## Architecture
 
-`agent-cli` loads manifest declarations. `agent-mcp` owns dispatch and completion resolution.
+`ruse-cli` loads manifest declarations. `ruse-mcp` owns dispatch and completion resolution.
 
 ```mermaid
 flowchart TD
-  Manifest["completion declarations"] --> CLI["agent-cli profile load"]
+  Manifest["completion declarations"] --> CLI["ruse-cli profile load"]
   CLI --> Runtime["McpServerProfileRuntime"]
   Runtime --> Server["McpServerFixture"]
   Request["completion/complete"] --> Server
@@ -89,9 +89,9 @@ Manifest shape:
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_manifest_completions`
-- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-cli mcp_server_completions`
-- `CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-cli --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_manifest_completions`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-cli mcp_server_completions`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p ruse-cli --all-targets -- -D warnings`
 
 ## Completion Signal
 

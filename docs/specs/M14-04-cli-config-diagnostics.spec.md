@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-CLI parses flags and delegates validation to `agent-core::config`. CLI renders text or `UiJsonFrame` output only; it does not parse YAML/TOML internals or resolve secret values.
+CLI parses flags and delegates validation to `ruse-core::config`. CLI renders text or `UiJsonFrame` output only; it does not parse YAML/TOML internals or resolve secret values.
 
 ## Public Contracts
 
@@ -63,4 +63,4 @@ CLI parses flags and delegates validation to `agent-core::config`. CLI renders t
 
 ## Completion Signal
 
-M14-04 is complete when `cargo test -p agent-cli --test config_diagnostics` and the workspace gates pass, status advances to M14-05, and the slice is committed.
+M14-04 is complete when `cargo test -p ruse-cli --test config_diagnostics` and the workspace gates pass, status advances to M14-05, and the slice is committed.

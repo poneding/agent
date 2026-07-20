@@ -12,7 +12,7 @@ M27 can run one scenario manifest. M28 needs stable suite files for local develo
 
 This spec delivers:
 
-- `agent-eval::suite` module
+- `ruse-eval::suite` module
 - versioned `EvalSuiteManifest` and `EvalSuiteScenarioRef`
 - safe scenario path resolution relative to suite root
 - duplicate ID, label, and strictness validation
@@ -27,13 +27,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-eval::suite` depends on `agent-eval::manifest` and returns validated M27 scenarios. It is filesystem-aware but read-only.
+`ruse-eval::suite` depends on `ruse-eval::manifest` and returns validated M27 scenarios. It is filesystem-aware but read-only.
 
 ```mermaid
 flowchart TD
-  SuiteFile["suite manifest"] --> Suite["agent-eval::suite"]
+  SuiteFile["suite manifest"] --> Suite["ruse-eval::suite"]
   Suite --> ScenarioFiles["scenario manifest files"]
-  ScenarioFiles --> Manifest["agent-eval::manifest"]
+  ScenarioFiles --> Manifest["ruse-eval::manifest"]
   Manifest --> Validated["ValidatedEvalSuite"]
 ```
 
@@ -41,7 +41,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-eval/
+  ruse-eval/
     src/suite.rs
     tests/suite.rs
 ```
@@ -88,7 +88,7 @@ pub struct ValidatedEvalSuite {
 
 ## Acceptance Criteria
 
-- `agent-eval::suite` exposes typed suite contracts.
+- `ruse-eval::suite` exposes typed suite contracts.
 - focused suite tests pass.
 - `docs/milestones/README.md` marks M28-01 complete after implementation.
 

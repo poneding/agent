@@ -12,7 +12,7 @@ M02 introduced a deterministic single tool-loop path. M15 can run a model turn, 
 
 This milestone delivers:
 
-- `ComprehensiveTurnRunner` in `agent-core`
+- `ComprehensiveTurnRunner` in `ruse-core`
 - recursive model/tool/observation loop with max iteration and budget guards
 - tool call accumulation from streaming model events
 - tool input validation and idempotency integration
@@ -28,15 +28,15 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-core` owns loop orchestration and remains provider-neutral. It consumes `agent-model` stream events, uses `agent-tool` registry entries, delegates permission checks to `agent-policy`, invokes sandboxed tools, and persists events through `agent-storage`. `agent-context` compresses observations when budgets require it.
+`ruse-core` owns loop orchestration and remains provider-neutral. It consumes `ruse-model` stream events, uses `ruse-tool` registry entries, delegates permission checks to `ruse-policy`, invokes sandboxed tools, and persists events through `ruse-storage`. `ruse-context` compresses observations when budgets require it.
 
 ```mermaid
 flowchart TD
-  Runner["agent-core ComprehensiveTurnRunner"] --> Model["agent-model stream"]
-  Runner --> Tools["agent-tool registry"]
-  Runner --> Policy["agent-policy"]
-  Runner --> Context["agent-context compaction"]
-  Runner --> Storage["agent-storage"]
+  Runner["ruse-core ComprehensiveTurnRunner"] --> Model["ruse-model stream"]
+  Runner --> Tools["ruse-tool registry"]
+  Runner --> Policy["ruse-policy"]
+  Runner --> Context["ruse-context compaction"]
+  Runner --> Storage["ruse-storage"]
 ```
 
 ## Key Contracts

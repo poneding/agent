@@ -4,7 +4,7 @@
 
 **Goal:** Turn terminal usage into a daily-driver workflow across CLI, plain REPL, JSON, and TUI without moving runtime logic into presentation crates.
 
-**Architecture:** `agent-core` owns terminal workflow/session orchestration, `agent-storage` owns durable event access, `agent-ui-bridge` owns UI-safe command/snapshot contracts, `agent-cli` owns command parsing and text/JSON rendering, and `agent-tui` owns panel state and rendering.
+**Architecture:** `ruse-core` owns terminal workflow/session orchestration, `ruse-storage` owns durable event access, `ruse-ui-bridge` owns UI-safe command/snapshot contracts, `ruse-cli` owns command parsing and text/JSON rendering, and `ruse-tui` owns panel state and rendering.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing runtime events, repo session reports, command/test reports, approval/task/diff bridge snapshots, Ratatui TUI state, Cargo fmt/clippy/test, `cargo xtask eval`.
 
@@ -21,21 +21,21 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/src/repl.rs`
-- Read: `crates/agent-tui/src/app.rs`
-- Read: `crates/agent-tui/src/slash.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/src/repl.rs`
+- Read: `crates/ruse-tui/src/app.rs`
+- Read: `crates/ruse-tui/src/slash.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Review terminal baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-tui
-cargo test -p agent-cli --test repo_session_bootstrap
-cargo test -p agent-ui-bridge repo_session_snapshot
+cargo test -p ruse-tui
+cargo test -p ruse-cli --test repo_session_bootstrap
+cargo test -p ruse-ui-bridge repo_session_snapshot
 cargo xtask eval
 ```
 
@@ -43,9 +43,9 @@ Expected: current terminal state, repo session CLI, bridge repo session snapshot
 
 Baseline verification on 2026-07-01:
 
-- `cargo test -p agent-tui`
-- `cargo test -p agent-cli --test repo_session_bootstrap`
-- `cargo test -p agent-ui-bridge repo_session_snapshot`
+- `cargo test -p ruse-tui`
+- `cargo test -p ruse-cli --test repo_session_bootstrap`
+- `cargo test -p ruse-ui-bridge repo_session_snapshot`
 - `cargo xtask eval`
 
 ### Task 2: M59-01 Session Restore and Switch

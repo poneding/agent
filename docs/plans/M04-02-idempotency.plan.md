@@ -4,16 +4,16 @@
 
 **Goal:** Record completed side-effecting tool calls and return recorded outputs on retry.
 
-**Architecture:** `agent-storage` owns idempotency records. `agent-core` owns an idempotent tool executor wrapper over existing `ToolLoop` behavior.
+**Architecture:** `ruse-storage` owns idempotency records. `ruse-core` owns an idempotent tool executor wrapper over existing `ToolLoop` behavior.
 
-**Tech Stack:** Rust 2024 edition, `agent-storage`, `agent-core`, `agent-tool`, `agent-policy`, `serde_json`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-storage`, `ruse-core`, `ruse-tool`, `ruse-policy`, `serde_json`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Storage Tests
 
 **Files:**
-- Create: `crates/agent-storage/tests/idempotency_store.rs`
+- Create: `crates/ruse-storage/tests/idempotency_store.rs`
 
 - [x] **Step 1: Add failing store tests**
 
@@ -22,7 +22,7 @@ Tests must prove key validation, record/get behavior, duplicate same-key behavio
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-storage idempotency_store
+cargo test -p ruse-storage idempotency_store
 ```
 
 Expected: tests fail because idempotency contracts do not exist.
@@ -30,10 +30,10 @@ Expected: tests fail because idempotency contracts do not exist.
 ### Task 2: Implement Storage Contract
 
 **Files:**
-- Create: `crates/agent-storage/src/idempotency.rs`
-- Modify: `crates/agent-storage/src/lib.rs`
-- Modify: `crates/agent-storage/src/memory.rs`
-- Modify: `crates/agent-storage/src/sqlite.rs`
+- Create: `crates/ruse-storage/src/idempotency.rs`
+- Modify: `crates/ruse-storage/src/lib.rs`
+- Modify: `crates/ruse-storage/src/memory.rs`
+- Modify: `crates/ruse-storage/src/sqlite.rs`
 
 - [x] **Step 1: Define `IdempotencyKey`, `ToolEffectRecord`, and `IdempotencyStore`**
 
@@ -46,7 +46,7 @@ Store records by key and reject incompatible duplicate input hashes.
 - [x] **Step 3: Verify storage GREEN**
 
 ```bash
-cargo test -p agent-storage idempotency_store
+cargo test -p ruse-storage idempotency_store
 ```
 
 Expected: focused storage tests pass.
@@ -54,9 +54,9 @@ Expected: focused storage tests pass.
 ### Task 3: Add Core Idempotent Executor
 
 **Files:**
-- Create: `crates/agent-core/src/idempotency.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Create: `crates/agent-core/tests/idempotent_tool_replay.rs`
+- Create: `crates/ruse-core/src/idempotency.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Create: `crates/ruse-core/tests/idempotent_tool_replay.rs`
 
 - [x] **Step 1: Add failing core tests**
 
@@ -69,7 +69,7 @@ Wrap existing `ToolLoop` execution and persist `ToolEffectRecord` only after `To
 - [x] **Step 3: Verify core GREEN**
 
 ```bash
-cargo test -p agent-core idempotent_tool_replay
+cargo test -p ruse-core idempotent_tool_replay
 ```
 
 Expected: focused core tests pass.

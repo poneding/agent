@@ -4,7 +4,7 @@
 
 **Goal:** Add typed JSON/SSE HTTP response-mode contracts.
 
-**Architecture:** `agent-mcp::client_http` maps response modes into existing JSON-RPC frame contracts.
+**Architecture:** `ruse-mcp::client_http` maps response modes into existing JSON-RPC frame contracts.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -35,8 +35,8 @@
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode` passed.
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts` passed.
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_response_mode` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_contracts` passed.
 - `CARGO_TARGET_DIR=target/codex-m46 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m46 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

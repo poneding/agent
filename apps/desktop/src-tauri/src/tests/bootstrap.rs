@@ -1,5 +1,5 @@
 use crate::bootstrap::{DesktopBootstrapDiagnostic, DesktopRuntimeState, build_desktop_bootstrap};
-use agent_desktop::DesktopRoute;
+use ruse_desktop::DesktopRoute;
 
 #[test]
 fn bootstrap_starts_in_not_started_dashboard_route() {

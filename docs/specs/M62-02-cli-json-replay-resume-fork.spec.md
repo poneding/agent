@@ -31,19 +31,19 @@ Owned by later M62 specs:
 
 ## Architecture
 
-`agent-core` remains the source of recovery truth through `RecoveryEngine::snapshot` and `RecoveryEngine::resume_dry_run`. `agent-ui-bridge` owns typed command/frame contracts and UI-safe reports. `agent-cli` parses command arguments, invokes shared recovery fixture/runtime helpers for deterministic local output, and renders text or JSON. `agent-storage` remains behind traits and test fixtures.
+`ruse-core` remains the source of recovery truth through `RecoveryEngine::snapshot` and `RecoveryEngine::resume_dry_run`. `ruse-ui-bridge` owns typed command/frame contracts and UI-safe reports. `ruse-cli` parses command arguments, invokes shared recovery fixture/runtime helpers for deterministic local output, and renders text or JSON. `ruse-storage` remains behind traits and test fixtures.
 
 ```mermaid
 flowchart TD
-  Core["agent-core RecoveryEngine"] --> Bridge["agent-ui-bridge recovery commands and frames"]
-  Bridge --> CLI["agent-cli text/json commands"]
-  Storage["agent-storage stores"] --> Core
+  Core["ruse-core RecoveryEngine"] --> Bridge["ruse-ui-bridge recovery commands and frames"]
+  Bridge --> CLI["ruse-cli text/json commands"]
+  Storage["ruse-storage stores"] --> Core
 ```
 
 Dependency rules:
 
 - CLI must not parse raw event JSON to infer recovery state.
-- UI bridge may wrap and summarize recovery contracts but must not reclassify readiness differently from `agent-core`.
+- UI bridge may wrap and summarize recovery contracts but must not reclassify readiness differently from `ruse-core`.
 - Fork commands in this slice are explicit typed plans/reports, not hidden storage mutations unless a durable fork store already exists and is safely wired.
 - All public command outputs must be serde-friendly, bounded, redacted, and stable.
 
@@ -51,13 +51,13 @@ Dependency rules:
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       command.rs
       frame.rs
     tests/
       recovery_bridge.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
@@ -133,10 +133,10 @@ pub struct UiReplayForkReport {
 CLI command shapes:
 
 ```text
-agent-cli recovery status --conversation <id> [--turn <id>]
-agent-cli recovery resume --conversation <id> [--turn <id>] [--checkpoint <id>] --dry-run
-agent-cli replay inspect --conversation <id> [--from-checkpoint <id>]
-agent-cli replay fork --conversation <id> [--turn <id>] [--checkpoint <id>] --label <name> --dry-run
+ruse-cli recovery status --conversation <id> [--turn <id>]
+ruse-cli recovery resume --conversation <id> [--turn <id>] [--checkpoint <id>] --dry-run
+ruse-cli replay inspect --conversation <id> [--from-checkpoint <id>]
+ruse-cli replay fork --conversation <id> [--turn <id>] [--checkpoint <id>] --label <name> --dry-run
 ```
 
 If live persisted session lookup is not yet available for arbitrary ids, commands may provide deterministic fixture modes in this slice, but the public JSON/text shape must match the real command shape and the limitation must be explicit in diagnostics.
@@ -160,13 +160,13 @@ If live persisted session lookup is not yet available for arbitrary ids, command
 
 ## Testing Strategy
 
-- `agent-ui-bridge/tests/recovery_bridge.rs` for command serde shape, frame serde shape, and redaction-safe payloads
-- `agent-cli/tests/recovery_commands.rs` for text and JSON output for recovery status, resume dry-run, replay inspect, and replay fork dry-run
+- `ruse-ui-bridge/tests/recovery_bridge.rs` for command serde shape, frame serde shape, and redaction-safe payloads
+- `ruse-cli/tests/recovery_commands.rs` for text and JSON output for recovery status, resume dry-run, replay inspect, and replay fork dry-run
 - CLI tests should include invalid ids, missing required args, and no-secret leakage checks
 - Focused checks:
-  - `cargo clippy -p agent-ui-bridge -p agent-cli --all-targets -- -D warnings`
-  - `cargo test -p agent-ui-bridge --test recovery_bridge`
-  - `cargo test -p agent-cli --test recovery_commands`
+  - `cargo clippy -p ruse-ui-bridge -p ruse-cli --all-targets -- -D warnings`
+  - `cargo test -p ruse-ui-bridge --test recovery_bridge`
+  - `cargo test -p ruse-cli --test recovery_commands`
 
 ## Acceptance Criteria
 

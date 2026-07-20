@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-Contracts live in `agent-mcp::client_http` and are exported through `agent-mcp`.
+Contracts live in `ruse-mcp::client_http` and are exported through `ruse-mcp`.
 
 ## Public Contracts
 
@@ -57,9 +57,9 @@ pub struct McpClientHttpStreamSupervisorConfig {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_contracts`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_contracts`
 - `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check`
-- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m50 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

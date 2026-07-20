@@ -27,30 +27,30 @@ Owned by other specs:
 
 ## Architecture
 
-Capability matching remains in `agent-model`. Runtime compatibility reporting and fallback selection live in `agent-core`, because they combine effective config, invocation policy, and turn requirements. CLI and UI bridge surfaces render typed summaries without owning provider rules.
+Capability matching remains in `ruse-model`. Runtime compatibility reporting and fallback selection live in `ruse-core`, because they combine effective config, invocation policy, and turn requirements. CLI and UI bridge surfaces render typed summaries without owning provider rules.
 
 ```mermaid
 flowchart TD
-  Requirements["ModelRequestRequirements"] --> Capabilities["agent-model capabilities"]
-  Config["EffectiveRuntimeConfig"] --> Report["agent-core provider support report"]
+  Requirements["ModelRequestRequirements"] --> Capabilities["ruse-model capabilities"]
+  Config["EffectiveRuntimeConfig"] --> Report["ruse-core provider support report"]
   Capabilities --> Report
-  Report --> CLI["agent-cli config-check"]
-  Report --> Bridge["agent-ui-bridge config snapshot"]
-  Report --> Runtime["agent-core fallback selection"]
+  Report --> CLI["ruse-cli config-check"]
+  Report --> Bridge["ruse-ui-bridge config snapshot"]
+  Report --> Runtime["ruse-core fallback selection"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-model/
+  ruse-model/
     src/
       invocation_policy.rs
       registry.rs
     tests/
       invocation_policy.rs
       provider_capability_matrix.rs
-  agent-core/
+  ruse-core/
     src/
       model_runtime.rs
       provider_support.rs
@@ -60,12 +60,12 @@ crates/
       model_invocation_policy_runner.rs
       streaming_retry_cancel_replay.rs
       comprehensive_local_coding_e2e.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       config_diagnostics.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
       lib.rs
@@ -131,21 +131,21 @@ Exact wording may differ, but output must be stable, sorted where order is not s
 
 ## Testing Strategy
 
-- `agent-model` tests for fallback compatibility helpers and deterministic missing capability labels
-- `agent-core` tests for provider support report construction from effective config
-- `agent-core` runtime tests proving selected incompatible providers can fail over to compatible fallback before invocation where policy allows it
+- `ruse-model` tests for fallback compatibility helpers and deterministic missing capability labels
+- `ruse-core` tests for provider support report construction from effective config
+- `ruse-core` runtime tests proving selected incompatible providers can fail over to compatible fallback before invocation where policy allows it
 - streaming retry tests proving incompatible fallback entries are skipped before a compatible fallback is invoked
 - CLI config-check tests for text and JSON provider support summaries and redaction
 - M56 local coding regression test proving a tool-capable fallback provider can complete the deterministic coding path
 - focused commands:
 
 ```bash
-cargo test -p agent-model invocation_policy
-cargo test -p agent-core model_runtime_resolver
-cargo test -p agent-core model_invocation_policy_runner
-cargo test -p agent-core streaming_retry_cancel_replay
-cargo test -p agent-core comprehensive_local_coding_e2e
-cargo test -p agent-cli config_diagnostics
+cargo test -p ruse-model invocation_policy
+cargo test -p ruse-core model_runtime_resolver
+cargo test -p ruse-core model_invocation_policy_runner
+cargo test -p ruse-core streaming_retry_cancel_replay
+cargo test -p ruse-core comprehensive_local_coding_e2e
+cargo test -p ruse-cli config_diagnostics
 ```
 
 ## Acceptance Criteria

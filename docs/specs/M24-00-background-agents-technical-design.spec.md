@@ -30,16 +30,16 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-scheduler` owns task definitions, run state, queueing, leases, retries, and quotas. `agent-core` owns executing task turns and emitting runtime events. `agent-ui-bridge` exposes task commands and notifications. `agent-worktree` provides isolation for coding tasks when configured.
+`ruse-scheduler` owns task definitions, run state, queueing, leases, retries, and quotas. `ruse-core` owns executing task turns and emitting runtime events. `ruse-ui-bridge` exposes task commands and notifications. `ruse-worktree` provides isolation for coding tasks when configured.
 
 ```mermaid
 flowchart TD
   UI["CLI/TUI/Desktop"] --> Bridge["Task commands/events"]
-  Bridge --> Scheduler["agent-scheduler"]
+  Bridge --> Scheduler["ruse-scheduler"]
   Scheduler --> Lease["TaskRunLease"]
-  Lease --> Runner["agent-core BackgroundTaskRunner"]
+  Lease --> Runner["ruse-core BackgroundTaskRunner"]
   Runner --> Turn["ComprehensiveTurnRunner"]
-  Runner --> Worktree["agent-worktree optional"]
+  Runner --> Worktree["ruse-worktree optional"]
   Runner --> Artifacts["Task artifacts/review"]
 ```
 

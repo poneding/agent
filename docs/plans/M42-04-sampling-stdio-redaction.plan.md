@@ -4,9 +4,9 @@
 
 **Goal:** Add redaction regressions and helpers for sampling stdio dispatch errors.
 
-**Architecture:** Keep redaction inside `agent-mcp` sampling stdio dispatch so the public JSON-RPC surface is safe regardless of provider implementation.
+**Architecture:** Keep redaction inside `ruse-mcp` sampling stdio dispatch so the public JSON-RPC surface is safe regardless of provider implementation.
 
-**Tech Stack:** Rust 2024 edition, serde JSON, agent-mcp tests.
+**Tech Stack:** Rust 2024 edition, serde JSON, ruse-mcp tests.
 
 ---
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M42-04-sampling-stdio-redaction.spec.md`
-- Read: `crates/agent-mcp/src/client_sampling_stdio.rs`
-- Read: `crates/agent-mcp/src/server.rs`
+- Read: `crates/ruse-mcp/src/client_sampling_stdio.rs`
+- Read: `crates/ruse-mcp/src/server.rs`
 
 - [x] **Step 1: Review current JSON-RPC error redaction**
 
@@ -24,7 +24,7 @@ Expected: error rendering is centralized enough to harden.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_sampling_stdio_redaction.rs`
+- Create: `crates/ruse-mcp/tests/mcp_sampling_stdio_redaction.rs`
 
 - [x] **Step 1: Add redaction tests**
 
@@ -42,7 +42,7 @@ mcp_sampling_stdio_redaction_rejects_secret_like_method_names_safely
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_redaction
+CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_redaction
 ```
 
 Expected: tests fail until redaction is explicit.
@@ -50,7 +50,7 @@ Expected: tests fail until redaction is explicit.
 ### Task 3: Implement Redaction
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_sampling_stdio.rs`
+- Modify: `crates/ruse-mcp/src/client_sampling_stdio.rs`
 
 - [x] **Step 1: Add bounded public error helper**
 - [x] **Step 2: Redact provider and invalid frame diagnostics**
@@ -64,8 +64,8 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m42 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m42 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_redaction
+CARGO_TARGET_DIR=target/codex-m42 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_redaction
 ```
 
 Expected: focused checks pass.
@@ -77,6 +77,6 @@ Expected: focused checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: redact mcp sampling stdio dispatch errors"
 ```

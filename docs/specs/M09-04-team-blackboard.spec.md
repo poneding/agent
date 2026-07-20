@@ -29,11 +29,11 @@ Owned by other specs:
 
 ## Architecture
 
-Blackboard contracts live in `agent-team`. Entries reference existing `agent-types` IDs and trace event IDs, but do not store raw tool output or large artifacts inline.
+Blackboard contracts live in `ruse-team`. Entries reference existing `ruse-types` IDs and trace event IDs, but do not store raw tool output or large artifacts inline.
 
 ```mermaid
 flowchart TD
-  subagent["subagent result"] --> blackboard["agent-team blackboard"]
+  subagent["subagent result"] --> blackboard["ruse-team blackboard"]
   blackboard --> lead["lead agent review"]
   blackboard --> traces["runtime trace links"]
 ```
@@ -42,7 +42,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-team/
+  ruse-team/
     src/
       blackboard.rs
     tests/
@@ -115,7 +115,7 @@ pub trait BlackboardStore {
 
 - Subagent outputs can be represented as findings, diffs, reviews, decisions, artifacts, and trace links.
 - Entries are deterministic and safe to expose through future UI bridge surfaces.
-- `cargo test -p agent-team team_blackboard` passes.
+- `cargo test -p ruse-team team_blackboard` passes.
 
 ## Completion Signal
 

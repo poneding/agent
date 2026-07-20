@@ -13,7 +13,7 @@ M10 created Desktop view-model contracts, but no runnable GUI exists. The produc
 This milestone delivers:
 
 - runnable Tauri 2 Desktop shell
-- Rust command layer that talks to `agent-ui-bridge`
+- Rust command layer that talks to `ruse-ui-bridge`
 - TypeScript UI for conversations, prompt composer, task list, approvals, diff review, trace timeline, and settings
 - local runtime process or embedded runtime session model
 - Desktop-safe config and provider diagnostics
@@ -32,9 +32,9 @@ Tauri hosts the Desktop UI. Rust-side Desktop commands call shared runtime servi
 ```mermaid
 flowchart TD
   WebUI["Desktop TypeScript UI"] --> Tauri["Tauri command layer"]
-  Tauri --> Bridge["agent-ui-bridge"]
-  Bridge --> Core["agent-core runtime"]
-  Tauri --> Desktop["agent-desktop view models"]
+  Tauri --> Bridge["ruse-ui-bridge"]
+  Bridge --> Core["ruse-core runtime"]
+  Tauri --> Desktop["ruse-desktop view models"]
 ```
 
 ## Key Contracts

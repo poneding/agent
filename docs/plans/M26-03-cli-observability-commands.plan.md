@@ -4,9 +4,9 @@
 
 **Goal:** Add script-safe CLI observability summary and JSON evidence commands.
 
-**Architecture:** `agent-cli` renders evidence built by `agent-core`; runtime logic stays out of CLI.
+**Architecture:** `ruse-cli` renders evidence built by `ruse-core`; runtime logic stays out of CLI.
 
-**Tech Stack:** Rust 2024 edition, existing CLI command parser, serde_json, agent-core evidence APIs, Cargo checks.
+**Tech Stack:** Rust 2024 edition, existing CLI command parser, serde_json, ruse-core evidence APIs, Cargo checks.
 
 ---
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M26-03-cli-observability-commands.spec.md`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/trace_commands.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/trace_commands.rs`
 
 - [x] **Step 1: Review existing CLI trace command patterns**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-cli/tests/observability_commands.rs`
+- Create: `crates/ruse-cli/tests/observability_commands.rs`
 
 - [x] **Step 1: Add CLI observability tests**
 
 ### Task 3: Implement Commands
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add summary and JSON output commands**
 
@@ -38,8 +38,8 @@
 - [x] **Step 1: Run focused checks**
 
 ```bash
-cargo test -p agent-cli observability
-cargo clippy -p agent-cli --all-targets -- -D warnings
+cargo test -p ruse-cli observability
+cargo clippy -p ruse-cli --all-targets -- -D warnings
 ```
 
 ### Task 5: Update Status and Commit
@@ -47,6 +47,6 @@ cargo clippy -p agent-cli --all-targets -- -D warnings
 - [x] **Step 1: Mark M26-03 complete and commit**
 
 ```bash
-git add crates/agent-cli docs
+git add crates/ruse-cli docs
 git commit -m "feat: add cli observability commands"
 ```

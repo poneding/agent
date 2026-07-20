@@ -4,7 +4,7 @@
 
 **Goal:** Add validated, deterministic MCP client root registry behavior.
 
-**Architecture:** `agent-mcp` owns root validation and inspection. No CLI/Desktop or filesystem-content logic belongs in this slice.
+**Architecture:** `ruse-mcp` owns root validation and inspection. No CLI/Desktop or filesystem-content logic belongs in this slice.
 
 **Tech Stack:** Rust 2024 edition, path validation, serde JSON, Cargo tests.
 
@@ -30,8 +30,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_registry
+CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_registry
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -40,8 +40,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_registry
+CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_registry
 ```
 
 ### Task 5: Commit

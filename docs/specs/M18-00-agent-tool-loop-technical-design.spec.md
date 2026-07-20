@@ -30,25 +30,25 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-core` owns loop orchestration. The runner consumes `ModelStreamEvent` from `agent-model`, validates tool calls against `agent-tool`, evaluates capabilities through `agent-policy`, executes tools through existing tool contracts and sandbox profiles, and records all meaningful state changes as `RuntimeEvent`s. `agent-context` is used to assemble continuation prompts that include observations.
+`ruse-core` owns loop orchestration. The runner consumes `ModelStreamEvent` from `ruse-model`, validates tool calls against `ruse-tool`, evaluates capabilities through `ruse-policy`, executes tools through existing tool contracts and sandbox profiles, and records all meaningful state changes as `RuntimeEvent`s. `ruse-context` is used to assemble continuation prompts that include observations.
 
 ```mermaid
 flowchart TD
-  Runner["ComprehensiveTurnRunner"] --> Model["agent-model stream"]
+  Runner["ComprehensiveTurnRunner"] --> Model["ruse-model stream"]
   Model --> Accumulator["ToolCallAccumulator"]
-  Accumulator --> Policy["agent-policy"]
-  Policy --> Tools["agent-tool registry"]
+  Accumulator --> Policy["ruse-policy"]
+  Policy --> Tools["ruse-tool registry"]
   Tools --> Observation["ToolObservationMessage"]
-  Observation --> Context["agent-context continuation prompt"]
+  Observation --> Context["ruse-context continuation prompt"]
   Context --> Model
-  Runner --> Store["agent-storage events/checkpoints"]
+  Runner --> Store["ruse-storage events/checkpoints"]
 ```
 
 Dependency rules:
 
-- `agent-core` may depend on `agent-model`, `agent-tool`, `agent-policy`, `agent-context`, `agent-storage`, and `agent-types`.
-- `agent-tool` does not depend on policy or core.
-- `agent-policy` does not execute tools.
+- `ruse-core` may depend on `ruse-model`, `ruse-tool`, `ruse-policy`, `ruse-context`, `ruse-storage`, and `ruse-types`.
+- `ruse-tool` does not depend on policy or core.
+- `ruse-policy` does not execute tools.
 - UI crates do not run tools directly.
 
 ## Runtime State Machine
@@ -71,7 +71,7 @@ M18 uses the existing turn states and adds loop-level states inside core:
 
 ## Public Contracts
 
-Primary contracts live in `agent-core`:
+Primary contracts live in `ruse-core`:
 
 ```rust
 pub struct ComprehensiveTurnInput {
@@ -123,7 +123,7 @@ Accumulator rules:
 Tool outputs are untrusted. Before re-entering model context:
 
 - tool output is normalized into `ToolObservationMessage`
-- oversized output is summarized or truncated by `agent-context`
+- oversized output is summarized or truncated by `ruse-context`
 - source metadata identifies tool, policy decision, sandbox profile, and artifact ids
 - secret-like values are redacted
 - prompt injection warning metadata is attached for file, shell, MCP, browser, plugin, and memory sources

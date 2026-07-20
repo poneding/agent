@@ -28,35 +28,35 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-memory` owns rerank and trace contracts. `agent-context` consumes selected memories as prompt layers through a small adapter. `agent-core` may emit retrieval trace events, but does not own scoring or privacy rules.
+`ruse-memory` owns rerank and trace contracts. `ruse-context` consumes selected memories as prompt layers through a small adapter. `ruse-core` may emit retrieval trace events, but does not own scoring or privacy rules.
 
 ```mermaid
 flowchart TD
   Candidates["MemoryRetrievalCandidate"] --> Reranker["MemoryReranker"]
   Reranker --> Result["MemoryRetrievalResult"]
-  Result --> Context["agent-context memory prompt layers"]
+  Result --> Context["ruse-context memory prompt layers"]
   Result --> Trace["MemoryInfluenceTrace"]
 ```
 
 Dependency rules:
 
-- `agent-memory` can define prompt-ready summaries, but raw prompt assembly stays in `agent-context`.
+- `ruse-memory` can define prompt-ready summaries, but raw prompt assembly stays in `ruse-context`.
 - traces must be serializable and safe for CLI/TUI/Desktop display.
 - rerankers must be deterministic in fixture mode.
 
 ## File Layout
 
 ```text
-crates/agent-memory/src/
+crates/ruse-memory/src/
   rerank.rs
   trace.rs
   lib.rs
-crates/agent-context/src/
+crates/ruse-context/src/
   memory_layers.rs
   lib.rs
-crates/agent-memory/tests/
+crates/ruse-memory/tests/
   memory_rerank_influence_trace.rs
-crates/agent-context/tests/
+crates/ruse-context/tests/
   memory_prompt_layers.rs
 ```
 
@@ -118,7 +118,7 @@ Reasons use stable enum/string values such as `score`, `scope`, `sensitivity`, `
 - Reranking produces selected and rejected candidates with stable reasons.
 - Influence traces explain retrieval decisions without exposing raw sensitive content.
 - Selected memories can be converted into prompt memory layers.
-- Focused tests pass with `cargo test -p agent-memory memory_rerank_influence_trace` and `cargo test -p agent-context memory_prompt_layers`.
+- Focused tests pass with `cargo test -p ruse-memory memory_rerank_influence_trace` and `cargo test -p ruse-context memory_prompt_layers`.
 
 ## Completion Signal
 

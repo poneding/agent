@@ -26,11 +26,11 @@ Owned by other specs:
 
 ## Architecture
 
-Platform reporting lives in `agent-sandbox` because sandbox behavior owns filesystem, process, symlink, and platform capability knowledge.
+Platform reporting lives in `ruse-sandbox` because sandbox behavior owns filesystem, process, symlink, and platform capability knowledge.
 
 ```mermaid
 flowchart TD
-  host["Host Platform"] --> sandbox["agent-sandbox"]
+  host["Host Platform"] --> sandbox["ruse-sandbox"]
   sandbox --> report["PlatformCapabilityReport"]
 ```
 
@@ -38,7 +38,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-sandbox/
+  ruse-sandbox/
     src/
       lib.rs
       platform.rs
@@ -83,9 +83,9 @@ pub struct PlatformCapabilityReport {
 
 ## Acceptance Criteria
 
-- `agent-sandbox` can produce a typed platform report.
+- `ruse-sandbox` can produce a typed platform report.
 - Report fields are serializable and deterministic in tests.
-- `cargo test -p agent-sandbox platform_report` passes.
+- `cargo test -p ruse-sandbox platform_report` passes.
 
 ## Completion Signal
 

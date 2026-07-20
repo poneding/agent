@@ -4,18 +4,18 @@
 
 **Goal:** Make plugin capability acceptance and skill root registry health visible, deterministic, and safe.
 
-**Architecture:** `agent-plugin` validates manifests and compatibility. `agent-core` owns extension records and leases. `agent-cli` renders commands and mutates the in-memory command runtime used by tests. Skill root discovery remains in `agent-skill`.
+**Architecture:** `ruse-plugin` validates manifests and compatibility. `ruse-core` owns extension records and leases. `ruse-cli` renders commands and mutates the in-memory command runtime used by tests. Skill root discovery remains in `ruse-skill`.
 
 ---
 
 ### Task 1: Confirm Baseline
 
 **Files:**
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/plugin_commands.rs`
-- Read: `crates/agent-cli/tests/skill_root_commands.rs`
-- Read: `crates/agent-skill/src/roots.rs`
-- Read: `crates/agent-plugin/tests/fixtures/`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/plugin_commands.rs`
+- Read: `crates/ruse-cli/tests/skill_root_commands.rs`
+- Read: `crates/ruse-skill/src/roots.rs`
+- Read: `crates/ruse-plugin/tests/fixtures/`
 
 - [x] **Step 1: Inspect existing management commands**
 
@@ -24,8 +24,8 @@ Existing plugin commands cover install/list/inspect/enable/disable/remove. Exist
 ### Task 2: Harden Plugin Capability Acceptance
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/tests/plugin_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/tests/plugin_commands.rs`
 
 - [x] **Step 1: Add deterministic capability leases**
 
@@ -42,8 +42,8 @@ Populate `PluginInstallReport.diagnostics` with stable review/compatibility/stat
 ### Task 3: Refresh Skill Root Registry Health
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/tests/skill_root_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/tests/skill_root_commands.rs`
 
 - [x] **Step 1: Refresh registry on list**
 
@@ -69,8 +69,8 @@ Update milestone and roadmap status after implementation and checks pass.
 **Commands:**
 
 ```bash
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-cli plugin_commands skill_root_commands
-CARGO_TARGET_DIR=target/m66-dev cargo clippy -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-cli plugin_commands skill_root_commands
+CARGO_TARGET_DIR=target/m66-dev cargo clippy -p ruse-cli --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

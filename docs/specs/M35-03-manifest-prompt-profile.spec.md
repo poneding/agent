@@ -15,11 +15,11 @@ This spec delivers:
 
 ## Architecture
 
-`agent-mcp::server_manifest` owns manifest parsing and converts prompt declarations into prompt export runtime entries.
+`ruse-mcp::server_manifest` owns manifest parsing and converts prompt declarations into prompt export runtime entries.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_manifest_prompts`
+- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_manifest_prompts`
 
 ## Completion Signal
 

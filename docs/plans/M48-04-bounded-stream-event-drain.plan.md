@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M48-04-bounded-stream-event-drain.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_sse_checkpoints.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_sse_checkpoints.rs`
 
 - [x] **Step 1: Review drain spec and existing checkpoint behavior**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_stream_drain.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_stream_drain.rs`
 
 - [x] **Step 1: Add stream drain checkpoint tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_drain
+CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_drain
 ```
 
 Expected: tests fail before stream drain API exists.
@@ -37,8 +37,8 @@ Expected: tests fail before stream drain API exists.
 ### Task 3: Implement Drain API
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add `McpClientHttpStreamDrainReport`**
 - [x] **Step 2: Add initialized stream drain method**
@@ -49,7 +49,7 @@ Expected: tests fail before stream drain API exists.
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_drain
+CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_drain
 ```
 
 Expected: focused tests pass.
@@ -62,7 +62,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m48 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Expected: checks pass.
@@ -74,7 +74,7 @@ Expected: checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: drain mcp http stream events"
 ```
 
@@ -82,6 +82,6 @@ git commit -m "feat: drain mcp http stream events"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_drain` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_drain` passed.
 - `CARGO_TARGET_DIR=target/codex-m48 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

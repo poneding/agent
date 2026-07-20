@@ -4,7 +4,7 @@
 
 **Goal:** Add request factory helpers that apply usable OAuth token leases to MCP HTTP requests.
 
-**Architecture:** `agent-mcp::client_http` composes token lease validation with M51 bearer request constructors.
+**Architecture:** `ruse-mcp::client_http` composes token lease validation with M51 bearer request constructors.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M52-04-authorized-request-factory.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review request factory scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_oauth_token_requests.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_oauth_token_requests.rs`
 
 - [x] **Step 1: Add authorized request factory tests**
 
 ### Task 3: Implement Factory
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add POST request factory**
 - [x] **Step 2: Add GET stream request factory**
@@ -48,9 +48,9 @@
 Verification evidence, 2026-06-30:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token_requests
+CARGO_TARGET_DIR=target/codex-m52 cargo test -p ruse-mcp mcp_client_http_oauth_token_requests
 CARGO_TARGET_DIR=target/codex-m52 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Result: all focused M52-04 checks passed.

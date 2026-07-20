@@ -6,7 +6,7 @@ Expose selected local prompt profiles through the MCP server prompt surface so M
 
 ## Product Context
 
-M30-M34 made the local MCP server useful for tools, resources, profiles, built-in workspace tools, and preflight inspection. M35 closes the next protocol gap by adding prompt exports backed by the existing `agent-context` prompt contracts.
+M30-M34 made the local MCP server useful for tools, resources, profiles, built-in workspace tools, and preflight inspection. M35 closes the next protocol gap by adding prompt exports backed by the existing `ruse-context` prompt contracts.
 
 ## Scope
 
@@ -27,11 +27,11 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` owns MCP prompt contracts, registry behavior, protocol frames, and profile runtime wiring. `agent-cli` only loads manifests and passes prompt exports into the stdio server session.
+`ruse-mcp` owns MCP prompt contracts, registry behavior, protocol frames, and profile runtime wiring. `ruse-cli` only loads manifests and passes prompt exports into the stdio server session.
 
 ```mermaid
 flowchart TD
-  Context["agent-context prompt profile"] --> Export["agent-mcp prompt export"]
+  Context["ruse-context prompt profile"] --> Export["ruse-mcp prompt export"]
   Export --> Registry["prompt export registry"]
   Registry --> Stdio["MCP stdio prompts/list + prompts/get"]
   Manifest["export manifest"] --> Runtime["profile runtime"]
@@ -61,8 +61,8 @@ flowchart TD
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-mcp mcp_server_prompt_export`
-- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p agent-cli mcp_server_prompt_profile`
+- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-mcp mcp_server_prompt_export`
+- `CARGO_TARGET_DIR=target/codex-m35 cargo test -p ruse-cli mcp_server_prompt_profile`
 - `CARGO_TARGET_DIR=target/codex-m35 cargo xtask ci`
 
 ## Completion Signal

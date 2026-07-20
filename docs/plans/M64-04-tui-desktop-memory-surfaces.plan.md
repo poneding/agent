@@ -1,10 +1,10 @@
 # M64-04 TUI/Desktop Memory Surfaces Plan
 
-> **For agentic workers:** Keep memory policy, privacy, retention, retrieval, proposal eligibility, and redaction in `agent-memory`/`agent-core`. `agent-ui-bridge`, TUI, and Desktop should expose already-safe summaries and must not recalculate memory decisions.
+> **For agentic workers:** Keep memory policy, privacy, retention, retrieval, proposal eligibility, and redaction in `ruse-memory`/`ruse-core`. `ruse-ui-bridge`, TUI, and Desktop should expose already-safe summaries and must not recalculate memory decisions.
 
 **Goal:** Render memory records, proposals, retrieval influence, diagnostics, privacy/retention state, and disabled-memory states in TUI and Desktop from one shared bridge snapshot.
 
-**Architecture:** `agent-memory` produces product snapshots. `agent-core` produces runtime memory evidence. `agent-ui-bridge` maps those contracts into UI-safe frames. TUI and Desktop reduce `memory_snapshot` frames into presentation state and render bounded summaries only.
+**Architecture:** `ruse-memory` produces product snapshots. `ruse-core` produces runtime memory evidence. `ruse-ui-bridge` maps those contracts into UI-safe frames. TUI and Desktop reduce `memory_snapshot` frames into presentation state and render bounded summaries only.
 
 ---
 
@@ -13,11 +13,11 @@
 **Files:**
 - Read: `docs/specs/M64-memory-personalization.spec.md`
 - Read: `docs/specs/M64-04-tui-desktop-memory-surfaces.spec.md`
-- Read: `crates/agent-memory/src/product.rs`
-- Read: `crates/agent-core/src/memory.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-tui/src/task_panel.rs`
-- Read: `crates/agent-tui/tests/task_panel.rs`
+- Read: `crates/ruse-memory/src/product.rs`
+- Read: `crates/ruse-core/src/memory.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-tui/src/task_panel.rs`
+- Read: `crates/ruse-tui/tests/task_panel.rs`
 - Read: `apps/desktop/src/types.ts`
 - Read: `apps/desktop/src/state/conversation.ts`
 - Read: `apps/desktop/src/components/`
@@ -34,9 +34,9 @@ Confirm the current bridge/TUI/Desktop patterns for M63 team workflow snapshots,
 ### Task 2: Add Bridge Memory Snapshot Frame
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/Cargo.toml`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Create: `crates/agent-ui-bridge/tests/memory_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/Cargo.toml`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Create: `crates/ruse-ui-bridge/tests/memory_snapshot.rs`
 
 - [x] **Step 1: Define UI-safe memory structs**
 
@@ -73,8 +73,8 @@ Tests must prove:
 ### Task 3: Render TUI Memory State
 
 **Files:**
-- Modify: `crates/agent-tui/src/task_panel.rs`
-- Modify: `crates/agent-tui/tests/task_panel.rs`
+- Modify: `crates/ruse-tui/src/task_panel.rs`
+- Modify: `crates/ruse-tui/tests/task_panel.rs`
 
 - [x] **Step 1: Extend panel state**
 
@@ -144,8 +144,8 @@ Vitest coverage should prove:
 - [x] **Step 1: Run focused gates**
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-ui-bridge --test memory_snapshot
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-tui --test task_panel
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-ui-bridge --test memory_snapshot
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-tui --test task_panel
 npm --prefix apps/desktop test -- --run src/__tests__/memory-ui.test.tsx
 npm --prefix apps/desktop run build
 cargo fmt --all -- --check
@@ -155,9 +155,9 @@ git diff --check
 Completed evidence:
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-ui-bridge --test memory_snapshot
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-tui --test task_panel
-CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-ui-bridge --test memory_snapshot
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-tui --test task_panel
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
 npm --prefix apps/desktop test -- --run src/__tests__/memory-ui.test.tsx
 npm --prefix apps/desktop run build
 cargo fmt --all -- --check

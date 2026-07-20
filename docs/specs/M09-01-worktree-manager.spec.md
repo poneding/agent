@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Create the `agent-worktree` crate and define deterministic worktree lifecycle contracts for isolated subtask execution.
+Create the `ruse-worktree` crate and define deterministic worktree lifecycle contracts for isolated subtask execution.
 
 ## Product Context
 
@@ -12,7 +12,7 @@ M09 starts safe parallel work. This slice establishes worktree lease identity, r
 
 This spec delivers:
 
-- `agent-worktree` crate scaffold
+- `ruse-worktree` crate scaffold
 - `WorktreeLeaseId`
 - `WorktreeLeaseState`
 - `WorktreeRequest`
@@ -30,19 +30,19 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-worktree` owns worktree lifecycle contracts and deterministic fixture behavior. It depends on `agent-types` for IDs and timestamps. It does not depend on `agent-core`, CLI/Desktop, model providers, tools, MCP, or storage in this slice.
+`ruse-worktree` owns worktree lifecycle contracts and deterministic fixture behavior. It depends on `ruse-types` for IDs and timestamps. It does not depend on `ruse-core`, CLI/Desktop, model providers, tools, MCP, or storage in this slice.
 
 ```mermaid
 flowchart TD
-  types["agent-types IDs / Timestamp"] --> worktree["agent-worktree lifecycle contracts"]
-  future_core["future agent-core delegation"] --> worktree
+  types["ruse-types IDs / Timestamp"] --> worktree["ruse-worktree lifecycle contracts"]
+  future_core["future ruse-core delegation"] --> worktree
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-worktree/
+  ruse-worktree/
     Cargo.toml
     src/
       lib.rs
@@ -125,10 +125,10 @@ pub trait WorktreeManager {
 
 ## Acceptance Criteria
 
-- `agent-worktree` is a workspace member.
+- `ruse-worktree` is a workspace member.
 - Worktree lifecycle contracts serialize with stable snake_case states.
 - `InMemoryWorktreeManager` plans, activates, releases, and looks up leases.
-- `cargo test -p agent-worktree worktree_manager` passes.
+- `cargo test -p ruse-worktree worktree_manager` passes.
 
 ## Completion Signal
 

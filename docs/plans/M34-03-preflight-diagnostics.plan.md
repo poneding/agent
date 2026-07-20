@@ -4,7 +4,7 @@
 
 **Goal:** Add profile inspection diagnostics that predict stdio startup failures.
 
-**Architecture:** `agent-mcp` owns diagnostics; CLI renders them.
+**Architecture:** `ruse-mcp` owns diagnostics; CLI renders them.
 
 **Tech Stack:** Rust 2024 edition, Cargo tests.
 
@@ -28,8 +28,8 @@
 ### Task 4: Verify
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_preflight_diagnostics
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-mcp mcp_server_profile_preflight_diagnostics
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-cli mcp_server_profile_inspect_command
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -37,10 +37,10 @@ CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_ins
 Verified:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_preflight_diagnostics
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-mcp mcp_server_profile_preflight_diagnostics
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-cli mcp_server_profile_inspect_command
 CARGO_TARGET_DIR=target/codex-m34 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m34 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit

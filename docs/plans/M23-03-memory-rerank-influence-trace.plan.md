@@ -4,7 +4,7 @@
 
 **Goal:** Add reranking, selected/rejected retrieval results, influence traces, and prompt-layer conversion for retrieved memories.
 
-**Architecture:** `agent-memory` owns rerank and trace logic. `agent-context` owns conversion into prompt layers. `agent-core` only emits trace evidence when integrating retrieval into turns.
+**Architecture:** `ruse-memory` owns rerank and trace logic. `ruse-context` owns conversion into prompt layers. `ruse-core` only emits trace evidence when integrating retrieval into turns.
 
 **Tech Stack:** Rust 2024 edition, serde, deterministic fixture reranker, prompt-layer contracts, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M23-03-memory-rerank-influence-trace.spec.md`
 - Read: `docs/specs/M23-02-memory-index-hybrid-query.spec.md`
-- Read: `crates/agent-context/src/prompt.rs`
-- Read: `crates/agent-memory/src/record.rs`
+- Read: `crates/ruse-context/src/prompt.rs`
+- Read: `crates/ruse-memory/src/record.rs`
 
 - [x] **Step 1: Review rerank and trace scope**
 
@@ -31,8 +31,8 @@ Expected: selected/rejected result shape, trace privacy, and context adapter bou
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-memory/tests/memory_rerank_influence_trace.rs`
-- Create: `crates/agent-context/tests/memory_prompt_layers.rs`
+- Create: `crates/ruse-memory/tests/memory_rerank_influence_trace.rs`
+- Create: `crates/ruse-context/tests/memory_prompt_layers.rs`
 
 - [x] **Step 1: Add reranker result tests**
 
@@ -51,8 +51,8 @@ Cover selected memory conversion into memory prompt layers with source ids, sens
 Run:
 
 ```bash
-cargo test -p agent-memory memory_rerank_influence_trace
-cargo test -p agent-context memory_prompt_layers
+cargo test -p ruse-memory memory_rerank_influence_trace
+cargo test -p ruse-context memory_prompt_layers
 ```
 
 Expected: tests fail because rerank, trace, and adapter contracts are missing.
@@ -60,11 +60,11 @@ Expected: tests fail because rerank, trace, and adapter contracts are missing.
 ### Task 3: Implement Rerank and Trace Contracts
 
 **Files:**
-- Create: `crates/agent-memory/src/rerank.rs`
-- Create: `crates/agent-memory/src/trace.rs`
-- Modify: `crates/agent-memory/src/lib.rs`
-- Create: `crates/agent-context/src/memory_layers.rs`
-- Modify: `crates/agent-context/src/lib.rs`
+- Create: `crates/ruse-memory/src/rerank.rs`
+- Create: `crates/ruse-memory/src/trace.rs`
+- Modify: `crates/ruse-memory/src/lib.rs`
+- Create: `crates/ruse-context/src/memory_layers.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
 
 - [x] **Step 1: Add reranker contracts**
 
@@ -85,16 +85,16 @@ Reject invalid scores and ensure sensitive text never appears in traces or adapt
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-memory/tests/memory_rerank_influence_trace.rs`
-- Read: `crates/agent-context/tests/memory_prompt_layers.rs`
+- Read: `crates/ruse-memory/tests/memory_rerank_influence_trace.rs`
+- Read: `crates/ruse-context/tests/memory_prompt_layers.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-memory memory_rerank_influence_trace
-cargo test -p agent-context memory_prompt_layers
+cargo test -p ruse-memory memory_rerank_influence_trace
+cargo test -p ruse-context memory_prompt_layers
 ```
 
 Expected: focused tests pass.
@@ -127,7 +127,7 @@ Advance active implementation focus to M23-04.
 Run:
 
 ```bash
-git add crates/agent-memory crates/agent-context docs Cargo.toml Cargo.lock
+git add crates/ruse-memory crates/ruse-context docs Cargo.toml Cargo.lock
 git commit -m "feat: add memory rerank traces"
 ```
 

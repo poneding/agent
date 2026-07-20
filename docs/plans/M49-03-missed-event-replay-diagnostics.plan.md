@@ -4,7 +4,7 @@
 
 **Goal:** Add safe replay diagnostics proving reconnect attempts requested resume from local checkpoints.
 
-**Architecture:** `agent-mcp::client_http` derives diagnostics from stream snapshots, checkpoint state, and drain reports without mutating state.
+**Architecture:** `ruse-mcp::client_http` derives diagnostics from stream snapshots, checkpoint state, and drain reports without mutating state.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M49-03-missed-event-replay-diagnostics.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_stream_resume.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_stream_resume.rs`
 
 - [x] **Step 1: Review replay diagnostics spec and snapshot behavior**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_missed_event_replay.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_missed_event_replay.rs`
 
 - [x] **Step 1: Add replay diagnostics tests**
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_missed_event_replay
+CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_missed_event_replay
 ```
 
 Expected: tests fail before replay diagnostics exist.
@@ -37,8 +37,8 @@ Expected: tests fail before replay diagnostics exist.
 ### Task 3: Implement Diagnostics
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add replay diagnostic contract**
 - [x] **Step 2: Detect requested resume without raw event id exposure**
@@ -49,7 +49,7 @@ Expected: tests fail before replay diagnostics exist.
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_missed_event_replay
+CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_missed_event_replay
 ```
 
 Expected: focused tests pass.
@@ -62,7 +62,7 @@ Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Expected: checks pass.
@@ -74,7 +74,7 @@ Expected: checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp http missed event replay diagnostics"
 ```
 
@@ -82,7 +82,7 @@ git commit -m "feat: add mcp http missed event replay diagnostics"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_missed_event_replay` passed.
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_stream_reconnect_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_missed_event_replay` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_stream_reconnect_runner` passed.
 - `CARGO_TARGET_DIR=target/codex-m49 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m49 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

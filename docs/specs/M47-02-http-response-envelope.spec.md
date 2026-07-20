@@ -68,8 +68,8 @@ pub struct McpClientHttpResponseEnvelope {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_response_envelope`
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_transport`
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_response_envelope`
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_transport`
 - `CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check`
 
 ## Completion Signal

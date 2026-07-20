@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-model` owns secret resolver and provider-facing secret contracts. OS-specific backends are selected by startup configuration. CLI and Desktop never receive raw secret values after write.
+`ruse-model` owns secret resolver and provider-facing secret contracts. OS-specific backends are selected by startup configuration. CLI and Desktop never receive raw secret values after write.
 
 ```mermaid
 flowchart TD
@@ -81,7 +81,7 @@ pub enum SecretStoreKind {
 
 - model providers can resolve credentials through `SecretStoreBackend`
 - settings persist `SecretRef`, never raw values
-- focused tests pass with `cargo test -p agent-model secret_store`
+- focused tests pass with `cargo test -p ruse-model secret_store`
 
 ## Completion Signal
 

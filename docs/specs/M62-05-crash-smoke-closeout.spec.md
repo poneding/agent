@@ -32,17 +32,17 @@ Out of scope:
 
 ## Architecture
 
-`agent-core` owns the deterministic crash/restart fixture because recovery semantics belong in runtime crates. The fixture should simulate the important product condition: state is written before interruption, then a new runtime-facing recovery engine instance reads durable stores and reports safe recovery state.
+`ruse-core` owns the deterministic crash/restart fixture because recovery semantics belong in runtime crates. The fixture should simulate the important product condition: state is written before interruption, then a new runtime-facing recovery engine instance reads durable stores and reports safe recovery state.
 
-`agent-eval` may wrap the same fixture as a credential-free scenario so the default eval suite can prove M62 recovery behavior alongside the existing M04/M56/M58 scenarios. `xtask eval` should keep using `docs/eval/default.suite.json`; M62-05 only adds a new scenario if it can remain deterministic, bounded, and fast.
+`ruse-eval` may wrap the same fixture as a credential-free scenario so the default eval suite can prove M62 recovery behavior alongside the existing M04/M56/M58 scenarios. `xtask eval` should keep using `docs/eval/default.suite.json`; M62-05 only adds a new scenario if it can remain deterministic, bounded, and fast.
 
 CLI, TUI, and Desktop do not implement crash logic. They document and render typed recovery contracts produced by runtime and bridge layers.
 
 ```mermaid
 flowchart TD
-  Fixture["agent-core crash/restart fixture"] --> Storage["checkpoint, event, idempotency stores"]
+  Fixture["ruse-core crash/restart fixture"] --> Storage["checkpoint, event, idempotency stores"]
   Storage --> Recovery["RecoveryEngine snapshot/resume dry-run"]
-  Recovery --> Eval["agent-eval recovery scenario"]
+  Recovery --> Eval["ruse-eval recovery scenario"]
   Recovery --> Docs["CLI/Desktop recovery workflow docs"]
   Eval --> Xtask["cargo xtask eval"]
 ```
@@ -51,17 +51,17 @@ flowchart TD
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     tests/
       crash_resume_smoke.rs
-  agent-eval/
+  ruse-eval/
     src/
       manifest.rs
       runner.rs
     tests/
       runner.rs
       corpus.rs
-  agent-cli/
+  ruse-cli/
     tests/
       recovery_commands.rs
 docs/
@@ -147,14 +147,14 @@ No new CLI command is required unless implementation discovers a missing closeou
 
 ## Testing Strategy
 
-- `agent-core/tests/crash_resume_smoke.rs`
+- `ruse-core/tests/crash_resume_smoke.rs`
   - checkpoint resume after simulated restart
   - idempotent effect reuse/skip visibility
   - pending tool count survives restart
   - conflict readiness blocks automatic resume
   - retry dry-run plan remains evidence-linked if included
   - secret-like fixture values are redacted
-- `agent-eval/tests/runner.rs` and `agent-eval/tests/corpus.rs`
+- `ruse-eval/tests/runner.rs` and `ruse-eval/tests/corpus.rs`
   - recovery crash smoke scenario validates and runs
   - default suite includes the new scenario if eval integration is selected
 - CLI docs tests if this repository has doc-content assertions for CLI recipes.

@@ -4,22 +4,22 @@
 
 **Goal:** Add deterministic team workflow smoke coverage, document CLI/Desktop team workflows, run final gates, and close M63.
 
-**Architecture:** `agent-team` owns workflow and merge-readiness contracts. `agent-eval` runs a credential-free smoke over typed snapshots and reports stable golden evidence. CLI/Desktop docs describe existing bridge/rendering surfaces without moving policy or readiness logic into presentation layers.
+**Architecture:** `ruse-team` owns workflow and merge-readiness contracts. `ruse-eval` runs a credential-free smoke over typed snapshots and reports stable golden evidence. CLI/Desktop docs describe existing bridge/rendering surfaces without moving policy or readiness logic into presentation layers.
 
 ---
 
 ### Task 1: Confirm Inputs
 
 **Files:**
-- Read: `docs/specs/M63-worktree-agent-team-workflows.spec.md`
-- Read: `docs/plans/M63-worktree-agent-team-workflows.plan.md`
+- Read: `docs/specs/M63-worktree-ruse-team-workflows.spec.md`
+- Read: `docs/plans/M63-worktree-ruse-team-workflows.plan.md`
 - Read: `docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md`
 - Read: `docs/specs/M63-02-cli-json-team-workflows.spec.md`
 - Read: `docs/specs/M63-03-reviewer-merge-readiness.spec.md`
 - Read: `docs/specs/M63-04-tui-desktop-team-surfaces.spec.md`
-- Read: `crates/agent-team/`
-- Read: `crates/agent-eval/`
-- Read: `crates/agent-cli/tests/team_workflow_commands.rs`
+- Read: `crates/ruse-team/`
+- Read: `crates/ruse-eval/`
+- Read: `crates/ruse-cli/tests/team_workflow_commands.rs`
 - Read: `docs/eval/default.suite.json`
 
 - [x] **Step 1: Review M63 contracts**
@@ -29,13 +29,13 @@ Identify the existing typed evidence needed for closeout: worktrees, handoffs, b
 ### Task 2: Add Team Workflow Eval Smoke
 
 **Files:**
-- Modify: `crates/agent-eval/Cargo.toml`
-- Modify: `crates/agent-eval/src/manifest.rs`
-- Modify: `crates/agent-eval/src/report.rs`
-- Modify: `crates/agent-eval/src/runner.rs`
-- Modify: `crates/agent-eval/tests/runner.rs`
-- Modify: `crates/agent-eval/tests/manifest.rs`
-- Modify: `crates/agent-eval/tests/corpus.rs`
+- Modify: `crates/ruse-eval/Cargo.toml`
+- Modify: `crates/ruse-eval/src/manifest.rs`
+- Modify: `crates/ruse-eval/src/report.rs`
+- Modify: `crates/ruse-eval/src/runner.rs`
+- Modify: `crates/ruse-eval/tests/runner.rs`
+- Modify: `crates/ruse-eval/tests/manifest.rs`
+- Modify: `crates/ruse-eval/tests/corpus.rs`
 - Modify: `docs/eval/default.suite.json`
 - Create: `docs/eval/scenarios/m63-team-workflow-smoke.eval.json`
 - Create: `docs/eval/goldens/default-m63-team-workflow-smoke.golden.json`
@@ -63,12 +63,12 @@ Add the scenario to `docs/eval/default.suite.json` and commit a stable normalize
 - [x] **Step 4: Run eval-focused checks**
 
 ```bash
-cargo test -p agent-eval
-cargo test -p agent-cli --test eval_suite_commands
+cargo test -p ruse-eval
+cargo test -p ruse-cli --test eval_suite_commands
 cargo xtask eval
 ```
 
-Result: `cargo test -p agent-eval`, `cargo test -p agent-cli --test eval_suite_commands`, and `cargo xtask eval` pass. The default eval suite reports `total=6 passed=6 failed=0 skipped=0 invalid=0 not_run=0`, including `default-m63-team-workflow-smoke`.
+Result: `cargo test -p ruse-eval`, `cargo test -p ruse-cli --test eval_suite_commands`, and `cargo xtask eval` pass. The default eval suite reports `total=6 passed=6 failed=0 skipped=0 invalid=0 not_run=0`, including `default-m63-team-workflow-smoke`.
 
 ### Task 3: Add Team Workflow Docs
 
@@ -94,7 +94,7 @@ Add README links or milestone references where appropriate.
 **Files:**
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
-- Modify: `docs/plans/M63-worktree-agent-team-workflows.plan.md`
+- Modify: `docs/plans/M63-worktree-ruse-team-workflows.plan.md`
 - Modify: `docs/plans/M63-05-team-workflow-smoke-closeout.plan.md`
 
 - [x] **Step 1: Run final closeout gates**

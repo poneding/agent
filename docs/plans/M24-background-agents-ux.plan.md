@@ -4,7 +4,7 @@
 
 **Goal:** Make long-running and scheduled agent tasks manageable from CLI, TUI, and Desktop-facing bridge surfaces.
 
-**Architecture:** `agent-scheduler` owns task state, queues, leases, retries, and quotas. `agent-core` runs task turns. `agent-ui-bridge` exposes task commands/events. `agent-worktree` provides optional coding-task isolation.
+**Architecture:** `ruse-scheduler` owns task state, queues, leases, retries, and quotas. `ruse-core` runs task turns. `ruse-ui-bridge` exposes task commands/events. `ruse-worktree` provides optional coding-task isolation.
 
 **Tech Stack:** Rust 2024 edition, durable scheduler contracts, Tokio task runners, serde UI schemas, event storage, Cargo fmt, Cargo clippy, Cargo test.
 

@@ -4,7 +4,7 @@
 
 **Goal:** Prove a fake model tool call can be validated, authorized, executed, audited, observed, denied, or held for approval.
 
-**Architecture:** `agent-core` orchestrates the tool loop using `agent-model`, `agent-tool`, `agent-policy`, and `agent-types`. Tool and policy implementations remain trait-backed and replaceable.
+**Architecture:** `ruse-core` orchestrates the tool loop using `ruse-model`, `ruse-tool`, `ruse-policy`, and `ruse-types`. Tool and policy implementations remain trait-backed and replaceable.
 
 **Tech Stack:** Rust 2024 edition, M02 crates, `serde_json`, `tokio` async tests, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -13,9 +13,9 @@
 ### Task 1: Extend Fake Model Stream
 
 **Files:**
-- Modify: `crates/agent-model/src/stream.rs`
-- Modify: `crates/agent-model/src/fake.rs`
-- Create: `crates/agent-model/tests/fake_tool_call.rs`
+- Modify: `crates/ruse-model/src/stream.rs`
+- Modify: `crates/ruse-model/src/fake.rs`
+- Create: `crates/ruse-model/tests/fake_tool_call.rs`
 
 - [x] **Step 1: Write failing fake tool-call test**
 
@@ -28,7 +28,7 @@ Add `ToolCall { call_id, tool_name, input_json }` and script support.
 - [x] **Step 3: Verify focused test**
 
 ```bash
-cargo test -p agent-model fake_tool_call
+cargo test -p ruse-model fake_tool_call
 ```
 
 Expected: fake tool-call tests pass.
@@ -36,7 +36,7 @@ Expected: fake tool-call tests pass.
 ### Task 2: Add Tool Loop Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/tool_loop.rs`
+- Create: `crates/ruse-core/tests/tool_loop.rs`
 
 - [x] **Step 1: Write failing integration tests**
 
@@ -50,7 +50,7 @@ Tests must prove:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-core tool_loop
+cargo test -p ruse-core tool_loop
 ```
 
 Expected: tests fail before `ToolLoop` exists.
@@ -58,8 +58,8 @@ Expected: tests fail before `ToolLoop` exists.
 ### Task 3: Implement Tool Loop
 
 **Files:**
-- Modify: `crates/agent-core/src/lib.rs`
-- Create: `crates/agent-core/src/tool_loop.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Create: `crates/ruse-core/src/tool_loop.rs`
 
 - [x] **Step 1: Define outcome types**
 
@@ -76,7 +76,7 @@ Deny emits decision and terminal denied outcome. Ask emits decision and waiting-
 - [x] **Step 4: Verify GREEN**
 
 ```bash
-cargo test -p agent-core tool_loop
+cargo test -p ruse-core tool_loop
 ```
 
 Expected: tool loop tests pass.

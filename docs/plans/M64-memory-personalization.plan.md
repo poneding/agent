@@ -1,12 +1,12 @@
 # M64 Memory and Personalization Implementation Plan
 
-> **For agentic workers:** Keep memory product logic in `agent-memory`, `agent-context`, and `agent-core`. CLI/TUI/Desktop must render typed bridge/runtime contracts and must not own privacy, retrieval, proposal, or retention rules.
+> **For agentic workers:** Keep memory product logic in `ruse-memory`, `ruse-context`, and `ruse-core`. CLI/TUI/Desktop must render typed bridge/runtime contracts and must not own privacy, retrieval, proposal, or retention rules.
 
 **Goal:** Make memory useful, reviewable, privacy-safe, and visible across CLI/TUI/Desktop with deterministic smoke evidence.
 
-**Architecture:** `agent-memory` owns records, proposals, archive/import/export, tombstones, retrieval, reranking, and influence traces. `agent-context` assembles memory into prompt layers. `agent-core` orchestrates turn-level retrieval/proposal evidence. `agent-ui-bridge` exposes UI-safe frames. CLI/TUI/Desktop render and command over shared contracts.
+**Architecture:** `ruse-memory` owns records, proposals, archive/import/export, tombstones, retrieval, reranking, and influence traces. `ruse-context` assembles memory into prompt layers. `ruse-core` orchestrates turn-level retrieval/proposal evidence. `ruse-ui-bridge` exposes UI-safe frames. CLI/TUI/Desktop render and command over shared contracts.
 
-**Tech Stack:** Rust 2024 edition, serde contracts, existing `agent-memory`, `agent-context`, `agent-core`, `agent-ui-bridge`, CLI/JSON commands, Ratatui and Desktop fixtures, Cargo fmt/clippy/test, Vitest, Vite build, and `cargo xtask eval`.
+**Tech Stack:** Rust 2024 edition, serde contracts, existing `ruse-memory`, `ruse-context`, `ruse-core`, `ruse-ui-bridge`, CLI/JSON commands, Ratatui and Desktop fixtures, Cargo fmt/clippy/test, Vitest, Vite build, and `cargo xtask eval`.
 
 ---
 
@@ -21,11 +21,11 @@
 - Read: `docs/specs/M05-context-memory.spec.md`
 - Read: `docs/specs/M12-04-memory-portability.spec.md`
 - Read: `docs/specs/M23-memory-retrieval-quality.spec.md`
-- Read: `crates/agent-memory/`
-- Read: `crates/agent-context/`
-- Read: `crates/agent-core/`
-- Read: `crates/agent-ui-bridge/`
-- Read: `crates/agent-cli/tests/memory_commands.rs`
+- Read: `crates/ruse-memory/`
+- Read: `crates/ruse-context/`
+- Read: `crates/ruse-core/`
+- Read: `crates/ruse-ui-bridge/`
+- Read: `crates/ruse-cli/tests/memory_commands.rs`
 - Read: `apps/desktop/src/components/SettingsView.tsx`
 
 - [x] **Step 1: Review existing memory foundations**
@@ -37,9 +37,9 @@ Confirm the repo already has memory records, scopes, sensitivity, archives, prop
 **Files:**
 - Create: `docs/specs/M64-01-memory-product-snapshot-privacy.spec.md`
 - Create: `docs/plans/M64-01-memory-product-snapshot-privacy.plan.md`
-- Modify: `crates/agent-memory/`
-- Modify if needed: `crates/agent-core/`
-- Modify if needed: `crates/agent-ui-bridge/`
+- Modify: `crates/ruse-memory/`
+- Modify if needed: `crates/ruse-core/`
+- Modify if needed: `crates/ruse-ui-bridge/`
 
 - [x] **Step 1: Plan M64-01**
 
@@ -52,16 +52,16 @@ Add typed, serializable, bounded, redacted contracts and focused tests. Keep sid
 Expected checks:
 
 ```bash
-cargo test -p agent-memory
-cargo clippy -p agent-memory --all-targets -- -D warnings
+cargo test -p ruse-memory
+cargo clippy -p ruse-memory --all-targets -- -D warnings
 ```
 
 Completed evidence:
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-memory --test memory_product_snapshot
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-memory
-CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-memory --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-memory --test memory_product_snapshot
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-memory
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p ruse-memory --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```
@@ -71,8 +71,8 @@ git diff --check
 **Files:**
 - Create: `docs/specs/M64-02-cli-json-memory-review.spec.md`
 - Create: `docs/plans/M64-02-cli-json-memory-review.plan.md`
-- Modify: `crates/agent-cli/`
-- Modify: `crates/agent-ui-bridge/`
+- Modify: `crates/ruse-cli/`
+- Modify: `crates/ruse-ui-bridge/`
 - Modify: `docs/cli/`
 
 - [x] **Step 1: Plan CLI/JSON surfaces**
@@ -86,8 +86,8 @@ Commands must render shared contracts and keep raw sensitive memory out of defau
 Completed evidence:
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-cli --test memory_commands
-CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-cli --test memory_commands
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p ruse-cli --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```
@@ -97,9 +97,9 @@ git diff --check
 **Files:**
 - Create: `docs/specs/M64-03-runtime-memory-influence-proposals.spec.md`
 - Create: `docs/plans/M64-03-runtime-memory-influence-proposals.plan.md`
-- Modify: `crates/agent-context/`
-- Modify: `crates/agent-core/`
-- Modify: `crates/agent-memory/`
+- Modify: `crates/ruse-context/`
+- Modify: `crates/ruse-core/`
+- Modify: `crates/ruse-memory/`
 
 - [x] **Step 1: Plan runtime integration**
 
@@ -112,9 +112,9 @@ Runtime memory must be bounded, policy-aware, recoverable, auditable, and explai
 Completed evidence:
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-context --test memory_prompt_layers
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-core --test runtime_memory_influence
-CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-context -p agent-core --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-context --test memory_prompt_layers
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-core --test runtime_memory_influence
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p ruse-context -p ruse-core --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```
@@ -124,7 +124,7 @@ git diff --check
 **Files:**
 - Create: `docs/specs/M64-04-tui-desktop-memory-surfaces.spec.md`
 - Create: `docs/plans/M64-04-tui-desktop-memory-surfaces.plan.md`
-- Modify: `crates/agent-tui/`
+- Modify: `crates/ruse-tui/`
 - Modify: `apps/desktop/`
 - Modify: `docs/desktop/`
 
@@ -139,9 +139,9 @@ TUI and Desktop must render bridge snapshots only and must not implement privacy
 Completed evidence:
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-ui-bridge --test memory_snapshot
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-tui --test task_panel
-CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-ui-bridge --test memory_snapshot
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-tui --test task_panel
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
 npm --prefix apps/desktop test -- --run src/__tests__/memory-ui.test.tsx
 npm --prefix apps/desktop run build
 cargo fmt --all -- --check

@@ -29,7 +29,7 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-core` remains the source of edit/diff and command/test reports. `agent-ui-bridge` owns UI-safe snapshot contracts and any derived chunks or summary metadata. `agent-cli` renders text and JSON views from those contracts. `agent-tui` owns panel state, focus, navigation, and rendering. Presentation crates must not execute commands, evaluate policy, mutate files, or cancel runtime work except through existing typed commands.
+`ruse-core` remains the source of edit/diff and command/test reports. `ruse-ui-bridge` owns UI-safe snapshot contracts and any derived chunks or summary metadata. `ruse-cli` renders text and JSON views from those contracts. `ruse-tui` owns panel state, focus, navigation, and rendering. Presentation crates must not execute commands, evaluate policy, mutate files, or cancel runtime work except through existing typed commands.
 
 ```mermaid
 flowchart TD
@@ -44,28 +44,28 @@ flowchart TD
 
 Dependency rules:
 
-- `agent-core` may classify command/test status, failure class, cancellation state, and diff evidence.
-- `agent-ui-bridge` may bound, redact, chunk, count, and summarize reports for UI use.
-- `agent-cli` and `agent-tui` may render bridge snapshots and emit existing typed UI commands only.
+- `ruse-core` may classify command/test status, failure class, cancellation state, and diff evidence.
+- `ruse-ui-bridge` may bound, redact, chunk, count, and summarize reports for UI use.
+- `ruse-cli` and `ruse-tui` may render bridge snapshots and emit existing typed UI commands only.
 - No UI crate may infer policy, run shell commands directly, apply diffs directly, or synthesize secret-bearing output.
 
 ## File Layout
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
     tests/
       edit_diff_snapshot.rs
       command_test_snapshot.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       edit_diff_flow.rs
       command_test_loop.rs
-  agent-tui/
+  ruse-tui/
     src/
       app.rs
       diff_panel.rs
@@ -127,10 +127,10 @@ M59-04 may add derived UI fields such as file summaries, preview chunks, active 
 CLI behavior should remain compatible with:
 
 ```text
-agent-cli repo edit ...
-agent-cli --json repo edit ...
-agent-cli repo command ...
-agent-cli --json repo command ...
+ruse-cli repo edit ...
+ruse-cli --json repo edit ...
+ruse-cli repo command ...
+ruse-cli --json repo command ...
 ```
 
 TUI behavior should reduce `UiJsonFrame::EditDiffSnapshot` and `UiJsonFrame::CommandTestSnapshot` into panel state.
@@ -155,9 +155,9 @@ TUI behavior should reduce `UiJsonFrame::EditDiffSnapshot` and `UiJsonFrame::Com
 
 ## Testing Strategy
 
-- `agent-ui-bridge` tests for diff/command snapshot JSON shape, chunk/count metadata if added, redaction, truncation, and single-line frame encoding
-- `agent-cli` tests for text/JSON diff and command views, stable status/cancellation labels, redaction, and existing exit-code behavior
-- `agent-tui` tests for diff panel snapshot reduction, file/line navigation, empty-state rendering, command panel status rendering, cancellation readiness, output truncation, and redaction
+- `ruse-ui-bridge` tests for diff/command snapshot JSON shape, chunk/count metadata if added, redaction, truncation, and single-line frame encoding
+- `ruse-cli` tests for text/JSON diff and command views, stable status/cancellation labels, redaction, and existing exit-code behavior
+- `ruse-tui` tests for diff panel snapshot reduction, file/line navigation, empty-state rendering, command panel status rendering, cancellation readiness, output truncation, and redaction
 - focused gates for the touched crates plus the standard workspace fmt/clippy/test commands before implementation commit
 
 ## Acceptance Criteria

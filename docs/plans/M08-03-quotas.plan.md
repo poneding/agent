@@ -4,9 +4,9 @@
 
 **Goal:** Add deterministic scheduler quota decisions and queue acquisition checks.
 
-**Architecture:** Quota evaluation is a pure `agent-scheduler` function over `QuotaPolicy`, `QuotaSnapshot`, and a candidate `TaskRun`. Queue integration skips rejected candidates without mutating their state.
+**Architecture:** Quota evaluation is a pure `ruse-scheduler` function over `QuotaPolicy`, `QuotaSnapshot`, and a candidate `TaskRun`. Queue integration skips rejected candidates without mutating their state.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `agent-scheduler`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `ruse-scheduler`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,7 +14,7 @@
 
 **Files:**
 - Read: `docs/specs/M08-03-quotas.spec.md`
-- Read: `crates/agent-scheduler/src/queue.rs`
+- Read: `crates/ruse-scheduler/src/queue.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -25,7 +25,7 @@ sed -n '1,260p' docs/specs/M08-03-quotas.spec.md
 ### Task 2: Write Quota RED Tests
 
 **Files:**
-- Create: `crates/agent-scheduler/tests/quotas.rs`
+- Create: `crates/ruse-scheduler/tests/quotas.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -40,15 +40,15 @@ Cover:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-scheduler quotas
+cargo test -p ruse-scheduler quotas
 ```
 
 ### Task 3: Implement Quotas
 
 **Files:**
-- Create: `crates/agent-scheduler/src/quota.rs`
-- Modify: `crates/agent-scheduler/src/queue.rs`
-- Modify: `crates/agent-scheduler/src/lib.rs`
+- Create: `crates/ruse-scheduler/src/quota.rs`
+- Modify: `crates/ruse-scheduler/src/queue.rs`
+- Modify: `crates/ruse-scheduler/src/lib.rs`
 
 - [x] **Step 1: Add quota contracts**
 
@@ -65,7 +65,7 @@ Add an acquisition path that evaluates candidates before leasing.
 - [x] **Step 4: Verify GREEN**
 
 ```bash
-cargo test -p agent-scheduler quotas
+cargo test -p ruse-scheduler quotas
 ```
 
 ### Task 4: Update Progress and Commit

@@ -32,22 +32,22 @@ Owned by later M60 slices:
 
 ## Architecture
 
-`agent-ui-bridge` owns the shared command and frame contracts. `agent-desktop` owns Desktop-safe conversation view models and pure update helpers. Tauri owns the narrow command boundary, command acknowledgements, and bounded frame queue. React owns presentation and local UI reduction from typed frames and Desktop view models only.
+`ruse-ui-bridge` owns the shared command and frame contracts. `ruse-desktop` owns Desktop-safe conversation view models and pure update helpers. Tauri owns the narrow command boundary, command acknowledgements, and bounded frame queue. React owns presentation and local UI reduction from typed frames and Desktop view models only.
 
 ```mermaid
 flowchart TD
   Composer["React Composer"] --> Command["UiCommand::StartTurn envelope"]
   Command --> Tauri["send_ui_command Tauri command"]
-  Tauri --> Bridge["agent-ui-bridge validation and frame queue"]
+  Tauri --> Bridge["ruse-ui-bridge validation and frame queue"]
   Bridge --> Frames["UiJsonFrame drain"]
-  Frames --> DesktopModel["agent-desktop conversation model"]
+  Frames --> DesktopModel["ruse-desktop conversation model"]
   DesktopModel --> React["Transcript / task state rendering"]
 ```
 
 Dependency rules:
 
-- start-turn validation stays in `agent-ui-bridge`; Tauri calls that validation before acknowledging
-- transcript view models and bounded/redacted labels live in `agent-desktop`
+- start-turn validation stays in `ruse-ui-bridge`; Tauri calls that validation before acknowledging
+- transcript view models and bounded/redacted labels live in `ruse-desktop`
 - React does not parse CLI output, invoke providers, execute tools, or infer runtime state from free-form logs
 - Desktop submit and frame drain failures become typed recoverable errors and do not create side effects after validation fails
 
@@ -55,13 +55,13 @@ Dependency rules:
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     src/
       conversation.rs
       lib.rs
     tests/
       desktop_conversation.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       command.rs
       frame.rs
@@ -93,7 +93,7 @@ docs/
     M60-desktop-daily-driver.plan.md
 ```
 
-Exact filenames can change if implementation finds a better local fit, but the public conversation model should stay in `agent-desktop`, and command/frame contracts should stay in `agent-ui-bridge`.
+Exact filenames can change if implementation finds a better local fit, but the public conversation model should stay in `ruse-desktop`, and command/frame contracts should stay in `ruse-ui-bridge`.
 
 ## Public Contracts
 
@@ -182,16 +182,16 @@ All contracts must derive or map cleanly to `Serialize` and `Deserialize`. Promp
 
 ## Testing Strategy
 
-- `agent-desktop` tests for transcript entry construction, prompt preview bounding/redaction, submission status transitions, done/error frame handling, and JSON serialization
-- `agent-ui-bridge` tests for `StartTurn` serialization/validation and Desktop-safe frame JSON for transcript-relevant events, done, and recoverable errors
+- `ruse-desktop` tests for transcript entry construction, prompt preview bounding/redaction, submission status transitions, done/error frame handling, and JSON serialization
+- `ruse-ui-bridge` tests for `StartTurn` serialization/validation and Desktop-safe frame JSON for transcript-relevant events, done, and recoverable errors
 - Tauri tests for accepted start-turn acknowledgements, rejected invalid prompts, disconnected errors, bounded frame draining, and redacted recoverable diagnostics
 - Vitest state/component tests for composer submission, acknowledgement display, frame drain reduction, transcript updates, task notification updates, recoverable error rendering, and disabled disconnected submit
 
 Focused commands:
 
 ```bash
-cargo test -p agent-desktop --test desktop_conversation
-cargo test -p agent-ui-bridge desktop_daily_driver
+cargo test -p ruse-desktop --test desktop_conversation
+cargo test -p ruse-ui-bridge desktop_daily_driver
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml bridge_session
 npm --prefix apps/desktop test -- conversation-task-ui
 ```

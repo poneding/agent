@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-Documentation references shared `agent-mcp` runtime contracts and CLI command surfaces. No new runtime ownership is introduced in this slice unless final hardening tests reveal a narrow fix.
+Documentation references shared `ruse-mcp` runtime contracts and CLI command surfaces. No new runtime ownership is introduced in this slice unless final hardening tests reveal a narrow fix.
 
 ## File Layout
 
@@ -39,7 +39,7 @@ docs/plans/M31-mcp-stdio-server-runtime.plan.md
 ## Public Contracts
 
 ```bash
-agent-cli mcp server stdio
+ruse-cli mcp server stdio
 ```
 
 ## State and Failure Handling

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a provider-neutral `agent-telemetry` crate with validated spans, metrics, trace context, redaction, and in-memory sink tests.
+**Goal:** Add a provider-neutral `ruse-telemetry` crate with validated spans, metrics, trace context, redaction, and in-memory sink tests.
 
-**Architecture:** Keep telemetry contracts below `agent-core`; telemetry data may use `agent-types` ids but must not depend on runtime orchestration or UI crates.
+**Architecture:** Keep telemetry contracts below `ruse-core`; telemetry data may use `ruse-types` ids but must not depend on runtime orchestration or UI crates.
 
 **Tech Stack:** Rust 2024 edition, serde, serde_json, thiserror, Cargo workspace, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -25,14 +25,14 @@ Run:
 sed -n '1,260p' docs/specs/M12-02-telemetry.spec.md
 ```
 
-Expected: telemetry is provider-neutral and lower-level than `agent-core`.
+Expected: telemetry is provider-neutral and lower-level than `ruse-core`.
 
 ### Task 2: Write RED Telemetry Tests
 
 **Files:**
-- Create: `crates/agent-telemetry/tests/telemetry.rs`
-- Create: `crates/agent-telemetry/Cargo.toml`
-- Create: `crates/agent-telemetry/src/lib.rs`
+- Create: `crates/ruse-telemetry/tests/telemetry.rs`
+- Create: `crates/ruse-telemetry/Cargo.toml`
+- Create: `crates/ruse-telemetry/src/lib.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -51,7 +51,7 @@ The tests define the public API for `TraceContext`, `TelemetrySpan`, `TelemetryM
 Run:
 
 ```bash
-cargo test -p agent-telemetry telemetry
+cargo test -p ruse-telemetry telemetry
 ```
 
 Expected: tests fail because telemetry contracts are not implemented.
@@ -61,15 +61,15 @@ Expected: tests fail because telemetry contracts are not implemented.
 **Files:**
 - Modify: `Cargo.toml`
 - Modify: `Cargo.lock`
-- Modify: `crates/agent-telemetry/Cargo.toml`
-- Modify: `crates/agent-telemetry/src/lib.rs`
-- Create: `crates/agent-telemetry/src/span.rs`
-- Create: `crates/agent-telemetry/src/metric.rs`
-- Create: `crates/agent-telemetry/src/sink.rs`
+- Modify: `crates/ruse-telemetry/Cargo.toml`
+- Modify: `crates/ruse-telemetry/src/lib.rs`
+- Create: `crates/ruse-telemetry/src/span.rs`
+- Create: `crates/ruse-telemetry/src/metric.rs`
+- Create: `crates/ruse-telemetry/src/sink.rs`
 
 - [x] **Step 1: Register workspace crate**
 
-Add `crates/agent-telemetry` to workspace members and define dependencies on `agent-types`, `serde`, `serde_json`, and `thiserror`.
+Add `crates/ruse-telemetry` to workspace members and define dependencies on `ruse-types`, `serde`, `serde_json`, and `thiserror`.
 
 - [x] **Step 2: Implement span and trace context types**
 
@@ -86,14 +86,14 @@ Implement `TelemetrySink`, `InMemoryTelemetrySink`, and redaction for secret-lik
 ### Task 4: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-telemetry/tests/telemetry.rs`
+- Read: `crates/ruse-telemetry/tests/telemetry.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-telemetry telemetry
+cargo test -p ruse-telemetry telemetry
 ```
 
 Expected: focused tests pass.

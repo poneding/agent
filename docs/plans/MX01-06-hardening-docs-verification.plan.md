@@ -20,12 +20,12 @@
 - [x] **Step 1: Run focused MX01 tests**
 
 ```bash
-cargo test -p agent-mcp mcp_client_reentrant_callbacks
-cargo test -p agent-mcp mcp_client_protocol_events
-cargo test -p agent-mcp mcp_sampling_productization
-cargo test -p agent-mcp mcp_management_snapshot
-cargo test -p agent-mcp mcp_server_export_guardrails
-cargo test -p agent-ui-bridge mcp_management_snapshot
+cargo test -p ruse-mcp mcp_client_reentrant_callbacks
+cargo test -p ruse-mcp mcp_client_protocol_events
+cargo test -p ruse-mcp mcp_sampling_productization
+cargo test -p ruse-mcp mcp_management_snapshot
+cargo test -p ruse-mcp mcp_server_export_guardrails
+cargo test -p ruse-ui-bridge mcp_management_snapshot
 ```
 
 - [x] **Step 2: Run final workspace gates**
@@ -47,13 +47,13 @@ cargo xtask ci
 
 Verification evidence recorded on 2026-06-30:
 
-- `cargo test -p agent-mcp mcp_client_reentrant_callbacks` passed.
-- `cargo test -p agent-mcp mcp_client_protocol_events` passed.
-- `cargo test -p agent-mcp mcp_sampling_productization` passed.
-- `cargo test -p agent-mcp mcp_management_snapshot` passed.
-- `cargo test -p agent-mcp mcp_server_export_guardrails` passed.
-- `cargo test -p agent-ui-bridge mcp_management_snapshot` passed.
+- `cargo test -p ruse-mcp mcp_client_reentrant_callbacks` passed.
+- `cargo test -p ruse-mcp mcp_client_protocol_events` passed.
+- `cargo test -p ruse-mcp mcp_sampling_productization` passed.
+- `cargo test -p ruse-mcp mcp_management_snapshot` passed.
+- `cargo test -p ruse-mcp mcp_server_export_guardrails` passed.
+- `cargo test -p ruse-ui-bridge mcp_management_snapshot` passed.
 - `cargo fmt --all -- --check` passed.
 - `cargo clippy --workspace --all-targets -- -D warnings` passed after local MX01 lint cleanup.
 - `cargo test --workspace` passed.
-- `cargo xtask ci` passed; `target/agent-ci/quality-gate-summary.txt` reports `total=4 passed=4 failed=0 skipped=0`.
+- `cargo xtask ci` passed; `target/ruse-ci/quality-gate-summary.txt` reports `total=4 passed=4 failed=0 skipped=0`.

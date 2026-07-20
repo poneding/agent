@@ -4,7 +4,7 @@
 
 **Goal:** Add repeatable CLI release artifact generation, metadata, checksums, and local smoke tests.
 
-**Architecture:** `xtask` orchestrates packaging; `agent-cli` supplies the `agent` binary and smoke commands.
+**Architecture:** `xtask` orchestrates packaging; `ruse-cli` supplies the `agent` binary and smoke commands.
 
 **Tech Stack:** Rust 2024 edition, release profile, xtask command planning, checksum generation, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,7 +15,7 @@
 **Files:**
 - Read: `docs/specs/M25-04-cli-release-packaging.spec.md`
 - Read: `xtask/src/lib.rs`
-- Read: `crates/agent-cli/Cargo.toml`
+- Read: `crates/ruse-cli/Cargo.toml`
 - Read: `README.md`
 
 - [x] **Step 1: Review packaging scope**

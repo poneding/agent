@@ -4,7 +4,7 @@
 
 **Goal:** Add a dedicated OAuth token exchange HTTP transport boundary.
 
-**Architecture:** `agent-mcp::client_http` owns exchange transport contracts separate from MCP JSON-RPC transports.
+**Architecture:** `ruse-mcp::client_http` owns exchange transport contracts separate from MCP JSON-RPC transports.
 
 **Tech Stack:** Rust 2024 edition, async-trait, reqwest, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M54-02-token-exchange-transport.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review exchange transport scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_oauth_token_exchange_transport.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_oauth_token_exchange_transport.rs`
 
 - [x] **Step 1: Add fixture transport and redaction tests**
 
 ### Task 3: Implement Transport Boundary
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add HTTP exchange request/response DTOs**
 - [x] **Step 2: Add async transport trait**
@@ -44,17 +44,17 @@
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_exchange_transport
+CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_exchange_transport
 CARGO_TARGET_DIR=target/codex-m54 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m54 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m54 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Evidence, 2026-06-30:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_exchange_transport
+CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_exchange_transport
 CARGO_TARGET_DIR=target/codex-m54 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m54 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m54 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 ### Task 5: Commit

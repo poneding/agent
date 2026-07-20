@@ -26,11 +26,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` owns the plain REPL loop and reuses existing CLI renderers and approval helpers. It does not depend on Ratatui.
+`ruse-cli` owns the plain REPL loop and reuses existing CLI renderers and approval helpers. It does not depend on Ratatui.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli"] --> Plain["plain repl loop"]
+  CLI["ruse-cli"] --> Plain["plain repl loop"]
   Plain --> Prompt["configured prompt runtime"]
   Plain --> Approval["M19 approval prompt helpers"]
 ```

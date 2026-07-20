@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Create `agent-ui-bridge` and expose a stable, UI-safe event schema normalized from `agent-types::RuntimeEvent`.
+**Goal:** Create `ruse-ui-bridge` and expose a stable, UI-safe event schema normalized from `ruse-types::RuntimeEvent`.
 
-**Architecture:** `agent-ui-bridge` depends on `agent-types` only for runtime contracts and on serde libraries for wire shape. It must not depend on `agent-core`, `agent-cli`, storage, model, tool execution, or Desktop crates.
+**Architecture:** `ruse-ui-bridge` depends on `ruse-types` only for runtime contracts and on serde libraries for wire shape. It must not depend on `ruse-core`, `ruse-cli`, storage, model, tool execution, or Desktop crates.
 
 **Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `serde_json`, `thiserror`, `time` test macros, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,18 +14,18 @@
 
 **Files:**
 - Modify: `Cargo.toml`
-- Create: `crates/agent-ui-bridge/Cargo.toml`
-- Create: `crates/agent-ui-bridge/src/lib.rs`
+- Create: `crates/ruse-ui-bridge/Cargo.toml`
+- Create: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add empty crate scaffold**
 
-Add `crates/agent-ui-bridge` to workspace members.
+Add `crates/ruse-ui-bridge` to workspace members.
 
-Create `crates/agent-ui-bridge/Cargo.toml`:
+Create `crates/ruse-ui-bridge/Cargo.toml`:
 
 ```toml
 [package]
-name = "agent-ui-bridge"
+name = "ruse-ui-bridge"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -33,7 +33,7 @@ license.workspace = true
 authors.workspace = true
 
 [dependencies]
-agent-types = { path = "../agent-types" }
+ruse-types = { path = "../ruse-types" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
@@ -57,7 +57,7 @@ Create `src/lib.rs`:
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge
+cargo test -p ruse-ui-bridge
 ```
 
 Expected: crate compiles with zero tests.
@@ -65,7 +65,7 @@ Expected: crate compiles with zero tests.
 ### Task 2: Write UI Event RED Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/ui_event_schema.rs`
+- Create: `crates/ruse-ui-bridge/tests/ui_event_schema.rs`
 
 - [x] **Step 1: Add failing schema tests**
 
@@ -83,7 +83,7 @@ Use deterministic IDs by parsing UUID strings and deterministic timestamps with 
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge ui_event_schema
+cargo test -p ruse-ui-bridge ui_event_schema
 ```
 
 Expected: fails because `UiEventEnvelope`, `UiEventPayload`, `UiDiagnosticLevel`, and `normalize_runtime_event` do not exist.
@@ -91,9 +91,9 @@ Expected: fails because `UiEventEnvelope`, `UiEventPayload`, `UiDiagnosticLevel`
 ### Task 3: Implement UI Event Contracts
 
 **Files:**
-- Create: `crates/agent-ui-bridge/src/event.rs`
-- Create: `crates/agent-ui-bridge/src/error.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
+- Create: `crates/ruse-ui-bridge/src/event.rs`
+- Create: `crates/ruse-ui-bridge/src/error.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add event module**
 
@@ -136,7 +136,7 @@ pub use event::{normalize_runtime_event, UiDiagnosticLevel, UiEventEnvelope, UiE
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test ui_event_schema
+cargo test -p ruse-ui-bridge --test ui_event_schema
 ```
 
 Expected: all UI event schema tests pass.

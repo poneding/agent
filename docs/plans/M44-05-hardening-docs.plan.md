@@ -4,7 +4,7 @@
 
 **Goal:** Document MCP stdio tool-call behavior and complete M44 verification.
 
-**Architecture:** Documentation hardening over runtime changes implemented in `agent-mcp`.
+**Architecture:** Documentation hardening over runtime changes implemented in `ruse-mcp`.
 
 **Tech Stack:** Markdown docs, Cargo workspace gates.
 
@@ -37,9 +37,9 @@
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call
-CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_gateway_stdio_tool_call
-CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call_process
+CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_client_stdio_tool_call
+CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_gateway_stdio_tool_call
+CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_client_stdio_tool_call_process
 ```
 
 - [x] **Step 2: Run final workspace gate**

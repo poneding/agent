@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Productize memory review in `agent-cli` so users and UI callers can inspect memory state, preview retrieval influence, review proposed writes, delete/tombstone records, import/export archives, and rebuild indexes through stable text and JSON commands.
+Productize memory review in `ruse-cli` so users and UI callers can inspect memory state, preview retrieval influence, review proposed writes, delete/tombstone records, import/export archives, and rebuild indexes through stable text and JSON commands.
 
 ## Product Context
 
-M64-01 added UI-safe `agent-memory` product snapshot contracts. M64-02 exposes those contracts through CLI/JSON without adding runtime prompt influence or Desktop rendering yet. The slice should make memory inspectable and reviewable from a credential-free command surface, using deterministic fixture-backed behavior until later runtime integration wires real stores.
+M64-01 added UI-safe `ruse-memory` product snapshot contracts. M64-02 exposes those contracts through CLI/JSON without adding runtime prompt influence or Desktop rendering yet. The slice should make memory inspectable and reviewable from a credential-free command surface, using deterministic fixture-backed behavior until later runtime integration wires real stores.
 
 ## Scope
 
@@ -15,7 +15,7 @@ This spec delivers:
 - CLI parsing for memory product snapshot and retrieval preview commands
 - CLI parsing for memory proposal list/inspect/approve/reject/expire/commit commands
 - text output for review-oriented memory workflows
-- JSON output with stable `type` frames and shared `agent-memory` product contracts
+- JSON output with stable `type` frames and shared `ruse-memory` product contracts
 - safe summaries for records, proposals, retrieval candidates, influence summaries, import/export, deletion/tombstones, and rebuild reports
 - deterministic tests proving sensitive memory and secret-like text do not leak
 - M64-02 status docs and command documentation
@@ -50,13 +50,13 @@ Out of scope:
 
 ## Architecture
 
-`agent-cli` owns command parsing and rendering only. Memory privacy, product snapshots, proposal status, retention, tombstones, retrieval, reranking, and redaction remain in `agent-memory`.
+`ruse-cli` owns command parsing and rendering only. Memory privacy, product snapshots, proposal status, retention, tombstones, retrieval, reranking, and redaction remain in `ruse-memory`.
 
 ```mermaid
 flowchart TD
-  Args["CLI args"] --> Parser["agent-cli parser"]
+  Args["CLI args"] --> Parser["ruse-cli parser"]
   Parser --> Runtime["MemoryCommandRuntime fixture/runtime adapter"]
-  Runtime --> Memory["agent-memory records, proposals, retrieval, product snapshots"]
+  Runtime --> Memory["ruse-memory records, proposals, retrieval, product snapshots"]
   Memory --> Text["Text output"]
   Memory --> Json["JSON frame output"]
 ```
@@ -79,7 +79,7 @@ JSON frames should be stable and snake_case:
 - `memory_rebuild`
 - `memory_error`
 
-Where possible, JSON payloads should include shared `agent-memory` product contracts:
+Where possible, JSON payloads should include shared `ruse-memory` product contracts:
 
 - `MemoryProductSnapshot`
 - `MemoryRecordSummary`
@@ -100,7 +100,7 @@ Where possible, JSON payloads should include shared `agent-memory` product contr
 - Invalid `--max-selected` values are rejected before execution.
 - Sensitive record content remains hidden in text and JSON.
 - Secret-like values are redacted in ids, summaries, reasons, diagnostics, and errors.
-- Proposal decisions follow `agent-memory` state transitions and report invalid transitions instead of silently succeeding.
+- Proposal decisions follow `ruse-memory` state transitions and report invalid transitions instead of silently succeeding.
 
 ## Security and Privacy
 
@@ -112,7 +112,7 @@ Where possible, JSON payloads should include shared `agent-memory` product contr
 
 ## Testing Strategy
 
-- Extend `crates/agent-cli/tests/memory_commands.rs`.
+- Extend `crates/ruse-cli/tests/memory_commands.rs`.
 - Cover parse behavior for all new commands.
 - Cover text and JSON snapshot output.
 - Cover retrieval preview and influence redaction.
@@ -123,8 +123,8 @@ Where possible, JSON payloads should include shared `agent-memory` product contr
 Focused checks:
 
 ```bash
-CARGO_TARGET_DIR=target/m64-dev cargo test -p agent-cli --test memory_commands
-CARGO_TARGET_DIR=target/m64-dev cargo clippy -p agent-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m64-dev cargo test -p ruse-cli --test memory_commands
+CARGO_TARGET_DIR=target/m64-dev cargo clippy -p ruse-cli --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```
@@ -135,7 +135,7 @@ git diff --check
 - Users can preview retrieval selection/rejection counts and influence evidence without sensitive leaks.
 - Users can inspect and decide memory write proposals.
 - Existing import/export/delete/rebuild behavior remains stable.
-- CLI memory JSON surfaces expose shared `agent-memory` product contracts.
+- CLI memory JSON surfaces expose shared `ruse-memory` product contracts.
 - M64 remains in progress and M64-03 becomes the next active slice after M64-02 closeout.
 
 ## Completion Signal

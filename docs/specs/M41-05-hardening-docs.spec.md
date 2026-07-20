@@ -37,10 +37,10 @@ Owned by later milestones:
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_mapping`
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_provider`
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_redaction`
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_guardrails`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_mapping`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_provider`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_redaction`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_guardrails`
 - `CARGO_TARGET_DIR=target/codex-m41 cargo xtask ci`
 
 ## Completion Signal

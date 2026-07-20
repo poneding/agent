@@ -4,7 +4,7 @@
 
 **Goal:** Make model provider choice typed, diagnosable, and product-ready across OpenAI-compatible, Anthropic, Gemini, and local/Ollama-style providers while preserving the M56 golden path.
 
-**Architecture:** Provider contracts and transports live in `agent-model`; runtime config composition remains in `agent-core`; CLI/JSON and bridge surfaces consume typed summaries without owning provider logic.
+**Architecture:** Provider contracts and transports live in `ruse-model`; runtime config composition remains in `ruse-core`; CLI/JSON and bridge surfaces consume typed summaries without owning provider logic.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, async model streams, fixture transports, Cargo fmt/clippy/test, `cargo xtask eval`.
 
@@ -16,18 +16,18 @@
 - Read: `docs/specs/M57-multi-provider-runtime.spec.md`
 - Read: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Read: `docs/milestones/README.md`
-- Read: `crates/agent-model/src/config.rs`
-- Read: `crates/agent-model/src/registry.rs`
-- Read: `crates/agent-model/src/invocation_policy.rs`
-- Read: `crates/agent-cli/tests/live_provider_registration.rs`
+- Read: `crates/ruse-model/src/config.rs`
+- Read: `crates/ruse-model/src/registry.rs`
+- Read: `crates/ruse-model/src/invocation_policy.rs`
+- Read: `crates/ruse-cli/tests/live_provider_registration.rs`
 
 - [x] **Step 1: Review provider baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-model provider_registry
-cargo test -p agent-cli live_provider_registration
+cargo test -p ruse-model provider_registry
+cargo test -p ruse-cli live_provider_registration
 ```
 
 Expected: existing fake/OpenAI-compatible provider registry behavior passes before M57 changes.
@@ -97,8 +97,8 @@ Run exact-path staging and commit the final docs/status updates.
 
 Closeout verification on 2026-06-30:
 
-- `cargo test -p agent-model provider_registry`
-- `cargo test -p agent-cli --test live_provider_registration`
+- `cargo test -p ruse-model provider_registry`
+- `cargo test -p ruse-cli --test live_provider_registration`
 - `cargo fmt --all -- --check`
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`

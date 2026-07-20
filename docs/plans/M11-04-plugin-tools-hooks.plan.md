@@ -4,7 +4,7 @@
 
 **Goal:** Register plugin tools into `ToolRegistry`, invoke them through a host adapter, and add bounded hook contracts.
 
-**Architecture:** Plugin tool adapters live in `agent-plugin`; runtime policy/audit remains in `agent-core::ToolLoop`; integration tests prove the shared tool path.
+**Architecture:** Plugin tool adapters live in `ruse-plugin`; runtime policy/audit remains in `ruse-core::ToolLoop`; integration tests prove the shared tool path.
 
 **Tech Stack:** Rust 2024 edition, `Arc`, existing tool/policy/core crates, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M11-04-plugin-tools-hooks.spec.md`
-- Read: `crates/agent-tool/src/tool.rs`
-- Read: `crates/agent-tool/src/registry.rs`
-- Read: `crates/agent-core/src/tool_loop.rs`
+- Read: `crates/ruse-tool/src/tool.rs`
+- Read: `crates/ruse-tool/src/registry.rs`
+- Read: `crates/ruse-core/src/tool_loop.rs`
 
 - [x] **Step 1: Review registry and tool loop contracts**
 
@@ -24,7 +24,7 @@ Run:
 
 ```bash
 sed -n '1,260p' docs/specs/M11-04-plugin-tools-hooks.spec.md
-sed -n '1,220p' crates/agent-core/src/tool_loop.rs
+sed -n '1,220p' crates/ruse-core/src/tool_loop.rs
 ```
 
 Expected: plugin tools can use the existing `Tool` trait and `ToolLoop`.
@@ -32,8 +32,8 @@ Expected: plugin tools can use the existing `Tool` trait and `ToolLoop`.
 ### Task 2: Write RED Plugin Tool And Hook Tests
 
 **Files:**
-- Create: `crates/agent-plugin/tests/plugin_tools_hooks.rs`
-- Create: `crates/agent-core/tests/m11_plugin_runtime_integration.rs`
+- Create: `crates/ruse-plugin/tests/plugin_tools_hooks.rs`
+- Create: `crates/ruse-core/tests/m11_plugin_runtime_integration.rs`
 
 - [x] **Step 1: Add failing plugin crate tests**
 
@@ -59,8 +59,8 @@ The integration test should register a plugin tool, configure `StaticPolicyEngin
 Run:
 
 ```bash
-cargo test -p agent-plugin plugin_tools_hooks
-cargo test -p agent-core m11_plugin_runtime_integration
+cargo test -p ruse-plugin plugin_tools_hooks
+cargo test -p ruse-core m11_plugin_runtime_integration
 ```
 
 Expected: tests fail because plugin tool and hook contracts do not exist yet.
@@ -68,9 +68,9 @@ Expected: tests fail because plugin tool and hook contracts do not exist yet.
 ### Task 3: Implement Plugin Tools
 
 **Files:**
-- Modify: `crates/agent-plugin/src/lib.rs`
-- Create: `crates/agent-plugin/src/tool.rs`
-- Modify: `crates/agent-plugin/src/error.rs`
+- Modify: `crates/ruse-plugin/src/lib.rs`
+- Create: `crates/ruse-plugin/src/tool.rs`
+- Modify: `crates/ruse-plugin/src/error.rs`
 
 - [x] **Step 1: Add `PluginToolHost` and invocation types**
 
@@ -78,7 +78,7 @@ Define a host trait that returns `ToolOutput` and receives plugin name, tool nam
 
 - [x] **Step 2: Implement `PluginTool`**
 
-Implement `agent_tool::Tool` for `PluginTool`.
+Implement `ruse_tool::Tool` for `PluginTool`.
 
 - [x] **Step 3: Implement registration helper**
 
@@ -87,7 +87,7 @@ Implement `register_plugin_tools` and return registered names.
 ### Task 4: Implement Hooks
 
 **Files:**
-- Create: `crates/agent-plugin/src/hook.rs`
+- Create: `crates/ruse-plugin/src/hook.rs`
 
 - [x] **Step 1: Add hook event and outcome types**
 
@@ -100,16 +100,16 @@ Implement a deterministic in-memory runner that accepts hook callbacks for M11 t
 ### Task 5: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-plugin/tests/plugin_tools_hooks.rs`
-- Read: `crates/agent-core/tests/m11_plugin_runtime_integration.rs`
+- Read: `crates/ruse-plugin/tests/plugin_tools_hooks.rs`
+- Read: `crates/ruse-core/tests/m11_plugin_runtime_integration.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-plugin plugin_tools_hooks
-cargo test -p agent-core m11_plugin_runtime_integration
+cargo test -p ruse-plugin plugin_tools_hooks
+cargo test -p ruse-core m11_plugin_runtime_integration
 ```
 
 Expected: focused tests pass.

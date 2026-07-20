@@ -27,7 +27,7 @@ Owned by other specs:
 
 ## Architecture
 
-Quota evaluation is a pure `agent-scheduler` decision over a candidate `TaskRun` and a current `QuotaSnapshot`. Queue code calls it before returning a lease.
+Quota evaluation is a pure `ruse-scheduler` decision over a candidate `TaskRun` and a current `QuotaSnapshot`. Queue code calls it before returning a lease.
 
 ```mermaid
 flowchart TD
@@ -40,7 +40,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-scheduler/
+  ruse-scheduler/
     src/
       quota.rs
     tests/
@@ -104,7 +104,7 @@ pub fn evaluate_task_quota(
 
 - Quota decisions are deterministic and typed.
 - Queue acquisition can honor quota rejection.
-- `cargo test -p agent-scheduler quotas` passes.
+- `cargo test -p ruse-scheduler quotas` passes.
 
 ## Completion Signal
 

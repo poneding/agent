@@ -4,7 +4,7 @@
 
 **Goal:** Document MCP sampling model bridge behavior and complete M41 verification.
 
-**Architecture:** Documentation-only hardening over runtime changes implemented in `agent-core`.
+**Architecture:** Documentation-only hardening over runtime changes implemented in `ruse-core`.
 
 **Tech Stack:** Markdown docs, Cargo workspace gates.
 
@@ -38,7 +38,7 @@ Expected: scope, safe subset, and focused tests are clear.
 
 - [x] **Step 1: Update README sampling model bridge usage**
 
-Add a concise note that M41 can execute safe text-only sampling through local `agent-model` providers and that server hints remain advisory.
+Add a concise note that M41 can execute safe text-only sampling through local `ruse-model` providers and that server hints remain advisory.
 
 - [x] **Step 2: Update milestone status and latest docs links**
 
@@ -51,10 +51,10 @@ Mark M41-01 through M41-05 complete only after implementation and verification a
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_mapping
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_provider
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_redaction
-CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_guardrails
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_mapping
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_provider
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_redaction
+CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_guardrails
 ```
 
 Expected: focused M41 tests pass.

@@ -27,7 +27,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::client_http` remains the owner of MCP HTTP auth runtime contracts. It accepts either caller-provided token leases or token source references. It never stores raw token material durably.
+`ruse-mcp::client_http` remains the owner of MCP HTTP auth runtime contracts. It accepts either caller-provided token leases or token source references. It never stores raw token material durably.
 
 ## Public Contracts
 

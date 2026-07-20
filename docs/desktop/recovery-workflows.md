@@ -57,7 +57,7 @@ Replay inspect and fork are review actions. Desktop should treat them like CLI:
 The M62 recovery smoke is credential-free and runs outside Desktop:
 
 ```bash
-cargo test -p agent-core --test crash_resume_smoke
+cargo test -p ruse-core --test crash_resume_smoke
 cargo xtask eval
 ```
 

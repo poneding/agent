@@ -15,7 +15,7 @@ This spec delivers:
 - `IdempotencyKey` contract
 - `ToolEffectRecord` durable record
 - `IdempotencyStore` trait
-- idempotent tool execution wrapper in `agent-core`
+- idempotent tool execution wrapper in `ruse-core`
 - tests proving duplicate side effects are skipped
 
 Owned by other specs:
@@ -26,20 +26,20 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-storage` owns the durable effect record. `agent-core` owns orchestration that checks the store before executing a side-effecting tool. `agent-tool` remains unaware of retry policy.
+`ruse-storage` owns the durable effect record. `ruse-core` owns orchestration that checks the store before executing a side-effecting tool. `ruse-tool` remains unaware of retry policy.
 
 ```mermaid
 flowchart TD
-  agent_core["agent-core IdempotentToolExecutor"] --> agent_storage["agent-storage IdempotencyStore"]
-  agent_core --> agent_tool["agent-tool ToolRegistry"]
-  agent_core --> agent_policy["agent-policy"]
+  ruse_core["ruse-core IdempotentToolExecutor"] --> ruse_storage["ruse-storage IdempotencyStore"]
+  ruse_core --> ruse_tool["ruse-tool ToolRegistry"]
+  ruse_core --> ruse_policy["ruse-policy"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-storage/
+  ruse-storage/
     src/
       idempotency.rs
       lib.rs
@@ -47,7 +47,7 @@ crates/
       sqlite.rs
     tests/
       idempotency_store.rs
-  agent-core/
+  ruse-core/
     src/
       idempotency.rs
       lib.rs

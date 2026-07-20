@@ -12,7 +12,7 @@ M32 made export profiles manifest-backed. M33 made curated built-in workspace to
 
 This spec delivers:
 
-- typed profile inspection contracts in `agent-mcp`
+- typed profile inspection contracts in `ruse-mcp`
 - profile preflight diagnostics for resources, tools, workspace roots, and catalog availability
 - CLI inspect command with text and JSON output
 - protocol-safe startup regression coverage
@@ -27,12 +27,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns profile inspection contracts and preflight rules. `agent-cli` owns file IO, argument parsing, and rendering. Rendering must use typed summaries rather than duplicating validation logic.
+`ruse-mcp` owns profile inspection contracts and preflight rules. `ruse-cli` owns file IO, argument parsing, and rendering. Rendering must use typed summaries rather than duplicating validation logic.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli inspect command"] --> Manifest["read manifest JSON"]
-  Manifest --> Inspect["agent-mcp inspection contract"]
+  CLI["ruse-cli inspect command"] --> Manifest["read manifest JSON"]
+  Manifest --> Inspect["ruse-mcp inspection contract"]
   Inspect --> Profile["selected profile summary"]
   Inspect --> Diagnostics["safe diagnostics"]
   Inspect --> Text["CLI text renderer"]
@@ -48,9 +48,9 @@ flowchart TD
 - CLI command:
 
 ```bash
-agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
-agent-cli mcp server profile inspect --profile path/to/mcp-server-exports.json --workspace .
-agent-cli --json mcp server profile inspect --profile path/to/mcp-server-exports.json --workspace .
+ruse-cli mcp server profile inspect --profile path/to/mcp-server-exports.json
+ruse-cli mcp server profile inspect --profile path/to/mcp-server-exports.json --workspace .
+ruse-cli --json mcp server profile inspect --profile path/to/mcp-server-exports.json --workspace .
 ```
 
 ## State and Failure Handling
@@ -70,8 +70,8 @@ agent-cli --json mcp server profile inspect --profile path/to/mcp-server-exports
 
 ## Testing Strategy
 
-- `agent-mcp` tests for typed inspection output and diagnostics.
-- `agent-cli` parser/rendering tests for text and JSON.
+- `ruse-mcp` tests for typed inspection output and diagnostics.
+- `ruse-cli` parser/rendering tests for text and JSON.
 - regression tests for invalid manifests and protocol-only stdio output.
 - final `cargo xtask ci`.
 

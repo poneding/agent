@@ -4,7 +4,7 @@
 
 **Goal:** Add a typed process plugin host and fixture process tests.
 
-**Architecture:** Keep process protocol and host errors in `agent-plugin`. Do not register tools or evaluate permissions in this slice.
+**Architecture:** Keep process protocol and host errors in `ruse-plugin`. Do not register tools or evaluate permissions in this slice.
 
 **Tech Stack:** Rust 2024 edition, `serde`, `serde_json`, `std::process`, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,7 +15,7 @@
 **Files:**
 - Read: `docs/specs/M11-00-plugin-runtime-technical-design.spec.md`
 - Read: `docs/specs/M11-02-process-plugin-host.spec.md`
-- Read: `crates/agent-plugin/src/manifest.rs`
+- Read: `crates/ruse-plugin/src/manifest.rs`
 
 - [x] **Step 1: Review process protocol**
 
@@ -30,7 +30,7 @@ Expected: the process request/response protocol and failure modes are explicit.
 ### Task 2: Write RED Process Host Tests
 
 **Files:**
-- Create: `crates/agent-plugin/tests/process_host.rs`
+- Create: `crates/ruse-plugin/tests/process_host.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -51,7 +51,7 @@ Use serialized Unix fixture scripts as the process entrypoint. Each fixture read
 Run:
 
 ```bash
-cargo test -p agent-plugin process_host
+cargo test -p ruse-plugin process_host
 ```
 
 Expected: tests fail because `host` and `process` modules do not exist.
@@ -59,10 +59,10 @@ Expected: tests fail because `host` and `process` modules do not exist.
 ### Task 3: Implement Process Contracts
 
 **Files:**
-- Modify: `crates/agent-plugin/src/lib.rs`
-- Create: `crates/agent-plugin/src/host.rs`
-- Create: `crates/agent-plugin/src/process.rs`
-- Modify: `crates/agent-plugin/src/error.rs`
+- Modify: `crates/ruse-plugin/src/lib.rs`
+- Create: `crates/ruse-plugin/src/host.rs`
+- Create: `crates/ruse-plugin/src/process.rs`
+- Modify: `crates/ruse-plugin/src/error.rs`
 
 - [x] **Step 1: Add protocol types**
 
@@ -88,14 +88,14 @@ Implement `PluginProcessHost::invoke_tool(config, request)` so it:
 ### Task 4: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-plugin/tests/process_host.rs`
+- Read: `crates/ruse-plugin/tests/process_host.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-plugin process_host
+cargo test -p ruse-plugin process_host
 ```
 
 Expected: process host tests pass.

@@ -28,11 +28,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-memory` owns proposal records, store, validation, and conversion to memory records. `agent-core` will later create proposals from turn outputs and persist proposal events. UI clients inspect proposals through safe summaries.
+`ruse-memory` owns proposal records, store, validation, and conversion to memory records. `ruse-core` will later create proposals from turn outputs and persist proposal events. UI clients inspect proposals through safe summaries.
 
 ```mermaid
 flowchart TD
-  Turn["agent-core turn"] --> Proposal["MemoryWriteProposal"]
+  Turn["ruse-core turn"] --> Proposal["MemoryWriteProposal"]
   Proposal --> Store["MemoryProposalStore"]
   Store --> Decision["approve / reject / expire"]
   Decision --> Record["MemoryRecord"]
@@ -48,10 +48,10 @@ Dependency rules:
 ## File Layout
 
 ```text
-crates/agent-memory/src/
+crates/ruse-memory/src/
   proposal.rs
   lib.rs
-crates/agent-memory/tests/
+crates/ruse-memory/tests/
   memory_write_proposals.rs
 ```
 
@@ -114,7 +114,7 @@ pub trait MemoryProposalStore {
 - Agent code can create pending memory proposals without committing them.
 - Approved proposals convert to valid memory records.
 - Invalid or unsafe transitions are rejected deterministically.
-- Focused tests pass with `cargo test -p agent-memory memory_write_proposals`.
+- Focused tests pass with `cargo test -p ruse-memory memory_write_proposals`.
 
 ## Completion Signal
 

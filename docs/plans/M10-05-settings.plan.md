@@ -4,9 +4,9 @@
 
 **Goal:** Add Desktop settings contracts and complete the M10 Desktop Preview milestone.
 
-**Architecture:** Keep settings as validated UI-facing snapshots inside `agent-desktop`. Do not introduce durable config files, migrations, or secret storage in this slice.
+**Architecture:** Keep settings as validated UI-facing snapshots inside `ruse-desktop`. Do not introduce durable config files, migrations, or secret storage in this slice.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `agent-desktop`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, existing `ruse-desktop`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -25,7 +25,7 @@ sed -n '1,260p' docs/specs/M10-05-settings.spec.md
 ### Task 2: Write Settings RED Tests
 
 **Files:**
-- Create: `crates/agent-desktop/tests/settings.rs`
+- Create: `crates/ruse-desktop/tests/settings.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -40,7 +40,7 @@ Cover:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-desktop settings
+cargo test -p ruse-desktop settings
 ```
 
 Expected: fails because settings contracts do not exist.
@@ -48,9 +48,9 @@ Expected: fails because settings contracts do not exist.
 ### Task 3: Implement Settings Contracts
 
 **Files:**
-- Create: `crates/agent-desktop/src/settings.rs`
-- Modify: `crates/agent-desktop/src/lib.rs`
-- Modify: `crates/agent-desktop/src/error.rs`
+- Create: `crates/ruse-desktop/src/settings.rs`
+- Modify: `crates/ruse-desktop/src/lib.rs`
+- Modify: `crates/ruse-desktop/src/error.rs`
 
 - [x] **Step 1: Add settings structs**
 
@@ -63,7 +63,7 @@ Implement conservative defaults and settings validation.
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-desktop settings
+cargo test -p ruse-desktop settings
 ```
 
 ### Task 4: Complete M10

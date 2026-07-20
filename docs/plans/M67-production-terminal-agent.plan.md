@@ -2,9 +2,9 @@
 
 > **For agentic workers:** If the `superpowers` skill is available, use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to execute this plan task by task. If it is unavailable, follow the same checklist directly. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make `agent` interactive TTY mode a production fullscreen terminal app backed by `agent-tui`, `agent-ui-bridge`, and `agent-core`, while preserving script-safe prompt, JSON, MCP stdio, non-TTY, and explicit plain REPL behavior.
+**Goal:** Make `agent` interactive TTY mode a production fullscreen terminal app backed by `ruse-tui`, `ruse-ui-bridge`, and `ruse-core`, while preserving script-safe prompt, JSON, MCP stdio, non-TTY, and explicit plain REPL behavior.
 
-**Architecture:** `agent-cli` dispatches modes only. `agent-tui` owns terminal lifecycle and rendering. `agent-ui-bridge` owns typed UI frames and commands. `agent-core` owns turn execution, tool/policy orchestration, checkpointing, cancellation, and recovery. Runtime logic must not be implemented in `plain_repl.rs` or terminal rendering code.
+**Architecture:** `ruse-cli` dispatches modes only. `ruse-tui` owns terminal lifecycle and rendering. `ruse-ui-bridge` owns typed UI frames and commands. `ruse-core` owns turn execution, tool/policy orchestration, checkpointing, cancellation, and recovery. Runtime logic must not be implemented in `plain_repl.rs` or terminal rendering code.
 
 **Tech Stack:** Rust 2024 edition, Crossterm, Ratatui, typed serde contracts, existing `TurnEventStream`, Cargo fmt, Cargo clippy, targeted Cargo tests, and later PTY smoke tests.
 
@@ -17,12 +17,12 @@
 - Read: `docs/specs/M20-terminal-ux-tui-repl.spec.md`
 - Read: `docs/specs/M59-cli-tui-daily-driver.spec.md`
 - Read: `docs/architecture/README.md`
-- Read: `crates/agent-cli/src/bin/agent.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-tui/src/app.rs`
-- Read: `crates/agent-tui/src/render.rs`
-- Read: `crates/agent-tui/src/terminal.rs`
-- Read: `crates/agent-core/src/turn.rs`
+- Read: `crates/ruse-cli/src/bin/agent.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-tui/src/app.rs`
+- Read: `crates/ruse-tui/src/render.rs`
+- Read: `crates/ruse-tui/src/terminal.rs`
+- Read: `crates/ruse-core/src/turn.rs`
 
 - [x] **Step 1: Compare benchmarks and local implementation**
 
@@ -36,23 +36,23 @@ External findings:
 
 Local gap:
 
-- `agent-tui` already has app state, composer, transcript, panels, terminal guard, and render tests.
-- `agent-ui-bridge` already has typed frames and slash catalog contracts.
-- `agent-core` already has turn streams and runtime events.
-- `agent-cli` still sends interactive no-arg sessions to `plain_repl`, which is the wrong product shell.
+- `ruse-tui` already has app state, composer, transcript, panels, terminal guard, and render tests.
+- `ruse-ui-bridge` already has typed frames and slash catalog contracts.
+- `ruse-core` already has turn streams and runtime events.
+- `ruse-cli` still sends interactive no-arg sessions to `plain_repl`, which is the wrong product shell.
 
 ### Task 2: M1 Terminal App Shell
 
 **Files:**
-- Create: `crates/agent-tui/src/terminal_app.rs`
-- Modify: `crates/agent-tui/src/lib.rs`
-- Modify: `crates/agent-tui/src/app.rs`
-- Modify: `crates/agent-cli/src/bin/agent.rs`
-- Modify: `crates/agent-cli/src/bin/agent-cli.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/src/lib.rs`
-- Modify: `crates/agent-cli/tests/agent_entrypoint.rs`
-- Create: `crates/agent-tui/tests/terminal_app.rs`
+- Create: `crates/ruse-tui/src/terminal_app.rs`
+- Modify: `crates/ruse-tui/src/lib.rs`
+- Modify: `crates/ruse-tui/src/app.rs`
+- Modify: `crates/ruse-cli/src/bin/agent.rs`
+- Modify: `crates/ruse-cli/src/bin/ruse-cli.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
+- Modify: `crates/ruse-cli/tests/agent_entrypoint.rs`
+- Create: `crates/ruse-tui/tests/terminal_app.rs`
 
 - [x] **Step 1: Add terminal runner and key mapping**
 
@@ -60,7 +60,7 @@ Add a Crossterm/Ratatui runner that enters raw mode and alternate screen through
 
 - [x] **Step 2: Route interactive `agent` into terminal app**
 
-Update both binaries so `agent` and `agent-cli` interactive no-args call the terminal app runner. Keep `agent repl --plain` on the existing plain REPL path.
+Update both binaries so `agent` and `ruse-cli` interactive no-args call the terminal app runner. Keep `agent repl --plain` on the existing plain REPL path.
 
 - [x] **Step 3: Preserve compatibility**
 
@@ -73,10 +73,10 @@ Cover key mapping, submit-to-transcript behavior, clear/quit behavior, terminal 
 ### Task 3: M2 Streaming Turn Bridge
 
 **Files:**
-- Modify: `crates/agent-tui/src/terminal_app.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Read/modify as needed: `crates/agent-core/src/turn.rs`
+- Modify: `crates/ruse-tui/src/terminal_app.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Read/modify as needed: `crates/ruse-core/src/turn.rs`
 
 - [x] **Step 1: Connect submitted prompts to runtime**
 
@@ -97,9 +97,9 @@ Run fake-provider streaming tests and targeted TUI/CLI tests.
 Progress:
 
 - [x] Terminal prompt streaming is wired through `ConfiguredTurnRunner::run_stream_with_options`.
-- [x] `agent-core` exposes a comprehensive turn streaming sink so model, tool, approval, observation, and guard-failure runtime events can be emitted live while still returning a typed `AgentLoopOutcome`.
+- [x] `ruse-core` exposes a comprehensive turn streaming sink so model, tool, approval, observation, and guard-failure runtime events can be emitted live while still returning a typed `AgentLoopOutcome`.
 - [x] The terminal runtime now prefers the comprehensive tool-loop path for tool-capable providers and falls back to model-only streaming when the selected runtime lacks `tool_calls`.
-- [x] `agent-model::ModelRequest` carries provider-neutral tool definitions, and OpenAI-compatible, Anthropic, Gemini, and local request builders emit tool schemas for real provider tool-calling.
+- [x] `ruse-model::ModelRequest` carries provider-neutral tool definitions, and OpenAI-compatible, Anthropic, Gemini, and local request builders emit tool schemas for real provider tool-calling.
 - [x] OpenAI-compatible streaming parsers now map Responses and chat-completions function/tool call events back into typed `ModelStreamEvent::ToolCall`.
 - [x] Interactive terminal turns share a stable workspace/conversation identity across prompts, while rotating turn/correlation ids per submitted prompt.
 - [x] Batch `--prompt` remains a script-oriented one-shot path with fresh runtime ids per invocation.
@@ -110,11 +110,11 @@ Progress:
 ### Task 4: M3 Tool, Approval, Diff, and Command Rendering
 
 **Files:**
-- Modify: `crates/agent-tui/src/transcript.rs`
-- Modify: `crates/agent-tui/src/approval_panel.rs`
-- Modify: `crates/agent-tui/src/diff_panel.rs`
-- Modify: `crates/agent-tui/src/command_panel.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-tui/src/transcript.rs`
+- Modify: `crates/ruse-tui/src/approval_panel.rs`
+- Modify: `crates/ruse-tui/src/diff_panel.rs`
+- Modify: `crates/ruse-tui/src/command_panel.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Render lifecycle cards**
 
@@ -160,12 +160,12 @@ Run rendering fixture tests for tool, approval, diff, and command/test frames.
 ### Task 5: M4 Session, Slash, and Recovery
 
 **Files:**
-- Modify: `crates/agent-tui/src/slash.rs`
-- Modify: `crates/agent-tui/src/session_panel.rs`
-- Modify: `crates/agent-tui/src/status_panel.rs`
-- Modify: `crates/agent-tui/src/trace_panel.rs`
-- Modify: `crates/agent-ui-bridge/src/slash.rs`
-- Modify as needed: `crates/agent-core/src/terminal_session.rs`
+- Modify: `crates/ruse-tui/src/slash.rs`
+- Modify: `crates/ruse-tui/src/session_panel.rs`
+- Modify: `crates/ruse-tui/src/status_panel.rs`
+- Modify: `crates/ruse-tui/src/trace_panel.rs`
+- Modify: `crates/ruse-ui-bridge/src/slash.rs`
+- Modify as needed: `crates/ruse-core/src/terminal_session.rs`
 
 - [x] **Step 1: Expand slash commands**
 
@@ -210,9 +210,9 @@ Progress:
 ### Task 6: M5 Polish and Robustness
 
 **Files:**
-- Modify: `crates/agent-tui/src/render.rs`
-- Modify: `crates/agent-tui/src/terminal_app.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Modify: `crates/ruse-tui/src/render.rs`
+- Modify: `crates/ruse-tui/src/terminal_app.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Terminal polish**
 
@@ -261,8 +261,8 @@ Run render tests for narrow/wide terminals, Unicode text, status line truncation
 ### Task 7: M6 Production Tests and Closeout
 
 **Files:**
-- Modify/add tests under `crates/agent-tui/tests/`
-- Modify/add tests under `crates/agent-cli/tests/`
+- Modify/add tests under `crates/ruse-tui/tests/`
+- Modify/add tests under `crates/ruse-cli/tests/`
 - Modify runtime tests if bridge contracts change
 - Create: `docs/plans/M67-terminal-manual-smoke-checklist.md`
 - Update docs and milestone status as needed
@@ -282,12 +282,12 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-cli -p agent-tui -p agent-ui-bridge --all-targets -- -D warnings
-cargo test -p agent-tui
-cargo test -p agent-cli --test agent_entrypoint --test plain_repl
+cargo clippy -p ruse-cli -p ruse-tui -p ruse-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-tui
+cargo test -p ruse-cli --test agent_entrypoint --test plain_repl
 ```
 
-If runtime contracts changed, also run the relevant `agent-core`, `agent-model`, and `agent-ui-bridge` tests. Before closeout, run:
+If runtime contracts changed, also run the relevant `ruse-core`, `ruse-model`, and `ruse-ui-bridge` tests. Before closeout, run:
 
 ```bash
 cargo test --workspace

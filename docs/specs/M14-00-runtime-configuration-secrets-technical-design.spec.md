@@ -30,22 +30,22 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-model` adds a `secrets` module with provider-neutral secret reference resolution. It does not read config files and does not emit runtime events. `agent-core` adds a `config` module that resolves the default `~/.config/agent/config.yaml` path, parses YAML or explicit legacy TOML, validates model settings, layers sources, converts direct provider `apiKey` values into an in-memory resolver, and emits diagnostics. `agent-cli`, `agent-ui-bridge`, and `agent-desktop` render or transport summaries only.
+`ruse-model` adds a `secrets` module with provider-neutral secret reference resolution. It does not read config files and does not emit runtime events. `ruse-core` adds a `config` module that resolves the default `~/.config/agent/config.yaml` path, parses YAML or explicit legacy TOML, validates model settings, layers sources, converts direct provider `apiKey` values into an in-memory resolver, and emits diagnostics. `ruse-cli`, `ruse-ui-bridge`, and `ruse-desktop` render or transport summaries only.
 
 ```mermaid
 flowchart TD
-  model["agent-model::secrets"] --> model_config["agent-model::config"]
-  core_config["agent-core::config"] --> model_config
+  model["ruse-model::secrets"] --> model_config["ruse-model::config"]
+  core_config["ruse-core::config"] --> model_config
   core_config --> secrets["SecretResolver trait"]
-  cli["agent-cli"] --> core_config
-  bridge["agent-ui-bridge"] --> core_config
-  desktop["agent-desktop"] --> bridge
+  cli["ruse-cli"] --> core_config
+  bridge["ruse-ui-bridge"] --> core_config
+  desktop["ruse-desktop"] --> bridge
 ```
 
 Dependency rules:
 
-- `agent-model` must not depend on `agent-core`, CLI, Desktop, storage, or UI bridge.
-- `agent-core::config` may depend on `agent-model` and `agent-storage` schema-version types.
+- `ruse-model` must not depend on `ruse-core`, CLI, Desktop, storage, or UI bridge.
+- `ruse-core::config` may depend on `ruse-model` and `ruse-storage` schema-version types.
 - UI crates must not parse YAML/TOML or resolve secrets directly.
 - config layer merging must be deterministic and testable in memory.
 

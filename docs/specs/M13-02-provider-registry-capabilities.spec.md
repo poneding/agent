@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-Registry contracts live in `agent-model`. The registry stores provider metadata and boxed provider handles behind the existing `ModelProvider` trait.
+Registry contracts live in `ruse-model`. The registry stores provider metadata and boxed provider handles behind the existing `ModelProvider` trait.
 
 ## Public Contracts
 

@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M19 architecture baseline for durable interactive approvals and safe local actions.
 
-**Architecture:** This is a documentation-only slice. It defines `agent-policy` lease ownership, `agent-core` pending approval and resume behavior, `agent-ui-bridge` approval schemas, and CLI approval prompt boundaries.
+**Architecture:** This is a documentation-only slice. It defines `ruse-policy` lease ownership, `ruse-core` pending approval and resume behavior, `ruse-ui-bridge` approval schemas, and CLI approval prompt boundaries.
 
 **Tech Stack:** Markdown docs, existing policy/tool/runtime architecture docs, Cargo workspace verification.
 
@@ -15,7 +15,7 @@
 **Files:**
 - Read: `docs/specs/M19-interactive-approval-safe-actions.spec.md`
 - Read: `docs/architecture/security-policy.md`
-- Read: `docs/specs/M18-00-agent-tool-loop-technical-design.spec.md`
+- Read: `docs/specs/M18-00-ruse-tool-loop-technical-design.spec.md`
 - Read: `docs/specs/M06-json-ui-bridge.spec.md`
 
 - [ ] **Step 1: Review milestone scope**

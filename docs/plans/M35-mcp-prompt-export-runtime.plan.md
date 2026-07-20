@@ -4,7 +4,7 @@
 
 **Goal:** Add MCP server prompt export support backed by explicit prompt profiles and manifest declarations.
 
-**Architecture:** `agent-mcp` owns protocol contracts and prompt registry behavior. `agent-cli` owns manifest file IO and stdio startup wiring.
+**Architecture:** `ruse-mcp` owns protocol contracts and prompt registry behavior. `ruse-cli` owns manifest file IO and stdio startup wiring.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

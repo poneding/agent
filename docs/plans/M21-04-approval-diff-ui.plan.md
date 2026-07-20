@@ -4,9 +4,9 @@
 
 **Goal:** Add Desktop approval queue, approval details, diff preview, and typed approval resolution commands.
 
-**Architecture:** Approval frames come from `agent-ui-bridge`; frontend stores UI-only approval state; decisions return through `UiCommand::ResolveApproval` via the M21 bridge session.
+**Architecture:** Approval frames come from `ruse-ui-bridge`; frontend stores UI-only approval state; decisions return through `UiCommand::ResolveApproval` via the M21 bridge session.
 
-**Tech Stack:** Rust 2024 edition, Tauri 2 commands, `agent-ui-bridge`, `agent-desktop`, TypeScript, React, Vitest, Testing Library, Cargo test.
+**Tech Stack:** Rust 2024 edition, Tauri 2 commands, `ruse-ui-bridge`, `ruse-desktop`, TypeScript, React, Vitest, Testing Library, Cargo test.
 
 ---
 
@@ -14,10 +14,10 @@
 
 **Files:**
 - Read: `docs/specs/M21-04-approval-diff-ui.spec.md`
-- Read: `crates/agent-ui-bridge/src/event.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-desktop/src/permission.rs`
-- Read: `crates/agent-desktop/src/diff.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-desktop/src/permission.rs`
+- Read: `crates/ruse-desktop/src/diff.rs`
 
 - [x] **Step 1: Review approval boundaries**
 

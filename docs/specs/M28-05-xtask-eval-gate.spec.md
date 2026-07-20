@@ -25,11 +25,11 @@ This spec delivers:
 
 - CLI non-zero exits propagate from `xtask`
 - missing default suite fails clearly
-- artifact output goes to `target/agent-eval`
+- artifact output goes to `target/ruse-eval`
 
 ## Security and Privacy
 
-- eval artifacts are redacted by `agent-eval`
+- eval artifacts are redacted by `ruse-eval`
 - `xtask` does not handle secrets
 
 ## Testing Strategy

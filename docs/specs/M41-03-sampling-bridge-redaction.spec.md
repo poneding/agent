@@ -25,7 +25,7 @@ Owned by later specs:
 
 ## Architecture
 
-Redaction helpers live in `agent-core::mcp_sampling` because they protect bridge-owned diagnostics. They do not alter MCP wire payloads or model provider inputs.
+Redaction helpers live in `ruse-core::mcp_sampling` because they protect bridge-owned diagnostics. They do not alter MCP wire payloads or model provider inputs.
 
 ## Public Contracts
 
@@ -55,7 +55,7 @@ pub struct McpSamplingBridgeDiagnostic {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_redaction`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_redaction`
 
 ## Completion Signal
 

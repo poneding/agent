@@ -12,7 +12,7 @@ This slice makes tool behavior auditable and replayable. It extends the M01 even
 
 This spec delivers:
 
-- tool call audit payloads in `agent-types`
+- tool call audit payloads in `ruse-types`
 - permission request and decision audit payloads
 - tool execution success and failure payloads
 - stable JSON tests for new event variants
@@ -27,20 +27,20 @@ Owned by other specs:
 
 ## Architecture
 
-Audit payloads live in `agent-types` because runtime events are durable and consumed by storage, core, CLI, Desktop, and replay. Higher-level crates construct these payloads but do not define durable event shape.
+Audit payloads live in `ruse-types` because runtime events are durable and consumed by storage, core, CLI, Desktop, and replay. Higher-level crates construct these payloads but do not define durable event shape.
 
 ```mermaid
 flowchart TD
-  agent_core["agent-core"] --> agent_types["agent-types audit payloads"]
-  agent_storage["agent-storage"] --> agent_types
-  agent_cli["agent-cli"] --> agent_types
+  ruse_core["ruse-core"] --> ruse_types["ruse-types audit payloads"]
+  ruse_storage["ruse-storage"] --> ruse_types
+  ruse_cli["ruse-cli"] --> ruse_types
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-types/
+  ruse-types/
     src/
       event.rs
       tool.rs

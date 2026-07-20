@@ -6,7 +6,7 @@ Dispatch MCP server-initiated `sampling/createMessage` JSON-RPC request frames t
 
 ## Product Context
 
-M40 introduced typed MCP sampling contracts and validation. M41 connected safe text-only sampling to local `agent-model` providers. M42 adds the next protocol step: a fixture-grade stdio dispatch path for server-to-client sampling request frames. This keeps progress toward full MCP client transport support while preserving the boundary that sampling is a controlled model call, not a grant of tools, context, or secrets.
+M40 introduced typed MCP sampling contracts and validation. M41 connected safe text-only sampling to local `ruse-model` providers. M42 adds the next protocol step: a fixture-grade stdio dispatch path for server-to-client sampling request frames. This keeps progress toward full MCP client transport support while preserving the boundary that sampling is a controlled model call, not a grant of tools, context, or secrets.
 
 ## Scope
 
@@ -29,11 +29,11 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` owns the protocol dispatch layer because it already owns MCP JSON-RPC frame contracts and the `McpSamplingProvider` trait. `agent-core` remains the model bridge owner from M41. The M42 dispatcher depends only on the provider trait, config, sampling contracts, and JSON-RPC types.
+`ruse-mcp` owns the protocol dispatch layer because it already owns MCP JSON-RPC frame contracts and the `McpSamplingProvider` trait. `ruse-core` remains the model bridge owner from M41. The M42 dispatcher depends only on the provider trait, config, sampling contracts, and JSON-RPC types.
 
 ```mermaid
 flowchart TD
-  Frame["JSON-RPC sampling/createMessage request"] --> Parse["agent-mcp sampling stdio parser"]
+  Frame["JSON-RPC sampling/createMessage request"] --> Parse["ruse-mcp sampling stdio parser"]
   Parse --> Validate["M40 sampling validation"]
   Validate --> Provider["McpSamplingProvider"]
   Provider --> Result["McpCreateMessageResult"]
@@ -85,9 +85,9 @@ The dispatcher accepts JSON-RPC request frames whose method is `sampling/createM
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_contracts`
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_dispatch`
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_redaction`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_contracts`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_dispatch`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_redaction`
 - `CARGO_TARGET_DIR=target/codex-m42 cargo xtask ci`
 
 ## Completion Signal

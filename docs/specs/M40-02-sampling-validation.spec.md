@@ -26,7 +26,7 @@ Owned by later M40 specs:
 
 ## Architecture
 
-Validation lives in `agent-mcp` next to sampling contracts. It has no dependency on `agent-policy`; this slice only validates MCP protocol shape and M40 capability support. Permission and approval decisions remain later runtime work.
+Validation lives in `ruse-mcp` next to sampling contracts. It has no dependency on `ruse-policy`; this slice only validates MCP protocol shape and M40 capability support. Permission and approval decisions remain later runtime work.
 
 ```mermaid
 flowchart TD
@@ -98,8 +98,8 @@ pub fn validate_mcp_sampling_request(
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_validation`
-- `CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_validation`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

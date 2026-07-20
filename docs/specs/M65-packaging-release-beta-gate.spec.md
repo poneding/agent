@@ -40,8 +40,8 @@ flowchart TD
   Xtask --> Eval["default eval suite"]
   Xtask --> Migration["startup/migration diagnostics"]
   Xtask --> Support["support bundle"]
-  CliPkg --> Core["agent-core/settings/provider diagnostics"]
-  DesktopPkg --> Desktop["agent-desktop/Tauri"]
+  CliPkg --> Core["ruse-core/settings/provider diagnostics"]
+  DesktopPkg --> Desktop["ruse-desktop/Tauri"]
   Support --> Redaction["bounded redacted artifacts"]
 ```
 
@@ -60,11 +60,11 @@ xtask/
   src/main.rs
   tests/
 crates/
-  agent-core/
-  agent-desktop/
-  agent-model/
-  agent-storage/
-  agent-ui-bridge/
+  ruse-core/
+  ruse-desktop/
+  ruse-model/
+  ruse-storage/
+  ruse-ui-bridge/
 ```
 
 ## Public Contracts

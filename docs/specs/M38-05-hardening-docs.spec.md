@@ -26,7 +26,7 @@ Owned by later milestones:
 
 ## Architecture
 
-Documentation only. Runtime behavior must already be implemented in `agent-mcp` and wired through `agent-cli`.
+Documentation only. Runtime behavior must already be implemented in `ruse-mcp` and wired through `ruse-cli`.
 
 ```mermaid
 flowchart TD
@@ -54,8 +54,8 @@ flowchart TD
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_completion`
-- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-cli mcp_server_completions`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_completion`
+- `CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-cli mcp_server_completions`
 - `CARGO_TARGET_DIR=target/codex-m38 cargo xtask ci`
 
 ## Completion Signal

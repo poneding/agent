@@ -12,8 +12,8 @@ M19-01 creates policy-owned approval records. Product surfaces need a UI-safe fr
 
 This spec delivers:
 
-- approval request UI event payloads in `agent-ui-bridge`
-- approval response UI command payloads in `agent-ui-bridge`
+- approval request UI event payloads in `ruse-ui-bridge`
+- approval response UI command payloads in `ruse-ui-bridge`
 - normalization from policy approval contracts into UI-safe payloads
 - JSON frame and snapshot tests
 
@@ -25,13 +25,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-ui-bridge` owns wire contracts. It depends on `agent-policy` for approval contracts and `agent-types` for ids. It must not execute approvals or mutate runtime state.
+`ruse-ui-bridge` owns wire contracts. It depends on `ruse-policy` for approval contracts and `ruse-types` for ids. It must not execute approvals or mutate runtime state.
 
 ```mermaid
 flowchart TD
-  Policy["agent-policy PendingApproval"] --> Bridge["agent-ui-bridge ApprovalRequestView"]
+  Policy["ruse-policy PendingApproval"] --> Bridge["ruse-ui-bridge ApprovalRequestView"]
   Bridge --> Frame["UiJsonFrame"]
-  Command["ApprovalResponseCommand"] --> Core["agent-core M19-05"]
+  Command["ApprovalResponseCommand"] --> Core["ruse-core M19-05"]
 ```
 
 ## Public Contracts
@@ -72,4 +72,4 @@ flowchart TD
 
 ## Completion Signal
 
-M19-02 is complete when `cargo test -p agent-ui-bridge approval` passes and JSON snapshots include approval request and response examples.
+M19-02 is complete when `cargo test -p ruse-ui-bridge approval` passes and JSON snapshots include approval request and response examples.

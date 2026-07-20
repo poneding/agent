@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M17 architecture baseline for live OpenAI-compatible HTTP execution and true model streaming.
 
-**Architecture:** This is a documentation-only slice. It defines `agent-model` streaming provider ownership, reqwest transport boundaries, `agent-core` stream consumption, CLI live registration, and no-network test strategy.
+**Architecture:** This is a documentation-only slice. It defines `ruse-model` streaming provider ownership, reqwest transport boundaries, `ruse-core` stream consumption, CLI live registration, and no-network test strategy.
 
 **Tech Stack:** Markdown docs, existing model/config architecture docs, Cargo workspace verification.
 
@@ -39,7 +39,7 @@ Document stream trait migration, reqwest transport, secret injection, retry/fall
 
 - [ ] **Step 2: Self-review design**
 
-Check that provider-specific code stays in `agent-model`, core sees only provider-neutral stream events, and tests do not require live network.
+Check that provider-specific code stays in `ruse-model`, core sees only provider-neutral stream events, and tests do not require live network.
 
 ### Task 3: Verify
 

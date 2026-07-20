@@ -4,7 +4,7 @@
 
 **Goal:** Pause background tasks on approval requests and route safe task notifications to UI clients.
 
-**Architecture:** `agent-core` maps approval suspension to scheduler state; `agent-scheduler` owns notifications; `agent-ui-bridge` owns UI-safe frames.
+**Architecture:** `ruse-core` maps approval suspension to scheduler state; `ruse-scheduler` owns notifications; `ruse-ui-bridge` owns UI-safe frames.
 
 **Tech Stack:** Rust 2024 edition, M19 approval contracts, scheduler notifications, UI bridge snapshots, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M24-03-task-approvals-notifications.spec.md`
 - Read: `docs/specs/M19-00-interactive-approval-technical-design.spec.md`
-- Read: `crates/agent-core/src/approval.rs`
-- Read: `crates/agent-scheduler/src/notification.rs`
+- Read: `crates/ruse-core/src/approval.rs`
+- Read: `crates/ruse-scheduler/src/notification.rs`
 
 - [x] **Step 1: Review approval and notification scope**
 
@@ -25,9 +25,9 @@ Expected: approval waits pause tasks, release compute lease, and notify UI clien
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/background_task_approvals.rs`
-- Create: `crates/agent-ui-bridge/tests/task_notifications.rs`
-- Modify if needed: `crates/agent-scheduler/tests/notifications.rs`
+- Create: `crates/ruse-core/tests/background_task_approvals.rs`
+- Create: `crates/ruse-ui-bridge/tests/task_notifications.rs`
+- Modify if needed: `crates/ruse-scheduler/tests/notifications.rs`
 
 - [x] **Step 1: Add approval suspension tests**
 
@@ -44,18 +44,18 @@ Cover task notification JSON and redaction.
 - [x] **Step 4: Verify RED**
 
 ```bash
-cargo test -p agent-core background_task_approvals
-cargo test -p agent-ui-bridge task_notifications
+cargo test -p ruse-core background_task_approvals
+cargo test -p ruse-ui-bridge task_notifications
 ```
 
 ### Task 3: Implement Approval Notifications
 
 **Files:**
-- Modify: `crates/agent-core/src/background.rs`
-- Modify: `crates/agent-scheduler/src/notification.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/event.rs`
-- Modify if needed: `crates/agent-cli/src/command.rs`
+- Modify: `crates/ruse-core/src/background.rs`
+- Modify: `crates/ruse-scheduler/src/notification.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/event.rs`
+- Modify if needed: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add wait contracts**
 
@@ -78,8 +78,8 @@ Expose task notification frames to CLI/TUI/Desktop consumers.
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-core background_task_approvals
-cargo test -p agent-ui-bridge task_notifications
+cargo test -p ruse-core background_task_approvals
+cargo test -p ruse-ui-bridge task_notifications
 ```
 
 - [x] **Step 2: Run workspace checks**

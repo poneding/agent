@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-Diagnostic contracts live in `agent-mcp::client_http` and are reused by M53 flow helpers. They remain serializable because they carry only redacted, bounded public text.
+Diagnostic contracts live in `ruse-mcp::client_http` and are reused by M53 flow helpers. They remain serializable because they carry only redacted, bounded public text.
 
 ## Public Contracts
 
@@ -56,7 +56,7 @@ pub struct McpClientHttpOAuthFlowDiagnostic {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_flow_diagnostics`
+- `CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_flow_diagnostics`
 - fmt and clippy focused gates pass
 
 ## Completion Signal

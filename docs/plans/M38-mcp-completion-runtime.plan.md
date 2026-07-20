@@ -4,7 +4,7 @@
 
 **Goal:** Add safe MCP `completion/complete` support for prompt arguments and resource template variables.
 
-**Architecture:** `agent-mcp` owns completion contracts, completion source lookup, validation, redaction, and JSON-RPC behavior. `agent-cli` owns manifest file IO and stdio startup wiring.
+**Architecture:** `ruse-mcp` owns completion contracts, completion source lookup, validation, redaction, and JSON-RPC behavior. `ruse-cli` owns manifest file IO and stdio startup wiring.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

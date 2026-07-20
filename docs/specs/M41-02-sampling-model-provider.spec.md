@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Execute safe MCP sampling requests through an `agent-model::ModelProvider` and return typed MCP sampling results.
+Execute safe MCP sampling requests through an `ruse-model::ModelProvider` and return typed MCP sampling results.
 
 ## Product Context
 
@@ -25,7 +25,7 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-core::mcp_sampling` owns provider-backed execution. It uses `agent_model::collect_model_event_stream` and returns `agent_mcp::McpCreateMessageResult`.
+`ruse-core::mcp_sampling` owns provider-backed execution. It uses `ruse_model::collect_model_event_stream` and returns `ruse_mcp::McpCreateMessageResult`.
 
 ## Public Contracts
 
@@ -35,7 +35,7 @@ pub struct McpModelSamplingProvider {
 }
 ```
 
-The provider stores an `Arc<dyn ModelProvider>` internally and implements `agent_mcp::McpSamplingProvider`.
+The provider stores an `Arc<dyn ModelProvider>` internally and implements `ruse_mcp::McpSamplingProvider`.
 
 ## State and Failure Handling
 
@@ -59,8 +59,8 @@ The provider stores an `Arc<dyn ModelProvider>` internally and implements `agent
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p agent-core mcp_sampling_model_provider`
-- `CARGO_TARGET_DIR=target/codex-m41 cargo clippy -p agent-core --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo test -p ruse-core mcp_sampling_model_provider`
+- `CARGO_TARGET_DIR=target/codex-m41 cargo clippy -p ruse-core --all-targets -- -D warnings`
 
 ## Completion Signal
 

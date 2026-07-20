@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M18 architecture baseline for comprehensive model-tool-observation turns.
 
-**Architecture:** This is a documentation-only slice. It defines `agent-core` loop ownership, tool-call accumulation, policy/sandbox flow, observation context, loop guards, idempotency, and recovery behavior.
+**Architecture:** This is a documentation-only slice. It defines `ruse-core` loop ownership, tool-call accumulation, policy/sandbox flow, observation context, loop guards, idempotency, and recovery behavior.
 
 **Tech Stack:** Markdown docs, existing tool/policy/runtime architecture docs, Cargo workspace verification.
 
@@ -13,7 +13,7 @@
 ### Task 1: Confirm Inputs
 
 **Files:**
-- Read: `docs/specs/M18-agent-tool-loop-runtime.spec.md`
+- Read: `docs/specs/M18-ruse-tool-loop-runtime.spec.md`
 - Read: `docs/specs/M02-tool-policy-audit.spec.md`
 - Read: `docs/specs/M03-local-coding-loop.spec.md`
 - Read: `docs/specs/M17-live-model-runtime-streaming.spec.md`
@@ -23,7 +23,7 @@
 Run:
 
 ```bash
-sed -n '1,220p' docs/specs/M18-agent-tool-loop-runtime.spec.md
+sed -n '1,220p' docs/specs/M18-ruse-tool-loop-runtime.spec.md
 ```
 
 Expected: milestone scope defines comprehensive agent tool loop behavior and leaves interactive approval UI to M19.
@@ -31,7 +31,7 @@ Expected: milestone scope defines comprehensive agent tool loop behavior and lea
 ### Task 2: Write Technical Design
 
 **Files:**
-- Create: `docs/specs/M18-00-agent-tool-loop-technical-design.spec.md`
+- Create: `docs/specs/M18-00-ruse-tool-loop-technical-design.spec.md`
 
 - [ ] **Step 1: Define ownership and contracts**
 
@@ -44,7 +44,7 @@ Check that every side effect routes through policy, all tool output is treated a
 ### Task 3: Verify
 
 **Files:**
-- Read: `docs/specs/M18-00-agent-tool-loop-technical-design.spec.md`
+- Read: `docs/specs/M18-00-ruse-tool-loop-technical-design.spec.md`
 
 - [ ] **Step 1: Run workspace gates**
 
@@ -59,16 +59,16 @@ Expected: all checks pass.
 ### Task 4: Commit
 
 **Files:**
-- Add: `docs/specs/M18-00-agent-tool-loop-technical-design.spec.md`
-- Add: `docs/plans/M18-00-agent-tool-loop-technical-design.plan.md`
-- Modify: `docs/plans/M18-agent-tool-loop-runtime.plan.md`
+- Add: `docs/specs/M18-00-ruse-tool-loop-technical-design.spec.md`
+- Add: `docs/plans/M18-00-ruse-tool-loop-technical-design.plan.md`
+- Modify: `docs/plans/M18-ruse-tool-loop-runtime.plan.md`
 
 - [ ] **Step 1: Commit design docs**
 
 Run:
 
 ```bash
-git add docs/specs/M18-00-agent-tool-loop-technical-design.spec.md docs/plans/M18-00-agent-tool-loop-technical-design.plan.md docs/plans/M18-agent-tool-loop-runtime.plan.md
+git add docs/specs/M18-00-ruse-tool-loop-technical-design.spec.md docs/plans/M18-00-ruse-tool-loop-technical-design.plan.md docs/plans/M18-ruse-tool-loop-runtime.plan.md
 git commit -m "docs: add m18 technical design"
 ```
 

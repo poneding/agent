@@ -12,7 +12,7 @@ M48 introduced typed GET stream open and drain behavior but does not retry after
 
 This spec delivers:
 
-- reconnect policy ownership in `agent-mcp`
+- reconnect policy ownership in `ruse-mcp`
 - retry classification and backoff rules
 - reconnect runner composition over M48 contracts
 - missed-event replay diagnostics boundary
@@ -74,7 +74,7 @@ pub enum McpClientHttpReconnectDecision {
 - fixture reconnect loop tests
 - checkpoint/resume tests
 - report redaction tests
-- final `agent-mcp` clippy and workspace CI gates
+- final `ruse-mcp` clippy and workspace CI gates
 
 ## Acceptance Criteria
 

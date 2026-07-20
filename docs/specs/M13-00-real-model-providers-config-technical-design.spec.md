@@ -30,23 +30,23 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-model` owns provider-neutral configuration, registry, capabilities, invocation policy, and provider-specific adapters. `agent-core` consumes those contracts through `ModelProvider` and registry interfaces. `agent-cli` and `agent-desktop` expose model choices as typed settings and commands. Storage migration support remains in `agent-storage` when M13 introduces durable config schema versions.
+`ruse-model` owns provider-neutral configuration, registry, capabilities, invocation policy, and provider-specific adapters. `ruse-core` consumes those contracts through `ModelProvider` and registry interfaces. `ruse-cli` and `ruse-desktop` expose model choices as typed settings and commands. Storage migration support remains in `ruse-storage` when M13 introduces durable config schema versions.
 
 ```mermaid
 flowchart TD
-  model["agent-model"] --> types["agent-types"]
-  core["agent-core"] --> model
-  cli["agent-cli"] --> core
-  desktop["agent-desktop"] --> bridge["agent-ui-bridge"]
+  model["ruse-model"] --> types["ruse-types"]
+  core["ruse-core"] --> model
+  cli["ruse-cli"] --> core
+  desktop["ruse-desktop"] --> bridge["ruse-ui-bridge"]
   bridge --> core
-  storage["agent-storage"] --> types
+  storage["ruse-storage"] --> types
 ```
 
 Dependency rules:
 
-- `agent-model` must not depend on `agent-core`, CLI, Desktop, storage, MCP, plugins, or tools.
+- `ruse-model` must not depend on `ruse-core`, CLI, Desktop, storage, MCP, plugins, or tools.
 - Provider-specific request/response structs stay inside provider adapter modules.
-- `agent-core` may depend on provider registry traits but must not parse provider HTTP payloads.
+- `ruse-core` may depend on provider registry traits but must not parse provider HTTP payloads.
 - UI crates send model selection commands/settings through bridge contracts only.
 - Secret resolution is represented by `SecretRef`; secret value retrieval belongs to a later secret-provider boundary.
 

@@ -4,7 +4,7 @@
 
 **Goal:** Improve terminal diff review and command/test monitoring with typed, bounded, redacted CLI/JSON/TUI surfaces.
 
-**Architecture:** `agent-core` continues to own edit/diff and command/test report semantics. `agent-ui-bridge` owns UI-safe snapshot contracts and any derived display metadata. `agent-cli` renders text/JSON inspection. `agent-tui` owns panel state, navigation, and rendering. Cancellation is surfaced as readiness through existing typed snapshot fields unless a later runtime slice adds active cancellation commands.
+**Architecture:** `ruse-core` continues to own edit/diff and command/test report semantics. `ruse-ui-bridge` owns UI-safe snapshot contracts and any derived display metadata. `ruse-cli` renders text/JSON inspection. `ruse-tui` owns panel state, navigation, and rendering. Cancellation is surfaced as readiness through existing typed snapshot fields unless a later runtime slice adds active cancellation commands.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing `EditDiffFlowReport` and `CommandTestLoopReport`, existing CLI repo commands, Ratatui panel state, Cargo fmt/clippy/test.
 
@@ -18,26 +18,26 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-core/src/edit_diff.rs`
-- Read: `crates/agent-core/src/command_test.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-tui/src/diff_panel.rs`
-- Read: `crates/agent-tui/src/command_panel.rs`
-- Read: `crates/agent-tui/src/app.rs`
-- Read: `crates/agent-tui/src/render.rs`
+- Read: `crates/ruse-core/src/edit_diff.rs`
+- Read: `crates/ruse-core/src/command_test.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-tui/src/diff_panel.rs`
+- Read: `crates/ruse-tui/src/command_panel.rs`
+- Read: `crates/ruse-tui/src/app.rs`
+- Read: `crates/ruse-tui/src/render.rs`
 
 - [x] **Step 1: Review current diff and command baselines**
 
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test edit_diff_snapshot
-cargo test -p agent-ui-bridge --test command_test_snapshot
-cargo test -p agent-cli --test edit_diff_flow
-cargo test -p agent-cli --test command_test_loop
-cargo test -p agent-tui --test diff_panel
-cargo test -p agent-tui --test command_panel
+cargo test -p ruse-ui-bridge --test edit_diff_snapshot
+cargo test -p ruse-ui-bridge --test command_test_snapshot
+cargo test -p ruse-cli --test edit_diff_flow
+cargo test -p ruse-cli --test command_test_loop
+cargo test -p ruse-tui --test diff_panel
+cargo test -p ruse-tui --test command_panel
 ```
 
 Expected: existing snapshots, CLI repo edit/command flows, and TUI panels pass before M59-04 changes.
@@ -45,8 +45,8 @@ Expected: existing snapshots, CLI repo edit/command flows, and TUI panels pass b
 ### Task 2: Extend Bridge Snapshot Tests
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/tests/edit_diff_snapshot.rs`
-- Modify: `crates/agent-ui-bridge/tests/command_test_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/tests/edit_diff_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/tests/command_test_snapshot.rs`
 
 - [x] **Step 1: Add diff snapshot expectations**
 
@@ -72,8 +72,8 @@ Cover:
 ### Task 3: Implement Bridge Snapshot Metadata
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify if needed: `crates/agent-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify if needed: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add typed display metadata only where needed**
 
@@ -88,8 +88,8 @@ Use existing bridge helpers for public text, diff text, stdout/stderr, cancellat
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test edit_diff_snapshot
-cargo test -p agent-ui-bridge --test command_test_snapshot
+cargo test -p ruse-ui-bridge --test edit_diff_snapshot
+cargo test -p ruse-ui-bridge --test command_test_snapshot
 ```
 
 Expected: bridge snapshot tests pass.
@@ -97,9 +97,9 @@ Expected: bridge snapshot tests pass.
 ### Task 4: Improve CLI Diff and Command Rendering
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/tests/edit_diff_flow.rs`
-- Modify: `crates/agent-cli/tests/command_test_loop.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/tests/edit_diff_flow.rs`
+- Modify: `crates/ruse-cli/tests/command_test_loop.rs`
 
 - [x] **Step 1: Add CLI text expectations**
 
@@ -126,8 +126,8 @@ Update text renderers to use existing reports or bridge snapshots consistently. 
 Run:
 
 ```bash
-cargo test -p agent-cli --test edit_diff_flow
-cargo test -p agent-cli --test command_test_loop
+cargo test -p ruse-cli --test edit_diff_flow
+cargo test -p ruse-cli --test command_test_loop
 ```
 
 Expected: CLI tests pass.
@@ -135,12 +135,12 @@ Expected: CLI tests pass.
 ### Task 5: Improve TUI Diff and Command Panels
 
 **Files:**
-- Modify: `crates/agent-tui/src/diff_panel.rs`
-- Modify: `crates/agent-tui/src/command_panel.rs`
-- Modify: `crates/agent-tui/src/app.rs`
-- Modify: `crates/agent-tui/src/render.rs`
-- Modify: `crates/agent-tui/tests/diff_panel.rs`
-- Modify: `crates/agent-tui/tests/command_panel.rs`
+- Modify: `crates/ruse-tui/src/diff_panel.rs`
+- Modify: `crates/ruse-tui/src/command_panel.rs`
+- Modify: `crates/ruse-tui/src/app.rs`
+- Modify: `crates/ruse-tui/src/render.rs`
+- Modify: `crates/ruse-tui/tests/diff_panel.rs`
+- Modify: `crates/ruse-tui/tests/command_panel.rs`
 
 - [x] **Step 1: Add TUI diff tests**
 
@@ -159,8 +159,8 @@ Derive panel state from `UiJsonFrame::EditDiffSnapshot` and `UiJsonFrame::Comman
 Run:
 
 ```bash
-cargo test -p agent-tui --test diff_panel
-cargo test -p agent-tui --test command_panel
+cargo test -p ruse-tui --test diff_panel
+cargo test -p ruse-tui --test command_panel
 ```
 
 Expected: TUI diff and command panel tests pass.
@@ -179,13 +179,13 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
-cargo test -p agent-ui-bridge --test edit_diff_snapshot
-cargo test -p agent-ui-bridge --test command_test_snapshot
-cargo test -p agent-cli --test edit_diff_flow
-cargo test -p agent-cli --test command_test_loop
-cargo test -p agent-tui --test diff_panel
-cargo test -p agent-tui --test command_panel
+cargo clippy -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
+cargo test -p ruse-ui-bridge --test edit_diff_snapshot
+cargo test -p ruse-ui-bridge --test command_test_snapshot
+cargo test -p ruse-cli --test edit_diff_flow
+cargo test -p ruse-cli --test command_test_loop
+cargo test -p ruse-tui --test diff_panel
+cargo test -p ruse-tui --test command_panel
 ```
 
 Expected: focused checks pass.

@@ -25,24 +25,24 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-storage` owns fixture loading and replay compatibility checks. `agent-core` owns derived-state reconstruction for runtime-level traces.
+`ruse-storage` owns fixture loading and replay compatibility checks. `ruse-core` owns derived-state reconstruction for runtime-level traces.
 
 ```mermaid
 flowchart TD
-  fixture["versioned fixture JSON"] --> agent_storage["agent-storage compatibility loader"]
-  agent_storage --> agent_core["agent-core replay reconstruction"]
+  fixture["versioned fixture JSON"] --> ruse_storage["ruse-storage compatibility loader"]
+  ruse_storage --> ruse_core["ruse-core replay reconstruction"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-storage/
+  ruse-storage/
     tests/
       replay_compatibility.rs
       fixtures/
         m04_trace_v1.json
-  agent-core/
+  ruse-core/
     tests/
       recovery_compatibility.rs
 ```

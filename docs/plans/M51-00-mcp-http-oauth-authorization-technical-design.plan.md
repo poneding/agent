@@ -4,7 +4,7 @@
 
 **Goal:** Establish M51 architecture and slice boundaries.
 
-**Architecture:** Documentation-only planning slice for `agent-mcp` OAuth authorization foundations.
+**Architecture:** Documentation-only planning slice for `ruse-mcp` OAuth authorization foundations.
 
 **Tech Stack:** Markdown, milestone specs, implementation plans.
 

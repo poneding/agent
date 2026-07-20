@@ -4,7 +4,7 @@
 
 **Goal:** Wire manifest-backed MCP completions into CLI stdio `completion/complete`.
 
-**Architecture:** `agent-cli` loads manifest completion declarations into profile runtime; `agent-mcp` handles JSON-RPC dispatch and completion lookup.
+**Architecture:** `ruse-cli` loads manifest completion declarations into profile runtime; `ruse-mcp` handles JSON-RPC dispatch and completion lookup.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -31,9 +31,9 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m38 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-cli --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_manifest_completions
-CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-cli mcp_server_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p ruse-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_manifest_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-cli mcp_server_completions
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -42,10 +42,10 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m38 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-cli --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_manifest_completions
-CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-cli mcp_server_completions
-CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_contracts
+CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p ruse-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_manifest_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-cli mcp_server_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_contracts
 ```
 
 ### Task 5: Commit

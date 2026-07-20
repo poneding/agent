@@ -1,15 +1,15 @@
 use std::fs;
 
-use agent_storage::SqliteEventStore;
+use ruse_storage::SqliteEventStore;
 
 use crate::{
     DesktopCommandError, DesktopRuntimeSession, DesktopRuntimeState, DesktopStartSessionRequest,
 };
-use agent_types::{
+use ruse_types::{
     ActorRef, ClientKind, ConversationId, CorrelationId, EventId, RuntimeEvent,
     RuntimeEventPayload, SchemaVersion, Timestamp, UserInputReceived, WorkspaceId,
 };
-use agent_ui_bridge::{UiClientInfo, UiCommand, UiCommandEnvelope, UiJsonFrame};
+use ruse_ui_bridge::{UiClientInfo, UiCommand, UiCommandEnvelope, UiJsonFrame};
 
 fn id<T>(value: &str) -> T
 where
@@ -188,7 +188,7 @@ fn switch_session_replays_persisted_history_and_lists_generated_title() {
             if event.conversation_id == conversation_id
                 && matches!(
                     &event.payload,
-                    agent_ui_bridge::UiEventPayload::UserMessage { message }
+                    ruse_ui_bridge::UiEventPayload::UserMessage { message }
                         if message == "Investigate Desktop session history. Later details"
                 )
     )));
@@ -207,7 +207,7 @@ fn switch_session_replays_persisted_history_and_lists_generated_title() {
 #[test]
 fn desktop_start_turn_persists_user_history_across_store_reopen() {
     let path =
-        std::env::temp_dir().join(format!("agent-desktop-bridge-{}.sqlite3", EventId::new()));
+        std::env::temp_dir().join(format!("ruse-desktop-bridge-{}.sqlite3", EventId::new()));
     let workspace_id = id::<WorkspaceId>("00000000-0000-0000-0000-000000000001");
     let conversation_id = id::<ConversationId>("00000000-0000-0000-0000-000000000002");
     let prompt = "Persist this Desktop conversation across restart";
@@ -229,7 +229,7 @@ fn desktop_start_turn_persists_user_history_across_store_reopen() {
             UiJsonFrame::Event(event)
                 if matches!(
                     &event.payload,
-                    agent_ui_bridge::UiEventPayload::UserMessage { message }
+                    ruse_ui_bridge::UiEventPayload::UserMessage { message }
                         if message == prompt
                 )
         )));
@@ -264,7 +264,7 @@ fn desktop_start_turn_persists_user_history_across_store_reopen() {
             UiJsonFrame::Event(event)
                 if matches!(
                     &event.payload,
-                    agent_ui_bridge::UiEventPayload::UserMessage { message }
+                    ruse_ui_bridge::UiEventPayload::UserMessage { message }
                         if message == prompt
                 )
         )));

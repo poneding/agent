@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M37 technical design and implementation slice map.
 
-**Architecture:** Documentation-only baseline for `agent-mcp` resource templates and `agent-cli` stdio verification.
+**Architecture:** Documentation-only baseline for `ruse-mcp` resource templates and `ruse-cli` stdio verification.
 
 **Tech Stack:** Markdown docs.
 

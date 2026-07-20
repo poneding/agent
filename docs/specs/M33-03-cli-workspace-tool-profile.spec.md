@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Wire the built-in export catalog into `agent-cli mcp server stdio --profile` using an explicit workspace root.
+Wire the built-in export catalog into `ruse-cli mcp server stdio --profile` using an explicit workspace root.
 
 ## Product Context
 
@@ -24,14 +24,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` reads the manifest and path flags, then delegates profile construction to `agent-mcp`. It does not instantiate arbitrary tools outside the curated helper.
+`ruse-cli` reads the manifest and path flags, then delegates profile construction to `ruse-mcp`. It does not instantiate arbitrary tools outside the curated helper.
 
 ```mermaid
 flowchart TD
   Args["CLI args"] --> Config["McpServerStdioConfig"]
   Config --> Manifest["manifest parse"]
   Config --> Workspace["workspace root"]
-  Workspace --> Catalog["agent-mcp built-in catalog"]
+  Workspace --> Catalog["ruse-mcp built-in catalog"]
   Manifest --> Profile["profile runtime"]
   Catalog --> Profile
 ```
@@ -39,16 +39,16 @@ flowchart TD
 ## File Layout
 
 ```text
-crates/agent-cli/src/command.rs
-crates/agent-cli/tests/mcp_server_profile_command.rs
-crates/agent-cli/tests/mcp_server_workspace_tool_profile.rs
+crates/ruse-cli/src/command.rs
+crates/ruse-cli/tests/mcp_server_profile_command.rs
+crates/ruse-cli/tests/mcp_server_workspace_tool_profile.rs
 ```
 
 ## Public Contracts
 
 ```bash
-agent-cli mcp server stdio --profile exports.json --workspace .
-agent-cli mcp server stdio --profile exports.json --profile-name default --workspace .
+ruse-cli mcp server stdio --profile exports.json --workspace .
+ruse-cli mcp server stdio --profile exports.json --profile-name default --workspace .
 ```
 
 `--workspace` is ignored for resource-only startup only in the sense that resource profiles do not require it. If provided, it must still be valid.
@@ -75,7 +75,7 @@ agent-cli mcp server stdio --profile exports.json --profile-name default --works
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m33 cargo test -p agent-cli mcp_server_workspace_tool_profile`
+- `CARGO_TARGET_DIR=target/codex-m33 cargo test -p ruse-cli mcp_server_workspace_tool_profile`
 - Existing M32 CLI profile tests continue passing.
 
 ## Completion Signal

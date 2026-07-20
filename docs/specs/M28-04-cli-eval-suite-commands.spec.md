@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Expose scenario suites through CLI commands that can list, validate, run, and update goldens using the shared `agent-eval` suite contracts.
+Expose scenario suites through CLI commands that can list, validate, run, and update goldens using the shared `ruse-eval` suite contracts.
 
 ## Product Context
 
@@ -12,15 +12,15 @@ M27 added single-scenario commands. M28 needs suite commands so developers and C
 
 This spec delivers:
 
-- `agent-cli eval suite list --suite <path>`
-- `agent-cli eval suite validate --suite <path>`
-- `agent-cli eval suite run --suite <path>`
-- `agent-cli eval suite update-goldens --suite <path> [--dry-run]`
+- `ruse-cli eval suite list --suite <path>`
+- `ruse-cli eval suite validate --suite <path>`
+- `ruse-cli eval suite run --suite <path>`
+- `ruse-cli eval suite update-goldens --suite <path> [--dry-run]`
 - text and JSON output with CI-safe exit codes
 
 ## Architecture
 
-`agent-cli` parses suite commands and delegates to `agent-eval`.
+`ruse-cli` parses suite commands and delegates to `ruse-eval`.
 
 ## State and Failure Handling
 

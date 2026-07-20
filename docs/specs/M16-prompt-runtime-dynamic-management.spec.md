@@ -12,7 +12,7 @@ M05 introduced prompt layers and basic budget planning. M15 can run a configured
 
 This milestone delivers:
 
-- versioned `PromptProfile` contracts in `agent-context`
+- versioned `PromptProfile` contracts in `ruse-context`
 - prompt layer sources for built-in runtime, project files, user preferences, skills, tools, memory, team roles, and session overrides
 - deterministic prompt assembly with source metadata, ordering, and conflict diagnostics
 - per-turn `PromptSnapshot` persistence through runtime events or checkpoint payloads
@@ -28,16 +28,16 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-context` owns prompt profile data, layer ordering, budget allocation, and prompt snapshots. `agent-core` asks `agent-context` for an immutable prompt bundle during turn preparation and emits UI-safe prompt diagnostics. `agent-cli`, future `agent-tui`, and Desktop render summaries only; they do not construct runtime prompts.
+`ruse-context` owns prompt profile data, layer ordering, budget allocation, and prompt snapshots. `ruse-core` asks `ruse-context` for an immutable prompt bundle during turn preparation and emits UI-safe prompt diagnostics. `ruse-cli`, future `ruse-tui`, and Desktop render summaries only; they do not construct runtime prompts.
 
 ```mermaid
 flowchart TD
-  Config["agent-core config"] --> Context["agent-context PromptRuntime"]
-  Skills["agent-skill contributions"] --> Context
-  Memory["agent-memory records"] --> Context
-  Core["agent-core TurnRunner"] --> Context
+  Config["ruse-core config"] --> Context["ruse-context PromptRuntime"]
+  Skills["ruse-skill contributions"] --> Context
+  Memory["ruse-memory records"] --> Context
+  Core["ruse-core TurnRunner"] --> Context
   Context --> Events["Runtime events and snapshots"]
-  Events --> Bridge["agent-ui-bridge summaries"]
+  Events --> Bridge["ruse-ui-bridge summaries"]
 ```
 
 ## Key Contracts

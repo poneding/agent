@@ -4,7 +4,7 @@
 
 **Goal:** Add static completion lookup for declared MCP resource template variables.
 
-**Architecture:** `agent-mcp` extends resource export registry behavior while keeping completion side-effect-free.
+**Architecture:** `ruse-mcp` extends resource export registry behavior while keeping completion side-effect-free.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -30,8 +30,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m38 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_resource_template_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_resource_template_completions
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -40,8 +40,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m38 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m38 cargo test -p agent-mcp mcp_server_resource_template_completions
+CARGO_TARGET_DIR=target/codex-m38 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m38 cargo test -p ruse-mcp mcp_server_resource_template_completions
 ```
 
 ### Task 5: Commit

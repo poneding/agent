@@ -31,7 +31,7 @@ fn package_cli_plan_uses_deterministic_artifact_paths() {
             "build",
             "--release",
             "-p",
-            "agent-cli",
+            "ruse-cli",
             "--bin",
             "agent",
             "--target",
@@ -105,7 +105,7 @@ fn package_cli_plan_uses_host_release_binary_without_explicit_target() {
 
     assert_eq!(
         plan.build_command.args,
-        vec!["build", "--release", "-p", "agent-cli", "--bin", "agent"]
+        vec!["build", "--release", "-p", "ruse-cli", "--bin", "agent"]
     );
     assert_eq!(plan.target_triple, "aarch64-apple-darwin");
     assert_eq!(

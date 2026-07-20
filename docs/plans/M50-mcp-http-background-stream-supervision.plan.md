@@ -4,7 +4,7 @@
 
 **Goal:** Add bounded background supervision foundations for MCP streamable HTTP GET streams over the M49 reconnect runtime.
 
-**Architecture:** `agent-mcp` owns supervisor contracts, runner, cancellation, and safe reports. Scheduler/UI crates consume typed DTOs only.
+**Architecture:** `ruse-mcp` owns supervisor contracts, runner, cancellation, and safe reports. Scheduler/UI crates consume typed DTOs only.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde, fixture transports, scheduler contracts, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -82,10 +82,10 @@ git commit -m "feat: complete m50 mcp http background stream supervision"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_contracts` passed.
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_runner` passed.
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_cancellation` passed.
-- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p agent-mcp mcp_client_http_stream_supervisor_reports` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_runner` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_cancellation` passed.
+- `CARGO_TARGET_DIR=target/codex-m50 cargo test -p ruse-mcp mcp_client_http_stream_supervisor_reports` passed.
 - `git diff --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m50 cargo fmt --all -- --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m50 cargo xtask ci` passed. The known quality-gate fixture printed `error: Unrecognized option: 'definitely-not-a-real-rustc-flag'` and exited successfully.

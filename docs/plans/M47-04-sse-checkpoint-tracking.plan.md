@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M47-04-sse-checkpoint-tracking.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_sse_dispatch.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_sse_dispatch.rs`
 
 - [x] **Step 1: Review SSE dispatch and metadata state**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_sse_checkpoints.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_sse_checkpoints.rs`
 
 - [x] **Step 1: Add checkpoint transition tests**
 
 ### Task 3: Implement Checkpoint Updates
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Carry response metadata through dispatch**
 - [x] **Step 2: Update checkpoint after successful operation mapping**
@@ -42,8 +42,8 @@
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_checkpoints
-CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_dispatch
+CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_sse_checkpoints
+CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_sse_dispatch
 CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check
 ```
 
@@ -54,7 +54,7 @@ CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: track mcp http sse checkpoints"
 ```
 
@@ -62,7 +62,7 @@ git commit -m "feat: track mcp http sse checkpoints"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_checkpoints` passed.
-- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p agent-mcp mcp_client_http_sse_dispatch` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_sse_checkpoints` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo test -p ruse-mcp mcp_client_http_sse_dispatch` passed.
 - `CARGO_TARGET_DIR=target/codex-m47 cargo fmt --all -- --check` passed.
-- `CARGO_TARGET_DIR=target/codex-m47 cargo clippy -p agent-mcp --all-targets -- -D warnings` passed.
+- `CARGO_TARGET_DIR=target/codex-m47 cargo clippy -p ruse-mcp --all-targets -- -D warnings` passed.

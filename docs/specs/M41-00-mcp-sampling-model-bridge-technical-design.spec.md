@@ -12,7 +12,7 @@ M40 ended at deterministic fixture behavior. M41 introduces local model executio
 
 This spec delivers:
 
-- crate boundary decision: `agent-core` owns MCP-to-model bridge logic
+- crate boundary decision: `ruse-core` owns MCP-to-model bridge logic
 - text-only mapping from MCP sampling messages to `ModelRequest.messages`
 - local provider/model selection through bridge config
 - provider-backed `McpSamplingProvider` design
@@ -27,12 +27,12 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-core` gains `mcp_sampling.rs` and a normal dependency on `agent-mcp`. The bridge consumes `agent_mcp` request contracts and `agent_model` providers. `agent-mcp` does not depend on `agent-model`.
+`ruse-core` gains `mcp_sampling.rs` and a normal dependency on `ruse-mcp`. The bridge consumes `ruse_mcp` request contracts and `ruse_model` providers. `ruse-mcp` does not depend on `ruse-model`.
 
 ```mermaid
 flowchart TD
-  Mcp["agent-mcp contracts"] --> Core["agent-core::mcp_sampling"]
-  Model["agent-model provider"] --> Core
+  Mcp["ruse-mcp contracts"] --> Core["ruse-core::mcp_sampling"]
+  Model["ruse-model provider"] --> Core
   Core --> Result["McpCreateMessageResult"]
 ```
 
@@ -73,7 +73,7 @@ pub enum McpSamplingModelBridgeError {
 
 ## Testing Strategy
 
-- request mapping unit tests in `agent-core`
+- request mapping unit tests in `ruse-core`
 - provider integration tests with `FakeModelProvider`
 - redaction and guardrail tests for unsafe paths
 

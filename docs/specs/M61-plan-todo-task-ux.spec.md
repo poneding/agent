@@ -32,17 +32,17 @@ Owned by other specs:
 
 ## Architecture
 
-Runtime truth stays in shared crates. `agent-types` owns durable serializable plan/todo identifiers, states, and event payloads. `agent-core` owns plan/todo snapshot validation and turn/task progress updates. `agent-scheduler` remains the owner of task queues, leases, approval waits, pause/resume/cancel, and notifications. `agent-ui-bridge` owns UI-safe snapshots and commands. `agent-cli`, `agent-tui`, `agent-desktop`, and `apps/desktop` render or submit typed commands without duplicating runtime logic.
+Runtime truth stays in shared crates. `ruse-types` owns durable serializable plan/todo identifiers, states, and event payloads. `ruse-core` owns plan/todo snapshot validation and turn/task progress updates. `ruse-scheduler` remains the owner of task queues, leases, approval waits, pause/resume/cancel, and notifications. `ruse-ui-bridge` owns UI-safe snapshots and commands. `ruse-cli`, `ruse-tui`, `ruse-desktop`, and `apps/desktop` render or submit typed commands without duplicating runtime logic.
 
 ```mermaid
 flowchart TD
-  Types["agent-types plan/todo/task events"] --> Core["agent-core plan/todo state"]
-  Scheduler["agent-scheduler task state"] --> Core
-  Core --> Bridge["agent-ui-bridge snapshots and commands"]
+  Types["ruse-types plan/todo/task events"] --> Core["ruse-core plan/todo state"]
+  Scheduler["ruse-scheduler task state"] --> Core
+  Core --> Bridge["ruse-ui-bridge snapshots and commands"]
   Scheduler --> Bridge
-  Bridge --> CLI["agent-cli text/json"]
-  Bridge --> TUI["agent-tui task/plan panels"]
-  Bridge --> Desktop["agent-desktop and Desktop UI"]
+  Bridge --> CLI["ruse-cli text/json"]
+  Bridge --> TUI["ruse-tui task/plan panels"]
+  Bridge --> Desktop["ruse-desktop and Desktop UI"]
 ```
 
 Dependency rules:
@@ -56,24 +56,24 @@ Dependency rules:
 
 ```text
 crates/
-  agent-types/
+  ruse-types/
     src/
       plan.rs
       event.rs
       lib.rs
-  agent-core/
+  ruse-core/
     src/
       plan.rs
       lib.rs
     tests/
       plan_todo_state.rs
-  agent-scheduler/
+  ruse-scheduler/
     src/
       command.rs
       notification.rs
     tests/
       task_plan_evidence.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       command.rs
       frame.rs
@@ -81,17 +81,17 @@ crates/
     tests/
       plan_todo_bridge.rs
       task_command_bridge.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       plan_todo_commands.rs
-  agent-tui/
+  ruse-tui/
     src/
       task_panel.rs
     tests/
       task_panel.rs
-  agent-desktop/
+  ruse-desktop/
     src/
       task.rs
       conversation.rs
@@ -169,12 +169,12 @@ pub struct UiTaskSummary {
 CLI and bridge command shapes should remain typed and stable:
 
 ```text
-agent-cli plan show
-agent-cli plan update --todo <id> --status in_progress --reason <text>
-agent-cli todo list
-agent-cli todo set --json <snapshot-json>
-agent-cli task inspect <task-id>
-agent-cli task pause|resume|cancel <task-id> --reason <text>
+ruse-cli plan show
+ruse-cli plan update --todo <id> --status in_progress --reason <text>
+ruse-cli todo list
+ruse-cli todo set --json <snapshot-json>
+ruse-cli task inspect <task-id>
+ruse-cli task pause|resume|cancel <task-id> --reason <text>
 ```
 
 ## State and Failure Handling
@@ -198,12 +198,12 @@ agent-cli task pause|resume|cancel <task-id> --reason <text>
 
 ## Testing Strategy
 
-- `agent-types` and `agent-core` unit tests for serde shape, todo transition validation, revision checks, redaction, progress counts, and evidence linking
-- `agent-scheduler` tests for task approval-wait, pause/resume/cancel, notification, and artifact evidence visible to plan/todo consumers
-- `agent-ui-bridge` snapshot tests for plan/todo frames, enriched task summaries, notification events, and stable JSON shape
-- `agent-cli` tests for text and JSON plan/todo commands plus existing task lifecycle commands
-- `agent-tui` tests for task panel rendering of plan progress, approval waits, notifications, reviews, and empty states
-- `agent-desktop` and Vitest tests for Desktop task/detail plan progress, waiting approval, artifacts, and notifications using typed fixtures
+- `ruse-types` and `ruse-core` unit tests for serde shape, todo transition validation, revision checks, redaction, progress counts, and evidence linking
+- `ruse-scheduler` tests for task approval-wait, pause/resume/cancel, notification, and artifact evidence visible to plan/todo consumers
+- `ruse-ui-bridge` snapshot tests for plan/todo frames, enriched task summaries, notification events, and stable JSON shape
+- `ruse-cli` tests for text and JSON plan/todo commands plus existing task lifecycle commands
+- `ruse-tui` tests for task panel rendering of plan progress, approval waits, notifications, reviews, and empty states
+- `ruse-desktop` and Vitest tests for Desktop task/detail plan progress, waiting approval, artifacts, and notifications using typed fixtures
 - final M61 gates: `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`
 
 ## Acceptance Criteria

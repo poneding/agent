@@ -14,7 +14,7 @@ This spec delivers:
 
 - tool export descriptors
 - export registry with deterministic ordering
-- conversion from `agent-tool::ToolDefinition` to MCP tool descriptors
+- conversion from `ruse-tool::ToolDefinition` to MCP tool descriptors
 - policy-aware `tools/call` fixture behavior
 
 Owned by other specs:
@@ -24,7 +24,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::server_tool` maps local tool definitions into MCP server-visible contracts. Execution uses `agent-tool` and policy request contracts; no direct tool execution bypass is added.
+`ruse-mcp::server_tool` maps local tool definitions into MCP server-visible contracts. Execution uses `ruse-tool` and policy request contracts; no direct tool execution bypass is added.
 
 ## Public Contracts
 
@@ -60,7 +60,7 @@ pub struct McpToolExport {
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_server_tool_export` passes.
+- `cargo test -p ruse-mcp mcp_server_tool_export` passes.
 - exported local tools remain policy gated.
 
 ## Completion Signal

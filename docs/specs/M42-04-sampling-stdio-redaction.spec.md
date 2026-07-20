@@ -25,7 +25,7 @@ Owned by later specs:
 
 ## Architecture
 
-Redaction helpers live in the M42 `agent-mcp` sampling stdio module and may reuse existing MCP server redaction conventions.
+Redaction helpers live in the M42 `ruse-mcp` sampling stdio module and may reuse existing MCP server redaction conventions.
 
 ## Public Contracts
 
@@ -50,7 +50,7 @@ No new durable contract is required unless diagnostics become a public struct. E
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p agent-mcp mcp_sampling_stdio_redaction`
+- `CARGO_TARGET_DIR=target/codex-m42 cargo test -p ruse-mcp mcp_sampling_stdio_redaction`
 
 ## Completion Signal
 

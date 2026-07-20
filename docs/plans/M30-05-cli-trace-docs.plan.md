@@ -4,7 +4,7 @@
 
 **Goal:** Add safe CLI/status documentation for MCP server mode and complete M30.
 
-**Architecture:** CLI renders `agent-mcp` summaries; runtime logic remains in domain crates.
+**Architecture:** CLI renders `ruse-mcp` summaries; runtime logic remains in domain crates.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Markdown docs, Cargo quality gates.
 

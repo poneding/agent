@@ -4,7 +4,7 @@
 
 **Goal:** Wire MCP client roots into fixture client behavior and capability metadata.
 
-**Architecture:** `agent-mcp::client` depends on root contracts. Gateway and UI crates only consume the resulting typed APIs.
+**Architecture:** `ruse-mcp::client` depends on root contracts. Gateway and UI crates only consume the resulting typed APIs.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, Cargo tests.
 
@@ -30,8 +30,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_session_roots
+CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_session_roots
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -40,8 +40,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_session_roots
+CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_session_roots
 ```
 
 ### Task 5: Commit

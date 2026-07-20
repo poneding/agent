@@ -4,7 +4,7 @@
 
 **Goal:** Close M56 with user-facing golden-path documentation, final milestone status updates, and workspace-wide verification evidence.
 
-**Architecture:** No runtime changes. Docs describe the existing `agent-cli` -> `agent-eval` -> `agent-core` path and keep eval artifacts redacted under `target/agent-eval`.
+**Architecture:** No runtime changes. Docs describe the existing `ruse-cli` -> `ruse-eval` -> `ruse-core` path and keep eval artifacts redacted under `target/ruse-eval`.
 
 **Tech Stack:** Markdown docs, Cargo fmt, workspace clippy, workspace tests, `cargo xtask eval`.
 

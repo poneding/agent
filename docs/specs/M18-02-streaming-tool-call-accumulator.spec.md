@@ -12,7 +12,7 @@ Providers currently emit complete `ModelStreamEvent::ToolCall` values. Future pr
 
 This slice delivers:
 
-- `ToolCallAccumulator` in `agent-core`
+- `ToolCallAccumulator` in `ruse-core`
 - conversion from complete model tool-call events into `ToolCallRequest`
 - duplicate call id detection
 - invalid tool names and invalid JSON object input converted into model-visible observations
@@ -25,7 +25,7 @@ Owned by later slices:
 
 ## Architecture
 
-The accumulator lives in `agent-core` because it translates model stream events into core tool-loop requests. It depends on `agent-model`, `agent-tool`, and `agent-types` contracts but does not execute tools.
+The accumulator lives in `ruse-core` because it translates model stream events into core tool-loop requests. It depends on `ruse-model`, `ruse-tool`, and `ruse-types` contracts but does not execute tools.
 
 ```mermaid
 flowchart TD

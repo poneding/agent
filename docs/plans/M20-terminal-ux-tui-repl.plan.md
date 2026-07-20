@@ -4,7 +4,7 @@
 
 **Goal:** Ship the terminal product entrypoint where `agent` opens a Ratatui-powered REPL in interactive terminals while preserving batch, JSON, and plain modes.
 
-**Architecture:** `agent-cli` owns the installed binary, mode parsing, and TTY dispatch. `agent-tui` owns Ratatui/Crossterm rendering, terminal lifecycle, and UI state. Runtime communication goes through `agent-ui-bridge`.
+**Architecture:** `ruse-cli` owns the installed binary, mode parsing, and TTY dispatch. `ruse-tui` owns Ratatui/Crossterm rendering, terminal lifecycle, and UI state. Runtime communication goes through `ruse-ui-bridge`.
 
 **Tech Stack:** Rust 2024 edition, Ratatui, Crossterm, tui-textarea, serde UI bridge frames, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -18,7 +18,7 @@
 
 - [x] **Step 1: Write the M20 technical design baseline**
 
-Define binary naming, TTY detection, `agent-tui` crate ownership, app loop, terminal cleanup, keyboard model, panels, and fallback behavior.
+Define binary naming, TTY detection, `ruse-tui` crate ownership, app loop, terminal cleanup, keyboard model, panels, and fallback behavior.
 
 - [x] **Step 2: Write the M20 design execution plan**
 
@@ -67,7 +67,7 @@ Configure the installed binary name and mode parsing so `agent` opens TUI in int
 
 - [x] **Step 2: Add Ratatui shell**
 
-Create `agent-tui` with app state, terminal guard, layout, and exit behavior.
+Create `ruse-tui` with app state, terminal guard, layout, and exit behavior.
 
 - [x] **Step 3: Add composer and REPL input**
 

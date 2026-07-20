@@ -27,14 +27,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns platform path and settings contracts used by runtime startup. `agent-storage` persists settings files atomically. `agent-cli` exposes diagnostics and mutation commands. `agent-ui-bridge` carries UI-safe snapshots.
+`ruse-core` owns platform path and settings contracts used by runtime startup. `ruse-storage` persists settings files atomically. `ruse-cli` exposes diagnostics and mutation commands. `ruse-ui-bridge` carries UI-safe snapshots.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli"] --> Core["agent-core settings"]
-  Desktop["Desktop/TUI"] --> Bridge["agent-ui-bridge"]
+  CLI["ruse-cli"] --> Core["ruse-core settings"]
+  Desktop["Desktop/TUI"] --> Bridge["ruse-ui-bridge"]
   Bridge --> Core
-  Core --> Storage["agent-storage atomic files"]
+  Core --> Storage["ruse-storage atomic files"]
 ```
 
 ## Public Contracts
@@ -93,7 +93,7 @@ pub enum SettingsMutation {
 
 - every surface can request the same `PlatformPaths`
 - settings can be loaded, mutated, validated, persisted, and rendered safely
-- focused tests pass with `cargo test -p agent-core platform_paths_settings`
+- focused tests pass with `cargo test -p ruse-core platform_paths_settings`
 
 ## Completion Signal
 

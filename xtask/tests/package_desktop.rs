@@ -48,11 +48,11 @@ fn package_desktop_plan_uses_deterministic_paths_and_smoke_checks() {
     );
     assert_eq!(
         plan.plan_artifact_path,
-        PathBuf::from("dist/desktop/agent-desktop-1.2.3-aarch64-apple-darwin-beta.plan.txt")
+        PathBuf::from("dist/desktop/ruse-desktop-1.2.3-aarch64-apple-darwin-beta.plan.txt")
     );
     assert_eq!(
         plan.update_manifest_path,
-        PathBuf::from("dist/desktop/agent-desktop-1.2.3-aarch64-apple-darwin-beta.update.json")
+        PathBuf::from("dist/desktop/ruse-desktop-1.2.3-aarch64-apple-darwin-beta.update.json")
     );
     assert_eq!(
         plan.tauri_config_path,
@@ -77,7 +77,7 @@ fn package_desktop_plan_uses_deterministic_paths_and_smoke_checks() {
     );
     assert!(plan.smoke_commands.iter().any(|command| {
         command.program == "cargo"
-            && command.args == vec!["test", "-p", "agent-desktop", "update_manifest"]
+            && command.args == vec!["test", "-p", "ruse-desktop", "update_manifest"]
     }));
     assert!(!plan.bundle);
 

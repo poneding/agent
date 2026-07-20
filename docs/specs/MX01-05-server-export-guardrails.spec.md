@@ -21,7 +21,7 @@ Not included:
 
 ## Architecture
 
-`agent-mcp::server_manifest` owns manifest schema validation and preview contracts. Existing read-only workspace tool exports continue through the existing catalog path.
+`ruse-mcp::server_manifest` owns manifest schema validation and preview contracts. Existing read-only workspace tool exports continue through the existing catalog path.
 
 ## Security
 
@@ -29,4 +29,4 @@ Enabled side-effecting export declarations fail validation before runtime profil
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_server_export_guardrails`
+- `cargo test -p ruse-mcp mcp_server_export_guardrails`

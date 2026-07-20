@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add typed platform capability reports in `agent-sandbox`.
+**Goal:** Add typed platform capability reports in `ruse-sandbox`.
 
-**Architecture:** Keep platform detection and sandbox capability reporting in `agent-sandbox`. Use deterministic builders in tests so results do not depend on a specific operating system.
+**Architecture:** Keep platform detection and sandbox capability reporting in `ruse-sandbox`. Use deterministic builders in tests so results do not depend on a specific operating system.
 
-**Tech Stack:** Rust 2024 edition, serde, thiserror, existing `agent-sandbox`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, serde, thiserror, existing `ruse-sandbox`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,24 +14,24 @@
 
 **Files:**
 - Read: `docs/specs/M12-05-platform-capability-report.spec.md`
-- Read: `crates/agent-sandbox/src/lib.rs`
-- Read: `crates/agent-sandbox/tests/path.rs`
+- Read: `crates/ruse-sandbox/src/lib.rs`
+- Read: `crates/ruse-sandbox/tests/path.rs`
 
 - [x] **Step 1: Review sandbox ownership**
 
 Run:
 
 ```bash
-sed -n '1,220p' crates/agent-sandbox/src/lib.rs
+sed -n '1,220p' crates/ruse-sandbox/src/lib.rs
 sed -n '1,240p' docs/specs/M12-05-platform-capability-report.spec.md
 ```
 
-Expected: platform reporting belongs in `agent-sandbox`.
+Expected: platform reporting belongs in `ruse-sandbox`.
 
 ### Task 2: Write RED Platform Tests
 
 **Files:**
-- Create: `crates/agent-sandbox/tests/platform_report.rs`
+- Create: `crates/ruse-sandbox/tests/platform_report.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -50,7 +50,7 @@ The tests define the public API for `PlatformCapabilityReport`, `SandboxCapabili
 Run:
 
 ```bash
-cargo test -p agent-sandbox platform_report
+cargo test -p ruse-sandbox platform_report
 ```
 
 Expected: tests fail because platform report contracts do not exist.
@@ -58,8 +58,8 @@ Expected: tests fail because platform report contracts do not exist.
 ### Task 3: Implement Platform Report
 
 **Files:**
-- Modify: `crates/agent-sandbox/src/lib.rs`
-- Create: `crates/agent-sandbox/src/platform.rs`
+- Modify: `crates/ruse-sandbox/src/lib.rs`
+- Create: `crates/ruse-sandbox/src/platform.rs`
 
 - [x] **Step 1: Add report types**
 
@@ -76,14 +76,14 @@ Implement `PlatformCapabilityReport::current()` using `std::env::consts::OS` and
 ### Task 4: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-sandbox/tests/platform_report.rs`
+- Read: `crates/ruse-sandbox/tests/platform_report.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-sandbox platform_report
+cargo test -p ruse-sandbox platform_report
 ```
 
 Expected: focused tests pass.

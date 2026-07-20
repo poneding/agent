@@ -27,7 +27,7 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-mcp` remains the protocol owner. Template rendering is local to prompt exports and accepts only a map of string arguments.
+`ruse-mcp` remains the protocol owner. Template rendering is local to prompt exports and accepts only a map of string arguments.
 
 ```mermaid
 flowchart TD

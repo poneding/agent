@@ -4,7 +4,7 @@
 
 **Goal:** Add shared platform path resolution, typed settings profiles, safe settings mutation, and CLI/UI diagnostics.
 
-**Architecture:** `agent-core` owns contracts, `agent-storage` handles atomic persistence, `agent-cli` exposes commands, and `agent-ui-bridge` carries safe snapshots.
+**Architecture:** `ruse-core` owns contracts, `ruse-storage` handles atomic persistence, `ruse-cli` exposes commands, and `ruse-ui-bridge` carries safe snapshots.
 
 **Tech Stack:** Rust 2024 edition, serde, platform path fixtures, atomic file writes, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -16,7 +16,7 @@
 - Read: `docs/specs/M25-01-platform-paths-settings.spec.md`
 - Read: `docs/specs/M25-00-packaging-release-technical-design.spec.md`
 - Read: `docs/architecture/configuration.md`
-- Read: `crates/agent-core/src/runtime_config.rs`
+- Read: `crates/ruse-core/src/runtime_config.rs`
 
 - [x] **Step 1: Review path and settings scope**
 
@@ -25,9 +25,9 @@ Expected: path ownership, settings mutation, diagnostics, and persistence bounda
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/platform_paths_settings.rs`
-- Create if needed: `crates/agent-cli/tests/settings_paths.rs`
-- Create if needed: `crates/agent-ui-bridge/tests/settings_paths_snapshot.rs`
+- Create: `crates/ruse-core/tests/platform_paths_settings.rs`
+- Create if needed: `crates/ruse-cli/tests/settings_paths.rs`
+- Create if needed: `crates/ruse-ui-bridge/tests/settings_paths_snapshot.rs`
 
 - [x] **Step 1: Add path fixture tests**
 
@@ -40,18 +40,18 @@ Cover validation, atomic persistence, corrupted file diagnostics, and redaction.
 - [x] **Step 3: Verify RED**
 
 ```bash
-cargo test -p agent-core platform_paths_settings
+cargo test -p ruse-core platform_paths_settings
 ```
 
 ### Task 3: Implement Contracts
 
 **Files:**
-- Modify: `crates/agent-core/src/lib.rs`
-- Create if needed: `crates/agent-core/src/platform.rs`
-- Create if needed: `crates/agent-core/src/settings.rs`
-- Modify if needed: `crates/agent-storage/src/lib.rs`
-- Modify if needed: `crates/agent-cli/src/command.rs`
-- Modify if needed: `crates/agent-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Create if needed: `crates/ruse-core/src/platform.rs`
+- Create if needed: `crates/ruse-core/src/settings.rs`
+- Modify if needed: `crates/ruse-storage/src/lib.rs`
+- Modify if needed: `crates/ruse-cli/src/command.rs`
+- Modify if needed: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Add `PlatformPaths`**
 
@@ -70,9 +70,9 @@ Expose safe text/JSON outputs for CLI and UI clients.
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-core platform_paths_settings
-cargo test -p agent-cli settings_paths
-cargo test -p agent-ui-bridge settings_paths_snapshot
+cargo test -p ruse-core platform_paths_settings
+cargo test -p ruse-cli settings_paths
+cargo test -p ruse-ui-bridge settings_paths_snapshot
 ```
 
 - [x] **Step 2: Run workspace gates**

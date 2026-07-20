@@ -4,7 +4,7 @@
 
 **Goal:** Let MCP stdio export profiles expose curated built-in workspace inspection tools through explicit manifests and a workspace sandbox.
 
-**Architecture:** `agent-mcp` owns export profile and catalog contracts. `agent-tool` owns built-in tool behavior. `agent-cli` owns args, path IO, and stdio wiring.
+**Architecture:** `ruse-mcp` owns export profile and catalog contracts. `ruse-tool` owns built-in tool behavior. `ruse-cli` owns args, path IO, and stdio wiring.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

@@ -28,15 +28,15 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-policy` owns decisions and leases. `agent-core` converts `ask` decisions into suspended turn states and emits approval events. UI clients respond through `agent-ui-bridge`. `agent-tool` provides preview payloads for edit, shell, Git, MCP, and plugin tools.
+`ruse-policy` owns decisions and leases. `ruse-core` converts `ask` decisions into suspended turn states and emits approval events. UI clients respond through `ruse-ui-bridge`. `ruse-tool` provides preview payloads for edit, shell, Git, MCP, and plugin tools.
 
 ```mermaid
 flowchart TD
-  Core["agent-core suspended turn"] --> Policy["agent-policy request"]
-  Policy --> Bridge["agent-ui-bridge approval event"]
-  CLI["agent-cli"] --> Bridge
-  TUI["agent-tui"] --> Bridge
-  Desktop["agent-desktop"] --> Bridge
+  Core["ruse-core suspended turn"] --> Policy["ruse-policy request"]
+  Policy --> Bridge["ruse-ui-bridge approval event"]
+  CLI["ruse-cli"] --> Bridge
+  TUI["ruse-tui"] --> Bridge
+  Desktop["ruse-desktop"] --> Bridge
   Bridge --> Core
 ```
 

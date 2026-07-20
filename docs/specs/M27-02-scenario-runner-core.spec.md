@@ -27,13 +27,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-eval::runner` consumes `ValidatedEvalScenario` and writes `EvalScenarioReport`. It calls existing runtime/replay/evidence builders and never performs direct user-facing rendering.
+`ruse-eval::runner` consumes `ValidatedEvalScenario` and writes `EvalScenarioReport`. It calls existing runtime/replay/evidence builders and never performs direct user-facing rendering.
 
 ```mermaid
 flowchart TD
-  Manifest["Validated scenario"] --> Runner["agent-eval::runner"]
-  Runner --> Replay["agent-storage replay"]
-  Runner --> Evidence["agent-core evidence"]
+  Manifest["Validated scenario"] --> Runner["ruse-eval::runner"]
+  Runner --> Replay["ruse-storage replay"]
+  Runner --> Evidence["ruse-core evidence"]
   Runner --> Report["EvalScenarioReport"]
 ```
 
@@ -41,7 +41,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-eval/
+  ruse-eval/
     src/
       runner.rs
       report.rs
@@ -89,7 +89,7 @@ pub struct EvalScenarioReport {
 
 - runner can execute at least replay-trace and evidence-only scenarios.
 - report structs are serializable and deterministic.
-- `cargo test -p agent-eval runner` passes.
+- `cargo test -p ruse-eval runner` passes.
 
 ## Completion Signal
 

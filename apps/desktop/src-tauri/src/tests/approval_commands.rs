@@ -1,5 +1,5 @@
-use agent_types::ApprovalRequestId;
-use agent_ui_bridge::{UiApprovalDecision, UiCommand};
+use ruse_types::ApprovalRequestId;
+use ruse_ui_bridge::{UiApprovalDecision, UiCommand};
 
 use crate::approval_commands::DesktopResolveApprovalRequest;
 use crate::bridge::{DesktopRuntimeSession, DesktopStartSessionRequest};

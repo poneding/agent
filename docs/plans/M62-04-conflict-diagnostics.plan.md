@@ -4,9 +4,9 @@
 
 **Goal:** Surface worktree/file-change conflicts through typed recovery diagnostics and CLI/TUI/Desktop-safe views without implementing merge resolution.
 
-**Architecture:** `agent-worktree` owns pure conflict detection. `agent-core` maps conflict reports into recovery-safe summaries and readiness diagnostics. `agent-ui-bridge` owns UI-safe frames. CLI/TUI/Desktop render typed summaries without recomputing classification.
+**Architecture:** `ruse-worktree` owns pure conflict detection. `ruse-core` maps conflict reports into recovery-safe summaries and readiness diagnostics. `ruse-ui-bridge` owns UI-safe frames. CLI/TUI/Desktop render typed summaries without recomputing classification.
 
-**Tech Stack:** Rust 2024 edition, serde contracts, existing `agent-worktree::ConflictReport`, recovery snapshots, UI bridge frames, CLI text/JSON commands, TUI state, Desktop Rust/TypeScript fixtures, Cargo fmt/clippy/test, Vitest.
+**Tech Stack:** Rust 2024 edition, serde contracts, existing `ruse-worktree::ConflictReport`, recovery snapshots, UI bridge frames, CLI text/JSON commands, TUI state, Desktop Rust/TypeScript fixtures, Cargo fmt/clippy/test, Vitest.
 
 ---
 
@@ -17,13 +17,13 @@
 - Read: `docs/specs/M62-reliability-recovery-productization.spec.md`
 - Read: `docs/plans/M62-reliability-recovery-productization.plan.md`
 - Read: `docs/specs/M09-02-conflict-detection.spec.md`
-- Read: `crates/agent-worktree/src/conflict.rs`
-- Read: `crates/agent-worktree/tests/conflict_detection.rs`
-- Read: `crates/agent-core/src/recovery.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-tui/src/task_panel.rs`
-- Read: `crates/agent-desktop/src/task.rs`
+- Read: `crates/ruse-worktree/src/conflict.rs`
+- Read: `crates/ruse-worktree/tests/conflict_detection.rs`
+- Read: `crates/ruse-core/src/recovery.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-tui/src/task_panel.rs`
+- Read: `crates/ruse-desktop/src/task.rs`
 - Read: `apps/desktop/src/types.ts`
 - Read: `apps/desktop/src/state/tasks.ts`
 - Read: `apps/desktop/src/components/TaskDetail.tsx`
@@ -35,12 +35,12 @@ Identify current conflict contracts, path validation behavior, recovery readines
 ### Task 2: Add Recovery Conflict Contracts
 
 **Files:**
-- Modify: `crates/agent-types/src/recovery.rs`
-- Create: `crates/agent-core/src/conflict_recovery.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Modify: `crates/agent-core/src/recovery.rs`
-- Create: `crates/agent-core/tests/conflict_recovery.rs`
-- Modify: `crates/agent-worktree/src/conflict.rs` only if path/hash redaction or mapping support is missing
+- Modify: `crates/ruse-types/src/recovery.rs`
+- Create: `crates/ruse-core/src/conflict_recovery.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Modify: `crates/ruse-core/src/recovery.rs`
+- Create: `crates/ruse-core/tests/conflict_recovery.rs`
+- Modify: `crates/ruse-worktree/src/conflict.rs` only if path/hash redaction or mapping support is missing
 
 - [x] **Step 1: Define typed conflict summaries**
 
@@ -55,7 +55,7 @@ Keep paths relative, bounded, sorted, and redacted.
 
 - [x] **Step 2: Map worktree conflicts into recovery conflicts**
 
-Implement a mapper from `agent_worktree::ConflictReport` to recovery summaries. It must not include raw file contents.
+Implement a mapper from `ruse_worktree::ConflictReport` to recovery summaries. It must not include raw file contents.
 
 - [x] **Step 3: Integrate readiness**
 
@@ -66,8 +66,8 @@ Extend `RecoverySnapshot` to carry conflict summaries and make active conflicts 
 Run:
 
 ```bash
-cargo test -p agent-worktree --test conflict_detection
-cargo test -p agent-core --test conflict_recovery
+cargo test -p ruse-worktree --test conflict_detection
+cargo test -p ruse-core --test conflict_recovery
 ```
 
 Expected: conflict mapping is deterministic, safe, sorted, and blocks readiness when conflicts exist.
@@ -75,12 +75,12 @@ Expected: conflict mapping is deterministic, safe, sorted, and blocks readiness 
 ### Task 3: Add Bridge and CLI Surfaces
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify: `crates/agent-ui-bridge/tests/recovery_bridge.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/src/lib.rs`
-- Modify: `crates/agent-cli/tests/recovery_commands.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-ui-bridge/tests/recovery_bridge.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
+- Modify: `crates/ruse-cli/tests/recovery_commands.rs`
 
 - [x] **Step 1: Add conflict bridge frame**
 
@@ -91,8 +91,8 @@ Expose conflict summaries through recovery snapshot frames and, if useful, a ded
 Support:
 
 ```text
-agent-cli conflict inspect --fixture sample
-agent-cli conflict inspect --conversation <id> [--turn <id>]
+ruse-cli conflict inspect --fixture sample
+ruse-cli conflict inspect --conversation <id> [--turn <id>]
 ```
 
 Use deterministic fixture mode if durable conflict lookup is not available, with an explicit diagnostic.
@@ -106,8 +106,8 @@ Text output should include conflict count, path, kind, side change kinds, hashes
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test recovery_bridge
-cargo test -p agent-cli --test recovery_commands
+cargo test -p ruse-ui-bridge --test recovery_bridge
+cargo test -p ruse-cli --test recovery_commands
 ```
 
 Expected: bridge and CLI output are stable, bounded, sorted, and redacted.
@@ -115,11 +115,11 @@ Expected: bridge and CLI output are stable, bounded, sorted, and redacted.
 ### Task 4: Add TUI/Desktop-Safe Fixtures
 
 **Files:**
-- Modify: `crates/agent-tui/src/task_panel.rs`
-- Modify: `crates/agent-tui/src/trace_panel.rs`
-- Modify: `crates/agent-tui/src/transcript.rs`
-- Modify: `crates/agent-desktop/src/task.rs`
-- Create: `crates/agent-desktop/tests/recovery_view.rs`
+- Modify: `crates/ruse-tui/src/task_panel.rs`
+- Modify: `crates/ruse-tui/src/trace_panel.rs`
+- Modify: `crates/ruse-tui/src/transcript.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
+- Create: `crates/ruse-desktop/tests/recovery_view.rs`
 - Modify: `apps/desktop/src/types.ts`
 - Modify: `apps/desktop/src/state/tasks.ts`
 - Modify: `apps/desktop/src/components/TaskDetail.tsx`
@@ -138,7 +138,7 @@ Show conflict count and path summaries from typed frames. Do not add merge resol
 Run:
 
 ```bash
-cargo test -p agent-desktop --test recovery_view
+cargo test -p ruse-desktop --test recovery_view
 npm --prefix apps/desktop test -- desktop-smoke
 ```
 
@@ -157,12 +157,12 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-worktree -p agent-core -p agent-ui-bridge -p agent-cli -p agent-tui -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-worktree --test conflict_detection
-cargo test -p agent-core --test conflict_recovery
-cargo test -p agent-ui-bridge --test recovery_bridge
-cargo test -p agent-cli --test recovery_commands
-cargo test -p agent-desktop --test recovery_view
+cargo clippy -p ruse-worktree -p ruse-core -p ruse-ui-bridge -p ruse-cli -p ruse-tui -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-worktree --test conflict_detection
+cargo test -p ruse-core --test conflict_recovery
+cargo test -p ruse-ui-bridge --test recovery_bridge
+cargo test -p ruse-cli --test recovery_commands
+cargo test -p ruse-desktop --test recovery_view
 npm --prefix apps/desktop test -- desktop-smoke
 ```
 
@@ -192,7 +192,7 @@ After focused verification passes, exact-stage only M62-04 files and commit:
 ```bash
 git status --short --branch
 git diff --check
-git add crates/agent-types/src/recovery.rs crates/agent-core/src/conflict_recovery.rs crates/agent-core/src/lib.rs crates/agent-core/src/recovery.rs crates/agent-core/tests/conflict_recovery.rs crates/agent-worktree/src/conflict.rs crates/agent-ui-bridge/src/frame.rs crates/agent-ui-bridge/src/lib.rs crates/agent-ui-bridge/tests/recovery_bridge.rs crates/agent-cli/src/command.rs crates/agent-cli/src/lib.rs crates/agent-cli/tests/recovery_commands.rs crates/agent-tui/src/task_panel.rs crates/agent-tui/src/trace_panel.rs crates/agent-tui/src/transcript.rs crates/agent-desktop/src/task.rs crates/agent-desktop/tests/recovery_view.rs apps/desktop/src/types.ts apps/desktop/src/state/tasks.ts apps/desktop/src/components/TaskDetail.tsx apps/desktop/src/__tests__/desktop-smoke.test.tsx docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md docs/plans/M62-04-conflict-diagnostics.plan.md
+git add crates/ruse-types/src/recovery.rs crates/ruse-core/src/conflict_recovery.rs crates/ruse-core/src/lib.rs crates/ruse-core/src/recovery.rs crates/ruse-core/tests/conflict_recovery.rs crates/ruse-worktree/src/conflict.rs crates/ruse-ui-bridge/src/frame.rs crates/ruse-ui-bridge/src/lib.rs crates/ruse-ui-bridge/tests/recovery_bridge.rs crates/ruse-cli/src/command.rs crates/ruse-cli/src/lib.rs crates/ruse-cli/tests/recovery_commands.rs crates/ruse-tui/src/task_panel.rs crates/ruse-tui/src/trace_panel.rs crates/ruse-tui/src/transcript.rs crates/ruse-desktop/src/task.rs crates/ruse-desktop/tests/recovery_view.rs apps/desktop/src/types.ts apps/desktop/src/state/tasks.ts apps/desktop/src/components/TaskDetail.tsx apps/desktop/src/__tests__/desktop-smoke.test.tsx docs/milestones/README.md docs/roadmap/PRODUCT_ROADMAP.md docs/plans/M62-04-conflict-diagnostics.plan.md
 git commit -m "feat: add m62-04 conflict recovery diagnostics"
 ```
 

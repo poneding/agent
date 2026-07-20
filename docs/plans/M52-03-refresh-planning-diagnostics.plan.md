@@ -4,7 +4,7 @@
 
 **Goal:** Add deterministic refresh planning diagnostics for token leases.
 
-**Architecture:** Pure planning helpers in `agent-mcp::client_http`.
+**Architecture:** Pure planning helpers in `ruse-mcp::client_http`.
 
 **Tech Stack:** Rust 2024 edition, serde, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,22 +14,22 @@
 
 **Files:**
 - Read: `docs/specs/M52-03-refresh-planning-diagnostics.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review refresh planning scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_oauth_token_refresh.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_oauth_token_refresh.rs`
 
 - [x] **Step 1: Add refresh planning tests**
 
 ### Task 3: Implement Planning
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add refresh plan contracts**
 - [x] **Step 2: Add expiry/skew evaluation**
@@ -48,9 +48,9 @@
 Verification evidence, 2026-06-30:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m52 cargo test -p agent-mcp mcp_client_http_oauth_token_refresh
+CARGO_TARGET_DIR=target/codex-m52 cargo test -p ruse-mcp mcp_client_http_oauth_token_refresh
 CARGO_TARGET_DIR=target/codex-m52 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m52 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Result: all focused M52-03 checks passed.

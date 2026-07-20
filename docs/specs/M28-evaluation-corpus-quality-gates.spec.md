@@ -25,16 +25,16 @@ Owned by other milestones:
 
 ## Architecture
 
-`agent-eval` continues to own evaluation contracts and runtime-adjacent logic. Scenario suites live beside scenario files and resolve paths relative to a suite root. CLI and `xtask` invoke `agent-eval` and render typed reports/artifacts only.
+`ruse-eval` continues to own evaluation contracts and runtime-adjacent logic. Scenario suites live beside scenario files and resolve paths relative to a suite root. CLI and `xtask` invoke `ruse-eval` and render typed reports/artifacts only.
 
 ```mermaid
 flowchart TD
-  Suite["Suite manifest"] --> Eval["agent-eval suite loader"]
+  Suite["Suite manifest"] --> Eval["ruse-eval suite loader"]
   Eval --> Scenarios["Validated scenarios"]
-  Scenarios --> Runner["agent-eval runner"]
+  Scenarios --> Runner["ruse-eval runner"]
   Runner --> Golden["golden comparison/update"]
   Runner --> Artifacts["report artifacts"]
-  CLI["agent-cli eval suite"] --> Eval
+  CLI["ruse-cli eval suite"] --> Eval
   Xtask["cargo xtask eval"] --> CLI
 ```
 
@@ -42,10 +42,10 @@ flowchart TD
 
 ```text
 crates/
-  agent-eval/
+  ruse-eval/
     src/suite.rs
     tests/suite.rs
-  agent-cli/
+  ruse-cli/
     tests/eval_suite_commands.rs
 xtask/
   src/lib.rs

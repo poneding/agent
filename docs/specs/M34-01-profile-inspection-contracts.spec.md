@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add typed MCP export profile inspection contracts in `agent-mcp`.
+Add typed MCP export profile inspection contracts in `ruse-mcp`.
 
 ## Product Context
 
@@ -24,11 +24,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::server_manifest` owns inspection because it already owns manifest parsing, profile selection, resource path resolution, and built-in catalog construction.
+`ruse-mcp::server_manifest` owns inspection because it already owns manifest parsing, profile selection, resource path resolution, and built-in catalog construction.
 
 ```mermaid
 flowchart TD
-  Manifest["manifest"] --> Inspect["agent-mcp inspection"]
+  Manifest["manifest"] --> Inspect["ruse-mcp inspection"]
   Inspect --> Tools["tool inspections"]
   Inspect --> Resources["resource inspections"]
   Inspect --> Diagnostics["diagnostics"]
@@ -37,9 +37,9 @@ flowchart TD
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_manifest.rs
-crates/agent-mcp/src/lib.rs
-crates/agent-mcp/tests/mcp_server_profile_inspection.rs
+crates/ruse-mcp/src/server_manifest.rs
+crates/ruse-mcp/src/lib.rs
+crates/ruse-mcp/tests/mcp_server_profile_inspection.rs
 ```
 
 ## Public Contracts
@@ -74,8 +74,8 @@ crates/agent-mcp/tests/mcp_server_profile_inspection.rs
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_inspection`
-- `agent-mcp` exports the inspection contracts.
+- `CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-mcp mcp_server_profile_inspection`
+- `ruse-mcp` exports the inspection contracts.
 
 ## Completion Signal
 

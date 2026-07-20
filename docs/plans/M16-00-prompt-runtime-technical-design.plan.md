@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M16 architecture baseline for dynamic prompt management.
 
-**Architecture:** This is a documentation-only slice. It defines `agent-context` ownership for prompt runtime contracts, `agent-core` persistence boundaries, UI-safe prompt summaries, and replay/privacy rules before implementation slices begin.
+**Architecture:** This is a documentation-only slice. It defines `ruse-context` ownership for prompt runtime contracts, `ruse-core` persistence boundaries, UI-safe prompt summaries, and replay/privacy rules before implementation slices begin.
 
 **Tech Stack:** Markdown docs, existing architecture docs, Cargo workspace verification.
 

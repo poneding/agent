@@ -4,7 +4,7 @@
 
 **Goal:** Make plugins, skills, and MCP servers installable, manageable, permissioned, and executable through a shared gateway.
 
-**Architecture:** `agent-plugin`, `agent-skill`, and `agent-mcp` own extension contracts. `agent-core` coordinates registration and policy. UI clients manage extensions through `agent-ui-bridge`.
+**Architecture:** `ruse-plugin`, `ruse-skill`, and `ruse-mcp` own extension contracts. `ruse-core` coordinates registration and policy. UI clients manage extensions through `ruse-ui-bridge`.
 
 **Tech Stack:** Rust 2024 edition, process plugin fixtures, MCP stdio/HTTP transports, serde schemas, Cargo fmt, Cargo clippy, Cargo test.
 

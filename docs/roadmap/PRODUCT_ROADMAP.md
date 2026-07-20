@@ -10,18 +10,18 @@ The percentages below are directional planning estimates based on the current re
 
 | Capability Domain | Current Completion | Evidence | Product Gap |
 |---|---:|---|---|
-| Runtime spine, typed events, replay, checkpoints | 80% | `agent-core`, `agent-types`, `agent-storage`, M01-M04, M26-M29 | Needs product-level recovery UX and larger replay scenarios. |
-| Tool, policy, audit, sandbox foundations | 75% | M02, M03, M18, M19, `agent-tool`, `agent-policy`, `agent-sandbox` | Needs polished coding workflow defaults, stronger command streaming, and approval ergonomics. |
+| Runtime spine, typed events, replay, checkpoints | 80% | `ruse-core`, `ruse-types`, `ruse-storage`, M01-M04, M26-M29 | Needs product-level recovery UX and larger replay scenarios. |
+| Tool, policy, audit, sandbox foundations | 75% | M02, M03, M18, M19, `ruse-tool`, `ruse-policy`, `ruse-sandbox` | Needs polished coding workflow defaults, stronger command streaming, and approval ergonomics. |
 | Model provider abstraction | 70% | M13-M17, M57, fake provider, OpenAI-compatible, Anthropic, Gemini, local/Ollama-style providers, typed capabilities, fallback, config, and secrets | Needs broader live-provider smoke evidence, account setup UX, and Desktop provider onboarding. |
 | Local coding agent golden path | 60% | M56 repo/session, edit/diff, command/test, final review, and default local-coding eval scenario | Needs daily-driver behavior beyond the deterministic fixture: richer tasks, multi-file edits, retry/recovery UX, and real-provider parity. |
 | Context and memory | 50% | M05, M16, M23, prompt profiles, memory stores, retrieval design | Needs repo-aware context, semantic project indexing, memory review UX, and compaction quality gates. |
-| CLI and TUI product UX | 70% | M06, M20, M59, `agent-cli`, `agent-tui`, JSON mode | Needs deeper live coding-loop soak, retry/recovery polish, and parity with upcoming Desktop flows. |
-| Desktop product UX | 60% | M10, M21, M60, `agent-desktop`, UI bridge contracts, Desktop smoke fixture, MX02 planning | Needs a modern coding workspace shell, thread/composer density, inspector panels, provider/model onboarding, live-provider Desktop soak, recovery surfaces, installer/onboarding polish, and beta packaging. |
+| CLI and TUI product UX | 70% | M06, M20, M59, `ruse-cli`, `ruse-tui`, JSON mode | Needs deeper live coding-loop soak, retry/recovery polish, and parity with upcoming Desktop flows. |
+| Desktop product UX | 60% | M10, M21, M60, `ruse-desktop`, UI bridge contracts, Desktop smoke fixture, MX02 planning | Needs a modern coding workspace shell, thread/composer density, inspector panels, provider/model onboarding, live-provider Desktop soak, recovery surfaces, installer/onboarding polish, and beta packaging. |
 | Background tasks and autonomy | 45% | M08, M24, scheduler/task contracts | Needs long-running task UX, notifications, quota visibility, resume controls, and failure recovery. |
-| Worktree, subagents, teams | 40% | M09, `agent-worktree`, `agent-team` | Needs product workflows for parallel implementation, review, merge, and conflict resolution. |
-| Plugins and skills | 55% | M11, M22, `agent-plugin`, `agent-skill` | Needs marketplace-like management, compatibility checks in UI, and real plugin developer loop. |
-| MCP extension layer | 85% | M07, M22, M30-M54, `agent-mcp` | Sufficient for now. Remaining OAuth/token polish should be backlog unless unblocking product scenarios. |
-| Observability, evals, CI gates | 80% | M26-M29, `agent-eval`, `xtask`, M56 local-coding golden path, M60 Desktop product smoke gate | Needs broader coding eval corpus, recovery/crash smoke evidence, and beta release smoke artifacts. |
+| Worktree, subagents, teams | 40% | M09, `ruse-worktree`, `ruse-team` | Needs product workflows for parallel implementation, review, merge, and conflict resolution. |
+| Plugins and skills | 55% | M11, M22, `ruse-plugin`, `ruse-skill` | Needs marketplace-like management, compatibility checks in UI, and real plugin developer loop. |
+| MCP extension layer | 85% | M07, M22, M30-M54, `ruse-mcp` | Sufficient for now. Remaining OAuth/token polish should be backlog unless unblocking product scenarios. |
+| Observability, evals, CI gates | 80% | M26-M29, `ruse-eval`, `xtask`, M56 local-coding golden path, M60 Desktop product smoke gate | Needs broader coding eval corpus, recovery/crash smoke evidence, and beta release smoke artifacts. |
 | Packaging, settings, updates | 50% | M25, settings/update crates and tests | Needs beta-grade install, upgrade, config migration, secrets setup, and provider onboarding. |
 
 Overall status: the runtime platform is ahead of the product. The next milestones should deliver vertical product value, not more extension protocol depth.

@@ -24,11 +24,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::client_stdio` implements `McpGatewayClient` for `McpStdioClient<T>`. The implementation uses the existing session request path and maps JSON-RPC success results into `McpToolCallResult`.
+`ruse-mcp::client_stdio` implements `McpGatewayClient` for `McpStdioClient<T>`. The implementation uses the existing session request path and maps JSON-RPC success results into `McpToolCallResult`.
 
 ```mermaid
 flowchart TD
-  Tool["agent-tool Tool"] --> Gateway["McpGateway"]
+  Tool["ruse-tool Tool"] --> Gateway["McpGateway"]
   Gateway --> Client["McpGatewayClient"]
   Client --> Stdio["McpStdioClient"]
   Stdio --> JsonRpc["tools/call JSON-RPC"]
@@ -50,7 +50,7 @@ flowchart TD
 ## Security and Privacy
 
 - Local policy enforcement remains in gateway/local tool execution.
-- `agent-mcp` does not grant filesystem, command, Git, browser, Desktop, or secret access to remote servers.
+- `ruse-mcp` does not grant filesystem, command, Git, browser, Desktop, or secret access to remote servers.
 - Remote success output is data returned by the selected remote tool; diagnostics remain redacted.
 
 ## Testing Strategy

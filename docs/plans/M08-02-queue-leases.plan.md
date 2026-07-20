@@ -4,9 +4,9 @@
 
 **Goal:** Add in-memory task queue, active leases, cancellation, pause/resume, and retry decisions.
 
-**Architecture:** Queue behavior stays in `agent-scheduler` and builds on `TaskRun` from M08-01. Storage-backed queues remain out of scope.
+**Architecture:** Queue behavior stays in `ruse-scheduler` and builds on `TaskRun` from M08-01. Storage-backed queues remain out of scope.
 
-**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `agent-types`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Cargo workspace, `serde`, `thiserror`, existing `ruse-types`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,7 +14,7 @@
 
 **Files:**
 - Read: `docs/specs/M08-02-queue-leases.spec.md`
-- Read: `crates/agent-scheduler/src/task.rs`
+- Read: `crates/ruse-scheduler/src/task.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -25,7 +25,7 @@ sed -n '1,280p' docs/specs/M08-02-queue-leases.spec.md
 ### Task 2: Write Queue and Lease RED Tests
 
 **Files:**
-- Create: `crates/agent-scheduler/tests/queue_leases.rs`
+- Create: `crates/ruse-scheduler/tests/queue_leases.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -40,7 +40,7 @@ Cover:
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-scheduler queue_leases
+cargo test -p ruse-scheduler queue_leases
 ```
 
 Expected: fails because queue and lease APIs do not exist.
@@ -48,10 +48,10 @@ Expected: fails because queue and lease APIs do not exist.
 ### Task 3: Implement Queue, Leases, and Retry
 
 **Files:**
-- Create: `crates/agent-scheduler/src/lease.rs`
-- Create: `crates/agent-scheduler/src/retry.rs`
-- Create: `crates/agent-scheduler/src/queue.rs`
-- Modify: `crates/agent-scheduler/src/lib.rs`
+- Create: `crates/ruse-scheduler/src/lease.rs`
+- Create: `crates/ruse-scheduler/src/retry.rs`
+- Create: `crates/ruse-scheduler/src/queue.rs`
+- Modify: `crates/ruse-scheduler/src/lib.rs`
 
 - [x] **Step 1: Add lease contracts**
 
@@ -68,7 +68,7 @@ Implement enqueue, acquire, complete, fail, cancel, pause, resume, and release-e
 - [x] **Step 4: Verify GREEN**
 
 ```bash
-cargo test -p agent-scheduler queue_leases
+cargo test -p ruse-scheduler queue_leases
 ```
 
 ### Task 4: Update Progress and Commit

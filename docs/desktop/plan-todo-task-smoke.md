@@ -33,7 +33,7 @@ The Desktop M61 smoke fixture must show:
 
 ## Runtime Ownership
 
-Desktop receives this state from `agent-ui-bridge` snapshots and Desktop Rust view models. Plan/todo transitions, task lifecycle controls, approval waits, task review summaries, and artifact evidence stay in shared runtime crates.
+Desktop receives this state from `ruse-ui-bridge` snapshots and Desktop Rust view models. Plan/todo transitions, task lifecycle controls, approval waits, task review summaries, and artifact evidence stay in shared runtime crates.
 
 ## Secret Safety
 

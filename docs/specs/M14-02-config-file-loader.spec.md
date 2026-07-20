@@ -12,7 +12,7 @@ Users need durable, human-editable config files before runtime model choices can
 
 This spec delivers:
 
-- `agent-core::config`
+- `ruse-core::config`
 - `AgentRuntimeConfig`
 - `RuntimeModelConfig`
 - `RuntimeTerminalConfig`
@@ -32,7 +32,7 @@ Owned by later specs:
 
 ## Architecture
 
-Config loading lives in `agent-core` because it composes runtime domains. The model subset maps into `agent-model` contracts. Direct provider `apiKey` values are converted into an in-memory secret resolver during load; environment and other secret refs stay as handles.
+Config loading lives in `ruse-core` because it composes runtime domains. The model subset maps into `ruse-model` contracts. Direct provider `apiKey` values are converted into an in-memory secret resolver during load; environment and other secret refs stay as handles.
 
 ## Public Contracts
 
@@ -103,10 +103,10 @@ pub fn load_agent_config_file(path: &Path) -> Result<AgentRuntimeConfig, AgentCo
 
 ## Acceptance Criteria
 
-- `agent-core` exports config loader contracts.
+- `ruse-core` exports config loader contracts.
 - Config fixtures map into existing model contracts.
 - Direct `apiKey` values and secret references remain redacted after parsing.
 
 ## Completion Signal
 
-M14-02 is complete when `cargo test -p agent-core --test runtime_config_loader` and the workspace gates pass, status advances to M14-03, and the slice is committed.
+M14-02 is complete when `cargo test -p ruse-core --test runtime_config_loader` and the workspace gates pass, status advances to M14-03, and the slice is committed.

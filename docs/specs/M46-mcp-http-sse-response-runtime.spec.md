@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add the response-stream foundation for MCP streamable HTTP clients so `agent-mcp` can safely parse server-sent events beside the request/response JSON path introduced in M45.
+Add the response-stream foundation for MCP streamable HTTP clients so `ruse-mcp` can safely parse server-sent events beside the request/response JSON path introduced in M45.
 
 ## Product Context
 
@@ -12,7 +12,7 @@ M45 can drive streamable HTTP MCP servers through JSON-RPC HTTP POST responses. 
 
 This milestone delivers:
 
-- typed SSE event parsing contracts in `agent-mcp`
+- typed SSE event parsing contracts in `ruse-mcp`
 - a response-mode abstraction that can represent one JSON-RPC body or a bounded stream of JSON-RPC frames
 - reqwest transport support for `application/json` and `text/event-stream` responses
 - HTTP client dispatch that consumes the first matching JSON-RPC response frame safely
@@ -29,7 +29,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` keeps all MCP wire parsing and response-mode decisions inside `client_http.rs`. CLI, TUI, and Desktop continue to consume typed client and gateway contracts.
+`ruse-mcp` keeps all MCP wire parsing and response-mode decisions inside `client_http.rs`. CLI, TUI, and Desktop continue to consume typed client and gateway contracts.
 
 ```mermaid
 flowchart TD
@@ -86,14 +86,14 @@ Names may evolve during implementation, but response-mode behavior must remain t
 - fixture transport tests for dispatching matching frames and rejecting unexpected ids
 - reqwest local-server tests for `text/event-stream`
 - redaction regressions for malformed SSE data and remote JSON-RPC failures
-- final `agent-mcp` focused checks and workspace CI gate
+- final `ruse-mcp` focused checks and workspace CI gate
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts`
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode`
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_transport`
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_dispatch`
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_contracts`
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_response_mode`
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_transport`
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_dispatch`
 - `CARGO_TARGET_DIR=target/codex-m46 cargo xtask ci`
 
 ## Completion Signal

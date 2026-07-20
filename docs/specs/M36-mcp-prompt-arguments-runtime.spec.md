@@ -22,12 +22,12 @@ Owned by later milestones:
 
 - complex JSON schemas for prompt arguments
 - dynamic prompt editing through MCP clients
-- prompt catalogs backed by `agent-context` profile registries
+- prompt catalogs backed by `ruse-context` profile registries
 - remote MCP prompt import
 
 ## Architecture
 
-`agent-mcp` owns prompt argument contracts, validation, template rendering, and JSON-RPC behavior. `agent-cli` only loads manifest declarations and passes profile runtime data into `agent-mcp`.
+`ruse-mcp` owns prompt argument contracts, validation, template rendering, and JSON-RPC behavior. `ruse-cli` only loads manifest declarations and passes profile runtime data into `ruse-mcp`.
 
 ```mermaid
 flowchart TD
@@ -63,8 +63,8 @@ flowchart TD
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_prompt_arguments`
-- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-cli mcp_server_prompt_arguments`
+- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-mcp mcp_server_prompt_arguments`
+- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-cli mcp_server_prompt_arguments`
 - `CARGO_TARGET_DIR=target/codex-m36 cargo xtask ci`
 
 ## Completion Signal

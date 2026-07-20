@@ -742,7 +742,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M15 Config-Driven Turn Execution | `docs/specs/M15-config-driven-turn-execution.spec.md` | `docs/plans/M15-config-driven-turn-execution.plan.md` | Use effective runtime config to resolve providers, execute prompt turns, emit JSON events, and persist replayable turn records. |
 | M16 Prompt Runtime and Dynamic Prompt Management | `docs/specs/M16-prompt-runtime-dynamic-management.spec.md` | `docs/plans/M16-prompt-runtime-dynamic-management.plan.md` | Add versioned prompt profiles, dynamic overlays, source diagnostics, and replayable prompt snapshots. |
 | M17 Live Model Runtime and Streaming | `docs/specs/M17-live-model-runtime-streaming.spec.md` | `docs/plans/M17-live-model-runtime-streaming.plan.md` | Add real OpenAI-compatible HTTP transport, true model streaming, secret injection, and streamed CLI/JSON output. |
-| M18 Agent Tool Loop Runtime | `docs/specs/M18-agent-tool-loop-runtime.spec.md` | `docs/plans/M18-agent-tool-loop-runtime.plan.md` | Build the comprehensive model-tool-observation loop with guards, idempotency, and replayable tool traces. |
+| M18 Agent Tool Loop Runtime | `docs/specs/M18-ruse-tool-loop-runtime.spec.md` | `docs/plans/M18-ruse-tool-loop-runtime.plan.md` | Build the comprehensive model-tool-observation loop with guards, idempotency, and replayable tool traces. |
 | M19 Interactive Approval and Safe Local Actions | `docs/specs/M19-interactive-approval-safe-actions.spec.md` | `docs/plans/M19-interactive-approval-safe-actions.plan.md` | Turn policy asks into durable approval flows for file edits, commands, Git, MCP, plugins, and background work. |
 | M20 Terminal UX and TUI REPL | `docs/specs/M20-terminal-ux-tui-repl.spec.md` | `docs/plans/M20-terminal-ux-tui-repl.plan.md` | Make `agent` open a Ratatui-powered terminal REPL while preserving batch, JSON, and plain REPL modes. |
 | M21 Desktop GUI MVP | `docs/specs/M21-desktop-gui-mvp.spec.md` | `docs/plans/M21-desktop-gui-mvp.plan.md` | Build a runnable Tauri Desktop MVP over the shared runtime bridge. |
@@ -765,7 +765,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M38 MCP Completion Runtime | `docs/specs/M38-mcp-completion-runtime.spec.md` | `docs/plans/M38-mcp-completion-runtime.plan.md` | Serve safe MCP completions for prompt arguments and resource template variables. |
 | M39 MCP Client Roots Runtime | `docs/specs/M39-mcp-client-roots-runtime.spec.md` | `docs/plans/M39-mcp-client-roots-runtime.plan.md` | Provide explicit, bounded MCP client roots to external servers through gateway flows. |
 | M40 MCP Sampling Runtime | `docs/specs/M40-mcp-sampling-runtime.spec.md` | `docs/plans/M40-mcp-sampling-runtime.plan.md` | Provide a safe MCP `sampling/createMessage` foundation for external servers while preserving local model, approval, and tool policy boundaries. |
-| M41 MCP Sampling Model Bridge Runtime | `docs/specs/M41-mcp-sampling-model-bridge.spec.md` | `docs/plans/M41-mcp-sampling-model-bridge.plan.md` | Bridge safe text-only MCP sampling requests into local `agent-model` providers without exposing credentials, tools, or raw diagnostics. |
+| M41 MCP Sampling Model Bridge Runtime | `docs/specs/M41-mcp-sampling-model-bridge.spec.md` | `docs/plans/M41-mcp-sampling-model-bridge.plan.md` | Bridge safe text-only MCP sampling requests into local `ruse-model` providers without exposing credentials, tools, or raw diagnostics. |
 | M42 MCP Sampling Stdio Dispatch Runtime | `docs/specs/M42-mcp-sampling-stdio-dispatch.spec.md` | `docs/plans/M42-mcp-sampling-stdio-dispatch.plan.md` | Dispatch server-initiated MCP `sampling/createMessage` JSON-RPC frames through local sampling providers with safe validation and redacted diagnostics. |
 | M43 MCP Client Stdio Transport Runtime | `docs/specs/M43-mcp-client-stdio-transport.spec.md` | `docs/plans/M43-mcp-client-stdio-transport.plan.md` | Start external MCP stdio servers and drive initialize/tools/list through typed client contracts with safe process diagnostics. |
 | M44 MCP Client Stdio Tool Call Runtime | `docs/specs/M44-mcp-client-stdio-tool-call.spec.md` | `docs/plans/M44-mcp-client-stdio-tool-call.plan.md` | Execute live MCP stdio tools through typed gateway contracts with local policy boundaries and safe diagnostics. |
@@ -787,7 +787,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M60 Desktop Daily Driver | `docs/specs/M60-desktop-daily-driver.spec.md` | `docs/plans/M60-desktop-daily-driver.plan.md` | Turn Desktop into a daily-driver interface over the shared runtime with workspace dashboard, conversation, approvals, diff review, provider settings, task monitor, logs, and deterministic smoke coverage. |
 | M61 Plan, Todo, and Task UX | `docs/specs/M61-plan-todo-task-ux.spec.md` | `docs/plans/M61-plan-todo-task-ux.plan.md` | Make plan/todo/task state first-class across interactive and background work with TodoWrite-compatible state, task controls, approval waits, artifacts, and notifications. |
 | M62 Reliability and Recovery Productization | `docs/specs/M62-reliability-recovery-productization.spec.md` | `docs/plans/M62-reliability-recovery-productization.plan.md` | Productize checkpoint resume, replay/fork, idempotent recovery visibility, failed-command retry, conflict diagnostics, and crash smoke evidence. |
-| M63 Worktree and Agent Team Workflows | `docs/specs/M63-worktree-agent-team-workflows.spec.md` | `docs/plans/M63-worktree-agent-team-workflows.plan.md` | Productize isolated worktrees, subagent handoff, shared blackboard, reviewer role, merge review, conflict handling, and team-level permission ceilings. |
+| M63 Worktree and Agent Team Workflows | `docs/specs/M63-worktree-ruse-team-workflows.spec.md` | `docs/plans/M63-worktree-ruse-team-workflows.plan.md` | Productize isolated worktrees, subagent handoff, shared blackboard, reviewer role, merge review, conflict handling, and team-level permission ceilings. |
 | M64 Memory and Personalization | `docs/specs/M64-memory-personalization.spec.md` | `docs/plans/M64-memory-personalization.plan.md` | Productize memory so project/user recall is reviewable, privacy-safe, explainable, and visible in CLI/Desktop. |
 | M65 Packaging, Release, and Beta Gate | `docs/specs/M65-packaging-release-beta-gate.spec.md` | `docs/plans/M65-packaging-release-beta-gate.plan.md` | Prepare a beta users can install and trust with CLI/Desktop packages, config migrations, keychain setup, update channel, release smoke suite, and support bundle evidence. |
 | M66 Extensions and MCP Hardening | `docs/specs/M66-extensions-mcp-hardening.spec.md` | `docs/plans/M66-extensions-mcp-hardening.plan.md` | Productize extension health, compatibility, safe diagnostics, support evidence, and only the MCP OAuth pieces needed by installable workflows. |
@@ -839,7 +839,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
-| M05-01 Prompt Layers | `docs/specs/M05-01-prompt-layers.spec.md` | `docs/plans/M05-01-prompt-layers.plan.md` | Deterministic prompt layer assembly in `agent-context`. |
+| M05-01 Prompt Layers | `docs/specs/M05-01-prompt-layers.spec.md` | `docs/plans/M05-01-prompt-layers.plan.md` | Deterministic prompt layer assembly in `ruse-context`. |
 | M05-02 Budget Planner | `docs/specs/M05-02-budget-planner.spec.md` | `docs/plans/M05-02-budget-planner.plan.md` | Token budget allocation, required overflow errors, and optional omission reporting. |
 | M05-03 Pinning and Compact | `docs/specs/M05-03-pinning-compact.spec.md` | `docs/plans/M05-03-pinning-compact.plan.md` | Pinned constraints plus deterministic rolling summary compaction. |
 | M05-04 Conversation Memory | `docs/specs/M05-04-conversation-memory.spec.md` | `docs/plans/M05-04-conversation-memory.plan.md` | Conversation-scoped memory records with add, retrieve, and delete behavior. |
@@ -896,7 +896,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M11-00 Plugin Runtime Technical Design | `docs/specs/M11-00-plugin-runtime-technical-design.spec.md` | `docs/plans/M11-00-plugin-runtime-technical-design.plan.md` | Architecture baseline for manifest, compatibility, isolation, capabilities, tools, hooks, WASM, security, and tests. |
-| M11-01 Plugin Manifest | `docs/specs/M11-01-plugin-manifest.spec.md` | `docs/plans/M11-01-plugin-manifest.plan.md` | `agent-plugin` crate, manifest schema, validation, and compatibility checks. |
+| M11-01 Plugin Manifest | `docs/specs/M11-01-plugin-manifest.spec.md` | `docs/plans/M11-01-plugin-manifest.plan.md` | `ruse-plugin` crate, manifest schema, validation, and compatibility checks. |
 | M11-02 Process Plugin Host | `docs/specs/M11-02-process-plugin-host.spec.md` | `docs/plans/M11-02-process-plugin-host.plan.md` | Process plugin protocol, fixture execution, host errors, timeout, and output limits. |
 | M11-03 Plugin Capabilities | `docs/specs/M11-03-plugin-capabilities.spec.md` | `docs/plans/M11-03-plugin-capabilities.plan.md` | Capability declaration validation and policy request mapping. |
 | M11-04 Plugin Tools and Hooks | `docs/specs/M11-04-plugin-tools-hooks.spec.md` | `docs/plans/M11-04-plugin-tools-hooks.plan.md` | Plugin tool registration through `ToolRegistry`, shared `ToolLoop` policy path, and hook contracts. |
@@ -930,7 +930,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M14-00 Runtime Configuration and Secrets Technical Design | `docs/specs/M14-00-runtime-configuration-secrets-technical-design.spec.md` | `docs/plans/M14-00-runtime-configuration-secrets-technical-design.plan.md` | Architecture baseline for secret resolvers, config schema, layering, CLI diagnostics, UI snapshots, privacy, and tests. |
-| M14-01 Secret Resolver | `docs/specs/M14-01-secret-resolver.spec.md` | `docs/plans/M14-01-secret-resolver.plan.md` | Redacted secret value and provider-neutral resolver contracts in `agent-model`. |
+| M14-01 Secret Resolver | `docs/specs/M14-01-secret-resolver.spec.md` | `docs/plans/M14-01-secret-resolver.plan.md` | Redacted secret value and provider-neutral resolver contracts in `ruse-model`. |
 | M14-02 Config File Loader | `docs/specs/M14-02-config-file-loader.spec.md` | `docs/plans/M14-02-config-file-loader.plan.md` | Schema version 1 YAML config loading into model catalog and invocation policy contracts, with legacy TOML fallback. |
 | M14-03 Config Layering | `docs/specs/M14-03-config-layering.spec.md` | `docs/plans/M14-03-config-layering.plan.md` | Deterministic config source precedence and explicit provider/model overrides. |
 | M14-04 CLI Config Diagnostics | `docs/specs/M14-04-cli-config-diagnostics.spec.md` | `docs/plans/M14-04-cli-config-diagnostics.plan.md` | CLI config-check flags and UI-safe JSON diagnostics. |
@@ -952,7 +952,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M16-00 Prompt Runtime Technical Design | `docs/specs/M16-00-prompt-runtime-technical-design.spec.md` | `docs/plans/M16-00-prompt-runtime-technical-design.plan.md` | Architecture baseline for prompt profiles, overlays, snapshots, diagnostics, replay, CLI, and UI boundaries. |
-| M16-01 Prompt Profile Contracts | `docs/specs/M16-01-prompt-profile-contracts.spec.md` | `docs/plans/M16-01-prompt-profile-contracts.plan.md` | Versioned prompt profiles, layer ids, source metadata, visibility, sensitivity, policy, and validation contracts in `agent-context`. |
+| M16-01 Prompt Profile Contracts | `docs/specs/M16-01-prompt-profile-contracts.spec.md` | `docs/plans/M16-01-prompt-profile-contracts.plan.md` | Versioned prompt profiles, layer ids, source metadata, visibility, sensitivity, policy, and validation contracts in `ruse-context`. |
 | M16-02 Prompt Overlays and Diagnostics | `docs/specs/M16-02-prompt-overlays-diagnostics.spec.md` | `docs/plans/M16-02-prompt-overlays-diagnostics.plan.md` | Deterministic overlay application, required-layer enforcement, budget omissions, and content-safe diagnostics. |
 | M16-03 Prompt Snapshot Persistence | `docs/specs/M16-03-prompt-snapshot-persistence.spec.md` | `docs/plans/M16-03-prompt-snapshot-persistence.plan.md` | Stable prompt snapshots and persisted runtime events before model invocation. |
 | M16-04 CLI Prompt Inspection | `docs/specs/M16-04-cli-prompt-inspection.spec.md` | `docs/plans/M16-04-cli-prompt-inspection.plan.md` | `agent prompt profiles` and `agent prompt inspect` commands with safe text and JSON output. |
@@ -973,7 +973,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
-| M18-00 Agent Tool Loop Technical Design | `docs/specs/M18-00-agent-tool-loop-technical-design.spec.md` | `docs/plans/M18-00-agent-tool-loop-technical-design.plan.md` | Architecture baseline for comprehensive model-tool-observation loops, tool call accumulation, observations, guards, idempotency, and recovery. |
+| M18-00 Agent Tool Loop Technical Design | `docs/specs/M18-00-ruse-tool-loop-technical-design.spec.md` | `docs/plans/M18-00-ruse-tool-loop-technical-design.plan.md` | Architecture baseline for comprehensive model-tool-observation loops, tool call accumulation, observations, guards, idempotency, and recovery. |
 | M18-01 Comprehensive Turn Runner | `docs/specs/M18-01-comprehensive-turn-runner.spec.md` | `docs/plans/M18-01-comprehensive-turn-runner.plan.md` | Core comprehensive runner contracts that stream one model turn and stop on final response or tool proposal. |
 | M18-02 Streaming Tool Call Accumulator | `docs/specs/M18-02-streaming-tool-call-accumulator.spec.md` | `docs/plans/M18-02-streaming-tool-call-accumulator.plan.md` | Normalize model tool-call stream events into executable requests or recoverable observations. |
 | M18-03 Tool Observation Context | `docs/specs/M18-03-tool-observation-context.spec.md` | `docs/plans/M18-03-tool-observation-context.plan.md` | Execute allowed tool calls and feed bounded observations back into continuation model turns. |
@@ -995,9 +995,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
-| M20-00 Terminal UX and TUI Technical Design | `docs/specs/M20-00-terminal-ux-tui-technical-design.spec.md` | `docs/plans/M20-00-terminal-ux-tui-technical-design.plan.md` | Architecture baseline for the `agent` binary, TTY dispatch, `agent-tui`, Ratatui app state, terminal lifecycle, and bridge-driven panels. |
+| M20-00 Terminal UX and TUI Technical Design | `docs/specs/M20-00-terminal-ux-tui-technical-design.spec.md` | `docs/plans/M20-00-terminal-ux-tui-technical-design.plan.md` | Architecture baseline for the `agent` binary, TTY dispatch, `ruse-tui`, Ratatui app state, terminal lifecycle, and bridge-driven panels. |
 | M20-01 Agent Binary Entrypoint | `docs/specs/M20-01-agent-binary-entrypoint.spec.md` | `docs/plans/M20-01-agent-binary-entrypoint.plan.md` | Installed `agent` command, mode parsing, TTY dispatch, and script-safe batch/JSON preservation. |
-| M20-02 Ratatui Shell | `docs/specs/M20-02-ratatui-shell.spec.md` | `docs/plans/M20-02-ratatui-shell.plan.md` | `agent-tui` crate, terminal lifecycle, pure app state, and base Ratatui layout. |
+| M20-02 Ratatui Shell | `docs/specs/M20-02-ratatui-shell.spec.md` | `docs/plans/M20-02-ratatui-shell.plan.md` | `ruse-tui` crate, terminal lifecycle, pure app state, and base Ratatui layout. |
 | M20-03 TUI Composer REPL | `docs/specs/M20-03-tui-composer-repl.spec.md` | `docs/plans/M20-03-tui-composer-repl.plan.md` | Composer state, multiline input, history, slash commands, and submit effects. |
 | M20-04 Streaming Transcript | `docs/specs/M20-04-streaming-transcript.spec.md` | `docs/plans/M20-04-streaming-transcript.plan.md` | UI bridge frame reducer and live transcript rendering for model, tool, approval, diagnostic, and final events. |
 | M20-05 Approval and Diff Panels | `docs/specs/M20-05-approval-diff-panels.spec.md` | `docs/plans/M20-05-approval-diff-panels.plan.md` | Pending approval and diff side panels with explicit allow/deny bridge commands. |
@@ -1119,9 +1119,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M31-00 MCP Stdio Server Technical Design | `docs/specs/M31-00-mcp-stdio-server-technical-design.spec.md` | `docs/plans/M31-00-mcp-stdio-server-technical-design.plan.md` | Architecture baseline for session lifecycle, stdio IO boundaries, export profiles, trace/audit, privacy, and verification. |
-| M31-01 Stdio Session Runtime | `docs/specs/M31-01-stdio-session-runtime.spec.md` | `docs/plans/M31-01-stdio-session-runtime.plan.md` | Reusable `agent-mcp` session runtime over repeated JSON-RPC frames with limits and deterministic close summaries. |
+| M31-01 Stdio Session Runtime | `docs/specs/M31-01-stdio-session-runtime.spec.md` | `docs/plans/M31-01-stdio-session-runtime.plan.md` | Reusable `ruse-mcp` session runtime over repeated JSON-RPC frames with limits and deterministic close summaries. |
 | M31-02 Export Profile Bootstrap | `docs/specs/M31-02-export-profile-bootstrap.spec.md` | `docs/plans/M31-02-export-profile-bootstrap.plan.md` | Explicit default-deny export profiles that construct tool/resource registries for server sessions. |
-| M31-03 CLI Stdio Command | `docs/specs/M31-03-cli-stdio-command.spec.md` | `docs/plans/M31-03-cli-stdio-command.plan.md` | `agent-cli mcp server stdio` process command with protocol-only stdout and safe subprocess tests. |
+| M31-03 CLI Stdio Command | `docs/specs/M31-03-cli-stdio-command.spec.md` | `docs/plans/M31-03-cli-stdio-command.plan.md` | `ruse-cli mcp server stdio` process command with protocol-only stdout and safe subprocess tests. |
 | M31-04 Server Trace Audit | `docs/specs/M31-04-server-trace-audit.spec.md` | `docs/plans/M31-04-server-trace-audit.plan.md` | Redacted frame/session trace summaries for initialize, list, call, read, errors, and policy outcomes. |
 | M31-05 Runtime Hardening Docs | `docs/specs/M31-05-runtime-hardening-docs.spec.md` | `docs/plans/M31-05-runtime-hardening-docs.plan.md` | README usage docs, milestone status, and final M31 quality gate evidence. |
 
@@ -1152,8 +1152,8 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M34-00 MCP Export Profile Inspection Technical Design | `docs/specs/M34-00-mcp-export-profile-inspection-technical-design.spec.md` | `docs/plans/M34-00-mcp-export-profile-inspection-technical-design.plan.md` | Architecture baseline for typed profile inspection, CLI preflight, diagnostics, redaction, and verification. |
-| M34-01 Profile Inspection Contracts | `docs/specs/M34-01-profile-inspection-contracts.spec.md` | `docs/plans/M34-01-profile-inspection-contracts.plan.md` | Serializable `agent-mcp` inspection contracts for profile tools, resources, and diagnostics. |
-| M34-02 CLI Profile Inspect Command | `docs/specs/M34-02-cli-profile-inspect-command.spec.md` | `docs/plans/M34-02-cli-profile-inspect-command.plan.md` | `agent-cli mcp server profile inspect` text and JSON command surface. |
+| M34-01 Profile Inspection Contracts | `docs/specs/M34-01-profile-inspection-contracts.spec.md` | `docs/plans/M34-01-profile-inspection-contracts.plan.md` | Serializable `ruse-mcp` inspection contracts for profile tools, resources, and diagnostics. |
+| M34-02 CLI Profile Inspect Command | `docs/specs/M34-02-cli-profile-inspect-command.spec.md` | `docs/plans/M34-02-cli-profile-inspect-command.plan.md` | `ruse-cli mcp server profile inspect` text and JSON command surface. |
 | M34-03 Preflight Diagnostics | `docs/specs/M34-03-preflight-diagnostics.spec.md` | `docs/plans/M34-03-preflight-diagnostics.plan.md` | Startup-aligned diagnostics for workspace, resources, unknown tools, and disabled exports. |
 | M34-04 JSON Redaction Regressions | `docs/specs/M34-04-json-redaction-regressions.spec.md` | `docs/plans/M34-04-json-redaction-regressions.plan.md` | Stable, parseable, redacted inspection output regression coverage. |
 | M34-05 Hardening Docs | `docs/specs/M34-05-hardening-docs.spec.md` | `docs/plans/M34-05-hardening-docs.plan.md` | README usage docs, milestone status, and final M34 quality gate evidence. |
@@ -1163,10 +1163,10 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M35-00 MCP Prompt Export Technical Design | `docs/specs/M35-00-mcp-prompt-export-technical-design.spec.md` | `docs/plans/M35-00-mcp-prompt-export-technical-design.plan.md` | Architecture baseline for prompt export contracts, registry, protocol methods, manifest declarations, CLI wiring, and privacy. |
-| M35-01 Prompt Export Contracts | `docs/specs/M35-01-prompt-export-contracts.spec.md` | `docs/plans/M35-01-prompt-export-contracts.plan.md` | Serializable `agent-mcp` prompt export contracts for descriptors, messages, list results, and get results. |
+| M35-01 Prompt Export Contracts | `docs/specs/M35-01-prompt-export-contracts.spec.md` | `docs/plans/M35-01-prompt-export-contracts.plan.md` | Serializable `ruse-mcp` prompt export contracts for descriptors, messages, list results, and get results. |
 | M35-02 Prompt Registry and Protocol | `docs/specs/M35-02-prompt-registry-and-protocol.spec.md` | `docs/plans/M35-02-prompt-registry-and-protocol.plan.md` | Prompt export registry plus `prompts/list` and `prompts/get` JSON-RPC handling. |
 | M35-03 Manifest Prompt Profile | `docs/specs/M35-03-manifest-prompt-profile.spec.md` | `docs/plans/M35-03-manifest-prompt-profile.plan.md` | Manifest-backed prompt declarations loaded into MCP server profile runtime state. |
-| M35-04 CLI Stdio Prompt Profile | `docs/specs/M35-04-cli-stdio-prompt-profile.spec.md` | `docs/plans/M35-04-cli-stdio-prompt-profile.plan.md` | `agent-cli mcp server stdio` serves manifest prompt exports through MCP prompt methods. |
+| M35-04 CLI Stdio Prompt Profile | `docs/specs/M35-04-cli-stdio-prompt-profile.spec.md` | `docs/plans/M35-04-cli-stdio-prompt-profile.plan.md` | `ruse-cli mcp server stdio` serves manifest prompt exports through MCP prompt methods. |
 | M35-05 Hardening Docs | `docs/specs/M35-05-hardening-docs.spec.md` | `docs/plans/M35-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M35 quality gate evidence. |
 
 ## M36 Slice Index
@@ -1177,7 +1177,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M36-01 Prompt Argument Contracts | `docs/specs/M36-01-prompt-argument-contracts.spec.md` | `docs/plans/M36-01-prompt-argument-contracts.plan.md` | Serializable prompt argument descriptors and `prompts/get` parameter contracts. |
 | M36-02 Prompt Template Rendering | `docs/specs/M36-02-prompt-template-rendering.spec.md` | `docs/plans/M36-02-prompt-template-rendering.plan.md` | Deterministic rendering of declared string arguments into prompt messages. |
 | M36-03 Manifest Prompt Arguments | `docs/specs/M36-03-manifest-prompt-arguments.spec.md` | `docs/plans/M36-03-manifest-prompt-arguments.plan.md` | Manifest-backed prompt argument declarations loaded into profile runtime state. |
-| M36-04 CLI Stdio Prompt Arguments | `docs/specs/M36-04-cli-stdio-prompt-arguments.spec.md` | `docs/plans/M36-04-cli-stdio-prompt-arguments.plan.md` | `agent-cli mcp server stdio` serves prompt arguments through MCP prompt methods. |
+| M36-04 CLI Stdio Prompt Arguments | `docs/specs/M36-04-cli-stdio-prompt-arguments.spec.md` | `docs/plans/M36-04-cli-stdio-prompt-arguments.plan.md` | `ruse-cli mcp server stdio` serves prompt arguments through MCP prompt methods. |
 | M36-05 Hardening Docs | `docs/specs/M36-05-hardening-docs.spec.md` | `docs/plans/M36-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M36 quality gate evidence. |
 
 ## M37 Slice Index
@@ -1188,7 +1188,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M37-01 Resource Template Contracts | `docs/specs/M37-01-resource-template-contracts.spec.md` | `docs/plans/M37-01-resource-template-contracts.plan.md` | Serializable resource template descriptors and active listing contracts. |
 | M37-02 Resource Template Matching | `docs/specs/M37-02-resource-template-matching.spec.md` | `docs/plans/M37-02-resource-template-matching.plan.md` | Deterministic concrete URI matching and safe template-backed resource reads. |
 | M37-03 Manifest Resource Templates | `docs/specs/M37-03-manifest-resource-templates.spec.md` | `docs/plans/M37-03-manifest-resource-templates.plan.md` | Manifest-backed resource template declarations loaded into profile runtime state. |
-| M37-04 CLI Stdio Resource Templates | `docs/specs/M37-04-cli-stdio-resource-templates.spec.md` | `docs/plans/M37-04-cli-stdio-resource-templates.plan.md` | `agent-cli mcp server stdio` serves resource templates through MCP resource methods. |
+| M37-04 CLI Stdio Resource Templates | `docs/specs/M37-04-cli-stdio-resource-templates.spec.md` | `docs/plans/M37-04-cli-stdio-resource-templates.plan.md` | `ruse-cli mcp server stdio` serves resource templates through MCP resource methods. |
 | M37-05 Hardening Docs | `docs/specs/M37-05-hardening-docs.spec.md` | `docs/plans/M37-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M37 quality gate evidence. |
 
 ## M38 Slice Index
@@ -1199,7 +1199,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | M38-01 Completion Contracts | `docs/specs/M38-01-completion-contracts.spec.md` | `docs/plans/M38-01-completion-contracts.plan.md` | Serializable completion request/result contracts and deterministic bounded value behavior. |
 | M38-02 Prompt Argument Completions | `docs/specs/M38-02-prompt-argument-completions.spec.md` | `docs/plans/M38-02-prompt-argument-completions.plan.md` | Static completion sources for declared MCP prompt arguments. |
 | M38-03 Resource Template Completions | `docs/specs/M38-03-resource-template-completions.spec.md` | `docs/plans/M38-03-resource-template-completions.plan.md` | Static completion sources for declared MCP resource template variables. |
-| M38-04 CLI Stdio Completions | `docs/specs/M38-04-cli-stdio-completions.spec.md` | `docs/plans/M38-04-cli-stdio-completions.plan.md` | `agent-cli mcp server stdio` serves completions through MCP `completion/complete`. |
+| M38-04 CLI Stdio Completions | `docs/specs/M38-04-cli-stdio-completions.spec.md` | `docs/plans/M38-04-cli-stdio-completions.plan.md` | `ruse-cli mcp server stdio` serves completions through MCP `completion/complete`. |
 | M38-05 Hardening Docs | `docs/specs/M38-05-hardening-docs.spec.md` | `docs/plans/M38-05-hardening-docs.plan.md` | README usage docs, redaction checks, milestone status, and final M38 quality gate evidence. |
 
 ## M39 Slice Index
@@ -1229,7 +1229,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
 | M41-00 MCP Sampling Model Bridge Technical Design | `docs/specs/M41-00-mcp-sampling-model-bridge-technical-design.spec.md` | `docs/plans/M41-00-mcp-sampling-model-bridge-technical-design.plan.md` | Architecture baseline for crate ownership, text-only mapping, provider execution, bridge redaction, and guardrails. |
-| M41-01 Sampling Model Request Mapping | `docs/specs/M41-01-sampling-model-request-mapping.spec.md` | `docs/plans/M41-01-sampling-model-request-mapping.plan.md` | Pure mapping from validated MCP sampling requests to local `agent-model::ModelRequest` values. |
+| M41-01 Sampling Model Request Mapping | `docs/specs/M41-01-sampling-model-request-mapping.spec.md` | `docs/plans/M41-01-sampling-model-request-mapping.plan.md` | Pure mapping from validated MCP sampling requests to local `ruse-model::ModelRequest` values. |
 | M41-02 Sampling Model Provider | `docs/specs/M41-02-sampling-model-provider.spec.md` | `docs/plans/M41-02-sampling-model-provider.plan.md` | Provider-backed `McpSamplingProvider` execution through deterministic model stream collection. |
 | M41-03 Sampling Bridge Redaction | `docs/specs/M41-03-sampling-bridge-redaction.spec.md` | `docs/plans/M41-03-sampling-bridge-redaction.plan.md` | Public bridge errors and diagnostics remain stable, bounded, and free of prompt, response, or provider-secret content. |
 | M41-04 Sampling Bridge Guardrails | `docs/specs/M41-04-sampling-bridge-guardrails.spec.md` | `docs/plans/M41-04-sampling-bridge-guardrails.plan.md` | Explicit rejection of unsupported tool, context, media, and model tool-call paths. |
@@ -1351,7 +1351,7 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 |---|---|---|---|
 | M52-00 MCP HTTP OAuth Token Lifecycle Technical Design | `docs/specs/M52-00-mcp-http-oauth-token-lifecycle-technical-design.spec.md` | `docs/plans/M52-00-mcp-http-oauth-token-lifecycle-technical-design.plan.md` | Architecture baseline for token leases, token source references, refresh planning, request factories, redaction, and verification. |
 | M52-01 OAuth Token Lease Contracts | `docs/specs/M52-01-oauth-token-lease-contracts.spec.md` | `docs/plans/M52-01-oauth-token-lease-contracts.plan.md` | Redacted token lease and token status contracts for MCP HTTP authorization. |
-| M52-02 Token Source Reference Boundary | `docs/specs/M52-02-token-source-reference-boundary.spec.md` | `docs/plans/M52-02-token-source-reference-boundary.plan.md` | Safe token source references for external auth/storage layers without raw-token persistence in `agent-mcp`. |
+| M52-02 Token Source Reference Boundary | `docs/specs/M52-02-token-source-reference-boundary.spec.md` | `docs/plans/M52-02-token-source-reference-boundary.plan.md` | Safe token source references for external auth/storage layers without raw-token persistence in `ruse-mcp`. |
 | M52-03 Refresh Planning Diagnostics | `docs/specs/M52-03-refresh-planning-diagnostics.spec.md` | `docs/plans/M52-03-refresh-planning-diagnostics.plan.md` | Deterministic refresh planning diagnostics for expiry, skew, unknown lifetime, and required scopes. |
 | M52-04 Authorized Request Factory | `docs/specs/M52-04-authorized-request-factory.spec.md` | `docs/plans/M52-04-authorized-request-factory.plan.md` | Compose usable token leases with the M51 bearer request boundary for POST and GET stream requests. |
 | M52-05 Hardening Docs | `docs/specs/M52-05-hardening-docs.spec.md` | `docs/plans/M52-05-hardening-docs.plan.md` | README usage docs, milestone status, focused checks, and final M52 quality gate evidence. |
@@ -1462,9 +1462,9 @@ Milestone-level spec/plan pairs are required for every planned milestone. Slice-
 
 | Slice | Spec | Plan | Outcome |
 |---|---|---|---|
-| M63-01 Team Workflow Snapshot and Readiness Contracts | `docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md` | `docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md` | Complete: typed team workflow snapshots, readiness precedence, capability ceiling summaries, redaction/bounding helpers, and deterministic `agent-team` tests. |
+| M63-01 Team Workflow Snapshot and Readiness Contracts | `docs/specs/M63-01-team-workflow-snapshot-readiness.spec.md` | `docs/plans/M63-01-team-workflow-snapshot-readiness.plan.md` | Complete: typed team workflow snapshots, readiness precedence, capability ceiling summaries, redaction/bounding helpers, and deterministic `ruse-team` tests. |
 | M63-02 CLI and JSON Team Workflow Commands | `docs/specs/M63-02-cli-json-team-workflows.spec.md` | `docs/plans/M63-02-cli-json-team-workflows.plan.md` | Complete: stable `team` CLI commands, JSON `team_workflow_snapshot` bridge frame, deterministic sample/conflict/policy-blocked fixtures, dry-run guards, focused CLI/bridge/TUI tests. |
-| M63-03 Reviewer Role and Merge Readiness | `docs/specs/M63-03-reviewer-merge-readiness.spec.md` | `docs/plans/M63-03-reviewer-merge-readiness.plan.md` | Complete: typed merge readiness reports, blocker reasons, pending approval and stale worktree blocking, review/artifact evidence checks, and deterministic `agent-team` tests. |
+| M63-03 Reviewer Role and Merge Readiness | `docs/specs/M63-03-reviewer-merge-readiness.spec.md` | `docs/plans/M63-03-reviewer-merge-readiness.plan.md` | Complete: typed merge readiness reports, blocker reasons, pending approval and stale worktree blocking, review/artifact evidence checks, and deterministic `ruse-team` tests. |
 | M63-04 TUI/Desktop Team Surfaces | `docs/specs/M63-04-tui-desktop-team-surfaces.spec.md` | `docs/plans/M63-04-tui-desktop-team-surfaces.plan.md` | Complete: TUI task panel and Desktop Tasks view render team workflow snapshots from shared bridge frames without local readiness logic. |
 | M63-05 Team Workflow Smoke, Docs, and Closeout | `docs/specs/M63-05-team-workflow-smoke-closeout.spec.md` | `docs/plans/M63-05-team-workflow-smoke-closeout.plan.md` | Complete: default eval team workflow smoke, CLI/Desktop team workflow docs, final gates, and M63 closeout status. |
 
@@ -1584,8 +1584,8 @@ Most recent completed or active planning documents:
 - `docs/plans/M64-memory-personalization.plan.md`
 - `docs/specs/M63-04-tui-desktop-team-surfaces.spec.md`
 - `docs/plans/M63-04-tui-desktop-team-surfaces.plan.md`
-- `docs/specs/M63-worktree-agent-team-workflows.spec.md`
-- `docs/plans/M63-worktree-agent-team-workflows.plan.md`
+- `docs/specs/M63-worktree-ruse-team-workflows.spec.md`
+- `docs/plans/M63-worktree-ruse-team-workflows.plan.md`
 - `docs/specs/M62-05-crash-smoke-closeout.spec.md`
 - `docs/plans/M62-05-crash-smoke-closeout.plan.md`
 - `docs/specs/M62-reliability-recovery-productization.spec.md`

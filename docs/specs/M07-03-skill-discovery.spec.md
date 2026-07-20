@@ -12,7 +12,7 @@ Skills are reusable instructions and workflow rules. M05 already supports prompt
 
 This spec delivers:
 
-- `agent-skill` crate scaffold
+- `ruse-skill` crate scaffold
 - `SkillId`
 - `SkillRoot`
 - `SkillSource`
@@ -32,20 +32,20 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-skill` owns skill metadata parsing and prompt contribution creation. It may depend on `agent-context` to create `PromptLayer` values. It must not depend on `agent-core`, `agent-cli`, `agent-ui-bridge`, storage, model providers, MCP, or plugin runtime.
+`ruse-skill` owns skill metadata parsing and prompt contribution creation. It may depend on `ruse-context` to create `PromptLayer` values. It must not depend on `ruse-core`, `ruse-cli`, `ruse-ui-bridge`, storage, model providers, MCP, or plugin runtime.
 
 ```mermaid
 flowchart TD
-  files["Skill roots / SKILL.md"] --> skill["agent-skill discovery"]
-  skill --> context["agent-context PromptLayer"]
-  future_core["future agent-core context assembly"] --> skill
+  files["Skill roots / SKILL.md"] --> skill["ruse-skill discovery"]
+  skill --> context["ruse-context PromptLayer"]
+  future_core["future ruse-core context assembly"] --> skill
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-skill/
+  ruse-skill/
     Cargo.toml
     src/
       lib.rs
@@ -138,11 +138,11 @@ Discovery rules:
 
 ## Acceptance Criteria
 
-- `agent-skill` is a workspace member.
+- `ruse-skill` is a workspace member.
 - Valid local skill roots become `DiscoveredSkill` records.
-- Skill prompt contributions convert into `agent-context` prompt layers.
+- Skill prompt contributions convert into `ruse-context` prompt layers.
 - Invalid skill roots fail with typed errors.
-- `cargo test -p agent-skill skill_discovery` passes.
+- `cargo test -p ruse-skill skill_discovery` passes.
 
 ## Completion Signal
 

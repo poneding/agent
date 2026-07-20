@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M35 technical design and implementation slice map.
 
-**Architecture:** Documentation-only baseline for `agent-mcp` prompt exports and `agent-cli` stdio wiring.
+**Architecture:** Documentation-only baseline for `ruse-mcp` prompt exports and `ruse-cli` stdio wiring.
 
 **Tech Stack:** Markdown docs.
 

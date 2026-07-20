@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M45 architecture baseline and implementation slice map.
 
-**Architecture:** `agent-mcp` owns HTTP MCP client contracts and runtime integration; CLI/Desktop remain presentation clients.
+**Architecture:** `ruse-mcp` owns HTTP MCP client contracts and runtime integration; CLI/Desktop remain presentation clients.
 
 **Tech Stack:** Markdown specs/plans, existing Rust workspace.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M44-mcp-client-stdio-tool-call.spec.md`
-- Read: `crates/agent-mcp/src/client_stdio.rs`
-- Read: `crates/agent-mcp/src/config.rs`
+- Read: `crates/ruse-mcp/src/client_stdio.rs`
+- Read: `crates/ruse-mcp/src/config.rs`
 
 - [x] **Step 1: Review completed stdio client shape**
 

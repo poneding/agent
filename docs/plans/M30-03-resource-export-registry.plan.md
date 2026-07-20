@@ -4,7 +4,7 @@
 
 **Goal:** Add read-only MCP server resource exports.
 
-**Architecture:** `agent-mcp::server_resource` owns resource descriptors and bounded reads.
+**Architecture:** `ruse-mcp::server_resource` owns resource descriptors and bounded reads.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, URL/URI validation through simple deterministic rules.
 
@@ -28,20 +28,20 @@
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-mcp --all-targets -- -D warnings
-cargo test -p agent-mcp mcp_server_resource_export
+cargo clippy -p ruse-mcp --all-targets -- -D warnings
+cargo test -p ruse-mcp mcp_server_resource_export
 ```
 
 Verified with:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m30 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m30 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m30 cargo test -p agent-mcp mcp_server_resource_export
-CARGO_TARGET_DIR=target/codex-m30 cargo test -p agent-mcp
+CARGO_TARGET_DIR=target/codex-m30 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m30 cargo test -p ruse-mcp mcp_server_resource_export
+CARGO_TARGET_DIR=target/codex-m30 cargo test -p ruse-mcp
 ```
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp server resource exports"
 ```

@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-Add pure helpers under `agent-mcp`, likely in `client_http.rs`, mirroring the stdio codec separation while returning HTTP-oriented request/response values.
+Add pure helpers under `ruse-mcp`, likely in `client_http.rs`, mirroring the stdio codec separation while returning HTTP-oriented request/response values.
 
 ## Public Contracts
 
@@ -67,8 +67,8 @@ pub fn parse_mcp_client_http_response_body(
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_contracts`
-- `CARGO_TARGET_DIR=target/codex-m45 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_contracts`
+- `CARGO_TARGET_DIR=target/codex-m45 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

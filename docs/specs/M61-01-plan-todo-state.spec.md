@@ -6,7 +6,7 @@ Define the shared runtime contracts for plan and todo state before adding CLI, T
 
 ## Product Context
 
-M61 requires TodoWrite-compatible task state and plan tracking across interactive and background work. Existing task state lives in `agent-types` and `agent-scheduler`; task reviews and artifacts live in `agent-core`; UI snapshots live in `agent-ui-bridge`. M61-01 adds the missing plan/todo state model so later slices can connect it to existing task commands, notifications, and artifacts.
+M61 requires TodoWrite-compatible task state and plan tracking across interactive and background work. Existing task state lives in `ruse-types` and `ruse-scheduler`; task reviews and artifacts live in `ruse-core`; UI snapshots live in `ruse-ui-bridge`. M61-01 adds the missing plan/todo state model so later slices can connect it to existing task commands, notifications, and artifacts.
 
 ## Scope
 
@@ -28,34 +28,34 @@ Owned by later specs:
 
 ## Architecture
 
-`agent-types` owns public serde contracts and event payload additions. `agent-core` owns validation helpers, update application, redaction, progress summarization, and evidence normalization. Later UI layers must consume these contracts through `agent-ui-bridge`.
+`ruse-types` owns public serde contracts and event payload additions. `ruse-core` owns validation helpers, update application, redaction, progress summarization, and evidence normalization. Later UI layers must consume these contracts through `ruse-ui-bridge`.
 
 ```mermaid
 flowchart TD
-  Types["agent-types::plan contracts"] --> Core["agent-core::plan validation and updates"]
-  Core --> BridgeLater["agent-ui-bridge in later slices"]
-  SchedulerLater["agent-scheduler task evidence in later slices"] --> Core
+  Types["ruse-types::plan contracts"] --> Core["ruse-core::plan validation and updates"]
+  Core --> BridgeLater["ruse-ui-bridge in later slices"]
+  SchedulerLater["ruse-scheduler task evidence in later slices"] --> Core
 ```
 
 Dependency rules:
 
-- `agent-types` must not depend on runtime crates.
-- `agent-core` may depend on `agent-types` and existing task/artifact contracts.
-- `agent-core` must not depend on CLI, TUI, Desktop, Tauri, or TypeScript.
+- `ruse-types` must not depend on runtime crates.
+- `ruse-core` may depend on `ruse-types` and existing task/artifact contracts.
+- `ruse-core` must not depend on CLI, TUI, Desktop, Tauri, or TypeScript.
 - Event payload additions must stay serializable and backward-compatible with existing event serde tests.
 
 ## File Layout
 
 ```text
 crates/
-  agent-types/
+  ruse-types/
     src/
       lib.rs
       event.rs
       plan.rs
       ids.rs
       state.rs
-  agent-core/
+  ruse-core/
     src/
       lib.rs
       plan.rs
@@ -167,9 +167,9 @@ If a smaller initial API satisfies tests, it may be used, but it must preserve t
 
 ## Testing Strategy
 
-- `agent-types` tests for serde snake_case status/priority/source/evidence shape and event payload serialization if added
-- `agent-core` tests for snapshot validation, duplicate item rejection, empty text rejection, one-in-progress invariant, progress counts, stale revision failures, redaction, and evidence append behavior
-- focused checks: `cargo test -p agent-types` and `cargo test -p agent-core --test plan_todo_state`
+- `ruse-types` tests for serde snake_case status/priority/source/evidence shape and event payload serialization if added
+- `ruse-core` tests for snapshot validation, duplicate item rejection, empty text rejection, one-in-progress invariant, progress counts, stale revision failures, redaction, and evidence append behavior
+- focused checks: `cargo test -p ruse-types` and `cargo test -p ruse-core --test plan_todo_state`
 - focused clippy for touched crates before implementation commit
 
 ## Acceptance Criteria

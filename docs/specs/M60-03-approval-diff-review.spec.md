@@ -31,12 +31,12 @@ Owned by later M60 slices:
 
 ## Architecture
 
-`agent-policy` and `agent-ui-bridge` remain the owners of permission request and decision semantics. `agent-desktop` owns Desktop-safe review view models and pure state transitions. Tauri exposes narrow typed approval command boundaries and does not decide policy. React renders approval popups and diff reviews from typed contracts and dispatches explicit bridge commands.
+`ruse-policy` and `ruse-ui-bridge` remain the owners of permission request and decision semantics. `ruse-desktop` owns Desktop-safe review view models and pure state transitions. Tauri exposes narrow typed approval command boundaries and does not decide policy. React renders approval popups and diff reviews from typed contracts and dispatches explicit bridge commands.
 
 ```mermaid
 flowchart TD
   Runtime["policy/tool/runtime approval request"] --> Bridge["UiEventPayload::ApprovalRequested"]
-  Bridge --> DesktopReview["agent-desktop approval/diff review models"]
+  Bridge --> DesktopReview["ruse-desktop approval/diff review models"]
   DesktopReview --> React["Approval popup and visual diff review"]
   React --> Tauri["resolve_approval command"]
   Tauri --> BridgeCommand["UiCommand::ResolveApproval"]
@@ -53,14 +53,14 @@ Dependency rules:
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     src/
       permission.rs
       diff.rs
       lib.rs
     tests/
       permissions_diffs.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       event.rs
       frame.rs
@@ -177,16 +177,16 @@ All contracts must derive or map cleanly to `Serialize` and `Deserialize`. Resou
 
 ## Testing Strategy
 
-- `agent-desktop` tests for approval review status, expiry/terminal disabled states, lease display, preview bounding/redaction, diff path validation, hunk bounding, and diff status transitions
-- `agent-ui-bridge` tests for approval request/resolved frame shape and safe preview serialization
+- `ruse-desktop` tests for approval review status, expiry/terminal disabled states, lease display, preview bounding/redaction, diff path validation, hunk bounding, and diff status transitions
+- `ruse-ui-bridge` tests for approval request/resolved frame shape and safe preview serialization
 - Tauri tests for allow/deny command envelopes, empty reason rejection, invalid request id redaction, and connected-session acknowledgement
 - Vitest tests for approval queue selection, popup/detail disabled terminal states, denial reason validation, command acknowledgement display, visual diff file/hunk rendering, and redaction/truncation badges
 
 Focused commands:
 
 ```bash
-cargo test -p agent-desktop --test permissions_diffs
-cargo test -p agent-ui-bridge approval_bridge
+cargo test -p ruse-desktop --test permissions_diffs
+cargo test -p ruse-ui-bridge approval_bridge
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml approval_commands
 npm --prefix apps/desktop test -- approval-diff-ui
 ```

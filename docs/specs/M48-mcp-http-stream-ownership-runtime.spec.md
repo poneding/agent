@@ -13,7 +13,7 @@ M45 added HTTP POST request/response execution, M46 added bounded SSE response p
 This milestone delivers:
 
 - typed HTTP GET stream request contracts for streamable HTTP sessions
-- stream-open transport abstraction over `agent-mcp`
+- stream-open transport abstraction over `ruse-mcp`
 - reqwest-backed GET `text/event-stream` opening with bounded diagnostics
 - resume header propagation for `Mcp-Session-Id`, `MCP-Protocol-Version`, and `Last-Event-ID`
 - bounded event drain that updates safe checkpoints only after accepted events
@@ -30,7 +30,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` continues to own streamable HTTP protocol behavior. M48 adds a GET stream path next to the POST request path, but still keeps raw response headers, stream chunks, and transport errors behind typed contracts.
+`ruse-mcp` continues to own streamable HTTP protocol behavior. M48 adds a GET stream path next to the POST request path, but still keeps raw response headers, stream chunks, and transport errors behind typed contracts.
 
 ```mermaid
 flowchart TD
@@ -83,14 +83,14 @@ Names may evolve during implementation, but stream contracts must remain typed, 
 - fixture tests for stream-open transport behavior
 - reqwest tests for GET method, header propagation, content-type validation, and redaction
 - drain tests for bounded SSE parsing and checkpoint mutation
-- final `agent-mcp` focused checks and workspace CI gate
+- final `ruse-mcp` focused checks and workspace CI gate
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_request`
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_transport`
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_resume`
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_drain`
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_request`
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_transport`
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_resume`
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_drain`
 - `CARGO_TARGET_DIR=target/codex-m48 cargo xtask ci`
 
 ## Completion Signal

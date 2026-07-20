@@ -4,7 +4,7 @@
 
 **Goal:** Finish M59 by polishing task status surfaces and documenting/test-covering stable terminal daily-driver JSON and batch recipes.
 
-**Architecture:** `agent-scheduler` and `agent-core` own task state and review semantics. `agent-ui-bridge` owns UI-safe task/review snapshots. `agent-cli` owns task command rendering and recipe smoke tests. `agent-tui` owns task panel state/rendering. Recipe docs use deterministic fixture/local commands and avoid provider credentials.
+**Architecture:** `ruse-scheduler` and `ruse-core` own task state and review semantics. `ruse-ui-bridge` owns UI-safe task/review snapshots. `ruse-cli` owns task command rendering and recipe smoke tests. `ruse-tui` owns task panel state/rendering. Recipe docs use deterministic fixture/local commands and avoid provider credentials.
 
 **Tech Stack:** Rust 2024 edition, serde task snapshots, existing scheduler task command service, Ratatui task panel state, Markdown recipe docs, Cargo fmt/clippy/test, `cargo xtask eval`.
 
@@ -18,23 +18,23 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-ui-bridge/tests/task_command_bridge.rs`
-- Read: `crates/agent-ui-bridge/tests/task_review.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/task_commands.rs`
-- Read: `crates/agent-tui/src/task_panel.rs`
-- Read: `crates/agent-tui/tests/task_panel.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-ui-bridge/tests/task_command_bridge.rs`
+- Read: `crates/ruse-ui-bridge/tests/task_review.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/task_commands.rs`
+- Read: `crates/ruse-tui/src/task_panel.rs`
+- Read: `crates/ruse-tui/tests/task_panel.rs`
 
 - [x] **Step 1: Review current task and recipe baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test task_command_bridge
-cargo test -p agent-ui-bridge --test task_review
-cargo test -p agent-cli --test task_commands
-cargo test -p agent-tui --test task_panel
+cargo test -p ruse-ui-bridge --test task_command_bridge
+cargo test -p ruse-ui-bridge --test task_review
+cargo test -p ruse-cli --test task_commands
+cargo test -p ruse-tui --test task_panel
 ```
 
 Expected: existing task snapshots, CLI task commands, task reviews, and TUI task panel pass before M59-05 changes.
@@ -42,9 +42,9 @@ Expected: existing task snapshots, CLI task commands, task reviews, and TUI task
 ### Task 2: Improve Task Snapshot and Review Coverage
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/tests/task_command_bridge.rs`
-- Modify if needed: `crates/agent-ui-bridge/tests/task_review.rs`
-- Modify if needed: `crates/agent-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/tests/task_command_bridge.rs`
+- Modify if needed: `crates/ruse-ui-bridge/tests/task_review.rs`
+- Modify if needed: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Add task snapshot expectations**
 
@@ -67,9 +67,9 @@ Keep existing task contracts if they already satisfy the spec; otherwise add ser
 ### Task 3: Improve CLI Task Status and Recipes Tests
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/tests/task_commands.rs`
-- Create: `crates/agent-cli/tests/daily_driver_recipes.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/tests/task_commands.rs`
+- Create: `crates/ruse-cli/tests/daily_driver_recipes.rs`
 
 - [x] **Step 1: Add CLI task output expectations**
 
@@ -101,8 +101,8 @@ Improve text output only where tests show daily-driver gaps. Keep JSON status co
 ### Task 4: Improve TUI Task Panel
 
 **Files:**
-- Modify: `crates/agent-tui/src/task_panel.rs`
-- Modify: `crates/agent-tui/tests/task_panel.rs`
+- Modify: `crates/ruse-tui/src/task_panel.rs`
+- Modify: `crates/ruse-tui/tests/task_panel.rs`
 
 - [x] **Step 1: Add task panel tests**
 
@@ -117,7 +117,7 @@ Render task states, prompt summaries, priority/schedule, approval ids, review ar
 Run:
 
 ```bash
-cargo test -p agent-tui --test task_panel
+cargo test -p ruse-tui --test task_panel
 ```
 
 Expected: TUI task panel tests pass.
@@ -152,12 +152,12 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
-cargo test -p agent-ui-bridge --test task_command_bridge
-cargo test -p agent-ui-bridge --test task_review
-cargo test -p agent-cli --test task_commands
-cargo test -p agent-cli --test daily_driver_recipes
-cargo test -p agent-tui --test task_panel
+cargo clippy -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
+cargo test -p ruse-ui-bridge --test task_command_bridge
+cargo test -p ruse-ui-bridge --test task_review
+cargo test -p ruse-cli --test task_commands
+cargo test -p ruse-cli --test daily_driver_recipes
+cargo test -p ruse-tui --test task_panel
 ```
 
 Expected: focused checks pass.

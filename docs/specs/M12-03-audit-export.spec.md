@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-Audit export lives in `agent-core` because it composes runtime events from multiple lower-level crates. It consumes `agent-types` events and produces serializable export bundles. Storage remains responsible for reading events; this slice uses in-memory event vectors for deterministic tests.
+Audit export lives in `ruse-core` because it composes runtime events from multiple lower-level crates. It consumes `ruse-types` events and produces serializable export bundles. Storage remains responsible for reading events; this slice uses in-memory event vectors for deterministic tests.
 
 ```mermaid
 flowchart TD
@@ -39,7 +39,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       lib.rs
       audit_export.rs
@@ -57,7 +57,7 @@ pub struct AuditExportOptions {
 
 pub struct AuditExportBundle {
     pub schema_version: u32,
-    pub generated_at: agent_types::Timestamp,
+    pub generated_at: ruse_types::Timestamp,
     pub records: Vec<AuditExportRecord>,
     pub summary: TraceExportSummary,
 }
@@ -89,7 +89,7 @@ pub struct AuditExportBundle {
 
 - Runtime events can be converted into redacted audit bundles.
 - Export summaries include counts by event category.
-- `cargo test -p agent-core audit_export` passes.
+- `cargo test -p ruse-core audit_export` passes.
 
 ## Completion Signal
 

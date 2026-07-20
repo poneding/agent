@@ -4,9 +4,9 @@
 
 **Goal:** Add safe CLI commands for prompt profile listing and effective prompt inspection.
 
-**Architecture:** `agent-cli` owns parsing and rendering. It uses `agent-context` prompt runtime contracts and existing config evaluation, but it does not invoke model providers or persist runtime events.
+**Architecture:** `ruse-cli` owns parsing and rendering. It uses `ruse-context` prompt runtime contracts and existing config evaluation, but it does not invoke model providers or persist runtime events.
 
-**Tech Stack:** Rust 2024 edition, existing CLI parser, serde JSON frames, agent-context prompt runtime, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, existing CLI parser, serde JSON frames, ruse-context prompt runtime, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M16-04-cli-prompt-inspection.spec.md`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-cli/tests/cli_modes.rs`
-- Read: `crates/agent-cli/tests/json_mode.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-cli/tests/cli_modes.rs`
+- Read: `crates/ruse-cli/tests/json_mode.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -31,9 +31,9 @@ Expected: the spec defines prompt inspection CLI behavior without model invocati
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-cli/tests/prompt_inspection.rs`
-- Modify: `crates/agent-cli/tests/cli_modes.rs`
-- Modify: `crates/agent-cli/tests/json_mode.rs`
+- Create: `crates/ruse-cli/tests/prompt_inspection.rs`
+- Modify: `crates/ruse-cli/tests/cli_modes.rs`
+- Modify: `crates/ruse-cli/tests/json_mode.rs`
 
 - [x] **Step 1: Add CLI parser tests**
 
@@ -62,9 +62,9 @@ Add tests named:
 Run:
 
 ```bash
-cargo test -p agent-cli --test prompt_inspection
-cargo test -p agent-cli --test cli_modes
-cargo test -p agent-cli --test json_mode
+cargo test -p ruse-cli --test prompt_inspection
+cargo test -p ruse-cli --test cli_modes
+cargo test -p ruse-cli --test json_mode
 ```
 
 Expected: tests fail because prompt subcommands and renderers are not implemented.
@@ -72,8 +72,8 @@ Expected: tests fail because prompt subcommands and renderers are not implemente
 ### Task 3: Implement CLI Prompt Inspection
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/src/lib.rs` if exports are needed
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/src/lib.rs` if exports are needed
 
 - [x] **Step 1: Add command variants**
 
@@ -106,9 +106,9 @@ Emit newline-delimited JSON frames and a final done frame. Keep hidden and secre
 Run:
 
 ```bash
-cargo test -p agent-cli --test prompt_inspection
-cargo test -p agent-cli --test cli_modes
-cargo test -p agent-cli --test json_mode
+cargo test -p ruse-cli --test prompt_inspection
+cargo test -p ruse-cli --test cli_modes
+cargo test -p ruse-cli --test json_mode
 ```
 
 Expected: focused tests pass.
@@ -132,7 +132,7 @@ Update M16 planning status so active work advances to M16-05.
 Run:
 
 ```bash
-git add crates/agent-cli docs
+git add crates/ruse-cli docs
 git commit -m "feat: add m16 cli prompt inspection"
 ```
 

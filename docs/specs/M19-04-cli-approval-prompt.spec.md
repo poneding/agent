@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add the first interactive approval UX in `agent-cli`, allowing terminal users to approve or deny pending side-effecting actions.
+Add the first interactive approval UX in `ruse-cli`, allowing terminal users to approve or deny pending side-effecting actions.
 
 ## Product Context
 
@@ -26,12 +26,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` owns terminal interaction. It consumes approval bridge frames and sends approval response commands. It must not create leases directly or bypass core resume validation.
+`ruse-cli` owns terminal interaction. It consumes approval bridge frames and sends approval response commands. It must not create leases directly or bypass core resume validation.
 
 ```mermaid
 flowchart TD
-  Core["agent-core pending approval"] --> Bridge["agent-ui-bridge frame"]
-  Bridge --> CLI["agent-cli prompt"]
+  Core["ruse-core pending approval"] --> Bridge["ruse-ui-bridge frame"]
+  Bridge --> CLI["ruse-cli prompt"]
   CLI --> Command["resolve approval command"]
   Command --> Core
 ```

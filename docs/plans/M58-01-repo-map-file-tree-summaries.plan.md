@@ -4,7 +4,7 @@
 
 **Goal:** Add bounded project file tree summaries that can feed prompt context and safe CLI/Desktop evidence.
 
-**Architecture:** `agent-context` owns serializable project context contracts and prompt-layer conversion. `agent-core` owns workspace filesystem scanning and limit enforcement. `agent-cli` and `agent-ui-bridge` render typed summaries without duplicating scan logic.
+**Architecture:** `ruse-context` owns serializable project context contracts and prompt-layer conversion. `ruse-core` owns workspace filesystem scanning and limit enforcement. `ruse-cli` and `ruse-ui-bridge` render typed summaries without duplicating scan logic.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, std filesystem traversal, existing prompt/budget contracts, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,35 +15,35 @@
 **Files:**
 - Read: `docs/specs/M58-01-repo-map-file-tree-summaries.spec.md`
 - Read: `docs/specs/M58-project-context-intelligence.spec.md`
-- Read: `crates/agent-context/src/prompt.rs`
-- Read: `crates/agent-context/src/budget.rs`
-- Read: `crates/agent-core/src/context.rs`
-- Read: `crates/agent-core/src/repo_session.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-context/src/prompt.rs`
+- Read: `crates/ruse-context/src/budget.rs`
+- Read: `crates/ruse-core/src/context.rs`
+- Read: `crates/ruse-core/src/repo_session.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Review current context behavior**
 
 Run:
 
 ```bash
-cargo test -p agent-context
-cargo test -p agent-core repo_session_bootstrap
-cargo test -p agent-ui-bridge prompt_summary
+cargo test -p ruse-context
+cargo test -p ruse-core repo_session_bootstrap
+cargo test -p ruse-ui-bridge prompt_summary
 ```
 
 Expected: existing prompt, budget, repo session, and UI prompt summary tests pass before M58-01 changes.
 
 Baseline verification on 2026-06-30:
 
-- `cargo test -p agent-context`
-- `cargo test -p agent-core --test repo_session_bootstrap`
-- `cargo test -p agent-ui-bridge prompt_summary`
+- `cargo test -p ruse-context`
+- `cargo test -p ruse-core --test repo_session_bootstrap`
+- `cargo test -p ruse-ui-bridge prompt_summary`
 
 ### Task 2: Write Failing Context Contract Tests
 
 **Files:**
-- Create: `crates/agent-context/tests/project_context_summary.rs`
+- Create: `crates/ruse-context/tests/project_context_summary.rs`
 
 - [x] **Step 1: Add serialization and validation tests**
 
@@ -60,17 +60,17 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-context project_context_summary
+cargo test -p ruse-context project_context_summary
 ```
 
 Expected: tests fail before project context contracts exist.
 
-### Task 3: Implement `agent-context` Project Contracts
+### Task 3: Implement `ruse-context` Project Contracts
 
 **Files:**
-- Create: `crates/agent-context/src/project.rs`
-- Modify: `crates/agent-context/src/error.rs`
-- Modify: `crates/agent-context/src/lib.rs`
+- Create: `crates/ruse-context/src/project.rs`
+- Modify: `crates/ruse-context/src/error.rs`
+- Modify: `crates/ruse-context/src/lib.rs`
 
 - [x] **Step 1: Add typed contracts**
 
@@ -85,7 +85,7 @@ Convert a safe project summary into `PromptLayerKind::Project` content with boun
 Run:
 
 ```bash
-cargo test -p agent-context project_context_summary
+cargo test -p ruse-context project_context_summary
 ```
 
 Expected: context tests pass.
@@ -93,7 +93,7 @@ Expected: context tests pass.
 ### Task 4: Write Failing Core Scan Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/project_context_scan.rs`
+- Create: `crates/ruse-core/tests/project_context_scan.rs`
 
 - [x] **Step 1: Add bounded workspace scan tests**
 
@@ -111,7 +111,7 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-core project_context_scan
+cargo test -p ruse-core project_context_scan
 ```
 
 Expected: tests fail before core scanning exists.
@@ -119,9 +119,9 @@ Expected: tests fail before core scanning exists.
 ### Task 5: Implement Core Workspace Scanner
 
 **Files:**
-- Create: `crates/agent-core/src/project_context.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Modify if useful: `crates/agent-core/src/context.rs`
+- Create: `crates/ruse-core/src/project_context.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Modify if useful: `crates/ruse-core/src/context.rs`
 
 - [x] **Step 1: Add scan input and report**
 
@@ -136,7 +136,7 @@ Use std filesystem APIs, canonical workspace containment checks, deterministic s
 Run:
 
 ```bash
-cargo test -p agent-core project_context_scan
+cargo test -p ruse-core project_context_scan
 ```
 
 Expected: core scan tests pass.
@@ -144,8 +144,8 @@ Expected: core scan tests pass.
 ### Task 6: Add CLI Text and JSON Surface
 
 **Files:**
-- Create: `crates/agent-cli/tests/project_context_commands.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/project_context_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add CLI tests**
 
@@ -158,14 +158,14 @@ Cover:
 
 - [x] **Step 2: Implement CLI command**
 
-Add a product-oriented project context command that calls `agent-core` and renders typed output using existing text/JSON patterns.
+Add a product-oriented project context command that calls `ruse-core` and renders typed output using existing text/JSON patterns.
 
 - [x] **Step 3: Run CLI tests**
 
 Run:
 
 ```bash
-cargo test -p agent-cli project_context_commands
+cargo test -p ruse-cli project_context_commands
 ```
 
 Expected: CLI tests pass.
@@ -173,9 +173,9 @@ Expected: CLI tests pass.
 ### Task 7: Add UI Bridge Snapshot
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/project_context_snapshot.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify if needed: `crates/agent-ui-bridge/src/lib.rs`
+- Create: `crates/ruse-ui-bridge/tests/project_context_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify if needed: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add bridge tests**
 
@@ -190,7 +190,7 @@ Add a `UiProjectContextSnapshot` or equivalent frame that is derived from `Proje
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge project_context_snapshot
+cargo test -p ruse-ui-bridge project_context_snapshot
 ```
 
 Expected: bridge tests pass.
@@ -207,11 +207,11 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
-cargo test -p agent-context project_context_summary
-cargo test -p agent-core project_context_scan
-cargo test -p agent-cli project_context_commands
-cargo test -p agent-ui-bridge project_context_snapshot
+cargo clippy -p ruse-context -p ruse-core -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
+cargo test -p ruse-context project_context_summary
+cargo test -p ruse-core project_context_scan
+cargo test -p ruse-cli project_context_commands
+cargo test -p ruse-ui-bridge project_context_snapshot
 ```
 
 Expected: focused checks pass.
@@ -229,13 +229,13 @@ Expected: commit contains only M58-01 source, tests, and documentation/status up
 Focused verification on 2026-06-30:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-context -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings`
-- `cargo test -p agent-context --test project_context_summary`
-- `cargo test -p agent-core --test project_context_scan`
-- `cargo test -p agent-cli --test project_context_commands`
-- `cargo test -p agent-ui-bridge --test project_context_snapshot`
-- `cargo test -p agent-tui trace_panel`
-- `cargo test -p agent-tui transcript`
+- `cargo clippy -p ruse-context -p ruse-core -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings`
+- `cargo test -p ruse-context --test project_context_summary`
+- `cargo test -p ruse-core --test project_context_scan`
+- `cargo test -p ruse-cli --test project_context_commands`
+- `cargo test -p ruse-ui-bridge --test project_context_snapshot`
+- `cargo test -p ruse-tui trace_panel`
+- `cargo test -p ruse-tui transcript`
 
 Additional workspace verification on 2026-06-30:
 

@@ -13,7 +13,7 @@ M30 added protocol contracts and deterministic frame handling. M31 must preserve
 This spec delivers:
 
 - session lifecycle and state ownership
-- process IO boundary between CLI and `agent-mcp`
+- process IO boundary between CLI and `ruse-mcp`
 - export profile bootstrap design
 - trace/audit and privacy rules
 - verification gates for M31 slices
@@ -28,25 +28,25 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns session state and protocol decisions. `agent-cli` converts stdin lines into session frames and writes session responses to stdout. CLI stderr may contain redacted lifecycle diagnostics only.
+`ruse-mcp` owns session state and protocol decisions. `ruse-cli` converts stdin lines into session frames and writes session responses to stdout. CLI stderr may contain redacted lifecycle diagnostics only.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli mcp server stdio"] --> Session["agent-mcp session"]
+  CLI["ruse-cli mcp server stdio"] --> Session["ruse-mcp session"]
   Session --> Frame["M30 frame dispatcher"]
   Session --> Profile["export profile"]
-  Frame --> Policy["agent-policy"]
+  Frame --> Policy["ruse-policy"]
   Frame --> Trace["server trace"]
 ```
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/
+crates/ruse-mcp/src/
   server_session.rs
   server_profile.rs
   server_trace.rs
-crates/agent-cli/tests/
+crates/ruse-cli/tests/
   mcp_server_stdio_command.rs
 ```
 

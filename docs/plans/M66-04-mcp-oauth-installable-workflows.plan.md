@@ -4,16 +4,16 @@
 
 **Goal:** Confirm whether M66 needs new OAuth implementation. Current conclusion: no new OAuth code is required for M66-04.
 
-**Architecture:** Existing OAuth contracts live in `agent-mcp`. CLI/Desktop/support surfaces should consume redacted status only when later workflows need it.
+**Architecture:** Existing OAuth contracts live in `ruse-mcp`. CLI/Desktop/support surfaces should consume redacted status only when later workflows need it.
 
 ---
 
 ### Task 1: Inspect Existing OAuth Foundation
 
 **Files:**
-- Read: `crates/agent-mcp/src/client_http.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_oauth_*.rs`
-- Read: `crates/agent-mcp/tests/mcp_client_http_bearer_authorization.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_oauth_*.rs`
+- Read: `crates/ruse-mcp/tests/mcp_client_http_bearer_authorization.rs`
 - Read: `docs/roadmap/PRODUCT_ROADMAP.md`
 - Read: `docs/plans/M66-extensions-mcp-hardening.plan.md`
 
@@ -54,7 +54,7 @@ Update roadmap and milestone status to make the OAuth decision explicit.
 **Commands:**
 
 ```bash
-CARGO_TARGET_DIR=target/m66-dev cargo test -p agent-mcp oauth
+CARGO_TARGET_DIR=target/m66-dev cargo test -p ruse-mcp oauth
 cargo fmt --all -- --check
 git diff --check
 ```

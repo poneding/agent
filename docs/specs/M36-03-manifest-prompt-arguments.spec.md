@@ -15,11 +15,11 @@ This spec delivers:
 
 ## Architecture
 
-`agent-mcp::server_manifest` parses argument declarations and builds `McpPromptExport` values.
+`ruse-mcp::server_manifest` parses argument declarations and builds `McpPromptExport` values.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_manifest_prompt_arguments`
+- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-mcp mcp_server_manifest_prompt_arguments`
 
 ## Completion Signal
 

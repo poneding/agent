@@ -4,7 +4,7 @@
 
 **Goal:** Add model provider registry and capability negotiation contracts.
 
-**Architecture:** Implement registry contracts inside `agent-model`. Keep provider execution behind the existing `ModelProvider` trait and avoid adding runtime orchestration to this slice.
+**Architecture:** Implement registry contracts inside `ruse-model`. Keep provider execution behind the existing `ModelProvider` trait and avoid adding runtime orchestration to this slice.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde, thiserror, existing fake provider tests, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M13-02-provider-registry-capabilities.spec.md`
-- Read: `crates/agent-model/src/provider.rs`
-- Read: `crates/agent-model/src/config.rs`
+- Read: `crates/ruse-model/src/provider.rs`
+- Read: `crates/ruse-model/src/config.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -30,7 +30,7 @@ Expected: the spec defines registry and capability behavior.
 ### Task 2: Write RED Registry Tests
 
 **Files:**
-- Create: `crates/agent-model/tests/provider_registry.rs`
+- Create: `crates/ruse-model/tests/provider_registry.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -47,7 +47,7 @@ Add tests:
 Run:
 
 ```bash
-cargo test -p agent-model provider_registry
+cargo test -p ruse-model provider_registry
 ```
 
 Expected: tests fail because registry contracts do not exist.
@@ -55,8 +55,8 @@ Expected: tests fail because registry contracts do not exist.
 ### Task 3: Implement Registry Contracts
 
 **Files:**
-- Create: `crates/agent-model/src/registry.rs`
-- Modify: `crates/agent-model/src/lib.rs`
+- Create: `crates/ruse-model/src/registry.rs`
+- Modify: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Add capability types**
 
@@ -68,7 +68,7 @@ Implement `ModelProviderRegistry`, provider registration, provider lookup, dupli
 
 - [x] **Step 3: Export registry types**
 
-Export registry and capability contracts from `agent-model`.
+Export registry and capability contracts from `ruse-model`.
 
 ### Task 4: Verify And Commit
 
@@ -83,7 +83,7 @@ Export registry and capability contracts from `agent-model`.
 Run:
 
 ```bash
-cargo test -p agent-model provider_registry
+cargo test -p ruse-model provider_registry
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace

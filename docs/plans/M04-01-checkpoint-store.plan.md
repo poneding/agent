@@ -2,18 +2,18 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add durable checkpoint records and checkpoint stores to `agent-storage`.
+**Goal:** Add durable checkpoint records and checkpoint stores to `ruse-storage`.
 
-**Architecture:** `agent-storage` owns the checkpoint contract and implementations. `agent-core` will consume the trait in later slices; this slice does not add recovery orchestration.
+**Architecture:** `ruse-storage` owns the checkpoint contract and implementations. `ruse-core` will consume the trait in later slices; this slice does not add recovery orchestration.
 
-**Tech Stack:** Rust 2024 edition, `agent-storage`, `agent-types`, `serde_json`, `rusqlite`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-storage`, `ruse-types`, `serde_json`, `rusqlite`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write Checkpoint Store Tests
 
 **Files:**
-- Create: `crates/agent-storage/tests/checkpoint_store.rs`
+- Create: `crates/ruse-storage/tests/checkpoint_store.rs`
 
 - [x] **Step 1: Add failing behavior tests**
 
@@ -22,7 +22,7 @@ Tests must prove serialization shape, in-memory put/latest, SQLite put/latest, d
 - [x] **Step 2: Verify RED**
 
 ```bash
-cargo test -p agent-storage checkpoint_store
+cargo test -p ruse-storage checkpoint_store
 ```
 
 Expected: tests fail because `CheckpointRecord` and `CheckpointStore` do not exist.
@@ -30,8 +30,8 @@ Expected: tests fail because `CheckpointRecord` and `CheckpointStore` do not exi
 ### Task 2: Implement Checkpoint Contract
 
 **Files:**
-- Create: `crates/agent-storage/src/checkpoint.rs`
-- Modify: `crates/agent-storage/src/lib.rs`
+- Create: `crates/ruse-storage/src/checkpoint.rs`
+- Modify: `crates/ruse-storage/src/lib.rs`
 
 - [x] **Step 1: Define `CheckpointRecord`**
 
@@ -44,8 +44,8 @@ Add `put_checkpoint` and `latest_checkpoint` methods returning `StorageError`.
 ### Task 3: Implement Stores
 
 **Files:**
-- Modify: `crates/agent-storage/src/memory.rs`
-- Modify: `crates/agent-storage/src/sqlite.rs`
+- Modify: `crates/ruse-storage/src/memory.rs`
+- Modify: `crates/ruse-storage/src/sqlite.rs`
 
 - [x] **Step 1: Add in-memory checkpoint storage**
 
@@ -58,7 +58,7 @@ Create a `checkpoints` table with `checkpoint_id`, `conversation_id`, `turn_id`,
 - [x] **Step 3: Verify GREEN**
 
 ```bash
-cargo test -p agent-storage checkpoint_store
+cargo test -p ruse-storage checkpoint_store
 ```
 
 Expected: focused checkpoint tests pass.

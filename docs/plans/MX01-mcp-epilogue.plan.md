@@ -2,7 +2,7 @@
 
 **Goal:** Finish P1-P3 MCP epilogue hardening without entering the P0 OAuth/Auth product loop or disturbing the M55-M66 roadmap.
 
-**Architecture:** `agent-mcp` owns MCP contracts, reports, redaction, sampling review semantics, management snapshots, and export guardrails. `agent-ui-bridge` owns bridge-consumable DTOs without taking a direct dependency on `agent-mcp`.
+**Architecture:** `ruse-mcp` owns MCP contracts, reports, redaction, sampling review semantics, management snapshots, and export guardrails. `ruse-ui-bridge` owns bridge-consumable DTOs without taking a direct dependency on `ruse-mcp`.
 
 **Tech Stack:** Rust 2024 edition, serde, async-trait fixture providers, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -81,17 +81,17 @@ Update MX01 status and verification evidence. Do not mark M55-M66 complete or mo
 Verification evidence recorded on 2026-06-30:
 
 - Focused MX01 tests passed:
-  - `cargo test -p agent-mcp mcp_client_reentrant_callbacks`
-  - `cargo test -p agent-mcp mcp_client_protocol_events`
-  - `cargo test -p agent-mcp mcp_sampling_productization`
-  - `cargo test -p agent-mcp mcp_management_snapshot`
-  - `cargo test -p agent-mcp mcp_server_export_guardrails`
-  - `cargo test -p agent-ui-bridge mcp_management_snapshot`
+  - `cargo test -p ruse-mcp mcp_client_reentrant_callbacks`
+  - `cargo test -p ruse-mcp mcp_client_protocol_events`
+  - `cargo test -p ruse-mcp mcp_sampling_productization`
+  - `cargo test -p ruse-mcp mcp_management_snapshot`
+  - `cargo test -p ruse-mcp mcp_server_export_guardrails`
+  - `cargo test -p ruse-ui-bridge mcp_management_snapshot`
 - Final workspace gates passed:
   - `cargo fmt --all -- --check`
   - `cargo clippy --workspace --all-targets -- -D warnings`
   - `cargo test --workspace`
   - `cargo xtask ci`
-- `target/agent-ci/quality-gate-summary.txt` reports `total=4 passed=4 failed=0 skipped=0`.
+- `target/ruse-ci/quality-gate-summary.txt` reports `total=4 passed=4 failed=0 skipped=0`.
 
 MX01 is complete as an MCP epilogue. It remains separate from M55-M66 and does not implement P0 OAuth/Auth product closure.

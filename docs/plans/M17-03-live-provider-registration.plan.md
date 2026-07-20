@@ -4,17 +4,17 @@
 
 **Goal:** Build CLI provider registries from effective config, including live OpenAI-compatible providers.
 
-**Architecture:** `agent-cli` owns process-level provider registration. `agent-core` still receives a provider-neutral `ModelProviderRegistry`.
+**Architecture:** `ruse-cli` owns process-level provider registration. `ruse-core` still receives a provider-neutral `ModelProviderRegistry`.
 
-**Tech Stack:** Rust 2024 edition, existing config loader, `agent-model` providers, env secret resolver, fixture provider factories, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, existing config loader, `ruse-model` providers, env secret resolver, fixture provider factories, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write RED Registration Tests
 
 **Files:**
-- Create: `crates/agent-cli/tests/live_provider_registration.rs`
-- Modify: `crates/agent-cli/tests/prompt_runtime.rs`
+- Create: `crates/ruse-cli/tests/live_provider_registration.rs`
+- Modify: `crates/ruse-cli/tests/prompt_runtime.rs`
 
 - [x] **Step 1: Add fake and live registration test**
 
@@ -35,8 +35,8 @@ Add `live_provider_registration_missing_env_secret_fails_before_network`.
 Run:
 
 ```bash
-cargo test -p agent-cli --test live_provider_registration
-cargo test -p agent-cli --test prompt_runtime
+cargo test -p ruse-cli --test live_provider_registration
+cargo test -p ruse-cli --test prompt_runtime
 ```
 
 Expected: failures because CLI registry builder only constructs fake providers.
@@ -44,9 +44,9 @@ Expected: failures because CLI registry builder only constructs fake providers.
 ### Task 2: Extract Registry Builder
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Create: `crates/agent-cli/src/providers.rs`
-- Modify: `crates/agent-cli/src/lib.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Create: `crates/ruse-cli/src/providers.rs`
+- Modify: `crates/ruse-cli/src/lib.rs`
 
 - [x] **Step 1: Move fake registry code**
 
@@ -63,8 +63,8 @@ Existing fake prompt runtime tests must remain unchanged.
 ### Task 3: Register OpenAI-Compatible Providers
 
 **Files:**
-- Modify: `crates/agent-cli/src/providers.rs`
-- Modify: `crates/agent-cli/tests/live_provider_registration.rs`
+- Modify: `crates/ruse-cli/src/providers.rs`
+- Modify: `crates/ruse-cli/tests/live_provider_registration.rs`
 
 - [x] **Step 1: Construct reqwest-backed providers**
 
@@ -88,9 +88,9 @@ Tests assert no raw env secret value appears in output.
 Run:
 
 ```bash
-cargo test -p agent-cli --test live_provider_registration
-cargo test -p agent-cli --test prompt_runtime
-cargo test -p agent-core --test model_runtime_resolver
+cargo test -p ruse-cli --test live_provider_registration
+cargo test -p ruse-cli --test prompt_runtime
+cargo test -p ruse-core --test model_runtime_resolver
 ```
 
 Expected: focused tests pass.
@@ -108,6 +108,6 @@ cargo xtask check
 Run:
 
 ```bash
-git add crates/agent-cli docs
+git add crates/ruse-cli docs
 git commit -m "feat: register live model providers from config"
 ```

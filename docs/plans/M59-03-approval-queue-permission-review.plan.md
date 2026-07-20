@@ -4,7 +4,7 @@
 
 **Goal:** Add typed approval queue snapshots plus CLI/JSON and TUI approval review workflows for daily-driver terminal use.
 
-**Architecture:** `agent-ui-bridge` owns approval queue snapshot contracts and safe derivation from UI approval requests/events. `agent-cli` renders queue inspection and keeps existing explicit approval command parsing. `agent-tui` renders panel state and emits existing `UiCommand::ResolveApproval` effects. Policy and lease semantics remain in `agent-policy`/runtime crates.
+**Architecture:** `ruse-ui-bridge` owns approval queue snapshot contracts and safe derivation from UI approval requests/events. `ruse-cli` renders queue inspection and keeps existing explicit approval command parsing. `ruse-tui` renders panel state and emits existing `UiCommand::ResolveApproval` effects. Policy and lease semantics remain in `ruse-policy`/runtime crates.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing approval events and commands, CLI text/JSON tests, TUI reducer/render tests, Cargo fmt/clippy/test.
 
@@ -16,20 +16,20 @@
 - Read: `docs/specs/M59-03-approval-queue-permission-review.spec.md`
 - Read: `docs/specs/M59-cli-tui-daily-driver.spec.md`
 - Read: `docs/architecture/security-policy.md`
-- Read: `crates/agent-ui-bridge/src/event.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-cli/src/approval.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-tui/src/approval_panel.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-cli/src/approval.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-tui/src/approval_panel.rs`
 
 - [x] **Step 1: Review approval baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test approval_bridge
-cargo test -p agent-cli --test approval_prompt
-cargo test -p agent-tui --test approval_panel
+cargo test -p ruse-ui-bridge --test approval_bridge
+cargo test -p ruse-cli --test approval_prompt
+cargo test -p ruse-tui --test approval_panel
 ```
 
 Expected: existing approval bridge, CLI prompt, and TUI panel behavior pass before queue changes.
@@ -37,7 +37,7 @@ Expected: existing approval bridge, CLI prompt, and TUI panel behavior pass befo
 ### Task 2: Add UI Bridge Approval Queue Tests
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/approval_queue_snapshot.rs`
+- Create: `crates/ruse-ui-bridge/tests/approval_queue_snapshot.rs`
 
 - [x] **Step 1: Add bridge tests**
 
@@ -56,7 +56,7 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test approval_queue_snapshot
+cargo test -p ruse-ui-bridge --test approval_queue_snapshot
 ```
 
 Expected: tests fail before approval queue contracts exist.
@@ -64,9 +64,9 @@ Expected: tests fail before approval queue contracts exist.
 ### Task 3: Implement UI Bridge Approval Queue Contracts
 
 **Files:**
-- Create: `crates/agent-ui-bridge/src/approval_queue.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
+- Create: `crates/ruse-ui-bridge/src/approval_queue.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add queue snapshot contracts**
 
@@ -81,7 +81,7 @@ Implement sorting, duplicate collapse, group counts, stale/resolved removal, cou
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test approval_queue_snapshot
+cargo test -p ruse-ui-bridge --test approval_queue_snapshot
 ```
 
 Expected: bridge approval queue tests pass.
@@ -89,10 +89,10 @@ Expected: bridge approval queue tests pass.
 ### Task 4: Add CLI Approval Queue Commands
 
 **Files:**
-- Modify: `crates/agent-cli/src/approval.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Create: `crates/agent-cli/tests/approval_queue_commands.rs`
-- Modify if needed: `crates/agent-cli/tests/approval_prompt.rs`
+- Modify: `crates/ruse-cli/src/approval.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/approval_queue_commands.rs`
+- Modify if needed: `crates/ruse-cli/tests/approval_prompt.rs`
 
 - [x] **Step 1: Add CLI tests**
 
@@ -114,8 +114,8 @@ Add `approval queue` command routing, fixture-backed queue construction, text re
 Run:
 
 ```bash
-cargo test -p agent-cli --test approval_queue_commands
-cargo test -p agent-cli --test approval_prompt
+cargo test -p ruse-cli --test approval_queue_commands
+cargo test -p ruse-cli --test approval_prompt
 ```
 
 Expected: approval queue CLI tests and existing prompt tests pass.
@@ -123,10 +123,10 @@ Expected: approval queue CLI tests and existing prompt tests pass.
 ### Task 5: Improve TUI Approval Panel
 
 **Files:**
-- Modify: `crates/agent-tui/src/approval_panel.rs`
-- Modify: `crates/agent-tui/src/app.rs`
-- Modify: `crates/agent-tui/src/render.rs`
-- Modify: `crates/agent-tui/tests/approval_panel.rs`
+- Modify: `crates/ruse-tui/src/approval_panel.rs`
+- Modify: `crates/ruse-tui/src/app.rs`
+- Modify: `crates/ruse-tui/src/render.rs`
+- Modify: `crates/ruse-tui/tests/approval_panel.rs`
 
 - [x] **Step 1: Add TUI tests**
 
@@ -141,7 +141,7 @@ Reduce `UiJsonFrame::ApprovalQueueSnapshot`, preserve event reduction compatibil
 Run:
 
 ```bash
-cargo test -p agent-tui --test approval_panel
+cargo test -p ruse-tui --test approval_panel
 ```
 
 Expected: approval panel tests pass.
@@ -160,11 +160,11 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
-cargo test -p agent-ui-bridge --test approval_queue_snapshot
-cargo test -p agent-cli --test approval_queue_commands
-cargo test -p agent-cli --test approval_prompt
-cargo test -p agent-tui --test approval_panel
+cargo clippy -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
+cargo test -p ruse-ui-bridge --test approval_queue_snapshot
+cargo test -p ruse-cli --test approval_queue_commands
+cargo test -p ruse-cli --test approval_prompt
+cargo test -p ruse-tui --test approval_panel
 ```
 
 Expected: focused checks pass.

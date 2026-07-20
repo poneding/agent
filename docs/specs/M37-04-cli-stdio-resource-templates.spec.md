@@ -20,17 +20,17 @@ This spec delivers:
 
 Owned by other specs:
 
-- template contracts and matching are owned by `agent-mcp`
+- template contracts and matching are owned by `ruse-mcp`
 - manifest parsing is owned by M37-03
 
 ## Architecture
 
-`agent-cli` remains an IO/bootstrap layer. Stdio protocol handling remains in `agent-mcp`.
+`ruse-cli` remains an IO/bootstrap layer. Stdio protocol handling remains in `ruse-mcp`.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli mcp server stdio"] --> Profile["profile runtime"]
-  Profile --> Session["agent-mcp stdio session"]
+  CLI["ruse-cli mcp server stdio"] --> Profile["profile runtime"]
+  Profile --> Session["ruse-mcp stdio session"]
   Session --> List["resources/templates/list"]
   Session --> Read["resources/read"]
 ```
@@ -44,7 +44,7 @@ flowchart TD
 
 ## Security and Privacy
 
-- CLI must not inspect template contents or resolve paths outside `agent-mcp`.
+- CLI must not inspect template contents or resolve paths outside `ruse-mcp`.
 - Invalid template reads must not leak local absolute paths or file contents.
 - `--json` remains rejected for stdio server mode.
 
@@ -57,8 +57,8 @@ flowchart TD
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-cli mcp_server_resource_templates`
-- `CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p agent-cli --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-cli mcp_server_resource_templates`
+- `CARGO_TARGET_DIR=target/codex-m37 cargo clippy -p ruse-cli --all-targets -- -D warnings`
 
 ## Completion Signal
 

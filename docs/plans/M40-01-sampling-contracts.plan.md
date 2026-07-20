@@ -4,7 +4,7 @@
 
 **Goal:** Add typed MCP sampling contracts and client sampling capability metadata.
 
-**Architecture:** `agent-mcp` owns protocol contracts in a focused sampling module exported from `lib.rs`; no UI or live model dependency is introduced.
+**Architecture:** `ruse-mcp` owns protocol contracts in a focused sampling module exported from `lib.rs`; no UI or live model dependency is introduced.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M40-01-sampling-contracts.spec.md`
-- Read: `crates/agent-mcp/src/client_roots.rs`
-- Read: `crates/agent-mcp/src/lib.rs`
+- Read: `crates/ruse-mcp/src/client_roots.rs`
+- Read: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Review the spec and existing client capability patterns**
 
@@ -23,8 +23,8 @@ Run:
 
 ```bash
 sed -n '1,240p' docs/specs/M40-01-sampling-contracts.spec.md
-sed -n '1,140p' crates/agent-mcp/src/client_roots.rs
-sed -n '1,120p' crates/agent-mcp/src/lib.rs
+sed -n '1,140p' crates/ruse-mcp/src/client_roots.rs
+sed -n '1,120p' crates/ruse-mcp/src/lib.rs
 ```
 
 Expected: roots contracts show the local serde and export style to mirror.
@@ -32,7 +32,7 @@ Expected: roots contracts show the local serde and export style to mirror.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_sampling_contracts.rs`
+- Create: `crates/ruse-mcp/tests/mcp_sampling_contracts.rs`
 
 - [x] **Step 1: Add capability, request, result, and content serde tests**
 
@@ -55,7 +55,7 @@ Add a basic request assertion with `modelPreferences`, `systemPrompt`, and `maxT
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_contracts
 ```
 
 Expected: tests fail because sampling contracts do not exist yet.
@@ -63,9 +63,9 @@ Expected: tests fail because sampling contracts do not exist yet.
 ### Task 3: Implement Contracts
 
 **Files:**
-- Create: `crates/agent-mcp/src/client_sampling.rs`
-- Modify: `crates/agent-mcp/src/client_roots.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Create: `crates/ruse-mcp/src/client_sampling.rs`
+- Modify: `crates/ruse-mcp/src/client_roots.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add sampling structs and serde attributes**
 
@@ -88,7 +88,7 @@ Add `with_sampling` and `with_roots_and_sampling` constructors without breaking 
 
 - [x] **Step 3: Export contracts**
 
-Export the new module and public types from `crates/agent-mcp/src/lib.rs`.
+Export the new module and public types from `crates/ruse-mcp/src/lib.rs`.
 
 ### Task 4: Verify
 
@@ -98,16 +98,16 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_contracts
 ```
 
 Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_contracts
 ```
 
 Expected: focused checks pass.
@@ -119,7 +119,7 @@ Expected: focused checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp sampling contracts"
 ```
 

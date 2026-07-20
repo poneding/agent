@@ -29,16 +29,16 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-model` owns live transport traits, OpenAI-compatible request mapping, SSE parsing, and provider errors. `agent-core` consumes model streams and emits runtime events as chunks arrive. `agent-cli` wires config, secret resolver, and provider registration, then renders text or JSON without handling provider-specific transport details.
+`ruse-model` owns live transport traits, OpenAI-compatible request mapping, SSE parsing, and provider errors. `ruse-core` consumes model streams and emits runtime events as chunks arrive. `ruse-cli` wires config, secret resolver, and provider registration, then renders text or JSON without handling provider-specific transport details.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli"] --> Config["agent-core config"]
-  CLI --> Secrets["agent-model secret resolver"]
-  CLI --> Registry["agent-model provider registry"]
+  CLI["ruse-cli"] --> Config["ruse-core config"]
+  CLI --> Secrets["ruse-model secret resolver"]
+  CLI --> Registry["ruse-model provider registry"]
   Registry --> Provider["OpenAI-compatible provider"]
   Provider --> Transport["reqwest streaming transport"]
-  Core["agent-core"] --> Registry
+  Core["ruse-core"] --> Registry
   Core --> Events["Runtime events"]
 ```
 
@@ -57,7 +57,7 @@ Contract rules:
 - provider adapters return events incrementally
 - provider errors classify retryability without exposing secrets
 - transport-backed providers are registered by callers, not created implicitly by core
-- request bodies are provider-specific inside `agent-model`
+- request bodies are provider-specific inside `ruse-model`
 - core state machines consume only `ModelStreamEvent`
 
 ## State and Failure Handling
@@ -85,7 +85,7 @@ Contract rules:
 
 ## Acceptance Criteria
 
-- `agent-cli --config path/to/config.yaml --prompt "..."` and the default `~/.config/agent/config.yaml` path can run against a real OpenAI-compatible provider when `apiKey` is configured or an advanced secret reference resolves.
+- `ruse-cli --config path/to/config.yaml --prompt "..."` and the default `~/.config/agent/config.yaml` path can run against a real OpenAI-compatible provider when `apiKey` is configured or an advanced secret reference resolves.
 - `--json` emits model delta frames as the stream arrives.
 - No live-network test is required for workspace verification.
 - Provider retry/fallback behavior works with streaming transports.

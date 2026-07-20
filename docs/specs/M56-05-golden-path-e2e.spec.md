@@ -16,7 +16,7 @@ This spec delivers:
 - eval support for a local coding scenario that passes under strict mode
 - default eval suite coverage for the M56 golden path with checked-in scenario/golden files or stable generated evidence
 - CLI/JSON smoke coverage that emits repo/session, edit/diff, command/test, final review, trace/audit/replay evidence
-- redacted evidence artifacts under `target/agent-eval` or equivalent output dir
+- redacted evidence artifacts under `target/ruse-eval` or equivalent output dir
 - documentation of real-provider opt-in behavior without requiring secrets in default CI
 
 Owned by other specs:
@@ -29,15 +29,15 @@ Owned by other specs:
 
 ## Architecture
 
-The E2E scenario must use shared runtime crates and existing typed contracts. Eval and CLI may orchestrate the scenario, but runtime behavior remains in `agent-core` and supporting runtime crates. Golden files must contain redacted summaries, not raw secrets or unstable absolute paths.
+The E2E scenario must use shared runtime crates and existing typed contracts. Eval and CLI may orchestrate the scenario, but runtime behavior remains in `ruse-core` and supporting runtime crates. Golden files must contain redacted summaries, not raw secrets or unstable absolute paths.
 
 ```mermaid
 flowchart TD
-  Eval["agent-eval local_coding scenario"] --> Core["agent-core local coding/final review"]
-  CLI["agent-cli eval suite / repo final-review"] --> Eval
-  Core --> Tools["agent-tool edit/shell/git"]
-  Core --> Policy["agent-policy decisions"]
-  Core --> Bridge["agent-ui-bridge snapshots"]
+  Eval["ruse-eval local_coding scenario"] --> Core["ruse-core local coding/final review"]
+  CLI["ruse-cli eval suite / repo final-review"] --> Eval
+  Core --> Tools["ruse-tool edit/shell/git"]
+  Core --> Policy["ruse-policy decisions"]
+  Core --> Bridge["ruse-ui-bridge snapshots"]
   Core --> Evidence["trace/audit/replay evidence"]
 ```
 
@@ -50,18 +50,18 @@ docs/
     scenarios/m56-golden-path.eval.json
     goldens/default-m56-golden-path.golden.json
 crates/
-  agent-eval/
+  ruse-eval/
     src/
       runner.rs
       manifest.rs
     tests/
       runner.rs
       corpus.rs
-  agent-cli/
+  ruse-cli/
     tests/
       golden_path_e2e.rs
       eval_suite_commands.rs
-  agent-core/
+  ruse-core/
     tests/
       comprehensive_local_coding_e2e.rs
       final_review.rs
@@ -112,15 +112,15 @@ If the current manifest schema cannot express all evidence without broad churn, 
 
 ## Testing Strategy
 
-- `agent-eval` tests for strict local-coding scenario pass/fail behavior
+- `ruse-eval` tests for strict local-coding scenario pass/fail behavior
 - CLI tests for default suite including M56 golden path
 - eval golden comparison/update tests for the new scenario
 - focused commands:
 
 ```bash
-cargo test -p agent-eval local_coding
-cargo test -p agent-cli golden_path_e2e
-cargo test -p agent-cli eval_suite_commands
+cargo test -p ruse-eval local_coding
+cargo test -p ruse-cli golden_path_e2e
+cargo test -p ruse-cli eval_suite_commands
 cargo xtask eval
 ```
 

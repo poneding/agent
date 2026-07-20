@@ -29,7 +29,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` owns reconnect policy and stream continuity contracts. The reconnect runner composes M48 request snapshots, stream transport, and event drain without introducing background task ownership.
+`ruse-mcp` owns reconnect policy and stream continuity contracts. The reconnect runner composes M48 request snapshots, stream transport, and event drain without introducing background task ownership.
 
 ```mermaid
 flowchart TD
@@ -85,10 +85,10 @@ Names may evolve during implementation, but contracts must remain typed, seriali
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_policy`
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_stream_reconnect_runner`
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_missed_event_replay`
-- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p agent-mcp mcp_client_http_reconnect_trace`
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_reconnect_policy`
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_stream_reconnect_runner`
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_missed_event_replay`
+- `CARGO_TARGET_DIR=target/codex-m49 cargo test -p ruse-mcp mcp_client_http_reconnect_trace`
 - `CARGO_TARGET_DIR=target/codex-m49 cargo xtask ci`
 
 ## Completion Signal

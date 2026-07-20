@@ -26,14 +26,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::server_manifest` owns the serde contracts. It may reference existing server profile validation rules but does not execute tools or read resource files.
+`ruse-mcp::server_manifest` owns the serde contracts. It may reference existing server profile validation rules but does not execute tools or read resource files.
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/server_manifest.rs
-crates/agent-mcp/src/lib.rs
-crates/agent-mcp/tests/mcp_server_manifest.rs
+crates/ruse-mcp/src/server_manifest.rs
+crates/ruse-mcp/src/lib.rs
+crates/ruse-mcp/tests/mcp_server_manifest.rs
 ```
 
 ## Public Contracts
@@ -70,8 +70,8 @@ pub fn parse_mcp_server_export_manifest_json(
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_server_manifest` passes.
-- contracts are exported from `agent_mcp`.
+- `cargo test -p ruse-mcp mcp_server_manifest` passes.
+- contracts are exported from `ruse_mcp`.
 
 ## Completion Signal
 

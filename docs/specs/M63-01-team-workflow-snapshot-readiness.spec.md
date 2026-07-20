@@ -16,7 +16,7 @@ This spec delivers:
 - `TeamWorkflowReadiness` states for handoff, review, merge, conflict, policy, and blocked cases
 - capability ceiling summary that proves a handoff cannot exceed parent, role, or task grants
 - summary projections for worktree leases, handoffs, blackboard entries, reviewer votes, merge review, conflicts, and diagnostics
-- deterministic fixture coverage in `agent-team` and/or `agent-core`
+- deterministic fixture coverage in `ruse-team` and/or `ruse-core`
 
 Owned by later M63 slices:
 
@@ -28,13 +28,13 @@ Owned by later M63 slices:
 
 ## Architecture
 
-`agent-team` should own workflow summary contracts that are independent of UI. `agent-core` may own fixture construction and runtime snapshot assembly because it can see `agent-worktree`, recovery conflict summaries, policy, task ids, and runtime evidence. If adding `agent-team` as an `agent-core` dependency is required, keep the dependency one-way from core to team.
+`ruse-team` should own workflow summary contracts that are independent of UI. `ruse-core` may own fixture construction and runtime snapshot assembly because it can see `ruse-worktree`, recovery conflict summaries, policy, task ids, and runtime evidence. If adding `ruse-team` as an `ruse-core` dependency is required, keep the dependency one-way from core to team.
 
 ```mermaid
 flowchart TD
-  Worktree["agent-worktree WorktreeLease / ConflictReport"] --> Core["agent-core snapshot builder"]
-  Team["agent-team handoff / blackboard / workflow contracts"] --> Core
-  Policy["agent-policy capability scopes"] --> Team
+  Worktree["ruse-worktree WorktreeLease / ConflictReport"] --> Core["ruse-core snapshot builder"]
+  Team["ruse-team handoff / blackboard / workflow contracts"] --> Core
+  Policy["ruse-policy capability scopes"] --> Team
   Core --> Consumers["future CLI / bridge / eval consumers"]
 ```
 
@@ -42,12 +42,12 @@ flowchart TD
 
 ```text
 crates/
-  agent-team/
+  ruse-team/
     src/
       workflow.rs
     tests/
       team_workflow_snapshot.rs
-  agent-core/
+  ruse-core/
     src/
       team_workflow.rs
     tests/
@@ -129,9 +129,9 @@ Required focused tests:
 Recommended commands:
 
 ```bash
-cargo test -p agent-team --test team_workflow_snapshot
-cargo test -p agent-core --test team_workflow_snapshot
-cargo clippy -p agent-team -p agent-core --all-targets -- -D warnings
+cargo test -p ruse-team --test team_workflow_snapshot
+cargo test -p ruse-core --test team_workflow_snapshot
+cargo clippy -p ruse-team -p ruse-core --all-targets -- -D warnings
 ```
 
 ## Acceptance Criteria

@@ -15,11 +15,11 @@ This spec delivers:
 
 ## Architecture
 
-`agent-mcp::server_prompt` owns the contracts and exports them through `agent-mcp::lib`.
+`ruse-mcp::server_prompt` owns the contracts and exports them through `ruse-mcp::lib`.
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_prompt_arguments`
+- `CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-mcp mcp_server_prompt_arguments`
 
 ## Completion Signal
 

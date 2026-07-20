@@ -31,25 +31,25 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-memory` owns durable memory records, embeddings metadata, indexes, queries, reranking, retention, write proposals, import/export, and deletion tombstones. `agent-context` consumes selected retrieval results as prompt layers. `agent-core` emits retrieval and write proposal events.
+`ruse-memory` owns durable memory records, embeddings metadata, indexes, queries, reranking, retention, write proposals, import/export, and deletion tombstones. `ruse-context` consumes selected retrieval results as prompt layers. `ruse-core` emits retrieval and write proposal events.
 
 ```mermaid
 flowchart TD
-  Query["HybridMemoryQuery"] --> Memory["agent-memory"]
+  Query["HybridMemoryQuery"] --> Memory["ruse-memory"]
   Memory --> Store["MemoryRecordStore"]
   Memory --> Index["MemoryIndex"]
   Memory --> Embed["EmbeddingProvider"]
   Memory --> Rerank["MemoryReranker"]
   Memory --> Result["MemoryRetrievalResult"]
-  Result --> Context["agent-context prompt layer"]
+  Result --> Context["ruse-context prompt layer"]
   Result --> Trace["MemoryInfluenceTrace"]
 ```
 
 Dependency rules:
 
-- `agent-memory` does not depend on `agent-core` or UI crates.
+- `ruse-memory` does not depend on `ruse-core` or UI crates.
 - embedding providers are pluggable and can be fake, local, or model-backed.
-- `agent-context` decides prompt inclusion from retrieval results and prompt budgets.
+- `ruse-context` decides prompt inclusion from retrieval results and prompt budgets.
 - UI clients inspect memory through UI-safe summaries.
 
 ## Data Model

@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M44 implementation boundary for live MCP stdio `tools/call`.
 
-**Architecture:** `agent-mcp` owns protocol mapping and gateway client behavior; UI crates remain presentation-only.
+**Architecture:** `ruse-mcp` owns protocol mapping and gateway client behavior; UI crates remain presentation-only.
 
 **Tech Stack:** Markdown specs/plans, Rust workspace context.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M43-mcp-client-stdio-transport.spec.md`
-- Read: `crates/agent-mcp/src/client_stdio.rs`
-- Read: `crates/agent-mcp/src/gateway.rs`
-- Read: `crates/agent-mcp/src/tool.rs`
+- Read: `crates/ruse-mcp/src/client_stdio.rs`
+- Read: `crates/ruse-mcp/src/gateway.rs`
+- Read: `crates/ruse-mcp/src/tool.rs`
 
 - [x] **Step 1: Review M43 stdio client and gateway boundaries**
 

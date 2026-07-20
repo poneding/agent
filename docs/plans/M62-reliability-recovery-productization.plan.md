@@ -4,7 +4,7 @@
 
 **Goal:** Productize recovery so interrupted, crashed, conflicted, or retryable coding work can be inspected, resumed, replayed, forked, retried, and audited from shared runtime contracts.
 
-**Architecture:** `agent-storage` owns durable checkpoint, replay, event, and idempotency stores; `agent-core` owns recovery snapshots, resume validation, idempotent recovery visibility, and failed-command retry planning; `agent-worktree` owns conflict reports; `agent-ui-bridge` owns UI-safe commands/frames; CLI/TUI/Desktop render typed contracts without duplicating recovery logic.
+**Architecture:** `ruse-storage` owns durable checkpoint, replay, event, and idempotency stores; `ruse-core` owns recovery snapshots, resume validation, idempotent recovery visibility, and failed-command retry planning; `ruse-worktree` owns conflict reports; `ruse-ui-bridge` owns UI-safe commands/frames; CLI/TUI/Desktop render typed contracts without duplicating recovery logic.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing checkpoint/replay/idempotency stores, existing approval resume recovery, worktree conflict reports, UI bridge frames, CLI text/JSON commands, Ratatui task/recovery panels, Desktop Rust/React/Vitest fixtures, Cargo fmt/clippy/test, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`.
 
@@ -22,33 +22,33 @@
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
 - Read: `docs/specs/M04-checkpoint-recovery-trace.spec.md`
-- Read: `docs/specs/M18-agent-tool-loop-runtime.spec.md`
+- Read: `docs/specs/M18-ruse-tool-loop-runtime.spec.md`
 - Read: `docs/specs/M19-interactive-approval-safe-actions.spec.md`
 - Read: `docs/specs/M26-runtime-observability-evidence.spec.md`
 - Read: `docs/specs/M56-coding-agent-golden-path-v1.spec.md`
-- Read: `crates/agent-core/src/recovery.rs`
-- Read: `crates/agent-core/src/idempotency.rs`
-- Read: `crates/agent-core/tests/approval_resume_recovery.rs`
-- Read: `crates/agent-storage/src/checkpoint.rs`
-- Read: `crates/agent-storage/src/replay.rs`
-- Read: `crates/agent-storage/src/idempotency.rs`
-- Read: `crates/agent-worktree/src/conflict.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-ui-bridge/src/event.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-tui/src/task_panel.rs`
-- Read: `crates/agent-desktop/src/task.rs`
+- Read: `crates/ruse-core/src/recovery.rs`
+- Read: `crates/ruse-core/src/idempotency.rs`
+- Read: `crates/ruse-core/tests/approval_resume_recovery.rs`
+- Read: `crates/ruse-storage/src/checkpoint.rs`
+- Read: `crates/ruse-storage/src/replay.rs`
+- Read: `crates/ruse-storage/src/idempotency.rs`
+- Read: `crates/ruse-worktree/src/conflict.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-tui/src/task_panel.rs`
+- Read: `crates/ruse-desktop/src/task.rs`
 - Read: `apps/desktop/src/types.ts`
 
 - [x] **Step 1: Review existing recovery foundations**
 
 Baseline foundations identified during M62 planning:
 
-- `agent-core::RecoveryEngine` plans from latest checkpoint or sequence 1, replays the tail with `ReplayCursor`, filters pending tool call ids, and rejects corrupt checkpoint state.
-- `agent-core::IdempotentToolExecutor` records completed tool effects and replays recorded output without duplicating side effects.
-- `agent-storage` owns checkpoint, replay cursor, event, and idempotency stores with in-memory and SQLite coverage.
-- `agent-worktree::detect_conflicts` produces typed relative-path conflict reports.
+- `ruse-core::RecoveryEngine` plans from latest checkpoint or sequence 1, replays the tail with `ReplayCursor`, filters pending tool call ids, and rejects corrupt checkpoint state.
+- `ruse-core::IdempotentToolExecutor` records completed tool effects and replays recorded output without duplicating side effects.
+- `ruse-storage` owns checkpoint, replay cursor, event, and idempotency stores with in-memory and SQLite coverage.
+- `ruse-worktree::detect_conflicts` produces typed relative-path conflict reports.
 - Approval resume recovery already reconstructs pending approval waits and idempotent tool outcomes after restart.
 - UI bridge currently maps checkpoint/replay runtime events to generic progress/checkpoint frames but does not expose product-level recovery snapshots.
 
@@ -57,14 +57,14 @@ Baseline foundations identified during M62 planning:
 Run:
 
 ```bash
-cargo test -p agent-core --test approval_resume_recovery
-cargo test -p agent-core --test comprehensive_turn_idempotency
-cargo test -p agent-core --test comprehensive_turn_guards
-cargo test -p agent-storage --test checkpoint_store
-cargo test -p agent-storage --test replay_integration
-cargo test -p agent-worktree --test conflict_detection
-cargo test -p agent-ui-bridge --test task_command_bridge
-cargo test -p agent-cli --test final_review
+cargo test -p ruse-core --test approval_resume_recovery
+cargo test -p ruse-core --test comprehensive_turn_idempotency
+cargo test -p ruse-core --test comprehensive_turn_guards
+cargo test -p ruse-storage --test checkpoint_store
+cargo test -p ruse-storage --test replay_integration
+cargo test -p ruse-worktree --test conflict_detection
+cargo test -p ruse-ui-bridge --test task_command_bridge
+cargo test -p ruse-cli --test final_review
 ```
 
 Expected: existing recovery, idempotency, checkpoint, replay, conflict, bridge, and CLI evidence foundations pass before M62 implementation changes.
@@ -74,11 +74,11 @@ Expected: existing recovery, idempotency, checkpoint, replay, conflict, bridge, 
 **Files:**
 - Create: `docs/specs/M62-01-recovery-snapshot-resume.spec.md`
 - Create: `docs/plans/M62-01-recovery-snapshot-resume.plan.md`
-- Modify: `crates/agent-types/src/lib.rs`
-- Create: `crates/agent-types/src/recovery.rs`
-- Modify: `crates/agent-core/src/recovery.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Create: `crates/agent-core/tests/recovery_snapshot.rs`
+- Modify: `crates/ruse-types/src/lib.rs`
+- Create: `crates/ruse-types/src/recovery.rs`
+- Modify: `crates/ruse-core/src/recovery.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Create: `crates/ruse-core/tests/recovery_snapshot.rs`
 
 - [ ] **Step 1: Plan recovery snapshot slice**
 
@@ -94,10 +94,10 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-types -p agent-core --all-targets -- -D warnings
-cargo test -p agent-types
-cargo test -p agent-core --test recovery_snapshot
-cargo test -p agent-core --test approval_resume_recovery
+cargo clippy -p ruse-types -p ruse-core --all-targets -- -D warnings
+cargo test -p ruse-types
+cargo test -p ruse-core --test recovery_snapshot
+cargo test -p ruse-core --test approval_resume_recovery
 ```
 
 Expected: snapshots are typed, redacted, deterministic, and resume readiness handles clean, pending, approval-wait, idempotent, and corrupt checkpoint cases.
@@ -107,11 +107,11 @@ Expected: snapshots are typed, redacted, deterministic, and resume readiness han
 **Files:**
 - Create: `docs/specs/M62-02-cli-json-replay-resume-fork.spec.md`
 - Create: `docs/plans/M62-02-cli-json-replay-resume-fork.plan.md`
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Create: `crates/agent-ui-bridge/tests/recovery_bridge.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Create: `crates/agent-cli/tests/recovery_commands.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Create: `crates/ruse-ui-bridge/tests/recovery_bridge.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/recovery_commands.rs`
 
 - [ ] **Step 1: Plan command slice**
 
@@ -126,9 +126,9 @@ Expose recovery snapshots and replay/fork outcomes through shared bridge/runtime
 Run:
 
 ```bash
-cargo clippy -p agent-ui-bridge -p agent-cli --all-targets -- -D warnings
-cargo test -p agent-ui-bridge --test recovery_bridge
-cargo test -p agent-cli --test recovery_commands
+cargo clippy -p ruse-ui-bridge -p ruse-cli --all-targets -- -D warnings
+cargo test -p ruse-ui-bridge --test recovery_bridge
+cargo test -p ruse-cli --test recovery_commands
 ```
 
 Expected: text and JSON recovery commands are stable, bounded, redacted, and evidence-linked.
@@ -138,13 +138,13 @@ Expected: text and JSON recovery commands are stable, bounded, redacted, and evi
 **Files:**
 - Create: `docs/specs/M62-03-idempotent-retry-ux.spec.md`
 - Create: `docs/plans/M62-03-idempotent-retry-ux.plan.md`
-- Modify: `crates/agent-core/src/idempotency.rs`
-- Create: `crates/agent-core/src/command_retry.rs`
-- Modify: `crates/agent-core/src/recovery.rs`
-- Create: `crates/agent-core/tests/failed_command_retry.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/tests/recovery_commands.rs`
+- Modify: `crates/ruse-core/src/idempotency.rs`
+- Create: `crates/ruse-core/src/command_retry.rs`
+- Modify: `crates/ruse-core/src/recovery.rs`
+- Create: `crates/ruse-core/tests/failed_command_retry.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/tests/recovery_commands.rs`
 
 - [ ] **Step 1: Plan idempotent/retry slice**
 
@@ -159,10 +159,10 @@ Thread idempotent effect summaries and failed-command retry plans into recovery 
 Run:
 
 ```bash
-cargo clippy -p agent-core -p agent-ui-bridge -p agent-cli --all-targets -- -D warnings
-cargo test -p agent-core --test comprehensive_turn_idempotency
-cargo test -p agent-core --test failed_command_retry
-cargo test -p agent-cli --test recovery_commands
+cargo clippy -p ruse-core -p ruse-ui-bridge -p ruse-cli --all-targets -- -D warnings
+cargo test -p ruse-core --test comprehensive_turn_idempotency
+cargo test -p ruse-core --test failed_command_retry
+cargo test -p ruse-cli --test recovery_commands
 ```
 
 Expected: completed side effects are visibly replayed/skipped, retryable command failures produce explicit retry plans, and conflicts or stale targets block safely.
@@ -172,15 +172,15 @@ Expected: completed side effects are visibly replayed/skipped, retryable command
 **Files:**
 - Create: `docs/specs/M62-04-conflict-diagnostics.spec.md`
 - Create: `docs/plans/M62-04-conflict-diagnostics.plan.md`
-- Modify: `crates/agent-worktree/src/conflict.rs`
-- Modify: `crates/agent-core/src/recovery.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-tui/src/task_panel.rs`
-- Modify: `crates/agent-desktop/src/task.rs`
+- Modify: `crates/ruse-worktree/src/conflict.rs`
+- Modify: `crates/ruse-core/src/recovery.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-tui/src/task_panel.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
 - Modify: `apps/desktop/src/types.ts`
 - Modify: `apps/desktop/src/state/tasks.ts`
 - Modify: `apps/desktop/src/components/TaskDetail.tsx`
-- Create: `crates/agent-desktop/tests/recovery_view.rs`
+- Create: `crates/ruse-desktop/tests/recovery_view.rs`
 - Modify: `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
 
 - [x] **Step 1: Plan conflict surface slice**
@@ -196,10 +196,10 @@ Expose conflict reports through recovery snapshots and UI-safe task/recovery sur
 Run:
 
 ```bash
-cargo clippy -p agent-worktree -p agent-core -p agent-ui-bridge -p agent-tui -p agent-desktop --all-targets -- -D warnings
-cargo test -p agent-worktree --test conflict_detection
-cargo test -p agent-tui --test recovery_panel
-cargo test -p agent-desktop --test recovery_view
+cargo clippy -p ruse-worktree -p ruse-core -p ruse-ui-bridge -p ruse-tui -p ruse-desktop --all-targets -- -D warnings
+cargo test -p ruse-worktree --test conflict_detection
+cargo test -p ruse-tui --test recovery_panel
+cargo test -p ruse-desktop --test recovery_view
 npm --prefix apps/desktop test -- desktop-smoke
 ```
 
@@ -212,7 +212,7 @@ Expected: conflicts are typed, redacted, actionable, and visible in shared CLI/D
 - Create: `docs/plans/M62-05-crash-smoke-closeout.plan.md`
 - Modify: `docs/eval/default.suite.json`
 - Create or modify: `docs/eval/scenarios/`
-- Modify: `crates/agent-eval/`
+- Modify: `crates/ruse-eval/`
 - Modify: `xtask/src/main.rs`
 - Create: `docs/cli/recovery-workflows.md`
 - Create: `docs/desktop/recovery-workflows.md`

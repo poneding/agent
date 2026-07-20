@@ -12,7 +12,7 @@ M39 established explicit client roots for external MCP servers. Sampling is the 
 
 This spec delivers:
 
-- protocol direction decision: sampling is handled as a server-to-client request through `agent-mcp`
+- protocol direction decision: sampling is handled as a server-to-client request through `ruse-mcp`
 - capability metadata for basic sampling, with future fields for tool and context support
 - create-message request/result contracts and redaction boundaries
 - safe-subset validation rules for M40
@@ -28,7 +28,7 @@ Owned by implementation slices:
 
 ## Architecture
 
-Sampling data lives in `agent-mcp` because it is MCP protocol state. The runtime treats model access as an internal capability that will later be bridged through `agent-model`, `agent-policy`, and UI approval. M40 does not let an MCP server select a provider credential or execute local tools.
+Sampling data lives in `ruse-mcp` because it is MCP protocol state. The runtime treats model access as an internal capability that will later be bridged through `ruse-model`, `ruse-policy`, and UI approval. M40 does not let an MCP server select a provider credential or execute local tools.
 
 ```mermaid
 flowchart TD

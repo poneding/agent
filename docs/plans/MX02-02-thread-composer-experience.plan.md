@@ -4,7 +4,7 @@
 
 **Goal:** Productize thread navigation, composer controls, and transcript rendering around typed Desktop state.
 
-**Architecture:** `agent-desktop` and `agent-ui-bridge` supply typed thread/composer/transcript data. React reducers derive view state from typed frames and local presentation filters.
+**Architecture:** `ruse-desktop` and `ruse-ui-bridge` supply typed thread/composer/transcript data. React reducers derive view state from typed frames and local presentation filters.
 
 **Tech Stack:** Rust serde contracts where needed, React/TypeScript, Vitest, Vite build.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/MX02-02-thread-composer-experience.spec.md`
-- Read: `crates/agent-desktop/src/conversation.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-desktop/src/conversation.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 - Read: `apps/desktop/src/components/Composer.tsx`
 - Read: `apps/desktop/src/components/ConversationList.tsx`
 - Read: `apps/desktop/src/components/TranscriptView.tsx`
@@ -88,7 +88,7 @@ Run:
 
 ```bash
 git diff --check
-git add apps/desktop crates/agent-desktop crates/agent-ui-bridge docs/specs/MX02-02-thread-composer-experience.spec.md docs/plans/MX02-02-thread-composer-experience.plan.md
+git add apps/desktop crates/ruse-desktop crates/ruse-ui-bridge docs/specs/MX02-02-thread-composer-experience.spec.md docs/plans/MX02-02-thread-composer-experience.plan.md
 git commit -m "feat: productize desktop thread composer"
 ```
 

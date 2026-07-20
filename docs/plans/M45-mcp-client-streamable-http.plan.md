@@ -4,7 +4,7 @@
 
 **Goal:** Add a real client-side MCP streamable HTTP transport path for initialize, tools/list, and tools/call through the existing typed gateway boundary.
 
-**Architecture:** `agent-mcp` owns HTTP JSON-RPC body contracts, transport abstraction, typed result mapping, gateway client integration, redaction, and tests. CLI/Desktop remain consumers of typed runtime contracts.
+**Architecture:** `ruse-mcp` owns HTTP JSON-RPC body contracts, transport abstraction, typed result mapping, gateway client integration, redaction, and tests. CLI/Desktop remain consumers of typed runtime contracts.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, HTTP transport abstraction, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -82,10 +82,10 @@ git commit -m "feat: complete m45 mcp client streamable http"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_contracts` passed.
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_transport` passed.
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_mcp_client` passed.
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_gateway_http_tool_call` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_mcp_client` passed.
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_gateway_http_tool_call` passed.
 - `git diff --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m45 cargo fmt --all -- --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m45 cargo xtask ci` passed.

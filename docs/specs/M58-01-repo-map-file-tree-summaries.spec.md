@@ -12,9 +12,9 @@ M58 needs a reliable project map before ranking relevant files or adding semanti
 
 This spec delivers:
 
-- typed file and directory summary contracts in `agent-context`
+- typed file and directory summary contracts in `ruse-context`
 - deterministic sorting, validation, serde shape, and prompt-layer conversion for project summaries
-- bounded workspace scanning in `agent-core` with safe workspace-relative paths
+- bounded workspace scanning in `ruse-core` with safe workspace-relative paths
 - implicit exclusions for noisy or unsafe directories such as `.git`, `target`, `node_modules`, and build artifacts
 - metadata-only handling for binary, oversized, generated, ignored, or secret-like files
 - CLI text/JSON command output for inspecting project context summaries
@@ -31,39 +31,39 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-context` owns pure context summary contracts and conversion into `PromptLayer`. `agent-core` owns filesystem traversal because it has the workspace root and runtime boundary. `agent-cli` and `agent-ui-bridge` render summaries produced by the shared crates.
+`ruse-context` owns pure context summary contracts and conversion into `PromptLayer`. `ruse-core` owns filesystem traversal because it has the workspace root and runtime boundary. `ruse-cli` and `ruse-ui-bridge` render summaries produced by the shared crates.
 
 ```mermaid
 flowchart TD
-  Core["agent-core scan_project_context"] --> Context["agent-context ProjectContextSummary"]
+  Core["ruse-core scan_project_context"] --> Context["ruse-context ProjectContextSummary"]
   Context --> Prompt["Project summary PromptLayer"]
-  CLI["agent-cli repo context"] --> Core
-  Bridge["agent-ui-bridge UiProjectContextSnapshot"] --> Core
+  CLI["ruse-cli repo context"] --> Core
+  Bridge["ruse-ui-bridge UiProjectContextSnapshot"] --> Core
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-context/
+  ruse-context/
     src/
       lib.rs
       project.rs
       error.rs
     tests/
       project_context_summary.rs
-  agent-core/
+  ruse-core/
     src/
       lib.rs
       project_context.rs
     tests/
       project_context_scan.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       project_context_commands.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
     tests/
@@ -124,7 +124,7 @@ The summary should convert to an optional `PromptLayer` with `PromptLayerKind::P
 
 ## State and Failure Handling
 
-- Invalid workspace roots fail in `agent-core` before scanning.
+- Invalid workspace roots fail in `ruse-core` before scanning.
 - Files outside the workspace root are rejected after canonicalization.
 - Unreadable files and symlink cycles produce recoverable diagnostics.
 - Scan limits produce omissions with deterministic reasons such as `max_files`, `max_depth`, `max_file_bytes`, `max_total_bytes`, `ignored_path`, or `binary_file`.
@@ -141,23 +141,23 @@ The summary should convert to an optional `PromptLayer` with `PromptLayerKind::P
 
 ## Testing Strategy
 
-- `agent-context` serialization tests for project file summaries, omissions, diagnostics, and prompt-layer conversion
-- `agent-core` scan tests using temp workspaces for nested files, ignored directories, binary files, oversized files, secret-like files, and scan limits
+- `ruse-context` serialization tests for project file summaries, omissions, diagnostics, and prompt-layer conversion
+- `ruse-core` scan tests using temp workspaces for nested files, ignored directories, binary files, oversized files, secret-like files, and scan limits
 - CLI tests for text and JSON `repo context --workspace .`
 - UI bridge tests for stable safe `UiProjectContextSnapshot` shape
 - focused commands:
 
 ```bash
-cargo test -p agent-context project_context_summary
-cargo test -p agent-core project_context_scan
-cargo test -p agent-cli project_context_commands
-cargo test -p agent-ui-bridge project_context_snapshot
+cargo test -p ruse-context project_context_summary
+cargo test -p ruse-core project_context_scan
+cargo test -p ruse-cli project_context_commands
+cargo test -p ruse-ui-bridge project_context_snapshot
 ```
 
 ## Acceptance Criteria
 
-- `agent-context` exposes typed project context summary contracts and prompt-layer conversion.
-- `agent-core` can scan a workspace into a bounded, deterministic project summary without executing code.
+- `ruse-context` exposes typed project context summary contracts and prompt-layer conversion.
+- `ruse-core` can scan a workspace into a bounded, deterministic project summary without executing code.
 - CLI text and JSON output expose safe project summary evidence.
 - Bridge snapshots serialize a stable context summary shape for Desktop/TUI consumers.
 - Ignored, binary, oversized, and secret-like files are handled safely and covered by tests.

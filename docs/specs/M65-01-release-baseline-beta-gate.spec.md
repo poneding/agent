@@ -60,12 +60,12 @@ xtask/
   src/main.rs
   tests/
 crates/
-  agent-core/
-  agent-model/
-  agent-storage/
-  agent-desktop/
-  agent-telemetry/
-  agent-ui-bridge/
+  ruse-core/
+  ruse-model/
+  ruse-storage/
+  ruse-desktop/
+  ruse-telemetry/
+  ruse-ui-bridge/
 ```
 
 ## Public Contracts
@@ -112,13 +112,13 @@ M65 should track at least:
 
 | Artifact | Owner | Required For Beta | Notes |
 |---|---|---:|---|
-| CLI binary/package manifest/checksum | `xtask`, `agent-cli` | Yes | Existing `package-cli` baseline exists. |
-| Desktop bundle or bundle plan | `xtask`, Tauri app, `agent-desktop` | Yes | Existing `package-desktop` can plan and validate update manifest. |
-| Desktop update manifest | `agent-desktop`, `xtask` | Yes | Local manifest validation exists; hosted signing is out of scope. |
-| Default eval report | `agent-eval`, `xtask` | Yes | Must include M56, M62, M63, M64 product smokes. |
-| Startup/migration diagnostics | `agent-core`, `agent-storage` | Yes | Must be release-local and safe. |
-| Provider/keychain diagnostics | `agent-model`, CLI/Desktop surfaces | Yes | No raw secrets. |
-| Support bundle | `agent-core`/`agent-telemetry`/`xtask` | Yes by M65-05 | Must be bounded and redacted. |
+| CLI binary/package manifest/checksum | `xtask`, `ruse-cli` | Yes | Existing `package-cli` baseline exists. |
+| Desktop bundle or bundle plan | `xtask`, Tauri app, `ruse-desktop` | Yes | Existing `package-desktop` can plan and validate update manifest. |
+| Desktop update manifest | `ruse-desktop`, `xtask` | Yes | Local manifest validation exists; hosted signing is out of scope. |
+| Default eval report | `ruse-eval`, `xtask` | Yes | Must include M56, M62, M63, M64 product smokes. |
+| Startup/migration diagnostics | `ruse-core`, `ruse-storage` | Yes | Must be release-local and safe. |
+| Provider/keychain diagnostics | `ruse-model`, CLI/Desktop surfaces | Yes | No raw secrets. |
+| Support bundle | `ruse-core`/`ruse-telemetry`/`xtask` | Yes by M65-05 | Must be bounded and redacted. |
 
 ## State And Failure Handling
 

@@ -4,7 +4,7 @@
 
 **Goal:** Add hybrid memory retrieval, embeddings, reranking hooks, retention controls, and auditable memory influence traces.
 
-**Architecture:** `agent-memory` owns indexing, embeddings metadata, retrieval, retention, and memory write proposals. `agent-context` consumes retrieval results as prompt layers. `agent-core` records memory events.
+**Architecture:** `ruse-memory` owns indexing, embeddings metadata, retrieval, retention, and memory write proposals. `ruse-context` consumes retrieval results as prompt layers. `ruse-core` records memory events.
 
 **Tech Stack:** Rust 2024 edition, SQLite-first memory storage, optional vector index adapter, deterministic embedding fixtures, serde, Cargo fmt, Cargo clippy, Cargo test.
 

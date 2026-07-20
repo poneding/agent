@@ -4,7 +4,7 @@
 
 **Goal:** Add a native Gemini provider adapter with fixture-backed streaming/function-call mapping, typed capabilities, CLI registration, and redacted diagnostics.
 
-**Architecture:** Gemini protocol logic lives in `agent-model`; `agent-cli` only builds configured providers and renders typed config summaries.
+**Architecture:** Gemini protocol logic lives in `ruse-model`; `ruse-cli` only builds configured providers and renders typed config summaries.
 
 **Tech Stack:** Rust 2024 edition, async trait providers, serde JSON fixtures, reqwest transport, Cargo fmt/clippy/test.
 
@@ -14,20 +14,20 @@
 
 **Files:**
 - Read: `docs/specs/M57-03-gemini-adapter.spec.md`
-- Read: `crates/agent-model/src/anthropic.rs`
-- Read: `crates/agent-model/tests/anthropic.rs`
-- Read: `crates/agent-model/src/config.rs`
-- Read: `crates/agent-model/src/registry.rs`
-- Read: `crates/agent-cli/src/providers.rs`
-- Read: `crates/agent-cli/tests/live_provider_registration.rs`
+- Read: `crates/ruse-model/src/anthropic.rs`
+- Read: `crates/ruse-model/tests/anthropic.rs`
+- Read: `crates/ruse-model/src/config.rs`
+- Read: `crates/ruse-model/src/registry.rs`
+- Read: `crates/ruse-cli/src/providers.rs`
+- Read: `crates/ruse-cli/tests/live_provider_registration.rs`
 
 - [x] **Step 1: Review current native provider adapter baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-model anthropic
-cargo test -p agent-cli live_provider_registration
+cargo test -p ruse-model anthropic
+cargo test -p ruse-cli live_provider_registration
 ```
 
 Expected: Anthropic adapter behavior and CLI provider registration pass before adding Gemini.
@@ -35,13 +35,13 @@ Expected: Anthropic adapter behavior and CLI provider registration pass before a
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-model/tests/gemini.rs`
-- Modify: `crates/agent-model/tests/provider_config.rs`
-- Modify: `crates/agent-model/tests/provider_capability_matrix.rs`
-- Modify: `crates/agent-cli/tests/config_diagnostics.rs`
-- Modify: `crates/agent-cli/tests/live_provider_registration.rs`
+- Create: `crates/ruse-model/tests/gemini.rs`
+- Modify: `crates/ruse-model/tests/provider_config.rs`
+- Modify: `crates/ruse-model/tests/provider_capability_matrix.rs`
+- Modify: `crates/ruse-cli/tests/config_diagnostics.rs`
+- Modify: `crates/ruse-cli/tests/live_provider_registration.rs`
 
-- [x] **Step 1: Add agent-model Gemini tests**
+- [x] **Step 1: Add ruse-model Gemini tests**
 
 Cover:
 
@@ -76,11 +76,11 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-model gemini
-cargo test -p agent-model provider_config
-cargo test -p agent-model provider_capability_matrix
-cargo test -p agent-cli config_diagnostics
-cargo test -p agent-cli live_provider_registration
+cargo test -p ruse-model gemini
+cargo test -p ruse-model provider_config
+cargo test -p ruse-model provider_capability_matrix
+cargo test -p ruse-cli config_diagnostics
+cargo test -p ruse-cli live_provider_registration
 ```
 
 Expected: tests fail before Gemini contracts and implementation exist.
@@ -88,10 +88,10 @@ Expected: tests fail before Gemini contracts and implementation exist.
 ### Task 3: Implement Gemini Model Adapter
 
 **Files:**
-- Create: `crates/agent-model/src/gemini.rs`
-- Modify: `crates/agent-model/src/lib.rs`
-- Modify: `crates/agent-model/src/config.rs`
-- Modify: `crates/agent-model/src/registry.rs`
+- Create: `crates/ruse-model/src/gemini.rs`
+- Modify: `crates/ruse-model/src/lib.rs`
+- Modify: `crates/ruse-model/src/config.rs`
+- Modify: `crates/ruse-model/src/registry.rs`
 
 - [x] **Step 1: Extend typed provider kind and config validation**
 
@@ -112,10 +112,10 @@ Add `ModelCapabilities::gemini_default()` and update `default_for_provider_kind`
 ### Task 4: Wire CLI and Config Surfaces
 
 **Files:**
-- Modify: `crates/agent-cli/src/providers.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify if needed: `crates/agent-core/src/repo_session.rs`
-- Modify if needed: `crates/agent-cli/tests/config_diagnostics.rs`
+- Modify: `crates/ruse-cli/src/providers.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify if needed: `crates/ruse-core/src/repo_session.rs`
+- Modify if needed: `crates/ruse-cli/tests/config_diagnostics.rs`
 
 - [x] **Step 1: Register configured Gemini providers**
 
@@ -138,12 +138,12 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-model -p agent-cli -p agent-ui-bridge --all-targets -- -D warnings
-cargo test -p agent-model gemini
-cargo test -p agent-model provider_config
-cargo test -p agent-model provider_capability_matrix
-cargo test -p agent-cli config_diagnostics
-cargo test -p agent-cli live_provider_registration
+cargo clippy -p ruse-model -p ruse-cli -p ruse-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-model gemini
+cargo test -p ruse-model provider_config
+cargo test -p ruse-model provider_capability_matrix
+cargo test -p ruse-cli config_diagnostics
+cargo test -p ruse-cli live_provider_registration
 ```
 
 Expected: focused checks pass.

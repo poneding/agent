@@ -36,10 +36,10 @@ Runtime crates own extension state, compatibility, capability reviews, policy, a
 
 ```mermaid
 flowchart TD
-  Plugin["agent-plugin"] --> Core["agent-core extension registry"]
-  Skill["agent-skill"] --> Core
-  MCP["agent-mcp management"] --> Core
-  Core --> Bridge["agent-ui-bridge snapshots"]
+  Plugin["ruse-plugin"] --> Core["ruse-core extension registry"]
+  Skill["ruse-skill"] --> Core
+  MCP["ruse-mcp management"] --> Core
+  Core --> Bridge["ruse-ui-bridge snapshots"]
   Bridge --> CLI["CLI/JSON"]
   Bridge --> TUI["TUI"]
   Bridge --> Desktop["Desktop"]
@@ -82,7 +82,7 @@ Final names should follow existing crate conventions.
 
 ## Testing Strategy
 
-- focused `agent-plugin`, `agent-skill`, `agent-mcp`, `agent-core`, `agent-cli`, `agent-ui-bridge`, and Desktop tests as touched
+- focused `ruse-plugin`, `ruse-skill`, `ruse-mcp`, `ruse-core`, `ruse-cli`, `ruse-ui-bridge`, and Desktop tests as touched
 - deterministic extension health smoke without credentials
 - JSON frame tests for bridge-safe extension snapshots
 - support bundle redaction tests for extension evidence

@@ -4,7 +4,7 @@
 
 **Goal:** Add a real reqwest-backed OpenAI-compatible streaming transport with offline tests.
 
-**Architecture:** `agent-model::openai_compatible` owns reqwest transport and SSE parsing. Tests use fixture/local HTTP streams; no test calls external services.
+**Architecture:** `ruse-model::openai_compatible` owns reqwest transport and SSE parsing. Tests use fixture/local HTTP streams; no test calls external services.
 
 **Tech Stack:** Rust 2024 edition, `reqwest` with rustls/json/stream, Tokio, futures stream utilities, serde JSON, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -13,8 +13,8 @@
 ### Task 1: Write RED Transport Tests
 
 **Files:**
-- Modify: `crates/agent-model/tests/openai_compatible.rs`
-- Create: `crates/agent-model/tests/openai_reqwest_transport.rs`
+- Modify: `crates/ruse-model/tests/openai_compatible.rs`
+- Create: `crates/ruse-model/tests/openai_reqwest_transport.rs`
 
 - [x] **Step 1: Add request construction test**
 
@@ -39,8 +39,8 @@ Use an in-process fixture transport or local HTTP server; assert deltas are coll
 Run:
 
 ```bash
-cargo test -p agent-model --test openai_reqwest_transport
-cargo test -p agent-model --test openai_compatible
+cargo test -p ruse-model --test openai_reqwest_transport
+cargo test -p ruse-model --test openai_compatible
 ```
 
 Expected: failures because reqwest transport is not implemented.
@@ -48,9 +48,9 @@ Expected: failures because reqwest transport is not implemented.
 ### Task 2: Add Reqwest Transport
 
 **Files:**
-- Modify: `crates/agent-model/Cargo.toml`
-- Modify: `crates/agent-model/src/openai_compatible.rs`
-- Modify: `crates/agent-model/src/lib.rs`
+- Modify: `crates/ruse-model/Cargo.toml`
+- Modify: `crates/ruse-model/src/openai_compatible.rs`
+- Modify: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Add reqwest dependency**
 
@@ -71,8 +71,8 @@ Convert response bytes into SSE frame strings and then provider-neutral model st
 ### Task 3: Classify And Redact Errors
 
 **Files:**
-- Modify: `crates/agent-model/src/openai_compatible.rs`
-- Modify: `crates/agent-model/tests/openai_reqwest_transport.rs`
+- Modify: `crates/ruse-model/src/openai_compatible.rs`
+- Modify: `crates/ruse-model/tests/openai_reqwest_transport.rs`
 
 - [x] **Step 1: Map HTTP statuses**
 
@@ -96,8 +96,8 @@ Remove credentials and secret query values from diagnostics.
 Run:
 
 ```bash
-cargo test -p agent-model --test openai_reqwest_transport
-cargo test -p agent-model --test openai_compatible
+cargo test -p ruse-model --test openai_reqwest_transport
+cargo test -p ruse-model --test openai_compatible
 ```
 
 Expected: all focused tests pass without external network.
@@ -117,6 +117,6 @@ Expected: workspace passes.
 Run:
 
 ```bash
-git add Cargo.toml Cargo.lock crates/agent-model docs
+git add Cargo.toml Cargo.lock crates/ruse-model docs
 git commit -m "feat: add reqwest openai compatible transport"
 ```

@@ -12,7 +12,7 @@ M55 identified repo session bootstrap as the first P0 gap for the local coding-a
 
 This spec delivers:
 
-- `agent-core` repo session bootstrap contracts and diagnostics
+- `ruse-core` repo session bootstrap contracts and diagnostics
 - Git state detection for clean/dirty/non-Git workspaces without performing Git side effects
 - effective config/provider summary using existing config and provider primitives
 - durable runtime ids and workspace/session/conversation start events
@@ -30,34 +30,34 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns the bootstrap report and runtime event creation. `agent-cli` owns argument parsing and text/JSON rendering. `agent-ui-bridge` owns UI-safe event or snapshot shapes. `agent-model` and existing config code provide provider/config diagnostics; `agent-storage` may be used when durable persistence is introduced, but M56-01 should keep storage boundaries explicit.
+`ruse-core` owns the bootstrap report and runtime event creation. `ruse-cli` owns argument parsing and text/JSON rendering. `ruse-ui-bridge` owns UI-safe event or snapshot shapes. `ruse-model` and existing config code provide provider/config diagnostics; `ruse-storage` may be used when durable persistence is introduced, but M56-01 should keep storage boundaries explicit.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli repo session command"] --> Core["agent-core repo_session"]
-  Core --> Types["agent-types events and ids"]
-  Core --> Model["agent-model config/provider summary"]
-  Core --> Storage["agent-storage optional durable event append"]
-  Core --> Bridge["agent-ui-bridge safe frames"]
+  CLI["ruse-cli repo session command"] --> Core["ruse-core repo_session"]
+  Core --> Types["ruse-types events and ids"]
+  Core --> Model["ruse-model config/provider summary"]
+  Core --> Storage["ruse-storage optional durable event append"]
+  Core --> Bridge["ruse-ui-bridge safe frames"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       repo_session.rs
       lib.rs
     tests/
       repo_session_bootstrap.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
       output.rs
     tests/
       repo_session_bootstrap.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       event.rs
       frame.rs
@@ -106,11 +106,11 @@ pub enum RepoGitState {
 CLI command shape should be product-oriented and stable:
 
 ```bash
-agent-cli repo session --workspace .
-agent-cli --json repo session --workspace .
+ruse-cli repo session --workspace .
+ruse-cli --json repo session --workspace .
 ```
 
-If the repo command namespace conflicts with existing CLI parsing, use `agent-cli session start --workspace .` only after updating this spec and plan.
+If the repo command namespace conflicts with existing CLI parsing, use `ruse-cli session start --workspace .` only after updating this spec and plan.
 
 ## State and Failure Handling
 
@@ -137,16 +137,16 @@ If the repo command namespace conflicts with existing CLI parsing, use `agent-cl
 - focused commands:
 
 ```bash
-cargo test -p agent-core repo_session_bootstrap
-cargo test -p agent-cli repo_session_bootstrap
-cargo test -p agent-ui-bridge repo_session_snapshot
+cargo test -p ruse-core repo_session_bootstrap
+cargo test -p ruse-cli repo_session_bootstrap
+cargo test -p ruse-ui-bridge repo_session_snapshot
 ```
 
 ## Acceptance Criteria
 
-- `agent-core` exposes typed repo session bootstrap contracts and events.
-- `agent-cli repo session --workspace .` renders a safe text summary.
-- `agent-cli --json repo session --workspace .` renders parseable redacted frames.
+- `ruse-core` exposes typed repo session bootstrap contracts and events.
+- `ruse-cli repo session --workspace .` renders a safe text summary.
+- `ruse-cli --json repo session --workspace .` renders parseable redacted frames.
 - Git clean/dirty/non-Git states are covered by tests.
 - Invalid workspace/config/provider input fails before turn execution.
 - M56-02 can consume the bootstrap report or ids without redoing workspace/config detection.

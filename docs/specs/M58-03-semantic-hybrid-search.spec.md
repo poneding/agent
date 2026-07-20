@@ -14,7 +14,7 @@ This spec delivers:
 
 - typed semantic retrieval configuration, status, candidate score, diagnostic, and hybrid report contracts
 - safe project semantic documents derived from M58 project summaries and allowed file metadata
-- integration with `agent-memory` embedding provider contracts and deterministic fixture embeddings
+- integration with `ruse-memory` embedding provider contracts and deterministic fixture embeddings
 - hybrid score fusion that combines lexical and semantic signals with explicit weights
 - lexical fallback when semantic retrieval is disabled, unavailable, or fails recoverably
 - core scan-plus-hybrid retrieval orchestration
@@ -31,7 +31,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-context` owns semantic and hybrid project retrieval contracts, score fusion, safe semantic document construction, and prompt-layer conversion. It may reuse `agent-memory` embedding contracts because `agent-context` already depends on `agent-memory` for prompt/memory integration. `agent-core` owns workspace orchestration by composing M58-01 scanning with optional semantic retrieval. CLI/JSON and bridge surfaces render typed reports without duplicating retrieval logic.
+`ruse-context` owns semantic and hybrid project retrieval contracts, score fusion, safe semantic document construction, and prompt-layer conversion. It may reuse `ruse-memory` embedding contracts because `ruse-context` already depends on `ruse-memory` for prompt/memory integration. `ruse-core` owns workspace orchestration by composing M58-01 scanning with optional semantic retrieval. CLI/JSON and bridge surfaces render typed reports without duplicating retrieval logic.
 
 ```mermaid
 flowchart TD
@@ -39,18 +39,18 @@ flowchart TD
   Task["ContextRetrievalQuery"] --> Lexical["M58-02 lexical retrieval"]
   Task --> Embed["EmbeddingProvider"]
   Docs --> Embed
-  Embed --> Hybrid["agent-context hybrid score fusion"]
+  Embed --> Hybrid["ruse-context hybrid score fusion"]
   Lexical --> Hybrid
   Hybrid --> Report["ContextHybridRetrievalReport"]
-  Core["agent-core scan plus hybrid retrieve"] --> Report
-  CLI["agent-cli repo context select --semantic ..."] --> Core
-  Bridge["agent-ui-bridge hybrid retrieval snapshot"] --> Report
+  Core["ruse-core scan plus hybrid retrieve"] --> Report
+  CLI["ruse-cli repo context select --semantic ..."] --> Core
+  Bridge["ruse-ui-bridge hybrid retrieval snapshot"] --> Report
 ```
 
 Dependency rules:
 
-- `agent-context` owns scoring and typed contracts.
-- `agent-core` may pass an optional embedding provider/config into context retrieval, but must not duplicate score fusion.
+- `ruse-context` owns scoring and typed contracts.
+- `ruse-core` may pass an optional embedding provider/config into context retrieval, but must not duplicate score fusion.
 - UI crates render typed reports only.
 - Semantic retrieval must not make lexical retrieval depend on provider credentials, network, or async runtime availability.
 
@@ -58,25 +58,25 @@ Dependency rules:
 
 ```text
 crates/
-  agent-context/
+  ruse-context/
     src/
       semantic.rs
       retrieval.rs
       lib.rs
     tests/
       context_semantic_retrieval.rs
-  agent-core/
+  ruse-core/
     src/
       project_context.rs
       lib.rs
     tests/
       project_context_semantic_retrieval.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       project_context_semantic_commands.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
       lib.rs
@@ -161,17 +161,17 @@ Candidate ordering must be deterministic: combined score descending, semantic sc
 
 ## Testing Strategy
 
-- `agent-context` tests for config validation, stable serde shape, semantic document safety, fixture embeddings, hybrid score ordering, fallback diagnostics, budget omissions, and prompt-layer conversion
-- `agent-core` tests for scan-plus-hybrid orchestration on temp workspaces, lexical fallback, provider failure handling, and secret-like metadata safety
+- `ruse-context` tests for config validation, stable serde shape, semantic document safety, fixture embeddings, hybrid score ordering, fallback diagnostics, budget omissions, and prompt-layer conversion
+- `ruse-core` tests for scan-plus-hybrid orchestration on temp workspaces, lexical fallback, provider failure handling, and secret-like metadata safety
 - CLI tests for `repo context select` semantic flags, text output, JSON output, invalid config exits, and redaction
 - UI bridge tests for hybrid snapshot stability, single-line frame encoding, omitted candidate summaries, semantic status, and redaction
 - focused commands:
 
 ```bash
-cargo test -p agent-context --test context_semantic_retrieval
-cargo test -p agent-core --test project_context_semantic_retrieval
-cargo test -p agent-cli --test project_context_semantic_commands
-cargo test -p agent-ui-bridge --test project_context_semantic_snapshot
+cargo test -p ruse-context --test context_semantic_retrieval
+cargo test -p ruse-core --test project_context_semantic_retrieval
+cargo test -p ruse-cli --test project_context_semantic_commands
+cargo test -p ruse-ui-bridge --test project_context_semantic_snapshot
 ```
 
 ## Acceptance Criteria

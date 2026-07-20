@@ -6,13 +6,13 @@ Create the UI bridge crate and define the stable UI event schema that CLI JSON m
 
 ## Product Context
 
-M06 turns runtime events into UI-facing contracts. This slice creates the read side of that bridge: typed, serializable UI events derived from existing `RuntimeEvent` values without linking UI clients directly to `agent-core`.
+M06 turns runtime events into UI-facing contracts. This slice creates the read side of that bridge: typed, serializable UI events derived from existing `RuntimeEvent` values without linking UI clients directly to `ruse-core`.
 
 ## Scope
 
 This spec delivers:
 
-- `agent-ui-bridge` crate scaffold
+- `ruse-ui-bridge` crate scaffold
 - `UiEventEnvelope`
 - `UiEventPayload`
 - `UiDiagnosticLevel`
@@ -27,12 +27,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-ui-bridge` depends on `agent-types` and owns UI-facing wire contracts. It must not depend on `agent-core`, `agent-cli`, Desktop code, storage, model providers, or tool execution crates.
+`ruse-ui-bridge` depends on `ruse-types` and owns UI-facing wire contracts. It must not depend on `ruse-core`, `ruse-cli`, Desktop code, storage, model providers, or tool execution crates.
 
 ```mermaid
 flowchart TD
-  types["agent-types RuntimeEvent"] --> bridge["agent-ui-bridge UiEventEnvelope"]
-  bridge --> cli["agent-cli JSON mode"]
+  types["ruse-types RuntimeEvent"] --> bridge["ruse-ui-bridge UiEventEnvelope"]
+  bridge --> cli["ruse-cli JSON mode"]
   bridge --> desktop["future Desktop client"]
 ```
 
@@ -40,7 +40,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-ui-bridge/
+  ruse-ui-bridge/
     Cargo.toml
     src/
       lib.rs
@@ -112,16 +112,16 @@ Normalization keeps runtime identity fields intact and maps payload details to U
 
 ## Testing Strategy
 
-- Unit/integration tests in `agent-ui-bridge` validate stable JSON shape.
+- Unit/integration tests in `ruse-ui-bridge` validate stable JSON shape.
 - Runtime normalization tests build deterministic `RuntimeEvent` fixtures.
 - Tool call tests assert raw secret-like input values are absent from serialized UI events.
 
 ## Acceptance Criteria
 
-- `agent-ui-bridge` is a workspace member.
+- `ruse-ui-bridge` is a workspace member.
 - UI event contracts serialize and deserialize.
 - `normalize_runtime_event` maps core runtime events into UI-safe payloads.
-- `cargo test -p agent-ui-bridge ui_event_schema` passes.
+- `cargo test -p ruse-ui-bridge ui_event_schema` passes.
 
 ## Completion Signal
 

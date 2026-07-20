@@ -1,7 +1,7 @@
-use agent_core::TraceEntry;
-use agent_desktop::DesktopSettings;
-use agent_types::ConversationId;
-use agent_ui_bridge::{
+use ruse_core::TraceEntry;
+use ruse_desktop::DesktopSettings;
+use ruse_types::ConversationId;
+use ruse_ui_bridge::{
     UiConfigDiagnostic, UiConfigDiagnosticSeverity, UiConfigSnapshot, UiModelProviderCapabilities,
     UiModelProviderSummary,
 };
@@ -74,13 +74,13 @@ fn trace_command_returns_populated_redacted_timeline() {
     assert_eq!(timeline.items[0].seq, 1);
     assert_eq!(
         timeline.items[1].severity,
-        agent_desktop::TraceTimelineSeverity::Error
+        ruse_desktop::TraceTimelineSeverity::Error
     );
     assert_eq!(timeline.logs[0].sequence, 1);
     assert_eq!(timeline.logs[1].source, "tool_error");
     assert_eq!(
         timeline.logs[1].severity,
-        agent_desktop::DesktopRuntimeLogSeverity::Error
+        ruse_desktop::DesktopRuntimeLogSeverity::Error
     );
     let serialized = serde_json::to_string(&timeline).expect("serialize trace");
     assert!(serialized.contains("[redacted]"));

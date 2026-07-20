@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M38 technical design and implementation slice map.
 
-**Architecture:** Documentation-only baseline for `agent-mcp` completions and `agent-cli` stdio verification.
+**Architecture:** Documentation-only baseline for `ruse-mcp` completions and `ruse-cli` stdio verification.
 
 **Tech Stack:** Markdown docs.
 

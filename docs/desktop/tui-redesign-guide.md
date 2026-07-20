@@ -1,7 +1,7 @@
-# agent-tui Redesign & Optimization Guide
+# ruse-tui Redesign & Optimization Guide
 
 Status: design guidance (not yet implemented). Author: TUI/harness review, synthesized
-from a 10-agent audit of `crates/agent-tui` plus competitive analysis of Claude Code and
+from a 10-agent audit of `crates/ruse-tui` plus competitive analysis of Claude Code and
 OpenAI Codex CLIs and ratatui best-practice research.
 
 This document is the reasoning and evidence behind the redesign. The companion file
@@ -320,5 +320,5 @@ match whatever you choose.
 6. **Phase 6 — Snapshot test migration + accessibility.** `insta` golden frames, injected clock,
    centralized `Palette`, color-plus-glyph for every semantic state.
 
-Each phase ends green (`cargo test -p agent-tui`, `cargo clippy`) and adds/updates tests before
+Each phase ends green (`cargo test -p ruse-tui`, `cargo clippy`) and adds/updates tests before
 moving on.

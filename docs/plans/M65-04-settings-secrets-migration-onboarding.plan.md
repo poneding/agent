@@ -4,7 +4,7 @@
 
 **Goal:** Add beta-grade onboarding readiness diagnostics for settings, paths, secret store health, startup migrations, and provider/model readiness.
 
-**Architecture:** `agent-core` builds the readiness snapshot; `agent-ui-bridge` maps it into a UI-safe frame; CLI/TUI render bounded summaries.
+**Architecture:** `ruse-core` builds the readiness snapshot; `ruse-ui-bridge` maps it into a UI-safe frame; CLI/TUI render bounded summaries.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, existing config/settings/secrets/migration/provider support crates, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,11 +14,11 @@
 
 **Files:**
 - Read: `docs/specs/M65-04-settings-secrets-migration-onboarding.spec.md`
-- Read: `crates/agent-core/src/startup_migration.rs`
-- Read: `crates/agent-core/src/provider_support.rs`
-- Read: `crates/agent-model/src/secrets.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-core/src/startup_migration.rs`
+- Read: `crates/ruse-core/src/provider_support.rs`
+- Read: `crates/ruse-model/src/secrets.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Review existing settings/secrets/migration/provider contracts**
 
@@ -27,8 +27,8 @@ Existing contracts already cover effective runtime config, provider support, pla
 ### Task 2: Add Onboarding Readiness Contract
 
 **Files:**
-- Create: `crates/agent-core/src/onboarding.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/src/onboarding.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add typed readiness snapshot**
 
@@ -45,10 +45,10 @@ Cover ready baseline, degraded keychain/provider readiness, and blocked migratio
 ### Task 3: Add UI Bridge And TUI Rendering
 
 **Files:**
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify: `crates/agent-tui/src/trace_panel.rs`
-- Modify: `crates/agent-tui/src/transcript.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify: `crates/ruse-tui/src/trace_panel.rs`
+- Modify: `crates/ruse-tui/src/transcript.rs`
 
 - [x] **Step 1: Add additive bridge frame**
 
@@ -65,8 +65,8 @@ TUI trace/transcript displays status, provider/model, secret-store availability,
 ### Task 4: Add CLI Config Check Output
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/tests/config_diagnostics.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/tests/config_diagnostics.rs`
 
 - [x] **Step 1: Build readiness snapshot during config check**
 
@@ -110,15 +110,15 @@ Mark M65-04 complete after focused gates pass and set M65-05 as next active slic
 - [x] **Step 1: Run focused tests**
 
 ```bash
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-core onboarding
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-cli --test config_diagnostics
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-ui-bridge -p agent-tui --lib
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-core onboarding
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-cli --test config_diagnostics
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-ui-bridge -p ruse-tui --lib
 ```
 
 - [x] **Step 2: Run final focused gates**
 
 ```bash
-CARGO_TARGET_DIR=target/m65-dev cargo clippy -p agent-core -p agent-ui-bridge -p agent-cli -p agent-tui --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m65-dev cargo clippy -p ruse-core -p ruse-ui-bridge -p ruse-cli -p ruse-tui --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

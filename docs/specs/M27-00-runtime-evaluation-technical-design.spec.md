@@ -28,23 +28,23 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-eval` is a runtime-adjacent crate. It can depend on core runtime contracts, storage replay, telemetry/evidence contracts, and model fixtures. It must not depend on CLI, TUI, Desktop, or app crates.
+`ruse-eval` is a runtime-adjacent crate. It can depend on core runtime contracts, storage replay, telemetry/evidence contracts, and model fixtures. It must not depend on CLI, TUI, Desktop, or app crates.
 
 ```mermaid
 flowchart TD
-  Eval["agent-eval"] --> Core["agent-core"]
-  Eval --> Storage["agent-storage"]
-  Eval --> Model["agent-model"]
-  Eval --> Telemetry["agent-telemetry"]
-  Eval --> Types["agent-types"]
-  CLI["agent-cli"] --> Eval
+  Eval["ruse-eval"] --> Core["ruse-core"]
+  Eval --> Storage["ruse-storage"]
+  Eval --> Model["ruse-model"]
+  Eval --> Telemetry["ruse-telemetry"]
+  Eval --> Types["ruse-types"]
+  CLI["ruse-cli"] --> Eval
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-eval/
+  ruse-eval/
     Cargo.toml
     src/
       lib.rs
@@ -101,14 +101,14 @@ pub enum EvalScenarioStatus {
 - architecture is tested through crate dependency direction and compile-time imports
 - manifest and report contracts have stable serde tests
 - runner and golden behavior use deterministic fixtures
-- CLI/CI tests prove user-facing output is derived from `agent-eval`
+- CLI/CI tests prove user-facing output is derived from `ruse-eval`
 
 ## Acceptance Criteria
 
-- the M27 slice decomposition exists and points to one `agent-eval` owner crate
+- the M27 slice decomposition exists and points to one `ruse-eval` owner crate
 - `docs/milestones/README.md` records M27 as the active milestone
 - every later M27 slice has a spec and plan with verification commands
 
 ## Completion Signal
 
-This technical design is complete when M27 is decomposed into implementation slices and the milestone index names `agent-eval` as the shared evaluation harness owner.
+This technical design is complete when M27 is decomposed into implementation slices and the milestone index names `ruse-eval` as the shared evaluation harness owner.

@@ -25,7 +25,7 @@ Owned by later specs:
 
 ## Architecture
 
-Persistence remains owned by `agent-storage`. `agent-core::model_runtime` appends emitted turn events through the `EventStore` trait after successful or failed configured turns. Replay uses existing storage APIs.
+Persistence remains owned by `ruse-storage`. `ruse-core::model_runtime` appends emitted turn events through the `EventStore` trait after successful or failed configured turns. Replay uses existing storage APIs.
 
 ## State And Failure Handling
 

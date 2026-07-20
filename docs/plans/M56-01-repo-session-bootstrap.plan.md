@@ -4,7 +4,7 @@
 
 **Goal:** Add a first-class repository session bootstrap path that future M56 coding-agent slices can build on.
 
-**Architecture:** `agent-core` owns repo session bootstrap contracts, diagnostics, and runtime events. `agent-cli` owns command parsing and rendering. `agent-ui-bridge` owns UI-safe frames/snapshots. Keep side-effecting edit/command behavior out of this slice.
+**Architecture:** `ruse-core` owns repo session bootstrap contracts, diagnostics, and runtime events. `ruse-cli` owns command parsing and rendering. `ruse-ui-bridge` owns UI-safe frames/snapshots. Keep side-effecting edit/command behavior out of this slice.
 
 **Tech Stack:** Rust 2024 edition, serde, existing config/provider primitives, std `Command` for read-only Git status if no existing helper fits, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,11 +15,11 @@
 **Files:**
 - Read: `docs/specs/M56-01-repo-session-bootstrap.spec.md`
 - Read: `docs/specs/M56-coding-agent-golden-path-v1.spec.md`
-- Read: `crates/agent-types/src/event.rs`
-- Read: `crates/agent-core/src/config.rs`
-- Read: `crates/agent-core/src/runtime.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/event.rs`
+- Read: `crates/ruse-types/src/event.rs`
+- Read: `crates/ruse-core/src/config.rs`
+- Read: `crates/ruse-core/src/runtime.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/event.rs`
 
 - [x] **Step 1: Review contracts and existing boundaries**
 
@@ -34,7 +34,7 @@ Expected: bootstrap scope is limited to workspace/config/Git/provider/session ev
 ### Task 2: Write Failing Core Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/repo_session_bootstrap.rs`
+- Create: `crates/ruse-core/tests/repo_session_bootstrap.rs`
 
 - [x] **Step 1: Add core bootstrap tests**
 
@@ -51,7 +51,7 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-core repo_session_bootstrap
+cargo test -p ruse-core repo_session_bootstrap
 ```
 
 Expected: tests fail before implementation exists.
@@ -59,8 +59,8 @@ Expected: tests fail before implementation exists.
 ### Task 3: Implement Core Bootstrap Contract
 
 **Files:**
-- Create: `crates/agent-core/src/repo_session.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/src/repo_session.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add typed contracts**
 
@@ -75,7 +75,7 @@ Implement read-only workspace validation, Git status detection, config/provider 
 Run:
 
 ```bash
-cargo test -p agent-core repo_session_bootstrap
+cargo test -p ruse-core repo_session_bootstrap
 ```
 
 Expected: core tests pass.
@@ -83,9 +83,9 @@ Expected: core tests pass.
 ### Task 4: Add CLI Text and JSON Surface
 
 **Files:**
-- Create: `crates/agent-cli/tests/repo_session_bootstrap.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify if needed: `crates/agent-cli/src/output.rs`
+- Create: `crates/ruse-cli/tests/repo_session_bootstrap.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify if needed: `crates/ruse-cli/src/output.rs`
 
 - [x] **Step 1: Add CLI tests**
 
@@ -98,14 +98,14 @@ Cover:
 
 - [x] **Step 2: Implement CLI command**
 
-Add parser and renderer that call `agent-core` bootstrap and use existing `CliOutput` patterns.
+Add parser and renderer that call `ruse-core` bootstrap and use existing `CliOutput` patterns.
 
 - [x] **Step 3: Run CLI tests**
 
 Run:
 
 ```bash
-cargo test -p agent-cli repo_session_bootstrap
+cargo test -p ruse-cli repo_session_bootstrap
 ```
 
 Expected: CLI tests pass.
@@ -113,9 +113,9 @@ Expected: CLI tests pass.
 ### Task 5: Add UI Bridge Evidence
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/repo_session_snapshot.rs`
-- Modify if needed: `crates/agent-ui-bridge/src/event.rs`
-- Modify if needed: `crates/agent-ui-bridge/src/frame.rs`
+- Create: `crates/ruse-ui-bridge/tests/repo_session_snapshot.rs`
+- Modify if needed: `crates/ruse-ui-bridge/src/event.rs`
+- Modify if needed: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Add bridge tests**
 
@@ -130,7 +130,7 @@ Prefer existing `Workspace`, `Session`, `Progress`, `ConfigSnapshot`, or safe fr
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge repo_session_snapshot
+cargo test -p ruse-ui-bridge repo_session_snapshot
 ```
 
 Expected: bridge tests pass.
@@ -147,10 +147,10 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-core -p agent-cli -p agent-ui-bridge --all-targets -- -D warnings
-cargo test -p agent-core repo_session_bootstrap
-cargo test -p agent-cli repo_session_bootstrap
-cargo test -p agent-ui-bridge repo_session_snapshot
+cargo clippy -p ruse-core -p ruse-cli -p ruse-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-core repo_session_bootstrap
+cargo test -p ruse-cli repo_session_bootstrap
+cargo test -p ruse-ui-bridge repo_session_snapshot
 ```
 
 Expected: focused checks pass.

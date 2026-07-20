@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Add a native Anthropic provider adapter so configured Claude providers can be registered, capability-checked, and invoked through the shared `agent-model` runtime contracts.
+Add a native Anthropic provider adapter so configured Claude providers can be registered, capability-checked, and invoked through the shared `ruse-model` runtime contracts.
 
 ## Product Context
 
-M57 turns provider choice into a typed product surface. M57-01 added capability profiles and diagnostics; this slice adds the first native non-OpenAI provider while preserving the M56 golden path and keeping provider-specific request/stream logic inside `agent-model`.
+M57 turns provider choice into a typed product surface. M57-01 added capability profiles and diagnostics; this slice adds the first native non-OpenAI provider while preserving the M56 golden path and keeping provider-specific request/stream logic inside `ruse-model`.
 
 ## Scope
 
@@ -28,7 +28,7 @@ Owned by other specs:
 
 ## Architecture
 
-Anthropic runtime behavior lives in `agent-model`. CLI only wires configured providers to the typed adapter and redacts registration errors. UI bridge surfaces continue to consume provider capability summaries through the existing config snapshot DTOs.
+Anthropic runtime behavior lives in `ruse-model`. CLI only wires configured providers to the typed adapter and redacts registration errors. UI bridge surfaces continue to consume provider capability summaries through the existing config snapshot DTOs.
 
 ```mermaid
 flowchart TD
@@ -36,14 +36,14 @@ flowchart TD
   Registry --> Provider["AnthropicProvider"]
   Provider --> Transport["AnthropicTransport"]
   Transport --> Stream["ModelStreamEvent"]
-  CLI["agent-cli provider registration"] --> Registry
+  CLI["ruse-cli provider registration"] --> Registry
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-model/
+  ruse-model/
     src/
       anthropic.rs
       config.rs
@@ -53,7 +53,7 @@ crates/
       anthropic.rs
       provider_capability_matrix.rs
       provider_config.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
       providers.rs
@@ -139,7 +139,7 @@ Expected stream mapping:
 
 ## Testing Strategy
 
-- `agent-model` tests for request body shape, required secret refs, invalid provider kind, stream text/completion mapping, tool-use mapping, retryability, and redaction
+- `ruse-model` tests for request body shape, required secret refs, invalid provider kind, stream text/completion mapping, tool-use mapping, retryability, and redaction
 - config tests for `ModelProviderKind::Anthropic` serde and secret requirement
 - capability matrix tests for Anthropic defaults
 - CLI config diagnostics tests for Anthropic provider summaries in text and JSON
@@ -147,11 +147,11 @@ Expected stream mapping:
 - focused commands:
 
 ```bash
-cargo test -p agent-model anthropic
-cargo test -p agent-model provider_config
-cargo test -p agent-model provider_capability_matrix
-cargo test -p agent-cli config_diagnostics
-cargo test -p agent-cli live_provider_registration
+cargo test -p ruse-model anthropic
+cargo test -p ruse-model provider_config
+cargo test -p ruse-model provider_capability_matrix
+cargo test -p ruse-cli config_diagnostics
+cargo test -p ruse-cli live_provider_registration
 ```
 
 ## Acceptance Criteria

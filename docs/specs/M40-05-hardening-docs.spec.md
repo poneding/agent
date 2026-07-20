@@ -47,10 +47,10 @@ Documentation updates live in `README.md`, `docs/milestones/README.md`, and M40 
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_contracts`
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_sampling_validation`
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling`
-- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_gateway_sampling`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_contracts`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_sampling_validation`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_client_session_sampling`
+- `CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_gateway_sampling`
 - `CARGO_TARGET_DIR=target/codex-m40 cargo xtask ci`
 
 ## Completion Signal

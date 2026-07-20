@@ -12,10 +12,10 @@ The target product should be usable by opening any terminal and typing `agent`. 
 
 This milestone delivers:
 
-- binary name `agent` while keeping the package crate `agent-cli`
+- binary name `agent` while keeping the package crate `ruse-cli`
 - `agent` default TTY behavior that enters TUI REPL
 - explicit `agent tui`, `agent repl --plain`, batch, JSON, config, and version modes
-- new `agent-tui` crate using Ratatui, Crossterm, and `tui-textarea`
+- new `ruse-tui` crate using Ratatui, Crossterm, and `tui-textarea`
 - transcript, composer, status bar, approval panel, diff panel, trace panel, and task panel state models
 - UI bridge client loop for rendering runtime events and sending commands
 - terminal cleanup, panic restore, resize handling, and fallback behavior
@@ -28,15 +28,15 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-cli` stays the thin entrypoint for argument parsing, TTY detection, and mode dispatch. `agent-tui` owns Ratatui rendering, input handling, terminal lifecycle, and UI state. Both communicate with runtime through `agent-ui-bridge`; neither owns model, tool, storage, or policy logic.
+`ruse-cli` stays the thin entrypoint for argument parsing, TTY detection, and mode dispatch. `ruse-tui` owns Ratatui rendering, input handling, terminal lifecycle, and UI state. Both communicate with runtime through `ruse-ui-bridge`; neither owns model, tool, storage, or policy logic.
 
 ```mermaid
 flowchart TD
-  Bin["agent binary"] --> CLI["agent-cli mode dispatch"]
+  Bin["agent binary"] --> CLI["ruse-cli mode dispatch"]
   CLI --> Batch["batch/json/plain modes"]
-  CLI --> TUI["agent-tui Ratatui app"]
-  TUI --> Bridge["agent-ui-bridge"]
-  Bridge --> Core["agent-core runtime"]
+  CLI --> TUI["ruse-tui Ratatui app"]
+  TUI --> Bridge["ruse-ui-bridge"]
+  Bridge --> Core["ruse-core runtime"]
 ```
 
 ## Key Contracts

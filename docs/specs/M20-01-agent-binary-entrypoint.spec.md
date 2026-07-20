@@ -12,7 +12,7 @@ M20 starts the terminal product experience. Users should type `agent` in any int
 
 This spec delivers:
 
-- `agent` binary target backed by `agent-cli`
+- `agent` binary target backed by `ruse-cli`
 - explicit command parsing for `tui`, `repl --plain`, `--prompt`, `--json`, `--config-check`, and `--version`
 - TTY dispatch contract that selects TUI only for interactive stdin/stdout
 - non-TTY no-arg failure with clear help text
@@ -25,14 +25,14 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` owns binary naming and mode dispatch. It may call into `agent-tui` only through a narrow launcher trait or function. Runtime work stays in core crates and existing JSON/batch paths remain unchanged.
+`ruse-cli` owns binary naming and mode dispatch. It may call into `ruse-tui` only through a narrow launcher trait or function. Runtime work stays in core crates and existing JSON/batch paths remain unchanged.
 
 ```mermaid
 flowchart TD
-  Args["argv + stdio"] --> CLI["agent-cli dispatch"]
+  Args["argv + stdio"] --> CLI["ruse-cli dispatch"]
   CLI --> Batch["batch/json commands"]
   CLI --> Plain["plain repl"]
-  CLI --> TUI["agent-tui launcher"]
+  CLI --> TUI["ruse-tui launcher"]
 ```
 
 ## Public Contracts
@@ -70,15 +70,15 @@ No secrets or prompts are logged during mode dispatch. JSON mode preserves redac
 ## Testing Strategy
 
 - CLI parser tests for `tui`, `repl --plain`, no args, batch, JSON, help, and version.
-- binary smoke tests for `agent` and legacy `agent-cli` aliases when both are present.
+- binary smoke tests for `agent` and legacy `ruse-cli` aliases when both are present.
 - non-TTY dispatch tests using injected `StdioProfile`.
 
 ## Acceptance Criteria
 
-- `cargo run -p agent-cli --bin agent -- --version` works.
-- existing `agent-cli` tests continue to pass.
+- `cargo run -p ruse-cli --bin agent -- --version` works.
+- existing `ruse-cli` tests continue to pass.
 - `agent --json --prompt "hello"` emits NDJSON and does not launch TUI.
 
 ## Completion Signal
 
-M20-01 is complete when binary dispatch tests pass and M20-02 can call a stable `agent-tui` launcher boundary.
+M20-01 is complete when binary dispatch tests pass and M20-02 can call a stable `ruse-tui` launcher boundary.

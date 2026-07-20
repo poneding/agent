@@ -4,7 +4,7 @@
 
 **Goal:** Add model invocation timeout, retry, and fallback policy contracts.
 
-**Architecture:** Implement pure policy data and decision helpers in `agent-model::invocation_policy`. Runtime event emission is reserved for later `agent-core` integration.
+**Architecture:** Implement pure policy data and decision helpers in `ruse-model::invocation_policy`. Runtime event emission is reserved for later `ruse-core` integration.
 
 **Tech Stack:** Rust 2024 edition, serde, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M13-03-invocation-policy.spec.md`
-- Read: `crates/agent-model/src/provider.rs`
-- Read: `crates/agent-model/src/registry.rs`
+- Read: `crates/ruse-model/src/provider.rs`
+- Read: `crates/ruse-model/src/registry.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -30,7 +30,7 @@ Expected: the spec defines timeout, retry, and fallback contracts.
 ### Task 2: Write RED Invocation Policy Tests
 
 **Files:**
-- Create: `crates/agent-model/tests/invocation_policy.rs`
+- Create: `crates/ruse-model/tests/invocation_policy.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -47,7 +47,7 @@ Add tests:
 Run:
 
 ```bash
-cargo test -p agent-model --test invocation_policy
+cargo test -p ruse-model --test invocation_policy
 ```
 
 Expected: tests fail because invocation policy contracts do not exist.
@@ -55,8 +55,8 @@ Expected: tests fail because invocation policy contracts do not exist.
 ### Task 3: Implement Invocation Policy
 
 **Files:**
-- Create: `crates/agent-model/src/invocation_policy.rs`
-- Modify: `crates/agent-model/src/lib.rs`
+- Create: `crates/ruse-model/src/invocation_policy.rs`
+- Modify: `crates/ruse-model/src/lib.rs`
 
 - [x] **Step 1: Add policy types**
 
@@ -79,7 +79,7 @@ Implement retry classification and first-compatible fallback selection using reg
 Run:
 
 ```bash
-cargo test -p agent-model --test invocation_policy
+cargo test -p ruse-model --test invocation_policy
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace

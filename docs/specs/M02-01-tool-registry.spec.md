@@ -12,7 +12,7 @@ This slice starts M02 Tool, Policy, and Audit Kernel. It gives the runtime one p
 
 This spec delivers:
 
-- `agent-tool` crate
+- `ruse-tool` crate
 - tool name validation
 - tool definition and JSON schema contract
 - tool input/output envelopes
@@ -29,19 +29,19 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-tool` depends only on shared lower-level crates and does not depend on `agent-core`, `agent-policy`, or UI crates. The registry is deterministic and local-first.
+`ruse-tool` depends only on shared lower-level crates and does not depend on `ruse-core`, `ruse-policy`, or UI crates. The registry is deterministic and local-first.
 
 ```mermaid
 flowchart TD
-  agent_core["agent-core"] --> agent_tool["agent-tool"]
-  agent_tool --> agent_types["agent-types"]
+  ruse_core["ruse-core"] --> ruse_tool["ruse-tool"]
+  ruse_tool --> ruse_types["ruse-types"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-tool/
+  ruse-tool/
     Cargo.toml
     src/
       lib.rs
@@ -106,11 +106,11 @@ pub struct ToolRegistry;
 
 ## Acceptance Criteria
 
-- `agent-tool` is a workspace crate.
+- `ruse-tool` is a workspace crate.
 - A test tool can be registered, looked up, and executed.
 - Duplicate names are rejected deterministically.
 - Workspace fmt, clippy, and tests pass.
 
 ## Completion Signal
 
-M02-01 is complete when `agent-tool` exposes the public registry contracts and focused registry tests pass.
+M02-01 is complete when `ruse-tool` exposes the public registry contracts and focused registry tests pass.

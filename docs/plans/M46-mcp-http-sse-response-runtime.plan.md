@@ -4,7 +4,7 @@
 
 **Goal:** Add a safe, typed response-stream foundation for MCP streamable HTTP clients.
 
-**Architecture:** `agent-mcp` owns SSE parsing, response-mode contracts, reqwest response classification, client dispatch, redaction, and tests. CLI/Desktop remain consumers of typed runtime contracts.
+**Architecture:** `ruse-mcp` owns SSE parsing, response-mode contracts, reqwest response classification, client dispatch, redaction, and tests. CLI/Desktop remain consumers of typed runtime contracts.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, reqwest, HTTP/SSE parsing, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -82,10 +82,10 @@ git commit -m "feat: complete m46 mcp http sse response runtime"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_contracts` passed.
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_response_mode` passed.
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_transport` passed.
-- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p agent-mcp mcp_client_http_sse_dispatch` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_contracts` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_response_mode` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m46 cargo test -p ruse-mcp mcp_client_http_sse_dispatch` passed.
 - `git diff --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m46 cargo fmt --all -- --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m46 cargo xtask ci` passed.

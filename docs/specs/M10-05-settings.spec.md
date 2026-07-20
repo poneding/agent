@@ -29,11 +29,11 @@ Owned by other specs:
 
 ## Architecture
 
-Settings contracts live in `agent-desktop` as UI-facing configuration snapshots. They avoid storing raw API keys and can later be mapped to durable config layers.
+Settings contracts live in `ruse-desktop` as UI-facing configuration snapshots. They avoid storing raw API keys and can later be mapped to durable config layers.
 
 ```mermaid
 flowchart TD
-  desktop["agent-desktop settings contracts"] --> future_config["future durable config layer"]
+  desktop["ruse-desktop settings contracts"] --> future_config["future durable config layer"]
   desktop --> future_ui["future Desktop settings screen"]
 ```
 
@@ -41,7 +41,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     src/
       settings.rs
     tests/
@@ -116,7 +116,7 @@ pub struct UiSettings {
 
 - Desktop settings can represent model, policy, memory, MCP, and UI preferences safely.
 - M10 has slice-level specs/plans and implementation status recorded.
-- `cargo test -p agent-desktop settings` passes.
+- `cargo test -p ruse-desktop settings` passes.
 
 ## Completion Signal
 

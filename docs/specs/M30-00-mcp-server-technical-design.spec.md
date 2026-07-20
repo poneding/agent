@@ -28,26 +28,26 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` is the only crate that understands MCP server wire contracts. It depends on `agent-tool`, `agent-policy`, and `agent-types` for local export metadata and policy integration. Runtime orchestration remains in `agent-core`.
+`ruse-mcp` is the only crate that understands MCP server wire contracts. It depends on `ruse-tool`, `ruse-policy`, and `ruse-types` for local export metadata and policy integration. Runtime orchestration remains in `ruse-core`.
 
 ```mermaid
 flowchart TD
-  Protocol["MCP JSON-RPC"] --> Server["agent-mcp server"]
+  Protocol["MCP JSON-RPC"] --> Server["ruse-mcp server"]
   Server --> ToolExport["tool export registry"]
   Server --> ResourceExport["resource export registry"]
-  ToolExport --> Policy["agent-policy"]
-  ToolExport --> Tools["agent-tool"]
+  ToolExport --> Policy["ruse-policy"]
+  ToolExport --> Tools["ruse-tool"]
   ResourceExport --> Policy
 ```
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/
+crates/ruse-mcp/src/
   server.rs
   server_tool.rs
   server_resource.rs
-crates/agent-mcp/tests/
+crates/ruse-mcp/tests/
   mcp_server_contracts.rs
   mcp_server_tool_export.rs
   mcp_server_resource_export.rs

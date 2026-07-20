@@ -1,0 +1,30 @@
+[package]
+name = "ruse-mcp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+ruse-policy = { path = "../ruse-policy" }
+ruse-sandbox = { path = "../ruse-sandbox" }
+ruse-tool = { path = "../ruse-tool" }
+ruse-types = { path = "../ruse-types" }
+async-trait = "0.1"
+base64 = "0.22"
+futures = "0.3"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+thiserror = "2"
+tokio = { version = "1", features = ["io-util", "process", "sync", "time"] }
+url = "2"
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1", features = ["macros", "rt"] }
+
+[lints]
+workspace = true

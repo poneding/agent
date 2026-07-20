@@ -26,32 +26,32 @@ Owned by other milestones:
 
 ## Architecture
 
-`agent-telemetry` owns provider-neutral telemetry export contracts. `agent-core` composes runtime events, telemetry records, audit records, and replay metadata into evidence bundles. `agent-cli`, `agent-tui`, `agent-desktop`, and `agent-ui-bridge` render typed summaries only.
+`ruse-telemetry` owns provider-neutral telemetry export contracts. `ruse-core` composes runtime events, telemetry records, audit records, and replay metadata into evidence bundles. `ruse-cli`, `ruse-tui`, `ruse-desktop`, and `ruse-ui-bridge` render typed summaries only.
 
 ```mermaid
 flowchart TD
-  Store["agent-storage events"] --> Core["agent-core evidence builder"]
-  Telemetry["agent-telemetry records"] --> Core
-  Audit["agent-core audit export"] --> Core
-  Core --> Bridge["agent-ui-bridge snapshots"]
-  Core --> CLI["agent-cli commands"]
-  Bridge --> Desktop["agent-desktop"]
-  Bridge --> TUI["agent-tui"]
+  Store["ruse-storage events"] --> Core["ruse-core evidence builder"]
+  Telemetry["ruse-telemetry records"] --> Core
+  Audit["ruse-core audit export"] --> Core
+  Core --> Bridge["ruse-ui-bridge snapshots"]
+  Core --> CLI["ruse-cli commands"]
+  Bridge --> Desktop["ruse-desktop"]
+  Bridge --> TUI["ruse-tui"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-telemetry/
+  ruse-telemetry/
     src/export.rs
     tests/telemetry_export.rs
-  agent-core/
+  ruse-core/
     src/observability.rs
     tests/observability_evidence.rs
-  agent-cli/
+  ruse-cli/
     tests/observability_commands.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     tests/observability_snapshot.rs
 docs/
   specs/M26-*.spec.md
@@ -96,8 +96,8 @@ pub struct ObservabilityEvidenceBundle {
 
 ## Testing Strategy
 
-- `agent-telemetry` unit tests cover stable bundle serde, filtering, redaction, truncation, and option validation
-- `agent-core` tests cover cross-source evidence correlation and replay summaries
+- `ruse-telemetry` unit tests cover stable bundle serde, filtering, redaction, truncation, and option validation
+- `ruse-core` tests cover cross-source evidence correlation and replay summaries
 - CLI tests cover text and JSON outputs with no raw secret leakage
 - UI bridge/Desktop tests cover bounded snapshots and stable frame schemas
 - replay tests prove evidence can be regenerated from stored events without mutating runtime state

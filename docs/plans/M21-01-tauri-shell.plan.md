@@ -4,7 +4,7 @@
 
 **Goal:** Create a runnable Tauri Desktop shell with safe bootstrap diagnostics and no runtime side effects.
 
-**Architecture:** `apps/desktop` owns the GUI and Tauri command layer. `crates/agent-desktop` remains view-model contracts, and runtime crates stay behind later bridge commands.
+**Architecture:** `apps/desktop` owns the GUI and Tauri command layer. `crates/ruse-desktop` remains view-model contracts, and runtime crates stay behind later bridge commands.
 
 **Tech Stack:** Rust 2024 edition, Tauri 2, TypeScript, Vite, Vitest, Testing Library, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -15,8 +15,8 @@
 **Files:**
 - Read: `docs/specs/M21-01-tauri-shell.spec.md`
 - Read: `docs/specs/M21-00-desktop-gui-technical-design.spec.md`
-- Read: `crates/agent-desktop/src/session.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-desktop/src/session.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Review shell boundaries**
 
@@ -102,7 +102,7 @@ Render left rail, main area, right panel, composer placeholder, and status bar f
 
 - [x] **Step 4: Register app crate in workspace**
 
-Add `apps/desktop/src-tauri` as a workspace member and keep `crates/agent-desktop` as a library dependency.
+Add `apps/desktop/src-tauri` as a workspace member and keep `crates/ruse-desktop` as a library dependency.
 
 ### Task 4: Verify
 

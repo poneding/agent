@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Expose MCP server tools as local `agent-tool` entries that always route through local policy, audit, idempotency, and observation compression. MCP becomes a mature gateway rather than a side channel.
+Expose MCP server tools as local `ruse-tool` entries that always route through local policy, audit, idempotency, and observation compression. MCP becomes a mature gateway rather than a side channel.
 
 ## Product Context
 
@@ -27,27 +27,27 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns gateway contracts and remote protocol adaptation. `agent-tool` owns the local tool registry abstraction. `agent-policy` owns permission requests and decisions. `agent-core` wires gateway-registered tools into comprehensive turn resources.
+`ruse-mcp` owns gateway contracts and remote protocol adaptation. `ruse-tool` owns the local tool registry abstraction. `ruse-policy` owns permission requests and decisions. `ruse-core` wires gateway-registered tools into comprehensive turn resources.
 
 ```mermaid
 flowchart TD
-  Config["MCP server config"] --> Gateway["agent-mcp McpGateway"]
+  Config["MCP server config"] --> Gateway["ruse-mcp McpGateway"]
   Gateway --> Client["McpClient"]
   Client --> Descriptor["McpToolDescriptor"]
-  Descriptor --> Tool["agent-tool ToolDefinition"]
-  Tool --> Policy["agent-policy"]
+  Descriptor --> Tool["ruse-tool ToolDefinition"]
+  Tool --> Policy["ruse-policy"]
   Tool --> Audit["runtime events"]
 ```
 
 ## File Layout
 
 ```text
-crates/agent-mcp/src/
+crates/ruse-mcp/src/
   gateway.rs
   lib.rs
-crates/agent-mcp/tests/
+crates/ruse-mcp/tests/
   mcp_gateway.rs
-crates/agent-core/tests/
+crates/ruse-core/tests/
   mcp_gateway_tool_loop.rs
 ```
 
@@ -104,7 +104,7 @@ pub struct McpToolCallRequest {
 - Denied MCP calls do not execute remotely.
 - Allowed MCP calls emit normal tool results and audit metadata.
 - Unhealthy MCP servers are visible but not executable.
-- Focused tests pass with `cargo test -p agent-mcp mcp_gateway` and `cargo test -p agent-core mcp_gateway_tool_loop`.
+- Focused tests pass with `cargo test -p ruse-mcp mcp_gateway` and `cargo test -p ruse-core mcp_gateway_tool_loop`.
 
 ## Completion Signal
 

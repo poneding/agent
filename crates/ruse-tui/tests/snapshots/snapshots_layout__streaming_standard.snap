@@ -1,0 +1,29 @@
+---
+source: crates/ruse-tui/tests/snapshots_layout.rs
+assertion_line: 123
+expression: "snapshot(&streaming_app(), STANDARD)"
+---
+                                                                                        
+ ❯ explain the plan                                                                     
+                                                                                        
+                                                                                        
+ Here is the plan so far                                                                
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+ ⠸ Responding… · 7s · esc/Ctrl+C to interrupt                                           
+ ────────────────────────────────────────────────────────────────────────────────────── 
+ ❯ type a message — / for commands · Enter to send                                      
+ ────────────────────────────────────────────────────────────────────────────────────── 
+openai / gpt-5.5 · effort xhigh · normal                       ctx pending/128k  ~/agent

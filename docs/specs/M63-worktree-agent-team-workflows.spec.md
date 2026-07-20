@@ -23,7 +23,7 @@ This milestone delivers:
 - CLI/JSON commands for team status, handoff planning, blackboard inspection, review recording, and merge-readiness dry-runs
 - policy-backed team-level permission ceilings that never expand parent, role, task, or provider/tool capabilities
 - reviewer role and merge review contracts with bounded diff/artifact summaries
-- conflict-aware merge readiness that reuses `agent-worktree` and M62 recovery-safe conflict summaries
+- conflict-aware merge readiness that reuses `ruse-worktree` and M62 recovery-safe conflict summaries
 - TUI/Desktop-safe bridge frames for team status, reviewer decisions, merge readiness, and conflict blocks
 - deterministic product smoke coverage proving an isolated worktree/subagent/reviewer path without provider credentials
 - user-facing docs for worktree/team workflows
@@ -39,20 +39,20 @@ Owned by later milestones or separate tracks:
 
 M63 keeps ownership layered:
 
-- `agent-worktree` owns worktree lease lifecycle and conflict detection.
-- `agent-team` owns subagent handoff, capability reduction, team workflow summaries, blackboard entries, reviewer votes, and merge-review contracts.
-- `agent-policy` owns actions/scopes used by capability ceilings and merge decisions.
-- `agent-core` orchestrates runtime-facing team workflow snapshots, deterministic smoke fixtures, readiness calculations, and event emission.
-- `agent-ui-bridge` owns UI-safe command/frame contracts.
+- `ruse-worktree` owns worktree lease lifecycle and conflict detection.
+- `ruse-team` owns subagent handoff, capability reduction, team workflow summaries, blackboard entries, reviewer votes, and merge-review contracts.
+- `ruse-policy` owns actions/scopes used by capability ceilings and merge decisions.
+- `ruse-core` orchestrates runtime-facing team workflow snapshots, deterministic smoke fixtures, readiness calculations, and event emission.
+- `ruse-ui-bridge` owns UI-safe command/frame contracts.
 - CLI, TUI, Desktop Rust, and Desktop TypeScript render typed summaries and submit typed commands; they do not create merge policy, classify conflicts, or reduce capabilities independently.
 
 ```mermaid
 flowchart TD
-  Worktree["agent-worktree leases and conflicts"] --> Team["agent-team workflow contracts"]
-  Policy["agent-policy capabilities"] --> Team
-  Team --> Core["agent-core team workflow snapshot"]
+  Worktree["ruse-worktree leases and conflicts"] --> Team["ruse-team workflow contracts"]
+  Policy["ruse-policy capabilities"] --> Team
+  Team --> Core["ruse-core team workflow snapshot"]
   Worktree --> Core
-  Core --> Bridge["agent-ui-bridge frames"]
+  Core --> Bridge["ruse-ui-bridge frames"]
   Bridge --> CLI["CLI / JSON"]
   Bridge --> TUI["TUI"]
   Bridge --> Desktop["Desktop"]
@@ -62,17 +62,17 @@ flowchart TD
 
 ```text
 crates/
-  agent-team/
+  ruse-team/
     src/
       workflow.rs
       merge_review.rs
-  agent-core/
+  ruse-core/
     src/
       team_workflow.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       team.rs
-  agent-cli/
+  ruse-cli/
     tests/
       team_workflow_commands.rs
 docs/
@@ -152,11 +152,11 @@ Merge review must be dry-run first. Any future merge execution must reference:
 
 Required coverage:
 
-- `agent-team` tests for workflow summaries, merge-review readiness, reviewer vote handling, and capability ceiling reduction
-- `agent-worktree` tests for worktree conflict behavior reused by merge readiness
-- `agent-core` tests for a full deterministic team workflow snapshot fixture
-- `agent-ui-bridge` tests for UI-safe frames and command shapes
-- `agent-cli` tests for text/JSON command rendering
+- `ruse-team` tests for workflow summaries, merge-review readiness, reviewer vote handling, and capability ceiling reduction
+- `ruse-worktree` tests for worktree conflict behavior reused by merge readiness
+- `ruse-core` tests for a full deterministic team workflow snapshot fixture
+- `ruse-ui-bridge` tests for UI-safe frames and command shapes
+- `ruse-cli` tests for text/JSON command rendering
 - eval or smoke coverage for an isolated worktree/subagent/reviewer path
 
 Final M63 gates:

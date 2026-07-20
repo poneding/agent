@@ -28,26 +28,26 @@ Owned by other specs:
 
 ## Architecture
 
-Capability validation lives in `agent-plugin`. Policy decisions remain in `agent-policy`.
+Capability validation lives in `ruse-plugin`. Policy decisions remain in `ruse-policy`.
 
 ```mermaid
 flowchart TD
-  manifest["PluginManifest capabilities"] --> plugin["agent-plugin capability validation"]
-  plugin --> policy["agent-policy PermissionRequest"]
-  plugin --> types["agent-types plugin events"]
+  manifest["PluginManifest capabilities"] --> plugin["ruse-plugin capability validation"]
+  plugin --> policy["ruse-policy PermissionRequest"]
+  plugin --> types["ruse-types plugin events"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-plugin/
+  ruse-plugin/
     src/
       capability.rs
     tests/
       capabilities.rs
 crates/
-  agent-types/
+  ruse-types/
     src/
       external.rs
 ```
@@ -80,10 +80,10 @@ pub fn validate_plugin_capabilities(manifest: &PluginManifest) -> Result<PluginC
 
 pub fn permission_request_for_plugin_tool(
     plugin_name: &PluginName,
-    tool_name: &agent_tool::ToolName,
-    actor: agent_types::ActorRef,
-    correlation_id: agent_types::CorrelationId,
-) -> Result<agent_policy::PermissionRequest, PluginManifestError>;
+    tool_name: &ruse_tool::ToolName,
+    actor: ruse_types::ActorRef,
+    correlation_id: ruse_types::CorrelationId,
+) -> Result<ruse_policy::PermissionRequest, PluginManifestError>;
 ```
 
 ## State And Failure Handling
@@ -116,7 +116,7 @@ pub fn permission_request_for_plugin_tool(
 - Plugin capabilities can be validated before activation.
 - Plugin tool calls have a deterministic policy request path.
 - Capability validation is represented in traceable runtime metadata.
-- `cargo test -p agent-plugin capabilities` passes.
+- `cargo test -p ruse-plugin capabilities` passes.
 
 ## Completion Signal
 

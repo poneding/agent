@@ -27,7 +27,7 @@ Owned by later specs:
 
 ## Architecture
 
-Layering lives in `agent-core::config`. It consumes already-parsed `AgentRuntimeConfig` values and returns an effective immutable snapshot.
+Layering lives in `ruse-core::config`. It consumes already-parsed `AgentRuntimeConfig` values and returns an effective immutable snapshot.
 
 ## Public Contracts
 
@@ -95,4 +95,4 @@ pub struct EffectiveRuntimeConfig {
 
 ## Completion Signal
 
-M14-03 is complete when `cargo test -p agent-core --test runtime_config_layering` and the workspace gates pass, status advances to M14-04, and the slice is committed.
+M14-03 is complete when `cargo test -p ruse-core --test runtime_config_layering` and the workspace gates pass, status advances to M14-04, and the slice is committed.

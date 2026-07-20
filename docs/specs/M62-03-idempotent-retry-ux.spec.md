@@ -32,15 +32,15 @@ Out of scope for this slice:
 
 ## Architecture
 
-`agent-core` remains the source of retry and idempotency truth. `agent-storage` remains the owner of idempotency records and durable command evidence when available. `agent-ui-bridge` wraps runtime reports into UI-safe frames. `agent-cli` parses retry requests and renders typed reports without reclassifying failures.
+`ruse-core` remains the source of retry and idempotency truth. `ruse-storage` remains the owner of idempotency records and durable command evidence when available. `ruse-ui-bridge` wraps runtime reports into UI-safe frames. `ruse-cli` parses retry requests and renders typed reports without reclassifying failures.
 
 ```mermaid
 flowchart TD
-  CommandReport["CommandTestLoopReport / durable command evidence"] --> RetryPlanner["agent-core CommandRetryPlanner"]
-  Idempotency["agent-storage IdempotencyStore"] --> Recovery["agent-core RecoveryEngine"]
-  Recovery --> Bridge["agent-ui-bridge recovery/retry frames"]
+  CommandReport["CommandTestLoopReport / durable command evidence"] --> RetryPlanner["ruse-core CommandRetryPlanner"]
+  Idempotency["ruse-storage IdempotencyStore"] --> Recovery["ruse-core RecoveryEngine"]
+  Recovery --> Bridge["ruse-ui-bridge recovery/retry frames"]
   RetryPlanner --> Bridge
-  Bridge --> CLI["agent-cli text/json retry and recovery output"]
+  Bridge --> CLI["ruse-cli text/json retry and recovery output"]
 ```
 
 Dependency rules:
@@ -54,12 +54,12 @@ Dependency rules:
 
 ```text
 crates/
-  agent-types/
+  ruse-types/
     src/
       recovery.rs
       command_retry.rs
       lib.rs
-  agent-core/
+  ruse-core/
     src/
       command_retry.rs
       idempotency.rs
@@ -68,14 +68,14 @@ crates/
     tests/
       failed_command_retry.rs
       recovery_snapshot.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       command.rs
       frame.rs
       lib.rs
     tests/
       recovery_bridge.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
       lib.rs
@@ -175,7 +175,7 @@ pub enum UiJsonFrame {
 CLI command shape:
 
 ```text
-agent-cli command retry <command-run-id> --reason <text> --dry-run
+ruse-cli command retry <command-run-id> --reason <text> --dry-run
 ```
 
 If durable command evidence lookup is not available yet, the CLI may use deterministic fixture-backed retry evidence for M62-03 tests, but output must include a typed diagnostic explaining the fixture limitation.
@@ -200,20 +200,20 @@ If durable command evidence lookup is not available yet, the CLI may use determi
 
 ## Testing Strategy
 
-- `agent-core/tests/failed_command_retry.rs`
+- `ruse-core/tests/failed_command_retry.rs`
   - retryable command failure produces a retryable plan
   - retryable test failure preserves `classify_as_test`
   - successful command is not retryable
   - waiting approval/denied command is blocked
   - missing/stale target is blocked
   - retry reason and command output are redacted
-- `agent-core/tests/recovery_snapshot.rs`
+- `ruse-core/tests/recovery_snapshot.rs`
   - idempotent effects expose reusable/skipped disposition without raw output
   - idempotency conflict produces blocking diagnostic
-- `agent-ui-bridge/tests/recovery_bridge.rs`
+- `ruse-ui-bridge/tests/recovery_bridge.rs`
   - retry command/frame serde shape
   - idempotent recovery frame shape
-- `agent-cli/tests/command_retry.rs` or `agent-cli/tests/recovery_commands.rs`
+- `ruse-cli/tests/command_retry.rs` or `ruse-cli/tests/recovery_commands.rs`
   - parse retry dry-run command
   - render text retry plan
   - render JSON retry plan
@@ -224,11 +224,11 @@ Focused checks:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-core -p agent-ui-bridge -p agent-cli --all-targets -- -D warnings
-cargo test -p agent-core --test comprehensive_turn_idempotency
-cargo test -p agent-core --test failed_command_retry
-cargo test -p agent-ui-bridge --test recovery_bridge
-cargo test -p agent-cli --test recovery_commands
+cargo clippy -p ruse-core -p ruse-ui-bridge -p ruse-cli --all-targets -- -D warnings
+cargo test -p ruse-core --test comprehensive_turn_idempotency
+cargo test -p ruse-core --test failed_command_retry
+cargo test -p ruse-ui-bridge --test recovery_bridge
+cargo test -p ruse-cli --test recovery_commands
 ```
 
 ## Acceptance Criteria

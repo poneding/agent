@@ -5,8 +5,8 @@
 ## Runtime Rules
 
 - Library crates expose async APIs where operations may wait on I/O, model streams, tool execution, storage, or scheduler leases.
-- `agent-cli` and `agent-desktop` own process-level runtime startup.
-- `agent-core` receives runtime handles, cancellation tokens, and deadlines from callers.
+- `ruse-cli` and `ruse-desktop` own process-level runtime startup.
+- `ruse-core` receives runtime handles, cancellation tokens, and deadlines from callers.
 - Background tasks run under scheduler leases and quotas.
 
 ## Cancellation

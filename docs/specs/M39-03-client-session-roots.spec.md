@@ -26,7 +26,7 @@ Owned by later M39 specs:
 
 ## Architecture
 
-Root listing stays in `agent-mcp::client` and related root modules. The fixture models protocol semantics without adding a production stdio transport loop in this milestone.
+Root listing stays in `ruse-mcp::client` and related root modules. The fixture models protocol semantics without adding a production stdio transport loop in this milestone.
 
 ```mermaid
 flowchart TD
@@ -76,8 +76,8 @@ pub fn with_roots(self, server_id: McpServerId, roots: McpRootListResult) -> Sel
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_session_roots`
-- `CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_session_roots`
+- `CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings`
 
 ## Completion Signal
 

@@ -4,7 +4,7 @@
 
 **Goal:** Add a checked-in offline evaluation corpus.
 
-**Architecture:** `docs/eval` stores data; `agent-eval` loads and runs it through suite contracts.
+**Architecture:** `docs/eval` stores data; `ruse-eval` loads and runs it through suite contracts.
 
 **Tech Stack:** JSON fixtures, existing M27/M28 eval contracts, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -29,13 +29,13 @@
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-eval --all-targets -- -D warnings
-cargo test -p agent-eval corpus
+cargo clippy -p ruse-eval --all-targets -- -D warnings
+cargo test -p ruse-eval corpus
 ```
 
 - [x] **Step 2: Commit**
 
 ```bash
-git add crates/agent-eval docs
+git add crates/ruse-eval docs
 git commit -m "feat: add builtin eval corpus"
 ```

@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M23 architecture baseline for hybrid memory retrieval and memory influence tracing.
 
-**Architecture:** This is a documentation-only slice. It defines `agent-memory` ownership for embeddings, indexing, hybrid query, reranking, proposals, tombstones, and privacy boundaries.
+**Architecture:** This is a documentation-only slice. It defines `ruse-memory` ownership for embeddings, indexing, hybrid query, reranking, proposals, tombstones, and privacy boundaries.
 
 **Tech Stack:** Markdown docs, existing memory/context/storage architecture docs, Cargo workspace verification.
 

@@ -4,7 +4,7 @@
 
 **Goal:** Add a typed, policy-routed edit/diff flow that previews or applies a workspace file edit and returns safe changed-file/diff evidence for CLI/JSON and UI bridge consumers.
 
-**Architecture:** `agent-core` owns the flow contract and orchestration. `agent-tool` remains the source of file edit and Git diff/status behavior. `agent-cli` renders command surfaces. `agent-ui-bridge` owns safe diff snapshots. `agent-tui` consumes bridge evidence. Runtime logic must not move into UI crates.
+**Architecture:** `ruse-core` owns the flow contract and orchestration. `ruse-tool` remains the source of file edit and Git diff/status behavior. `ruse-cli` renders command surfaces. `ruse-ui-bridge` owns safe diff snapshots. `ruse-tui` consumes bridge evidence. Runtime logic must not move into UI crates.
 
 **Tech Stack:** Rust 2024 edition, serde, existing `ToolLoop`, `WorkspaceSandbox`, `StaticPolicyEngine`, `FileEditTool`, `GitStatusTool`, `GitDiffTool`, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -16,11 +16,11 @@
 - Read: `docs/specs/M56-02-edit-diff-flow.spec.md`
 - Read: `docs/specs/M56-coding-agent-golden-path-v1.spec.md`
 - Read: `docs/roadmap/PRODUCT_GAP_BACKLOG.md`
-- Read: `crates/agent-tool/src/builtins/edit_file.rs`
-- Read: `crates/agent-tool/src/builtins/git_diff.rs`
-- Read: `crates/agent-tool/src/builtins/git_status.rs`
-- Read: `crates/agent-core/src/tool_loop.rs`
-- Read: `crates/agent-tui/src/diff_panel.rs`
+- Read: `crates/ruse-tool/src/builtins/edit_file.rs`
+- Read: `crates/ruse-tool/src/builtins/git_diff.rs`
+- Read: `crates/ruse-tool/src/builtins/git_status.rs`
+- Read: `crates/ruse-core/src/tool_loop.rs`
+- Read: `crates/ruse-tui/src/diff_panel.rs`
 
 - [x] **Step 1: Review edit/diff boundaries**
 
@@ -35,7 +35,7 @@ Expected: scope is limited to edit preview/apply and diff evidence, not command/
 ### Task 2: Write Failing Core Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/edit_diff_flow.rs`
+- Create: `crates/ruse-core/tests/edit_diff_flow.rs`
 
 - [x] **Step 1: Add core tests**
 
@@ -53,7 +53,7 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-core edit_diff_flow
+cargo test -p ruse-core edit_diff_flow
 ```
 
 Expected: tests fail before the core flow exists.
@@ -61,8 +61,8 @@ Expected: tests fail before the core flow exists.
 ### Task 3: Implement Core Edit/Diff Flow
 
 **Files:**
-- Create: `crates/agent-core/src/edit_diff.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/src/edit_diff.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add typed contracts**
 
@@ -81,7 +81,7 @@ Parse tool outputs into changed files, bounded diff preview, line counts, conten
 Run:
 
 ```bash
-cargo test -p agent-core edit_diff_flow
+cargo test -p ruse-core edit_diff_flow
 ```
 
 Expected: core edit/diff tests pass.
@@ -89,11 +89,11 @@ Expected: core edit/diff tests pass.
 ### Task 4: Add UI Bridge and TUI Evidence
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/edit_diff_snapshot.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
-- Modify if needed: `crates/agent-tui/src/diff_panel.rs`
-- Modify if needed: `crates/agent-tui/tests/diff_panel.rs`
+- Create: `crates/ruse-ui-bridge/tests/edit_diff_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
+- Modify if needed: `crates/ruse-tui/src/diff_panel.rs`
+- Modify if needed: `crates/ruse-tui/tests/diff_panel.rs`
 
 - [x] **Step 1: Add bridge snapshot tests**
 
@@ -112,8 +112,8 @@ Prefer extending `DiffPanelState` from bridge snapshot while preserving existing
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge edit_diff_snapshot
-cargo test -p agent-tui diff_panel
+cargo test -p ruse-ui-bridge edit_diff_snapshot
+cargo test -p ruse-tui diff_panel
 ```
 
 Expected: UI evidence tests pass.
@@ -121,8 +121,8 @@ Expected: UI evidence tests pass.
 ### Task 5: Add CLI Text and JSON Surface
 
 **Files:**
-- Create: `crates/agent-cli/tests/edit_diff_flow.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/edit_diff_flow.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add CLI tests**
 
@@ -143,7 +143,7 @@ Add parser and renderer using core edit/diff flow. Prefer `--replacement-file` a
 Run:
 
 ```bash
-cargo test -p agent-cli edit_diff_flow
+cargo test -p ruse-cli edit_diff_flow
 ```
 
 Expected: CLI tests pass.
@@ -160,13 +160,13 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
-cargo test -p agent-tool file_edit_tool
-cargo test -p agent-tool git_tools
-cargo test -p agent-core edit_diff_flow
-cargo test -p agent-cli edit_diff_flow
-cargo test -p agent-ui-bridge edit_diff_snapshot
-cargo test -p agent-tui diff_panel
+cargo clippy -p ruse-core -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
+cargo test -p ruse-tool file_edit_tool
+cargo test -p ruse-tool git_tools
+cargo test -p ruse-core edit_diff_flow
+cargo test -p ruse-cli edit_diff_flow
+cargo test -p ruse-ui-bridge edit_diff_snapshot
+cargo test -p ruse-tui diff_panel
 ```
 
 Expected: focused checks pass.

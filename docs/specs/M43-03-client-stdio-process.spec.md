@@ -24,7 +24,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` owns process transport. It uses Tokio process and IO features behind a public transport type. Secret resolution and user prompts remain outside `agent-mcp`.
+`ruse-mcp` owns process transport. It uses Tokio process and IO features behind a public transport type. Secret resolution and user prompts remain outside `ruse-mcp`.
 
 ## Public Contracts
 
@@ -60,7 +60,7 @@ impl McpClientStdioProcessTransport {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p agent-mcp mcp_client_stdio_process`
+- `CARGO_TARGET_DIR=target/codex-m43 cargo test -p ruse-mcp mcp_client_stdio_process`
 
 ## Completion Signal
 

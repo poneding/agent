@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add deterministic benchmark scenario contracts and smoke tests in `agent-core`.
+**Goal:** Add deterministic benchmark scenario contracts and smoke tests in `ruse-core`.
 
-**Architecture:** Keep benchmark scenario contracts in `agent-core` and use deterministic fake data. Do not add external benchmarking frameworks in M12; this slice proves shape and repeatability.
+**Architecture:** Keep benchmark scenario contracts in `ruse-core` and use deterministic fake data. Do not add external benchmarking frameworks in M12; this slice proves shape and repeatability.
 
 **Tech Stack:** Rust 2024 edition, serde, std time, existing core/storage/tool/context crates, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M12-06-benchmarks.spec.md`
-- Read: `crates/agent-core/src/lib.rs`
-- Read: `crates/agent-core/tests/spine_integration.rs`
+- Read: `crates/ruse-core/src/lib.rs`
+- Read: `crates/ruse-core/tests/spine_integration.rs`
 
 - [x] **Step 1: Review deterministic benchmark scope**
 
@@ -30,7 +30,7 @@ Expected: M12 benchmarks are smoke scenarios, not statistical performance claims
 ### Task 2: Write RED Benchmark Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/benchmarks.rs`
+- Create: `crates/ruse-core/tests/benchmarks.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -49,7 +49,7 @@ The tests define the public API for `BenchmarkScenario`, `BenchmarkResult`, `Ben
 Run:
 
 ```bash
-cargo test -p agent-core benchmarks
+cargo test -p ruse-core benchmarks
 ```
 
 Expected: tests fail because benchmark contracts do not exist.
@@ -57,8 +57,8 @@ Expected: tests fail because benchmark contracts do not exist.
 ### Task 3: Implement Benchmark Contracts
 
 **Files:**
-- Modify: `crates/agent-core/src/lib.rs`
-- Create: `crates/agent-core/src/benchmark.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Create: `crates/ruse-core/src/benchmark.rs`
 
 - [x] **Step 1: Add benchmark types**
 
@@ -75,14 +75,14 @@ Implement local smoke scenario builders for replay, tool dispatch, event append,
 ### Task 4: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-core/tests/benchmarks.rs`
+- Read: `crates/ruse-core/tests/benchmarks.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-core benchmarks
+cargo test -p ruse-core benchmarks
 ```
 
 Expected: focused tests pass.

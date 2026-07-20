@@ -27,9 +27,9 @@
 Verified:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_resource_template
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-mcp mcp_server_manifest_resource_templates
-CARGO_TARGET_DIR=target/codex-m37 cargo test -p agent-cli mcp_server_resource_templates
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-mcp mcp_server_resource_template
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-mcp mcp_server_manifest_resource_templates
+CARGO_TARGET_DIR=target/codex-m37 cargo test -p ruse-cli mcp_server_resource_templates
 CARGO_TARGET_DIR=target/codex-m37 cargo xtask ci
 ```
 

@@ -12,7 +12,7 @@ M49 introduced bounded reconnect runner and safe reports, but callers still own 
 
 This spec delivers:
 
-- supervisor contract ownership in `agent-mcp`
+- supervisor contract ownership in `ruse-mcp`
 - lifecycle status and tick semantics
 - runner composition over M49 reconnect reports
 - cancellation and lease boundaries
@@ -77,7 +77,7 @@ pub enum McpClientHttpStreamSupervisorStatus {
 - fixture runner tests
 - cancellation/lease tests
 - report redaction tests
-- final `agent-mcp` clippy and workspace CI gates
+- final `ruse-mcp` clippy and workspace CI gates
 
 ## Acceptance Criteria
 

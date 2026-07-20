@@ -4,7 +4,7 @@
 
 **Goal:** Add CLI profile flags for manifest-backed MCP stdio startup.
 
-**Architecture:** CLI owns file reading and args; `agent-mcp` owns manifest/profile semantics.
+**Architecture:** CLI owns file reading and args; `ruse-mcp` owns manifest/profile semantics.
 
 **Tech Stack:** Rust 2024 edition, stdio, subprocess tests.
 
@@ -30,20 +30,20 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m32 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p agent-cli --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-cli mcp_server_profile_command
-CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-cli
-CARGO_TARGET_DIR=target/codex-m32 cargo test -p agent-mcp
+CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m32 cargo clippy -p ruse-cli --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p ruse-cli mcp_server_profile_command
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p ruse-cli
+CARGO_TARGET_DIR=target/codex-m32 cargo test -p ruse-mcp
 ```
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-cli --all-targets -- -D warnings
-cargo test -p agent-cli mcp_server_profile_command
+cargo clippy -p ruse-cli --all-targets -- -D warnings
+cargo test -p ruse-cli mcp_server_profile_command
 ```
 
 ```bash
-git add crates/agent-cli docs
+git add crates/ruse-cli docs
 git commit -m "feat: add mcp stdio profile command"
 ```

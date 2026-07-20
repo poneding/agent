@@ -26,11 +26,11 @@ Owned by other specs:
 
 ## Architecture
 
-`xtask` owns release orchestration. `agent-cli` provides the `agent` binary and smoke-test commands. Packaging outputs are written under a deterministic target release directory.
+`xtask` owns release orchestration. `ruse-cli` provides the `agent` binary and smoke-test commands. Packaging outputs are written under a deterministic target release directory.
 
 ```mermaid
 flowchart TD
-  Xtask["cargo xtask package-cli"] --> Build["cargo build --release -p agent-cli"]
+  Xtask["cargo xtask package-cli"] --> Build["cargo build --release -p ruse-cli"]
   Build --> Artifact["agent binary artifact"]
   Artifact --> Smoke["version/config/fake-provider smoke"]
   Smoke --> Manifest["release manifest + checksums"]

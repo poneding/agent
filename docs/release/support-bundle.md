@@ -100,7 +100,7 @@ They should not assemble raw support data themselves.
 
 ## Onboarding Snapshot Input
 
-M65-04 provides `OnboardingReadinessSnapshot` in `agent-core` and a UI-safe bridge frame. M65-05 support bundle generation records an `onboarding_readiness` section status and must use that typed snapshot when a caller supplies it, instead of collecting raw config files, raw environment variables, keychain values, migration text, or provider endpoints.
+M65-04 provides `OnboardingReadinessSnapshot` in `ruse-core` and a UI-safe bridge frame. M65-05 support bundle generation records an `onboarding_readiness` section status and must use that typed snapshot when a caller supplies it, instead of collecting raw config files, raw environment variables, keychain values, migration text, or provider endpoints.
 
 The snapshot is already bounded and redacted, but support bundle generation should still treat it as allowlisted evidence and preserve redaction diagnostics.
 
@@ -115,10 +115,10 @@ When no live extension snapshot is supplied to `xtask`, the support bundle still
 | Area | Owner |
 |---|---|
 | bundle orchestration | `xtask` |
-| runtime/config/provider diagnostics | `agent-core`, `agent-model`, `agent-storage` |
-| telemetry summaries | `agent-telemetry` |
-| Desktop update validation | `agent-desktop` |
-| CLI rendering | `agent-cli` |
-| Desktop rendering | `agent-ui-bridge`, `apps/desktop` |
+| runtime/config/provider diagnostics | `ruse-core`, `ruse-model`, `ruse-storage` |
+| telemetry summaries | `ruse-telemetry` |
+| Desktop update validation | `ruse-desktop` |
+| CLI rendering | `ruse-cli` |
+| Desktop rendering | `ruse-ui-bridge`, `apps/desktop` |
 
 M65-05 adds the concrete `xtask` contracts, tests, and local command path. M65-06 should fold the command into final beta closeout docs and release evidence.

@@ -25,7 +25,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` performs evidence verification using `agent-storage` replay fixtures and event stores. CLI may call the verifier after this slice, but verification logic stays in core.
+`ruse-core` performs evidence verification using `ruse-storage` replay fixtures and event stores. CLI may call the verifier after this slice, but verification logic stays in core.
 
 ## Public Contracts
 

@@ -25,11 +25,11 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-eval` owns report structures and artifact writers. CLI/xtask invoke the writer with output directories. CI consumes generated files.
+`ruse-eval` owns report structures and artifact writers. CLI/xtask invoke the writer with output directories. CI consumes generated files.
 
 ```mermaid
 flowchart TD
-  Eval["agent-eval report"] --> Writer["artifact writer"]
+  Eval["ruse-eval report"] --> Writer["artifact writer"]
   Writer --> Json["run-report.json"]
   Writer --> Summary["summary.txt"]
   Xtask["xtask or CLI"] --> Writer
@@ -39,7 +39,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-eval/
+  ruse-eval/
     src/report.rs
     tests/report.rs
 xtask/

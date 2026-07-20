@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add deterministic memory indexing and hybrid lexical/semantic query in `agent-memory`.
+**Goal:** Add deterministic memory indexing and hybrid lexical/semantic query in `ruse-memory`.
 
-**Architecture:** `agent-memory` owns indexing and candidate scoring. `agent-context` consumes retrieval output later and does not own the index.
+**Architecture:** `ruse-memory` owns indexing and candidate scoring. `ruse-context` consumes retrieval output later and does not own the index.
 
 **Tech Stack:** Rust 2024 edition, serde, deterministic lexical tokenization, cosine similarity, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -16,7 +16,7 @@
 - Read: `docs/specs/M23-02-memory-index-hybrid-query.spec.md`
 - Read: `docs/specs/M23-00-memory-retrieval-technical-design.spec.md`
 - Read: `docs/specs/M23-01-embedding-provider-contracts.spec.md`
-- Read: `crates/agent-memory/src/record.rs`
+- Read: `crates/ruse-memory/src/record.rs`
 
 - [x] **Step 1: Review index scope**
 
@@ -31,7 +31,7 @@ Expected: query validation, filtering, scoring, and deterministic ordering are c
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-memory/tests/memory_index_hybrid_query.rs`
+- Create: `crates/ruse-memory/tests/memory_index_hybrid_query.rs`
 
 - [x] **Step 1: Add lexical retrieval tests**
 
@@ -50,7 +50,7 @@ Cover empty query text, empty scopes, zero top-k, invalid weights, and non-finit
 Run:
 
 ```bash
-cargo test -p agent-memory memory_index_hybrid_query
+cargo test -p ruse-memory memory_index_hybrid_query
 ```
 
 Expected: tests fail because index contracts are missing.
@@ -58,8 +58,8 @@ Expected: tests fail because index contracts are missing.
 ### Task 3: Implement Hybrid Index
 
 **Files:**
-- Create: `crates/agent-memory/src/index.rs`
-- Modify: `crates/agent-memory/src/lib.rs`
+- Create: `crates/ruse-memory/src/index.rs`
+- Modify: `crates/ruse-memory/src/lib.rs`
 
 - [x] **Step 1: Add query and candidate contracts**
 
@@ -80,14 +80,14 @@ Fuse scores by weights, filter by `minimum_score`, apply `top_k`, and sort deter
 ### Task 4: Verify
 
 **Files:**
-- Read: `crates/agent-memory/tests/memory_index_hybrid_query.rs`
+- Read: `crates/ruse-memory/tests/memory_index_hybrid_query.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-memory memory_index_hybrid_query
+cargo test -p ruse-memory memory_index_hybrid_query
 ```
 
 Expected: focused tests pass.
@@ -120,7 +120,7 @@ Advance active implementation focus to M23-03.
 Run:
 
 ```bash
-git add crates/agent-memory docs Cargo.toml Cargo.lock
+git add crates/ruse-memory docs Cargo.toml Cargo.lock
 git commit -m "feat: add hybrid memory retrieval"
 ```
 

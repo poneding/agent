@@ -4,7 +4,7 @@
 
 **Goal:** Add a typed final review contract that summarizes changed files, command/test evidence, trace/audit evidence, unresolved risks, next actions, diagnostics, and replay reconstruction status for the M56 coding-agent workflow.
 
-**Architecture:** `agent-core` owns review construction and replay reconstruction. `agent-cli` renders text/JSON. `agent-ui-bridge` owns safe final review snapshots. Runtime logic must not move into UI crates.
+**Architecture:** `ruse-core` owns review construction and replay reconstruction. `ruse-cli` renders text/JSON. `ruse-ui-bridge` owns safe final review snapshots. Runtime logic must not move into UI crates.
 
 **Tech Stack:** Rust 2024 edition, serde, existing `LocalCodingRun`, `EditDiffFlowReport`, `CommandTestLoopReport`, runtime events, observability/trace/audit helpers, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -16,12 +16,12 @@
 - Read: `docs/specs/M56-04-final-review-summary.spec.md`
 - Read: `docs/specs/M56-coding-agent-golden-path-v1.spec.md`
 - Read: `docs/roadmap/PRODUCT_GAP_BACKLOG.md`
-- Read: `crates/agent-core/src/local_coding.rs`
-- Read: `crates/agent-core/src/edit_diff.rs`
-- Read: `crates/agent-core/src/command_test.rs`
-- Read: `crates/agent-core/src/observability.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-core/src/local_coding.rs`
+- Read: `crates/ruse-core/src/edit_diff.rs`
+- Read: `crates/ruse-core/src/command_test.rs`
+- Read: `crates/ruse-core/src/observability.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 
 - [x] **Step 1: Review final review boundaries**
 
@@ -36,7 +36,7 @@ Expected: scope is limited to final review construction and presentation. Full g
 ### Task 2: Write Failing Core Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/final_review.rs`
+- Create: `crates/ruse-core/tests/final_review.rs`
 
 - [x] **Step 1: Add core tests**
 
@@ -55,7 +55,7 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-core final_review
+cargo test -p ruse-core final_review
 ```
 
 Expected: tests fail before the core final review module exists.
@@ -63,9 +63,9 @@ Expected: tests fail before the core final review module exists.
 ### Task 3: Implement Core Final Review
 
 **Files:**
-- Create: `crates/agent-core/src/final_review.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Modify if needed: `crates/agent-core/src/local_coding.rs`
+- Create: `crates/ruse-core/src/final_review.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Modify if needed: `crates/ruse-core/src/local_coding.rs`
 
 - [x] **Step 1: Add typed contracts**
 
@@ -84,8 +84,8 @@ Use local coding event patterns, trace/audit counts, and replay reconstruction e
 Run:
 
 ```bash
-cargo test -p agent-core final_review
-cargo test -p agent-core local_coding_e2e
+cargo test -p ruse-core final_review
+cargo test -p ruse-core local_coding_e2e
 ```
 
 Expected: core final review and existing local coding tests pass.
@@ -93,9 +93,9 @@ Expected: core final review and existing local coding tests pass.
 ### Task 4: Add UI Bridge Snapshot
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/final_review_snapshot.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
+- Create: `crates/ruse-ui-bridge/tests/final_review_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add bridge snapshot tests**
 
@@ -110,7 +110,7 @@ Expose a UI-safe final review snapshot derived from `CodingFinalReview`.
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge final_review_snapshot
+cargo test -p ruse-ui-bridge final_review_snapshot
 ```
 
 Expected: UI final review snapshot tests pass.
@@ -118,9 +118,9 @@ Expected: UI final review snapshot tests pass.
 ### Task 5: Add CLI Text and JSON Surface
 
 **Files:**
-- Create: `crates/agent-cli/tests/final_review.rs`
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify if needed: `crates/agent-cli/tests/local_coding.rs`
+- Create: `crates/ruse-cli/tests/final_review.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify if needed: `crates/ruse-cli/tests/local_coding.rs`
 
 - [x] **Step 1: Add CLI tests**
 
@@ -140,8 +140,8 @@ Add parser and renderer using the core final review contract. Keep fixture mode 
 Run:
 
 ```bash
-cargo test -p agent-cli final_review
-cargo test -p agent-cli local_coding
+cargo test -p ruse-cli final_review
+cargo test -p ruse-cli local_coding
 ```
 
 Expected: final review CLI tests and existing local coding summary tests pass.
@@ -158,12 +158,12 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-core -p agent-cli -p agent-ui-bridge --all-targets -- -D warnings
-cargo test -p agent-core final_review
-cargo test -p agent-core local_coding_e2e
-cargo test -p agent-cli final_review
-cargo test -p agent-cli local_coding
-cargo test -p agent-ui-bridge final_review_snapshot
+cargo clippy -p ruse-core -p ruse-cli -p ruse-ui-bridge --all-targets -- -D warnings
+cargo test -p ruse-core final_review
+cargo test -p ruse-core local_coding_e2e
+cargo test -p ruse-cli final_review
+cargo test -p ruse-cli local_coding
+cargo test -p ruse-ui-bridge final_review_snapshot
 ```
 
 Expected: focused checks pass.

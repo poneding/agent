@@ -4,9 +4,9 @@
 
 **Goal:** Add versioned memory archive export/import contracts with retention and sensitivity preservation.
 
-**Architecture:** Implement archive contracts in `agent-memory`; keep persistence and UI out of this slice. Use existing memory record types where possible.
+**Architecture:** Implement archive contracts in `ruse-memory`; keep persistence and UI out of this slice. Use existing memory record types where possible.
 
-**Tech Stack:** Rust 2024 edition, serde, serde_json, existing `agent-memory`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, serde, serde_json, existing `ruse-memory`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
@@ -14,25 +14,25 @@
 
 **Files:**
 - Read: `docs/specs/M12-04-memory-portability.spec.md`
-- Read: `crates/agent-memory/src/lib.rs`
-- Read: `crates/agent-memory/tests/conversation_memory.rs`
-- Read: `crates/agent-memory/tests/project_memory.rs`
+- Read: `crates/ruse-memory/src/lib.rs`
+- Read: `crates/ruse-memory/tests/conversation_memory.rs`
+- Read: `crates/ruse-memory/tests/project_memory.rs`
 
 - [x] **Step 1: Review memory contracts**
 
 Run:
 
 ```bash
-sed -n '1,220p' crates/agent-memory/src/lib.rs
+sed -n '1,220p' crates/ruse-memory/src/lib.rs
 sed -n '1,240p' docs/specs/M12-04-memory-portability.spec.md
 ```
 
-Expected: archive contracts stay in `agent-memory`.
+Expected: archive contracts stay in `ruse-memory`.
 
 ### Task 2: Write RED Archive Tests
 
 **Files:**
-- Create: `crates/agent-memory/tests/memory_archive.rs`
+- Create: `crates/ruse-memory/tests/memory_archive.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -51,7 +51,7 @@ The tests define the public API for `MemoryArchive`, `MemoryArchiveManifest`, `M
 Run:
 
 ```bash
-cargo test -p agent-memory memory_archive
+cargo test -p ruse-memory memory_archive
 ```
 
 Expected: tests fail because archive contracts do not exist.
@@ -59,8 +59,8 @@ Expected: tests fail because archive contracts do not exist.
 ### Task 3: Implement Archive Contracts
 
 **Files:**
-- Modify: `crates/agent-memory/src/lib.rs`
-- Create: `crates/agent-memory/src/archive.rs`
+- Modify: `crates/ruse-memory/src/lib.rs`
+- Create: `crates/ruse-memory/src/archive.rs`
 
 - [x] **Step 1: Add archive types**
 
@@ -77,14 +77,14 @@ Reject unsupported versions, duplicate ids, empty content, invalid scopes, and s
 ### Task 4: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-memory/tests/memory_archive.rs`
+- Read: `crates/ruse-memory/tests/memory_archive.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-memory memory_archive
+cargo test -p ruse-memory memory_archive
 ```
 
 Expected: focused tests pass.

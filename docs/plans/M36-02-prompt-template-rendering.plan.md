@@ -4,7 +4,7 @@
 
 **Goal:** Render prompt messages from explicit argument maps.
 
-**Architecture:** `agent-mcp::server_prompt` validates and renders templates; stdio protocol remains a thin caller.
+**Architecture:** `ruse-mcp::server_prompt` validates and renders templates; stdio protocol remains a thin caller.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -32,8 +32,8 @@
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m36 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_prompt_rendering
+CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-mcp mcp_server_prompt_rendering
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -42,8 +42,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m36 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m36 cargo test -p agent-mcp mcp_server_prompt_rendering
+CARGO_TARGET_DIR=target/codex-m36 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m36 cargo test -p ruse-mcp mcp_server_prompt_rendering
 ```
 
 ### Task 5: Commit

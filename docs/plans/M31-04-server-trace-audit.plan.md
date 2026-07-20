@@ -4,7 +4,7 @@
 
 **Goal:** Add trace-safe MCP server session summaries.
 
-**Architecture:** `agent-mcp::server_trace` owns trace contracts; sessions emit summaries without CLI ownership of redaction.
+**Architecture:** `ruse-mcp::server_trace` owns trace contracts; sessions emit summaries without CLI ownership of redaction.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -30,18 +30,18 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m31 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m31 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp mcp_server_trace
-CARGO_TARGET_DIR=target/codex-m31 cargo test -p agent-mcp
+CARGO_TARGET_DIR=target/codex-m31 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p ruse-mcp mcp_server_trace
+CARGO_TARGET_DIR=target/codex-m31 cargo test -p ruse-mcp
 ```
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-mcp --all-targets -- -D warnings
-cargo test -p agent-mcp mcp_server_trace
+cargo clippy -p ruse-mcp --all-targets -- -D warnings
+cargo test -p ruse-mcp mcp_server_trace
 ```
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp server trace summaries"
 ```

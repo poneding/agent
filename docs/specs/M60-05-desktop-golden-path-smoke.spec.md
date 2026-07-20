@@ -15,8 +15,8 @@ This slice is deliberately credential-free. It uses deterministic fake-provider 
 This spec delivers:
 
 - a deterministic Desktop daily-driver smoke fixture with stable ids, timestamps, task states, approvals, diff hunks, provider diagnostics, trace items, and runtime logs
-- `agent-desktop` contract coverage that serializes the complete Desktop daily-driver state and verifies bounded redaction
-- `agent-ui-bridge` coverage for Desktop start-turn commands, approval resolution commands, M56-shaped frame sequencing, and one-line JSON frame encoding
+- `ruse-desktop` contract coverage that serializes the complete Desktop daily-driver state and verifies bounded redaction
+- `ruse-ui-bridge` coverage for Desktop start-turn commands, approval resolution commands, M56-shaped frame sequencing, and one-line JSON frame encoding
 - a frontend smoke test that navigates dashboard, conversation, tasks, approvals, trace, and settings while asserting the golden-path evidence is visible
 - `cargo xtask desktop-test` as the Desktop product gate for Rust Desktop contracts, bridge contracts, Tauri command boundaries, frontend tests, and frontend build
 - `docs/desktop/daily-driver-smoke.md` documenting the smoke path, evidence, and commands
@@ -35,7 +35,7 @@ The smoke fixture must compose existing typed contracts. Runtime behavior stays 
 
 ```mermaid
 flowchart TD
-  BridgeFixture["agent-ui-bridge Desktop commands and frames"] --> DesktopContracts["agent-desktop view models"]
+  BridgeFixture["ruse-ui-bridge Desktop commands and frames"] --> DesktopContracts["ruse-desktop view models"]
   DesktopContracts --> TauriCommands["Tauri command tests"]
   DesktopContracts --> ReactSmoke["React AppShell smoke fixture"]
   ReactSmoke --> Xtask["cargo xtask desktop-test"]
@@ -53,10 +53,10 @@ Dependency rules:
 
 ```text
 crates/
-  agent-desktop/
+  ruse-desktop/
     tests/
       desktop_daily_driver.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     tests/
       desktop_daily_driver.rs
 apps/
@@ -97,8 +97,8 @@ Secrets, raw environment values, raw command output, hidden prompt text, unbound
 Focused implementation checks:
 
 ```bash
-cargo test -p agent-desktop --test desktop_daily_driver
-cargo test -p agent-ui-bridge --test desktop_daily_driver
+cargo test -p ruse-desktop --test desktop_daily_driver
+cargo test -p ruse-ui-bridge --test desktop_daily_driver
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 npm --prefix apps/desktop test -- desktop-smoke
 npm --prefix apps/desktop run build

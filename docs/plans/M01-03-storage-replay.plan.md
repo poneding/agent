@@ -4,17 +4,17 @@
 
 **Goal:** Persist `RuntimeEvent` values and replay them into deterministic event streams.
 
-**Architecture:** `agent-storage` owns event persistence and replay cursors. `agent-core` consumes storage through traits and never knows whether the backend is in-memory or SQLite. M01-03 implements a sync storage contract first; later milestones can add async wrappers when scheduler and background work require them.
+**Architecture:** `ruse-storage` owns event persistence and replay cursors. `ruse-core` consumes storage through traits and never knows whether the backend is in-memory or SQLite. M01-03 implements a sync storage contract first; later milestones can add async wrappers when scheduler and background work require them.
 
-**Tech Stack:** Rust 2024 edition, `agent-types`, `serde_json`, `thiserror`, `rusqlite`, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, `ruse-types`, `serde_json`, `thiserror`, `rusqlite`, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Add Storage Dependencies
 
 **Files:**
-- Modify: `crates/agent-storage/Cargo.toml`
-- Modify: `crates/agent-storage/src/lib.rs`
+- Modify: `crates/ruse-storage/Cargo.toml`
+- Modify: `crates/ruse-storage/src/lib.rs`
 
 - [x] **Step 1: Add dependencies**
 
@@ -22,7 +22,7 @@ Add:
 
 ```toml
 [dependencies]
-agent-types = { path = "../agent-types" }
+ruse-types = { path = "../ruse-types" }
 rusqlite = { version = "0.32", features = ["bundled"] }
 serde_json = "1"
 thiserror = "2"
@@ -30,7 +30,7 @@ thiserror = "2"
 
 - [x] **Step 2: Export modules**
 
-`crates/agent-storage/src/lib.rs` should export:
+`crates/ruse-storage/src/lib.rs` should export:
 
 ```rust
 #![forbid(unsafe_code)]
@@ -50,14 +50,14 @@ pub use sqlite::SqliteEventStore;
 ### Task 2: Define Event Store Contract
 
 **Files:**
-- Create: `crates/agent-storage/src/event_store.rs`
+- Create: `crates/ruse-storage/src/event_store.rs`
 
 - [x] **Step 1: Define storage errors and trait**
 
 Create the public contract:
 
 ```rust
-use agent_types::{ConversationId, EventId, EventSeq, RuntimeEvent};
+use ruse_types::{ConversationId, EventId, EventSeq, RuntimeEvent};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -104,7 +104,7 @@ Create tests that verify:
 Run:
 
 ```bash
-cargo test -p agent-storage event_store
+cargo test -p ruse-storage event_store
 ```
 
 Expected: tests fail until in-memory store exists.
@@ -112,8 +112,8 @@ Expected: tests fail until in-memory store exists.
 ### Task 3: Implement In-Memory Store
 
 **Files:**
-- Create: `crates/agent-storage/src/memory.rs`
-- Create: `crates/agent-storage/tests/event_store.rs`
+- Create: `crates/ruse-storage/src/memory.rs`
+- Create: `crates/ruse-storage/tests/event_store.rs`
 
 - [x] **Step 1: Implement `InMemoryEventStore`**
 
@@ -122,7 +122,7 @@ Use vectors and maps to preserve append order:
 ```rust
 use std::collections::{BTreeMap, HashMap};
 
-use agent_types::{ConversationId, EventId, RuntimeEvent};
+use ruse_types::{ConversationId, EventId, RuntimeEvent};
 
 use crate::event_store::{assign_sequence, EventStore, StorageError, StoredEvent};
 
@@ -171,12 +171,12 @@ impl EventStore for InMemoryEventStore {
 
 - [x] **Step 2: Add shared behavior tests**
 
-`crates/agent-storage/tests/event_store.rs` should build fixed `RuntimeEvent` values and run the same assertions against `InMemoryEventStore`.
+`crates/ruse-storage/tests/event_store.rs` should build fixed `RuntimeEvent` values and run the same assertions against `InMemoryEventStore`.
 
 Run:
 
 ```bash
-cargo test -p agent-storage in_memory_assigns_ordered_sequences
+cargo test -p ruse-storage in_memory_assigns_ordered_sequences
 ```
 
 Expected: test passes.
@@ -184,8 +184,8 @@ Expected: test passes.
 ### Task 4: Implement SQLite Store
 
 **Files:**
-- Create: `crates/agent-storage/src/sqlite.rs`
-- Modify: `crates/agent-storage/tests/event_store.rs`
+- Create: `crates/ruse-storage/src/sqlite.rs`
+- Modify: `crates/ruse-storage/tests/event_store.rs`
 
 - [x] **Step 1: Create SQLite schema on open**
 
@@ -221,8 +221,8 @@ SQLite append must:
 Run:
 
 ```bash
-cargo test -p agent-storage sqlite_assigns_ordered_sequences
-cargo test -p agent-storage sqlite_rejects_duplicate_event_id
+cargo test -p ruse-storage sqlite_assigns_ordered_sequences
+cargo test -p ruse-storage sqlite_rejects_duplicate_event_id
 ```
 
 Expected: SQLite behavior matches in-memory behavior.
@@ -230,15 +230,15 @@ Expected: SQLite behavior matches in-memory behavior.
 ### Task 5: Implement Replay Cursor
 
 **Files:**
-- Create: `crates/agent-storage/src/replay.rs`
-- Modify: `crates/agent-storage/tests/event_store.rs`
+- Create: `crates/ruse-storage/src/replay.rs`
+- Modify: `crates/ruse-storage/tests/event_store.rs`
 
 - [x] **Step 1: Define replay types**
 
 Create:
 
 ```rust
-use agent_types::{ConversationId, EventSeq, RuntimeEvent};
+use ruse_types::{ConversationId, EventSeq, RuntimeEvent};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReplayEvent {
@@ -264,8 +264,8 @@ Tests must prove:
 Run:
 
 ```bash
-cargo test -p agent-storage replay_returns_ordered_events
-cargo test -p agent-storage replay_from_sequence_skips_prior_events
+cargo test -p ruse-storage replay_returns_ordered_events
+cargo test -p ruse-storage replay_from_sequence_skips_prior_events
 ```
 
 Expected: replay tests pass for both in-memory and SQLite stores.

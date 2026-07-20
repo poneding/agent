@@ -12,7 +12,7 @@ M56-01 creates a repository session, M56-02 applies or previews edits with diff 
 
 This spec delivers:
 
-- `agent-core` final review contracts for changed files, command/test evidence, trace/audit ids or counts, risks, next actions, diagnostics, and replay reconstruction
+- `ruse-core` final review contracts for changed files, command/test evidence, trace/audit ids or counts, risks, next actions, diagnostics, and replay reconstruction
 - reconstruction from ordered runtime events where possible, including existing local coding fixture events
 - direct composition from `EditDiffFlowReport` and `CommandTestLoopReport` for product command surfaces
 - CLI text and JSON surface for deterministic final review smoke usage
@@ -30,35 +30,35 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns final review construction and replay reconstruction. `agent-cli` renders text and NDJSON frames. `agent-ui-bridge` owns UI-safe review snapshots. TUI/Desktop consume snapshots without deriving runtime truth independently.
+`ruse-core` owns final review construction and replay reconstruction. `ruse-cli` renders text and NDJSON frames. `ruse-ui-bridge` owns UI-safe review snapshots. TUI/Desktop consume snapshots without deriving runtime truth independently.
 
 ```mermaid
 flowchart TD
-  Core["agent-core final_review"] --> Types["agent-types runtime events"]
+  Core["ruse-core final_review"] --> Types["ruse-types runtime events"]
   Core --> Edit["EditDiffFlowReport"]
   Core --> Command["CommandTestLoopReport"]
-  CLI["agent-cli repo final-review"] --> Core
-  CLI --> Bridge["agent-ui-bridge final review snapshot"]
-  Bridge --> TUI["agent-tui later review panel"]
-  Bridge --> Desktop["agent-desktop later review UI"]
+  CLI["ruse-cli repo final-review"] --> Core
+  CLI --> Bridge["ruse-ui-bridge final review snapshot"]
+  Bridge --> TUI["ruse-tui later review panel"]
+  Bridge --> Desktop["ruse-desktop later review UI"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       final_review.rs
       lib.rs
     tests/
       final_review.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       final_review.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
       lib.rs
@@ -111,9 +111,9 @@ pub struct FinalReviewInput {
 CLI command shape:
 
 ```bash
-agent-cli --local-summary
-agent-cli repo final-review --fixture local-coding
-agent-cli --json repo final-review --fixture local-coding
+ruse-cli --local-summary
+ruse-cli repo final-review --fixture local-coding
+ruse-cli --json repo final-review --fixture local-coding
 ```
 
 The first implementation may use a deterministic fixture entrypoint before M56-05 wires full golden-path scenario execution. It must still use the same typed final review contract as later real workflows.
@@ -137,16 +137,16 @@ The first implementation may use a deterministic fixture entrypoint before M56-0
 
 ## Testing Strategy
 
-- `agent-core` tests for direct composition from M56-02/M56-03 reports, reconstruction from local coding events, missing evidence diagnostics, failed command risks, next-action generation, and redaction
-- `agent-cli` tests for text and JSON final review fixture output
-- `agent-ui-bridge` tests for final review snapshot serialization, redaction, bounded fields, and frame encoding
+- `ruse-core` tests for direct composition from M56-02/M56-03 reports, reconstruction from local coding events, missing evidence diagnostics, failed command risks, next-action generation, and redaction
+- `ruse-cli` tests for text and JSON final review fixture output
+- `ruse-ui-bridge` tests for final review snapshot serialization, redaction, bounded fields, and frame encoding
 - focused commands:
 
 ```bash
-cargo test -p agent-core final_review
-cargo test -p agent-cli final_review
-cargo test -p agent-ui-bridge final_review_snapshot
-cargo test -p agent-cli local_coding
+cargo test -p ruse-core final_review
+cargo test -p ruse-cli final_review
+cargo test -p ruse-ui-bridge final_review_snapshot
+cargo test -p ruse-cli local_coding
 ```
 
 ## Acceptance Criteria

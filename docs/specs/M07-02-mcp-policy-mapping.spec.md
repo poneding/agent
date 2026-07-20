@@ -17,8 +17,8 @@ This spec delivers:
 - `McpPermissionProfile`
 - `McpPolicyMapping`
 - `McpPermissionRequest`
-- conversion from `McpToolDescriptor` to `agent_tool::ToolDefinition`
-- conversion from `McpPolicyMapping` to `agent_policy::PermissionRequest`
+- conversion from `McpToolDescriptor` to `ruse_tool::ToolDefinition`
+- conversion from `McpPolicyMapping` to `ruse_policy::PermissionRequest`
 
 Owned by other specs:
 
@@ -28,20 +28,20 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp` maps MCP descriptors into local contracts. It may depend on `agent-tool` and `agent-policy` for conversion targets. `agent-policy` and `agent-tool` must not depend on `agent-mcp`.
+`ruse-mcp` maps MCP descriptors into local contracts. It may depend on `ruse-tool` and `ruse-policy` for conversion targets. `ruse-policy` and `ruse-tool` must not depend on `ruse-mcp`.
 
 ```mermaid
 flowchart TD
-  descriptor["McpToolDescriptor"] --> mapping["agent-mcp mapping"]
-  mapping --> tool_def["agent-tool ToolDefinition"]
-  mapping --> permission["agent-policy PermissionRequest"]
+  descriptor["McpToolDescriptor"] --> mapping["ruse-mcp mapping"]
+  mapping --> tool_def["ruse-tool ToolDefinition"]
+  mapping --> permission["ruse-policy PermissionRequest"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-mcp/
+  ruse-mcp/
     src/
       policy.rs
       tool_mapping.rs
@@ -135,8 +135,8 @@ Mapping rules:
 
 - MCP descriptors convert into local `ToolDefinition` values.
 - MCP descriptors convert into explicit `PermissionRequest` values.
-- No MCP tool bypasses `agent-policy` contracts.
-- `cargo test -p agent-mcp mcp_policy_mapping` passes.
+- No MCP tool bypasses `ruse-policy` contracts.
+- `cargo test -p ruse-mcp mcp_policy_mapping` passes.
 
 ## Completion Signal
 

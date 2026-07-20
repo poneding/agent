@@ -12,7 +12,7 @@ M55 backlog item `M56-GP-02` identified that edit and diff pieces already exist 
 
 This spec delivers:
 
-- `agent-core` edit/diff flow contracts for preview, apply, changed files, diff summary, and diagnostics
+- `ruse-core` edit/diff flow contracts for preview, apply, changed files, diff summary, and diagnostics
 - runtime orchestration over existing `workspace.edit_file`, `workspace.git_status`, and `workspace.git_diff` tools
 - permission/audit evidence produced by existing tool-loop events rather than UI-owned logic
 - CLI text and JSON command surface for deterministic edit/diff smoke usage
@@ -29,40 +29,40 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns the edit/diff report and coordinates existing tools. `agent-tool` continues to own concrete file edit and Git diff/status tools. `agent-policy` and the existing `ToolLoop` continue to produce permission and audit events. `agent-cli` renders commands and NDJSON frames. `agent-ui-bridge` owns UI-safe diff snapshots; `agent-tui` consumes those snapshots or approval previews without duplicating runtime edit logic.
+`ruse-core` owns the edit/diff report and coordinates existing tools. `ruse-tool` continues to own concrete file edit and Git diff/status tools. `ruse-policy` and the existing `ToolLoop` continue to produce permission and audit events. `ruse-cli` renders commands and NDJSON frames. `ruse-ui-bridge` owns UI-safe diff snapshots; `ruse-tui` consumes those snapshots or approval previews without duplicating runtime edit logic.
 
 ```mermaid
 flowchart TD
-  CLI["agent-cli edit diff command"] --> Core["agent-core edit_diff_flow"]
-  Core --> Tools["agent-tool workspace.edit_file/git_status/git_diff"]
-  Core --> Policy["agent-policy ToolLoop decisions"]
-  Core --> Types["agent-types runtime events"]
-  Core --> Bridge["agent-ui-bridge diff snapshot"]
-  Bridge --> TUI["agent-tui diff panel"]
+  CLI["ruse-cli edit diff command"] --> Core["ruse-core edit_diff_flow"]
+  Core --> Tools["ruse-tool workspace.edit_file/git_status/git_diff"]
+  Core --> Policy["ruse-policy ToolLoop decisions"]
+  Core --> Types["ruse-types runtime events"]
+  Core --> Bridge["ruse-ui-bridge diff snapshot"]
+  Bridge --> TUI["ruse-tui diff panel"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       edit_diff.rs
       lib.rs
     tests/
       edit_diff_flow.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/
       edit_diff_flow.rs
-  agent-ui-bridge/
+  ruse-ui-bridge/
     src/
       frame.rs
       lib.rs
     tests/
       edit_diff_snapshot.rs
-  agent-tui/
+  ruse-tui/
     src/
       diff_panel.rs
     tests/
@@ -120,9 +120,9 @@ pub struct DiffSummary {
 CLI command shape:
 
 ```bash
-agent-cli repo edit --workspace . --path README.md --expected-file before.txt --replacement-file after.txt --preview
-agent-cli repo edit --workspace . --path README.md --expected-file before.txt --replacement-file after.txt --apply
-agent-cli --json repo edit --workspace . --path README.md --replacement-file after.txt --preview
+ruse-cli repo edit --workspace . --path README.md --expected-file before.txt --replacement-file after.txt --preview
+ruse-cli repo edit --workspace . --path README.md --expected-file before.txt --replacement-file after.txt --apply
+ruse-cli --json repo edit --workspace . --path README.md --replacement-file after.txt --preview
 ```
 
 If file arguments are too much for the first implementation, the CLI may support literal `--expected` and `--replacement` first, but tests must cover redaction and the plan must document why file arguments move later.
@@ -146,19 +146,19 @@ If file arguments are too much for the first implementation, the CLI may support
 
 ## Testing Strategy
 
-- `agent-core` tests for preview-only non-mutation, apply mutation, expected mismatch, non-Git behavior, Git changed-file/diff evidence, event ordering, and redaction
-- `agent-cli` tests for text/JSON command parsing and rendering, invalid workspace exit code `2`, and secret redaction
-- `agent-ui-bridge` tests for diff snapshot serialization, truncation, and redaction
-- `agent-tui` tests to ensure diff snapshot/approval preview can populate `DiffPanelState`
+- `ruse-core` tests for preview-only non-mutation, apply mutation, expected mismatch, non-Git behavior, Git changed-file/diff evidence, event ordering, and redaction
+- `ruse-cli` tests for text/JSON command parsing and rendering, invalid workspace exit code `2`, and secret redaction
+- `ruse-ui-bridge` tests for diff snapshot serialization, truncation, and redaction
+- `ruse-tui` tests to ensure diff snapshot/approval preview can populate `DiffPanelState`
 - focused commands:
 
 ```bash
-cargo test -p agent-tool file_edit_tool
-cargo test -p agent-tool git_tools
-cargo test -p agent-core edit_diff_flow
-cargo test -p agent-cli edit_diff_flow
-cargo test -p agent-ui-bridge edit_diff_snapshot
-cargo test -p agent-tui diff_panel
+cargo test -p ruse-tool file_edit_tool
+cargo test -p ruse-tool git_tools
+cargo test -p ruse-core edit_diff_flow
+cargo test -p ruse-cli edit_diff_flow
+cargo test -p ruse-ui-bridge edit_diff_snapshot
+cargo test -p ruse-tui diff_panel
 ```
 
 ## Acceptance Criteria

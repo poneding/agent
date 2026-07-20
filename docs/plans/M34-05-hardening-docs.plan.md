@@ -27,9 +27,9 @@
 Verified:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_inspection
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-mcp mcp_server_profile_preflight_diagnostics
-CARGO_TARGET_DIR=target/codex-m34 cargo test -p agent-cli mcp_server_profile_inspect_command
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-mcp mcp_server_profile_inspection
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-mcp mcp_server_profile_preflight_diagnostics
+CARGO_TARGET_DIR=target/codex-m34 cargo test -p ruse-cli mcp_server_profile_inspect_command
 CARGO_TARGET_DIR=target/codex-m34 cargo xtask ci
 ```
 

@@ -4,7 +4,7 @@
 
 **Goal:** Add PKCE verifier/challenge and OAuth state contracts.
 
-**Architecture:** Pure `agent-mcp::client_http` contracts; caller owns randomness and durable flow storage.
+**Architecture:** Pure `ruse-mcp::client_http` contracts; caller owns randomness and durable flow storage.
 
 **Tech Stack:** Rust 2024 edition, serde, SHA-256/base64url helpers as needed, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,23 +14,23 @@
 
 **Files:**
 - Read: `docs/specs/M53-01-pkce-state-contracts.spec.md`
-- Read: `crates/agent-mcp/src/client_http.rs`
+- Read: `crates/ruse-mcp/src/client_http.rs`
 
 - [x] **Step 1: Review PKCE/state scope**
 
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_http_oauth_pkce_state.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_http_oauth_pkce_state.rs`
 
 - [x] **Step 1: Add PKCE/state tests**
 
 ### Task 3: Implement Contracts
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client_http.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
-- Modify: `crates/agent-mcp/Cargo.toml`
+- Modify: `crates/ruse-mcp/src/client_http.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/Cargo.toml`
 - Modify: `Cargo.lock`
 
 - [x] **Step 1: Add PKCE verifier and state contracts**
@@ -50,9 +50,9 @@
 Verification evidence, 2026-06-30:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m53 cargo test -p agent-mcp mcp_client_http_oauth_pkce_state
+CARGO_TARGET_DIR=target/codex-m53 cargo test -p ruse-mcp mcp_client_http_oauth_pkce_state
 CARGO_TARGET_DIR=target/codex-m53 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m53 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m53 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Result: all focused M53-01 checks passed.

@@ -4,9 +4,9 @@
 
 **Goal:** Add typed terminal session directory, restore validation, CLI/JSON commands, bridge snapshots, and TUI session panel state for daily-driver session continuity.
 
-**Architecture:** `agent-core` owns session directory derivation and validation. `agent-ui-bridge` maps reports to UI-safe snapshots and commands. `agent-cli` renders list/resume commands. `agent-tui` renders panel state and emits typed switch effects. Runtime logic stays out of presentation crates.
+**Architecture:** `ruse-core` owns session directory derivation and validation. `ruse-ui-bridge` maps reports to UI-safe snapshots and commands. `ruse-cli` renders list/resume commands. `ruse-tui` renders panel state and emits typed switch effects. Runtime logic stays out of presentation crates.
 
-**Tech Stack:** Rust 2024 edition, serde contracts, `agent-types` ids, existing repo session reports and runtime events, CLI text/JSON tests, Ratatui state tests, Cargo fmt/clippy/test.
+**Tech Stack:** Rust 2024 edition, serde contracts, `ruse-types` ids, existing repo session reports and runtime events, CLI text/JSON tests, Ratatui state tests, Cargo fmt/clippy/test.
 
 ---
 
@@ -16,38 +16,38 @@
 - Read: `docs/specs/M59-01-session-restore-switch.spec.md`
 - Read: `docs/specs/M59-cli-tui-daily-driver.spec.md`
 - Read: `docs/architecture/crate-boundaries.md`
-- Read: `crates/agent-core/src/repo_session.rs`
-- Read: `crates/agent-storage/src/event_store.rs`
-- Read: `crates/agent-cli/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
-- Read: `crates/agent-tui/src/app.rs`
-- Read: `crates/agent-tui/src/slash.rs`
+- Read: `crates/ruse-core/src/repo_session.rs`
+- Read: `crates/ruse-storage/src/event_store.rs`
+- Read: `crates/ruse-cli/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-tui/src/app.rs`
+- Read: `crates/ruse-tui/src/slash.rs`
 
 - [x] **Step 1: Review session baseline**
 
 Run:
 
 ```bash
-cargo test -p agent-core --test repo_session_bootstrap
-cargo test -p agent-cli --test repo_session_bootstrap
-cargo test -p agent-ui-bridge repo_session_snapshot
-cargo test -p agent-tui --test slash_commands
+cargo test -p ruse-core --test repo_session_bootstrap
+cargo test -p ruse-cli --test repo_session_bootstrap
+cargo test -p ruse-ui-bridge repo_session_snapshot
+cargo test -p ruse-tui --test slash_commands
 ```
 
 Expected: existing repo session bootstrap, bridge snapshot, and slash command tests pass before session directory changes.
 
 Baseline verification on 2026-07-01:
 
-- `cargo test -p agent-core --test repo_session_bootstrap`
-- `cargo test -p agent-cli --test repo_session_bootstrap`
-- `cargo test -p agent-ui-bridge repo_session_snapshot`
-- `cargo test -p agent-tui`
+- `cargo test -p ruse-core --test repo_session_bootstrap`
+- `cargo test -p ruse-cli --test repo_session_bootstrap`
+- `cargo test -p ruse-ui-bridge repo_session_snapshot`
+- `cargo test -p ruse-tui`
 
 ### Task 2: Add Core Session Directory Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/terminal_session_directory.rs`
+- Create: `crates/ruse-core/tests/terminal_session_directory.rs`
 
 - [x] **Step 1: Add failing core tests**
 
@@ -65,7 +65,7 @@ Cover:
 Run:
 
 ```bash
-cargo test -p agent-core --test terminal_session_directory
+cargo test -p ruse-core --test terminal_session_directory
 ```
 
 Expected: tests fail before terminal session contracts exist.
@@ -73,8 +73,8 @@ Expected: tests fail before terminal session contracts exist.
 ### Task 3: Implement Core Session Contracts
 
 **Files:**
-- Create: `crates/agent-core/src/terminal_session.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Create: `crates/ruse-core/src/terminal_session.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add typed contracts**
 
@@ -89,7 +89,7 @@ Derive summaries from typed records or existing repo session reports/events. Kee
 Run:
 
 ```bash
-cargo test -p agent-core --test terminal_session_directory
+cargo test -p ruse-core --test terminal_session_directory
 ```
 
 Expected: core session directory tests pass.
@@ -97,10 +97,10 @@ Expected: core session directory tests pass.
 ### Task 4: Add UI Bridge Session Snapshot and Switch Command
 
 **Files:**
-- Create: `crates/agent-ui-bridge/tests/terminal_session_snapshot.rs`
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/src/lib.rs`
+- Create: `crates/ruse-ui-bridge/tests/terminal_session_snapshot.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/src/lib.rs`
 
 - [x] **Step 1: Add bridge tests**
 
@@ -115,7 +115,7 @@ Add `UiTerminalSessionSnapshot`, summaries, diagnostics, `UiJsonFrame` variant, 
 Run:
 
 ```bash
-cargo test -p agent-ui-bridge --test terminal_session_snapshot
+cargo test -p ruse-ui-bridge --test terminal_session_snapshot
 ```
 
 Expected: bridge session snapshot tests pass.
@@ -123,8 +123,8 @@ Expected: bridge session snapshot tests pass.
 ### Task 5: Add CLI Session List and Resume Commands
 
 **Files:**
-- Create: `crates/agent-cli/tests/terminal_session_commands.rs`
-- Modify: `crates/agent-cli/src/command.rs`
+- Create: `crates/ruse-cli/tests/terminal_session_commands.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
 
 - [x] **Step 1: Add CLI tests**
 
@@ -146,8 +146,8 @@ Extend existing repo session commands without breaking `repo session --workspace
 Run:
 
 ```bash
-cargo test -p agent-cli --test terminal_session_commands
-cargo test -p agent-cli --test repo_session_bootstrap
+cargo test -p ruse-cli --test terminal_session_commands
+cargo test -p ruse-cli --test repo_session_bootstrap
 ```
 
 Expected: session command tests and existing repo session bootstrap tests pass.
@@ -155,12 +155,12 @@ Expected: session command tests and existing repo session bootstrap tests pass.
 ### Task 6: Add TUI Session Panel State
 
 **Files:**
-- Create: `crates/agent-tui/src/session_panel.rs`
-- Create: `crates/agent-tui/tests/session_panel.rs`
-- Modify: `crates/agent-tui/src/lib.rs`
-- Modify: `crates/agent-tui/src/app.rs`
-- Modify: `crates/agent-tui/src/slash.rs`
-- Modify: `crates/agent-tui/tests/slash_commands.rs`
+- Create: `crates/ruse-tui/src/session_panel.rs`
+- Create: `crates/ruse-tui/tests/session_panel.rs`
+- Modify: `crates/ruse-tui/src/lib.rs`
+- Modify: `crates/ruse-tui/src/app.rs`
+- Modify: `crates/ruse-tui/src/slash.rs`
+- Modify: `crates/ruse-tui/tests/slash_commands.rs`
 
 - [x] **Step 1: Add TUI state tests**
 
@@ -175,8 +175,8 @@ Add panel state derived from bridge snapshots and a typed effect for switch requ
 Run:
 
 ```bash
-cargo test -p agent-tui --test session_panel
-cargo test -p agent-tui --test slash_commands
+cargo test -p ruse-tui --test session_panel
+cargo test -p ruse-tui --test slash_commands
 ```
 
 Expected: TUI session panel and slash command tests pass.
@@ -195,12 +195,12 @@ Run:
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-core -p agent-cli -p agent-ui-bridge -p agent-tui --all-targets -- -D warnings
-cargo test -p agent-core --test terminal_session_directory
-cargo test -p agent-cli --test terminal_session_commands
-cargo test -p agent-ui-bridge --test terminal_session_snapshot
-cargo test -p agent-tui --test session_panel
-cargo test -p agent-tui --test slash_commands
+cargo clippy -p ruse-core -p ruse-cli -p ruse-ui-bridge -p ruse-tui --all-targets -- -D warnings
+cargo test -p ruse-core --test terminal_session_directory
+cargo test -p ruse-cli --test terminal_session_commands
+cargo test -p ruse-ui-bridge --test terminal_session_snapshot
+cargo test -p ruse-tui --test session_panel
+cargo test -p ruse-tui --test slash_commands
 ```
 
 Expected: focused checks pass.

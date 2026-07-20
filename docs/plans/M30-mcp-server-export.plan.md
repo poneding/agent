@@ -4,7 +4,7 @@
 
 **Goal:** Add policy-aware MCP server mode for selected local tools and resources.
 
-**Architecture:** `agent-mcp` owns protocol/server contracts, `agent-tool` owns executable tool definitions, `agent-policy` owns permission decisions, and UI/CLI crates remain presentation layers.
+**Architecture:** `ruse-mcp` owns protocol/server contracts, `ruse-tool` owns executable tool definitions, `ruse-policy` owns permission decisions, and UI/CLI crates remain presentation layers.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, async traits where needed, Cargo fmt, Cargo clippy, Cargo test.
 

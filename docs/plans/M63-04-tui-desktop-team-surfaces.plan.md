@@ -4,7 +4,7 @@
 
 **Goal:** Add TUI and Desktop surfaces for M63 team workflow snapshots.
 
-**Architecture:** `agent-ui-bridge` owns frame shape. `agent-team` owns readiness and merge blockers. TUI/Desktop render typed snapshots only.
+**Architecture:** `ruse-ui-bridge` owns frame shape. `ruse-team` owns readiness and merge blockers. TUI/Desktop render typed snapshots only.
 
 ---
 
@@ -25,8 +25,8 @@ Render team workflow snapshots in the existing Tasks view with a focused compone
 ### Task 2: Implement TUI Rendering
 
 **Files:**
-- Modify: `crates/agent-tui/src/task_panel.rs`
-- Modify tests under `crates/agent-tui/tests/`
+- Modify: `crates/ruse-tui/src/task_panel.rs`
+- Modify tests under `crates/ruse-tui/tests/`
 
 - [x] **Step 1: Reduce team frames**
 
@@ -76,14 +76,14 @@ npm --prefix apps/desktop run build
 - [x] **Step 2: Focused tests**
 
 ```bash
-CARGO_TARGET_DIR=target/m63-gate cargo test -p agent-tui --test task_panel
+CARGO_TARGET_DIR=target/m63-gate cargo test -p ruse-tui --test task_panel
 npm --prefix apps/desktop test -- --run src/__tests__/team-workflow-ui.test.tsx
 ```
 
 - [x] **Step 3: Focused clippy**
 
 ```bash
-CARGO_TARGET_DIR=target/m63-gate cargo clippy -p agent-tui --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m63-gate cargo clippy -p ruse-tui --all-targets -- -D warnings
 ```
 
 - [x] **Step 4: Diff check**
@@ -95,7 +95,7 @@ git diff --check
 ### Task 5: Status And Commit
 
 **Files:**
-- Modify: `docs/plans/M63-worktree-agent-team-workflows.plan.md`
+- Modify: `docs/plans/M63-worktree-ruse-team-workflows.plan.md`
 - Modify: `docs/milestones/README.md`
 - Modify: `docs/roadmap/PRODUCT_ROADMAP.md`
 

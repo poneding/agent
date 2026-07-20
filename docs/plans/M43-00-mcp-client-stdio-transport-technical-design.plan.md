@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M43 technical design and implementation slice map.
 
-**Architecture:** Documentation-only baseline for `agent-mcp` client stdio transport ownership.
+**Architecture:** Documentation-only baseline for `ruse-mcp` client stdio transport ownership.
 
 **Tech Stack:** Markdown docs, Mermaid diagrams, Cargo workspace conventions.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M42-mcp-sampling-stdio-dispatch.spec.md`
-- Read: `crates/agent-mcp/src/client.rs`
-- Read: `crates/agent-mcp/src/server_session.rs`
-- Read: `crates/agent-mcp/src/server_stdio.rs`
+- Read: `crates/ruse-mcp/src/client.rs`
+- Read: `crates/ruse-mcp/src/server_session.rs`
+- Read: `crates/ruse-mcp/src/server_stdio.rs`
 
 - [x] **Step 1: Review prior MCP stdio boundaries**
 

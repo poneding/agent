@@ -4,7 +4,7 @@
 
 **Goal:** Prepare a beta users can install and trust by productizing CLI/Desktop packaging, isolated release smokes, migration/secret/provider diagnostics, support bundles, and durable beta gate evidence.
 
-**Architecture:** `xtask` orchestrates release gates; `agent-core`, `agent-model`, `agent-storage`, `agent-desktop`, and `agent-ui-bridge` own typed runtime diagnostics; CLI/Desktop render bounded summaries.
+**Architecture:** `xtask` orchestrates release gates; `ruse-core`, `ruse-model`, `ruse-storage`, `ruse-desktop`, and `ruse-ui-bridge` own typed runtime diagnostics; CLI/Desktop render bounded summaries.
 
 **Tech Stack:** Rust 2024 edition, Cargo workspace, Tauri 2, Vite/React Desktop app, `xtask`, Cargo fmt, Cargo clippy, Cargo test, Vitest.
 
@@ -21,10 +21,10 @@
 - Read: `xtask/src/lib.rs`
 - Read: `xtask/tests/package_cli.rs`
 - Read: `xtask/tests/package_desktop.rs`
-- Read: `crates/agent-core/src/startup_migration.rs`
-- Read: `crates/agent-storage/src/migration.rs`
-- Read: `crates/agent-model/src/`
-- Read: `crates/agent-desktop/src/update.rs`
+- Read: `crates/ruse-core/src/startup_migration.rs`
+- Read: `crates/ruse-storage/src/migration.rs`
+- Read: `crates/ruse-model/src/`
+- Read: `crates/ruse-desktop/src/update.rs`
 
 - [x] **Step 1: Confirm existing packaging foundations**
 
@@ -71,7 +71,7 @@ Extend existing package CLI commands only as needed for beta-grade install/run e
 - Create: `docs/plans/M65-03-desktop-bundle-update-smoke.plan.md`
 - Modify: `xtask/src/lib.rs`
 - Modify: `xtask/tests/package_desktop.rs`
-- Modify: `crates/agent-desktop/src/update.rs`
+- Modify: `crates/ruse-desktop/src/update.rs`
 - Modify if needed: `apps/desktop/src-tauri/tauri.conf.json`
 - Modify: `docs/desktop/`
 
@@ -88,11 +88,11 @@ Keep Desktop smoke deterministic and credential-free. Do not redesign Desktop UI
 **Files:**
 - Create: `docs/specs/M65-04-settings-secrets-migration-onboarding.spec.md`
 - Create: `docs/plans/M65-04-settings-secrets-migration-onboarding.plan.md`
-- Modify: `crates/agent-core/src/startup_migration.rs`
-- Modify: `crates/agent-storage/src/migration.rs`
-- Modify: `crates/agent-model/`
-- Modify: `crates/agent-ui-bridge/`
-- Modify: `crates/agent-cli/`
+- Modify: `crates/ruse-core/src/startup_migration.rs`
+- Modify: `crates/ruse-storage/src/migration.rs`
+- Modify: `crates/ruse-model/`
+- Modify: `crates/ruse-ui-bridge/`
+- Modify: `crates/ruse-cli/`
 - Modify: `apps/desktop/src/`
 
 - [x] **Step 1: Plan upgrade/onboarding diagnostics**
@@ -109,10 +109,10 @@ Runtime crates own decisions. CLI/Desktop render typed snapshots and next action
 - Create: `docs/specs/M65-05-support-bundle-release-evidence.spec.md`
 - Create: `docs/plans/M65-05-support-bundle-release-evidence.plan.md`
 - Modify: `xtask/src/lib.rs`
-- Modify: `crates/agent-core/`
-- Modify: `crates/agent-telemetry/`
-- Modify: `crates/agent-cli/`
-- Modify if needed: `crates/agent-ui-bridge/`
+- Modify: `crates/ruse-core/`
+- Modify: `crates/ruse-telemetry/`
+- Modify: `crates/ruse-cli/`
+- Modify if needed: `crates/ruse-ui-bridge/`
 - Modify: `docs/`
 
 - [x] **Step 1: Plan support bundle contracts**

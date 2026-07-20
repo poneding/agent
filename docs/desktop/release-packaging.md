@@ -34,7 +34,7 @@ The release plan records:
 
 ## Update Manifest
 
-Desktop update manifests are validated by `agent-desktop`. They include:
+Desktop update manifests are validated by `ruse-desktop`. They include:
 
 - release channel
 - target version
@@ -49,14 +49,14 @@ Local dev-channel manifests can use `file://` URLs. Hosted stable-channel signin
 
 The Desktop package smoke runs required checks with release-local `HOME` and `USERPROFILE` values:
 
-- `cargo test -p agent-desktop update_manifest`
-- `cargo test -p agent-desktop settings`
+- `cargo test -p ruse-desktop update_manifest`
+- `cargo test -p ruse-desktop settings`
 
 Tauri metadata is validated before release evidence is written. Desktop frontend UI is not redesigned in this slice.
 
 ## Privacy
 
-Desktop release evidence must not include raw keychain values, API keys, tokens, passwords, memory payloads, prompts, workspace files, or unbounded logs. The update manifest remains update metadata only; policy and validation stay in `agent-desktop` and `xtask`.
+Desktop release evidence must not include raw keychain values, API keys, tokens, passwords, memory payloads, prompts, workspace files, or unbounded logs. The update manifest remains update metadata only; policy and validation stay in `ruse-desktop` and `xtask`.
 
 ## Verification
 
@@ -64,8 +64,8 @@ Focused checks:
 
 ```bash
 CARGO_TARGET_DIR=target/m65-dev cargo test -p xtask --test package_desktop
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-desktop update_manifest
-CARGO_TARGET_DIR=target/m65-dev cargo clippy -p xtask -p agent-desktop --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-desktop update_manifest
+CARGO_TARGET_DIR=target/m65-dev cargo clippy -p xtask -p ruse-desktop --all-targets -- -D warnings
 cargo fmt --all -- --check
 git diff --check
 ```

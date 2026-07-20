@@ -25,16 +25,16 @@ Owned by other milestones:
 
 ## Architecture
 
-`agent-eval` owns evaluation manifests, runner contracts, comparison logic, and reports. It depends on typed runtime crates and stays independent from CLI/Desktop rendering. `agent-cli` exposes commands that call `agent-eval`. UI bridge support remains report-summary based unless a later milestone adds Desktop evaluation screens.
+`ruse-eval` owns evaluation manifests, runner contracts, comparison logic, and reports. It depends on typed runtime crates and stays independent from CLI/Desktop rendering. `ruse-cli` exposes commands that call `ruse-eval`. UI bridge support remains report-summary based unless a later milestone adds Desktop evaluation screens.
 
 ```mermaid
 flowchart TD
-  Manifest["Scenario manifest"] --> Eval["agent-eval"]
+  Manifest["Scenario manifest"] --> Eval["ruse-eval"]
   Fixtures["Replay and coding fixtures"] --> Eval
-  Core["agent-core runtime/evidence"] --> Eval
-  Storage["agent-storage replay"] --> Eval
+  Core["ruse-core runtime/evidence"] --> Eval
+  Storage["ruse-storage replay"] --> Eval
   Eval --> Report["Eval report"]
-  Report --> CLI["agent-cli eval commands"]
+  Report --> CLI["ruse-cli eval commands"]
   Report --> CI["CI artifact"]
 ```
 
@@ -42,7 +42,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-eval/
+  ruse-eval/
     src/
       lib.rs
       manifest.rs
@@ -54,7 +54,7 @@ crates/
       runner.rs
       golden.rs
       report.rs
-  agent-cli/
+  ruse-cli/
     tests/
       eval_commands.rs
 docs/

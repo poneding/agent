@@ -1,5 +1,5 @@
 [package]
-name = "agent-desktop-app"
+name = "ruse-desktop-app"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,15 +7,15 @@ license.workspace = true
 authors.workspace = true
 
 [lib]
-name = "agent_desktop_app"
+name = "ruse_desktop_app"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [dependencies]
-agent-core = { path = "../../../crates/agent-core" }
-agent-desktop = { path = "../../../crates/agent-desktop" }
-agent-storage = { path = "../../../crates/agent-storage" }
-agent-types = { path = "../../../crates/agent-types" }
-agent-ui-bridge = { path = "../../../crates/agent-ui-bridge" }
+ruse-core = { path = "../../../crates/ruse-core" }
+ruse-desktop = { path = "../../../crates/ruse-desktop" }
+ruse-storage = { path = "../../../crates/ruse-storage" }
+ruse-types = { path = "../../../crates/ruse-types" }
+ruse-ui-bridge = { path = "../../../crates/ruse-ui-bridge" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri = { version = "2", features = [] }

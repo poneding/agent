@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-context` owns budget planning and uses token estimates already present on `PromptLayer`. The planner is deterministic and pure; it does not call a model tokenizer or mutate storage.
+`ruse-context` owns budget planning and uses token estimates already present on `PromptLayer`. The planner is deterministic and pure; it does not call a model tokenizer or mutate storage.
 
 ```mermaid
 flowchart TD
@@ -39,7 +39,7 @@ flowchart TD
 
 ```text
 crates/
-  agent-context/
+  ruse-context/
     src/
       budget.rs
       lib.rs
@@ -110,7 +110,7 @@ Available prompt tokens equal `max_tokens - reserved_response_tokens`. Required 
 - `plan_context_budget` produces deterministic included/omitted sets.
 - Required overflow is a typed error.
 - Optional overflow does not fail the turn.
-- `cargo test -p agent-context budget_planner` passes.
+- `cargo test -p ruse-context budget_planner` passes.
 
 ## Completion Signal
 

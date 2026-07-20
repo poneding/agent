@@ -14,9 +14,9 @@ This slice delivers:
 
 - `PromptLayerHash`
 - `PromptSnapshot`
-- stable snapshot hashing in `agent-context`
-- `PromptSnapshotRecorded` runtime event payload in `agent-types`
-- configured turn integration in `agent-core`
+- stable snapshot hashing in `ruse-context`
+- `PromptSnapshotRecorded` runtime event payload in `ruse-types`
+- configured turn integration in `ruse-core`
 - persisted event tests proving snapshot metadata is written before model invocation
 
 Owned by later slices:
@@ -27,7 +27,7 @@ Owned by later slices:
 
 ## Architecture
 
-`agent-context` computes `PromptSnapshot` from `PromptBundle` and `PromptAssemblyReport`. `agent-core` calls prompt assembly during configured turn preparation and emits a `PromptSnapshotRecorded` event before the turn invokes a model provider. `agent-storage` persists the event through existing event store APIs without schema branching.
+`ruse-context` computes `PromptSnapshot` from `PromptBundle` and `PromptAssemblyReport`. `ruse-core` calls prompt assembly during configured turn preparation and emits a `PromptSnapshotRecorded` event before the turn invokes a model provider. `ruse-storage` persists the event through existing event store APIs without schema branching.
 
 Snapshot payloads store hashes and metadata, not hidden prompt text.
 
@@ -74,7 +74,7 @@ Snapshot events do not include raw prompt content. Hash inputs may include conte
 
 ## Testing Strategy
 
-- snapshot hash stability tests in `agent-context`
+- snapshot hash stability tests in `ruse-context`
 - snapshot serialization excludes raw layer content
 - runtime event JSON shape test for `PromptSnapshotRecorded`
 - configured turn emits prompt snapshot before model stream events

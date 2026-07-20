@@ -28,7 +28,7 @@ Owned by other M65 slices:
 
 ## Architecture
 
-`xtask` owns Desktop release orchestration. `apps/desktop/src-tauri` owns bundle metadata. `agent-desktop` owns update manifest validation contracts. Desktop frontend should not own update policy.
+`xtask` owns Desktop release orchestration. `apps/desktop/src-tauri` owns bundle metadata. `ruse-desktop` owns update manifest validation contracts. Desktop frontend should not own update policy.
 
 ```mermaid
 flowchart TD
@@ -36,7 +36,7 @@ flowchart TD
   Xtask --> Smoke["release-local Desktop smoke"]
   Xtask --> Plan["Desktop plan artifact"]
   Plan --> Manifest["Desktop update manifest"]
-  Manifest --> Validator["agent-desktop update validation"]
+  Manifest --> Validator["ruse-desktop update validation"]
 ```
 
 ## File Layout
@@ -46,8 +46,8 @@ xtask/
   src/lib.rs
   tests/package_desktop.rs
 crates/
-  agent-desktop/src/update.rs
-  agent-desktop/tests/update_manifest.rs
+  ruse-desktop/src/update.rs
+  ruse-desktop/tests/update_manifest.rs
 apps/
   desktop/src-tauri/tauri.conf.json
 docs/
@@ -85,8 +85,8 @@ This summary can be written into the plan artifact, update manifest companion re
 M65-03 should cover:
 
 - Tauri config metadata validation
-- `cargo test -p agent-desktop update_manifest`
-- `cargo test -p agent-desktop settings`
+- `cargo test -p ruse-desktop update_manifest`
+- `cargo test -p ruse-desktop settings`
 - optional `npm --prefix apps/desktop run tauri -- build` when `--bundle` is requested
 - update manifest checksum and URL validation
 
@@ -113,8 +113,8 @@ Focused checks:
 
 ```bash
 CARGO_TARGET_DIR=target/m65-dev cargo test -p xtask --test package_desktop
-CARGO_TARGET_DIR=target/m65-dev cargo test -p agent-desktop update_manifest
-CARGO_TARGET_DIR=target/m65-dev cargo clippy -p xtask -p agent-desktop --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/m65-dev cargo test -p ruse-desktop update_manifest
+CARGO_TARGET_DIR=target/m65-dev cargo clippy -p xtask -p ruse-desktop --all-targets -- -D warnings
 ```
 
 Optional package smoke:
@@ -129,7 +129,7 @@ M65 final gates remain in the milestone plan.
 
 - `package_desktop_plan` exposes deterministic plan artifact, update manifest, smoke root, Tauri config, bundle command, and required smoke commands.
 - Desktop release evidence records smoke root, Tauri config path, bundle requested state, and stable check ids.
-- Update manifest validation remains in `agent-desktop`.
+- Update manifest validation remains in `ruse-desktop`.
 - Focused tests prove Desktop package/update smoke evidence.
 - Docs explain Desktop bundle/update smoke and privacy expectations.
 

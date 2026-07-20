@@ -25,7 +25,7 @@ Owned by later specs:
 
 ## Architecture
 
-CLI parsing lives in `agent-cli`. Shared model selection data uses `agent-model` contracts. CLI output remains UI-safe and does not include raw config secrets.
+CLI parsing lives in `ruse-cli`. Shared model selection data uses `ruse-model` contracts. CLI output remains UI-safe and does not include raw config secrets.
 
 ## Acceptance Criteria
 

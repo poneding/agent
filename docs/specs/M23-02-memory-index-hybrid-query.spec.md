@@ -25,11 +25,11 @@ Owned by other specs:
 - reranking, selected/rejected reasons, and influence traces: M23-03
 - write proposals: M23-04
 - deletion tombstones, rebuilds, and editor commands: M23-05
-- prompt inclusion policy in `agent-context`: M23-03 or later context integration
+- prompt inclusion policy in `ruse-context`: M23-03 or later context integration
 
 ## Architecture
 
-`agent-memory` owns in-memory and future durable index contracts. The index consumes `MemoryRecord` and `EmbeddingVector` values and returns candidates, not prompt layers. `agent-context` remains responsible for prompt budget assembly.
+`ruse-memory` owns in-memory and future durable index contracts. The index consumes `MemoryRecord` and `EmbeddingVector` values and returns candidates, not prompt layers. `ruse-context` remains responsible for prompt budget assembly.
 
 ```mermaid
 flowchart TD
@@ -41,18 +41,18 @@ flowchart TD
 
 Dependency rules:
 
-- `agent-memory` does not depend on `agent-context`.
+- `ruse-memory` does not depend on `ruse-context`.
 - query results carry enough metadata for later prompt assembly and influence traces.
 - semantic retrieval is optional; missing embeddings must not break lexical retrieval.
 
 ## File Layout
 
 ```text
-crates/agent-memory/src/
+crates/ruse-memory/src/
   index.rs
   embedding.rs
   lib.rs
-crates/agent-memory/tests/
+crates/ruse-memory/tests/
   memory_index_hybrid_query.rs
 ```
 
@@ -111,10 +111,10 @@ pub trait MemoryIndex {
 
 ## Acceptance Criteria
 
-- `agent-memory` can index existing memory records and query them lexically.
+- `ruse-memory` can index existing memory records and query them lexically.
 - Semantic scoring improves ranking when embeddings are present.
 - Scope and sensitivity filters run before scoring.
-- Focused tests pass with `cargo test -p agent-memory memory_index_hybrid_query`.
+- Focused tests pass with `cargo test -p ruse-memory memory_index_hybrid_query`.
 
 ## Completion Signal
 

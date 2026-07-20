@@ -25,13 +25,13 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-cli` invokes `agent-core` evidence APIs and renders outputs. It must not duplicate evidence generation logic.
+`ruse-cli` invokes `ruse-core` evidence APIs and renders outputs. It must not duplicate evidence generation logic.
 
 ## Public Contracts
 
 ```text
-agent-cli --observability-summary
-agent-cli --observability-json
+ruse-cli --observability-summary
+ruse-cli --observability-json
 ```
 
 ## State and Failure Handling
@@ -57,7 +57,7 @@ agent-cli --observability-json
 ## Acceptance Criteria
 
 - CLI can print evidence summaries and JSON evidence for the local coding fixture.
-- `cargo test -p agent-cli observability` passes.
+- `cargo test -p ruse-cli observability` passes.
 
 ## Completion Signal
 

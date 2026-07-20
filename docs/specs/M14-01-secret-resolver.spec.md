@@ -12,7 +12,7 @@ M13 introduced `SecretRef`; M14-01 makes that reference resolvable while preserv
 
 This spec delivers:
 
-- `agent-model::secrets`
+- `ruse-model::secrets`
 - `SecretResolver` trait
 - `SecretValue` redaction wrapper
 - `InMemorySecretResolver`
@@ -28,7 +28,7 @@ Owned by later specs:
 
 ## Architecture
 
-Secret resolution lives in `agent-model` because model provider authentication belongs to the model domain. The module depends only on `SecretRef`, standard environment access, and local collections.
+Secret resolution lives in `ruse-model` because model provider authentication belongs to the model domain. The module depends only on `SecretRef`, standard environment access, and local collections.
 
 ## Public Contracts
 
@@ -79,10 +79,10 @@ pub enum SecretResolutionError {
 
 ## Acceptance Criteria
 
-- `agent-model` exports secret resolver contracts.
+- `ruse-model` exports secret resolver contracts.
 - Resolver tests pass without real credentials.
 - No public formatter or serde output exposes raw secret values.
 
 ## Completion Signal
 
-M14-01 is complete when `cargo test -p agent-model --test secret_resolver` and the workspace gates pass, status advances to M14-02, and the slice is committed.
+M14-01 is complete when `cargo test -p ruse-model --test secret_resolver` and the workspace gates pass, status advances to M14-02, and the slice is committed.

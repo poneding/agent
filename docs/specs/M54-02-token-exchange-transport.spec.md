@@ -62,8 +62,8 @@ pub struct McpClientHttpOAuthTokenExchangeHttpResponse {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p agent-mcp mcp_client_http_oauth_token_exchange_transport`
-- focused fmt and clippy gates pass for `agent-mcp`
+- `CARGO_TARGET_DIR=target/codex-m54 cargo test -p ruse-mcp mcp_client_http_oauth_token_exchange_transport`
+- focused fmt and clippy gates pass for `ruse-mcp`
 
 ## Completion Signal
 

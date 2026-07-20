@@ -23,7 +23,7 @@ Owned by other specs:
 
 ## Architecture
 
-Tests live under `crates/agent-mcp/tests/` and compile a small Rust helper process at test time, matching M43 process test style.
+Tests live under `crates/ruse-mcp/tests/` and compile a small Rust helper process at test time, matching M43 process test style.
 
 ## Public Contracts
 
@@ -47,7 +47,7 @@ Tests live under `crates/agent-mcp/tests/` and compile a small Rust helper proce
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p agent-mcp mcp_client_stdio_tool_call_process`
+- `CARGO_TARGET_DIR=target/codex-m44 cargo test -p ruse-mcp mcp_client_stdio_tool_call_process`
 
 ## Completion Signal
 

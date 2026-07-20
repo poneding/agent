@@ -4,7 +4,7 @@
 
 **Goal:** Add durable interactive approval flows for side-effecting tools and resume turns after approval or denial.
 
-**Architecture:** `agent-policy` owns leases and decisions, `agent-core` owns suspended turn state, `agent-ui-bridge` carries approval commands/events, and `agent-cli` implements the first interactive approval prompt.
+**Architecture:** `ruse-policy` owns leases and decisions, `ruse-core` owns suspended turn state, `ruse-ui-bridge` carries approval commands/events, and `ruse-cli` implements the first interactive approval prompt.
 
 **Tech Stack:** Rust 2024 edition, serde UI schemas, event storage, CLI terminal prompts, Cargo fmt, Cargo clippy, Cargo test.
 

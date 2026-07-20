@@ -4,7 +4,7 @@
 
 **Goal:** Add a constrained WASM plugin host prototype with validation-only capabilities.
 
-**Architecture:** Keep WASM prototype code in `agent-plugin::wasm`; do not introduce filesystem, network, command, or secret host calls.
+**Architecture:** Keep WASM prototype code in `ruse-plugin::wasm`; do not introduce filesystem, network, command, or secret host calls.
 
 **Tech Stack:** Rust 2024 edition, byte validation, serde-compatible errors where needed, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -29,7 +29,7 @@ Expected: the prototype rejects privileged host behavior.
 ### Task 2: Write RED WASM Tests
 
 **Files:**
-- Create: `crates/agent-plugin/tests/wasm_host.rs`
+- Create: `crates/ruse-plugin/tests/wasm_host.rs`
 
 - [x] **Step 1: Add failing tests**
 
@@ -46,7 +46,7 @@ Add tests:
 Run:
 
 ```bash
-cargo test -p agent-plugin wasm_host
+cargo test -p ruse-plugin wasm_host
 ```
 
 Expected: tests fail because `wasm` module does not exist.
@@ -54,9 +54,9 @@ Expected: tests fail because `wasm` module does not exist.
 ### Task 3: Implement WASM Prototype
 
 **Files:**
-- Modify: `crates/agent-plugin/src/lib.rs`
-- Create: `crates/agent-plugin/src/wasm.rs`
-- Modify: `crates/agent-plugin/src/error.rs`
+- Modify: `crates/ruse-plugin/src/lib.rs`
+- Create: `crates/ruse-plugin/src/wasm.rs`
+- Modify: `crates/ruse-plugin/src/error.rs`
 
 - [x] **Step 1: Add WASM config and module types**
 
@@ -77,14 +77,14 @@ Expose a method that rejects named host calls with `PluginWasmError::Unsupported
 ### Task 4: Verify GREEN
 
 **Files:**
-- Read: `crates/agent-plugin/tests/wasm_host.rs`
+- Read: `crates/ruse-plugin/tests/wasm_host.rs`
 
 - [x] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-cargo test -p agent-plugin wasm_host
+cargo test -p ruse-plugin wasm_host
 ```
 
 Expected: WASM tests pass.

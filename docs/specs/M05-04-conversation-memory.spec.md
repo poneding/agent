@@ -12,7 +12,7 @@ Prompt assembly and compaction create bounded context. This slice adds the first
 
 This spec delivers:
 
-- `agent-memory` crate scaffold
+- `ruse-memory` crate scaffold
 - `MemoryRecord`, `MemoryScope`, `MemorySensitivity`, and `MemorySource` contracts
 - in-memory conversation memory store
 - add, retrieve, and delete behavior for conversation scope
@@ -26,12 +26,12 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-memory` owns memory contracts and retrieval behavior. It depends on `agent-types` for typed IDs and does not depend on `agent-core`, `agent-context`, UI crates, or model providers.
+`ruse-memory` owns memory contracts and retrieval behavior. It depends on `ruse-types` for typed IDs and does not depend on `ruse-core`, `ruse-context`, UI crates, or model providers.
 
 ```mermaid
 flowchart TD
-  agent_types["agent-types IDs"] --> agent_memory["agent-memory"]
-  agent_memory --> agent_core["agent-core consumes later"]
+  ruse_types["ruse-types IDs"] --> ruse_memory["ruse-memory"]
+  ruse_memory --> ruse_core["ruse-core consumes later"]
 ```
 
 ## File Layout
@@ -39,7 +39,7 @@ flowchart TD
 ```text
 Cargo.toml
 crates/
-  agent-memory/
+  ruse-memory/
     Cargo.toml
     src/
       lib.rs
@@ -108,10 +108,10 @@ pub trait MemoryStore {
 
 ## Acceptance Criteria
 
-- `agent-memory` builds as a workspace crate.
+- `ruse-memory` builds as a workspace crate.
 - Conversation memory can be added, retrieved by scope, and deleted.
 - Memory records are serializable and scoped.
-- `cargo test -p agent-memory conversation_memory` passes.
+- `cargo test -p ruse-memory conversation_memory` passes.
 
 ## Completion Signal
 

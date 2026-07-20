@@ -27,15 +27,15 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-scheduler` owns task states, queues, leases, retries, and quotas. `agent-core` runs task turns and emits events. UI clients manage tasks through `agent-ui-bridge`. `agent-worktree` provides isolation for coding tasks when requested.
+`ruse-scheduler` owns task states, queues, leases, retries, and quotas. `ruse-core` runs task turns and emits events. UI clients manage tasks through `ruse-ui-bridge`. `ruse-worktree` provides isolation for coding tasks when requested.
 
 ```mermaid
 flowchart TD
-  UI["CLI/TUI/Desktop task controls"] --> Bridge["agent-ui-bridge"]
-  Bridge --> Scheduler["agent-scheduler"]
-  Scheduler --> Core["agent-core task runner"]
-  Core --> Worktree["agent-worktree"]
-  Core --> Storage["agent-storage"]
+  UI["CLI/TUI/Desktop task controls"] --> Bridge["ruse-ui-bridge"]
+  Bridge --> Scheduler["ruse-scheduler"]
+  Scheduler --> Core["ruse-core task runner"]
+  Core --> Worktree["ruse-worktree"]
+  Core --> Storage["ruse-storage"]
 ```
 
 ## Key Contracts

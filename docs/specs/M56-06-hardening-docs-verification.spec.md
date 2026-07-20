@@ -27,14 +27,14 @@ Owned by other specs:
 
 ## Architecture
 
-No new runtime logic is introduced. Documentation must describe the existing shared-runtime path: `agent-cli` invokes `agent-eval`, which uses `agent-core` local-coding/final-review contracts and writes redacted eval artifacts.
+No new runtime logic is introduced. Documentation must describe the existing shared-runtime path: `ruse-cli` invokes `ruse-eval`, which uses `ruse-core` local-coding/final-review contracts and writes redacted eval artifacts.
 
 ```mermaid
 flowchart TD
-  README["README / roadmap docs"] --> CLI["agent-cli eval suite"]
-  CLI --> Eval["agent-eval"]
-  Eval --> Core["agent-core local coding and final review"]
-  Eval --> Artifacts["target/agent-eval redacted artifacts"]
+  README["README / roadmap docs"] --> CLI["ruse-cli eval suite"]
+  CLI --> Eval["ruse-eval"]
+  Eval --> Core["ruse-core local coding and final review"]
+  Eval --> Artifacts["target/ruse-eval redacted artifacts"]
 ```
 
 ## File Layout
@@ -61,8 +61,8 @@ cargo xtask eval
 The durable evidence artifacts remain:
 
 ```text
-target/agent-eval/eval-run-report.json
-target/agent-eval/eval-summary.txt
+target/ruse-eval/eval-run-report.json
+target/ruse-eval/eval-summary.txt
 ```
 
 ## State and Failure Handling
@@ -75,7 +75,7 @@ target/agent-eval/eval-summary.txt
 ## Security and Privacy
 
 - Documentation must not include provider tokens, local private paths, or raw command logs.
-- Eval artifacts are redacted summaries and must stay under `target/agent-eval`.
+- Eval artifacts are redacted summaries and must stay under `target/ruse-eval`.
 - The documented golden path must use existing policy, tool, trace, audit, and replay boundaries.
 
 ## Testing Strategy

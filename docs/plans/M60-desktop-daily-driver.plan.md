@@ -4,7 +4,7 @@
 
 **Goal:** Make Desktop a credible daily-driver interface for the local coding-agent workflow while keeping runtime behavior in shared Rust crates.
 
-**Architecture:** `agent-ui-bridge` carries typed UI commands and frames, `agent-desktop` carries Desktop view models, Tauri commands expose a narrow typed bridge, and React renders/reduces Desktop state. Runtime logic remains in shared runtime crates.
+**Architecture:** `ruse-ui-bridge` carries typed UI commands and frames, `ruse-desktop` carries Desktop view models, Tauri commands expose a narrow typed bridge, and React renders/reduces Desktop state. Runtime logic remains in shared runtime crates.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, Tauri 2 command boundaries, React 18, TypeScript, Vitest, existing UI bridge frames, deterministic fake-provider/eval fixtures, Cargo fmt/clippy/test, `npm --prefix apps/desktop test`, `npm --prefix apps/desktop run build`, and `cargo xtask eval`.
 
@@ -21,9 +21,9 @@
 - Read: `docs/architecture/crate-boundaries.md`
 - Read: `docs/architecture/security-policy.md`
 - Read: `docs/architecture/testing-strategy.md`
-- Read: `crates/agent-desktop/src/lib.rs`
-- Read: `crates/agent-ui-bridge/src/command.rs`
-- Read: `crates/agent-ui-bridge/src/frame.rs`
+- Read: `crates/ruse-desktop/src/lib.rs`
+- Read: `crates/ruse-ui-bridge/src/command.rs`
+- Read: `crates/ruse-ui-bridge/src/frame.rs`
 - Read: `apps/desktop/src/App.tsx`
 - Read: `apps/desktop/src/types.ts`
 - Read: `apps/desktop/src/api.ts`
@@ -36,8 +36,8 @@
 Baseline reviewed during M60 planning:
 
 - M21 Desktop MVP spec/plan
-- current `agent-desktop` view-model modules
-- current `agent-ui-bridge` command/frame ownership
+- current `ruse-desktop` view-model modules
+- current `ruse-ui-bridge` command/frame ownership
 - current Tauri command/session bridge modules
 - current React shell, component, state, and Vitest coverage
 - current `cargo xtask desktop-test` behavior
@@ -47,8 +47,8 @@ Baseline reviewed during M60 planning:
 Run:
 
 ```bash
-cargo test -p agent-desktop
-cargo test -p agent-ui-bridge
+cargo test -p ruse-desktop
+cargo test -p ruse-ui-bridge
 cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 npm --prefix apps/desktop test
 npm --prefix apps/desktop run build
@@ -62,9 +62,9 @@ Expected: existing Desktop Rust contracts, bridge contracts, Tauri command tests
 **Files:**
 - Create: `docs/specs/M60-01-workspace-dashboard-session.spec.md`
 - Create: `docs/plans/M60-01-workspace-dashboard-session.plan.md`
-- Modify: `crates/agent-desktop/src/snapshot.rs`
-- Modify: `crates/agent-desktop/src/session.rs`
-- Modify: `crates/agent-desktop/tests/desktop_daily_driver.rs`
+- Modify: `crates/ruse-desktop/src/snapshot.rs`
+- Modify: `crates/ruse-desktop/src/session.rs`
+- Modify: `crates/ruse-desktop/tests/desktop_daily_driver.rs`
 - Modify: `apps/desktop/src/types.ts`
 - Modify: `apps/desktop/src/App.tsx`
 - Modify: `apps/desktop/src/app.css`
@@ -90,10 +90,10 @@ Focused Rust, Tauri, frontend, and build checks passed for M60-01.
 **Files:**
 - Create: `docs/specs/M60-02-conversation-composer-transcript.spec.md`
 - Create: `docs/plans/M60-02-conversation-composer-transcript.plan.md`
-- Modify: `crates/agent-desktop/src/conversation.rs`
-- Modify: `crates/agent-ui-bridge/src/command.rs`
-- Modify: `crates/agent-ui-bridge/src/frame.rs`
-- Modify: `crates/agent-ui-bridge/tests/desktop_daily_driver.rs`
+- Modify: `crates/ruse-desktop/src/conversation.rs`
+- Modify: `crates/ruse-ui-bridge/src/command.rs`
+- Modify: `crates/ruse-ui-bridge/src/frame.rs`
+- Modify: `crates/ruse-ui-bridge/tests/desktop_daily_driver.rs`
 - Modify: `apps/desktop/src/state/conversation.ts`
 - Modify: `apps/desktop/src/components/Composer.tsx`
 - Modify: `apps/desktop/src/components/TranscriptView.tsx`
@@ -114,8 +114,8 @@ M60-02 planning is captured in:
 
 Connect composer submission to typed UI commands and render frame-driven transcript/task updates using deterministic fixtures.
 
-- Implemented typed Desktop conversation contracts in `agent-desktop`.
-- Added `agent-ui-bridge` Desktop daily-driver command/frame coverage.
+- Implemented typed Desktop conversation contracts in `ruse-desktop`.
+- Added `ruse-ui-bridge` Desktop daily-driver command/frame coverage.
 - Extended Tauri bridge-session tests for acknowledgements and disconnected errors.
 - Connected React conversation state to start-turn submission, command acknowledgements, bounded frame drains, transcript/task updates, and recoverable bridge errors.
 
@@ -126,9 +126,9 @@ Run focused bridge, Tauri, and Vitest tests named in the slice plan.
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
-- `cargo test -p agent-desktop --test desktop_conversation`
-- `cargo test -p agent-ui-bridge --test desktop_daily_driver`
+- `cargo clippy -p ruse-desktop --all-targets -- -D warnings`
+- `cargo test -p ruse-desktop --test desktop_conversation`
+- `cargo test -p ruse-ui-bridge --test desktop_daily_driver`
 - `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml bridge_session`
 - `npm --prefix apps/desktop test -- conversation-task-ui`
 - `npm --prefix apps/desktop run build`
@@ -138,9 +138,9 @@ Verification passed:
 **Files:**
 - Create: `docs/specs/M60-03-approval-diff-review.spec.md`
 - Create: `docs/plans/M60-03-approval-diff-review.plan.md`
-- Modify: `crates/agent-desktop/src/permission.rs`
-- Modify: `crates/agent-desktop/src/diff.rs`
-- Modify: `crates/agent-desktop/tests/permissions_diffs.rs`
+- Modify: `crates/ruse-desktop/src/permission.rs`
+- Modify: `crates/ruse-desktop/src/diff.rs`
+- Modify: `crates/ruse-desktop/tests/permissions_diffs.rs`
 - Modify: `apps/desktop/src/components/ApprovalDetail.tsx`
 - Modify: `apps/desktop/src/components/ApprovalQueue.tsx`
 - Modify: `apps/desktop/src/components/DiffPreview.tsx`
@@ -163,7 +163,7 @@ M60-03 planning is captured in:
 
 Add Desktop review view models and UI state for approval popups and visual diff review while preserving shared policy and bridge command paths.
 
-- Implemented typed approval review contracts in `agent-desktop`.
+- Implemented typed approval review contracts in `ruse-desktop`.
 - Added visual diff review file, hunk, and line preview contracts with bounded redaction.
 - Extended Tauri approval command acknowledgement coverage.
 - Connected React approval state to selected reviews, command acknowledgements, recoverable errors, disabled terminal controls, and visual diff hunk rendering.
@@ -175,9 +175,9 @@ Run focused Desktop contract, Tauri approval, and frontend approval/diff tests n
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
-- `cargo test -p agent-desktop --test permissions_diffs`
-- `cargo test -p agent-ui-bridge --test approval_bridge`
+- `cargo clippy -p ruse-desktop --all-targets -- -D warnings`
+- `cargo test -p ruse-desktop --test permissions_diffs`
+- `cargo test -p ruse-ui-bridge --test approval_bridge`
 - `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml approval_commands`
 - `npm --prefix apps/desktop test -- approval-diff-ui`
 - `npm --prefix apps/desktop run build`
@@ -187,11 +187,11 @@ Verification passed:
 **Files:**
 - Create: `docs/specs/M60-04-provider-task-log-surfaces.spec.md`
 - Create: `docs/plans/M60-04-provider-task-log-surfaces.plan.md`
-- Modify: `crates/agent-desktop/src/settings.rs`
-- Modify: `crates/agent-desktop/src/task.rs`
-- Modify: `crates/agent-desktop/src/trace.rs`
-- Modify: `crates/agent-desktop/tests/settings.rs`
-- Modify: `crates/agent-desktop/tests/trace_timeline.rs`
+- Modify: `crates/ruse-desktop/src/settings.rs`
+- Modify: `crates/ruse-desktop/src/task.rs`
+- Modify: `crates/ruse-desktop/src/trace.rs`
+- Modify: `crates/ruse-desktop/tests/settings.rs`
+- Modify: `crates/ruse-desktop/tests/trace_timeline.rs`
 - Modify: `apps/desktop/src/components/SettingsView.tsx`
 - Modify: `apps/desktop/src/components/TaskDetail.tsx`
 - Modify: `apps/desktop/src/components/TaskList.tsx`
@@ -217,7 +217,7 @@ M60-04 planning is captured in:
 
 Polish provider/settings, task monitor, and logs around typed view models and deterministic fixtures.
 
-- Implemented provider settings summary contracts in `agent-desktop`.
+- Implemented provider settings summary contracts in `ruse-desktop`.
 - Added task monitor counts, selected details, and task error redaction.
 - Added runtime log entries derived from trace evidence with severity/source labels and truncation.
 - Updated React settings, task monitor, and trace/log rendering from typed state.
@@ -229,10 +229,10 @@ Run focused settings/task/log Rust tests and Vitest coverage named in the slice 
 Verification passed:
 
 - `cargo fmt --all -- --check`
-- `cargo clippy -p agent-desktop --all-targets -- -D warnings`
-- `cargo test -p agent-desktop --test settings`
-- `cargo test -p agent-desktop --test trace_timeline`
-- `cargo test -p agent-desktop --test conversation_tasks`
+- `cargo clippy -p ruse-desktop --all-targets -- -D warnings`
+- `cargo test -p ruse-desktop --test settings`
+- `cargo test -p ruse-desktop --test trace_timeline`
+- `cargo test -p ruse-desktop --test conversation_tasks`
 - `cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml trace_settings_commands`
 - `npm --prefix apps/desktop test -- trace-settings-ui`
 - `npm --prefix apps/desktop run build`
@@ -243,8 +243,8 @@ Verification passed:
 - Create: `docs/specs/M60-05-desktop-golden-path-smoke.spec.md`
 - Create: `docs/plans/M60-05-desktop-golden-path-smoke.plan.md`
 - Create: `docs/desktop/daily-driver-smoke.md`
-- Modify: `crates/agent-desktop/tests/desktop_daily_driver.rs`
-- Modify: `crates/agent-ui-bridge/tests/desktop_daily_driver.rs`
+- Modify: `crates/ruse-desktop/tests/desktop_daily_driver.rs`
+- Modify: `crates/ruse-ui-bridge/tests/desktop_daily_driver.rs`
 - Modify: `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
 - Modify: `xtask/src/lib.rs`
 - Modify: `xtask/tests/xtask_plan.rs`
@@ -268,8 +268,8 @@ Add deterministic Rust and frontend smoke coverage, document the daily-driver De
 
 Implemented with:
 
-- `crates/agent-desktop/tests/desktop_daily_driver.rs`
-- `crates/agent-ui-bridge/tests/desktop_daily_driver.rs`
+- `crates/ruse-desktop/tests/desktop_daily_driver.rs`
+- `crates/ruse-ui-bridge/tests/desktop_daily_driver.rs`
 - `apps/desktop/src/__tests__/desktop-smoke.test.tsx`
 - `docs/desktop/daily-driver-smoke.md`
 - expanded `cargo xtask desktop-test`

@@ -4,18 +4,18 @@
 
 **Goal:** Render model deltas incrementally in CLI text and JSON modes.
 
-**Architecture:** `agent-core` exposes a streaming configured turn API. `agent-cli` renders events as they arrive while compatibility helpers can still collect for old tests.
+**Architecture:** `ruse-core` exposes a streaming configured turn API. `ruse-cli` renders events as they arrive while compatibility helpers can still collect for old tests.
 
-**Tech Stack:** Rust 2024 edition, Tokio current-thread runtime, futures streams, `agent-ui-bridge` JSON frames, Cargo fmt, Cargo clippy, Cargo test.
+**Tech Stack:** Rust 2024 edition, Tokio current-thread runtime, futures streams, `ruse-ui-bridge` JSON frames, Cargo fmt, Cargo clippy, Cargo test.
 
 ---
 
 ### Task 1: Write RED Streaming Output Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/configured_turn_streaming.rs`
-- Modify: `crates/agent-cli/tests/json_mode.rs`
-- Modify: `crates/agent-cli/tests/prompt_runtime.rs`
+- Create: `crates/ruse-core/tests/configured_turn_streaming.rs`
+- Modify: `crates/ruse-cli/tests/json_mode.rs`
+- Modify: `crates/ruse-cli/tests/prompt_runtime.rs`
 
 - [x] **Step 1: Add core event stream test**
 
@@ -40,9 +40,9 @@ Assert text output contains model text and not raw JSON frame tags.
 Run:
 
 ```bash
-cargo test -p agent-core --test configured_turn_streaming
-cargo test -p agent-cli --test json_mode json_mode_prompt_runtime_emits_delta_frames_before_done
-cargo test -p agent-cli --test prompt_runtime cli_prompt_runtime_text_streams_deltas_without_json_frames
+cargo test -p ruse-core --test configured_turn_streaming
+cargo test -p ruse-cli --test json_mode json_mode_prompt_runtime_emits_delta_frames_before_done
+cargo test -p ruse-cli --test prompt_runtime cli_prompt_runtime_text_streams_deltas_without_json_frames
 ```
 
 Expected: failures because configured turns are still collected internally.
@@ -50,9 +50,9 @@ Expected: failures because configured turns are still collected internally.
 ### Task 2: Add Core Streaming API
 
 **Files:**
-- Modify: `crates/agent-core/src/model_runtime.rs`
-- Modify: `crates/agent-core/src/turn.rs`
-- Modify: `crates/agent-core/src/lib.rs`
+- Modify: `crates/ruse-core/src/model_runtime.rs`
+- Modify: `crates/ruse-core/src/turn.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
 
 - [x] **Step 1: Add streaming outcome type**
 
@@ -69,9 +69,9 @@ The first emitted event remains `PromptSnapshotRecorded`.
 ### Task 3: Render CLI Streaming
 
 **Files:**
-- Modify: `crates/agent-cli/src/command.rs`
-- Modify: `crates/agent-cli/tests/json_mode.rs`
-- Modify: `crates/agent-cli/tests/prompt_runtime.rs`
+- Modify: `crates/ruse-cli/src/command.rs`
+- Modify: `crates/ruse-cli/tests/json_mode.rs`
+- Modify: `crates/ruse-cli/tests/prompt_runtime.rs`
 
 - [x] **Step 1: Render JSON frames while consuming events**
 
@@ -95,9 +95,9 @@ JSON mode emits `Error` then `Done`; text mode returns non-zero with redacted me
 Run:
 
 ```bash
-cargo test -p agent-core --test configured_turn_streaming
-cargo test -p agent-cli --test json_mode
-cargo test -p agent-cli --test prompt_runtime
+cargo test -p ruse-core --test configured_turn_streaming
+cargo test -p ruse-cli --test json_mode
+cargo test -p ruse-cli --test prompt_runtime
 ```
 
 - [x] **Step 2: Run workspace gate**
@@ -113,6 +113,6 @@ cargo xtask check
 Run:
 
 ```bash
-git add crates/agent-core crates/agent-cli docs
+git add crates/ruse-core crates/ruse-cli docs
 git commit -m "feat: stream cli model output"
 ```

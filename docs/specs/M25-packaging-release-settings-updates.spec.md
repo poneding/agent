@@ -29,7 +29,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-cli` exposes the `agent` binary. `agent-desktop` and the Tauri app package the GUI. `agent-core` loads migrated runtime config. `agent-storage` and `agent-memory` run schema migrations. `agent-model` owns secret resolver contracts and OS keychain adapters.
+`ruse-cli` exposes the `agent` binary. `ruse-desktop` and the Tauri app package the GUI. `ruse-core` loads migrated runtime config. `ruse-storage` and `ruse-memory` run schema migrations. `ruse-model` owns secret resolver contracts and OS keychain adapters.
 
 ```mermaid
 flowchart TD

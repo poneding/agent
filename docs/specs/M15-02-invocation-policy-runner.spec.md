@@ -26,7 +26,7 @@ Owned by later specs:
 
 ## Architecture
 
-The runner lives in `agent-core::model_runtime`. It receives a selected runtime, a registry, request requirements, and a request template. It calls providers through the `ModelProvider` trait and returns a `ModelStreamResult`.
+The runner lives in `ruse-core::model_runtime`. It receives a selected runtime, a registry, request requirements, and a request template. It calls providers through the `ModelProvider` trait and returns a `ModelStreamResult`.
 
 ## Public Contracts
 
@@ -73,4 +73,4 @@ pub struct ModelInvocationOutcome {
 
 ## Completion Signal
 
-M15-02 is complete when `cargo test -p agent-core --test model_invocation_policy_runner` and workspace gates pass, status advances to M15-03, and the slice is committed.
+M15-02 is complete when `cargo test -p ruse-core --test model_invocation_policy_runner` and workspace gates pass, status advances to M15-03, and the slice is committed.

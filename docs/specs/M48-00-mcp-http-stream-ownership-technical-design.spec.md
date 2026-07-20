@@ -12,7 +12,7 @@ M47 preserved safe session metadata and SSE checkpoints, but there is no GET str
 
 This spec delivers:
 
-- ownership boundaries for stream request contracts in `agent-mcp`
+- ownership boundaries for stream request contracts in `ruse-mcp`
 - stream transport trait boundaries
 - reqwest GET response validation rules
 - resume header and checkpoint rules
@@ -84,7 +84,7 @@ Names may change during implementation, but the stream-open boundary must remain
 - fixture stream transport tests
 - reqwest stream-open tests with local HTTP server fixtures
 - checkpoint mutation tests over accepted events
-- `agent-mcp` clippy and workspace CI gates
+- `ruse-mcp` clippy and workspace CI gates
 
 ## Acceptance Criteria
 

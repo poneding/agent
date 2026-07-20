@@ -12,7 +12,7 @@ The PRD requires the MCP layer to support both client/gateway use and server mod
 
 This milestone delivers:
 
-- MCP server protocol contracts in `agent-mcp`
+- MCP server protocol contracts in `ruse-mcp`
 - selected local tool export through a server registry
 - selected local resource export through safe descriptors
 - deterministic JSON-RPC/stdio fixture handling for tests
@@ -26,30 +26,30 @@ Owned by other milestones:
 
 ## Architecture
 
-`agent-mcp` owns MCP server contracts and protocol normalization. `agent-tool` remains the source of executable tool definitions. `agent-policy` remains the permission boundary. `agent-core`, `agent-cli`, TUI, and Desktop consume server state; they do not own protocol semantics.
+`ruse-mcp` owns MCP server contracts and protocol normalization. `ruse-tool` remains the source of executable tool definitions. `ruse-policy` remains the permission boundary. `ruse-core`, `ruse-cli`, TUI, and Desktop consume server state; they do not own protocol semantics.
 
 ```mermaid
 flowchart TD
-  Client["MCP client"] --> Server["agent-mcp server"]
+  Client["MCP client"] --> Server["ruse-mcp server"]
   Server --> Export["export registry"]
-  Export --> Tools["agent-tool registry"]
-  Export --> Policy["agent-policy"]
-  Server --> Events["agent-types trace metadata"]
-  CLI["agent-cli"] --> Server
+  Export --> Tools["ruse-tool registry"]
+  Export --> Policy["ruse-policy"]
+  Server --> Events["ruse-types trace metadata"]
+  CLI["ruse-cli"] --> Server
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-mcp/
+  ruse-mcp/
     src/server.rs
     src/server_tool.rs
     src/server_resource.rs
     src/server_status.rs
     src/server_stdio.rs
     tests/mcp_server_*.rs
-  agent-cli/
+  ruse-cli/
     tests/mcp_server_commands.rs
 docs/
   specs/M30-*.spec.md
@@ -103,7 +103,7 @@ pub struct McpServerStatusSummary {
 ## Acceptance Criteria
 
 - M30 milestone and slice specs/plans exist.
-- `agent-mcp` exposes typed MCP server contracts.
+- `ruse-mcp` exposes typed MCP server contracts.
 - selected local tools/resources can be listed through deterministic server fixtures.
 - policy-denied calls do not execute local tools.
 - focused M30 tests and workspace quality gates pass before M30 is marked complete.

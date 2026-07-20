@@ -27,15 +27,15 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-model` owns provider/model config validation and secret reference handling. `agent-ui-bridge` exposes UI-safe snapshots. `agent-desktop` maps provider/model profiles into Desktop settings view models. Tauri commands load/validate snapshots without raw secret values. React renders settings and composer selectors.
+`ruse-model` owns provider/model config validation and secret reference handling. `ruse-ui-bridge` exposes UI-safe snapshots. `ruse-desktop` maps provider/model profiles into Desktop settings view models. Tauri commands load/validate snapshots without raw secret values. React renders settings and composer selectors.
 
 ## File Layout
 
 ```text
 crates/
-  agent-model/src/config.rs
-  agent-desktop/src/settings.rs
-  agent-ui-bridge/src/frame.rs
+  ruse-model/src/config.rs
+  ruse-desktop/src/settings.rs
+  ruse-ui-bridge/src/frame.rs
 apps/desktop/src/
   components/SettingsView.tsx
   components/Composer.tsx
@@ -89,9 +89,9 @@ pub struct ModelProfile {
 
 ## Testing Strategy
 
-- `agent-model` tests for provider/profile validation and secret reference handling
-- `agent-desktop` settings tests for profile view models and diagnostics
-- `agent-ui-bridge` config snapshot tests for stable JSON and redaction
+- `ruse-model` tests for provider/profile validation and secret reference handling
+- `ruse-desktop` settings tests for profile view models and diagnostics
+- `ruse-ui-bridge` config snapshot tests for stable JSON and redaction
 - Tauri settings tests for validation and redaction
 - Vitest `trace-settings-ui` for provider/model UI, dialog states, diagnostics, and composer hints
 

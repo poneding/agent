@@ -30,17 +30,17 @@ Owned by implementation slices:
 
 ## Architecture
 
-`agent-core` coordinates extension lifecycle through domain crates. `agent-plugin` owns plugin manifests and process/WASM host contracts. `agent-skill` owns skill discovery. `agent-mcp` owns MCP client/gateway behavior. Registered extension tools become normal `agent-tool` entries and always route through `agent-policy`.
+`ruse-core` coordinates extension lifecycle through domain crates. `ruse-plugin` owns plugin manifests and process/WASM host contracts. `ruse-skill` owns skill discovery. `ruse-mcp` owns MCP client/gateway behavior. Registered extension tools become normal `ruse-tool` entries and always route through `ruse-policy`.
 
 ```mermaid
 flowchart TD
-  UI["CLI/TUI/Desktop"] --> Bridge["agent-ui-bridge extension commands"]
-  Bridge --> Manager["agent-core ExtensionManager"]
-  Manager --> Plugin["agent-plugin"]
-  Manager --> Skill["agent-skill"]
-  Manager --> MCP["agent-mcp"]
-  Manager --> Registry["agent-tool registry"]
-  Registry --> Policy["agent-policy"]
+  UI["CLI/TUI/Desktop"] --> Bridge["ruse-ui-bridge extension commands"]
+  Bridge --> Manager["ruse-core ExtensionManager"]
+  Manager --> Plugin["ruse-plugin"]
+  Manager --> Skill["ruse-skill"]
+  Manager --> MCP["ruse-mcp"]
+  Manager --> Registry["ruse-tool registry"]
+  Registry --> Policy["ruse-policy"]
   Registry --> Audit["runtime events"]
 ```
 
@@ -109,7 +109,7 @@ Initial commands:
 - `agent skill roots list|add|remove`
 - `agent mcp list|add|enable|disable|health`
 
-TUI and Desktop consume extension registry snapshots and health frames from `agent-ui-bridge`.
+TUI and Desktop consume extension registry snapshots and health frames from `ruse-ui-bridge`.
 
 ## Security and Privacy
 

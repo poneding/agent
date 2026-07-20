@@ -27,10 +27,10 @@
 Verified:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_contracts
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_registry
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_session_roots
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_gateway_roots
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_contracts
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_registry
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_session_roots
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_gateway_roots
 git diff --check
 CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
 CARGO_TARGET_DIR=target/codex-m39 cargo xtask ci

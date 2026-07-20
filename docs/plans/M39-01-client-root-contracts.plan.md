@@ -4,7 +4,7 @@
 
 **Goal:** Add typed MCP client root contracts and capability metadata.
 
-**Architecture:** `agent-mcp` owns root protocol contracts in a client-roots module exported from `lib.rs`.
+**Architecture:** `ruse-mcp` owns root protocol contracts in a client-roots module exported from `lib.rs`.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo tests.
 
@@ -25,14 +25,14 @@
 
 - [x] **Step 1: Add root contracts module**
 - [x] **Step 2: Add deterministic constructors and validators**
-- [x] **Step 3: Export contracts from `agent-mcp`**
+- [x] **Step 3: Export contracts from `ruse-mcp`**
 
 ### Task 4: Verify
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_contracts
+CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_contracts
 ```
 
 - [x] **Step 1: Run focused checks**
@@ -41,8 +41,8 @@ Verified:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m39 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m39 cargo test -p agent-mcp mcp_client_root_contracts
+CARGO_TARGET_DIR=target/codex-m39 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m39 cargo test -p ruse-mcp mcp_client_root_contracts
 ```
 
 ### Task 5: Commit

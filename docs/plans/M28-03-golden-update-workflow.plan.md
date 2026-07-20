@@ -4,7 +4,7 @@
 
 **Goal:** Add explicit golden update workflow contracts.
 
-**Architecture:** `agent-eval::golden` owns update logic; CLI only invokes and renders.
+**Architecture:** `ruse-eval::golden` owns update logic; CLI only invokes and renders.
 
 **Tech Stack:** Rust 2024 edition, serde_json, existing golden comparison contracts.
 
@@ -12,7 +12,7 @@
 
 ### Task 1: Confirm Inputs
 
-- [x] **Step 1: Read M28-03 spec and current `agent-eval::golden`**
+- [x] **Step 1: Read M28-03 spec and current `ruse-eval::golden`**
 
 ### Task 2: Write Tests
 
@@ -27,6 +27,6 @@
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy -p agent-eval --all-targets -- -D warnings
-cargo test -p agent-eval golden_update
+cargo clippy -p ruse-eval --all-targets -- -D warnings
+cargo test -p ruse-eval golden_update
 ```

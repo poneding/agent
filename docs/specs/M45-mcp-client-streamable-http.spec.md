@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Add a real client-side MCP streamable HTTP transport path so external HTTP MCP servers can be initialized, listed, and called through the same typed `agent-mcp` client and gateway contracts used by stdio.
+Add a real client-side MCP streamable HTTP transport path so external HTTP MCP servers can be initialized, listed, and called through the same typed `ruse-mcp` client and gateway contracts used by stdio.
 
 ## Product Context
 
-M43 and M44 made external stdio MCP servers executable through `McpStdioClient` and `McpGateway`. The runtime already models `McpTransportConfig::StreamableHttp`, but that configuration is not yet backed by a live client. M45 closes that gap while preserving the core boundary: MCP protocol logic belongs in `agent-mcp`, local policy gates gateway tool execution, and CLI/Desktop remain presentation layers.
+M43 and M44 made external stdio MCP servers executable through `McpStdioClient` and `McpGateway`. The runtime already models `McpTransportConfig::StreamableHttp`, but that configuration is not yet backed by a live client. M45 closes that gap while preserving the core boundary: MCP protocol logic belongs in `ruse-mcp`, local policy gates gateway tool execution, and CLI/Desktop remain presentation layers.
 
 ## Scope
 
@@ -29,7 +29,7 @@ Owned by later milestones:
 
 ## Architecture
 
-`agent-mcp` owns the streamable HTTP client runtime. The initial M45 implementation treats each MCP operation as a request/response JSON-RPC exchange over HTTP POST. The transport layer is abstracted for deterministic tests and can later grow SSE/session behavior without changing gateway contracts.
+`ruse-mcp` owns the streamable HTTP client runtime. The initial M45 implementation treats each MCP operation as a request/response JSON-RPC exchange over HTTP POST. The transport layer is abstracted for deterministic tests and can later grow SSE/session behavior without changing gateway contracts.
 
 ```mermaid
 flowchart TD
@@ -68,7 +68,7 @@ pub struct McpHttpClient<T> {
 
 - Disabled configs fail before transport calls.
 - Non-HTTP configs are rejected before transport calls.
-- Secret header refs must be resolved outside `agent-mcp`.
+- Secret header refs must be resolved outside `ruse-mcp`.
 - Requests carry deterministic JSON-RPC ids and method params.
 - HTTP non-success statuses, malformed JSON, JSON-RPC failures, mismatched ids, oversized bodies, and timeout/transport failures return typed safe errors.
 - Session state requires initialize before list or call for the same server id.
@@ -91,11 +91,11 @@ pub struct McpHttpClient<T> {
 
 ## Acceptance Criteria
 
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_contracts`
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_client_http_mcp_client`
-- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p agent-mcp mcp_gateway_http_tool_call`
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_contracts`
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_client_http_mcp_client`
+- `CARGO_TARGET_DIR=target/codex-m45 cargo test -p ruse-mcp mcp_gateway_http_tool_call`
 - `CARGO_TARGET_DIR=target/codex-m45 cargo xtask ci`
 
 ## Completion Signal
 
-M45 is complete when a streamable HTTP MCP server configuration can be driven through `agent-mcp` for initialize, tools/list, gateway registration, and tools/call with safe diagnostics and passing focused plus workspace gates.
+M45 is complete when a streamable HTTP MCP server configuration can be driven through `ruse-mcp` for initialize, tools/list, gateway registration, and tools/call with safe diagnostics and passing focused plus workspace gates.

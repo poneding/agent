@@ -1,6 +1,6 @@
-use agent_core::TraceEntry;
-use agent_desktop::{DesktopError, TraceTimeline, build_trace_timeline};
-use agent_types::ConversationId;
+use ruse_core::TraceEntry;
+use ruse_desktop::{DesktopError, TraceTimeline, build_trace_timeline};
+use ruse_types::ConversationId;
 
 use crate::{commands::DesktopCommandError, state::DesktopAppState};
 

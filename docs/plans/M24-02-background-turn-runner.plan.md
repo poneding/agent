@@ -4,7 +4,7 @@
 
 **Goal:** Run queued background tasks through shared comprehensive turn execution using scheduler leases.
 
-**Architecture:** `agent-core` owns `BackgroundTaskRunner`; `agent-scheduler` owns queues and leases; storage and model/tool behavior remain behind existing core abstractions.
+**Architecture:** `ruse-core` owns `BackgroundTaskRunner`; `ruse-scheduler` owns queues and leases; storage and model/tool behavior remain behind existing core abstractions.
 
 **Tech Stack:** Rust 2024 edition, Tokio-friendly runner contracts, fake model fixtures, scheduler leases, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,9 +14,9 @@
 
 **Files:**
 - Read: `docs/specs/M24-02-background-turn-runner.spec.md`
-- Read: `crates/agent-core/src/tool_loop.rs`
-- Read: `crates/agent-core/src/model_runtime.rs`
-- Read: `crates/agent-scheduler/src/queue.rs`
+- Read: `crates/ruse-core/src/tool_loop.rs`
+- Read: `crates/ruse-core/src/model_runtime.rs`
+- Read: `crates/ruse-scheduler/src/queue.rs`
 
 - [x] **Step 1: Review runner scope**
 
@@ -31,7 +31,7 @@ Expected: runner owns lease-to-turn orchestration and not task command mutation.
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/background_turn_runner.rs`
+- Create: `crates/ruse-core/tests/background_turn_runner.rs`
 
 - [x] **Step 1: Add no-ready-task test**
 
@@ -50,7 +50,7 @@ Model/tool failure marks lease failed and preserves safe diagnostics.
 Run:
 
 ```bash
-cargo test -p agent-core background_turn_runner
+cargo test -p ruse-core background_turn_runner
 ```
 
 Expected: tests fail because background runner contracts are missing.
@@ -58,9 +58,9 @@ Expected: tests fail because background runner contracts are missing.
 ### Task 3: Implement Runner
 
 **Files:**
-- Create: `crates/agent-core/src/background.rs`
-- Modify: `crates/agent-core/src/lib.rs`
-- Modify if needed: `crates/agent-scheduler/src/queue.rs`
+- Create: `crates/ruse-core/src/background.rs`
+- Modify: `crates/ruse-core/src/lib.rs`
+- Modify if needed: `crates/ruse-scheduler/src/queue.rs`
 
 - [x] **Step 1: Add runner contracts**
 
@@ -83,7 +83,7 @@ Summaries are bounded and redacted.
 - [x] **Step 1: Run focused tests**
 
 ```bash
-cargo test -p agent-core background_turn_runner
+cargo test -p ruse-core background_turn_runner
 ```
 
 - [x] **Step 2: Run workspace checks**

@@ -26,26 +26,26 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-core` owns trace query and trace entry construction. `agent-cli` owns text rendering. Storage remains behind `EventStore`.
+`ruse-core` owns trace query and trace entry construction. `ruse-cli` owns text rendering. Storage remains behind `EventStore`.
 
 ```mermaid
 flowchart TD
-  agent_cli["agent-cli trace command"] --> agent_core["agent-core TraceQuery"]
-  agent_core --> agent_storage["EventStore"]
-  agent_core --> agent_types["RuntimeEventPayload"]
+  ruse_cli["ruse-cli trace command"] --> ruse_core["ruse-core TraceQuery"]
+  ruse_core --> ruse_storage["EventStore"]
+  ruse_core --> ruse_types["RuntimeEventPayload"]
 ```
 
 ## File Layout
 
 ```text
 crates/
-  agent-core/
+  ruse-core/
     src/
       trace.rs
       lib.rs
     tests/
       trace_query.rs
-  agent-cli/
+  ruse-cli/
     src/
       command.rs
     tests/

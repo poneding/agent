@@ -24,7 +24,7 @@ Owned by other specs:
 
 ## Architecture
 
-`agent-mcp::server_resource` owns resource descriptors and read behavior. Runtime state can later feed these descriptors, but this slice uses deterministic in-memory fixtures.
+`ruse-mcp::server_resource` owns resource descriptors and read behavior. Runtime state can later feed these descriptors, but this slice uses deterministic in-memory fixtures.
 
 ## Public Contracts
 
@@ -60,7 +60,7 @@ pub struct McpResourceExport {
 
 ## Acceptance Criteria
 
-- `cargo test -p agent-mcp mcp_server_resource_export` passes.
+- `cargo test -p ruse-mcp mcp_server_resource_export` passes.
 - only explicit resources are listable/readable.
 
 ## Completion Signal

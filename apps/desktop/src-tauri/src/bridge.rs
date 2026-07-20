@@ -1,15 +1,15 @@
 use std::collections::VecDeque;
 
-use agent_core::{PlatformPathOverrides, PlatformPaths, TerminalSessionCatalog};
-use agent_desktop::{
+use ruse_core::{PlatformPathOverrides, PlatformPaths, TerminalSessionCatalog};
+use ruse_desktop::{
     DesktopConversationItem, DesktopSessionReadiness, DesktopSessionReadinessState,
 };
-use agent_storage::{EventStore, SqliteEventStore};
-use agent_types::{
+use ruse_storage::{EventStore, SqliteEventStore};
+use ruse_types::{
     ActorKind, ActorRef, ConversationId, CorrelationId, EventId, RuntimeEvent, RuntimeEventPayload,
     SchemaVersion, SessionId, Timestamp, TurnId, UserInputReceived, WorkspaceId,
 };
-use agent_ui_bridge::{
+use ruse_ui_bridge::{
     UiCommand, UiCommandEnvelope, UiJsonFrame, normalize_runtime_event, validate_ui_command,
 };
 use serde::{Deserialize, Serialize};

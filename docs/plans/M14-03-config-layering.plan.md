@@ -4,7 +4,7 @@
 
 **Goal:** Compose ordered runtime config layers into one effective model config with explicit overrides.
 
-**Architecture:** Extend `agent-core::config` with pure layering functions. The implementation consumes parsed configs and does not read files, resolve secrets, or invoke models.
+**Architecture:** Extend `ruse-core::config` with pure layering functions. The implementation consumes parsed configs and does not read files, resolve secrets, or invoke models.
 
 **Tech Stack:** Rust 2024 edition, serde contracts, thiserror, Cargo fmt, Cargo clippy, Cargo test.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M14-03-config-layering.spec.md`
-- Read: `crates/agent-core/src/config.rs`
-- Read: `crates/agent-core/tests/runtime_config_loader.rs`
+- Read: `crates/ruse-core/src/config.rs`
+- Read: `crates/ruse-core/tests/runtime_config_loader.rs`
 
 - [x] **Step 1: Review the spec**
 
@@ -30,7 +30,7 @@ Expected: the spec defines layer precedence, overrides, diagnostics, and tests.
 ### Task 2: Write RED Tests
 
 **Files:**
-- Create: `crates/agent-core/tests/runtime_config_layering.rs`
+- Create: `crates/ruse-core/tests/runtime_config_layering.rs`
 
 - [x] **Step 1: Add focused tests**
 
@@ -47,7 +47,7 @@ Add tests named:
 Run:
 
 ```bash
-cargo test -p agent-core --test runtime_config_layering
+cargo test -p ruse-core --test runtime_config_layering
 ```
 
 Expected: tests fail because layering contracts do not exist.
@@ -55,7 +55,7 @@ Expected: tests fail because layering contracts do not exist.
 ### Task 3: Implement Layering
 
 **Files:**
-- Modify: `crates/agent-core/src/config.rs`
+- Modify: `crates/ruse-core/src/config.rs`
 
 - [x] **Step 1: Add layer contracts**
 
@@ -83,7 +83,7 @@ Rules:
 Run:
 
 ```bash
-cargo test -p agent-core --test runtime_config_layering
+cargo test -p ruse-core --test runtime_config_layering
 ```
 
 Expected: focused tests pass.

@@ -4,7 +4,7 @@
 
 **Goal:** Generate CI-friendly evaluation artifacts and complete M27.
 
-**Architecture:** `agent-eval` writes report artifacts. CLI or xtask invokes the same typed writer. Documentation explains the workflow.
+**Architecture:** `ruse-eval` writes report artifacts. CLI or xtask invokes the same typed writer. Documentation explains the workflow.
 
 **Tech Stack:** Rust 2024 edition, serde_json, atomic file writes where practical, Cargo fmt, Cargo clippy, Cargo test, cargo xtask check.
 
@@ -14,7 +14,7 @@
 
 **Files:**
 - Read: `docs/specs/M27-05-ci-reporting-integration.spec.md`
-- Read: `crates/agent-eval/src/report.rs`
+- Read: `crates/ruse-eval/src/report.rs`
 - Read: `xtask/src/main.rs`
 
 - [x] **Step 1: Review report and xtask patterns**
@@ -24,7 +24,7 @@ Expected: artifact generation can reuse existing command infrastructure.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-eval/tests/report.rs`
+- Create: `crates/ruse-eval/tests/report.rs`
 
 - [x] **Step 1: Add artifact writer tests**
 
@@ -33,8 +33,8 @@ Cover JSON artifact, summary artifact, empty run, failure counts, and unsafe out
 ### Task 3: Implement Artifact Writer
 
 **Files:**
-- Modify: `crates/agent-eval/src/report.rs`
-- Modify: `crates/agent-eval/src/lib.rs`
+- Modify: `crates/ruse-eval/src/report.rs`
+- Modify: `crates/ruse-eval/src/lib.rs`
 - Modify as needed: `xtask/src/main.rs`
 
 - [x] **Step 1: Add artifact writer contracts**

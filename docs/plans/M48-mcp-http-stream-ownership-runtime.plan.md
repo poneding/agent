@@ -4,7 +4,7 @@
 
 **Goal:** Add the typed runtime foundation for opening and owning resumable MCP streamable HTTP GET streams.
 
-**Architecture:** `agent-mcp` owns GET stream request contracts, stream-open transport boundaries, resume headers, bounded event drain, redaction, and tests. CLI/Desktop remain consumers of typed runtime contracts.
+**Architecture:** `ruse-mcp` owns GET stream request contracts, stream-open transport boundaries, resume headers, bounded event drain, redaction, and tests. CLI/Desktop remain consumers of typed runtime contracts.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, reqwest, HTTP headers, SSE parsing, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 
@@ -82,10 +82,10 @@ git commit -m "feat: complete m48 mcp http stream ownership runtime"
 
 2026-06-30:
 
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_request` passed.
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_transport` passed.
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_resume` passed.
-- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p agent-mcp mcp_client_http_stream_drain` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_request` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_transport` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_resume` passed.
+- `CARGO_TARGET_DIR=target/codex-m48 cargo test -p ruse-mcp mcp_client_http_stream_drain` passed.
 - `git diff --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m48 cargo fmt --all -- --check` passed.
 - `CARGO_TARGET_DIR=target/codex-m48 cargo xtask ci` passed. The `definitely-not-a-real-rustc-flag` output is expected from an existing quality-gate fixture.

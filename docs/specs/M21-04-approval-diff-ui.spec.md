@@ -26,7 +26,7 @@ Owned by other specs:
 
 ## Architecture
 
-Approval frames enter through `agent-ui-bridge`. Frontend keeps a UI-only approval queue. Decisions are sent back through typed Tauri commands; core remains responsible for lease creation, approval validation, and resume.
+Approval frames enter through `ruse-ui-bridge`. Frontend keeps a UI-only approval queue. Decisions are sent back through typed Tauri commands; core remains responsible for lease creation, approval validation, and resume.
 
 ```mermaid
 flowchart TD

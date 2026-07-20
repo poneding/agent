@@ -15,7 +15,7 @@
 **Files:**
 - Read: `docs/specs/M24-background-agents-ux.spec.md`
 - Read: `docs/specs/M08-scheduler-background-tasks.spec.md`
-- Read: `docs/specs/M18-00-agent-tool-loop-technical-design.spec.md`
+- Read: `docs/specs/M18-00-ruse-tool-loop-technical-design.spec.md`
 - Read: `docs/specs/M19-00-interactive-approval-technical-design.spec.md`
 
 - [x] **Step 1: Review milestone scope**

@@ -4,7 +4,7 @@
 
 **Goal:** Establish the M41 technical design and implementation slice map.
 
-**Architecture:** Documentation-only baseline for bridging MCP sampling into `agent-model` through `agent-core`.
+**Architecture:** Documentation-only baseline for bridging MCP sampling into `ruse-model` through `ruse-core`.
 
 **Tech Stack:** Markdown docs.
 

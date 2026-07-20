@@ -4,7 +4,7 @@
 
 **Goal:** Add deterministic fixture and provider behavior for MCP client sampling requests.
 
-**Architecture:** `agent-mcp` extends client fixture boundaries with `McpSamplingProvider`; sampling remains separate from gateway tool calls.
+**Architecture:** `ruse-mcp` extends client fixture boundaries with `McpSamplingProvider`; sampling remains separate from gateway tool calls.
 
 **Tech Stack:** Rust 2024 edition, async-trait, serde JSON, Cargo tests.
 
@@ -14,8 +14,8 @@
 
 **Files:**
 - Read: `docs/specs/M40-03-client-session-sampling.spec.md`
-- Read: `crates/agent-mcp/src/client.rs`
-- Read: `crates/agent-mcp/src/client_sampling.rs`
+- Read: `crates/ruse-mcp/src/client.rs`
+- Read: `crates/ruse-mcp/src/client_sampling.rs`
 
 - [x] **Step 1: Review fixture client patterns**
 
@@ -23,7 +23,7 @@ Run:
 
 ```bash
 sed -n '1,260p' docs/specs/M40-03-client-session-sampling.spec.md
-sed -n '1,280p' crates/agent-mcp/src/client.rs
+sed -n '1,280p' crates/ruse-mcp/src/client.rs
 ```
 
 Expected: fixture client already has roots and tool result patterns to mirror.
@@ -31,7 +31,7 @@ Expected: fixture client already has roots and tool result patterns to mirror.
 ### Task 2: Write Failing Tests
 
 **Files:**
-- Create: `crates/agent-mcp/tests/mcp_client_session_sampling.rs`
+- Create: `crates/ruse-mcp/tests/mcp_client_session_sampling.rs`
 
 - [x] **Step 1: Add fixture sampling behavior tests**
 
@@ -52,13 +52,13 @@ mcp_client_session_sampling_capabilities_combine_roots_and_sampling
 Verified failing before implementation:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_client_session_sampling
 ```
 
 Run:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_client_session_sampling
 ```
 
 Expected: tests fail because the provider trait and fixture methods do not exist yet.
@@ -66,9 +66,9 @@ Expected: tests fail because the provider trait and fixture methods do not exist
 ### Task 3: Implement Provider and Fixture Behavior
 
 **Files:**
-- Modify: `crates/agent-mcp/src/client.rs`
-- Modify: `crates/agent-mcp/src/client_sampling.rs`
-- Modify: `crates/agent-mcp/src/lib.rs`
+- Modify: `crates/ruse-mcp/src/client.rs`
+- Modify: `crates/ruse-mcp/src/client_sampling.rs`
+- Modify: `crates/ruse-mcp/src/lib.rs`
 
 - [x] **Step 1: Add `McpSamplingProvider` and helper function**
 
@@ -103,17 +103,17 @@ Return configured results, configured errors, or `McpError::ServerNotFound` for 
 Verified:
 
 ```bash
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_client_session_sampling
 CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings
 ```
 
 Run:
 
 ```bash
 CARGO_TARGET_DIR=target/codex-m40 cargo fmt --all -- --check
-CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p agent-mcp --all-targets -- -D warnings
-CARGO_TARGET_DIR=target/codex-m40 cargo test -p agent-mcp mcp_client_session_sampling
+CARGO_TARGET_DIR=target/codex-m40 cargo clippy -p ruse-mcp --all-targets -- -D warnings
+CARGO_TARGET_DIR=target/codex-m40 cargo test -p ruse-mcp mcp_client_session_sampling
 ```
 
 Expected: focused checks pass.
@@ -125,7 +125,7 @@ Expected: focused checks pass.
 Run:
 
 ```bash
-git add crates/agent-mcp docs
+git add crates/ruse-mcp docs
 git commit -m "feat: add mcp client sampling fixture"
 ```
 

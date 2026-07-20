@@ -4,7 +4,7 @@
 
 **Goal:** Start the MCP stdio server from explicit, validated export profiles.
 
-**Architecture:** `agent-mcp` owns manifest contracts and profile construction. `agent-cli` owns argument parsing, file IO, and stdio process wiring.
+**Architecture:** `ruse-mcp` owns manifest contracts and profile construction. `ruse-cli` owns argument parsing, file IO, and stdio process wiring.
 
 **Tech Stack:** Rust 2024 edition, serde JSON, Cargo fmt, Cargo clippy, Cargo test, `cargo xtask ci`.
 

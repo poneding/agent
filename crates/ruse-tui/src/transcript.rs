@@ -598,17 +598,14 @@ impl TranscriptState {
         // observation/result on following lines so render can show:
         //   [tool] target
         //     ⎿ result…
-        let prefix = item
-            .body
-            .split_once('\n')
-            .map_or_else(
-                || {
-                    item.body
-                        .split_once(" - ")
-                        .map_or_else(|| item.body.clone(), |(prefix, _)| prefix.to_string())
-                },
-                |(prefix, _)| prefix.to_string(),
-            );
+        let prefix = item.body.split_once('\n').map_or_else(
+            || {
+                item.body
+                    .split_once(" - ")
+                    .map_or_else(|| item.body.clone(), |(prefix, _)| prefix.to_string())
+            },
+            |(prefix, _)| prefix.to_string(),
+        );
         let streaming = title.ends_with("running");
         item.kind = if streaming {
             TranscriptItemKind::ToolCall
@@ -617,11 +614,7 @@ impl TranscriptState {
         };
         // Keep a stable, non-noisy title; visual status is the streaming flag
         // and result body, not "tool ok"/"tool failed" chrome.
-        item.title = if streaming {
-            "tool".to_string()
-        } else {
-            "tool".to_string()
-        };
+        item.title = "tool".to_string();
         let cleaned = clean_tool_result_detail(detail);
         item.body = if cleaned.is_empty() {
             prefix
@@ -763,8 +756,7 @@ fn tool_target_from_detail(tool_name: &str, detail: &str) -> String {
         return String::new();
     }
     // Policy/sandbox start blobs: "started policy=… sandbox=…" — no target.
-    if detail.starts_with("started ")
-        && (detail.contains("policy=") || detail.contains("sandbox="))
+    if detail.starts_with("started ") && (detail.contains("policy=") || detail.contains("sandbox="))
     {
         return String::new();
     }
@@ -865,10 +857,7 @@ fn clean_tool_result_detail(detail: &str) -> String {
 
 fn json_string_field(raw: &str, key: &str) -> Option<String> {
     let value: serde_json::Value = serde_json::from_str(raw).ok()?;
-    value
-        .get(key)
-        .and_then(|v| v.as_str())
-        .map(str::to_string)
+    value.get(key).and_then(|v| v.as_str()).map(str::to_string)
 }
 
 fn json_number_field(raw: &str, key: &str) -> Option<u64> {

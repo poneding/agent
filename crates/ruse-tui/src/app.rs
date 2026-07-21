@@ -8,10 +8,9 @@ use ruse_ui_bridge::{UiApprovalRequest, UiCommandTestSnapshot, UiEventPayload, U
 use crate::{
     ApprovalPanelAction, ApprovalPanelState, CommandPanelAction, CommandPanelState, ComposerAction,
     ComposerState, DiffPanelAction, DiffPanelState, ExtensionPanelState, LocalDiagnosticSeverity,
-    ModelPickerAction, ModelPickerState, SessionPanelAction, SessionPanelState, SlashCommand,
-    StatusPanelState, TaskPanelState, ThemePickerAction, ThemePickerState,
+    ModelPickerAction, ModelPickerState, SelectionState, SessionPanelAction, SessionPanelState,
+    SlashCommand, StatusPanelState, TaskPanelState, ThemePickerAction, ThemePickerState,
     ThinkingVisibilityCommand, TracePanelState, TranscriptState, TuiEffect, WaitingActivity,
-    SelectionState,
 };
 
 const DEFAULT_COMPACTION_SUMMARY_TOKENS: u32 = 256;
@@ -255,19 +254,35 @@ pub enum TuiAction {
     /// Expand/collapse the latest tool call/result output (Ctrl+O).
     ToggleToolOutput,
     /// Expand/collapse a specific reasoning item (mouse click).
-    ToggleReasoningAt { index: usize },
+    ToggleReasoningAt {
+        index: usize,
+    },
     /// Expand/collapse a specific tool item's output (mouse click).
-    ToggleToolOutputAt { index: usize },
+    ToggleToolOutputAt {
+        index: usize,
+    },
     /// Left-click at terminal-absolute coordinates; hit-tested against the
     /// transcript to toggle a specific thinking/tool block (when not a drag).
-    TranscriptClick { column: u16, row: u16 },
+    TranscriptClick {
+        column: u16,
+        row: u16,
+    },
     /// Begin an in-app text selection drag at terminal-absolute coordinates.
-    SelectionDragStart { column: u16, row: u16 },
+    SelectionDragStart {
+        column: u16,
+        row: u16,
+    },
     /// Update the live selection drag pointer.
-    SelectionDragUpdate { column: u16, row: u16 },
+    SelectionDragUpdate {
+        column: u16,
+        row: u16,
+    },
     /// Finish a selection drag. If the pointer moved, the selected text is
     /// copied; otherwise the original click is treated as a transcript toggle.
-    SelectionDragEnd { column: u16, row: u16 },
+    SelectionDragEnd {
+        column: u16,
+        row: u16,
+    },
     /// Clear any committed selection highlight.
     SelectionClear,
     StartRecoveryContinuation,
@@ -280,7 +295,7 @@ pub enum TuiAction {
     /// Cycle model reasoning depth (Shift+Tab): minimal → low → medium → high → xhigh.
     CycleReasoningEffort,
     /// Begin reject-and-redirect on the focused approval: open the one-line reason
-    /// capture in the modal.
+    /// capture in the bottom approval surface.
     ApprovalRejectBegin,
     /// Append a character to the in-progress reject reason.
     ApprovalRejectInput(char),
@@ -288,16 +303,17 @@ pub enum TuiAction {
     ApprovalRejectBackspace,
     /// Cancel reject-reason capture, leaving the request pending.
     ApprovalRejectCancel,
-    /// Non-destructively dismiss the approval modal: hide it but leave the request
-    /// pending (the footer keeps showing the pending indicator). Never denies.
+    /// Non-destructively dismiss the bottom approval surface: hide it but leave
+    /// the request pending (the footer keeps showing the pending indicator).
+    /// Never denies.
     ApprovalModalDismiss,
     /// Submit the captured reject reason as the deny reason.
     ApprovalRejectSubmit,
-    /// Move the approval modal's highlighted option up one row.
+    /// Move the approval surface's highlighted option up one row.
     ApprovalSelectPrevious,
-    /// Move the approval modal's highlighted option down one row.
+    /// Move the approval surface's highlighted option down one row.
     ApprovalSelectNext,
-    /// Confirm the currently highlighted approval option (Enter in the modal).
+    /// Confirm the currently highlighted approval option (Enter).
     ApprovalConfirmSelection,
     OpenHelp,
     OpenChat,
@@ -316,6 +332,9 @@ pub struct TuiApp {
     pub status: StatusBarState,
     pub terminal_size: TerminalSize,
     pub theme: TerminalTheme,
+    /// When false, model/reasoning bodies render as plain text (no Markdown).
+    /// Defaults to true; set false via `RUSE_MARKDOWN=plain|0|off` at startup.
+    pub markdown_enabled: bool,
     pub composer: ComposerState,
     pub transcript: TranscriptState,
     pub approval_panel: ApprovalPanelState,
@@ -369,22 +388,24 @@ pub struct TuiApp {
     /// prompting again. Cleared when the process exits — never persisted.
     pub allow_rules: Vec<AllowRule>,
     /// Active reject-and-redirect reason capture, if the user chose "Reject" on the
-    /// approval modal. While `Some`, the modal shows a one-line reason input; on
-    /// submit the text becomes the deny reason (and the next steering message).
+    /// bottom approval surface. While `Some`, that surface shows a one-line reason
+    /// input; on submit the text becomes the deny reason (and the next steering
+    /// message).
     pub reject_reason: Option<RejectReasonInput>,
-    /// Whether the user pressed Esc to dismiss the approval modal for the currently
-    /// focused request, leaving it pending. The modal stays hidden (and normal keys
-    /// resume) until a new/different request arrives, but the footer keeps showing
-    /// the pending indicator so the gate is never armed-but-invisible. Reset when
-    /// the focused request changes or the queue empties.
+    /// Whether the user pressed Esc to dismiss the bottom approval surface for the
+    /// currently focused request, leaving it pending. The surface stays hidden
+    /// (and normal keys resume) until a new/different request arrives, but the
+    /// footer keeps showing the pending indicator so the gate is never
+    /// armed-but-invisible. Reset when the focused request changes or the queue
+    /// empties.
     pub approval_modal_dismissed: bool,
     /// A transient, neutral/dim toast for no-op guidance and success confirmations
     /// (clipboard copy, "nothing to cancel"). Shown briefly then auto-expired by
     /// the event loop; never a red error chip. `None` when no toast is showing.
     pub toast: Option<TuiToast>,
-    /// Which approval-modal option is highlighted (Up/Down selects, Enter confirms
-    /// the highlighted one). Defaults to Allow once for the common approval path.
-    /// Reset whenever the modal opens for a fresh request.
+    /// Which approval option is highlighted (Up/Down selects, Enter confirms the
+    /// highlighted one). Defaults to Allow once for the common approval path.
+    /// Reset whenever the surface opens for a fresh request.
     pub approval_selection: ApprovalOption,
     /// In-app transcript selection (restores select+copy under mouse capture).
     pub selection: SelectionState,
@@ -513,8 +534,8 @@ impl AllowRule {
     }
 }
 
-/// A one-line reason input shown in the approval modal when the user chooses
-/// "Reject & redirect". The captured text becomes the deny reason.
+/// A one-line reason input shown in the bottom approval surface when the user
+/// chooses "Reject & redirect". The captured text becomes the deny reason.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct RejectReasonInput {
     /// The approval request id being rejected.
@@ -710,10 +731,8 @@ impl TuiApp {
         }
     }
 
-    /// Whether an approval modal should be shown: a pending request is focused.
-    /// This is the single "is the modal up" signal the render + key-routing layers
-    /// consult, so the overlay is always shown when (and only when) a decision is
-    /// actually pending — never armed-but-invisible, never stale.
+    /// Whether an approval decision is pending focus (regardless of Esc dismiss).
+    /// Render/key-routing use [`Self::approval_modal_visible`] for the live surface.
     #[must_use]
     pub fn approval_modal_active(&self) -> bool {
         self.approval_panel.focused_request().is_some()
@@ -756,12 +775,12 @@ impl TuiApp {
         expired
     }
 
-    /// Whether the approval modal should currently be shown as a blocking overlay.
-    /// True when a pending request is focused and the user has not dismissed it
-    /// with Esc. Dismissal is non-destructive: the request stays pending and the
-    /// footer keeps showing the pending indicator, but the modal steps aside so the
-    /// user can read the transcript or type — reopened by the next request or by
-    /// focusing the approval panel.
+    /// Whether the bottom-docked approval surface should currently replace the
+    /// composer (Claude Code style). True when a pending request is focused and
+    /// the user has not dismissed it with Esc. Dismissal is non-destructive: the
+    /// request stays pending and the footer keeps showing the pending indicator,
+    /// but the surface steps aside so the user can read the transcript or type —
+    /// reopened by the next request or by focusing the approval panel.
     #[must_use]
     pub fn approval_modal_visible(&self) -> bool {
         self.approval_panel.focused_request().is_some() && !self.approval_modal_dismissed
@@ -898,18 +917,12 @@ impl TuiApp {
                 }
             }
             TuiAction::ToggleReasoningAt { index } => {
-                if crate::hit_test::toggle_reasoning_at(&mut self.transcript, index) {
-                    TuiEffect::None
-                } else {
-                    TuiEffect::None
-                }
+                let _ = crate::hit_test::toggle_reasoning_at(&mut self.transcript, index);
+                TuiEffect::None
             }
             TuiAction::ToggleToolOutputAt { index } => {
-                if crate::hit_test::toggle_tool_output_at(&mut self.transcript, index) {
-                    TuiEffect::None
-                } else {
-                    TuiEffect::None
-                }
+                let _ = crate::hit_test::toggle_tool_output_at(&mut self.transcript, index);
+                TuiEffect::None
             }
             TuiAction::TranscriptClick { column, row } => {
                 // Ignore clicks while a modal owns the screen — they would
@@ -1187,7 +1200,9 @@ impl TuiApp {
                                 admin.decode_as::<ruse_ui_bridge::UiCommandTestSnapshot>()
                             {
                                 if let Some(candidate) =
-                                    CommandRetryCandidateState::from_command_test_snapshot(&snapshot)
+                                    CommandRetryCandidateState::from_command_test_snapshot(
+                                        &snapshot,
+                                    )
                                 {
                                     self.last_retry_candidate = Some(candidate);
                                 }
@@ -1554,6 +1569,7 @@ impl Default for TuiApp {
             status: StatusBarState::default(),
             terminal_size: TerminalSize::default(),
             theme: TerminalTheme::default(),
+            markdown_enabled: ruse_markdown::markdown_enabled_from_env(),
             composer: ComposerState::default(),
             transcript: TranscriptState::default(),
             approval_panel: ApprovalPanelState::default(),

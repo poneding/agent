@@ -102,22 +102,34 @@ textarea:disabled {
 
 .brand {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 36px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   padding: 2px 4px 6px;
 }
 
 .brand-mark {
+  position: relative;
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  border: 1px solid #52613b;
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, #e7f89a, #8dbd50);
-  color: #171b0f;
-  font-weight: 800;
+  border-radius: 11px;
+  /* Ambient lime glow — makes the mark feel lit, not flat */
+  background:
+    radial-gradient(circle at 50% 40%, rgb(214 240 120 / 38%), transparent 68%);
+  box-shadow:
+    0 0 0 1px rgb(214 240 120 / 12%),
+    0 8px 18px rgb(0 0 0 / 35%),
+    0 2px 4px rgb(158 214 58 / 22%);
+  overflow: visible;
+}
+
+.brand-mark svg {
+  display: block;
+  width: 36px;
+  height: 36px;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 25%));
 }
 
 .brand-name,
@@ -494,6 +506,130 @@ textarea:disabled {
   margin: 0;
   color: var(--text);
   white-space: pre-wrap;
+}
+
+.markdown-body {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.markdown-body > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  margin: 0.85em 0 0.4em;
+  color: var(--accent);
+  font-weight: 720;
+  line-height: 1.25;
+}
+
+.markdown-body h1 {
+  font-size: 1.25em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.markdown-body h2 {
+  font-size: 1.12em;
+}
+
+.markdown-body h3,
+.markdown-body h4 {
+  font-size: 1.02em;
+}
+
+.markdown-body p {
+  margin: 0.55em 0;
+  white-space: normal;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0.45em 0;
+  padding-left: 1.35em;
+}
+
+.markdown-body li + li {
+  margin-top: 0.2em;
+}
+
+.markdown-body blockquote {
+  margin: 0.55em 0;
+  padding: 0.15em 0 0.15em 0.85em;
+  border-left: 3px solid var(--border-strong);
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.markdown-body hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 0.9em 0;
+}
+
+.markdown-body a {
+  color: var(--info);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown-body .md-inline-code,
+.markdown-body :not(pre) > code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  color: var(--warning);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+}
+
+.markdown-body pre {
+  margin: 0.6em 0;
+  padding: 10px 12px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+}
+
+.markdown-body pre code {
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  white-space: pre;
+}
+
+.markdown-body table {
+  width: 100%;
+  margin: 0.6em 0;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.markdown-body th {
+  background: var(--bg-hover);
+  font-weight: 700;
+}
+
+.markdown-body del {
+  color: var(--text-muted);
 }
 
 .transcript-entry-user {

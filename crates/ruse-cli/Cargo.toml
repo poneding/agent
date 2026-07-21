@@ -36,7 +36,8 @@ ruse-storage = { path = "../ruse-storage" }
 ruse-team = { path = "../ruse-team" }
 ruse-tool = { path = "../ruse-tool" }
 ruse-types = { path = "../ruse-types" }
-ruse-tui = { path = "../ruse-tui" }
+ruse-tui = { path = "../ruse-tui", features = ["syntect"] }
+ruse-markdown = { path = "../ruse-markdown", features = ["syntect"] }
 ruse-ui-bridge = { path = "../ruse-ui-bridge" }
 ruse-worktree = { path = "../ruse-worktree" }
 camino = { version = "1" }

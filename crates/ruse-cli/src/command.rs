@@ -11,6 +11,7 @@ use serde::Serialize;
 use thiserror::Error;
 
 use crate::output::CliOutput;
+use futures_util::StreamExt;
 use ruse_context::{
     ContextQualityTrace, PromptAssemblyOutcome, PromptAssemblyRequest, PromptBudget,
     PromptDiagnosticSeverity, PromptLayer, PromptLayerKind, PromptLayerPolicy,
@@ -109,9 +110,7 @@ use ruse_scheduler::{
     InMemoryTaskCommandService, SchedulerError, TaskCommand as SchedulerTaskCommand,
     TaskCommandResponse, TaskCreateRequest, TaskPriority, TaskSchedule, TaskScheduleUpdate,
 };
-use ruse_skill::{
-    ManagedSkillRoot, ManagedSkillRootRegistry, SkillRootError, SkillRootInspection,
-};
+use ruse_skill::{ManagedSkillRoot, ManagedSkillRootRegistry, SkillRootError, SkillRootInspection};
 use ruse_storage::{
     CheckpointRecord, CheckpointStore, EventStore, IdempotencyKey, IdempotencyStore,
     InMemoryEventStore, SqliteEventStore, ToolEffectRecord,
@@ -160,7 +159,6 @@ use ruse_ui_bridge::{
     encode_json_frame, normalize_runtime_event, resolve_slash_command,
 };
 use ruse_worktree::{ChangeKind, FileChange, detect_conflicts};
-use futures_util::StreamExt;
 
 use crate::providers::{build_model_provider_registry, redact_secret_like_text};
 use crate::repl::{
@@ -2400,7 +2398,8 @@ fn terminal_conversation_compaction_frame(
     ) {
         Ok(report) => UiJsonFrame::conversation_compaction(
             UiConversationCompactionReport::from_report(&report),
-        ).expect("admin frame"),
+        )
+        .expect("admin frame"),
         Err(error) => UiJsonFrame::Error {
             code: "terminal_compaction.failed".to_string(),
             message: error,
@@ -5563,7 +5562,8 @@ pub fn render_recovery_command(
             match output_mode {
                 OutputMode::Text => CliOutput::exit(render_recovery_snapshot_text(&snapshot)),
                 OutputMode::Json => CliOutput::exit(json_frame_line(
-                    UiJsonFrame::recovery_snapshot(UiRecoverySnapshot::new(snapshot)).expect("admin frame"),
+                    UiJsonFrame::recovery_snapshot(UiRecoverySnapshot::new(snapshot))
+                        .expect("admin frame"),
                 )),
             }
         }
@@ -5589,9 +5589,10 @@ pub fn render_recovery_command(
             }
             match output_mode {
                 OutputMode::Text => CliOutput::exit(render_resume_dry_run_text(&report)),
-                OutputMode::Json => CliOutput::exit(json_frame_line(UiJsonFrame::resume_dry_run(
-                    UiResumeDryRunReport::new(report),
-                ).expect("admin frame"))),
+                OutputMode::Json => CliOutput::exit(json_frame_line(
+                    UiJsonFrame::resume_dry_run(UiResumeDryRunReport::new(report))
+                        .expect("admin frame"),
+                )),
             }
         }
     }
@@ -5612,9 +5613,9 @@ pub fn render_replay_command(
             let report = replay_inspect_report(&snapshot, from_checkpoint_id);
             match output_mode {
                 OutputMode::Text => CliOutput::exit(render_replay_inspect_text(&report)),
-                OutputMode::Json => {
-                    CliOutput::exit(json_frame_line(UiJsonFrame::replay_inspect(report).expect("admin frame")))
-                }
+                OutputMode::Json => CliOutput::exit(json_frame_line(
+                    UiJsonFrame::replay_inspect(report).expect("admin frame"),
+                )),
             }
         }
         ReplayCliCommand::Fork {
@@ -5663,9 +5664,9 @@ pub fn render_replay_command(
             };
             match output_mode {
                 OutputMode::Text => CliOutput::exit(render_replay_fork_text(&report)),
-                OutputMode::Json => {
-                    CliOutput::exit(json_frame_line(UiJsonFrame::replay_fork(report).expect("admin frame")))
-                }
+                OutputMode::Json => CliOutput::exit(json_frame_line(
+                    UiJsonFrame::replay_fork(report).expect("admin frame"),
+                )),
             }
         }
     }
@@ -5769,7 +5770,10 @@ fn terminal_handle_command_retry(
     if dry_run {
         let plan = terminal_command_retry_plan(command_run_id, reason, true, evidence);
         sender
-            .send(UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan)).expect("admin frame"))
+            .send(
+                UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan))
+                    .expect("admin frame"),
+            )
             .map_err(|error| CliError::PromptRuntimeFailed {
                 message: error.to_string(),
             })?;
@@ -5783,7 +5787,10 @@ fn terminal_handle_command_retry(
             dry_run,
         });
         sender
-            .send(UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan)).expect("admin frame"))
+            .send(
+                UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan))
+                    .expect("admin frame"),
+            )
             .map_err(|error| CliError::PromptRuntimeFailed {
                 message: error.to_string(),
             })?;
@@ -5797,7 +5804,10 @@ fn terminal_handle_command_retry(
             dry_run,
         });
         sender
-            .send(UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan)).expect("admin frame"))
+            .send(
+                UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan))
+                    .expect("admin frame"),
+            )
             .map_err(|error| CliError::PromptRuntimeFailed {
                 message: error.to_string(),
             })?;
@@ -5823,9 +5833,10 @@ fn terminal_handle_command_retry(
         })?;
 
     sender
-        .send(UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(
-            execution.plan,
-        )).expect("admin frame"))
+        .send(
+            UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(execution.plan))
+                .expect("admin frame"),
+        )
         .map_err(|error| CliError::PromptRuntimeFailed {
             message: error.to_string(),
         })?;
@@ -5986,7 +5997,8 @@ pub fn render_command_retry_command(
             match output_mode {
                 OutputMode::Text => CliOutput::exit(render_command_retry_plan_text(&plan)),
                 OutputMode::Json => CliOutput::exit(json_frame_line(
-                    UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan)).expect("admin frame"),
+                    UiJsonFrame::command_retry_plan(UiCommandRetryPlan::new(plan))
+                        .expect("admin frame"),
                 )),
             }
         }
@@ -6135,9 +6147,9 @@ pub fn render_conflict_command(command: ConflictCliCommand, output_mode: OutputM
                 }
                 match output_mode {
                     OutputMode::Text => CliOutput::exit(render_conflict_inspect_text(&report)),
-                    OutputMode::Json => {
-                        CliOutput::exit(json_frame_line(UiJsonFrame::conflict_inspect(report).expect("admin frame")))
-                    }
+                    OutputMode::Json => CliOutput::exit(json_frame_line(
+                        UiJsonFrame::conflict_inspect(report).expect("admin frame"),
+                    )),
                 }
             }
             Err(error) => render_recovery_cli_error("conflict_inspect_failed", &error, output_mode),
@@ -6859,9 +6871,9 @@ pub fn render_team_command(
     match response {
         Ok(frame) => match output_mode {
             OutputMode::Text => CliOutput::exit(render_team_workflow_text(&frame)),
-            OutputMode::Json => {
-                CliOutput::exit(json_frame_line(UiJsonFrame::team_workflow_snapshot(frame).expect("admin frame")))
-            }
+            OutputMode::Json => CliOutput::exit(json_frame_line(
+                UiJsonFrame::team_workflow_snapshot(frame).expect("admin frame"),
+            )),
         },
         Err(error) => render_team_cli_error("team_workflow_failed", &error, output_mode),
     }
@@ -7394,7 +7406,9 @@ fn render_task_json_response(response: TaskCommandResponse) -> CliOutput {
     };
 
     match task_snapshot(tasks, Vec::new()) {
-        Ok(snapshot) => CliOutput::exit(json_frame_line(UiJsonFrame::task_snapshot(snapshot).expect("admin frame"))),
+        Ok(snapshot) => CliOutput::exit(json_frame_line(
+            UiJsonFrame::task_snapshot(snapshot).expect("admin frame"),
+        )),
         Err(error) => CliOutput::failure(format!("{error}\n"), 2),
     }
 }
@@ -7406,9 +7420,10 @@ fn render_task_error(error: SchedulerError, output_mode: OutputMode) -> CliOutpu
             let ui_error =
                 UiTaskCommandError::recoverable("task_command_failed", error.to_string());
             match ui_error.and_then(|error| UiTaskSnapshot::new(Vec::new(), vec![error])) {
-                Ok(snapshot) => {
-                    CliOutput::failure(json_frame_line(UiJsonFrame::task_snapshot(snapshot).expect("admin frame")), 2)
-                }
+                Ok(snapshot) => CliOutput::failure(
+                    json_frame_line(UiJsonFrame::task_snapshot(snapshot).expect("admin frame")),
+                    2,
+                ),
                 Err(error) => CliOutput::failure(format!("{error}\n"), 2),
             }
         }
@@ -8249,7 +8264,9 @@ fn render_extension_json_response(response: ExtensionCommandResponse) -> CliOutp
         ExtensionCommandResponse::Inspect(record) => vec![*record],
     };
     match ui_extension_snapshot_from_records(records) {
-        Ok(snapshot) => CliOutput::exit(json_frame_line(UiJsonFrame::extension_snapshot(snapshot).expect("admin frame"))),
+        Ok(snapshot) => CliOutput::exit(json_frame_line(
+            UiJsonFrame::extension_snapshot(snapshot).expect("admin frame"),
+        )),
         Err(error) => CliOutput::failure(
             json_value_frame_line(serde_json::json!({
                 "type": "extension_error",
@@ -10321,7 +10338,10 @@ fn render_prompt_runtime(
     config_override: ConfigOverride,
 ) -> CliOutput {
     match run_prompt_runtime(prompt, config_path, config_override) {
-        Ok(final_message) => CliOutput::exit(format!("{final_message}\n")),
+        Ok(final_message) => {
+            let rendered = maybe_render_prompt_markdown(&final_message);
+            CliOutput::exit(format!("{rendered}\n"))
+        }
         Err((partial_stdout, error)) => {
             let mut stdout = partial_stdout;
             if !stdout.is_empty() && !stdout.ends_with('\n') {
@@ -10331,6 +10351,28 @@ fn render_prompt_runtime(
             CliOutput::failure(stdout, 2)
         }
     }
+}
+
+/// When `RUSE_MARKDOWN_ANSI=1`, re-render the final `--prompt` text as ANSI Markdown.
+/// Streaming deltas remain raw source; only the completed body is styled so scripts get a stable final view without mid-stream rewrites.
+fn maybe_render_prompt_markdown(message: &str) -> String {
+    if !ruse_markdown::ansi_markdown_enabled_from_env() {
+        return message.to_string();
+    }
+    let width = std::env::var("COLUMNS")
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(80);
+    ruse_markdown::render_markdown_ansi(
+        message,
+        &ruse_markdown::RenderOptions {
+            width,
+            streaming: false,
+            osc8_links: true,
+            highlight_code: true,
+            code_block_indent: "  ".to_string(),
+        },
+    )
 }
 
 fn run_prompt_runtime(
@@ -10687,7 +10729,8 @@ fn render_prompt_inspection_json() -> CliOutput {
                 Ok(summary) => summary,
                 Err(error) => return render_prompt_inspection_json_error(error),
             };
-            let mut stdout = json_frame_line(UiJsonFrame::prompt_summary(summary).expect("admin frame"));
+            let mut stdout =
+                json_frame_line(UiJsonFrame::prompt_summary(summary).expect("admin frame"));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
         }
@@ -11064,7 +11107,10 @@ mod terminal_runtime_identity_tests {
         match resume {
             UiJsonFrame::Admin(admin) if admin.kind == "resume_dry_run" => {
                 let report: UiResumeDryRunReport = admin.decode_as().expect("decode dry run");
-                assert_eq!(report.report.snapshot.conversation_id, identity.conversation_id);
+                assert_eq!(
+                    report.report.snapshot.conversation_id,
+                    identity.conversation_id
+                );
                 assert_eq!(report.report.will_replay_event_count, 1);
             }
             other => panic!("expected resume dry-run admin frame, got {other:?}"),
@@ -11112,11 +11158,9 @@ mod terminal_runtime_identity_tests {
                 assert_eq!(report.source_message_count, 1);
                 assert_eq!(report.summary_message_count, 1);
                 assert_eq!(report.dropped_message_count, 1);
-                assert!(
-                    report.summary.as_deref().is_some_and(|summary| {
-                        summary.contains("[redacted]") && !summary.contains("sk-terminal-secret")
-                    })
-                );
+                assert!(report.summary.as_deref().is_some_and(|summary| {
+                    summary.contains("[redacted]") && !summary.contains("sk-terminal-secret")
+                }));
             }
             other => panic!("expected compaction admin frame, got {other:?}"),
         }
@@ -11169,12 +11213,14 @@ mod terminal_runtime_identity_tests {
     fn terminal_startup_frames_include_extension_snapshot() {
         let frames = terminal_app_startup_frames(None, ConfigOverride::default(), None);
 
-        assert!(frames.iter().any(|frame| match frame {
-            UiJsonFrame::Admin(admin) if admin.kind == "extension_snapshot" => admin
-                .decode_as::<UiExtensionSnapshot>()
-                .map(|snapshot| snapshot.extensions.is_empty())
-                .unwrap_or(false),
-            _ => false,
+        assert!(frames.iter().any(|frame| {
+            match frame {
+                UiJsonFrame::Admin(admin) if admin.kind == "extension_snapshot" => admin
+                    .decode_as::<UiExtensionSnapshot>()
+                    .map(|snapshot| snapshot.extensions.is_empty())
+                    .unwrap_or(false),
+                _ => false,
+            }
         }));
     }
 
@@ -11457,11 +11503,9 @@ fallback_provider_ids = []
                 .append(recovery_runtime_event(
                     identity.conversation_id,
                     first_turn,
-                    RuntimeEventPayload::FinalResponseProduced(
-                        ruse_types::FinalResponseProduced {
-                            message: "I will remember Atlas.".to_string(),
-                        },
-                    ),
+                    RuntimeEventPayload::FinalResponseProduced(ruse_types::FinalResponseProduced {
+                        message: "I will remember Atlas.".to_string(),
+                    }),
                 ))
                 .expect("append assistant");
             store
@@ -11524,11 +11568,9 @@ fallback_provider_ids = []
                 .append(recovery_runtime_event(
                     identity.conversation_id,
                     turn,
-                    RuntimeEventPayload::FinalResponseProduced(
-                        ruse_types::FinalResponseProduced {
-                            message: "done".to_string(),
-                        },
-                    ),
+                    RuntimeEventPayload::FinalResponseProduced(ruse_types::FinalResponseProduced {
+                        message: "done".to_string(),
+                    }),
                 ))
                 .expect("final");
         }
@@ -11536,11 +11578,15 @@ fallback_provider_ids = []
         let history = terminal_conversation_history(&store, identity.conversation_id)
             .expect("conversation history");
         assert!(
-            history.iter().any(|m| m.content.contains("workspace.edit_file")),
+            history
+                .iter()
+                .any(|m| m.content.contains("workspace.edit_file")),
             "expected tool call in history: {history:?}"
         );
         assert!(
-            history.iter().any(|m| m.content.contains("tool_result") && m.content.contains("edited")),
+            history
+                .iter()
+                .any(|m| m.content.contains("tool_result") && m.content.contains("edited")),
             "expected tool result in history: {history:?}"
         );
         assert_eq!(history.last().map(|m| m.content.as_str()), Some("done"));
@@ -11640,9 +11686,9 @@ fn render_json_config_check(
                 stdout.push_str(&json_frame_line(config_diagnostic_frame(diagnostic)));
             }
             stdout.push_str(&json_frame_line(UiJsonFrame::ConfigSnapshot(snapshot)));
-            stdout.push_str(&json_frame_line(UiJsonFrame::onboarding_readiness_snapshot(
-                onboarding,
-            ).expect("admin frame")));
+            stdout.push_str(&json_frame_line(
+                UiJsonFrame::onboarding_readiness_snapshot(onboarding).expect("admin frame"),
+            ));
             stdout.push_str(&json_frame_line(config_summary_frame(&report.effective)));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
@@ -12076,7 +12122,8 @@ fn render_json_repo_session(
                     return CliOutput::failure(stdout, 2);
                 }
             };
-            let mut stdout = json_frame_line(UiJsonFrame::repo_session_snapshot(snapshot).expect("admin frame"));
+            let mut stdout =
+                json_frame_line(UiJsonFrame::repo_session_snapshot(snapshot).expect("admin frame"));
             let mut event_count = 0;
             for event in &report.events {
                 stdout.push_str(&json_frame_line(UiJsonFrame::Event(
@@ -12446,9 +12493,7 @@ fn render_json_project_context_select(input: ProjectContextSelectCliInput) -> Cl
                             return CliOutput::failure(stdout, 2);
                         }
                     };
-                    let mut stdout = json_frame_line(
-                        UiJsonFrame::project_context_pinned(snapshot),
-                    );
+                    let mut stdout = json_frame_line(UiJsonFrame::project_context_pinned(snapshot));
                     stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
                     CliOutput::exit(stdout)
                 }
@@ -12479,8 +12524,7 @@ fn render_json_project_context_select(input: ProjectContextSelectCliInput) -> Cl
                             return CliOutput::failure(stdout, 2);
                         }
                     };
-                let mut stdout =
-                    json_frame_line(UiJsonFrame::project_context_pinned(snapshot));
+                let mut stdout = json_frame_line(UiJsonFrame::project_context_pinned(snapshot));
                 stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
                 CliOutput::exit(stdout)
             }
@@ -12510,8 +12554,7 @@ fn render_json_project_context_select(input: ProjectContextSelectCliInput) -> Cl
                         return CliOutput::failure(stdout, 2);
                     }
                 };
-                let mut stdout =
-                    json_frame_line(UiJsonFrame::project_context_hybrid(snapshot));
+                let mut stdout = json_frame_line(UiJsonFrame::project_context_hybrid(snapshot));
                 stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
                 CliOutput::exit(stdout)
             }
@@ -12539,8 +12582,7 @@ fn render_json_project_context_select(input: ProjectContextSelectCliInput) -> Cl
                     return CliOutput::failure(stdout, 2);
                 }
             };
-            let mut stdout =
-                json_frame_line(UiJsonFrame::project_context_retrieval(snapshot));
+            let mut stdout = json_frame_line(UiJsonFrame::project_context_retrieval(snapshot));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
         }
@@ -12738,9 +12780,9 @@ fn append_project_context_quality_trace_json(
             return Err(CliOutput::failure(output, 2));
         }
     };
-    stdout.push_str(&json_frame_line(
-        UiJsonFrame::project_context_quality(snapshot),
-    ));
+    stdout.push_str(&json_frame_line(UiJsonFrame::project_context_quality(
+        snapshot,
+    )));
     Ok(())
 }
 
@@ -13821,7 +13863,8 @@ fn render_json_repo_command(
                     return CliOutput::failure(stdout, 2);
                 }
             };
-            let mut stdout = json_frame_line(UiJsonFrame::command_test_snapshot(snapshot).expect("admin frame"));
+            let mut stdout =
+                json_frame_line(UiJsonFrame::command_test_snapshot(snapshot).expect("admin frame"));
             let mut event_count = 0;
             for event in &report.events {
                 stdout.push_str(&json_frame_line(UiJsonFrame::Event(
@@ -14021,7 +14064,8 @@ fn render_json_final_review(fixture: FinalReviewFixture) -> CliOutput {
                     return CliOutput::failure(stdout, 2);
                 }
             };
-            let mut stdout = json_frame_line(UiJsonFrame::final_review_snapshot(snapshot).expect("admin frame"));
+            let mut stdout =
+                json_frame_line(UiJsonFrame::final_review_snapshot(snapshot).expect("admin frame"));
             stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
             CliOutput::exit(stdout)
         }
@@ -14135,9 +14179,9 @@ fn render_json_startup_check() -> CliOutput {
         Ok(outcome) => match UiStartupMigrationSnapshot::from_outcome(&outcome) {
             Ok(snapshot) => {
                 let mut stdout = String::new();
-                stdout.push_str(&json_frame_line(UiJsonFrame::startup_migration_snapshot(
-                    snapshot,
-                ).expect("admin frame")));
+                stdout.push_str(&json_frame_line(
+                    UiJsonFrame::startup_migration_snapshot(snapshot).expect("admin frame"),
+                ));
                 stdout.push_str(&json_frame_line(UiJsonFrame::Done { event_count: 0 }));
                 CliOutput::exit(stdout)
             }
@@ -14349,9 +14393,7 @@ fn provider_support_status(
     format!("missing={missing}")
 }
 
-fn onboarding_readiness_status_label(
-    status: ruse_core::OnboardingReadinessStatus,
-) -> &'static str {
+fn onboarding_readiness_status_label(status: ruse_core::OnboardingReadinessStatus) -> &'static str {
     match status {
         ruse_core::OnboardingReadinessStatus::Ready => "ready",
         ruse_core::OnboardingReadinessStatus::Degraded => "degraded",

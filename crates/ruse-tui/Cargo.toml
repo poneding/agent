@@ -6,9 +6,15 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 
+[features]
+default = []
+## Optional syntect-backed fenced code highlighting for model Markdown.
+syntect = ["ruse-markdown/syntect"]
+
 [dependencies]
 ruse-types = { path = "../ruse-types" }
 ruse-ui-bridge = { path = "../ruse-ui-bridge" }
+ruse-markdown = { path = "../ruse-markdown" }
 base64 = "0.22"
 crossterm = "0.28.1"
 ratatui = "0.29.0"

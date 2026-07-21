@@ -436,10 +436,21 @@ fn render_plain_repl_transcript_entry(entry: &PlainReplTranscriptEntry, width: u
     match entry {
         PlainReplTranscriptEntry::User(message) => render_user_transcript_entry(message, width),
         PlainReplTranscriptEntry::Assistant(message) => {
-            format!(
-                "Agent\n{}\n\n",
+            let body = if ruse_markdown::ansi_markdown_enabled_from_env() {
+                ruse_markdown::render_markdown_ansi(
+                    message.trim_end(),
+                    &ruse_markdown::RenderOptions {
+                        width,
+                        streaming: false,
+                        osc8_links: true,
+                        highlight_code: true,
+                        code_block_indent: "  ".to_string(),
+                    },
+                )
+            } else {
                 render_wrapped_lines(message.trim_end(), width)
-            )
+            };
+            format!("Agent\n{body}\n\n")
         }
         PlainReplTranscriptEntry::System(message) => format!(
             "\x1b[38;5;244m{}\n\n{ANSI_RESET}",

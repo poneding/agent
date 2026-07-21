@@ -14,23 +14,13 @@ pub enum ThemePickerAction {
 
 /// Centered theme picker. Mirrors the model/session modals, but focuses a fixed
 /// catalog of [`TerminalTheme`] values rather than a runtime-fed list.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ThemePickerState {
     pub open: bool,
     pub focused_index: usize,
     /// Theme active when the picker opened; restored on Esc so a cancelled
     /// preview never sticks.
     pub original_theme: TerminalTheme,
-}
-
-impl Default for ThemePickerState {
-    fn default() -> Self {
-        Self {
-            open: false,
-            focused_index: 0,
-            original_theme: TerminalTheme::default(),
-        }
-    }
 }
 
 impl ThemePickerState {

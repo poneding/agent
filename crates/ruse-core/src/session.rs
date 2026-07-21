@@ -112,6 +112,7 @@ impl AgentSession {
     }
 
     /// Full agent loop with tools, policy, budgets, and optional live sinks.
+    #[allow(clippy::too_many_arguments)]
     pub async fn prompt_with_tools<P, S, A>(
         &self,
         user_message: impl Into<String>,
@@ -167,5 +168,3 @@ pub struct SessionAgentOptions {
     /// Load AGENTS.md/CLAUDE.md + git status into the model prompt.
     pub coding_context: bool,
 }
-
-

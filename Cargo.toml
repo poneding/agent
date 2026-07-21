@@ -20,6 +20,7 @@ members = [
     "crates/ruse-ui-bridge",
     "crates/ruse-desktop",
     "crates/ruse-cli",
+    "crates/ruse-markdown",
     "crates/ruse-tui",
     "apps/desktop/src-tauri",
     "xtask",

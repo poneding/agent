@@ -8,7 +8,7 @@
 use ratatui::text::Line;
 
 use crate::render::{
-    collapse_visually_blank_runs_for_hit, pad_block_backgrounds_for_hit,
+    approval_panel_height_for, collapse_visually_blank_runs_for_hit, pad_block_backgrounds_for_hit,
     transcript_item_lines_for_hit, transcript_visible_start, wrap_transcript_lines,
 };
 use crate::{TerminalTheme, TranscriptItem, TranscriptItemKind, TranscriptState, TuiApp};
@@ -31,8 +31,7 @@ pub fn hit_test_transcript(app: &TuiApp, column: u16, row: u16) -> Option<Transc
     if row < layout.content_y || row >= layout.content_y.saturating_add(layout.content_height) {
         return None;
     }
-    if column < layout.content_x
-        || column >= layout.content_x.saturating_add(layout.content_width)
+    if column < layout.content_x || column >= layout.content_x.saturating_add(layout.content_width)
     {
         return None;
     }
@@ -69,7 +68,12 @@ fn transcript_layout_for_hit(app: &TuiApp) -> Option<TranscriptHitLayout> {
     }
 
     let theme = app.theme;
-    let (lines, owners) = build_owned_lines(&app.transcript.items, theme);
+    let (lines, owners) = build_owned_lines(
+        &app.transcript.items,
+        theme,
+        app.markdown_enabled,
+        usize::from(content_width),
+    );
     let wrapped = wrap_with_owners(lines, owners, content_width);
     let padded = pad_block_backgrounds_for_hit(wrapped, content_width);
     let collapsed = collapse_visually_blank_runs_for_hit(padded);
@@ -107,14 +111,30 @@ fn primary_content_rect(app: &TuiApp) -> Option<(u16, u16, u16, u16)> {
         return None;
     }
 
-    let suggestion_height = slash_suggestion_height_for_hit(&app.composer.slash_suggestions);
-    let activity_height: u16 = if app.turn_state().is_active() { 2 } else { 0 };
-    let composer_height = composer_height_for_hit(app);
-    let footer_height: u16 = 1;
+    // Mirror `render_chat`: when the bottom-docked approval surface is visible it
+    // replaces the composer, hides slash suggestions / activity chrome, and
+    // covers the status footer.
+    let approval_visible = app.approval_modal_visible();
+    let suggestion_height = if approval_visible {
+        0
+    } else {
+        slash_suggestion_height_for_hit(&app.composer.slash_suggestions)
+    };
+    let activity_height: u16 = if !approval_visible && app.turn_state().is_active() {
+        2
+    } else {
+        0
+    };
+    let input_height = if approval_visible {
+        approval_panel_height_for(app, height)
+    } else {
+        composer_height_for_hit(app)
+    };
+    let footer_height: u16 = if approval_visible { 0 } else { 1 };
 
     let reserved = activity_height
         .saturating_add(suggestion_height)
-        .saturating_add(composer_height)
+        .saturating_add(input_height)
         .saturating_add(footer_height);
     let primary_height = height.saturating_sub(reserved).max(1);
     // Primary area starts at y=0 in the chat layout.
@@ -147,12 +167,15 @@ fn composer_height_for_hit(app: &TuiApp) -> u16 {
 fn build_owned_lines(
     items: &[TranscriptItem],
     theme: TerminalTheme,
+    markdown_enabled: bool,
+    content_width: usize,
 ) -> (Vec<Line<'static>>, Vec<Option<usize>>) {
     let mut lines = Vec::new();
     let mut owners = Vec::new();
     let mut rendered_any = false;
     for (index, item) in items.iter().enumerate() {
-        let item_lines = transcript_item_lines_for_hit(item, theme);
+        let item_lines =
+            transcript_item_lines_for_hit(item, theme, markdown_enabled, content_width);
         if item_lines.is_empty() {
             continue;
         }
@@ -178,7 +201,7 @@ fn wrap_with_owners(
     // We re-wrap per line so ownership is preserved across wraps.
     let width = width.max(1);
     let mut out = Vec::new();
-    for (line, owner) in lines.into_iter().zip(owners.into_iter()) {
+    for (line, owner) in lines.into_iter().zip(owners) {
         let wrapped = wrap_transcript_lines(vec![line], width);
         for row in wrapped {
             out.push((row, owner));

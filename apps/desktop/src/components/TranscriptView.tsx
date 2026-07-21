@@ -1,4 +1,11 @@
 import type { TranscriptEntry } from '../types';
+import { MarkdownBody } from './MarkdownBody';
+
+function usesMarkdown(kind: TranscriptEntry['kind']): boolean {
+  // Align with TUI: model/assistant (and reasoning-style system notes if any)
+  // get Markdown; user/diagnostic stay plain.
+  return kind === 'assistant';
+}
 
 export function TranscriptView({ entries }: { entries: TranscriptEntry[] }) {
   if (entries.length === 0) {
@@ -17,7 +24,11 @@ export function TranscriptView({ entries }: { entries: TranscriptEntry[] }) {
           <header>
             <span>{entry.kind}</span>
           </header>
-          <p>{entry.content}</p>
+          {usesMarkdown(entry.kind) ? (
+            <MarkdownBody content={entry.content} />
+          ) : (
+            <p>{entry.content}</p>
+          )}
           {entry.truncated ? <small>truncated</small> : null}
         </li>
       ))}

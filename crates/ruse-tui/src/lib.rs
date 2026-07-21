@@ -8,6 +8,7 @@ pub mod composer;
 pub mod diff_panel;
 pub mod extension_panel;
 pub mod hit_test;
+pub mod markdown_view;
 pub mod model_picker;
 pub mod palette;
 pub mod render;
@@ -39,10 +40,12 @@ pub use extension_panel::ExtensionPanelState;
 pub use hit_test::{TranscriptHit, hit_test_transcript, hit_test_transcript_for_test};
 pub use model_picker::{ModelPickerAction, ModelPickerEntry, ModelPickerState};
 pub use palette::{Palette, Semantic};
-pub use render::{paint_transcript_history_lines, render_app, render_app_to_string, render_sticky_chrome, sticky_chrome_height, transcript_history_lines};
+pub use render::{
+    paint_transcript_history_lines, render_app, render_app_to_string, render_sticky_chrome,
+    sticky_chrome_height, transcript_history_lines,
+};
 pub use selection::{ContentGeometry, SelectionRange, SelectionState, extract_selected_text};
 pub use session_panel::{SessionPanelAction, SessionPanelState};
-pub use theme_picker::{ThemePickerAction, ThemePickerState};
 pub use slash::{
     SlashCommand, SlashCommandError, SlashSuggestionItem, SlashSuggestionState,
     ThinkingVisibilityCommand,
@@ -67,6 +70,7 @@ pub use terminal_app::{
     run_terminal_app_stdio, run_terminal_app_stdio_with_runtime,
     run_terminal_app_stdio_with_runtimes, start_next_queued_prompt, write_osc52_clipboard,
 };
+pub use theme_picker::{ThemePickerAction, ThemePickerState};
 pub use trace_panel::{TraceEntryKind, TraceFilter, TracePanelEntry, TracePanelState};
 pub use transcript::{
     ReasoningVisibility, TranscriptItem, TranscriptItemKind, TranscriptState, WaitingActivity,

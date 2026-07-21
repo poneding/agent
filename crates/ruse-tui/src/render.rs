@@ -28,29 +28,54 @@ pub fn render_app_to_string(app: &TuiApp, width: u16, height: u16) -> std::io::R
 
 fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
     let area = frame.area();
-    let suggestion_height = slash_suggestion_height(&app.composer.slash_suggestions);
+    let approval_visible = app.approval_modal_visible();
+    // Approval owns the bottom chrome (Claude Code style): it replaces the
+    // composer and slash suggestions so the decision surface sits where input
+    // normally is, instead of a centered floating modal.
+    let suggestion_height = if approval_visible {
+        0
+    } else {
+        slash_suggestion_height(&app.composer.slash_suggestions)
+    };
     // Active turns reserve one blank row between the transcript and the activity
     // prompt, then one row for the prompt itself. When idle the pair collapses so
-    // the transcript reclaims both rows.
-    let activity_height: u16 = if app.turn_state().is_active() { 2 } else { 0 };
+    // the transcript reclaims both rows. Hide the activity line while the
+    // approval surface is up — the decision chrome is the focus.
+    let activity_height: u16 = if !approval_visible && app.turn_state().is_active() {
+        2
+    } else {
+        0
+    };
 
-    // Composer height grows with content: the two border rows plus one row per
-    // logical line, capped so a long paste can't swallow the transcript. Wrapping
-    // is off, so one logical line = one screen row.
-    let composer_height = composer_height_for(app);
+    // Bottom input slot: either the approval panel (auto-fit content height) or
+    // the composer (grows with typed lines). While approval is up it covers the
+    // status footer (model/cwd/etc.) so the decision surface owns the bottom.
+    let footer_height: u16 = if approval_visible { 0 } else { 1 };
+    let input_height = if approval_visible {
+        approval_panel_height_for(app, area.height)
+    } else {
+        // Composer height grows with content: the two border rows plus one row
+        // per logical line, capped so a long paste can't swallow the transcript.
+        // Wrapping is off, so one logical line = one screen row.
+        composer_height_for(app)
+    };
 
     // Bottom-anchored stack: transcript (flex) → blank row + activity line →
-    // [slash suggestions] → composer → status footer. Keeping suggestions next
-    // to the composer means they never interrupt transcript/activity spacing.
-    let mut constraints = vec![Constraint::Min(3)];
+    // [slash suggestions] → composer|approval → [status footer]. Keeping
+    // suggestions next to the composer means they never interrupt
+    // transcript/activity spacing. Approval may claim almost the full height
+    // (Claude Code style), so the transcript min shrinks to 1 row while it is up.
+    let mut constraints = vec![Constraint::Min(if approval_visible { 1 } else { 3 })];
     if activity_height > 0 {
         constraints.push(Constraint::Length(activity_height));
     }
     if suggestion_height > 0 {
         constraints.push(Constraint::Length(suggestion_height));
     }
-    constraints.push(Constraint::Length(composer_height)); // composer
-    constraints.push(Constraint::Length(1)); // status footer
+    constraints.push(Constraint::Length(input_height)); // composer or approval
+    if footer_height > 0 {
+        constraints.push(Constraint::Length(footer_height)); // status footer
+    }
     let vertical = Layout::default()
         .direction(Direction::Vertical)
         .constraints(constraints)
@@ -73,12 +98,17 @@ fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
     } else {
         None
     };
-    let composer_area = vertical[idx];
-    let status_area = vertical[idx + 1];
+    let input_area = vertical[idx];
+    let status_area = if footer_height > 0 {
+        Some(vertical[idx + 1])
+    } else {
+        None
+    };
 
     // Side panels (status/trace/tasks/extensions/diff/command) are intentionally
     // not drawn: the product shell is a single full-width transcript like Claude
     // Code. Status lives in the footer; model/session/theme use centered modals.
+    // Approval is bottom-docked chrome (not a modal) and hides the footer.
     render_primary(frame, app, primary_area);
 
     if let Some(activity_area) = activity_area {
@@ -98,8 +128,14 @@ fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
             suggestion_area,
         );
     }
-    render_composer(frame, app, composer_area);
-    render_status(frame, app, status_area);
+    if approval_visible {
+        render_approval_panel(frame, app, input_area);
+    } else {
+        render_composer(frame, app, input_area);
+    }
+    if let Some(status_area) = status_area {
+        render_status(frame, app, status_area);
+    }
 
     // The transient toast (destination (4)) is a dim overlay on the last row of
     // the primary area — neutral, never a red chip. It auto-expires (the event
@@ -108,18 +144,11 @@ fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
         render_toast(frame, app, primary_area);
     }
 
-    // The approval modal is drawn LAST, over the whole chat area, so it is always
-    // visible when a request is pending regardless of terminal width or which side
-    // panel is active. It is a true overlay (Clear + centered bordered block).
-    if app.approval_modal_visible() {
-        render_approval_modal(frame, app, area);
-    }
-
     // The model picker is a centered overlay, drawn last so it sits above the
-    // chat. It never coexists with the approval modal (opening one is a
+    // chat. It never coexists with the approval surface (opening one is a
     // deliberate, separate user action), but the approval gate wins if both are
     // somehow active so a pending safety decision is never hidden.
-    if app.model_picker.is_open() && !app.approval_modal_visible() {
+    if app.model_picker.is_open() && !approval_visible {
         render_model_modal(frame, app, area);
     }
 
@@ -127,14 +156,14 @@ fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
     // still wins if both are somehow active, and the model picker takes priority
     // over it (they are mutually exclusive in practice, but this keeps a single
     // deterministic winner).
-    if app.session_panel.is_open() && !app.approval_modal_visible() && !app.model_picker.is_open() {
+    if app.session_panel.is_open() && !approval_visible && !app.model_picker.is_open() {
         render_session_modal(frame, app, area);
     }
 
     // Theme picker: same centered-overlay shape. Approval still wins; model and
     // session take priority so a deliberate switch is never buried under theme.
     if app.theme_picker.is_open()
-        && !app.approval_modal_visible()
+        && !approval_visible
         && !app.model_picker.is_open()
         && !app.session_panel.is_open()
     {
@@ -178,7 +207,15 @@ fn render_transcript(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
         horizontal: gutter,
         vertical: 0,
     });
-    let lines = transcript_styled_lines(&transcript.items, theme);
+    // Streaming labels share the turn spinner frame so their marquee stays in
+    // lockstep with the activity line. Completed items ignore the frame.
+    let lines = transcript_styled_lines(
+        &transcript.items,
+        theme,
+        app.spinner_frame,
+        app.markdown_enabled,
+        usize::from(content_area.width),
+    );
     let wrapped = wrap_transcript_lines(lines, content_area.width);
     // After wrapping, pad every line that carries a block background (user/model
     // message blocks) out to the content width. The outer gutter keeps messages
@@ -416,11 +453,18 @@ fn line_from_spans(
     }
 }
 
-fn transcript_styled_lines(items: &[TranscriptItem], theme: TerminalTheme) -> Vec<Line<'static>> {
+fn transcript_styled_lines(
+    items: &[TranscriptItem],
+    theme: TerminalTheme,
+    marquee_frame: usize,
+    markdown_enabled: bool,
+    content_width: usize,
+) -> Vec<Line<'static>> {
     let mut lines = Vec::new();
     let mut rendered_any = false;
     for item in items {
-        let item_lines = transcript_item_lines(item, theme);
+        let item_lines =
+            transcript_item_lines(item, theme, marquee_frame, markdown_enabled, content_width);
         // Skip ghost items that render no rows (empty model deltas, whitespace-only
         // bodies, etc.). Including them would inject bare separators and look like
         // extra blank rows between real messages.
@@ -535,15 +579,25 @@ pub(crate) fn transcript_visible_start(
     total_lines.saturating_sub(visible_height + offset)
 }
 
-/// Hit-test twin of [`transcript_item_lines`].
+/// Hit-test twin of [`transcript_item_lines`]. Marquee is frozen at frame 0 so
+/// hit geometry is stable (the marquee only recolors characters, never changes
+/// their count or width).
 pub(crate) fn transcript_item_lines_for_hit(
     item: &TranscriptItem,
     theme: TerminalTheme,
+    markdown_enabled: bool,
+    content_width: usize,
 ) -> Vec<Line<'static>> {
-    transcript_item_lines(item, theme)
+    transcript_item_lines(item, theme, 0, markdown_enabled, content_width)
 }
 
-fn transcript_item_lines(item: &TranscriptItem, theme: TerminalTheme) -> Vec<Line<'static>> {
+fn transcript_item_lines(
+    item: &TranscriptItem,
+    theme: TerminalTheme,
+    marquee_frame: usize,
+    markdown_enabled: bool,
+    content_width: usize,
+) -> Vec<Line<'static>> {
     let style = transcript_item_style(item.kind, theme);
     let body = trim_blank_boundary_lines(&item.body);
     // Whitespace-only bodies become a single space from the trim helper. Treat
@@ -561,32 +615,48 @@ fn transcript_item_lines(item: &TranscriptItem, theme: TerminalTheme) -> Vec<Lin
                 // Empty / pending model streams must not reserve a blank row.
                 return Vec::new();
             }
-            message_block_lines(&body, "", style)
+            if markdown_enabled {
+                crate::markdown_view::markdown_to_lines(
+                    &body,
+                    style,
+                    theme,
+                    content_width,
+                    item.streaming,
+                )
+            } else {
+                message_block_lines(&body, "", style)
+            }
         }
-        TranscriptItemKind::Reasoning => reasoning_lines(item, &body, theme),
+        TranscriptItemKind::Reasoning => reasoning_lines(
+            item,
+            &body,
+            theme,
+            marquee_frame,
+            markdown_enabled,
+            content_width,
+        ),
         TranscriptItemKind::ToolCall | TranscriptItemKind::ToolResult => {
-            tool_call_lines(item, &body, item.kind, theme)
+            tool_call_lines(item, &body, item.kind, theme, marquee_frame)
         }
         TranscriptItemKind::Approval => {
             if body_is_empty {
                 return Vec::new();
             }
-            vec![Line::from(vec![
-                Span::styled(" approval ", transcript_chip_style(item.kind, theme)),
-                Span::raw(" "),
-                Span::styled(body, style),
-            ])]
+            let mut spans = status_label_spans("approval", item.kind, false, theme, marquee_frame);
+            spans.push(Span::raw(" "));
+            spans.push(Span::styled(body, style));
+            vec![Line::from(spans)]
         }
         TranscriptItemKind::Diagnostic => {
             if body_is_empty && item.title.trim().is_empty() {
                 return Vec::new();
             }
+            let mut spans =
+                status_label_spans("diagnostic", item.kind, false, theme, marquee_frame);
+            spans.push(Span::raw(" "));
+            spans.push(Span::styled(item.title.clone(), style));
             vec![
-                Line::from(vec![
-                    Span::styled(" diagnostic ", transcript_chip_style(item.kind, theme)),
-                    Span::raw(" "),
-                    Span::styled(item.title.clone(), style),
-                ]),
+                Line::from(spans),
                 Line::from(Span::styled(format!("  {body}"), style)),
             ]
         }
@@ -594,11 +664,10 @@ fn transcript_item_lines(item: &TranscriptItem, theme: TerminalTheme) -> Vec<Lin
             if body_is_empty {
                 return Vec::new();
             }
-            vec![Line::from(vec![
-                Span::styled(" note ", transcript_chip_style(item.kind, theme)),
-                Span::raw(" "),
-                Span::styled(body, style),
-            ])]
+            let mut spans = status_label_spans("note", item.kind, false, theme, marquee_frame);
+            spans.push(Span::raw(" "));
+            spans.push(Span::styled(body, style));
+            vec![Line::from(spans)]
         }
     }
 }
@@ -608,7 +677,7 @@ fn transcript_item_lines(item: &TranscriptItem, theme: TerminalTheme) -> Vec<Lin
 const TOOL_RESULT_DEFAULT_ROWS: usize = 2;
 
 /// Render a tool call as:
-///   [tool_name] target          (same line)
+///   • write_file target          (same line; no chip background)
 ///     ⎿ result line 1
 ///       result line 2
 /// Body format is preferably `friendly_name target\nresult…` (legacy
@@ -618,6 +687,7 @@ fn tool_call_lines(
     body: &str,
     kind: TranscriptItemKind,
     theme: TerminalTheme,
+    marquee_frame: usize,
 ) -> Vec<Line<'static>> {
     let (head, detail) = match body.split_once('\n') {
         Some((head, detail)) => (head.trim(), detail.trim()),
@@ -627,26 +697,30 @@ fn tool_call_lines(
         },
     };
 
-    // Split "friendly_name target…" so the name can be chipped.
+    // Split "friendly_name target…" so the name can carry the status bullet.
     let (tool_label, target) = match head.split_once(' ') {
         Some((name, rest)) => (name, rest.trim()),
         None => (head, ""),
     };
-    let chip = transcript_chip_style(TranscriptItemKind::ToolCall, theme);
+    let streaming = kind == TranscriptItemKind::ToolCall && item.streaming;
     let target_style = if kind == TranscriptItemKind::ToolCall {
         transcript_meta_style(theme)
     } else {
         Style::default()
     };
 
-    let mut head_spans = vec![
-        Span::styled(format!(" {tool_label} "), chip),
-        Span::raw(" "),
-    ];
+    let mut head_spans = status_label_spans(
+        tool_label,
+        TranscriptItemKind::ToolCall,
+        streaming,
+        theme,
+        marquee_frame,
+    );
     if !target.is_empty() {
+        head_spans.push(Span::raw(" "));
         head_spans.push(Span::styled(target.to_string(), target_style));
     }
-    if kind == TranscriptItemKind::ToolCall && item.streaming {
+    if streaming {
         head_spans.push(Span::styled(" …", transcript_meta_style(theme)));
     }
     let mut lines = vec![Line::from(head_spans)];
@@ -755,46 +829,75 @@ fn user_message_block_lines(body: &str, style: Style) -> Vec<Line<'static>> {
 }
 
 /// Render a reasoning ("thinking") item as a collapsible block: a clickable-style
-/// header (`▾ thinking` / `▸ thinking (N lines)`) plus, when expanded, the
-/// reasoning content. Collapsed shows only the header; expanded shows at least the
-/// first few lines. The header hint tells the user how to toggle it.
-fn reasoning_lines(item: &TranscriptItem, body: &str, theme: TerminalTheme) -> Vec<Line<'static>> {
+/// header (`• Thinking…` while streaming / `• Thought` when done) plus, when
+/// expanded, the reasoning content. Collapsed shows only the header; expanded
+/// shows the body. The header hint tells the user how to toggle it.
+fn reasoning_lines(
+    item: &TranscriptItem,
+    body: &str,
+    theme: TerminalTheme,
+    marquee_frame: usize,
+    markdown_enabled: bool,
+    content_width: usize,
+) -> Vec<Line<'static>> {
     let collapsed = item.is_reasoning_collapsed();
     let style = transcript_item_style(TranscriptItemKind::Reasoning, theme);
     let meta = transcript_meta_style(theme);
-    let chip = transcript_chip_style(TranscriptItemKind::Reasoning, theme);
 
     // The reasoning body, minus the pending placeholder sentinel (which is just a
     // "waiting for content" marker, not real reasoning).
-    let content: Vec<&str> = if body == "thinking" {
-        Vec::new()
+    let has_content = body != "thinking" && !body.trim().is_empty();
+    let content_line_count = if body == "thinking" {
+        0
     } else {
-        body.lines().collect()
+        body.lines().count()
     };
 
-    let mut header_spans = vec![Span::styled(" thinking ", chip), Span::raw(" ")];
-    if collapsed && !content.is_empty() {
+    // Tense: streaming → "Thinking…"; finished → "Thought". Color is gray while
+    // in progress and green once settled (see `status_label_style`).
+    let label = if item.streaming {
+        "Thinking…"
+    } else {
+        "Thought"
+    };
+    let mut header_spans = status_label_spans(
+        label,
+        TranscriptItemKind::Reasoning,
+        item.streaming,
+        theme,
+        marquee_frame,
+    );
+    header_spans.push(Span::raw(" "));
+    if collapsed && has_content {
         header_spans.push(Span::styled(
-            format!("({} lines · ctrl+p to expand) ▸", content.len()),
+            format!("({content_line_count} lines · ctrl+p to expand) ▸"),
             meta,
         ));
-    } else if !content.is_empty() {
+    } else if has_content {
         header_spans.push(Span::styled("(ctrl+p to collapse) ▾", meta));
-    } else {
-        // No content yet: streaming placeholder.
-        header_spans.push(Span::styled("…", meta));
     }
     let mut output = vec![Line::from(header_spans)];
 
-    if collapsed {
+    if collapsed || !has_content {
         return output;
     }
 
     // Expanded: show the reasoning content, indented as an aside.
-    for line in &content {
-        output.push(Line::from(Span::styled(format!("  {line}"), style)));
+    if markdown_enabled {
+        // Leave room for the two-space aside indent applied by the helper.
+        let md_width = content_width.saturating_sub(2);
+        output.extend(crate::markdown_view::reasoning_markdown_lines(
+            body,
+            theme,
+            md_width,
+            item.streaming,
+        ));
+    } else {
+        for line in body.lines() {
+            output.push(Line::from(Span::styled(format!("  {line}"), style)));
+        }
     }
-    if item.streaming && !content.is_empty() {
+    if item.streaming {
         output.push(Line::from(Span::styled("  …", meta)));
     }
     output
@@ -815,17 +918,104 @@ fn transcript_item_style(kind: TranscriptItemKind, theme: TerminalTheme) -> Styl
     }
 }
 
-fn transcript_chip_style(kind: TranscriptItemKind, theme: TerminalTheme) -> Style {
+/// Foreground style for a status-label bullet + word. No background fill — labels
+/// read as `• word` with a status color instead of inverted chips.
+fn status_label_style(kind: TranscriptItemKind, streaming: bool, theme: TerminalTheme) -> Style {
     let palette = Palette::for_theme(theme);
     match kind {
-        TranscriptItemKind::Diagnostic => palette.chip(Semantic::Error),
-        TranscriptItemKind::Approval => palette.chip(Semantic::Approval),
-        TranscriptItemKind::Reasoning => palette.chip(Semantic::Reasoning),
-        TranscriptItemKind::ToolCall | TranscriptItemKind::ToolResult => {
-            palette.chip(Semantic::Tool)
+        TranscriptItemKind::Diagnostic => palette.semantic(Semantic::Error),
+        TranscriptItemKind::Approval => palette.semantic(Semantic::Approval),
+        TranscriptItemKind::Reasoning => {
+            // In progress: muted gray. Done: green (settled thought).
+            if streaming {
+                palette.semantic(Semantic::Reasoning)
+            } else {
+                palette.status_done()
+            }
         }
+        TranscriptItemKind::ToolCall | TranscriptItemKind::ToolResult => {
+            palette.semantic(Semantic::Tool)
+        }
+        TranscriptItemKind::Progress => palette.meta(),
         _ => palette.meta(),
     }
+}
+
+/// Build `• label` spans for a transcript status word. When `streaming` is true
+/// the label letters take a two-tone marquee highlight driven by `marquee_frame`.
+fn status_label_spans(
+    label: &str,
+    kind: TranscriptItemKind,
+    streaming: bool,
+    theme: TerminalTheme,
+    marquee_frame: usize,
+) -> Vec<Span<'static>> {
+    let base = status_label_style(kind, streaming, theme);
+    let mut spans = vec![Span::styled("• ", base)];
+    if streaming {
+        spans.extend(marquee_spans(label, base, marquee_frame));
+    } else {
+        spans.push(Span::styled(label.to_string(), base));
+    }
+    spans
+}
+
+/// How many characters of the marquee highlight window. Small on purpose — a
+/// short bright band that walks across the word reads as "alive" without noise.
+const MARQUEE_WINDOW: usize = 2;
+
+/// Split `text` into character spans whose styles alternate between the base
+/// (normal) color and a brighter highlight. The highlight window advances with
+/// `frame` so successive redraws look like a marquee / walking light.
+fn marquee_spans(text: &str, base: Style, frame: usize) -> Vec<Span<'static>> {
+    let chars: Vec<char> = text.chars().collect();
+    if chars.is_empty() {
+        return Vec::new();
+    }
+    let bright = marquee_bright_style(base);
+    let len = chars.len();
+    // Period slightly longer than the word so the bright band walks off-end
+    // briefly, which reads better than wrapping tightly on short words.
+    let period = len.saturating_add(MARQUEE_WINDOW).max(1);
+    let head = frame % period;
+
+    let mut spans = Vec::with_capacity(len);
+    for (index, ch) in chars.into_iter().enumerate() {
+        // Distance of this character from the marquee head, wrapping via the
+        // longer period so characters past the word stay dark for a beat.
+        let in_window = (0..MARQUEE_WINDOW).any(|offset| {
+            let pos = (head + period - offset) % period;
+            pos == index
+        });
+        let style = if in_window { bright } else { base };
+        spans.push(Span::styled(ch.to_string(), style));
+    }
+    spans
+}
+
+/// Brighten a style for the marquee highlight: prefer a lighter sibling of the
+/// same hue, falling back to BOLD when the color is unknown.
+fn marquee_bright_style(base: Style) -> Style {
+    let bright_fg = match base.fg {
+        Some(Color::Gray) | Some(Color::DarkGray) => Color::White,
+        Some(Color::Cyan) => Color::Rgb(165, 243, 252),
+        Some(Color::Blue) => Color::Rgb(147, 197, 253),
+        Some(Color::Green) => Color::Rgb(134, 239, 172),
+        Some(Color::Yellow) => Color::Rgb(253, 224, 71),
+        Some(Color::Red) => Color::Rgb(252, 165, 165),
+        Some(Color::Magenta) => Color::Rgb(240, 171, 252),
+        Some(Color::Rgb(r, g, b)) => {
+            // Lift toward white without clipping past 255.
+            Color::Rgb(
+                r.saturating_add((255 - r) / 2),
+                g.saturating_add((255 - g) / 2),
+                b.saturating_add((255 - b) / 2),
+            )
+        }
+        Some(other) => other,
+        None => Color::White,
+    };
+    base.fg(bright_fg).add_modifier(Modifier::BOLD)
 }
 
 /// Fixed gutter width for the composer prompt marker (`❯ `).
@@ -936,9 +1126,10 @@ const WAITING_SPINNER_FRAMES: [&str; 10] = ["⠋", "⠙", "⠹", "⠸", "⠼", "
 /// directly above the composer. The first row remains blank to separate this
 /// prompt from the transcript above. Carries the four "is it alive / how long /
 /// how much / how do I stop it" signals in one glanceable line:
-/// `⠹ Working… · 3s · ↑1.2k tok · esc/Ctrl+C to interrupt`. Everything it needs is
-/// pure state on `TuiApp` (spinner frame, elapsed seconds, token count), so it is
-/// deterministic under test and never calls the clock itself.
+/// `⠹ Working… · 3s · ↑1.2k tok · esc/Ctrl+C to interrupt`. The verb letters
+/// take a two-tone marquee highlight (same motion as streaming transcript labels).
+/// Everything it needs is pure state on `TuiApp` (spinner frame, elapsed seconds,
+/// token count), so it is deterministic under test and never calls the clock itself.
 fn render_activity_line(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     let Some(label) = app.turn_state().label() else {
         return;
@@ -950,12 +1141,19 @@ fn render_activity_line(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     let frame_index = app.spinner_frame % WAITING_SPINNER_FRAMES.len();
     let spinner = WAITING_SPINNER_FRAMES[frame_index];
 
+    // Spinner glyph + marquee verb. The ellipsis rides with the word so
+    // "Working…" / "Responding…" read as one progressive-tense unit.
     let mut spans = vec![
         Span::raw(" "),
         Span::styled(spinner, accent),
-        Span::styled(format!(" {label}…"), accent),
-        Span::styled(format!(" · {}s", app.elapsed_seconds), meta),
+        Span::raw(" "),
     ];
+    spans.extend(marquee_spans(
+        &format!("{label}…"),
+        accent,
+        app.spinner_frame,
+    ));
+    spans.push(Span::styled(format!(" · {}s", app.elapsed_seconds), meta));
     if let Some(used) = app.status.context.used_tokens {
         spans.push(Span::styled(
             format!(" · ↑{} tok", format_token_count(used)),
@@ -1181,86 +1379,111 @@ fn modal_style(theme: TerminalTheme, role: Semantic) -> Style {
     Palette::for_theme(theme).semantic(role)
 }
 
-/// Render the approval modal as a centered overlay (`Clear` + bordered block).
-/// It shows the concrete action (reusing the real diff renderer for file edits
-/// and the request's command/resource otherwise — never a paraphrase), the three
-/// explicit choices with Allow once selected by default, and — when the user
-/// chose "Reject & redirect" — the one-line reason input.
-fn render_approval_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
-    let Some(request) = app.approval_panel.focused_request() else {
-        return;
-    };
+/// Build the content lines for the bottom-docked approval panel (Claude Code
+/// style). Shared by height calculation and rendering so the reserved slot
+/// always matches what is drawn.
+///
+/// Color rule: the title badge uses amber reverse (chip); the *selected* option
+/// text uses amber fg. Operation details and control hints use muted body color;
+/// other copy uses default body color.
+fn approval_panel_lines(app: &TuiApp) -> Vec<Line<'static>> {
     let theme = app.theme;
+    let accent = approval_accent_style(theme);
+    let body = Style::default();
+    let meta = transcript_meta_style(theme);
+    // Reverse against the amber accent so the title reads as a solid chip/badge
+    // rather than a bordered rule.
+    let badge = accent.add_modifier(Modifier::REVERSED | Modifier::BOLD);
+
+    // Content width inside the horizontal gutter — used for the title rule and
+    // for truncating the concrete command/path.
+    let content_width = usize::from(
+        app.terminal_size
+            .width
+            .saturating_sub(transcript_horizontal_gutter(app.terminal_size.width).saturating_mul(2))
+            .max(16),
+    );
+    // Detail lines keep one leading space, so clip against the remaining cols.
+    let detail_max_cols = content_width.saturating_sub(1).max(8);
+
+    let Some(request) = app.approval_panel.focused_request() else {
+        return vec![approval_title_line(
+            " Approval required ",
+            badge,
+            accent,
+            content_width,
+        )];
+    };
 
     let pending = app.approval_panel.pending.len();
     let focus = app.approval_panel.focused_index.unwrap_or(0) + 1;
-    let title = if pending > 1 {
+    let badge_label = if pending > 1 {
         format!(" Approval {focus}/{pending} ")
     } else {
         " Approval required ".to_string()
     };
 
     let mut lines: Vec<Line<'static>> = Vec::new();
-    // Concrete action header — keep it neutral so the Allow/Reject options own the
-    // green/orange signal, not the chrome.
-    let header_style = theme_status_style(theme).add_modifier(Modifier::BOLD);
+
+    // Reversed amber badge + trailing rule filling the rest of the row:
+    // ` Approval required ────────────────────────`
+    lines.push(approval_title_line(
+        &badge_label,
+        badge,
+        accent,
+        content_width,
+    ));
+
+    // Kind label (e.g. "Shell command") — never raw "execute tool". Leading
+    // space indents the body under the badge row.
     lines.push(Line::from(Span::styled(
-        format!("{} {}", request.action, request.resource_kind),
-        header_style,
+        format!(" {}", approval_operation_label(request)),
+        body.add_modifier(Modifier::BOLD),
     )));
-    lines.push(Line::from(Span::raw(request.resource.clone())));
-    if !request.reason.is_empty() {
+
+    // Concrete target (command line / path / …) in muted color, truncated when long.
+    if let Some(detail) = approval_operation_detail(request) {
+        let detail = truncate_display_text(&detail, detail_max_cols);
+        lines.push(Line::from(Span::styled(format!(" {detail}"), meta)));
+    }
+
+    // Optional human reason, but skip policy boilerplate that adds no signal.
+    if !request.reason.is_empty() && !is_boilerplate_approval_text(&request.reason) {
         lines.push(Line::from(Span::styled(
-            request.reason.clone(),
-            transcript_meta_style(theme),
+            format!(" {}", request.reason),
+            meta,
         )));
     }
-    lines.push(Line::from(Span::raw("")));
 
-    // The concrete action body: the real diff for file edits, else the preview.
+    // File-edit diffs keep their own body when the diff panel is attached.
     if let Some(diff) = app
         .diff_panel
         .as_ref()
         .filter(|_| request.preview.kind == "file_edit")
     {
+        lines.push(Line::from(Span::raw("")));
         for line in diff.render_text().lines() {
-            lines.push(Line::from(Span::raw(line.to_string())));
-        }
-    } else {
-        for line in request.preview.summary.lines() {
-            lines.push(Line::from(Span::raw(line.to_string())));
+            lines.push(Line::from(Span::styled(line.to_string(), body)));
         }
     }
     if request.preview.truncated {
-        lines.push(Line::from(Span::styled(
-            "… (truncated)",
-            transcript_meta_style(theme),
-        )));
+        lines.push(Line::from(Span::styled("… (truncated)", meta)));
     }
     if request.preview.redacted {
-        lines.push(Line::from(Span::styled(
-            "(redacted)",
-            transcript_meta_style(theme),
-        )));
+        lines.push(Line::from(Span::styled("(redacted)", meta)));
     }
 
     lines.push(Line::from(Span::raw("")));
 
-    // Border color follows the currently highlighted option so the whole modal
-    // reads green for Allow and orange-red for Reject.
-    let border = approval_option_style(app.approval_selection);
-
     if let Some(reject) = &app.reject_reason {
-        // Reason capture mode: show the input and its controls.
         lines.push(Line::from(Span::styled(
             "Reject & redirect — type a reason, Enter to send, Esc to cancel:",
-            border,
+            body,
         )));
-        lines.push(Line::from(Span::raw(format!("❯ {}", reject.text))));
+        lines.push(Line::from(Span::styled(format!("❯ {}", reject.text), body)));
     } else {
-        // The three explicit choices. The highlighted row is the current
-        // selection (moved with Up/Down, confirmed with Enter); the number keys
-        // still trigger each directly. The default highlight is Allow once.
+        // Three choices. Only the highlighted row uses the amber accent (fg +
+        // bold, no reverse/background). Unselected rows stay body-colored.
         for (option, label) in [
             (ApprovalOption::AllowOnce, "1  Allow once"),
             (
@@ -1271,59 +1494,220 @@ fn render_approval_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
         ] {
             let selected = app.approval_selection == option;
             let marker = if selected { "❯ " } else { "  " };
-            // Allow options use deep green; non-allow (Reject) uses orange-red.
-            // Selected rows reverse against that base so the highlight still
-            // reads as green/red rather than a magenta accent.
-            let base = approval_option_style(option);
             let style = if selected {
-                base.add_modifier(Modifier::BOLD | Modifier::REVERSED)
+                accent.add_modifier(Modifier::BOLD)
             } else {
-                base
+                body
             };
             lines.push(Line::from(Span::styled(format!("{marker}{label}"), style)));
         }
+        // Blank row between choices and the muted key-binding hint.
+        lines.push(Line::from(Span::raw("")));
+        // Operation hints stay muted so they don't compete with the decision rows.
         lines.push(Line::from(Span::styled(
             "↑/↓ select · Enter confirm · Tab next request · Esc dismiss (stays pending)",
-            transcript_meta_style(theme),
+            meta,
         )));
     }
 
-    // Auto-fit the modal height to the content (plus borders), capped to the
-    // available area so a long preview can't overflow the screen. This replaces
-    // the old fixed 86%-height box that left a large empty gap under short
-    // requests.
-    let content_height = u16::try_from(lines.len()).unwrap_or(u16::MAX);
-    let max_height = area.height.saturating_sub(2).max(3);
-    let modal_height = content_height.saturating_add(2).min(max_height);
-    let modal_area = centered_rect_with_height(80, modal_height, area);
-    frame.render_widget(Clear, modal_clear_area(modal_area, area));
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_style(border)
-        .title_style(border)
-        .title(title);
-    let inner = block.inner(modal_area);
-    frame.render_widget(block, modal_area);
-    frame.render_widget(Paragraph::new(lines), inner);
+    lines
 }
 
-/// Render the model-switch modal as a centered overlay, mirroring the approval
-/// modal (`Clear` + bordered block). Each row is one provider and its default
-/// model; the highlighted row is the current selection (moved with Up/Down,
-/// confirmed with Enter). The live selection is marked so the user can see what
-/// switching away from. Disabled providers are dimmed and labelled.
-/// Base color for an approval choice row. Allow options are deep green; Reject
-/// (and any non-allow choice) is orange-red so the decision reads at a glance
-/// even before Enter.
-fn approval_option_style(option: ApprovalOption) -> Style {
-    match option {
-        ApprovalOption::AllowOnce | ApprovalOption::AllowAlways => Style::default()
-            .fg(Color::Rgb(34, 197, 94))
-            .add_modifier(Modifier::BOLD),
-        ApprovalOption::Reject => Style::default()
-            .fg(Color::Rgb(249, 115, 22))
-            .add_modifier(Modifier::BOLD),
+/// Title row: reversed amber badge, then amber `─` filling the rest of the row.
+fn approval_title_line(
+    badge_label: &str,
+    badge: Style,
+    accent: Style,
+    content_width: usize,
+) -> Line<'static> {
+    let badge_cols = Line::from(badge_label).width();
+    let rule_cols = content_width.saturating_sub(badge_cols);
+    let rule = "─".repeat(rule_cols);
+    Line::from(vec![
+        Span::styled(badge_label.to_string(), badge),
+        Span::styled(rule, accent),
+    ])
+}
+
+/// Friendly operation label shown above the concrete command/path.
+fn approval_operation_label(request: &ruse_ui_bridge::UiApprovalRequest) -> String {
+    match request.preview.kind.as_str() {
+        "command" => "Shell command".to_string(),
+        "file_edit" => "Edit file".to_string(),
+        "git" => "Git".to_string(),
+        "mcp" => "MCP tool".to_string(),
+        "plugin" => "Plugin".to_string(),
+        "background_task" => "Background task".to_string(),
+        "generic" | "tool" => friendly_tool_kind_label(&request.preview.resource)
+            .or_else(|| friendly_tool_kind_label(&request.resource))
+            .unwrap_or_else(|| "Tool".to_string()),
+        other if !other.trim().is_empty() => humanize_kind_label(other),
+        _ => "Permission".to_string(),
     }
+}
+
+fn friendly_tool_kind_label(name: &str) -> Option<String> {
+    Some(match name {
+        "workspace.shell_command" => "Shell command".to_string(),
+        "workspace.write_file" => "Write file".to_string(),
+        "workspace.edit_file" => "Edit file".to_string(),
+        "workspace.read_file" => "Read file".to_string(),
+        "workspace.search_text" => "Search".to_string(),
+        "workspace.git_status" => "Git status".to_string(),
+        "workspace.git_diff" => "Git diff".to_string(),
+        other if other.starts_with("mcp.") => {
+            format!("MCP {}", other.trim_start_matches("mcp."))
+        }
+        other if other.starts_with("plugin.") => {
+            format!("Plugin {}", other.trim_start_matches("plugin."))
+        }
+        _ => return None,
+    })
+}
+
+fn humanize_kind_label(kind: &str) -> String {
+    let words = kind.replace('_', " ");
+    let mut chars = words.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+        None => "Permission".to_string(),
+    }
+}
+
+/// Concrete operation target: command line, path, or other preview resource.
+/// Skips tool-name-only values and boilerplate summaries like
+/// "Approve tool execution for workspace.shell_command".
+fn approval_operation_detail(request: &ruse_ui_bridge::UiApprovalRequest) -> Option<String> {
+    let candidates = [
+        request.preview.resource.as_str(),
+        request.resource.as_str(),
+        request.preview.summary.as_str(),
+    ];
+    for candidate in candidates {
+        let trimmed = candidate.trim();
+        if trimmed.is_empty() || is_tool_name_only(trimmed) || is_boilerplate_approval_text(trimmed)
+        {
+            continue;
+        }
+        // Prefer the bare command over "Run <cmd> in … with timeout …".
+        if let Some(command) = strip_run_command_prefix(trimmed) {
+            return Some(command);
+        }
+        return Some(trimmed.to_string());
+    }
+    None
+}
+
+fn is_tool_name_only(value: &str) -> bool {
+    !value.contains(' ')
+        && (value.starts_with("workspace.")
+            || value.starts_with("mcp.")
+            || value.starts_with("plugin.")
+            || value.starts_with("background."))
+}
+
+fn is_boilerplate_approval_text(value: &str) -> bool {
+    let lower = value.trim().to_ascii_lowercase();
+    lower.starts_with("approve tool execution")
+        || lower == "tool execution requested"
+        || lower == "tool execution requires approval"
+        || lower.ends_with(" requires approval")
+}
+
+/// "Run cargo test --all in . with timeout 30000ms" → "cargo test --all".
+fn strip_run_command_prefix(summary: &str) -> Option<String> {
+    let rest = summary.strip_prefix("Run ")?;
+    if let Some((command, _)) = rest.split_once(" in ") {
+        let command = command.trim();
+        if !command.is_empty() && !is_tool_name_only(command) {
+            return Some(command.to_string());
+        }
+    }
+    let command = rest.trim();
+    (!command.is_empty() && !is_tool_name_only(command)).then(|| command.to_string())
+}
+
+/// Truncate a string to at most `max_cols` terminal display columns, appending
+/// `…` when clipped. Uses unicode display width so CJK is counted correctly.
+fn truncate_display_text(text: &str, max_cols: usize) -> String {
+    if max_cols == 0 {
+        return String::new();
+    }
+    if Line::from(text).width() <= max_cols {
+        return text.to_string();
+    }
+    if max_cols == 1 {
+        return "…".to_string();
+    }
+    let budget = max_cols.saturating_sub(1);
+    let mut out = String::new();
+    let mut used = 0usize;
+    for ch in text.chars() {
+        let ch_width = Line::from(ch.to_string()).width();
+        if used + ch_width > budget {
+            break;
+        }
+        out.push(ch);
+        used += ch_width;
+    }
+    out.push('…');
+    out
+}
+
+/// Height of the bottom-docked approval surface: pure content rows (badge +
+/// body), capped so a long preview cannot swallow the transcript. While visible
+/// it also covers the status footer, so the surface may use the full bottom of
+/// the terminal (leaving only a 1-row transcript min).
+///
+/// Shared with hit-testing so clickable transcript geometry matches the live
+/// layout when approval replaces the composer.
+#[must_use]
+pub(crate) fn approval_panel_height_for(app: &TuiApp, terminal_height: u16) -> u16 {
+    let content_height = u16::try_from(approval_panel_lines(app).len()).unwrap_or(u16::MAX);
+    let desired = content_height.max(5);
+    // Transcript min 1 row; no status footer while approval is up.
+    let max = terminal_height.saturating_sub(1).max(5);
+    desired.min(max)
+}
+
+/// Render the approval decision surface in the bottom input slot (replacing the
+/// composer and covering the status footer). No box borders — the title is a
+/// reversed amber badge on the first content row.
+fn render_approval_panel(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
+    let lines = approval_panel_lines(app);
+    if area.width == 0 || area.height == 0 {
+        return;
+    }
+
+    let content_area = area.inner(Margin {
+        horizontal: transcript_horizontal_gutter(area.width),
+        vertical: 0,
+    });
+    if content_area.width == 0 || content_area.height == 0 {
+        return;
+    }
+    frame.render_widget(Paragraph::new(lines), content_area);
+
+    // Place the terminal cursor on the reject-reason input when capturing a
+    // denial reason so typing feels like the normal composer.
+    if let Some(reject) = &app.reject_reason {
+        let prefix = format!("❯ {}", reject.text);
+        let cursor_col = u16::try_from(Line::from(prefix.as_str()).width()).unwrap_or(u16::MAX);
+        // Reason line is the last content row.
+        let reason_row = content_area.height.saturating_sub(1);
+        let cursor_x = content_area
+            .x
+            .saturating_add(cursor_col)
+            .min(content_area.x + content_area.width.saturating_sub(1));
+        let cursor_y = content_area.y.saturating_add(reason_row);
+        frame.set_cursor_position(Position::new(cursor_x, cursor_y));
+    }
+}
+
+/// Amber accent used for the approval title badge (with reverse) and the
+/// currently selected option text. Theme-aware via [`Semantic::ApprovalModal`].
+fn approval_accent_style(theme: TerminalTheme) -> Style {
+    modal_style(theme, Semantic::ApprovalModal)
 }
 
 /// Render the theme picker as a centered overlay. Each row is one
@@ -1432,10 +1816,10 @@ fn render_model_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     frame.render_widget(Paragraph::new(lines), inner);
 }
 
-/// Render the session picker as a centered overlay (same shape as the approval
-/// and model modals). It lists the known sessions plus a synthetic "new session"
-/// row; the highlighted row is confirmed with Enter, `n` starts a fresh session,
-/// and Esc dismisses without switching.
+/// Render the session picker as a centered overlay (same shape as the model
+/// modal). It lists the known sessions plus a synthetic "new session" row; the
+/// highlighted row is confirmed with Enter, `n` starts a fresh session, and Esc
+/// dismisses without switching.
 fn render_session_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     let panel = &app.session_panel;
     let theme = app.theme;
@@ -1615,7 +1999,13 @@ pub(crate) fn visible_transcript_plain_lines_for_selection(
     if app.transcript.items.is_empty() || content_width == 0 || content_height == 0 {
         return Vec::new();
     }
-    let lines = transcript_styled_lines(&app.transcript.items, app.theme);
+    let lines = transcript_styled_lines(
+        &app.transcript.items,
+        app.theme,
+        app.spinner_frame,
+        app.markdown_enabled,
+        usize::from(content_width),
+    );
     let wrapped = wrap_transcript_lines(lines, content_width);
     let padded = pad_block_backgrounds(wrapped, content_width);
     let visible = transcript_visible_lines(&padded, content_height, app.transcript.scroll_offset);
@@ -1636,11 +2026,14 @@ pub(crate) fn visible_transcript_plain_lines_for_selection(
 }
 
 pub fn sticky_chrome_height(app: &crate::TuiApp) -> u16 {
-    let mut height: u16 = 4;
-    if app.approval_modal_visible() {
-        height = height.saturating_add(6);
-    }
-    height
+    // Bottom input slot (composer ~3 or approval panel content). While approval
+    // is up it covers the status footer, so no extra footer row is reserved.
+    let input_height = if app.approval_modal_visible() {
+        approval_panel_height_for(app, app.terminal_size.height)
+    } else {
+        composer_height_for(app).saturating_add(1) // + status footer
+    };
+    input_height
         .max(3)
         .min(app.terminal_size.height.saturating_sub(2).max(3))
 }

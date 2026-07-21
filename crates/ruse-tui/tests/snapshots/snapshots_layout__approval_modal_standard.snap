@@ -17,10 +17,10 @@ expression: "snapshot(&approval_app(), STANDARD)"
                                                                                         
                                                                                         
                                                                                         
-  Approval required ───────────────────────────────────────────────────────────         
-  Shell command                                                                         
-  cargo test --all                                                                      
-  run the suite                                                                         
+ ──────────────────────────────────────────────────────────────────────────────         
+ Approval required                                                                      
+ Shell command cargo test --all                                                         
+ run the suite                                                                          
                                                                                         
  ❯ 1  Allow once                                                                        
    2  Allow always (this tool + path, this session)                                     

@@ -1383,76 +1383,76 @@ fn modal_style(theme: TerminalTheme, role: Semantic) -> Style {
 /// style). Shared by height calculation and rendering so the reserved slot
 /// always matches what is drawn.
 ///
-/// Color rule: the title badge uses amber reverse (chip); the *selected* option
-/// text uses amber fg. Operation details and control hints use muted body color;
-/// other copy uses default body color.
+/// Layout:
+/// ```text
+/// ──────────────────────────────────
+/// Approval required
+/// Shell command cargo test --all
+/// …
+/// ```
+/// Color rule: the top rule uses amber; the *selected* option text uses amber
+/// fg; the concrete command/path after the kind label is muted; other copy is
+/// body/meta color.
 fn approval_panel_lines(app: &TuiApp) -> Vec<Line<'static>> {
     let theme = app.theme;
     let accent = approval_accent_style(theme);
     let body = Style::default();
     let meta = transcript_meta_style(theme);
-    // Reverse against the amber accent so the title reads as a solid chip/badge
-    // rather than a bordered rule.
-    let badge = accent.add_modifier(Modifier::REVERSED | Modifier::BOLD);
 
-    // Content width inside the horizontal gutter — used for the title rule and
-    // for truncating the concrete command/path.
+    // Content width inside the horizontal gutter — used for the top rule and
+    // for truncating the concrete command/path on the kind line.
     let content_width = usize::from(
         app.terminal_size
             .width
             .saturating_sub(transcript_horizontal_gutter(app.terminal_size.width).saturating_mul(2))
             .max(16),
     );
-    // Detail lines keep one leading space, so clip against the remaining cols.
-    let detail_max_cols = content_width.saturating_sub(1).max(8);
+
+    let mut lines: Vec<Line<'static>> = Vec::new();
+    // Full-width top rule.
+    lines.push(Line::from(Span::styled("─".repeat(content_width), accent)));
 
     let Some(request) = app.approval_panel.focused_request() else {
-        return vec![approval_title_line(
-            " Approval required ",
-            badge,
-            accent,
-            content_width,
-        )];
+        lines.push(Line::from(Span::styled(
+            "Approval required",
+            body.add_modifier(Modifier::BOLD),
+        )));
+        return lines;
     };
 
     let pending = app.approval_panel.pending.len();
     let focus = app.approval_panel.focused_index.unwrap_or(0) + 1;
-    let badge_label = if pending > 1 {
-        format!(" Approval {focus}/{pending} ")
+    let title = if pending > 1 {
+        format!("Approval {focus}/{pending}")
     } else {
-        " Approval required ".to_string()
+        "Approval required".to_string()
     };
-
-    let mut lines: Vec<Line<'static>> = Vec::new();
-
-    // Reversed amber badge + trailing rule filling the rest of the row:
-    // ` Approval required ────────────────────────`
-    lines.push(approval_title_line(
-        &badge_label,
-        badge,
-        accent,
-        content_width,
-    ));
-
-    // Kind label (e.g. "Shell command") — never raw "execute tool". Leading
-    // space indents the body under the badge row.
     lines.push(Line::from(Span::styled(
-        format!(" {}", approval_operation_label(request)),
+        title,
         body.add_modifier(Modifier::BOLD),
     )));
 
-    // Concrete target (command line / path / …) in muted color, truncated when long.
+    // Kind + concrete target on one line: "Shell command cargo test --all".
+    // The command/path portion is muted; the kind label is body bold.
+    let kind = approval_operation_label(request);
     if let Some(detail) = approval_operation_detail(request) {
-        let detail = truncate_display_text(&detail, detail_max_cols);
-        lines.push(Line::from(Span::styled(format!(" {detail}"), meta)));
+        let kind_cols = Line::from(format!("{kind} ")).width();
+        let detail_max = content_width.saturating_sub(kind_cols).max(8);
+        let detail = truncate_display_text(&detail, detail_max);
+        lines.push(Line::from(vec![
+            Span::styled(format!("{kind} "), body.add_modifier(Modifier::BOLD)),
+            Span::styled(detail, meta),
+        ]));
+    } else {
+        lines.push(Line::from(Span::styled(
+            kind,
+            body.add_modifier(Modifier::BOLD),
+        )));
     }
 
     // Optional human reason, but skip policy boilerplate that adds no signal.
     if !request.reason.is_empty() && !is_boilerplate_approval_text(&request.reason) {
-        lines.push(Line::from(Span::styled(
-            format!(" {}", request.reason),
-            meta,
-        )));
+        lines.push(Line::from(Span::styled(request.reason.clone(), meta)));
     }
 
     // File-edit diffs keep their own body when the diff panel is attached.
@@ -1511,22 +1511,6 @@ fn approval_panel_lines(app: &TuiApp) -> Vec<Line<'static>> {
     }
 
     lines
-}
-
-/// Title row: reversed amber badge, then amber `─` filling the rest of the row.
-fn approval_title_line(
-    badge_label: &str,
-    badge: Style,
-    accent: Style,
-    content_width: usize,
-) -> Line<'static> {
-    let badge_cols = Line::from(badge_label).width();
-    let rule_cols = content_width.saturating_sub(badge_cols);
-    let rule = "─".repeat(rule_cols);
-    Line::from(vec![
-        Span::styled(badge_label.to_string(), badge),
-        Span::styled(rule, accent),
-    ])
 }
 
 /// Friendly operation label shown above the concrete command/path.
@@ -1704,8 +1688,8 @@ fn render_approval_panel(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     }
 }
 
-/// Amber accent used for the approval title badge (with reverse) and the
-/// currently selected option text. Theme-aware via [`Semantic::ApprovalModal`].
+/// Amber accent used for the approval top rule and the currently selected option
+/// text. Theme-aware via [`Semantic::ApprovalModal`].
 fn approval_accent_style(theme: TerminalTheme) -> Style {
     modal_style(theme, Semantic::ApprovalModal)
 }

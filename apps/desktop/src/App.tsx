@@ -23,6 +23,7 @@ import {
 } from './api';
 import { ApprovalDetail } from './components/ApprovalDetail';
 import { ApprovalQueue } from './components/ApprovalQueue';
+import { BrandMark } from './components/BrandMark';
 import { Composer } from './components/Composer';
 import { ConversationList } from './components/ConversationList';
 import { DiffPreview } from './components/DiffPreview';
@@ -332,7 +333,7 @@ export function AppShell({
 
       <nav className="left-rail" aria-label="Workspace and thread navigation">
         <div className="brand" aria-label="Application identity">
-          <span className="brand-mark">A</span>
+          <BrandMark />
           <div>
             <span className="brand-name">{bootstrap?.app_name ?? 'agent'}</span>
             <span className="brand-version">{bootstrap?.app_version ?? 'starting'}</span>

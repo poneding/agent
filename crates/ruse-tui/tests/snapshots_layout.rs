@@ -55,8 +55,8 @@ fn streaming_app() -> TuiApp {
     app
 }
 
-/// An app showing the approval modal over a non-empty transcript, to prove the
-/// `Clear` overlay removes transcript bleed-through.
+/// An app showing the bottom-docked approval surface over a non-empty
+/// transcript (composer replaced; history still visible above).
 fn approval_app() -> TuiApp {
     let mut app = TuiApp::new(demo_status());
     // Some transcript content behind the modal.
@@ -135,7 +135,8 @@ fn approval_modal_standard() {
 
 #[test]
 fn approval_modal_narrow() {
-    // Below the 60-col side-panel cutoff: the modal must still be fully visible.
+    // Narrow terminals still reserve the bottom approval slot and keep the
+    // status footer; content may clip but the surface is not a floating modal.
     insta::assert_snapshot!(snapshot(&approval_app(), NARROW));
 }
 

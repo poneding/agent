@@ -10,7 +10,6 @@ use std::{
     process::{Command, Stdio},
 };
 
-use ruse_ui_bridge::{UiEventPayload, UiJsonFrame};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use crossterm::event::{
     self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent,
@@ -18,6 +17,7 @@ use crossterm::event::{
 };
 use ratatui::Terminal;
 use ratatui::backend::CrosstermBackend;
+use ruse_ui_bridge::{UiEventPayload, UiJsonFrame};
 use thiserror::Error;
 
 use crate::{
@@ -573,9 +573,9 @@ pub fn key_event_to_action_for_app(key: KeyEvent, app: &TuiApp) -> Option<TuiAct
         };
     }
 
-    // The approval modal is a true modal: while it is visible it captures all key
-    // routing (skipping the composer keymap entirely) so decision keys never leak
-    // into the composer. This is checked BEFORE Ctrl+C and the composer.
+    // The bottom-docked approval surface owns the keyboard while visible: it
+    // replaces the composer, so decision keys never leak into input. Checked
+    // BEFORE Ctrl+C and the composer keymap.
     if app.approval_modal_visible() {
         return match key.code {
             KeyCode::Char('1') => Some(TuiAction::ApprovalPanel(ApprovalPanelAction::Allow)),
@@ -589,7 +589,7 @@ pub fn key_event_to_action_for_app(key: KeyEvent, app: &TuiApp) -> Option<TuiAct
             // Tab/BackTab switch between multiple pending requests in the queue.
             KeyCode::Tab => Some(TuiAction::ApprovalPanel(ApprovalPanelAction::FocusNext)),
             KeyCode::BackTab => Some(TuiAction::ApprovalPanel(ApprovalPanelAction::FocusPrevious)),
-            // Esc is a non-destructive dismiss: it hides the modal but leaves the
+            // Esc is a non-destructive dismiss: it hides the surface but leaves the
             // request pending (the footer keeps showing the pending indicator).
             // It never denies.
             KeyCode::Esc => Some(TuiAction::ApprovalModalDismiss),

@@ -80,14 +80,20 @@ impl ApprovalPanelState {
             ApprovalPanelAction::Deny { reason } => {
                 let reason = reason.trim();
                 if reason.is_empty() {
-                    TuiEffect::LocalDiagnostic { message: "deny requires a reason".to_string(), severity: crate::LocalDiagnosticSeverity::Note }
+                    TuiEffect::LocalDiagnostic {
+                        message: "deny requires a reason".to_string(),
+                        severity: crate::LocalDiagnosticSeverity::Note,
+                    }
                 } else {
                     self.resolve_focused(UiApprovalDecision::Deny, reason.to_string(), None)
                 }
             }
             ApprovalPanelAction::Abort => match self.focused_request() {
                 Some(request) => TuiEffect::ApprovalAborted(request.request_id.clone()),
-                None => TuiEffect::LocalDiagnostic { message: "no approval is focused".to_string(), severity: crate::LocalDiagnosticSeverity::Note },
+                None => TuiEffect::LocalDiagnostic {
+                    message: "no approval is focused".to_string(),
+                    severity: crate::LocalDiagnosticSeverity::Note,
+                },
             },
         }
     }
@@ -285,15 +291,22 @@ impl ApprovalPanelState {
         lease_duration_seconds: Option<u64>,
     ) -> TuiEffect {
         let Some(request) = self.focused_request() else {
-            return TuiEffect::LocalDiagnostic { message: "no approval is focused".to_string(), severity: crate::LocalDiagnosticSeverity::Note };
+            return TuiEffect::LocalDiagnostic {
+                message: "no approval is focused".to_string(),
+                severity: crate::LocalDiagnosticSeverity::Note,
+            };
         };
         if request.status != "pending" {
-            return TuiEffect::LocalDiagnostic { message: format!("approval is not pending: {}", request.status
-            ), severity: crate::LocalDiagnosticSeverity::Note };
+            return TuiEffect::LocalDiagnostic {
+                message: format!("approval is not pending: {}", request.status),
+                severity: crate::LocalDiagnosticSeverity::Note,
+            };
         }
         let Ok(request_id) = ApprovalRequestId::from_str(&request.request_id) else {
-            return TuiEffect::LocalDiagnostic { message: format!("invalid approval request id: {}", request.request_id
-            ), severity: crate::LocalDiagnosticSeverity::Note };
+            return TuiEffect::LocalDiagnostic {
+                message: format!("invalid approval request id: {}", request.request_id),
+                severity: crate::LocalDiagnosticSeverity::Note,
+            };
         };
 
         TuiEffect::ResolveApproval {
@@ -324,7 +337,9 @@ pub enum ApprovalPanelAction {
     /// Allow the focused request and record a session-scoped allow-always rule so
     /// matching future requests (same tool + resource prefix) auto-approve.
     AllowAlways,
-    Deny { reason: String },
+    Deny {
+        reason: String,
+    },
     Abort,
 }
 

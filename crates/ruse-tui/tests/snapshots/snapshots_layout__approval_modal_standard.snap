@@ -9,21 +9,21 @@ expression: "snapshot(&approval_app(), STANDARD)"
                                                                                         
                                                                                         
                                                                                         
-         ┌ Approval required ─────────────────────────────────────────────────┐         
-         │execute command                                                     │         
-         │cargo test --all                                                    │         
-         │run the suite                                                       │         
-         │                                                                    │         
-         │Run cargo test --all                                                │         
-         │                                                                    │         
-         │❯ 1  Allow once                                                     │         
-         │  2  Allow always (this tool + path, this session)                  │         
-         │  3  Reject & redirect                                              │         
-         │↑/↓ select · Enter confirm · Tab next request · Esc dismiss (stays p│         
-         └────────────────────────────────────────────────────────────────────┘         
                                                                                         
                                                                                         
- ────────────────────────────────────────────────────────────────────────────────────── 
- ❯ type a message — / for commands · Enter to send                                      
- ────────────────────────────────────────────────────────────────────────────────────── 
-openai / gpt-5.5 · xhigh · normal       ⚠ 1 approval pending · ctx pending/128k  ~/agent
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+                                                                                        
+  Approval required ───────────────────────────────────────────────────────────         
+  Shell command                                                                         
+  cargo test --all                                                                      
+  run the suite                                                                         
+                                                                                        
+ ❯ 1  Allow once                                                                        
+   2  Allow always (this tool + path, this session)                                     
+   3  Reject & redirect                                                                 
+                                                                                        
+ ↑/↓ select · Enter confirm · Tab next request · Esc dismiss (stays pending)

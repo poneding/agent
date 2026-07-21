@@ -227,9 +227,10 @@ impl Palette {
         }
     }
 
-    /// The chip style for a semantic role — an inverted (background-filled) badge
-    /// such as the ` diagnostic ` / ` approval ` / ` tool ` labels. Always bold so
-    /// the badge reads even without color.
+    /// The chip style for a semantic role — an inverted (background-filled) badge.
+    /// Kept for panel/modal chrome that still wants a filled pill; transcript
+    /// status labels no longer use chips (they render as `• word` with a status
+    /// color — see `status_done` / `render::status_label_spans`).
     #[must_use]
     pub fn chip(self, role: Semantic) -> Style {
         let base = match role {
@@ -243,6 +244,18 @@ impl Palette {
         };
         // Chips are always bold: the inverted badge plus weight is the non-color cue.
         base.add_modifier(Modifier::BOLD)
+    }
+
+    /// Settled / completed status label (e.g. `• Thought` after reasoning finishes).
+    /// Green + BOLD so it contrasts with the muted gray used while still in progress.
+    #[must_use]
+    pub fn status_done(self) -> Style {
+        let base = Style::default().add_modifier(Modifier::BOLD);
+        match self.theme {
+            TerminalTheme::HighContrast => base.fg(Color::Yellow),
+            TerminalTheme::Light => base.fg(Color::Rgb(22, 163, 74)),
+            _ => base.fg(Color::Rgb(74, 222, 128)),
+        }
     }
 
     /// Dim, secondary text (meta lines, connectors, hints).
@@ -445,15 +458,18 @@ mod tests {
         ] {
             let palette = Palette::for_theme(theme);
             let reasoning = palette.semantic(Semantic::Reasoning);
-            let reasoning_header = palette.chip(Semantic::Reasoning);
             let status = palette.status_bar();
             let placeholder = palette.placeholder();
+            let done = palette.status_done();
 
             assert_eq!(reasoning.fg, Some(expected));
             assert_eq!(status.fg, Some(expected));
             assert_eq!(placeholder.fg, Some(expected));
-            assert_eq!(reasoning_header.fg, Some(Color::White));
-            assert_eq!(reasoning_header.bg, Some(Color::DarkGray));
+            // In-progress reasoning is muted; completed "Thought" is green/bold
+            // with no background fill (the bullet is the non-color cue).
+            assert!(done.add_modifier.contains(Modifier::BOLD));
+            assert_eq!(done.bg, None);
+            assert_ne!(done.fg, reasoning.fg);
             assert_eq!(status.bg, None);
             assert_eq!(placeholder.bg, None);
         }

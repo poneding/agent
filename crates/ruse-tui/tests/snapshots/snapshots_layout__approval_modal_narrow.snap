@@ -1,15 +1,14 @@
 ---
 source: crates/ruse-tui/tests/snapshots_layout.rs
-assertion_line: 139
+assertion_line: 140
 expression: "snapshot(&approval_app(), NARROW)"
 ---
- I                                      
-    ┌ Approval required ───────────┐    
-    │execute command               │    
-    │cargo test --all              │    
-    │run the suite                 │    
-    │                              │    
- ── │Run cargo test --all          │ ── 
- ❯  │                              │ En 
- ── └──────────────────────────────┘ ── 
-ope                                  g ·
+ I will run the test suite now.         
+  Approval required ─────────────────── 
+  Shell command                         
+  cargo test --all                      
+  run the suite                         
+                                        
+ ❯ 1  Allow once                        
+   2  Allow always (this tool + path, t 
+   3  Reject & redirect

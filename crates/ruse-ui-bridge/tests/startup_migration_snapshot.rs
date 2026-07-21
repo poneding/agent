@@ -24,7 +24,8 @@ fn startup_migration_snapshot_serializes_ui_safe_shape() {
         ]
     );
 
-    let line = encode_json_frame(&UiJsonFrame::startup_migration_snapshot(snapshot)).expect("frame");
+    let line =
+        encode_json_frame(&UiJsonFrame::startup_migration_snapshot(snapshot)).expect("frame");
     assert!(line.contains("\"type\":\"startup_migration_snapshot\""));
     assert_eq!(line.matches('\n').count(), 1);
 }

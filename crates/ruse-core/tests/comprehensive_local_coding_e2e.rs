@@ -4,6 +4,7 @@ use std::path::Path;
 use std::process::Command;
 use std::sync::{Arc, Mutex};
 
+use async_trait::async_trait;
 use ruse_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentLoopBudget, AgentLoopTerminalState, AgentRuntimeConfig,
     ComprehensiveTurnInput, ComprehensiveTurnResources, ComprehensiveTurnRunner, ConfigLayer,
@@ -17,15 +18,12 @@ use ruse_model::{
     ModelRetryPolicy, ModelStreamEvent, ModelStreamResult, RegisteredModelProvider,
     model_events_to_stream,
 };
-use ruse_policy::{
-    PolicyDecision, ResourceKind, ResourceScope, StaticPolicyEngine,
-};
+use ruse_policy::{PolicyDecision, ResourceKind, ResourceScope, StaticPolicyEngine};
 use ruse_sandbox::WorkspaceSandbox;
 use ruse_storage::InMemoryEventStore;
 use ruse_tool::ToolRegistry;
 use ruse_tool::builtins::{FileEditTool, GitStatusTool, ReadFileTool, ShellCommandTool};
 use ruse_types::{ConversationId, CorrelationId, RuntimeEventPayload, TurnId, WorkspaceId};
-use async_trait::async_trait;
 use serde_json::json;
 use tempfile::TempDir;
 

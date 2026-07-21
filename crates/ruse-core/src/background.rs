@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use ruse_model::{ModelProviderRegistry, ModelRequestRequirements};
 use ruse_scheduler::{
     RetryDecision, SchedulerError, TaskNotification, TaskNotificationKind, TaskNotificationSink,
@@ -7,7 +8,6 @@ use ruse_types::{
     ApprovalRequestId, CheckpointId, CorrelationId, RuntimeEvent, RuntimeEventPayload, TaskId,
     TaskState, Timestamp, TurnId,
 };
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 

@@ -3,9 +3,9 @@ use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
 
-use ruse_types::ReasoningEffort;
 use async_trait::async_trait;
 use futures_util::StreamExt;
+use ruse_types::ReasoningEffort;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use thiserror::Error;

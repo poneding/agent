@@ -127,11 +127,8 @@ impl Tool for ShellCommandTool {
             validate_program_path_confined(&self.sandbox, &input.program)?;
         }
 
-        let plan = ProcessSandboxPlan::for_workspace(
-            &self.sandbox,
-            self.process_mode,
-            self.allow_network,
-        );
+        let plan =
+            ProcessSandboxPlan::for_workspace(&self.sandbox, self.process_mode, self.allow_network);
         let output = execute_command(input, &cwd, &plan)?;
         Ok(ToolOutput {
             value: serde_json::to_value(output)

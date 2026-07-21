@@ -237,7 +237,8 @@ where
     let events = store
         .list_by_conversation(conversation_id)
         .map_err(|error| error.to_string())?;
-    let mut messages = reconstruct_prompt_history(events.iter().map(|stored| &stored.event.payload));
+    let mut messages =
+        reconstruct_prompt_history(events.iter().map(|stored| &stored.event.payload));
     let overflow = messages.len().saturating_sub(max_messages);
     if overflow > 0 {
         messages.drain(0..overflow);
@@ -254,7 +255,8 @@ where
     let mut messages = Vec::new();
     let mut pending_tool_calls: Vec<(String, String, String)> = Vec::new();
 
-    let flush_tools = |pending: &mut Vec<(String, String, String)>, out: &mut Vec<PromptMessage>| {
+    let flush_tools = |pending: &mut Vec<(String, String, String)>,
+                       out: &mut Vec<PromptMessage>| {
         if pending.is_empty() {
             return;
         }

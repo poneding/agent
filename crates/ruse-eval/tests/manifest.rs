@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 
+use camino::Utf8PathBuf;
 use ruse_eval::{
     EVAL_SCENARIO_SCHEMA_VERSION, EvalExpectations, EvalExpectedStatus, EvalFixtures,
     EvalManifestError, EvalMemoryExpectations, EvalPermissionProfile, EvalScenarioKind,
     EvalScenarioManifest, EvalTeamWorkflowExpectations, validate_eval_scenario,
 };
-use camino::Utf8PathBuf;
 use serde_json::json;
 
 fn replay_manifest() -> EvalScenarioManifest {

@@ -1,5 +1,6 @@
 use std::fs;
 
+use camino::{Utf8Path, Utf8PathBuf};
 use ruse_eval::{
     EVAL_RUN_REPORT_SCHEMA_VERSION, EvalDiagnostic, EvalDiagnosticSeverity, EvalEvidenceSource,
     EvalEvidenceSummary, EvalRunReport, EvalRunSummary, EvalScenarioReport, EvalScenarioStatus,
@@ -7,7 +8,6 @@ use ruse_eval::{
     compare_report_to_golden_file, compare_report_to_golden_json, parse_eval_suite_json,
     update_suite_goldens,
 };
-use camino::{Utf8Path, Utf8PathBuf};
 use serde_json::json;
 
 fn report() -> EvalScenarioReport {

@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use ruse_core::{
     McpModelSamplingProvider, McpSamplingModelBridgeConfig, McpSamplingModelBridgeError,
     McpSamplingModelBridgeIds, build_mcp_sampling_model_request,
@@ -11,7 +12,6 @@ use ruse_mcp::{
 };
 use ruse_model::{ModelError, ModelEventStream, ModelProvider, ModelRequest};
 use ruse_types::{ConversationId, CorrelationId, TurnId};
-use async_trait::async_trait;
 use serde_json::json;
 
 fn bridge_config() -> McpSamplingModelBridgeConfig {

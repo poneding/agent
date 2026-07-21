@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use async_trait::async_trait;
+use futures_util::StreamExt;
 use ruse_model::{
     FixtureOpenAiCompatibleTransport, ModelEndpointConfig, ModelError, ModelMessage, ModelProvider,
     ModelProviderConfig, ModelProviderKind, ModelRequest, ModelStreamEvent, ModelToolDefinition,
@@ -10,8 +12,6 @@ use ruse_model::{
     collect_model_event_stream, parse_openai_compatible_chat_sse, parse_openai_compatible_sse,
 };
 use ruse_types::{ConversationId, CorrelationId, ReasoningEffort, TurnId};
-use async_trait::async_trait;
-use futures_util::StreamExt;
 use serde_json::json;
 
 #[derive(Debug)]

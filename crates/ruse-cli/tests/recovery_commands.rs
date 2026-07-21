@@ -307,10 +307,7 @@ fn command_retry_runtime_plans_from_ui_snapshot_evidence() {
     let plan = runtime.plan_from_snapshot(&snapshot, "rerun live evidence".to_string(), true);
 
     assert_eq!(plan.command_run_id, "live-command-run");
-    assert_eq!(
-        plan.readiness,
-        ruse_types::CommandRetryReadiness::Retryable
-    );
+    assert_eq!(plan.readiness, ruse_types::CommandRetryReadiness::Retryable);
     assert_eq!(
         plan.classification,
         ruse_types::CommandRetryFailureClassification::TestFailure

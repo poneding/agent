@@ -139,8 +139,8 @@ fn click_outside_transcript_is_a_noop() {
 
 #[test]
 fn mouse_down_left_maps_to_selection_drag_start() {
-    use ruse_tui::mouse_event_to_action;
     use crossterm::event::{KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
+    use ruse_tui::mouse_event_to_action;
 
     assert_eq!(
         mouse_event_to_action(MouseEvent {
@@ -149,10 +149,7 @@ fn mouse_down_left_maps_to_selection_drag_start() {
             row: 3,
             modifiers: KeyModifiers::NONE,
         }),
-        Some(TuiAction::SelectionDragStart {
-            column: 4,
-            row: 3,
-        })
+        Some(TuiAction::SelectionDragStart { column: 4, row: 3 })
     );
     assert_eq!(
         mouse_event_to_action(MouseEvent {
@@ -161,10 +158,7 @@ fn mouse_down_left_maps_to_selection_drag_start() {
             row: 3,
             modifiers: KeyModifiers::NONE,
         }),
-        Some(TuiAction::SelectionDragUpdate {
-            column: 8,
-            row: 3,
-        })
+        Some(TuiAction::SelectionDragUpdate { column: 8, row: 3 })
     );
     assert_eq!(
         mouse_event_to_action(MouseEvent {
@@ -173,10 +167,7 @@ fn mouse_down_left_maps_to_selection_drag_start() {
             row: 3,
             modifiers: KeyModifiers::NONE,
         }),
-        Some(TuiAction::SelectionDragEnd {
-            column: 8,
-            row: 3,
-        })
+        Some(TuiAction::SelectionDragEnd { column: 8, row: 3 })
     );
 }
 
@@ -201,14 +192,8 @@ fn click_without_drag_still_toggles_via_drag_end() {
         .expect("row for reasoning");
 
     // Down → Up without Drag: treated as a click, toggles the item.
-    app.reduce(TuiAction::SelectionDragStart {
-        column: 2,
-        row,
-    });
-    let effect = app.reduce(TuiAction::SelectionDragEnd {
-        column: 2,
-        row,
-    });
+    app.reduce(TuiAction::SelectionDragStart { column: 2, row });
+    let effect = app.reduce(TuiAction::SelectionDragEnd { column: 2, row });
     assert_eq!(effect, ruse_tui::TuiEffect::None);
     assert!(
         !app.transcript.items[0].is_reasoning_collapsed(),
@@ -225,18 +210,9 @@ fn drag_select_copies_selected_text() {
         .push(TranscriptItem::completed_model("hello selectable world"));
 
     // Drag across the content area.
-    app.reduce(TuiAction::SelectionDragStart {
-        column: 2,
-        row: 0,
-    });
-    app.reduce(TuiAction::SelectionDragUpdate {
-        column: 20,
-        row: 0,
-    });
-    let effect = app.reduce(TuiAction::SelectionDragEnd {
-        column: 20,
-        row: 0,
-    });
+    app.reduce(TuiAction::SelectionDragStart { column: 2, row: 0 });
+    app.reduce(TuiAction::SelectionDragUpdate { column: 20, row: 0 });
+    let effect = app.reduce(TuiAction::SelectionDragEnd { column: 20, row: 0 });
     match effect {
         ruse_tui::TuiEffect::CopyToClipboard { text } => {
             assert!(

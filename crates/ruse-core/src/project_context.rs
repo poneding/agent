@@ -820,9 +820,7 @@ fn retrieval_error_from_scan(error: ProjectContextScanError) -> ProjectContextRe
     }
 }
 
-fn retrieval_error_from_context(
-    error: ruse_context::ContextError,
-) -> ProjectContextRetrievalError {
+fn retrieval_error_from_context(error: ruse_context::ContextError) -> ProjectContextRetrievalError {
     ProjectContextRetrievalError::Retrieval {
         diagnostics: vec![diagnostic(
             ProjectContextDiagnosticSeverity::Error,

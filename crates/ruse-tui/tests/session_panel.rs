@@ -1,8 +1,6 @@
 use ruse_tui::{SessionPanelAction, SessionPanelState, TuiBridgeContext, TuiEffect};
 use ruse_types::{ClientKind, ConversationId, Timestamp, WorkspaceId};
-use ruse_ui_bridge::{
-    UiCommand, UiJsonFrame, UiTerminalSessionSnapshot, UiTerminalSessionSummary,
-};
+use ruse_ui_bridge::{UiCommand, UiJsonFrame, UiTerminalSessionSnapshot, UiTerminalSessionSummary};
 
 fn id<T>(value: &str) -> T
 where

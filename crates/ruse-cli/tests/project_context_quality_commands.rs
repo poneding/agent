@@ -108,7 +108,9 @@ fn project_context_select_quality_trace_json_emits_snapshot_and_done() {
     let frames = parse_frames(&output.stdout);
     assert!(matches!(
         frames.first(),
-        Some(UiJsonFrame::ProjectContextDetail(UiProjectContextDetail::Retrieval(_)))
+        Some(UiJsonFrame::ProjectContextDetail(
+            UiProjectContextDetail::Retrieval(_)
+        ))
     ));
     assert!(matches!(
         frames.get(1),

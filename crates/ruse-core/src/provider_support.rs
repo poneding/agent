@@ -1,8 +1,6 @@
 use std::collections::BTreeMap;
 
-use ruse_model::{
-    ModelCapabilities, ModelCapability, ModelProviderKind, ModelRequestRequirements,
-};
+use ruse_model::{ModelCapabilities, ModelCapability, ModelProviderKind, ModelRequestRequirements};
 use serde::{Deserialize, Serialize};
 
 use crate::config::EffectiveRuntimeConfig;

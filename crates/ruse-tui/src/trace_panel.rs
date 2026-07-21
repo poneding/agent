@@ -63,16 +63,13 @@ impl TracePanelState {
         }
     }
 
-        pub fn reduce_frame(&mut self, frame: &UiJsonFrame) {
+    pub fn reduce_frame(&mut self, frame: &UiJsonFrame) {
         match frame {
             UiJsonFrame::Event(event) => self.reduce_event_payload(&event.payload),
             UiJsonFrame::ConfigSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
                 "config",
-                format!(
-                    "{}/{}",
-                    snapshot.selected_provider, snapshot.selected_model
-                ),
+                format!("{}/{}", snapshot.selected_provider, snapshot.selected_model),
             )),
             UiJsonFrame::TerminalSessionSnapshot(snapshot) => self.push(TracePanelEntry::new(
                 TraceEntryKind::Runtime,
@@ -161,7 +158,6 @@ impl TracePanelState {
         }
     }
 
-
     #[must_use]
     pub fn visible_entries(&self) -> Vec<&TracePanelEntry> {
         self.entries
@@ -196,7 +192,9 @@ impl TracePanelState {
                 "turn",
                 format!("{state:?}: {reason}"),
             )),
-            UiEventPayload::ToolCall { call_id, tool_name, .. } => self.push(TracePanelEntry::new(
+            UiEventPayload::ToolCall {
+                call_id, tool_name, ..
+            } => self.push(TracePanelEntry::new(
                 TraceEntryKind::Tool,
                 "tool call",
                 format!("{tool_name} ({call_id})"),

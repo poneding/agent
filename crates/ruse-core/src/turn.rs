@@ -3,6 +3,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use futures_util::{Stream, StreamExt, stream};
 use ruse_context::PromptMessage;
 use ruse_model::{
     ModelMessage, ModelProvider, ModelRequest, ModelStreamEvent, ModelToolDefinition,
@@ -13,7 +14,6 @@ use ruse_types::{
     ReasoningEffort, RuntimeEvent, RuntimeEventPayload, SchemaVersion, Timestamp, ToolCallProposed,
     TurnCompleted, TurnFailed, TurnStarted, TurnState, TurnStateChanged, UserInputReceived,
 };
-use futures_util::{Stream, StreamExt, stream};
 use thiserror::Error;
 
 use crate::context::ContextAssembler;

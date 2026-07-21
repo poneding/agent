@@ -31,11 +31,11 @@ use crate::tool_loop::{
     ToolObservationMessage,
 };
 use crate::turn::{CancellationToken, TurnEngine, TurnError, TurnInput, TurnStreamOptions};
+use futures_util::{Stream, StreamExt, stream};
 use ruse_types::{
     ActorRef, PromptLayerHashRecord, PromptSnapshotRecorded, ReasoningEffort, RuntimeError,
     RuntimeEvent, RuntimeEventPayload, SchemaVersion, Timestamp, TurnState,
 };
-use futures_util::{Stream, StreamExt, stream};
 
 #[derive(Clone)]
 pub struct ConfiguredModelRuntime {
@@ -827,7 +827,10 @@ impl ConfiguredTurnRunner {
             model: runtime.model.clone(),
         };
 
-        match TurnEngine::default().run(turn_input, &policy_provider).await {
+        match TurnEngine::default()
+            .run(turn_input, &policy_provider)
+            .await
+        {
             Ok(outcome) => {
                 let events = prepend_event(prompt_snapshot_event, outcome.events);
                 Ok(ConfiguredTurnOutcome {
@@ -1849,16 +1852,14 @@ fn prompt_snapshot_event(
         PromptBudget::new(16_384, 4_096).expect("built-in prompt budget is valid"),
     )
     .expect("built-in prompt profile is valid");
-    let workspace_root =
-        std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+    let workspace_root = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
     let workspace_instruction = crate::context::load_workspace_instruction_layer(&workspace_root)
         .map(|layer| layer.content)
         .unwrap_or_else(|| {
             "You are a local coding agent. Prefer small, reviewable edits. Use tools to inspect and change the workspace.".to_string()
         });
-    let mut system_content = format!(
-        "agent runtime safety and integrity instructions\n\n{workspace_instruction}"
-    );
+    let mut system_content =
+        format!("agent runtime safety and integrity instructions\n\n{workspace_instruction}");
     if let Some(git) = crate::context::load_workspace_git_summary_layer(&workspace_root) {
         system_content.push_str("\n\n");
         system_content.push_str(&git.content);

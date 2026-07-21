@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
+use async_trait::async_trait;
 use ruse_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentRuntimeConfig, ConfigLayer, ConfigLayerKind, ConfigOverride,
     EffectiveRuntimeConfig, ModelInvocationError, ModelInvocationRunner, ModelRuntimeResolver,
@@ -14,7 +15,6 @@ use ruse_model::{
     RegisteredModelProvider, model_events_to_stream,
 };
 use ruse_types::{ConversationId, CorrelationId, TurnId};
-use async_trait::async_trait;
 
 fn capabilities() -> ModelCapabilities {
     ModelCapabilities {

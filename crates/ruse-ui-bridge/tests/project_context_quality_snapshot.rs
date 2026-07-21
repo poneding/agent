@@ -1,9 +1,9 @@
-use ruse_ui_bridge::UiProjectContextDetail;
 use ruse_core::{
     ContextQualityBudgetPressure, ContextQualityDiagnostic, ContextQualityDiagnosticSeverity,
     ContextQualityRetrievalKind, ContextQualitySignal, ContextQualitySignalKind,
     ContextQualityTrace,
 };
+use ruse_ui_bridge::UiProjectContextDetail;
 use ruse_ui_bridge::{UiJsonFrame, UiProjectContextQualityTraceSnapshot, encode_json_frame};
 use serde_json::json;
 
@@ -91,8 +91,7 @@ fn project_context_quality_snapshot_serializes_stable_safe_shape() {
 #[test]
 fn project_context_quality_snapshot_json_frame_is_single_line() {
     let snapshot = UiProjectContextQualityTraceSnapshot::from_trace(&trace()).expect("snapshot");
-    let line = encode_json_frame(&UiJsonFrame::project_context_quality(snapshot))
-        .expect("encode");
+    let line = encode_json_frame(&UiJsonFrame::project_context_quality(snapshot)).expect("encode");
 
     assert!(line.ends_with('\n'));
     assert_eq!(line.matches('\n').count(), 1);

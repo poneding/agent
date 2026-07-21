@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 use std::fs;
 use std::sync::{Arc, Mutex};
 
+use async_trait::async_trait;
 use ruse_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentLoopBudget, AgentLoopFailureReason, AgentLoopTerminalState,
     AgentRuntimeConfig, CancellationToken, ComprehensiveTurnInput, ComprehensiveTurnResources,
@@ -22,7 +23,6 @@ use ruse_sandbox::WorkspaceSandbox;
 use ruse_tool::ToolRegistry;
 use ruse_tool::builtins::ReadFileTool;
 use ruse_types::{ConversationId, CorrelationId, RuntimeEventPayload, TurnId, WorkspaceId};
-use async_trait::async_trait;
 use serde_json::json;
 use tempfile::TempDir;
 

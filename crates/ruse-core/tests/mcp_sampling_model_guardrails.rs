@@ -3,6 +3,7 @@ use std::sync::{
     atomic::{AtomicUsize, Ordering},
 };
 
+use async_trait::async_trait;
 use ruse_core::{
     McpModelSamplingProvider, McpSamplingModelBridgeConfig, McpSamplingModelBridgeIds,
 };
@@ -15,7 +16,6 @@ use ruse_model::{
     ModelStreamEvent, model_events_to_stream,
 };
 use ruse_types::{ConversationId, CorrelationId, TurnId};
-use async_trait::async_trait;
 use serde_json::json;
 
 fn bridge_config() -> McpSamplingModelBridgeConfig {

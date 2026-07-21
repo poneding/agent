@@ -1,4 +1,3 @@
-use ruse_ui_bridge::UiProjectContextDetail;
 use ruse_core::{
     ContextCandidate, ContextCandidateOmissionReason, ContextHybridCandidate,
     ContextHybridCandidateOmission, ContextHybridRetrievalReport, ContextRetrievalDiagnostic,
@@ -7,6 +6,7 @@ use ruse_core::{
     ProjectContextHybridRetrievalReport as CoreHybridRetrievalReport, ProjectContextLimits,
     ProjectContextSummary, ProjectContextVisibility, ProjectFileKind, ProjectFileSummary,
 };
+use ruse_ui_bridge::UiProjectContextDetail;
 use ruse_ui_bridge::{UiJsonFrame, UiProjectContextHybridRetrievalSnapshot, encode_json_frame};
 use serde_json::json;
 
@@ -215,10 +215,7 @@ fn project_context_hybrid_snapshot_serializes_stable_safe_shape() {
 fn project_context_hybrid_snapshot_json_frame_is_single_line() {
     let snapshot =
         UiProjectContextHybridRetrievalSnapshot::from_report(&report()).expect("snapshot");
-    let line = encode_json_frame(&UiJsonFrame::project_context_hybrid(
-        snapshot,
-    ))
-    .expect("encode");
+    let line = encode_json_frame(&UiJsonFrame::project_context_hybrid(snapshot)).expect("encode");
 
     assert!(line.ends_with('\n'));
     assert_eq!(line.matches('\n').count(), 1);

@@ -1,4 +1,3 @@
-use ruse_ui_bridge::UiProjectContextDetail;
 use ruse_core::{
     ContextBudget, ContextCandidate, ContextRetrievalDiagnostic,
     ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery, ContextRetrievalReport,
@@ -8,6 +7,7 @@ use ruse_core::{
     ProjectContextPinnedRetrievalReport as CorePinnedRetrievalReport, ProjectContextSummary,
     ProjectContextVisibility, ProjectFileKind, ProjectFileSummary,
 };
+use ruse_ui_bridge::UiProjectContextDetail;
 use ruse_ui_bridge::{UiJsonFrame, UiProjectContextPinnedRetrievalSnapshot, encode_json_frame};
 use serde_json::json;
 
@@ -187,10 +187,7 @@ fn project_context_pinned_snapshot_serializes_stable_safe_shape() {
 fn project_context_pinned_snapshot_json_frame_is_single_line() {
     let snapshot = UiProjectContextPinnedRetrievalSnapshot::from_retrieval_report(&report())
         .expect("snapshot");
-    let line = encode_json_frame(&UiJsonFrame::project_context_pinned(
-        snapshot,
-    ))
-    .expect("encode");
+    let line = encode_json_frame(&UiJsonFrame::project_context_pinned(snapshot)).expect("encode");
 
     assert!(line.ends_with('\n'));
     assert_eq!(line.matches('\n').count(), 1);

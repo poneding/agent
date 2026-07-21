@@ -1,11 +1,11 @@
 use std::fs;
 use std::path::PathBuf;
 
+use camino::Utf8PathBuf;
 use ruse_eval::{
     EvalRunnerOptions, EvalScenarioStatus, GoldenComparisonOptions, compare_report_to_golden_file,
     parse_eval_suite_json, run_eval_scenarios,
 };
-use camino::Utf8PathBuf;
 
 fn eval_root() -> Utf8PathBuf {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../docs/eval");

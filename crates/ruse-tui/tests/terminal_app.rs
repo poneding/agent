@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
 use ruse_tui::{
     ApprovalPanelAction, ClipboardCopyReport, ComposerAction, DiagnosticTerminalCommandRuntime,
     DiagnosticTerminalTurnRuntime, PlatformClipboardResult, ReasoningEffort, SessionPanelAction,
@@ -24,7 +25,6 @@ use ruse_ui_bridge::{
     UiApprovalDecision, UiApprovalPreviewSummary, UiApprovalRequest, UiEventEnvelope,
     UiEventPayload, UiJsonFrame, UiResumeReport,
 };
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
 
 #[test]
 fn terminal_key_mapping_routes_common_composer_controls() {
@@ -157,10 +157,7 @@ fn terminal_mouse_wheel_scrolls_transcript_and_drag_starts_selection() {
             row: 0,
             modifiers: KeyModifiers::NONE,
         }),
-        Some(TuiAction::SelectionDragUpdate {
-            column: 0,
-            row: 0,
-        })
+        Some(TuiAction::SelectionDragUpdate { column: 0, row: 0 })
     );
     assert_eq!(
         mouse_event_to_action(MouseEvent {

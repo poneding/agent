@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
+use async_trait::async_trait;
 use ruse_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentLoopBudget, AgentLoopTerminalState, AgentRuntimeConfig,
     ComprehensiveTurnInput, ComprehensiveTurnResources, ComprehensiveTurnRunner, ConfigLayer,
@@ -23,7 +24,6 @@ use ruse_policy::{
 };
 use ruse_tool::ToolRegistry;
 use ruse_types::{ConversationId, CorrelationId, RuntimeEventPayload, TurnId, WorkspaceId};
-use async_trait::async_trait;
 use serde_json::json;
 
 fn runtime_ids() -> RuntimeIds {

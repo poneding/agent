@@ -29,19 +29,9 @@ impl SelectionRange {
     pub fn normalized(self) -> Self {
         let (a_row, a_col, b_row, b_col) =
             if (self.start_row, self.start_col) <= (self.end_row, self.end_col) {
-                (
-                    self.start_row,
-                    self.start_col,
-                    self.end_row,
-                    self.end_col,
-                )
+                (self.start_row, self.start_col, self.end_row, self.end_col)
             } else {
-                (
-                    self.end_row,
-                    self.end_col,
-                    self.start_row,
-                    self.start_col,
-                )
+                (self.end_row, self.end_col, self.start_row, self.start_col)
             };
         Self {
             start_col: a_col,
@@ -229,8 +219,12 @@ impl ContentGeometry {
         if row < self.y || column < self.x {
             return Some((0, 0));
         }
-        let local_col = column.saturating_sub(self.x).min(self.width.saturating_sub(1));
-        let local_row = row.saturating_sub(self.y).min(self.height.saturating_sub(1));
+        let local_col = column
+            .saturating_sub(self.x)
+            .min(self.width.saturating_sub(1));
+        let local_row = row
+            .saturating_sub(self.y)
+            .min(self.height.saturating_sub(1));
         Some((local_col, local_row))
     }
 }
@@ -311,7 +305,6 @@ pub fn slice_by_display_cols(line: &str, from_col: usize, to_col: usize) -> Stri
 pub fn line_display_width(line: &str) -> usize {
     UnicodeWidthStr::width(line)
 }
-
 
 #[cfg(test)]
 mod tests {

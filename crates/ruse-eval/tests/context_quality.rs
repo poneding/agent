@@ -1,13 +1,13 @@
 use std::collections::BTreeMap;
 use std::fs;
 
+use camino::{Utf8Path, Utf8PathBuf};
 use ruse_eval::{
     EVAL_SCENARIO_SCHEMA_VERSION, EvalContextQualityExpectations, EvalEvidenceSource,
     EvalExpectations, EvalExpectedStatus, EvalFixtures, EvalPermissionProfile, EvalRunnerOptions,
     EvalScenarioKind, EvalScenarioManifest, EvalScenarioStatus, run_eval_scenario,
     validate_eval_scenario,
 };
-use camino::{Utf8Path, Utf8PathBuf};
 
 fn write_file(root: &Utf8Path, relative: &str, content: &str) {
     let path = root.join(relative);

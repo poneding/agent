@@ -1,13 +1,13 @@
 use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
+use async_trait::async_trait;
 use ruse_mcp::{
     McpClient as _, McpClientHttpRequest, McpClientHttpResponse, McpClientHttpResponseEnvelope,
     McpClientHttpTransport, McpError, McpGateway, McpGatewayClient as _, McpHttpClient,
     McpServerConfig, McpServerId, McpServerStatus, McpToolCallRequest, McpTransportConfig,
 };
 use ruse_tool::{ToolInput, ToolName, ToolRegistry};
-use async_trait::async_trait;
 use serde_json::{Value, json};
 
 struct RecordingTransport {

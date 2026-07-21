@@ -1,9 +1,9 @@
+use camino::Utf8PathBuf;
 use ruse_eval::{
     EVAL_RUN_REPORT_SCHEMA_VERSION, EvalArtifactOptions, EvalEvidenceSource, EvalEvidenceSummary,
     EvalReportArtifactError, EvalRunReport, EvalRunSummary, EvalScenarioReport, EvalScenarioStatus,
     write_eval_artifacts,
 };
-use camino::Utf8PathBuf;
 
 fn scenario(id: &str, status: EvalScenarioStatus) -> EvalScenarioReport {
     EvalScenarioReport {

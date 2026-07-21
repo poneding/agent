@@ -219,7 +219,9 @@ impl From<UiSlashCommandParseError> for SlashCommandError {
     fn from(value: UiSlashCommandParseError) -> Self {
         match value {
             UiSlashCommandParseError::MissingSlash => Self::MissingSlash,
-            UiSlashCommandParseError::UnknownCommand { command } => Self::UnknownCommand { command },
+            UiSlashCommandParseError::UnknownCommand { command } => {
+                Self::UnknownCommand { command }
+            }
         }
     }
 }

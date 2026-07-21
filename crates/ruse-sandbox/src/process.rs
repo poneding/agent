@@ -142,11 +142,7 @@ mod tests {
         let root = temp.path().join("ws");
         fs::create_dir(&root).expect("ws");
         let sandbox = WorkspaceSandbox::new(&root).expect("sandbox");
-        let plan = ProcessSandboxPlan::for_workspace(
-            &sandbox,
-            ProcessSandboxMode::PathOnly,
-            false,
-        );
+        let plan = ProcessSandboxPlan::for_workspace(&sandbox, ProcessSandboxMode::PathOnly, false);
         assert_eq!(plan.profile_label, "workspace_path");
         assert!(plan.seatbelt_profile.is_none());
     }
@@ -157,11 +153,8 @@ mod tests {
         let root = temp.path().join("ws");
         fs::create_dir(&root).expect("ws");
         let sandbox = WorkspaceSandbox::new(&root).expect("sandbox");
-        let plan = ProcessSandboxPlan::for_workspace(
-            &sandbox,
-            ProcessSandboxMode::PreferSeatbelt,
-            false,
-        );
+        let plan =
+            ProcessSandboxPlan::for_workspace(&sandbox, ProcessSandboxMode::PreferSeatbelt, false);
         #[cfg(target_os = "macos")]
         {
             assert!(plan.seatbelt_profile.is_some());

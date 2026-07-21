@@ -3226,8 +3226,6 @@ impl UiTaskReviewSummaryArtifact {
     }
 }
 
-
-
 /// Management/admin frames that are not on the interactive TUI hot path.
 /// Wire format uses `type = "admin"` and `data.kind` for the former variant name.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -3625,7 +3623,6 @@ fn normalize_optional_string(value: Option<String>) -> Option<String> {
     })
 }
 
-
 impl UiJsonFrame {
     #[must_use]
     pub fn project_context_retrieval(snapshot: UiProjectContextRetrievalSnapshot) -> Self {
@@ -3656,7 +3653,9 @@ impl UiJsonFrame {
     pub fn recovery_resume(report: UiResumeReport) -> Result<Self, UiBridgeError> {
         Self::admin("recovery_resume", report)
     }
-    pub fn idempotent_recovery(summary: UiIdempotentRecoverySummary) -> Result<Self, UiBridgeError> {
+    pub fn idempotent_recovery(
+        summary: UiIdempotentRecoverySummary,
+    ) -> Result<Self, UiBridgeError> {
         Self::admin("idempotent_recovery", summary)
     }
     pub fn replay_inspect(report: UiReplayInspectReport) -> Result<Self, UiBridgeError> {
@@ -3680,7 +3679,9 @@ impl UiJsonFrame {
     pub fn extension_snapshot(snapshot: UiExtensionSnapshot) -> Result<Self, UiBridgeError> {
         Self::admin("extension_snapshot", snapshot)
     }
-    pub fn conversation_compaction(report: UiConversationCompactionReport) -> Result<Self, UiBridgeError> {
+    pub fn conversation_compaction(
+        report: UiConversationCompactionReport,
+    ) -> Result<Self, UiBridgeError> {
         Self::admin("conversation_compaction", report)
     }
     pub fn conflict_inspect(report: UiConflictInspectReport) -> Result<Self, UiBridgeError> {
@@ -3698,13 +3699,19 @@ impl UiJsonFrame {
     pub fn task_review_snapshot(snapshot: UiTaskReviewSnapshot) -> Result<Self, UiBridgeError> {
         Self::admin("task_review_snapshot", snapshot)
     }
-    pub fn startup_migration_snapshot(snapshot: UiStartupMigrationSnapshot) -> Result<Self, UiBridgeError> {
+    pub fn startup_migration_snapshot(
+        snapshot: UiStartupMigrationSnapshot,
+    ) -> Result<Self, UiBridgeError> {
         Self::admin("startup_migration_snapshot", snapshot)
     }
-    pub fn onboarding_readiness_snapshot(snapshot: UiOnboardingReadinessSnapshot) -> Result<Self, UiBridgeError> {
+    pub fn onboarding_readiness_snapshot(
+        snapshot: UiOnboardingReadinessSnapshot,
+    ) -> Result<Self, UiBridgeError> {
         Self::admin("onboarding_readiness_snapshot", snapshot)
     }
-    pub fn observability_snapshot(snapshot: UiObservabilitySnapshot) -> Result<Self, UiBridgeError> {
+    pub fn observability_snapshot(
+        snapshot: UiObservabilitySnapshot,
+    ) -> Result<Self, UiBridgeError> {
         Self::admin("observability_snapshot", snapshot)
     }
     pub fn repo_session_snapshot(snapshot: UiRepoSessionSnapshot) -> Result<Self, UiBridgeError> {

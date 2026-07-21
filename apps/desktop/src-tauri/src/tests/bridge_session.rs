@@ -206,8 +206,7 @@ fn switch_session_replays_persisted_history_and_lists_generated_title() {
 
 #[test]
 fn desktop_start_turn_persists_user_history_across_store_reopen() {
-    let path =
-        std::env::temp_dir().join(format!("ruse-desktop-bridge-{}.sqlite3", EventId::new()));
+    let path = std::env::temp_dir().join(format!("ruse-desktop-bridge-{}.sqlite3", EventId::new()));
     let workspace_id = id::<WorkspaceId>("00000000-0000-0000-0000-000000000001");
     let conversation_id = id::<ConversationId>("00000000-0000-0000-0000-000000000002");
     let prompt = "Persist this Desktop conversation across restart";

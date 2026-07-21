@@ -35,9 +35,6 @@ pub fn storage_layer_name() -> String {
 mod tests {
     #[test]
     fn exposes_storage_layer_identity() {
-        assert_eq!(
-            crate::storage_layer_name(),
-            "ruse-storage uses ruse-types"
-        );
+        assert_eq!(crate::storage_layer_name(), "ruse-storage uses ruse-types");
     }
 }

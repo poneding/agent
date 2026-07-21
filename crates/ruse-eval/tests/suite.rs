@@ -1,12 +1,12 @@
 use std::fs;
 
+use camino::{Utf8Path, Utf8PathBuf};
 use ruse_eval::{
     EVAL_SCENARIO_SCHEMA_VERSION, EVAL_SUITE_SCHEMA_VERSION, EvalExpectations, EvalExpectedStatus,
     EvalFixtures, EvalPermissionProfile, EvalScenarioKind, EvalScenarioManifest, EvalStrictness,
     EvalSuiteError, EvalSuiteManifest, EvalSuiteScenarioRef, parse_eval_suite_json,
     validate_eval_suite,
 };
-use camino::{Utf8Path, Utf8PathBuf};
 use serde_json::json;
 
 fn write_file(root: &Utf8Path, relative: &str, content: &str) {

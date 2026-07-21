@@ -40,12 +40,8 @@ fn event_id() -> EventId {
 }
 
 fn artifact() -> ArtifactRef {
-    ArtifactRef::new(
-        "diff",
-        "crates/ruse-team/src/blackboard.rs",
-        Some("hash-1"),
-    )
-    .expect("valid artifact")
+    ArtifactRef::new("diff", "crates/ruse-team/src/blackboard.rs", Some("hash-1"))
+        .expect("valid artifact")
 }
 
 fn entry(summary: &str, created_at: Timestamp) -> BlackboardEntry {

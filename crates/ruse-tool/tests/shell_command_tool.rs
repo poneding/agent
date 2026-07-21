@@ -46,8 +46,7 @@ fn main() {
 "#,
     )
     .expect("write helper source");
-    let binary = root
-        .join(format!("shell-helper{}", std::env::consts::EXE_SUFFIX));
+    let binary = root.join(format!("shell-helper{}", std::env::consts::EXE_SUFFIX));
     let rustc = std::env::var_os("RUSTC").unwrap_or_else(|| "rustc".into());
     let status = Command::new(rustc)
         .arg(&source)
@@ -275,22 +274,20 @@ fn shell_command_tool_rejects_program_path_outside_workspace() {
 #[test]
 fn shell_command_tool_seatbelt_denies_write_outside_workspace_on_macos() {
     let (temp, sandbox, _helper) = sandbox_fixture();
-    let tool = ShellCommandTool::new(sandbox)
-        .with_process_mode(ProcessSandboxMode::PreferSeatbelt);
+    let tool = ShellCommandTool::new(sandbox).with_process_mode(ProcessSandboxMode::PreferSeatbelt);
     let outside = temp.path().join("outside.txt");
     let outside_str = outside.display().to_string();
 
     // /bin/bash is absolute outside workspace path form - use bare sh via PATH
-    let output = tool
-        .execute(ToolInput {
-            value: json!({
-                "program": "sh",
-                "args": ["-c", format!("echo leaked > '{outside_str}'")],
-                "cwd": ".",
-                "timeout_ms": 10000,
-                "env": {}
-            }),
-        });
+    let output = tool.execute(ToolInput {
+        value: json!({
+            "program": "sh",
+            "args": ["-c", format!("echo leaked > '{outside_str}'")],
+            "cwd": ".",
+            "timeout_ms": 10000,
+            "env": {}
+        }),
+    });
 
     #[cfg(target_os = "macos")]
     {

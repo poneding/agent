@@ -1,4 +1,3 @@
-use ruse_ui_bridge::UiProjectContextDetail;
 use ruse_core::{
     ContextCandidate, ContextCandidateOmission, ContextCandidateOmissionReason,
     ContextRetrievalDiagnostic, ContextRetrievalDiagnosticSeverity, ContextRetrievalQuery,
@@ -6,6 +5,7 @@ use ruse_core::{
     ProjectContextRetrievalReport as CoreRetrievalReport, ProjectContextSummary,
     ProjectContextVisibility, ProjectFileKind, ProjectFileSummary,
 };
+use ruse_ui_bridge::UiProjectContextDetail;
 use ruse_ui_bridge::{UiJsonFrame, UiProjectContextRetrievalSnapshot, encode_json_frame};
 use serde_json::json;
 

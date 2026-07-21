@@ -1,6 +1,7 @@
 use std::fmt;
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use ruse_mcp::{
     McpCreateMessageRequestParams, McpCreateMessageResult, McpError, McpSamplingContent,
     McpSamplingProvider, McpSamplingRole, McpSamplingValidationPolicy, McpServerId,
@@ -11,7 +12,6 @@ use ruse_model::{
     collect_model_event_stream,
 };
 use ruse_types::{ConversationId, CorrelationId, TurnId};
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 

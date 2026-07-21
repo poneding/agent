@@ -109,10 +109,8 @@ fn settings_serialized_shape_excludes_secret_like_keys() {
 
 #[test]
 fn settings_release_smoke_snapshot_uses_portable_root() {
-    let root = std::env::temp_dir().join(format!(
-        "ruse-desktop-release-smoke-{}",
-        std::process::id()
-    ));
+    let root =
+        std::env::temp_dir().join(format!("ruse-desktop-release-smoke-{}", std::process::id()));
 
     let snapshot = build_desktop_release_smoke_snapshot("0.1.0", ReleaseChannel::Dev, root.clone())
         .expect("release smoke snapshot");

@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 use std::fs;
 use std::sync::{Arc, Mutex};
 
+use async_trait::async_trait;
 use ruse_core::{
     AGENT_CONFIG_SCHEMA_VERSION, AgentLoopBudget, AgentLoopTerminalState, AgentRuntimeConfig,
     ApprovalCoordinator, ComprehensiveApprovalContinuation, ComprehensiveTurnInput,
@@ -29,7 +30,6 @@ use ruse_types::{
     ConversationId, CorrelationId, ReasoningEffort, RuntimeEventPayload, Timestamp, TurnId,
     WorkspaceId,
 };
-use async_trait::async_trait;
 use serde_json::json;
 use tempfile::TempDir;
 

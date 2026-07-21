@@ -1,5 +1,6 @@
 use std::sync::Mutex;
 
+use async_trait::async_trait;
 use ruse_context::PromptMessage;
 use ruse_core::{RuntimeIds, TurnEngine, TurnError, TurnInput};
 use ruse_model::{
@@ -10,7 +11,6 @@ use ruse_types::{
     ConversationId, CorrelationId, RuntimeEvent, RuntimeEventPayload, TurnId, TurnState,
     WorkspaceId,
 };
-use async_trait::async_trait;
 
 fn runtime_ids() -> RuntimeIds {
     RuntimeIds {

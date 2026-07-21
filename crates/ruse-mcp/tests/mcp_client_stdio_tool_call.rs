@@ -1,11 +1,11 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
+use async_trait::async_trait;
 use ruse_mcp::{
     McpClient as _, McpClientStdioTransport, McpError, McpGatewayClient as _, McpServerConfig,
     McpServerId, McpStdioClient, McpToolCallRequest, McpTransportConfig,
 };
-use async_trait::async_trait;
 use serde_json::{Value, json};
 
 struct RecordingTransport {

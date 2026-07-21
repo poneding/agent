@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::fs;
 
+use camino::{Utf8Path, Utf8PathBuf};
 use ruse_core::{ObservabilityEvidenceOptions, build_observability_evidence};
 use ruse_eval::{
     EVAL_SCENARIO_SCHEMA_VERSION, EvalEvidenceSource, EvalExpectations, EvalExpectedStatus,
@@ -10,7 +11,6 @@ use ruse_eval::{
     run_eval_scenarios, validate_eval_scenario,
 };
 use ruse_storage::load_replay_fixture_json;
-use camino::{Utf8Path, Utf8PathBuf};
 
 const M04_TRACE_V1: &str = include_str!("../../ruse-storage/tests/fixtures/m04_trace_v1.json");
 

@@ -1,6 +1,4 @@
-use ruse_core::{
-    AuditEventCategory, AuditExportError, AuditExportOptions, export_audit_bundle_at,
-};
+use ruse_core::{AuditEventCategory, AuditExportError, AuditExportOptions, export_audit_bundle_at};
 use ruse_types::{
     ActorKind, ActorRef, ConversationId, CorrelationId, EventSeq, RuntimeEvent,
     RuntimeEventPayload, SchemaVersion, Timestamp, ToolCallProposed, TurnId, WorkspaceId,

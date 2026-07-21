@@ -6,7 +6,7 @@ use ruse_policy::{
     ApprovalLeaseScope, ApprovalPreviewSummary, ApprovalResumeToken, PendingApproval,
     PermissionRequest, PolicyDecision, PolicyEngine, ResourceKind, ResourceScope,
 };
-use ruse_tool::{Tool, ToolInput, ToolName, ToolOutput, ToolRegistry};
+use ruse_tool::{Tool, ToolInput, ToolName, ToolOutput, ToolRegistry, preview_tool_call};
 use ruse_types::{
     ActorRef, ApprovalPreviewRecorded, ApprovalRequested, CheckpointId, CheckpointRecorded,
     PermissionDecisionRecorded, RuntimeEvent, RuntimeEventPayload, SchemaVersion, Timestamp,
@@ -144,12 +144,7 @@ impl ToolLoop {
                 request,
             } => {
                 let started_at = Instant::now();
-                events.push(execution_started_event(
-                    ids,
-                    &call,
-                    &decision,
-                    &request,
-                ));
+                events.push(execution_started_event(ids, &call, &decision, &request));
                 let input_json = call.input_json.clone();
                 Ok(finish_tool_execution(
                     ids,
@@ -185,12 +180,7 @@ impl ToolLoop {
                 request,
             } => {
                 let started_at = Instant::now();
-                events.push(execution_started_event(
-                    ids,
-                    &call,
-                    &decision,
-                    &request,
-                ));
+                events.push(execution_started_event(ids, &call, &decision, &request));
                 let input_json = call.input_json.clone();
                 let execution = tokio::task::spawn_blocking(move || {
                     tool.execute(ToolInput { value: input_json })
@@ -214,9 +204,7 @@ fn execute_tool_blocking(
     input_json: serde_json::Value,
 ) -> Result<ToolOutput, ruse_tool::ToolError> {
     match tokio::runtime::Handle::try_current() {
-        Ok(handle)
-            if handle.runtime_flavor() == tokio::runtime::RuntimeFlavor::MultiThread =>
-        {
+        Ok(handle) if handle.runtime_flavor() == tokio::runtime::RuntimeFlavor::MultiThread => {
             // block_in_place lets other async tasks progress on multi-thread
             // runtimes while we wait on the blocking pool for shell/fs work.
             tokio::task::block_in_place(|| {
@@ -237,6 +225,7 @@ fn execute_tool_blocking(
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 enum PreparedToolCall {
     Terminal(ToolLoopOutcome),
     Execute {
@@ -277,7 +266,7 @@ where
         action,
         ResourceScope::new(ResourceKind::Tool, call.tool_name.clone())
             .map_err(|error| ToolLoopError::Policy(error.to_string()))?,
-        "tool execution requested",
+        approval_reason_for_tool(&call.tool_name),
         ids.correlation_id,
     )
     .map_err(|error| ToolLoopError::Policy(error.to_string()))?;
@@ -463,12 +452,9 @@ fn pending_approval_for_tool(
     call: &ToolCallRequest,
     checkpoint_id: CheckpointId,
 ) -> Result<PendingApproval, ToolLoopError> {
-    let preview = ApprovalPreviewSummary::new(
-        "tool",
-        call.tool_name.clone(),
-        format!("Approve tool execution for {}", call.tool_name),
-    )
-    .map_err(|error| ToolLoopError::Policy(error.to_string()))?;
+    // Prefer a concrete tool preview (command line, file path, …) so the UI can
+    // show what will actually run — not a generic "Approve tool execution for …".
+    let preview = approval_preview_for_tool_call(call)?;
     let resume_token = ApprovalResumeToken::new(checkpoint_id, "before approved tool execution")
         .map_err(|error| ToolLoopError::Policy(error.to_string()))?;
 
@@ -481,6 +467,37 @@ fn pending_approval_for_tool(
         None,
     )
     .map_err(|error| ToolLoopError::Policy(error.to_string()))
+}
+
+fn approval_preview_for_tool_call(
+    call: &ToolCallRequest,
+) -> Result<ApprovalPreviewSummary, ToolLoopError> {
+    let tool_name = ToolName::new(call.tool_name.clone())
+        .map_err(|error| ToolLoopError::InvalidToolName(error.to_string()))?;
+    let input = ToolInput {
+        value: call.input_json.clone(),
+    };
+    match preview_tool_call(&tool_name, &input, None) {
+        Ok(preview) => preview
+            .to_approval_preview_summary()
+            .map_err(|error| ToolLoopError::Policy(error.to_string())),
+        Err(_) => ApprovalPreviewSummary::new(
+            "tool",
+            call.tool_name.clone(),
+            format!("Approve tool execution for {}", call.tool_name),
+        )
+        .map_err(|error| ToolLoopError::Policy(error.to_string())),
+    }
+}
+
+fn approval_reason_for_tool(tool_name: &str) -> &'static str {
+    match tool_name {
+        "workspace.shell_command" => "shell command requires approval",
+        "workspace.write_file" => "file write requires approval",
+        "workspace.edit_file" => "file edit requires approval",
+        "workspace.read_file" => "file read requires approval",
+        _ => "tool execution requires approval",
+    }
 }
 
 fn approval_requested_event(approval: &PendingApproval) -> ApprovalRequested {

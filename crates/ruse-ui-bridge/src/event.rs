@@ -550,7 +550,59 @@ fn bounded_ui_summary(value: &str) -> String {
     }
 }
 
+/// Command output stays multiline in the terminal transcript. The generic task
+/// redactor intentionally joins whitespace for short metadata summaries, so use
+/// token-by-token redaction here and preserve the original separators.
+fn redact_tool_output_preserving_whitespace(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    let mut token = String::new();
+    for character in value.chars() {
+        if character.is_whitespace() {
+            if !token.is_empty() {
+                out.push_str(&redact_task_text(&token));
+                token.clear();
+            }
+            out.push(character);
+        } else {
+            token.push(character);
+        }
+    }
+    if !token.is_empty() {
+        out.push_str(&redact_task_text(&token));
+    }
+    out
+}
+
+/// Command output needs a substantially larger bound than path/status metadata;
+/// otherwise even `ls -la` is cut into a single 160-character fragment.
+const TOOL_OUTPUT_SUMMARY_MAX_CHARS: usize = 48_000;
+
+fn bounded_tool_output_summary(value: &str) -> String {
+    let redacted = redact_tool_output_preserving_whitespace(value);
+    let trimmed = redacted.trim_matches(|character| character == '\r' || character == '\n');
+    if trimmed.chars().count() <= TOOL_OUTPUT_SUMMARY_MAX_CHARS {
+        return trimmed.to_string();
+    }
+    let mut out: String = trimmed
+        .chars()
+        .take(TOOL_OUTPUT_SUMMARY_MAX_CHARS)
+        .collect();
+    out.push_str("\n… (output truncated)");
+    out
+}
+
 fn tool_output_summary(value: &serde_json::Value) -> String {
+    // File edit/write results carry a unified `diff`. Prefer the diff body so the
+    // TUI can paint a colored side-by-side / unified view under Wrote/Edited.
+    // Do **not** pass this through the 160-char bounded summary — that was why
+    // the UI only showed `resource=… applied=…` with no line changes.
+    if let Some(diff) = value.get("diff").and_then(serde_json::Value::as_str) {
+        let trimmed = diff.trim();
+        if !trimmed.is_empty() {
+            return bounded_diff_summary(trimmed);
+        }
+    }
+
     let mut parts = Vec::new();
 
     if let Some(status) = value.get("status").and_then(serde_json::Value::as_i64) {
@@ -570,17 +622,15 @@ fn tool_output_summary(value: &serde_json::Value) -> String {
     if let Some(files) = value.get("files").and_then(serde_json::Value::as_array) {
         parts.push(format!("files={}", files.len()));
     }
-    if let Some(stdout) = value.get("stdout").and_then(serde_json::Value::as_str) {
-        let stdout = stdout.trim();
-        if !stdout.is_empty() {
-            parts.push(format!("stdout={}", bounded_ui_summary(stdout)));
-        }
+    if let Some(stdout) = value.get("stdout").and_then(serde_json::Value::as_str)
+        && !stdout.trim().is_empty()
+    {
+        parts.push(format!("stdout={}", bounded_tool_output_summary(stdout)));
     }
-    if let Some(stderr) = value.get("stderr").and_then(serde_json::Value::as_str) {
-        let stderr = stderr.trim();
-        if !stderr.is_empty() {
-            parts.push(format!("stderr={}", bounded_ui_summary(stderr)));
-        }
+    if let Some(stderr) = value.get("stderr").and_then(serde_json::Value::as_str)
+        && !stderr.trim().is_empty()
+    {
+        parts.push(format!("stderr={}", bounded_tool_output_summary(stderr)));
     }
 
     if parts.is_empty() {
@@ -588,6 +638,18 @@ fn tool_output_summary(value: &serde_json::Value) -> String {
     } else {
         parts.join(" ")
     }
+}
+
+/// Soft cap for unified diffs in the UI bridge summary (chars, not bytes).
+const DIFF_SUMMARY_MAX_CHARS: usize = 48_000;
+
+fn bounded_diff_summary(diff: &str) -> String {
+    if diff.chars().count() <= DIFF_SUMMARY_MAX_CHARS {
+        return diff.to_string();
+    }
+    let mut out: String = diff.chars().take(DIFF_SUMMARY_MAX_CHARS).collect();
+    out.push_str("\n… (diff truncated)");
+    out
 }
 
 fn prompt_summary_from_snapshot(snapshot: &ruse_types::PromptSnapshotRecorded) -> UiPromptSummary {
@@ -702,5 +764,86 @@ fn resource_kind_name(kind: ResourceKind) -> &'static str {
         ResourceKind::Command => "command",
         ResourceKind::Network => "network",
         ResourceKind::Tool => "tool",
+    }
+}
+
+#[cfg(test)]
+mod tool_output_summary_tests {
+    use super::tool_output_summary;
+    use serde_json::json;
+
+    #[test]
+    fn edit_result_summary_prefers_full_diff_body() {
+        let summary = tool_output_summary(&json!({
+            "path": "fibonacci.py",
+            "applied": true,
+            "diff": "--- fibonacci.py\n+++ fibonacci.py\n@@\n-old\n+new\n"
+        }));
+        assert!(
+            summary.contains("--- fibonacci.py") && summary.contains("+new"),
+            "diff must survive UI summary (got {summary})"
+        );
+        assert!(
+            !summary.starts_with("resource="),
+            "edit summary must not collapse to resource= only: {summary}"
+        );
+    }
+
+    #[test]
+    fn write_result_summary_prefers_diff_over_resource_only() {
+        let summary = tool_output_summary(&json!({
+            "path": "fibonacci.py",
+            "bytes": 12,
+            "applied": true,
+            "diff": "--- fibonacci.py\n+++ fibonacci.py\n@@\n+def fib():\n"
+        }));
+        assert!(
+            summary.contains("+def fib()"),
+            "write diff must reach the UI summary (got {summary})"
+        );
+        assert!(!summary.starts_with("resource="), "{summary}");
+    }
+
+    #[test]
+    fn shell_result_summary_keeps_stdout() {
+        let summary = tool_output_summary(&json!({
+            "status": 0,
+            "stdout": "hello\n",
+            "stderr": "",
+            "timed_out": false
+        }));
+        assert!(summary.contains("stdout=hello"), "{summary}");
+    }
+
+    #[test]
+    fn shell_result_summary_preserves_multiline_output_and_spacing() {
+        let summary = tool_output_summary(&json!({
+            "status": 0,
+            "stdout": "total 24\ndrwxr-xr-x@  6 dp  staff  192 .\n-rw-r--r--@  1 dp  staff  6148 .DS_Store\n",
+            "stderr": "",
+            "timed_out": false
+        }));
+        assert!(
+            summary.contains("stdout=total 24\ndrwxr-xr-x@  6 dp  staff  192 ."),
+            "line breaks and column spacing must survive: {summary:?}"
+        );
+        assert!(
+            summary.contains("\n-rw-r--r--@  1 dp  staff  6148 .DS_Store"),
+            "later rows must remain separate: {summary:?}"
+        );
+    }
+
+    #[test]
+    fn shell_result_multiline_redaction_keeps_line_structure() {
+        let summary = tool_output_summary(&json!({
+            "status": 0,
+            "stdout": "before\nAPI_KEY=secret-value\nafter\n",
+            "stderr": ""
+        }));
+        assert!(
+            summary.contains("stdout=before\n[redacted]\nafter"),
+            "redaction must not flatten command output: {summary:?}"
+        );
+        assert!(!summary.contains("secret-value"), "{summary:?}");
     }
 }

@@ -149,26 +149,67 @@ fn app_reducer_populates_diff_panel_from_edit_diff_snapshot() {
         }),
     )));
 
-    let rendered = render_app_to_string(&app, 100, 20).expect("render app");
-
-    assert!(rendered.contains("Diff"));
-    assert!(rendered.contains("preview"));
-    assert!(rendered.contains("Files: 1/1"));
-    assert!(rendered.contains("+1 -1"));
+    let panel = app.diff_panel.expect("diff panel populated from snapshot");
+    assert_eq!(panel.path, "README.md");
+    assert_eq!(panel.diff_state, "preview");
+    assert_eq!(panel.changed_file_count, 1);
+    assert_eq!(panel.added_line_count, 1);
+    assert_eq!(panel.removed_line_count, 1);
+    let text = panel.render_text();
+    assert!(text.contains("Diff: preview"));
+    assert!(text.contains("Files: 1/1"));
+    assert!(text.contains("+1 -1"));
 }
 
 #[test]
-fn diff_panel_renders_truncated_redacted_preview_in_side_panel() {
-    let app = TuiApp {
-        diff_panel: Some(DiffPanelState::from_approval(&file_edit_request(true), 80)),
-        ..Default::default()
-    };
+fn file_edit_approval_surface_stays_compact_without_diff_dump() {
+    // Approval for edits should only show the kind + path + choices — the full
+    // Diff:/Files:/hash dump must not appear under "Approval required".
+    let mut app = TuiApp::default();
+    let request = file_edit_request(true);
+    app.approval_panel
+        .reduce_frame(&UiJsonFrame::Event(ruse_ui_bridge::UiEventEnvelope {
+            schema_version: ruse_types::SchemaVersion::current(),
+            event_id: ruse_types::EventId::new(),
+            seq: None,
+            occurred_at: ruse_types::Timestamp::now_utc(),
+            conversation_id: ruse_types::ConversationId::new(),
+            turn_id: None,
+            task_id: None,
+            correlation_id: ruse_types::CorrelationId::new(),
+            payload: ruse_ui_bridge::UiEventPayload::ApprovalRequested(Box::new(request.clone())),
+        }));
+    app.diff_panel = Some(DiffPanelState::from_approval(&request, 80));
 
     let rendered = render_app_to_string(&app, 96, 18).expect("render app");
 
-    assert!(rendered.contains("Diff"));
-    assert!(rendered.contains("src/lib.rs"));
-    assert!(rendered.contains("sha256:file-edit"));
-    assert!(rendered.contains("truncated"));
-    assert!(rendered.contains("redacted"));
+    assert!(rendered.contains("Approval required"), "{rendered}");
+    assert!(rendered.contains("Edit file"), "{rendered}");
+    assert!(rendered.contains("src/lib.rs"), "{rendered}");
+    assert!(rendered.contains("Allow once"), "{rendered}");
+    assert!(
+        !rendered.contains("Diff:"),
+        "approval must not dump Diff: metadata: {rendered}"
+    );
+    assert!(
+        !rendered.contains("applied="),
+        "approval must not dump applied= metadata: {rendered}"
+    );
+    assert!(
+        !rendered.contains("Files:"),
+        "approval must not dump Files: metadata: {rendered}"
+    );
+    assert!(
+        !rendered.contains("sha256:file-edit"),
+        "approval must not dump content hash: {rendered}"
+    );
+    // Multi-line preview summary / reason body must stay out of the surface.
+    assert!(
+        !rendered.contains("+pub fn run_agent"),
+        "approval must not embed diff summary body: {rendered}"
+    );
+    assert!(
+        !rendered.contains("apply proposed edit"),
+        "file-edit reason must not pad the approval surface: {rendered}"
+    );
 }

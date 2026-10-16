@@ -166,7 +166,7 @@ pub fn parse_plain_repl_line(line: &str) -> Option<PlainReplEvent> {
     }
 
     match line {
-        "/exit" | "/quit" => Some(PlainReplEvent::Exit),
+        "/exit" | "/quit" | "/bye" => Some(PlainReplEvent::Exit),
         slash if slash.starts_with('/') => Some(PlainReplEvent::SlashCommand(slash.to_string())),
         prompt => Some(PlainReplEvent::PromptSubmitted(prompt.to_string())),
     }

@@ -20,7 +20,7 @@ impl Tool for FileEditTool {
     fn definition(&self) -> ToolDefinition {
         ToolDefinition {
             name: ToolName::new("workspace.edit_file").expect("static tool name is valid"),
-            description: "Preview or apply a workspace-confined file replacement".to_string(),
+            description: "Preview or apply a file replacement in the workspace".to_string(),
             input_schema: json!({
                 "type": "object",
                 "required": ["path", "replacement"],
@@ -64,7 +64,7 @@ impl Tool for FileEditTool {
             ));
         }
 
-        let diff = simple_diff(path, &current, replacement);
+        let diff = crate::builtins::file_diff::unified_file_diff(path, &current, replacement);
         if apply {
             std::fs::write(&resolved, replacement)
                 .map_err(|error| ToolError::Execution(error.to_string()))?;
@@ -78,26 +78,4 @@ impl Tool for FileEditTool {
             }),
         })
     }
-}
-
-fn simple_diff(path: &str, current: &str, replacement: &str) -> String {
-    format!(
-        "--- {path}\n+++ {path}\n@@\n{}{}",
-        removed_lines(current),
-        added_lines(replacement)
-    )
-}
-
-fn removed_lines(value: &str) -> String {
-    value
-        .lines()
-        .map(|line| format!("-{line}\n"))
-        .collect::<String>()
-}
-
-fn added_lines(value: &str) -> String {
-    value
-        .lines()
-        .map(|line| format!("+{line}\n"))
-        .collect::<String>()
 }

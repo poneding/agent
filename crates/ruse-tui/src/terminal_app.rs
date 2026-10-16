@@ -22,16 +22,17 @@ use thiserror::Error;
 
 use crate::{
     ApprovalPanelAction, ComposerAction, ComposerCursorMove, CrosstermTerminalBackend,
-    LocalDiagnosticSeverity, ModelPickerAction, ReasoningEffort, SPINNER_FRAME_INTERVAL_MS,
-    SessionPanelAction, StatusBarState, TerminalModeError, TerminalModeGuard, TerminalTheme,
-    ThemePickerAction, TranscriptItem, TranscriptItemKind, TuiAction, TuiApp, TuiEffect, TuiScreen,
-    render_app,
+    LocalDiagnosticSeverity, ModelPickerAction, PermissionMode, ReasoningEffort,
+    SPINNER_FRAME_INTERVAL_MS, SessionPanelAction, StatusBarState, TerminalModeError,
+    TerminalModeGuard, TerminalTheme, ThemePickerAction, TranscriptItem, TranscriptItemKind,
+    TuiAction, TuiApp, TuiEffect, TuiScreen, render_app,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TerminalAppConfig {
     pub status: StatusBarState,
     pub theme: TerminalTheme,
+    pub permission_mode: PermissionMode,
     pub tick_rate: Duration,
     pub startup_frames: Vec<UiJsonFrame>,
 }
@@ -42,6 +43,7 @@ impl TerminalAppConfig {
         Self {
             status,
             theme: TerminalTheme::default(),
+            permission_mode: PermissionMode::default(),
             tick_rate: Duration::from_millis(50),
             startup_frames: Vec::new(),
         }
@@ -88,6 +90,7 @@ impl TerminalCancellationToken {
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub struct TerminalTurnOptions {
     pub reasoning_effort: ReasoningEffort,
+    pub permission_mode: PermissionMode,
 }
 
 pub trait TerminalTurnRuntime: Send + Sync + 'static {
@@ -279,13 +282,15 @@ pub fn run_terminal_app_stdio_with_runtimes(
     let TerminalAppConfig {
         status,
         theme,
+        permission_mode,
         tick_rate,
         startup_frames,
     } = config;
     // Mouse capture is on so left-clicks can expand/collapse a specific thinking
     // or tool block ("see which, click which"). Trade-off: native drag-select is
-    // disabled while capture is active — use /copy or Ctrl+Shift+C for clipboard.
-    // Bracketed paste still keeps multi-line pastes atomic.
+    // disabled while capture is active — in-app drag-select copies on mouse-up.
+    // Bracketed paste is enabled in `TerminalModeGuard` so multi-line pastes
+    // arrive as one `Event::Paste` (with newlines intact) instead of key spam.
     let mut guard = TerminalModeGuard::enter(CrosstermTerminalBackend)?;
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
@@ -293,7 +298,16 @@ pub fn run_terminal_app_stdio_with_runtimes(
     terminal.clear()?;
 
     let size = terminal.size()?;
-    let mut app = build_terminal_app_state(status, theme, size.width, size.height, startup_frames);
+    // Some hosts report 0×0 until the first resize (or never). A zero-size
+    // frame paints a blank alternate screen that looks like "TUI won't open".
+    let width = size.width.max(40);
+    let height = size.height.max(12);
+    let mut app = build_terminal_app_state(status, theme, width, height, startup_frames);
+    app.permission_mode = permission_mode;
+    if size.width == 0 || size.height == 0 {
+        app.terminal_size.width = width;
+        app.terminal_size.height = height;
+    }
 
     let (frame_sender, frame_receiver) = mpsc::channel();
     let mut turn = TurnController::new();
@@ -340,11 +354,10 @@ pub fn run_terminal_app_stdio_with_runtimes(
         };
 
         if event::poll(poll_timeout)? {
-            // Any consumed input event mutates or may mutate visible state.
-            dirty = true;
             match event::read()? {
                 Event::Key(key) => {
                     if let Some(action) = key_event_to_action_for_app(key, &app) {
+                        dirty = true;
                         if action == TuiAction::CancelTurnRequested {
                             handle_cancel_turn_requested(
                                 &mut app,
@@ -367,9 +380,11 @@ pub fn run_terminal_app_stdio_with_runtimes(
                     }
                 }
                 Event::Resize(width, height) => {
+                    dirty = true;
                     app.reduce(TuiAction::Resize { width, height });
                 }
                 Event::Paste(text) => {
+                    dirty = true;
                     let effect = app.reduce(TuiAction::Composer(ComposerAction::InsertText(text)));
                     apply_terminal_effect_with_runtime_and_queue(
                         &mut app,
@@ -384,7 +399,18 @@ pub fn run_terminal_app_stdio_with_runtimes(
                 }
                 Event::Mouse(mouse) => {
                     if let Some(action) = mouse_event_to_action(mouse) {
+                        // Pointer moves only need a redraw when the hover target
+                        // changes (thinking header brightens on enter/leave).
+                        let is_move = matches!(mouse.kind, MouseEventKind::Moved);
+                        let hover_before = if is_move {
+                            app.hovered_transcript_item()
+                        } else {
+                            None
+                        };
                         let effect = app.reduce(action);
+                        if !is_move || app.hovered_transcript_item() != hover_before {
+                            dirty = true;
+                        }
                         apply_terminal_effect_with_runtime_and_queue(
                             &mut app,
                             effect,
@@ -436,12 +462,17 @@ pub fn build_terminal_app_state(
 pub fn mouse_event_to_action(mouse: MouseEvent) -> Option<TuiAction> {
     // Mouse capture is on so we can:
     //   - left-click expand/collapse a specific thinking/tool block
-    //   - drag-select transcript text and copy on release
+    //   - hover-brighten thinking headers as a click affordance
+    //   - drag-select transcript text (highlight only; copy is explicit)
     // Native host selection is disabled while capture is active; in-app
-    // selection restores the select+copy path.
+    // selection restores select+copy (copy happens on mouse-up).
     match mouse.kind {
         MouseEventKind::ScrollUp => Some(TuiAction::ScrollTranscriptUp),
         MouseEventKind::ScrollDown => Some(TuiAction::ScrollTranscriptDown),
+        MouseEventKind::Moved => Some(TuiAction::PointerMove {
+            column: mouse.column,
+            row: mouse.row,
+        }),
         MouseEventKind::Down(MouseButton::Left) => {
             // Shift+click: leave to host terminal (if it still synthesizes
             // selection); we do not start an in-app drag.
@@ -486,10 +517,10 @@ pub fn key_event_to_action(key: KeyEvent) -> Option<TuiAction> {
             KeyCode::Char('c') | KeyCode::Char('C') => Some(TuiAction::CancelTurnRequested),
             KeyCode::Char('e') | KeyCode::Char('E') => Some(TuiAction::TogglePanelExpansion),
             KeyCode::Char('l') | KeyCode::Char('L') => Some(TuiAction::ClearTranscript),
-            KeyCode::Char('h') | KeyCode::Char('H') => Some(TuiAction::OpenHelp),
+            KeyCode::Char('h') | KeyCode::Char('H') => Some(TuiAction::OpenCommands),
             // Expand/collapse the latest tool result (shell output, long observations).
-            // Clipboard copy stays on Ctrl+Shift+O / the /copy slash command so
-            // Ctrl+O matches the on-screen "ctrl+o to expand" hint.
+            // Selection copy is mouse-up only so Ctrl+O keeps matching the
+            // on-screen "ctrl+o to expand" hint.
             KeyCode::Char('o') | KeyCode::Char('O') => Some(TuiAction::ToggleToolOutput),
             KeyCode::Char('r') | KeyCode::Char('R') => Some(TuiAction::StartRecoveryContinuation),
             // Open the theme picker (also available via `/theme`). Up/Down live-previews;
@@ -509,6 +540,11 @@ pub fn key_event_to_action(key: KeyEvent) -> Option<TuiAction> {
             // Ctrl+Up/Down also navigate composer history (alongside Alt+Up/Down).
             KeyCode::Up => Some(TuiAction::Composer(ComposerAction::HistoryPrevious)),
             KeyCode::Down => Some(TuiAction::Composer(ComposerAction::HistoryNext)),
+            // Ctrl+U (readline `unix-line-discard`): delete from the caret back to
+            // the start of the current composer line.
+            KeyCode::Char('u') | KeyCode::Char('U') => {
+                Some(TuiAction::Composer(ComposerAction::DeleteToLineStart))
+            }
             _ => None,
         };
     }
@@ -547,9 +583,12 @@ pub fn key_event_to_action(key: KeyEvent) -> Option<TuiAction> {
         KeyCode::PageUp => Some(TuiAction::ScrollTranscriptPageUp),
         KeyCode::Home => Some(TuiAction::ScrollTranscriptTop),
         KeyCode::End => Some(TuiAction::ScrollTranscriptBottom),
-        KeyCode::Tab => Some(TuiAction::CyclePermissionMode),
+        // Permission mode is a bare-Tab shortcut. Some terminals report
+        // Shift+Tab as `Tab` plus the SHIFT modifier instead of `BackTab`; do
+        // not let that representation fall through and change permissions.
+        KeyCode::Tab if key.modifiers.is_empty() => Some(TuiAction::CyclePermissionMode),
         KeyCode::Esc => Some(TuiAction::OpenChat),
-        KeyCode::F(1) => Some(TuiAction::OpenHelp),
+        KeyCode::F(1) => Some(TuiAction::OpenCommands),
         _ => None,
     }
 }
@@ -610,17 +649,15 @@ pub fn key_event_to_action_for_app(key: KeyEvent, app: &TuiApp) -> Option<TuiAct
         };
     }
 
-    // The session picker is the same centered-modal shape. `n` starts a fresh
-    // session; Enter switches to the highlighted one; Esc dismisses. While open it
-    // owns the keyboard so the keys never leak into the composer.
+    // The session picker is the same centered-modal shape. Enter switches to the
+    // highlighted session and closes the picker; Esc dismisses. Fresh sessions are
+    // started with `/new`, not an in-panel row. While open it owns the keyboard so
+    // the keys never leak into the composer.
     if app.session_panel.is_open() {
         return match key.code {
             KeyCode::Up => Some(TuiAction::SessionPanel(SessionPanelAction::FocusPrevious)),
             KeyCode::Down => Some(TuiAction::SessionPanel(SessionPanelAction::FocusNext)),
             KeyCode::Enter => Some(TuiAction::SessionPanel(SessionPanelAction::SwitchFocused)),
-            KeyCode::Char('n') | KeyCode::Char('N') => {
-                Some(TuiAction::SessionPanel(SessionPanelAction::NewSession))
-            }
             KeyCode::Esc => Some(TuiAction::SessionPanel(SessionPanelAction::Dismiss)),
             _ => None,
         };
@@ -638,13 +675,26 @@ pub fn key_event_to_action_for_app(key: KeyEvent, app: &TuiApp) -> Option<TuiAct
         };
     }
 
+    // The status popup is read-only: Enter or Esc dismisses it. While open it owns
+    // the keyboard so the keys never leak into the composer.
+    if app.status_panel.is_open() {
+        return match key.code {
+            KeyCode::Esc | KeyCode::Enter => Some(TuiAction::StatusPanelDismiss),
+            _ => None,
+        };
+    }
+
     if key.modifiers.contains(KeyModifiers::CONTROL) {
         return key_event_to_action(key);
     }
 
-    // Shift+Tab changes the reasoning effort for subsequent turns. Modal-local
-    // BackTab behavior is handled above before this global chat shortcut.
-    if key.code == KeyCode::BackTab && app.screen == TuiScreen::Chat {
+    // Shift+Tab changes the reasoning effort for subsequent turns. Crossterm
+    // may represent the chord as either BackTab or Tab+SHIFT depending on the
+    // terminal keyboard protocol. Handle both before bare Tab can reach the
+    // permission-mode shortcut. Modal-local behavior is handled above.
+    let shift_tab = key.code == KeyCode::BackTab
+        || (key.code == KeyCode::Tab && key.modifiers.contains(KeyModifiers::SHIFT));
+    if shift_tab && app.screen == TuiScreen::Chat {
         return Some(TuiAction::CycleReasoningEffort);
     }
 
@@ -784,6 +834,7 @@ pub fn apply_terminal_effect_with_runtime_and_queue(
                         prompt,
                         TerminalTurnOptions {
                             reasoning_effort: app.status.reasoning_effort,
+                            permission_mode: app.permission_mode,
                         },
                     ));
                 return;
@@ -798,6 +849,7 @@ pub fn apply_terminal_effect_with_runtime_and_queue(
                 true,
                 TerminalTurnOptions {
                     reasoning_effort: app.status.reasoning_effort,
+                    permission_mode: app.permission_mode,
                 },
             );
         }
@@ -817,6 +869,7 @@ pub fn apply_terminal_effect_with_runtime_and_queue(
                         summary,
                         TerminalTurnOptions {
                             reasoning_effort: app.status.reasoning_effort,
+                            permission_mode: app.permission_mode,
                         },
                     ));
                 return;
@@ -837,6 +890,7 @@ pub fn apply_terminal_effect_with_runtime_and_queue(
                 false,
                 TerminalTurnOptions {
                     reasoning_effort: app.status.reasoning_effort,
+                    permission_mode: app.permission_mode,
                 },
             );
         }
@@ -860,9 +914,21 @@ pub fn apply_terminal_effect_with_runtime_and_queue(
         }
         TuiEffect::CopyToClipboard { text } => {
             // Clipboard copy is a success confirmation, not an error: it belongs in
-            // the transient toast, never as a red transcript diagnostic.
-            let diagnostic = copy_text_to_terminal_clipboard(&mut io::stdout(), &text).diagnostic();
-            app.show_toast(diagnostic, LocalDiagnosticSeverity::Note, Instant::now());
+            // the transient toast above the composer, never as a red transcript
+            // diagnostic. Use a short fixed success string on success; only surface
+            // the technical diagnostic when both OSC52 and platform copy fail.
+            let report = copy_text_to_terminal_clipboard(&mut io::stdout(), &text);
+            let message = if report.copied() {
+                "Copied to clipboard!".to_string()
+            } else {
+                report.diagnostic()
+            };
+            let severity = if report.copied() {
+                LocalDiagnosticSeverity::Note
+            } else {
+                LocalDiagnosticSeverity::Warning
+            };
+            app.show_toast(message, severity, Instant::now());
         }
         effect @ TuiEffect::ResolveApproval { .. } => {
             // Approval continuation can include tool execution and another model
@@ -945,12 +1011,11 @@ fn start_prompt_turn(
             prompt.clone(),
             false,
         ));
-        app.transcript.push(TranscriptItem::new(
-            TranscriptItemKind::Reasoning,
-            "thinking",
-            "thinking",
-            true,
-        ));
+        // Do not inject a turn-start Reasoning placeholder. Premature
+        // "Thinking..." is removed again when the model answers without a
+        // reasoning stream — that hide/show is a visible flash. Live activity
+        // chrome already signals the turn is active; a real Thinking row is
+        // created on the first reasoning delta.
     }
     turn.active = true;
     // Anchor the authoritative turn clock. This drives the spinner and the
@@ -1103,23 +1168,20 @@ impl ClipboardCopyReport {
     #[must_use]
     pub fn diagnostic(&self) -> String {
         match (self.osc52_ok, self.platform.command.as_deref()) {
-            (true, Some(command)) => {
-                format!("latest assistant output copied via OSC52 and {command}")
-            }
-            (true, None) => {
-                "latest assistant output copied via OSC52 terminal clipboard".to_string()
-            }
-            (false, Some(command)) => {
-                format!("latest assistant output copied via {command}")
+            (true, Some(_)) | (true, None) | (false, Some(_)) => {
+                "Copied to clipboard!".to_string()
             }
             (false, None) if self.platform.attempted => format!(
-                "terminal clipboard copy failed: {}",
+                "clipboard copy failed: {}",
                 self.platform
                     .error
                     .as_deref()
                     .unwrap_or("no platform clipboard command succeeded")
             ),
-            (false, None) => "terminal clipboard copy failed: OSC52 write failed and no platform clipboard command is available".to_string(),
+            (false, None) => {
+                "clipboard copy failed: OSC52 write failed and no platform clipboard command is available"
+                    .to_string()
+            }
         }
     }
 }

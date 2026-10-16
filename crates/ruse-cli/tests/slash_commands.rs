@@ -39,9 +39,9 @@ fn slash_commands_parse_known_commands() {
         SlashCommand::parse("/theme").expect("theme"),
         SlashCommand::Theme
     );
-    assert_eq!(
-        SlashCommand::parse("/copy").expect("copy"),
-        SlashCommand::Copy
+    assert!(
+        SlashCommand::parse("/copy").is_none(),
+        "copy is keyboard-only; no slash command"
     );
     assert_eq!(
         SlashCommand::parse("/thinking show-all").expect("thinking"),
@@ -59,6 +59,7 @@ fn slash_commands_parse_known_commands() {
         SlashCommand::parse("/sessions").expect("sessions"),
         SlashCommand::Sessions
     );
+    assert_eq!(SlashCommand::parse("/new").expect("new"), SlashCommand::New);
     assert_eq!(
         SlashCommand::parse("/resume").expect("resume"),
         SlashCommand::Resume
@@ -83,6 +84,10 @@ fn slash_commands_parse_known_commands() {
         SlashCommand::parse("/exit").expect("exit"),
         SlashCommand::Quit
     );
+    assert_eq!(
+        SlashCommand::parse("/bye").expect("bye"),
+        SlashCommand::Quit
+    );
 }
 
 #[test]
@@ -96,11 +101,12 @@ fn slash_commands_render_catalog_help_status_and_exit() {
 
     assert!(help.stdout.contains("Commands:"));
     assert!(help.stdout.contains("/sessions"));
+    assert!(help.stdout.contains("/new"));
     assert!(help.stdout.contains("/resume"));
-    assert!(help.stdout.contains("/copy"));
+    assert!(!help.stdout.contains("/copy"));
     assert!(help.stdout.contains("/theme"));
     assert!(help.stdout.contains("/thinking show-all|hide-all"));
-    assert!(help.stdout.contains("alias: /exit"));
+    assert!(help.stdout.contains("alias: /exit, /bye"));
     assert!(!help.exit);
     assert!(status.stdout.contains("Status: ready"));
     assert!(status.stdout.contains("Provider: fake / fake-scripted"));

@@ -107,6 +107,7 @@ fn plain_repl_line_parser_classifies_prompt_slash_empty_and_exit() {
     );
     assert_eq!(parse_plain_repl_line("/exit"), Some(PlainReplEvent::Exit));
     assert_eq!(parse_plain_repl_line("/quit"), Some(PlainReplEvent::Exit));
+    assert_eq!(parse_plain_repl_line("/bye"), Some(PlainReplEvent::Exit));
 }
 
 #[test]
@@ -226,6 +227,7 @@ fn plain_repl_invocation_remains_a_text_command() {
             model_selection: Default::default(),
             config_path: None,
             config_override: Default::default(),
+            permission_mode: Default::default(),
         }
     );
 }

@@ -6,15 +6,15 @@ use std::time::{Duration, Instant};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
 use ruse_tui::{
     ApprovalPanelAction, ClipboardCopyReport, ComposerAction, DiagnosticTerminalCommandRuntime,
-    DiagnosticTerminalTurnRuntime, PlatformClipboardResult, ReasoningEffort, SessionPanelAction,
-    TerminalCancellationToken, TerminalCommandRuntime, TerminalEffectRuntime, TerminalFrameSender,
-    TerminalTheme, TerminalTurnOptions, TerminalTurnRuntime, TranscriptItemKind, TuiAction, TuiApp,
-    TuiEffect, TurnController, apply_terminal_effect, apply_terminal_effect_with_runtime,
-    apply_terminal_effect_with_runtimes, build_terminal_app_state,
-    copy_text_to_terminal_clipboard_with_platform_result, drain_terminal_frames,
-    handle_cancel_turn_requested, key_event_to_action, key_event_to_action_for_app,
-    mouse_event_to_action, osc52_copy_sequence, platform_clipboard_command_candidates_for,
-    start_next_queued_prompt, write_osc52_clipboard,
+    DiagnosticTerminalTurnRuntime, PermissionMode, PlatformClipboardResult, ReasoningEffort,
+    SessionPanelAction, TerminalCancellationToken, TerminalCommandRuntime, TerminalEffectRuntime,
+    TerminalFrameSender, TerminalTheme, TerminalTurnOptions, TerminalTurnRuntime,
+    TranscriptItemKind, TuiAction, TuiApp, TuiEffect, TurnController, apply_terminal_effect,
+    apply_terminal_effect_with_runtime, apply_terminal_effect_with_runtimes,
+    build_terminal_app_state, copy_text_to_terminal_clipboard_with_platform_result,
+    drain_terminal_frames, handle_cancel_turn_requested, key_event_to_action,
+    key_event_to_action_for_app, mouse_event_to_action, osc52_copy_sequence,
+    platform_clipboard_command_candidates_for, start_next_queued_prompt, write_osc52_clipboard,
 };
 use ruse_types::{
     ApprovalRequestId, ConversationId, CorrelationId, EventId, EventSeq, IdempotentRecoverySummary,
@@ -62,6 +62,11 @@ fn terminal_key_mapping_routes_common_composer_controls() {
         key_event_to_action(KeyEvent::new(KeyCode::Up, KeyModifiers::CONTROL)),
         Some(TuiAction::Composer(ComposerAction::HistoryPrevious))
     );
+    // Ctrl+U: readline unix-line-discard — delete from caret to start of line.
+    assert_eq!(
+        key_event_to_action(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL)),
+        Some(TuiAction::Composer(ComposerAction::DeleteToLineStart))
+    );
 }
 
 #[test]
@@ -106,8 +111,25 @@ fn terminal_key_mapping_routes_global_actions() {
         Some(TuiAction::CycleReasoningEffort)
     );
     assert_eq!(
+        key_event_to_action_for_app(
+            KeyEvent::new(KeyCode::Tab, KeyModifiers::SHIFT),
+            &TuiApp::default(),
+        ),
+        Some(TuiAction::CycleReasoningEffort),
+        "enhanced keyboard protocols may encode Shift+Tab as Tab+SHIFT",
+    );
+    assert_eq!(
+        key_event_to_action(KeyEvent::new(KeyCode::Tab, KeyModifiers::SHIFT)),
+        None,
+        "Shift+Tab must not fall through to the bare-Tab permission shortcut",
+    );
+    assert_eq!(
+        key_event_to_action(KeyEvent::new(KeyCode::Char('h'), KeyModifiers::CONTROL)),
+        Some(TuiAction::OpenCommands)
+    );
+    assert_eq!(
         key_event_to_action(KeyEvent::new(KeyCode::F(1), KeyModifiers::NONE)),
-        Some(TuiAction::OpenHelp)
+        Some(TuiAction::OpenCommands)
     );
     assert_eq!(
         key_event_to_action(KeyEvent::new(KeyCode::PageUp, KeyModifiers::NONE)),
@@ -125,6 +147,24 @@ fn terminal_key_mapping_routes_global_actions() {
         key_event_to_action(KeyEvent::new(KeyCode::End, KeyModifiers::NONE)),
         Some(TuiAction::ScrollTranscriptBottom)
     );
+}
+
+#[test]
+fn terminal_shift_tab_cycles_effort_without_changing_permission_mode() {
+    for key in [
+        KeyEvent::new(KeyCode::BackTab, KeyModifiers::SHIFT),
+        KeyEvent::new(KeyCode::Tab, KeyModifiers::SHIFT),
+    ] {
+        let mut app = TuiApp::default();
+        let initial_permission_mode = app.permission_mode;
+        let initial_effort = app.status.reasoning_effort;
+
+        let action = key_event_to_action_for_app(key, &app).expect("Shift+Tab action");
+        app.reduce(action);
+
+        assert_eq!(app.status.reasoning_effort, initial_effort.next());
+        assert_eq!(app.permission_mode, initial_permission_mode);
+    }
 }
 
 #[test]
@@ -207,7 +247,8 @@ fn terminal_recovery_continuation_requires_explicit_start_action() {
             summary_truncated: false,
             prompt_truncated: false,
         }),
-    }));
+    }))
+    .expect("recovery_resume frame");
 
     assert_eq!(
         app.reduce(TuiAction::BridgeFrame(Box::new(frame))),
@@ -299,10 +340,7 @@ fn terminal_clipboard_diagnostics_describe_fallback_path() {
             error: None,
         },
     };
-    assert_eq!(
-        both.diagnostic(),
-        "latest assistant output copied via OSC52 and pbcopy"
-    );
+    assert_eq!(both.diagnostic(), "Copied to clipboard!");
 
     let platform_only = ClipboardCopyReport {
         osc52_ok: false,
@@ -312,10 +350,7 @@ fn terminal_clipboard_diagnostics_describe_fallback_path() {
             error: None,
         },
     };
-    assert_eq!(
-        platform_only.diagnostic(),
-        "latest assistant output copied via wl-copy"
-    );
+    assert_eq!(platform_only.diagnostic(), "Copied to clipboard!");
 
     let failed = ClipboardCopyReport {
         osc52_ok: false,
@@ -327,7 +362,7 @@ fn terminal_clipboard_diagnostics_describe_fallback_path() {
     };
     assert_eq!(
         failed.diagnostic(),
-        "terminal clipboard copy failed: pbcopy: not found"
+        "clipboard copy failed: pbcopy: not found"
     );
 }
 
@@ -589,7 +624,8 @@ fn terminal_app_state_applies_startup_frames_before_first_draw() {
                     dry_run: true,
                     diagnostics: Vec::new(),
                 },
-            )),
+            ))
+            .expect("command_retry_plan frame"),
         ],
     );
 
@@ -630,7 +666,7 @@ fn terminal_app_state_keeps_startup_status_frames_out_of_transcript() {
 
     assert!(app.transcript.items.is_empty());
     let rendered = ruse_tui::render_app_to_string(&app, 100, 24).expect("render welcome");
-    assert!(rendered.contains("AGENT"));
+    assert!(rendered.contains("RUSE"));
     assert!(rendered.contains("freemodel / gpt-5.5"));
     assert!(!rendered.contains("Transcript"));
 }
@@ -1033,6 +1069,7 @@ fn terminal_turn_snapshots_reasoning_effort_for_direct_and_queued_prompts() {
     let (sender, receiver) = mpsc::channel();
     let mut app = TuiApp::default();
     app.status.reasoning_effort = ReasoningEffort::Low;
+    app.permission_mode = PermissionMode::AutoAcceptEdits;
     let mut turn = TurnController::new();
 
     apply_terminal_effect_with_runtime(
@@ -1043,15 +1080,27 @@ fn terminal_turn_snapshots_reasoning_effort_for_direct_and_queued_prompts() {
         &mut turn,
     );
     app.status.reasoning_effort = ReasoningEffort::High;
+    app.permission_mode = PermissionMode::Plan;
     drain_until_inactive(&mut app, &receiver, &mut turn);
 
     assert_eq!(
-        recorded.lock().expect("recorded options").as_slice(),
-        &[ReasoningEffort::Low]
+        recorded
+            .lock()
+            .expect("recorded options")
+            .iter()
+            .map(|options| options.reasoning_effort)
+            .collect::<Vec<_>>(),
+        vec![ReasoningEffort::Low]
+    );
+
+    assert_eq!(
+        recorded.lock().expect("recorded options")[0].permission_mode,
+        PermissionMode::AutoAcceptEdits
     );
 
     turn.active = true;
     app.status.reasoning_effort = ReasoningEffort::Medium;
+    app.permission_mode = PermissionMode::Yolo;
     apply_terminal_effect_with_runtime(
         &mut app,
         TuiEffect::SubmitPrompt("queued".to_string()),
@@ -1066,8 +1115,8 @@ fn terminal_turn_snapshots_reasoning_effort_for_direct_and_queued_prompts() {
             .front()
             .expect("queued prompt")
             .options
-            .reasoning_effort,
-        ReasoningEffort::Medium
+            .permission_mode,
+        PermissionMode::Yolo
     );
 }
 
@@ -1146,7 +1195,7 @@ fn drain_until_inactive(
 }
 
 struct RecordingOptionsRuntime {
-    recorded: Arc<Mutex<Vec<ReasoningEffort>>>,
+    recorded: Arc<Mutex<Vec<TerminalTurnOptions>>>,
 }
 
 impl TerminalTurnRuntime for RecordingOptionsRuntime {
@@ -1166,10 +1215,7 @@ impl TerminalTurnRuntime for RecordingOptionsRuntime {
         cancellation: TerminalCancellationToken,
         options: TerminalTurnOptions,
     ) {
-        self.recorded
-            .lock()
-            .expect("record options")
-            .push(options.reasoning_effort);
+        self.recorded.lock().expect("record options").push(options);
         self.run_turn(prompt, sender, cancellation);
     }
 }

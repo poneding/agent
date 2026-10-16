@@ -87,9 +87,12 @@ fn session_panel_moves_focus_with_wraparound() {
 fn session_panel_emits_switch_session_effect() {
     let mut panel = SessionPanelState::default();
     panel.reduce_frame(&snapshot());
+    let _ = panel.reduce(SessionPanelAction::Open);
+    assert!(panel.is_open());
 
     let effect = panel.reduce(SessionPanelAction::SwitchFocused);
 
+    assert!(!panel.is_open(), "Enter should close the sessions panel");
     assert_eq!(
         effect,
         TuiEffect::SwitchSession {
@@ -123,10 +126,15 @@ fn session_panel_emits_switch_session_effect() {
 #[test]
 fn session_panel_empty_state_is_stable() {
     let mut panel = SessionPanelState::default();
+    let _ = panel.reduce(SessionPanelAction::Open);
 
     assert_eq!(panel.render_text(), "No terminal sessions");
     assert_eq!(
         panel.reduce(SessionPanelAction::SwitchFocused),
-        TuiEffect::LocalDiagnostic("no terminal session is focused".to_string())
+        TuiEffect::LocalDiagnostic {
+            message: "no terminal session is focused".to_string(),
+            severity: ruse_tui::LocalDiagnosticSeverity::Note,
+        }
     );
+    assert!(!panel.is_open(), "Enter closes the panel even when empty");
 }

@@ -3,20 +3,17 @@ use ratatui::buffer::Buffer;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Margin, Position, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, Clear, Paragraph};
+use ratatui::widgets::{Block, BorderType, Borders, Clear, Paragraph};
 use ratatui::{Frame, Terminal};
 
 use crate::app::format_token_count;
 use crate::{
     ApprovalOption, ConnectionState, LocalDiagnosticSeverity, Palette, Semantic,
-    SlashSuggestionState, TerminalTheme, TranscriptItem, TranscriptItemKind, TuiApp, TuiScreen,
+    SlashSuggestionState, TerminalTheme, TranscriptItem, TranscriptItemKind, TuiApp,
 };
 
 pub fn render_app(frame: &mut Frame<'_>, app: &TuiApp) {
-    match app.screen {
-        TuiScreen::Chat => render_chat(frame, app),
-        TuiScreen::Help => render_help(frame, app),
-    }
+    render_chat(frame, app);
 }
 
 pub fn render_app_to_string(app: &TuiApp, width: u16, height: u16) -> std::io::Result<String> {
@@ -37,15 +34,10 @@ fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
     } else {
         slash_suggestion_height(&app.composer.slash_suggestions)
     };
-    // Active turns reserve one blank row between the transcript and the activity
-    // prompt, then one row for the prompt itself. When idle the pair collapses so
-    // the transcript reclaims both rows. Hide the activity line while the
-    // approval surface is up — the decision chrome is the focus.
-    let activity_height: u16 = if !approval_visible && app.turn_state().is_active() {
-        2
-    } else {
-        0
-    };
+    // Always keep ≥1 blank row between the transcript and the input chrome so
+    // messages never butt against the composer. Active turns use 2 rows (blank +
+    // activity line). Hide this gap while the approval surface owns the bottom.
+    let gap_height = pre_input_gap_height(approval_visible, app.turn_state().is_active());
 
     // Bottom input slot: either the approval panel (auto-fit content height) or
     // the composer (grows with typed lines). While approval is up it covers the
@@ -60,14 +52,14 @@ fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
         composer_height_for(app)
     };
 
-    // Bottom-anchored stack: transcript (flex) → blank row + activity line →
+    // Bottom-anchored stack: transcript (flex) → gap (blank / blank+activity) →
     // [slash suggestions] → composer|approval → [status footer]. Keeping
     // suggestions next to the composer means they never interrupt
     // transcript/activity spacing. Approval may claim almost the full height
     // (Claude Code style), so the transcript min shrinks to 1 row while it is up.
     let mut constraints = vec![Constraint::Min(if approval_visible { 1 } else { 3 })];
-    if activity_height > 0 {
-        constraints.push(Constraint::Length(activity_height));
+    if gap_height > 0 {
+        constraints.push(Constraint::Length(gap_height));
     }
     if suggestion_height > 0 {
         constraints.push(Constraint::Length(suggestion_height));
@@ -84,7 +76,7 @@ fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
     // Walk the split rects in the same order the constraints were pushed.
     let primary_area = vertical[0];
     let mut idx = 1;
-    let activity_area = if activity_height > 0 {
+    let gap_area = if gap_height > 0 {
         let rect = vertical[idx];
         idx += 1;
         Some(rect)
@@ -111,14 +103,18 @@ fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
     // Approval is bottom-docked chrome (not a modal) and hides the footer.
     render_primary(frame, app, primary_area);
 
-    if let Some(activity_area) = activity_area {
-        let prompt_area = Rect::new(
-            activity_area.x,
-            activity_area.y.saturating_add(1),
-            activity_area.width,
-            activity_area.height.saturating_sub(1),
-        );
-        render_activity_line(frame, app, prompt_area);
+    if let Some(gap_area) = gap_area {
+        // Idle: the single reserved row stays blank. Active: blank row on top,
+        // live activity prompt on the second row.
+        if app.turn_state().is_active() && gap_area.height >= 2 {
+            let prompt_area = Rect::new(
+                gap_area.x,
+                gap_area.y.saturating_add(1),
+                gap_area.width,
+                gap_area.height.saturating_sub(1),
+            );
+            render_activity_line(frame, app, prompt_area);
+        }
     }
     if let Some(suggestion_area) = suggestion_area {
         render_slash_suggestions(
@@ -137,11 +133,12 @@ fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
         render_status(frame, app, status_area);
     }
 
-    // The transient toast (destination (4)) is a dim overlay on the last row of
-    // the primary area — neutral, never a red chip. It auto-expires (the event
-    // loop clears it), so it stays out of the transcript's permanent record.
+    // Transient toast sits on the last row of the pre-composer gap (directly
+    // above the input) when that gap exists; otherwise falls back to the last
+    // row of the primary area. Auto-expires; never a red chip.
     if app.toast.is_some() {
-        render_toast(frame, app, primary_area);
+        let toast_host = gap_area.unwrap_or(primary_area);
+        render_toast(frame, app, toast_host);
     }
 
     // The model picker is a centered overlay, drawn last so it sits above the
@@ -169,26 +166,17 @@ fn render_chat(frame: &mut Frame<'_>, app: &TuiApp) {
     {
         render_theme_modal(frame, app, area);
     }
-}
 
-fn render_help(frame: &mut Frame<'_>, app: &TuiApp) {
-    let area = frame.area();
-    let vertical = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Min(3), Constraint::Length(1)])
-        .split(area);
-    let help = Paragraph::new(
-        "agent Help\n\
-         Enter sends · Shift+Enter newline\n\
-         Up/Down scroll the transcript · Alt+Up/Down prompt history\n\
-         Esc interrupts the turn (Ctrl+C again to quit)\n\
-         Tab cycles permission mode · Shift+Tab cycles reasoning effort\n\
-         Ctrl+P toggles latest thinking · Ctrl+T opens theme picker (/theme)\n\
-         Ctrl+G switches model (/model) · Ctrl+S sessions · Ctrl+R recovery",
-    )
-    .block(theme_block("Help", app.theme));
-    frame.render_widget(help, vertical[0]);
-    render_status(frame, app, vertical[1]);
+    // Status popup: same centered-overlay shape, read-only. Every other modal
+    // takes priority so a pending decision or deliberate switch is never buried.
+    if app.status_panel.is_open()
+        && !approval_visible
+        && !app.model_picker.is_open()
+        && !app.session_panel.is_open()
+        && !app.theme_picker.is_open()
+    {
+        render_status_modal(frame, app, area);
+    }
 }
 
 fn render_primary(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
@@ -215,12 +203,18 @@ fn render_transcript(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
         app.spinner_frame,
         app.markdown_enabled,
         usize::from(content_area.width),
+        app.hovered_transcript_item(),
     );
     let wrapped = wrap_transcript_lines(lines, content_area.width);
     // After wrapping, pad every line that carries a block background (user/model
     // message blocks) out to the content width. The outer gutter keeps messages
     // away from the terminal edges while each message still reads as one block.
     let padded = pad_block_backgrounds(wrapped, content_area.width);
+    let visible_start = transcript_visible_start(
+        padded.len(),
+        usize::from(content_area.height),
+        transcript.scroll_offset,
+    );
     let visible = transcript_visible_lines(&padded, content_area.height, transcript.scroll_offset);
     if visible.is_empty() || content_area.width == 0 || content_area.height == 0 {
         return;
@@ -234,7 +228,7 @@ fn render_transcript(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     //
     // If an in-app selection is active, paint selected cells with a reverse
     // highlight so drag-select remains visible under mouse capture.
-    if let Some(range) = selection_paint_range(app, content_area) {
+    if let Some(range) = selection_paint_range(app, content_area, visible_start) {
         let highlighted = apply_selection_highlight(visible, range, content_area.width);
         frame.render_widget(Paragraph::new(highlighted), content_area);
     } else {
@@ -242,15 +236,24 @@ fn render_transcript(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     }
 }
 
-/// Active selection range in content-local coordinates, if any.
-fn selection_paint_range(app: &TuiApp, content_area: Rect) -> Option<crate::SelectionRange> {
+/// Active selection range in content-local coordinates, if any. Only paints when
+/// the live/committed gesture targets the **transcript** — a composer drag uses
+/// a separate highlight path so the two surfaces never cross-paint.
+fn selection_paint_range(
+    app: &TuiApp,
+    content_area: Rect,
+    visible_start: usize,
+) -> Option<crate::SelectionRange> {
+    if app.selection.region != crate::SelectionRegion::Transcript {
+        return None;
+    }
     let geo = crate::ContentGeometry {
         x: content_area.x,
         y: content_area.y,
         width: content_area.width,
         height: content_area.height,
     };
-    app.selection.paint_range(&geo)
+    app.selection.paint_transcript_range(&geo, visible_start)
 }
 
 /// Reverse-video the cells inside `range` so the selection is visible. Operates
@@ -353,29 +356,35 @@ fn pad_block_backgrounds(lines: Vec<Line<'static>>, width: u16) -> Vec<Line<'sta
 }
 
 fn render_welcome(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
-    let welcome = Paragraph::new(welcome_text(app)).style(theme_welcome_style(app.theme));
-    frame.render_widget(welcome, area);
-}
-
-fn welcome_text(app: &TuiApp) -> String {
-    let provider_health = provider_health_summary(app);
-    let extension_health = extension_health_summary(app);
-    let session_hint = if app.session_panel.sessions.is_empty() {
-        "new session".to_string()
-    } else {
-        format!("{} recent sessions", app.session_panel.sessions.len())
+    let gutter = transcript_horizontal_gutter(area.width);
+    // Keep vertical margin only when the region is tall enough; short terminals
+    // need every row for logo + facts.
+    let v_margin = u16::from(area.height >= 12);
+    let content = area.inner(Margin {
+        horizontal: gutter.max(1),
+        vertical: v_margin,
+    });
+    if content.width == 0 || content.height == 0 {
+        return;
+    }
+    let lines = crate::welcome::welcome_lines_for(
+        app,
+        usize::from(content.width),
+        usize::from(content.height),
+        app.theme,
+    );
+    // Only pad when there is spare vertical room so short terminals still show
+    // Model / Workspace / Extensions under the logo.
+    let needed = u16::try_from(lines.len()).unwrap_or(u16::MAX);
+    let spare = content.height.saturating_sub(needed);
+    let y_pad = if spare > 2 { spare / 4 } else { 0 };
+    let block = Rect {
+        x: content.x,
+        y: content.y.saturating_add(y_pad),
+        width: content.width,
+        height: content.height.saturating_sub(y_pad),
     };
-    format!(
-        "AGENT\n\n{} / {}  {}\ncontext {}\n\nWorkspace\n  {}\n  {} · {}\n\nExtensions\n  {}",
-        app.status.provider,
-        app.status.model,
-        provider_health,
-        app.status.context.render(),
-        app.status.workspace,
-        ConnectionState::parse(&app.status.connection),
-        session_hint,
-        extension_health
-    )
+    frame.render_widget(Paragraph::new(lines), block);
 }
 
 pub(crate) fn transcript_visible_lines(
@@ -459,12 +468,20 @@ fn transcript_styled_lines(
     marquee_frame: usize,
     markdown_enabled: bool,
     content_width: usize,
+    hovered_item: Option<usize>,
 ) -> Vec<Line<'static>> {
     let mut lines = Vec::new();
     let mut rendered_any = false;
-    for item in items {
-        let item_lines =
-            transcript_item_lines(item, theme, marquee_frame, markdown_enabled, content_width);
+    for (index, item) in items.iter().enumerate() {
+        let hovered = hovered_item == Some(index);
+        let item_lines = transcript_item_lines(
+            item,
+            theme,
+            marquee_frame,
+            markdown_enabled,
+            content_width,
+            hovered,
+        );
         // Skip ghost items that render no rows (empty model deltas, whitespace-only
         // bodies, etc.). Including them would inject bare separators and look like
         // extra blank rows between real messages.
@@ -581,14 +598,15 @@ pub(crate) fn transcript_visible_start(
 
 /// Hit-test twin of [`transcript_item_lines`]. Marquee is frozen at frame 0 so
 /// hit geometry is stable (the marquee only recolors characters, never changes
-/// their count or width).
+/// their count or width). Hover is off so color-only hover does not affect
+/// geometry either.
 pub(crate) fn transcript_item_lines_for_hit(
     item: &TranscriptItem,
     theme: TerminalTheme,
     markdown_enabled: bool,
     content_width: usize,
 ) -> Vec<Line<'static>> {
-    transcript_item_lines(item, theme, 0, markdown_enabled, content_width)
+    transcript_item_lines(item, theme, 0, markdown_enabled, content_width, false)
 }
 
 fn transcript_item_lines(
@@ -597,6 +615,7 @@ fn transcript_item_lines(
     marquee_frame: usize,
     markdown_enabled: bool,
     content_width: usize,
+    hovered: bool,
 ) -> Vec<Line<'static>> {
     let style = transcript_item_style(item.kind, theme);
     let body = trim_blank_boundary_lines(&item.body);
@@ -634,15 +653,17 @@ fn transcript_item_lines(
             marquee_frame,
             markdown_enabled,
             content_width,
+            hovered,
         ),
         TranscriptItemKind::ToolCall | TranscriptItemKind::ToolResult => {
-            tool_call_lines(item, &body, item.kind, theme, marquee_frame)
+            tool_call_lines(item, &body, item.kind, theme, marquee_frame, content_width)
         }
         TranscriptItemKind::Approval => {
             if body_is_empty {
                 return Vec::new();
             }
-            let mut spans = status_label_spans("approval", item.kind, false, theme, marquee_frame);
+            let mut spans =
+                status_label_spans("approval", item.kind, false, false, theme, marquee_frame);
             spans.push(Span::raw(" "));
             spans.push(Span::styled(body, style));
             vec![Line::from(spans)]
@@ -652,7 +673,7 @@ fn transcript_item_lines(
                 return Vec::new();
             }
             let mut spans =
-                status_label_spans("diagnostic", item.kind, false, theme, marquee_frame);
+                status_label_spans("diagnostic", item.kind, false, false, theme, marquee_frame);
             spans.push(Span::raw(" "));
             spans.push(Span::styled(item.title.clone(), style));
             vec![
@@ -664,7 +685,8 @@ fn transcript_item_lines(
             if body_is_empty {
                 return Vec::new();
             }
-            let mut spans = status_label_spans("note", item.kind, false, theme, marquee_frame);
+            let mut spans =
+                status_label_spans("note", item.kind, false, false, theme, marquee_frame);
             spans.push(Span::raw(" "));
             spans.push(Span::styled(body, style));
             vec![Line::from(spans)]
@@ -672,25 +694,44 @@ fn transcript_item_lines(
     }
 }
 
-/// Default number of result rows shown under a tool call. Shell output often
-/// needs two lines to be useful; anything longer collapses until Ctrl+O expands.
+/// Default number of result rows shown under a non-shell tool call. Shell output
+/// stays fully collapsed until click/Ctrl+O expands it.
 const TOOL_RESULT_DEFAULT_ROWS: usize = 2;
 
-/// Render a tool call as:
-///   • write_file target          (same line; no chip background)
-///     ⎿ result line 1
-///       result line 2
+/// Render a tool call as tense-aware status + muted target:
+///   ✹ Writing... src/main.rs   (live: star spinner prefix)
+///   • Wrote src/main.rs        (done: bullet)
+///   ✹ Reading... crates/foo.rs
+///   • Read crates/foo.rs
+///   ✹ Editing... path.rs
+///       --- path.rs
+///       +++ path.rs
+///       -old
+///       +new
+///   ✹ Running... cargo test
+///   • Ran cargo test
 /// Body format is preferably `friendly_name target\nresult…` (legacy
 /// `friendly_name target - result` is still accepted).
+///
+/// Tool labels never marquee the verb — progressive tense is the word cue
+/// (`Writing...`); the star spinner prefix marks in-progress rows. Settled
+/// past tense (`Wrote`) uses a solid bullet.
 fn tool_call_lines(
     item: &TranscriptItem,
     body: &str,
     kind: TranscriptItemKind,
     theme: TerminalTheme,
     marquee_frame: usize,
+    content_width: usize,
 ) -> Vec<Line<'static>> {
     let (head, detail) = match body.split_once('\n') {
-        Some((head, detail)) => (head.trim(), detail.trim()),
+        // Preserve source whitespace inside diff/output rows. Trimming all
+        // whitespace here erased leading tabs and trailing spaces from the first
+        // or last changed line before the styled diff renderer saw them.
+        Some((head, detail)) => (
+            head.trim(),
+            detail.trim_matches(|character| character == '\r' || character == '\n'),
+        ),
         None => match body.split_once(" - ") {
             Some((head, detail)) => (head.trim(), detail.trim()),
             None => (body.trim(), ""),
@@ -702,34 +743,46 @@ fn tool_call_lines(
         Some((name, rest)) => (name, rest.trim()),
         None => (head, ""),
     };
-    let streaming = kind == TranscriptItemKind::ToolCall && item.streaming;
-    let target_style = if kind == TranscriptItemKind::ToolCall {
-        transcript_meta_style(theme)
-    } else {
-        Style::default()
-    };
+    // Tool phase machine rendered as tense words:
+    //   ToolCall + !streaming → Waiting...
+    //   ToolCall + streaming  → Running... / Writing...
+    //   ToolResult            → Ran / Wrote
+    let phase = tool_phase(kind, item.streaming);
+    let is_shell = tool_label == "shell";
+    let is_edit = tool_label == "edit_file" || tool_label == "write_file";
+    let status_word = tool_tense_label(tool_label, phase);
+    let meta = transcript_meta_style(theme);
 
+    // Live tools: spinning star prefix + solid verb. Done: bullet + past tense.
+    let live = phase != ToolPhase::Done;
     let mut head_spans = status_label_spans(
-        tool_label,
+        &status_word,
         TranscriptItemKind::ToolCall,
-        streaming,
+        live,
+        false, // no letter marquee on tool verbs
         theme,
         marquee_frame,
     );
     if !target.is_empty() {
         head_spans.push(Span::raw(" "));
-        head_spans.push(Span::styled(target.to_string(), target_style));
-    }
-    if streaming {
-        head_spans.push(Span::styled(" …", transcript_meta_style(theme)));
+        if is_shell {
+            // Shell: token-level syntax highlight (ls orange, -a cyan, …) + italic.
+            head_spans.extend(crate::shell_highlight::highlight_shell_command(
+                target, theme,
+            ));
+        } else {
+            // Paths stay muted + italic (no underline).
+            head_spans.push(Span::styled(target.to_string(), tool_path_style(theme)));
+        }
     }
     let mut lines = vec![Line::from(head_spans)];
 
-    if detail.is_empty() {
+    // Waiting / Running: never paint raw observation junk under the header.
+    // Results only appear once the tool is Done.
+    if phase != ToolPhase::Done || detail.is_empty() {
         return lines;
     }
 
-    let meta = transcript_meta_style(theme);
     let detail_rows: Vec<&str> = detail
         .lines()
         .filter(|row| !row.trim().is_empty())
@@ -738,20 +791,54 @@ fn tool_call_lines(
         return lines;
     }
 
-    let expanded = item.tool_output_expanded;
+    let is_diff = detail_looks_like_diff(detail);
+    // File edits with a diff body expand by default so the change is visible
+    // without an extra click. Finished shell shows its output (auto-expanded
+    // by the transcript reducer). Other tools preview a couple of lines.
+    let expanded =
+        item.tool_output_expanded || (is_edit && is_diff) || (is_shell && phase == ToolPhase::Done);
+
+    // Edit/write diffs get a VSCode-like colored renderer (side-by-side when
+    // the terminal is wide enough, unified when narrow). Other tools keep the
+    // plain connector + mono rows.
+    if is_edit && is_diff && expanded {
+        lines.extend(crate::diff_view::render_edit_diff_lines(
+            detail,
+            content_width,
+            theme,
+        ));
+        return lines;
+    }
+
+    let default_rows = if is_shell {
+        if phase == ToolPhase::Done {
+            detail_rows.len()
+        } else {
+            0
+        }
+    } else if is_edit && is_diff {
+        detail_rows.len()
+    } else {
+        TOOL_RESULT_DEFAULT_ROWS
+    };
     let shown = if expanded {
         detail_rows.len()
     } else {
-        detail_rows.len().min(TOOL_RESULT_DEFAULT_ROWS)
+        detail_rows.len().min(default_rows)
     };
     for (index, row) in detail_rows.iter().take(shown).enumerate() {
         let connector = if index == 0 { "  ⎿ " } else { "    " };
+        let row_style = if is_diff {
+            diff_line_style(row, theme)
+        } else {
+            meta
+        };
         lines.push(Line::from(vec![
             Span::styled(connector, meta),
-            Span::styled((*row).to_string(), meta),
+            Span::styled((*row).to_string(), row_style),
         ]));
     }
-    if !expanded && detail_rows.len() > shown {
+    if !expanded && !is_shell && detail_rows.len() > shown {
         let hidden = detail_rows.len() - shown;
         lines.push(Line::from(Span::styled(
             format!("    … +{hidden} lines (click / ctrl+o to expand)"),
@@ -759,6 +846,102 @@ fn tool_call_lines(
         )));
     }
     lines
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+enum ToolPhase {
+    /// Proposed / awaiting approval — no execution yet.
+    Waiting,
+    /// Actively executing after permission (or auto-allow).
+    Running,
+    /// Finished — show past tense + user-facing result.
+    Done,
+}
+
+fn tool_phase(kind: TranscriptItemKind, streaming: bool) -> ToolPhase {
+    match kind {
+        TranscriptItemKind::ToolResult => ToolPhase::Done,
+        TranscriptItemKind::ToolCall if streaming => ToolPhase::Running,
+        TranscriptItemKind::ToolCall => ToolPhase::Waiting,
+        _ => ToolPhase::Done,
+    }
+}
+
+/// Waiting / progressive / past-tense verb for a friendly tool label.
+fn tool_tense_label(tool_label: &str, phase: ToolPhase) -> String {
+    match (tool_label, phase) {
+        ("write_file", ToolPhase::Waiting) => "Waiting...".to_string(),
+        ("write_file", ToolPhase::Running) => "Writing...".to_string(),
+        ("write_file", ToolPhase::Done) => "Wrote".to_string(),
+
+        ("read_file", ToolPhase::Waiting) => "Waiting...".to_string(),
+        ("read_file", ToolPhase::Running) => "Reading...".to_string(),
+        ("read_file", ToolPhase::Done) => "Read".to_string(),
+
+        ("edit_file", ToolPhase::Waiting) => "Waiting...".to_string(),
+        ("edit_file", ToolPhase::Running) => "Editing...".to_string(),
+        ("edit_file", ToolPhase::Done) => "Edited".to_string(),
+
+        ("search", ToolPhase::Waiting) => "Waiting...".to_string(),
+        ("search", ToolPhase::Running) => "Searching...".to_string(),
+        ("search", ToolPhase::Done) => "Searched".to_string(),
+
+        ("shell", ToolPhase::Waiting) => "Waiting...".to_string(),
+        ("shell", ToolPhase::Running) => "Running...".to_string(),
+        ("shell", ToolPhase::Done) => "Ran".to_string(),
+
+        ("git_status", ToolPhase::Waiting) => "Waiting...".to_string(),
+        ("git_status", ToolPhase::Running) => "Checking...".to_string(),
+        ("git_status", ToolPhase::Done) => "Checked".to_string(),
+
+        ("git_diff", ToolPhase::Waiting) => "Waiting...".to_string(),
+        ("git_diff", ToolPhase::Running) => "Diffing...".to_string(),
+        ("git_diff", ToolPhase::Done) => "Diffed".to_string(),
+
+        (_, ToolPhase::Waiting) => "Waiting...".to_string(),
+        (_, ToolPhase::Running) => "Running...".to_string(),
+        (other, ToolPhase::Done) if other.is_empty() => "Ran".to_string(),
+        (other, ToolPhase::Done) => other.to_string(),
+    }
+}
+
+/// Path targets next to Read/Wrote/Edited: muted meta + italic (no underline).
+fn tool_path_style(theme: TerminalTheme) -> Style {
+    Palette::for_theme(theme).meta()
+}
+
+fn detail_looks_like_diff(detail: &str) -> bool {
+    let mut saw_hunk = false;
+    let mut saw_change = false;
+    for line in detail.lines() {
+        if line.starts_with("--- ") || line.starts_with("+++ ") || line.starts_with("@@") {
+            saw_hunk = true;
+        } else if (line.starts_with('+') && !line.starts_with("+++"))
+            || (line.starts_with('-') && !line.starts_with("---"))
+        {
+            saw_change = true;
+        }
+        if saw_hunk && saw_change {
+            return true;
+        }
+    }
+    // Accept pure +/- dumps without headers (some tools emit only that).
+    saw_change && detail.lines().count() > 1
+}
+
+fn diff_line_style(line: &str, theme: TerminalTheme) -> Style {
+    let palette = Palette::for_theme(theme);
+    if line.starts_with('+') && !line.starts_with("+++") {
+        return palette.diff_added();
+    }
+    if line.starts_with('-') && !line.starts_with("---") {
+        return palette.diff_removed();
+    }
+    if line.starts_with("@@") {
+        return palette.meta().add_modifier(Modifier::BOLD);
+    }
+    // File headers (`--- a`, `+++ b`) stay muted meta.
+    palette.meta()
 }
 
 /// Remove blank boundary rows contributed by provider/event payloads while
@@ -828,10 +1011,13 @@ fn user_message_block_lines(body: &str, style: Style) -> Vec<Line<'static>> {
     lines
 }
 
-/// Render a reasoning ("thinking") item as a collapsible block: a clickable-style
-/// header (`• Thinking…` while streaming / `• Thought` when done) plus, when
-/// expanded, the reasoning content. Collapsed shows only the header; expanded
-/// shows the body. The header hint tells the user how to toggle it.
+/// Render a reasoning ("thinking") item as a collapsible block:
+///   ✹ Thinking... [3s · 100 tokens] (click or ctrl+p to expand)
+///   • Thought [3s · 100 tokens] (click or ctrl+p to collapse)
+/// The header is muted by default and brightens on hover as a click affordance.
+/// Duration and tokens update live while streaming; duration freezes on finish.
+/// Empty settled Thoughts (no summary) are suppressed — they would only show as
+/// the useless `[0s · 0 tokens]` ghost row.
 fn reasoning_lines(
     item: &TranscriptItem,
     body: &str,
@@ -839,50 +1025,99 @@ fn reasoning_lines(
     marquee_frame: usize,
     markdown_enabled: bool,
     content_width: usize,
+    hovered: bool,
 ) -> Vec<Line<'static>> {
     let collapsed = item.is_reasoning_collapsed();
-    let style = transcript_item_style(TranscriptItemKind::Reasoning, theme);
-    let meta = transcript_meta_style(theme);
+    let palette = Palette::for_theme(theme);
+    // Only the expanded thinking *body* is italic. The Thinking/Thought label
+    // stays upright + bold; body drops bold so the aside does not shout.
+    let body_style = transcript_item_style(TranscriptItemKind::Reasoning, theme)
+        .remove_modifier(Modifier::BOLD)
+        .add_modifier(Modifier::ITALIC);
+    // Stats / expand-hint chrome must stay softer than the status word and only
+    // brighten on hover. Avoid Semantic::Meta (terminal Gray often reads as
+    // primary on modern themes).
+    let detail_muted = reasoning_detail_style(theme);
 
     // The reasoning body, minus the pending placeholder sentinel (which is just a
     // "waiting for content" marker, not real reasoning).
     let has_content = body != "thinking" && !body.trim().is_empty();
-    let content_line_count = if body == "thinking" {
-        0
+
+    // Settled empty Thought rows are noise (no summary, no tokens). Prefer not to
+    // paint them even if one slips past transcript cleanup.
+    if !item.streaming && !has_content {
+        return Vec::new();
+    }
+
+    // Prefer the live counter on the item; re-estimate from body so synthetic
+    // test items that only set `body` still show a sensible token count.
+    let tokens = if item.thinking_tokens > 0 {
+        item.thinking_tokens
     } else {
-        body.lines().count()
+        crate::transcript::estimate_thinking_tokens(body)
+    };
+    let seconds = item.thinking_seconds;
+    let hint = if collapsed {
+        "click or ctrl+p to expand"
+    } else {
+        "click or ctrl+p to collapse"
+    };
+    // Streaming headers always paint a fixed stats slot so the row width does
+    // not jump the first time content/tokens/seconds appear (layout flash).
+    // Settled empty Thoughts still suppress the whole row above.
+    let detail = if item.streaming {
+        format!("[{seconds}s · {tokens} tokens]")
+    } else if has_content || tokens > 0 || seconds > 0 {
+        format!("[{seconds}s · {tokens} tokens] ({hint})")
+    } else {
+        String::new()
     };
 
-    // Tense: streaming → "Thinking…"; finished → "Thought". Color is gray while
-    // in progress and green once settled (see `status_label_style`).
+    // Tense: streaming → "Thinking..."; finished → "Thought". Always muted by
+    // default; hover lifts the whole header to primary text. Progressive tense
+    // uses ASCII "..." (not the unicode ellipsis). Live Thinking keeps the
+    // two-tone marquee; settled Thought is solid (no marquee flash after done).
     let label = if item.streaming {
-        "Thinking…"
+        "Thinking..."
     } else {
         "Thought"
     };
-    let mut header_spans = status_label_spans(
-        label,
-        TranscriptItemKind::Reasoning,
-        item.streaming,
-        theme,
-        marquee_frame,
-    );
-    header_spans.push(Span::raw(" "));
-    if collapsed && has_content {
-        header_spans.push(Span::styled(
-            format!("({content_line_count} lines · ctrl+p to expand) ▸"),
-            meta,
-        ));
-    } else if has_content {
-        header_spans.push(Span::styled("(ctrl+p to collapse) ▾", meta));
-    }
+    let header_spans = if hovered {
+        // Hover: solid primary color (no letter marquee) so the row reads as
+        // clickable. Live rows still keep the spinning star prefix.
+        let hover = palette.hover_emphasis();
+        let marker = status_label_marker(item.streaming, marquee_frame);
+        let mut spans = vec![
+            Span::styled(format!("{marker} "), hover),
+            Span::styled(label.to_string(), hover),
+        ];
+        if !detail.is_empty() {
+            spans.push(Span::raw(" "));
+            spans.push(Span::styled(detail, hover));
+        }
+        spans
+    } else {
+        let mut spans = status_label_spans(
+            label,
+            TranscriptItemKind::Reasoning,
+            item.streaming, // spinner prefix while Thinking...
+            item.streaming, // letter marquee while Thinking...
+            theme,
+            marquee_frame,
+        );
+        if !detail.is_empty() {
+            spans.push(Span::raw(" "));
+            spans.push(Span::styled(detail, detail_muted));
+        }
+        spans
+    };
     let mut output = vec![Line::from(header_spans)];
 
     if collapsed || !has_content {
         return output;
     }
 
-    // Expanded: show the reasoning content, indented as an aside.
+    // Expanded: show the reasoning content, indented as an aside (muted + italic).
     if markdown_enabled {
         // Leave room for the two-space aside indent applied by the helper.
         let md_width = content_width.saturating_sub(2);
@@ -894,11 +1129,12 @@ fn reasoning_lines(
         ));
     } else {
         for line in body.lines() {
-            output.push(Line::from(Span::styled(format!("  {line}"), style)));
+            output.push(Line::from(Span::styled(format!("  {line}"), body_style)));
         }
     }
     if item.streaming {
-        output.push(Line::from(Span::styled("  …", meta)));
+        // Streaming ellipsis is chrome, not body — keep it upright with the stats.
+        output.push(Line::from(Span::styled("  ...", detail_muted)));
     }
     output
 }
@@ -918,21 +1154,15 @@ fn transcript_item_style(kind: TranscriptItemKind, theme: TerminalTheme) -> Styl
     }
 }
 
-/// Foreground style for a status-label bullet + word. No background fill — labels
-/// read as `• word` with a status color instead of inverted chips.
-fn status_label_style(kind: TranscriptItemKind, streaming: bool, theme: TerminalTheme) -> Style {
+/// Foreground style for a status-label marker + word. No background fill — labels
+/// read as `• word` / `✹ word` with a status color instead of inverted chips.
+fn status_label_style(kind: TranscriptItemKind, _live: bool, theme: TerminalTheme) -> Style {
     let palette = Palette::for_theme(theme);
     match kind {
         TranscriptItemKind::Diagnostic => palette.semantic(Semantic::Error),
         TranscriptItemKind::Approval => palette.semantic(Semantic::Approval),
-        TranscriptItemKind::Reasoning => {
-            // In progress: muted gray. Done: green (settled thought).
-            if streaming {
-                palette.semantic(Semantic::Reasoning)
-            } else {
-                palette.status_done()
-            }
-        }
+        // Thinking / Thought / tools / shell stay muted — no blue or green accent.
+        TranscriptItemKind::Reasoning => palette.semantic(Semantic::Reasoning),
         TranscriptItemKind::ToolCall | TranscriptItemKind::ToolResult => {
             palette.semantic(Semantic::Tool)
         }
@@ -941,18 +1171,32 @@ fn status_label_style(kind: TranscriptItemKind, streaming: bool, theme: Terminal
     }
 }
 
-/// Build `• label` spans for a transcript status word. When `streaming` is true
-/// the label letters take a two-tone marquee highlight driven by `marquee_frame`.
+/// Marker glyph for a status label: spinning star while live, solid bullet when done.
+fn status_label_marker(live: bool, frame: usize) -> &'static str {
+    if live {
+        WAITING_SPINNER_FRAMES[frame % WAITING_SPINNER_FRAMES.len()]
+    } else {
+        "•"
+    }
+}
+
+/// Build `marker label` spans for a transcript status word.
+///
+/// - `live`: use the star spinner prefix (same frames as the activity line).
+/// - `marquee_text`: two-tone letter marquee on the verb (Thinking... only).
+/// Done rows always get a solid `•` prefix and solid text.
 fn status_label_spans(
     label: &str,
     kind: TranscriptItemKind,
-    streaming: bool,
+    live: bool,
+    marquee_text: bool,
     theme: TerminalTheme,
     marquee_frame: usize,
 ) -> Vec<Span<'static>> {
-    let base = status_label_style(kind, streaming, theme);
-    let mut spans = vec![Span::styled("• ", base)];
-    if streaming {
+    let base = status_label_style(kind, live, theme);
+    let marker = status_label_marker(live, marquee_frame);
+    let mut spans = vec![Span::styled(format!("{marker} "), base)];
+    if marquee_text {
         spans.extend(marquee_spans(label, base, marquee_frame));
     } else {
         spans.push(Span::styled(label.to_string(), base));
@@ -1019,7 +1263,7 @@ fn marquee_bright_style(base: Style) -> Style {
 }
 
 /// Fixed gutter width for the composer prompt marker (`❯ `).
-const COMPOSER_GUTTER: u16 = 2;
+pub(crate) const COMPOSER_GUTTER: u16 = 2;
 
 /// Maximum number of text rows the composer grows to before it stops expanding
 /// (a long paste scrolls within the box instead of swallowing the transcript).
@@ -1028,11 +1272,64 @@ const COMPOSER_MAX_TEXT_ROWS: u16 = 6;
 /// Dynamic composer height: the two border rows plus one row per logical line,
 /// capped at `COMPOSER_MAX_TEXT_ROWS` text rows. Grows as the user types multi-line
 /// input, shrinks back when it is cleared.
+/// Rows reserved between the transcript and the input chrome (composer / slash
+/// suggestions). Always ≥1 blank when idle so messages never collide with the
+/// input box; active turns use 2 (blank + activity line). Approval owns the
+/// bottom surface and hides this gap.
+#[must_use]
+pub(crate) fn pre_input_gap_height(approval_visible: bool, turn_active: bool) -> u16 {
+    if approval_visible {
+        0
+    } else if turn_active {
+        2
+    } else {
+        1
+    }
+}
+
 fn composer_height_for(app: &TuiApp) -> u16 {
     let text_rows = u16::try_from(app.composer.line_count())
         .unwrap_or(COMPOSER_MAX_TEXT_ROWS)
         .clamp(1, COMPOSER_MAX_TEXT_ROWS);
     text_rows.saturating_add(2)
+}
+
+/// Terminal-absolute rect of the composer's editable text area — the region right
+/// of the `❯ ` gutter, inside the top/bottom rules. Mirrors the layout math in
+/// [`render_chat`] and [`render_composer`] so in-app selection can map a pointer
+/// onto composer text without handing the widget to ratatui. Returns `None` when
+/// the composer is not on screen (approval owns the bottom) or there is no room.
+#[must_use]
+pub(crate) fn composer_text_area_rect(app: &TuiApp) -> Option<Rect> {
+    if app.approval_modal_visible() {
+        return None;
+    }
+    let width = app.terminal_size.width;
+    let height = app.terminal_size.height;
+    if width == 0 || height == 0 {
+        return None;
+    }
+
+    // Bottom-anchored stack (see `render_chat`): the composer sits directly above
+    // the one-row status footer, so its top-left y is height − footer − input.
+    let footer_height: u16 = 1;
+    let input_height = composer_height_for(app);
+    let input_y = height
+        .saturating_sub(footer_height)
+        .saturating_sub(input_height);
+
+    // Within the input slot: horizontal gutter, then the top rule (1 row), then the
+    // fixed `❯ ` prompt gutter before the text.
+    let gutter = transcript_horizontal_gutter(width);
+    let content_width = width.saturating_sub(gutter.saturating_mul(2));
+    let text_x = gutter.saturating_add(COMPOSER_GUTTER);
+    let text_width = content_width.saturating_sub(COMPOSER_GUTTER);
+    let text_y = input_y.saturating_add(1);
+    let text_height = input_height.saturating_sub(2);
+    if text_width == 0 || text_height == 0 {
+        return None;
+    }
+    Some(Rect::new(text_x, text_y, text_width, text_height))
 }
 
 fn render_composer(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
@@ -1082,7 +1379,8 @@ fn render_composer(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     // logical lines, which cannot reorder.
     let lines = composer.lines();
     if lines.iter().all(|line| line.is_empty()) {
-        // Empty composer: show the dim placeholder.
+        // Empty composer: show the dim placeholder. Selection never paints over
+        // the placeholder (there's nothing useful to copy).
         frame.render_widget(
             Paragraph::new(crate::COMPOSER_PLACEHOLDER)
                 .style(Palette::for_theme(theme).placeholder()),
@@ -1093,7 +1391,24 @@ fn render_composer(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
             .iter()
             .map(|line| Line::from(Span::raw(line.clone())))
             .collect();
-        frame.render_widget(Paragraph::new(text), text_area);
+        // In-app selection for the composer uses the same reverse-video path as
+        // the transcript, but only when the gesture started in this text area.
+        if app.selection.region == crate::SelectionRegion::Composer {
+            let geo = crate::ContentGeometry {
+                x: text_area.x,
+                y: text_area.y,
+                width: text_area.width,
+                height: text_area.height,
+            };
+            if let Some(range) = app.selection.paint_range(&geo) {
+                let highlighted = apply_selection_highlight(text, range, text_area.width);
+                frame.render_widget(Paragraph::new(highlighted), text_area);
+            } else {
+                frame.render_widget(Paragraph::new(text), text_area);
+            }
+        } else {
+            frame.render_widget(Paragraph::new(text), text_area);
+        }
     }
 
     // Place the single terminal cursor from the real caret index. `TextArea::cursor()`
@@ -1118,15 +1433,14 @@ fn render_composer(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     frame.set_cursor_position(Position::new(cursor_x, cursor_y));
 }
 
-/// Frames of the animated spinner shown next to the waiting label. Mirrors the
-/// braille spinner used by tools like Claude Code and Codex.
-const WAITING_SPINNER_FRAMES: [&str; 10] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+/// Frames of the animated spinner (activity line + live transcript prefixes).
+const WAITING_SPINNER_FRAMES: [&str; 6] = ["✶", "✸", "✹", "✺", "✹", "✷"];
 
 /// Render the live activity line in the second row of the active-turn area,
 /// directly above the composer. The first row remains blank to separate this
 /// prompt from the transcript above. Carries the four "is it alive / how long /
 /// how much / how do I stop it" signals in one glanceable line:
-/// `⠹ Working… · 3s · ↑1.2k tok · esc/Ctrl+C to interrupt`. The verb letters
+/// `⠹ Working... · 3s · ↑1.2k tok · esc/Ctrl+C to interrupt`. The verb letters
 /// take a two-tone marquee highlight (same motion as streaming transcript labels).
 /// Everything it needs is pure state on `TuiApp` (spinner frame, elapsed seconds,
 /// token count), so it is deterministic under test and never calls the clock itself.
@@ -1142,14 +1456,15 @@ fn render_activity_line(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     let spinner = WAITING_SPINNER_FRAMES[frame_index];
 
     // Spinner glyph + marquee verb. The ellipsis rides with the word so
-    // "Working…" / "Responding…" read as one progressive-tense unit.
+    // "Working..." / "Responding..." read as one progressive-tense unit.
+    // Progressive tense always uses ASCII "...", never the unicode ellipsis.
     let mut spans = vec![
         Span::raw(" "),
         Span::styled(spinner, accent),
         Span::raw(" "),
     ];
     spans.extend(marquee_spans(
-        &format!("{label}…"),
+        &format!("{label}..."),
         accent,
         app.spinner_frame,
     ));
@@ -1166,8 +1481,9 @@ fn render_activity_line(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
 }
 
 /// Render the transient toast (destination (4) of the noise taxonomy) as a single
-/// dim line at the bottom of the transcript area. Neutral/dim — never a red error
-/// chip — it carries no-op guidance and success confirmations and auto-expires.
+/// centered line at the bottom of `area` (the pre-composer gap, or the primary
+/// area as a fallback). Success notes are bright/bold; warnings keep a yellow
+/// accent. Never a red error chip — those go to the transcript.
 fn render_toast(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     let Some(toast) = &app.toast else {
         return;
@@ -1175,21 +1491,23 @@ fn render_toast(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     if area.height == 0 || area.width == 0 {
         return;
     }
-    // A warning is slightly more prominent (yellow) than a plain note (dim), but
-    // neither is ever the red reserved for real transcript errors.
     let palette = Palette::for_theme(app.theme);
+    // Success notes (e.g. "Copied to clipboard!") use the bright activity accent
+    // so they read as a clear confirmation above the composer. Warnings stay
+    // yellow. Neither is ever the red reserved for real transcript errors.
     let style = match toast.severity {
         LocalDiagnosticSeverity::Warning => palette.semantic(Semantic::Warning),
-        _ => palette.meta(),
+        _ => palette
+            .semantic(Semantic::Activity)
+            .add_modifier(Modifier::BOLD),
     };
-    // Draw on the last row of the transcript area, as a dim ephemeral note.
+    // Draw on the last row of the host area (gap row above the composer when the
+    // layout provides one), centered.
     let line_area = Rect::new(area.x, area.y + area.height - 1, area.width, 1);
     frame.render_widget(Clear, line_area);
     frame.render_widget(
-        Paragraph::new(Line::from(Span::styled(
-            format!("· {}", toast.message),
-            style,
-        ))),
+        Paragraph::new(Line::from(Span::styled(toast.message.clone(), style)))
+            .alignment(Alignment::Center),
         line_area,
     );
 }
@@ -1248,92 +1566,189 @@ fn render_slash_suggestions(
 }
 
 fn render_status(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
+    if area.width == 0 {
+        return;
+    }
     let pending = app.pending_approval_count();
-    let constraints = if pending > 0 || area.width < 60 {
-        [
-            Constraint::Percentage(44),
-            Constraint::Length(1),
-            Constraint::Percentage(55),
-        ]
-    } else {
-        [
-            Constraint::Percentage(58),
-            Constraint::Length(1),
-            Constraint::Percentage(41),
-        ]
-    };
-    let horizontal = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints(constraints)
-        .split(area);
-    // Persistent footer: provider/model · reasoning effort · connection ·
-    // permission mode on the left; context tokens · workspace on the right. The
-    // connection segment is
-    // always rendered through the normalized `ConnectionState` vocabulary so a
-    // raw runtime status code or `{:?}` Debug string can never reach the user.
-    let connection = ConnectionState::parse(&app.status.connection);
-    // Both session controls stay visible: Tab cycles permission mode and
-    // Shift+Tab cycles the reasoning effort applied to subsequent turns. The
-    // connection label is included only when the footer is wide enough.
-    let left = if pending > 0 {
-        format!(
-            "{} / {} · {} · {}",
-            app.status.provider,
-            app.status.model,
-            app.status.reasoning_effort.label(),
-            app.permission_mode
-        )
-    } else if area.width >= 110 {
-        format!(
-            "{} / {} · effort {} · {} · {}",
-            app.status.provider,
-            app.status.model,
-            app.status.reasoning_effort.label(),
-            connection,
-            app.permission_mode
-        )
-    } else {
-        format!(
-            "{} / {} · effort {} · {}",
-            app.status.provider,
-            app.status.model,
-            app.status.reasoning_effort.label(),
-            app.permission_mode
-        )
-    };
-    // Right: pending-approval indicator (ALWAYS shown when a request is pending,
-    // regardless of active panel or terminal width — an approval is never
-    // armed-but-invisible) · context tokens · workspace.
-    let right = if pending > 0 {
-        format!(
-            "⚠ {} approval{} pending · ctx {}  {}",
-            pending,
-            if pending == 1 { "" } else { "s" },
-            app.status.context.render(),
-            app.status.workspace
-        )
-    } else {
-        format!(
-            "ctx {}  {}",
-            app.status.context.render(),
-            app.status.workspace
-        )
-    };
-    frame.render_widget(
-        Paragraph::new(left).style(theme_status_style(app.theme)),
-        horizontal[0],
-    );
+    let status_style = theme_status_style(app.theme);
     let right_style = if pending > 0 {
         approval_pending_style(app.theme)
     } else {
-        theme_status_style(app.theme)
+        status_style
     };
+    let packed = pack_status_footer(app, area.width, pending, status_style);
+    let horizontal = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Length(packed.left_width),
+            Constraint::Length(packed.gap),
+            Constraint::Length(packed.right_width),
+        ])
+        .split(area);
+    frame.render_widget(Paragraph::new(packed.left), horizontal[0]);
     frame.render_widget(
-        Paragraph::new(right)
+        Paragraph::new(packed.right)
             .alignment(Alignment::Right)
             .style(right_style),
         horizontal[2],
     );
+}
+
+/// One packed status-footer row: left chrome, right chrome, and the column widths
+/// they occupy (plus the 1-cell gap between them).
+struct PackedStatusFooter {
+    left: Line<'static>,
+    right: String,
+    left_width: u16,
+    gap: u16,
+    right_width: u16,
+}
+
+/// Content-aware footer packing.
+///
+/// Priority when the row is tight:
+/// 1. Keep effort + permission mode (always).
+/// 2. Keep the full right side (context meter + workspace; pending approval
+///    banner always stays visible).
+/// 3. Drop connection, then drop provider/model — never compress workspace just
+///    to keep a long `provider / model` label.
+/// 4. Only if the minimal left + full right still overflows: give left its
+///    natural width and let the right column clip (Paragraph truncates).
+///
+/// Pending approvals prefer keeping provider/model so the left still names the
+/// session while the right screams about the gate; they still yield if the row
+/// is genuinely too narrow for both.
+fn pack_status_footer(
+    app: &TuiApp,
+    total_width: u16,
+    pending: usize,
+    status_style: Style,
+) -> PackedStatusFooter {
+    let connection = ConnectionState::parse(&app.status.connection);
+    let effort_style = composer_border_style(app.theme, app.status.reasoning_effort);
+    let effort_label = app.status.reasoning_effort.label();
+    let mode_label = app.permission_mode.label();
+    let provider_prefix = format!("{} / {} · ", app.status.provider, app.status.model);
+    let workspace = crate::welcome::short_workspace_path(&app.status.workspace);
+    let context_meter = app.status.context.render_bar();
+
+    let right = if pending > 0 {
+        format!(
+            "⚠ {} approval{} pending · {}  {}",
+            pending,
+            if pending == 1 { "" } else { "s" },
+            context_meter,
+            workspace
+        )
+    } else {
+        format!("{context_meter}  {workspace}")
+    };
+    let right_natural = str_display_width(&right);
+
+    // Left candidates, richest → sparsest. Connection is the first optional
+    // segment; provider/model is the second. Effort + mode is the floor.
+    let left_full = status_left_line(
+        Some(provider_prefix.as_str()),
+        effort_label,
+        Some(connection.label()),
+        mode_label,
+        status_style,
+        effort_style,
+    );
+    let left_with_provider = status_left_line(
+        Some(provider_prefix.as_str()),
+        effort_label,
+        None,
+        mode_label,
+        status_style,
+        effort_style,
+    );
+    let left_minimal = status_left_line(
+        None,
+        effort_label,
+        None,
+        mode_label,
+        status_style,
+        effort_style,
+    );
+
+    // Preferred order depends on whether a safety gate is pending.
+    let candidates: &[&Line<'static>] = if pending > 0 {
+        // Prefer naming the session; still allow dropping provider if needed.
+        &[&left_with_provider, &left_minimal]
+    } else {
+        &[&left_full, &left_with_provider, &left_minimal]
+    };
+
+    const GAP: u16 = 1;
+    let gap = if total_width == 0 {
+        0
+    } else {
+        GAP.min(total_width)
+    };
+
+    // First pass: keep the full right side; pick the richest left that fits.
+    for candidate in candidates {
+        let left_w = line_display_width_u16(candidate);
+        let needed = left_w.saturating_add(gap).saturating_add(right_natural);
+        if needed <= total_width {
+            // Extra space goes to the left column so the right stays right-aligned
+            // against the trailing edge (Paragraph::Right inside its rect).
+            let right_width = right_natural.min(total_width.saturating_sub(gap));
+            let left_width = total_width.saturating_sub(gap).saturating_sub(right_width);
+            return PackedStatusFooter {
+                left: (*candidate).clone(),
+                right,
+                left_width,
+                gap,
+                right_width,
+            };
+        }
+    }
+
+    // Second pass: nothing fits with a full right. Keep the sparsest left at its
+    // natural width (or whatever remains) and give the rest to the right so the
+    // workspace/meter compress only after provider/model has already been dropped.
+    let left = left_minimal;
+    let left_natural = line_display_width_u16(&left);
+    let left_width = left_natural.min(total_width.saturating_sub(gap));
+    let right_width = total_width.saturating_sub(gap).saturating_sub(left_width);
+    PackedStatusFooter {
+        left,
+        right,
+        left_width,
+        gap,
+        right_width,
+    }
+}
+
+fn status_left_line(
+    provider_prefix: Option<&str>,
+    effort_label: &'static str,
+    connection: Option<&'static str>,
+    mode_label: &'static str,
+    status_style: Style,
+    effort_style: Style,
+) -> Line<'static> {
+    let mut spans = Vec::with_capacity(4);
+    if let Some(prefix) = provider_prefix {
+        spans.push(Span::styled(prefix.to_string(), status_style));
+    }
+    spans.push(Span::styled(effort_label, effort_style));
+    let tail = match connection {
+        Some(conn) => format!(" · {conn} · {mode_label}"),
+        None => format!(" · {mode_label}"),
+    };
+    spans.push(Span::styled(tail, status_style));
+    Line::from(spans)
+}
+
+fn str_display_width(text: &str) -> u16 {
+    u16::try_from(unicode_width::UnicodeWidthStr::width(text)).unwrap_or(u16::MAX)
+}
+
+fn line_display_width_u16(line: &Line<'_>) -> u16 {
+    u16::try_from(line.width()).unwrap_or(u16::MAX)
 }
 
 /// Style for the footer's pending-approval indicator — warning-colored so a
@@ -1433,16 +1848,27 @@ fn approval_panel_lines(app: &TuiApp) -> Vec<Line<'static>> {
     )));
 
     // Kind + concrete target on one line: "Shell command cargo test --all".
-    // The command/path portion is muted; the kind label is body bold.
+    // Shell commands get token-level syntax highlight; other targets stay muted.
     let kind = approval_operation_label(request);
     if let Some(detail) = approval_operation_detail(request) {
         let kind_cols = Line::from(format!("{kind} ")).width();
         let detail_max = content_width.saturating_sub(kind_cols).max(8);
         let detail = truncate_display_text(&detail, detail_max);
-        lines.push(Line::from(vec![
-            Span::styled(format!("{kind} "), body.add_modifier(Modifier::BOLD)),
-            Span::styled(detail, meta),
-        ]));
+        let mut row = vec![Span::styled(
+            format!("{kind} "),
+            body.add_modifier(Modifier::BOLD),
+        )];
+        if request.preview.kind == "command"
+            || request.preview.resource.contains("shell_command")
+            || request.resource.contains("shell_command")
+        {
+            row.extend(crate::shell_highlight::highlight_shell_command(
+                &detail, theme,
+            ));
+        } else {
+            row.push(Span::styled(detail, meta));
+        }
+        lines.push(Line::from(row));
     } else {
         lines.push(Line::from(Span::styled(
             kind,
@@ -1451,26 +1877,24 @@ fn approval_panel_lines(app: &TuiApp) -> Vec<Line<'static>> {
     }
 
     // Optional human reason, but skip policy boilerplate that adds no signal.
-    if !request.reason.is_empty() && !is_boilerplate_approval_text(&request.reason) {
+    // File-edit approvals stay compact (path + choices only): the full colored
+    // diff is shown under Wrote/Edited in the transcript after apply, not here.
+    if !request.reason.is_empty()
+        && !is_boilerplate_approval_text(&request.reason)
+        && request.preview.kind != "file_edit"
+    {
         lines.push(Line::from(Span::styled(request.reason.clone(), meta)));
     }
 
-    // File-edit diffs keep their own body when the diff panel is attached.
-    if let Some(diff) = app
-        .diff_panel
-        .as_ref()
-        .filter(|_| request.preview.kind == "file_edit")
-    {
-        lines.push(Line::from(Span::raw("")));
-        for line in diff.render_text().lines() {
-            lines.push(Line::from(Span::styled(line.to_string(), body)));
+    // Truncation / redaction hints only for non-edit previews (edits no longer
+    // dump a multi-line diff body into the approval surface).
+    if request.preview.kind != "file_edit" {
+        if request.preview.truncated {
+            lines.push(Line::from(Span::styled("… (truncated)", meta)));
         }
-    }
-    if request.preview.truncated {
-        lines.push(Line::from(Span::styled("… (truncated)", meta)));
-    }
-    if request.preview.redacted {
-        lines.push(Line::from(Span::styled("(redacted)", meta)));
+        if request.preview.redacted {
+            lines.push(Line::from(Span::styled("(redacted)", meta)));
+        }
     }
 
     lines.push(Line::from(Span::raw("")));
@@ -1561,12 +1985,21 @@ fn humanize_kind_label(kind: &str) -> String {
 /// Concrete operation target: command line, path, or other preview resource.
 /// Skips tool-name-only values and boilerplate summaries like
 /// "Approve tool execution for workspace.shell_command".
+///
+/// For `file_edit`, only a single path line is returned — never the multi-line
+/// diff summary (that body belongs under Wrote/Edited after apply).
 fn approval_operation_detail(request: &ruse_ui_bridge::UiApprovalRequest) -> Option<String> {
-    let candidates = [
-        request.preview.resource.as_str(),
-        request.resource.as_str(),
-        request.preview.summary.as_str(),
-    ];
+    let is_file_edit = request.preview.kind == "file_edit";
+    let candidates = if is_file_edit {
+        // Path only — do not fall through to preview.summary (often a full diff).
+        vec![request.preview.resource.as_str(), request.resource.as_str()]
+    } else {
+        vec![
+            request.preview.resource.as_str(),
+            request.resource.as_str(),
+            request.preview.summary.as_str(),
+        ]
+    };
     for candidate in candidates {
         let trimmed = candidate.trim();
         if trimmed.is_empty() || is_tool_name_only(trimmed) || is_boilerplate_approval_text(trimmed)
@@ -1576,6 +2009,10 @@ fn approval_operation_detail(request: &ruse_ui_bridge::UiApprovalRequest) -> Opt
         // Prefer the bare command over "Run <cmd> in … with timeout …".
         if let Some(command) = strip_run_command_prefix(trimmed) {
             return Some(command);
+        }
+        // Keep approval one-liners compact even if a summary sneaks in.
+        if trimmed.contains('\n') {
+            continue;
         }
         return Some(trimmed.to_string());
     }
@@ -1719,8 +2156,9 @@ fn render_theme_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
         let marker = if selected { "❯ " } else { "  " };
         let current_tag = if is_current { " (was)" } else { "" };
         let label = format!("{marker}{}{current_tag}", candidate.name());
+        // Selected row: accent + bold only — no reverse/background fill.
         let style = if selected {
-            accent.add_modifier(Modifier::BOLD | Modifier::REVERSED)
+            accent.add_modifier(Modifier::BOLD)
         } else {
             theme_status_style(theme)
         };
@@ -1739,9 +2177,61 @@ fn render_theme_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     frame.render_widget(Clear, modal_clear_area(modal_area, area));
     let block = Block::default()
         .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
         .border_style(accent)
         .title_style(accent)
         .title(" Theme ");
+    let inner = block.inner(modal_area);
+    frame.render_widget(block, modal_area);
+    frame.render_widget(Paragraph::new(lines), inner);
+}
+
+/// Render the `/status` popup as a centered read-only overlay (same shape as the
+/// model/session/theme modals). Enter or Esc dismisses it.
+fn render_status_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
+    let theme = app.theme;
+    let accent = modal_style(theme, Semantic::ModelModal);
+    let snapshot = &app.status_panel.snapshot;
+
+    let mut lines: Vec<Line<'static>> = Vec::new();
+    lines.push(Line::from(Span::styled("Session status", accent)));
+    lines.push(Line::from(Span::raw("")));
+
+    let body = theme_status_style(theme);
+    let label = transcript_meta_style(theme);
+    let mut field = |name: &str, value: String| {
+        lines.push(Line::from(vec![
+            Span::styled(format!("{name}: "), label),
+            Span::styled(value, body),
+        ]));
+    };
+    field("Connection", snapshot.connection.clone());
+    field(
+        "Provider",
+        format!("{} / {}", snapshot.provider, snapshot.model),
+    );
+    field("Workspace", snapshot.workspace.clone());
+    field("Mode", snapshot.mode.clone());
+    field("Sessions", snapshot.session_count.to_string());
+    field("Diagnostics", snapshot.diagnostic_count.to_string());
+
+    lines.push(Line::from(Span::raw("")));
+    lines.push(Line::from(Span::styled(
+        "Enter/Esc close",
+        transcript_meta_style(theme),
+    )));
+
+    let content_height = u16::try_from(lines.len()).unwrap_or(u16::MAX);
+    let max_height = area.height.saturating_sub(2).max(3);
+    let modal_height = content_height.saturating_add(2).min(max_height);
+    let modal_area = centered_rect_with_height(60, modal_height, area);
+    frame.render_widget(Clear, modal_clear_area(modal_area, area));
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .border_style(accent)
+        .title_style(accent)
+        .title(" Status ");
     let inner = block.inner(modal_area);
     frame.render_widget(block, modal_area);
     frame.render_widget(Paragraph::new(lines), inner);
@@ -1770,8 +2260,9 @@ fn render_model_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
             "{marker}{} / {}{current_tag}{disabled_tag}",
             entry.provider_id, entry.model_id
         );
+        // Selected row: accent + bold only — no reverse/background fill.
         let style = if selected {
-            accent.add_modifier(Modifier::BOLD | Modifier::REVERSED)
+            accent.add_modifier(Modifier::BOLD)
         } else if !entry.enabled {
             transcript_meta_style(theme)
         } else {
@@ -1780,6 +2271,8 @@ fn render_model_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
         lines.push(Line::from(Span::styled(label, style)));
     }
 
+    // Blank row separates the provider list from the muted operation hint.
+    lines.push(Line::from(Span::raw("")));
     lines.push(Line::from(Span::styled(
         "↑/↓ select · Enter switch · Esc cancel",
         transcript_meta_style(theme),
@@ -1792,6 +2285,7 @@ fn render_model_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     frame.render_widget(Clear, modal_clear_area(modal_area, area));
     let block = Block::default()
         .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
         .border_style(accent)
         .title_style(accent)
         .title(" Model ");
@@ -1801,9 +2295,8 @@ fn render_model_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
 }
 
 /// Render the session picker as a centered overlay (same shape as the model
-/// modal). It lists the known sessions plus a synthetic "new session" row; the
-/// highlighted row is confirmed with Enter, `n` starts a fresh session, and Esc
-/// dismisses without switching.
+/// modal). It lists sessions for the current workspace; Enter switches to the
+/// highlighted row and closes the picker. Create a fresh session with `/new`.
 fn render_session_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     let panel = &app.session_panel;
     let theme = app.theme;
@@ -1813,37 +2306,32 @@ fn render_session_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     lines.push(Line::from(Span::styled("Switch session", accent)));
     lines.push(Line::from(Span::raw("")));
 
-    for (index, session) in panel.sessions.iter().enumerate() {
-        let selected = panel.focused_index == Some(index);
-        let marker = if selected { "❯ " } else { "  " };
-        let label = format!(
-            "{marker}{} · {} · {}/{}",
-            session.status, session.title, session.provider_id, session.model_id
-        );
-        let style = if selected {
-            accent.add_modifier(Modifier::BOLD | Modifier::REVERSED)
-        } else {
-            theme_status_style(theme)
-        };
-        lines.push(Line::from(Span::styled(label, style)));
-    }
-
-    // The synthetic "new session" row sits one past the last session.
-    let new_selected = panel.focused_index == Some(panel.sessions.len());
-    let new_marker = if new_selected { "❯ " } else { "  " };
-    let new_style = if new_selected {
-        accent.add_modifier(Modifier::BOLD | Modifier::REVERSED)
+    if panel.sessions.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  No sessions in this workspace",
+            theme_status_style(theme),
+        )));
     } else {
-        theme_status_style(theme)
-    };
-    lines.push(Line::from(Span::styled(
-        format!("{new_marker}+ New session"),
-        new_style,
-    )));
+        for (index, session) in panel.sessions.iter().enumerate() {
+            let selected = panel.focused_index == Some(index);
+            let marker = if selected { "❯ " } else { "  " };
+            let label = format!(
+                "{marker}{} · {} · {}/{}",
+                session.status, session.title, session.provider_id, session.model_id
+            );
+            // Selected row: accent + bold only — no reverse/background fill.
+            let style = if selected {
+                accent.add_modifier(Modifier::BOLD)
+            } else {
+                theme_status_style(theme)
+            };
+            lines.push(Line::from(Span::styled(label, style)));
+        }
+    }
 
     lines.push(Line::from(Span::raw("")));
     lines.push(Line::from(Span::styled(
-        "↑/↓ select · Enter switch · n new · Esc cancel",
+        "↑/↓ select · Enter switch · Esc cancel · /new for a fresh session",
         transcript_meta_style(theme),
     )));
 
@@ -1854,80 +2342,13 @@ fn render_session_modal(frame: &mut Frame<'_>, app: &TuiApp, area: Rect) {
     frame.render_widget(Clear, modal_clear_area(modal_area, area));
     let block = Block::default()
         .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
         .border_style(accent)
         .title_style(accent)
         .title(" Sessions ");
     let inner = block.inner(modal_area);
     frame.render_widget(block, modal_area);
     frame.render_widget(Paragraph::new(lines), inner);
-}
-
-fn theme_welcome_style(theme: TerminalTheme) -> Style {
-    Palette::for_theme(theme).welcome()
-}
-
-fn provider_health_summary(app: &TuiApp) -> String {
-    if let Some(selected) = app
-        .status_panel
-        .provider_support
-        .iter()
-        .find(|provider| provider.provider_id == app.status.provider)
-    {
-        if selected.enabled && selected.compatible {
-            return "ready".to_string();
-        }
-        if selected.enabled && !selected.missing.is_empty() {
-            return format!("needs {}", selected.missing.join(","));
-        }
-        if !selected.enabled {
-            return "disabled".to_string();
-        }
-    }
-
-    match ConnectionState::parse(&app.status.connection) {
-        ConnectionState::Failed => "failed".to_string(),
-        ConnectionState::Degraded => "needs attention".to_string(),
-        ConnectionState::Streaming => "streaming".to_string(),
-        ConnectionState::Idle | ConnectionState::Disconnected => "ready".to_string(),
-    }
-}
-
-fn extension_health_summary(app: &TuiApp) -> String {
-    let Some(snapshot) = &app.extension_panel.snapshot else {
-        return "plugin and MCP health pending".to_string();
-    };
-    if snapshot.extensions.is_empty() {
-        return "no plugins installed · MCP idle".to_string();
-    }
-    let enabled = snapshot
-        .extensions
-        .iter()
-        .filter(|extension| extension.enabled)
-        .count();
-    let healthy = snapshot
-        .extensions
-        .iter()
-        .filter(|extension| extension.health == "healthy")
-        .count();
-    let diagnostics = snapshot.diagnostics.len();
-    format!(
-        "{} installed · {} enabled · {} healthy · {} diagnostics",
-        snapshot.extensions.len(),
-        enabled,
-        healthy,
-        diagnostics
-    )
-}
-
-fn theme_block(title: &str, theme: TerminalTheme) -> Block<'_> {
-    Block::default()
-        .title(title)
-        .borders(Borders::ALL)
-        .border_style(theme_border_style(theme))
-}
-
-fn theme_border_style(theme: TerminalTheme) -> Style {
-    Palette::for_theme(theme).border()
 }
 
 fn composer_border_style(theme: TerminalTheme, effort: crate::ReasoningEffort) -> Style {
@@ -1942,21 +2363,23 @@ fn transcript_meta_style(theme: TerminalTheme) -> Style {
     Palette::for_theme(theme).meta()
 }
 
+/// Softer muted style for Thinking/Thought stats + expand hints.
+/// Uses the same slate muted foreground as Reasoning, not terminal Gray/Meta,
+/// so `[0s · 98 tokens] (click…)` stays secondary until hover brightens it.
+/// Stats stay upright and un-bolded so the status word carries the weight;
+/// only the expanded reasoning body is italic.
+fn reasoning_detail_style(theme: TerminalTheme) -> Style {
+    Palette::for_theme(theme)
+        .semantic(Semantic::Reasoning)
+        .remove_modifier(Modifier::BOLD | Modifier::ITALIC)
+}
+
+/// Selected slash-suggestion row: accent fg + bold, no reverse/background fill
+/// (matches model/session/approval picker selection language).
 fn slash_selected_style(theme: TerminalTheme) -> Style {
-    match theme {
-        TerminalTheme::System | TerminalTheme::Light => Style::default()
-            .fg(Color::Black)
-            .bg(Color::Gray)
-            .add_modifier(Modifier::BOLD),
-        TerminalTheme::Dark => Style::default()
-            .fg(Color::Black)
-            .bg(Color::Cyan)
-            .add_modifier(Modifier::BOLD),
-        TerminalTheme::HighContrast => Style::default()
-            .fg(Color::Black)
-            .bg(Color::Yellow)
-            .add_modifier(Modifier::BOLD),
-    }
+    Palette::for_theme(theme)
+        .semantic(Semantic::Activity)
+        .add_modifier(Modifier::BOLD)
 }
 
 fn buffer_to_string(buffer: &Buffer) -> String {
@@ -1971,6 +2394,37 @@ fn buffer_to_string(buffer: &Buffer) -> String {
     output
 }
 
+/// All wrapped/padded transcript rows in document order, before viewport
+/// scrolling. Cross-screen selection stores absolute row coordinates against
+/// this list so scrolling never changes which text the anchor refers to.
+#[must_use]
+pub(crate) fn full_transcript_plain_lines_for_selection(
+    app: &TuiApp,
+    content_width: u16,
+) -> Vec<String> {
+    if app.transcript.items.is_empty() || content_width == 0 {
+        return Vec::new();
+    }
+    let lines = transcript_styled_lines(
+        &app.transcript.items,
+        app.theme,
+        app.spinner_frame,
+        app.markdown_enabled,
+        usize::from(content_width),
+        app.hovered_transcript_item(),
+    );
+    let wrapped = wrap_transcript_lines(lines, content_width);
+    pad_block_backgrounds(wrapped, content_width)
+        .into_iter()
+        .map(|line| {
+            line.spans
+                .iter()
+                .map(|span| span.content.as_ref())
+                .collect::<String>()
+        })
+        .collect()
+}
+
 /// Plain-text rows currently painted in the transcript content area.
 /// Must stay identical to [`render_transcript`]'s wrap → pad → scroll pipeline
 /// so in-app selection copies what the user sees.
@@ -1980,28 +2434,17 @@ pub(crate) fn visible_transcript_plain_lines_for_selection(
     content_width: u16,
     content_height: u16,
 ) -> Vec<String> {
-    if app.transcript.items.is_empty() || content_width == 0 || content_height == 0 {
+    if content_height == 0 {
         return Vec::new();
     }
-    let lines = transcript_styled_lines(
-        &app.transcript.items,
-        app.theme,
-        app.spinner_frame,
-        app.markdown_enabled,
-        usize::from(content_width),
+    let full = full_transcript_plain_lines_for_selection(app, content_width);
+    let start = transcript_visible_start(
+        full.len(),
+        usize::from(content_height),
+        app.transcript.scroll_offset,
     );
-    let wrapped = wrap_transcript_lines(lines, content_width);
-    let padded = pad_block_backgrounds(wrapped, content_width);
-    let visible = transcript_visible_lines(&padded, content_height, app.transcript.scroll_offset);
-    let mut out: Vec<String> = visible
-        .into_iter()
-        .map(|line| {
-            line.spans
-                .iter()
-                .map(|span| span.content.as_ref())
-                .collect::<String>()
-        })
-        .collect();
+    let end = (start + usize::from(content_height)).min(full.len());
+    let mut out = full[start..end].to_vec();
     let target = usize::from(content_height);
     while out.len() < target {
         out.push(String::new());

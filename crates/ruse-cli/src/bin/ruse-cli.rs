@@ -30,6 +30,7 @@ fn main() {
                 let status_code = ruse_cli::run_terminal_app_stdio(
                     invocation.config_path,
                     invocation.config_override,
+                    invocation.permission_mode,
                 );
                 if status_code != 0 {
                     std::process::exit(status_code);

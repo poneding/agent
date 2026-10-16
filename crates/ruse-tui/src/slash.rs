@@ -48,21 +48,20 @@ impl SlashSuggestionState {
         let prefix = query.trim_start_matches('/').to_string();
         let q = prefix.to_ascii_lowercase();
         let catalog = [
-            ("help", "Show help"),
             ("status", "Show status"),
-            ("model", "Pick model"),
+            ("model", "Pick model (Ctrl+G)"),
             ("diff", "Show diff"),
             ("plan", "Show plan"),
-            ("sessions", "Sessions"),
+            ("sessions", "Sessions (Ctrl+S)"),
+            ("new", "New session"),
             ("tools", "List tools"),
             ("mcp", "MCP status"),
             ("memory", "Memory"),
-            ("theme", "Theme"),
-            ("clear", "Clear transcript"),
+            ("theme", "Theme (Ctrl+T)"),
+            ("clear", "Clear transcript (Ctrl+L)"),
             ("compact", "Compact conversation"),
-            ("copy", "Copy latest output"),
             ("retry", "Retry last command"),
-            ("quit", "Quit"),
+            ("quit", "Quit (Ctrl+C when idle)"),
         ];
         let mut items: Vec<SlashSuggestionItem> = catalog
             .into_iter()
@@ -153,6 +152,7 @@ pub enum SlashCommand {
     Trace,
     Tasks,
     Sessions,
+    New,
     Settings,
     Clear,
     Quit,
@@ -167,7 +167,6 @@ pub enum SlashCommand {
     Mcp,
     Memory,
     Theme,
-    Copy,
     Retry,
 }
 
@@ -195,6 +194,7 @@ impl SlashCommand {
             OpenTrace => Some(Self::Trace),
             OpenTasks => Some(Self::Tasks),
             OpenSessions => Some(Self::Sessions),
+            NewSession => Some(Self::New),
             OpenSettings => Some(Self::Settings),
             ClearTranscript => Some(Self::Clear),
             Quit => Some(Self::Quit),
@@ -209,7 +209,6 @@ impl SlashCommand {
             OpenMcp => Some(Self::Mcp),
             OpenMemory => Some(Self::Memory),
             OpenTheme => Some(Self::Theme),
-            CopyLatestOutput => Some(Self::Copy),
             RetryLastTurn => Some(Self::Retry),
         }
     }
@@ -234,6 +233,7 @@ impl std::fmt::Display for SlashCommand {
             Self::Trace => "trace",
             Self::Tasks => "tasks",
             Self::Sessions => "sessions",
+            Self::New => "new",
             Self::Settings => "settings",
             Self::Clear => "clear",
             Self::Quit => "quit",
@@ -248,7 +248,6 @@ impl std::fmt::Display for SlashCommand {
             Self::Mcp => "mcp",
             Self::Memory => "memory",
             Self::Theme => "theme",
-            Self::Copy => "copy",
             Self::Retry => "retry",
         };
         f.write_str(name)

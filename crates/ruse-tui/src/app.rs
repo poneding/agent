@@ -9,15 +9,16 @@ use crate::{
     ApprovalPanelAction, ApprovalPanelState, CommandPanelAction, CommandPanelState, ComposerAction,
     ComposerState, DiffPanelAction, DiffPanelState, ExtensionPanelState, LocalDiagnosticSeverity,
     ModelPickerAction, ModelPickerState, SelectionState, SessionPanelAction, SessionPanelState,
-    SlashCommand, StatusPanelState, TaskPanelState, ThemePickerAction, ThemePickerState,
-    ThinkingVisibilityCommand, TracePanelState, TranscriptState, TuiEffect, WaitingActivity,
+    SlashCommand, SlashSuggestionState, StatusPanelState, TaskPanelState, ThemePickerAction,
+    ThemePickerState, ThinkingVisibilityCommand, TracePanelState, TranscriptState, TuiEffect,
+    WaitingActivity,
 };
 
 const DEFAULT_COMPACTION_SUMMARY_TOKENS: u32 = 256;
 
 /// Number of frames in the live activity spinner animation. Kept in sync with
 /// the frame table in `render.rs` (`WAITING_SPINNER_FRAMES`).
-pub const SPINNER_FRAME_COUNT: usize = 10;
+pub const SPINNER_FRAME_COUNT: usize = 6;
 
 /// Wall-clock milliseconds between spinner frame advances. ~12fps, matching the
 /// cadence used by Claude Code / Codex. The event loop recomputes the frame
@@ -27,7 +28,6 @@ pub const SPINNER_FRAME_INTERVAL_MS: u128 = 80;
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum TuiScreen {
     Chat,
-    Help,
 }
 
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
@@ -93,6 +93,9 @@ pub struct ContextWindowState {
 }
 
 impl ContextWindowState {
+    /// Default width of the compact context progress bar in the status footer.
+    pub const FOOTER_BAR_WIDTH: usize = 8;
+
     #[must_use]
     pub const fn pending(total_tokens: Option<u32>) -> Self {
         Self {
@@ -101,6 +104,8 @@ impl ContextWindowState {
         }
     }
 
+    /// `used/total` token counts for surfaces that want the raw numbers
+    /// (welcome card, status panel). The footer prefers [`Self::render_bar`].
     #[must_use]
     pub fn render(&self) -> String {
         let used = self
@@ -112,6 +117,48 @@ impl ContextWindowState {
             .map(format_token_count)
             .unwrap_or_else(|| "unknown".to_string());
         format!("{used}/{total}")
+    }
+
+    /// Usage as a 0–100 percentage when both sides of the window are known.
+    #[must_use]
+    pub fn usage_percent(&self) -> Option<u8> {
+        let (Some(used), Some(total)) = (self.used_tokens, self.total_tokens) else {
+            return None;
+        };
+        if total == 0 {
+            return None;
+        }
+        // Rounded percent, clamped so a slightly-over-budget estimate still
+        // reads as 100 rather than wrapping.
+        let pct = (u64::from(used) * 100 + u64::from(total) / 2) / u64::from(total);
+        Some(pct.min(100) as u8)
+    }
+
+    /// Compact context meter for the status footer: a short `█`/`░` bar followed
+    /// by the original `used/total` token counts (no `ctx` prefix). When usage
+    /// is still unknown the bar is omitted and only the counts are shown.
+    #[must_use]
+    pub fn render_bar(&self) -> String {
+        self.render_bar_with_width(Self::FOOTER_BAR_WIDTH)
+    }
+
+    #[must_use]
+    pub fn render_bar_with_width(&self, width: usize) -> String {
+        let counts = self.render();
+        let width = width.max(4);
+        let (Some(used), Some(total)) = (self.used_tokens, self.total_tokens) else {
+            return counts;
+        };
+        if total == 0 {
+            return counts;
+        }
+        let filled = ((u64::from(used) * width as u64) / u64::from(total)) as usize;
+        let filled = filled.min(width);
+        let mut bar = String::with_capacity(width);
+        for i in 0..width {
+            bar.push(if i < filled { '█' } else { '░' });
+        }
+        format!("{bar} {counts}")
     }
 }
 
@@ -250,7 +297,6 @@ pub enum TuiAction {
     ScrollTranscriptPageDown,
     ScrollTranscriptTop,
     ScrollTranscriptBottom,
-    CopyLatestOutput,
     /// Expand/collapse the latest tool call/result output (Ctrl+O).
     ToggleToolOutput,
     /// Expand/collapse a specific reasoning item (mouse click).
@@ -260,6 +306,11 @@ pub enum TuiAction {
     /// Expand/collapse a specific tool item's output (mouse click).
     ToggleToolOutputAt {
         index: usize,
+    },
+    /// Pointer moved to terminal-absolute coordinates (hover tracking).
+    PointerMove {
+        column: u16,
+        row: u16,
     },
     /// Left-click at terminal-absolute coordinates; hit-tested against the
     /// transcript to toggle a specific thinking/tool block (when not a drag).
@@ -278,7 +329,8 @@ pub enum TuiAction {
         row: u16,
     },
     /// Finish a selection drag. If the pointer moved, the selected text is
-    /// copied; otherwise the original click is treated as a transcript toggle.
+    /// copied to the clipboard and the highlight stays until the next gesture;
+    /// otherwise the original click is treated as a transcript toggle.
     SelectionDragEnd {
         column: u16,
         row: u16,
@@ -315,12 +367,15 @@ pub enum TuiAction {
     ApprovalSelectNext,
     /// Confirm the currently highlighted approval option (Enter).
     ApprovalConfirmSelection,
-    OpenHelp,
+    /// Open the slash-command menu in place of a dedicated help panel.
+    OpenCommands,
     OpenChat,
     Composer(ComposerAction),
     ApprovalPanel(ApprovalPanelAction),
     SessionPanel(SessionPanelAction),
     ModelPicker(ModelPickerAction),
+    /// Dismiss the `/status` popup (Esc). Leaves the refreshed snapshot in state.
+    StatusPanelDismiss,
     DiffPanel(DiffPanelAction),
     CommandPanel(CommandPanelAction),
     BridgeFrame(Box<UiJsonFrame>),
@@ -409,6 +464,9 @@ pub struct TuiApp {
     pub approval_selection: ApprovalOption,
     /// In-app transcript selection (restores select+copy under mouse capture).
     pub selection: SelectionState,
+    /// Latest pointer position in terminal-absolute coordinates. Used to
+    /// brighten collapsible thinking headers on hover as a click affordance.
+    pub pointer: Option<(u16, u16)>,
 }
 
 /// The three explicit approval choices, in display order. `Enter` confirms the
@@ -448,7 +506,7 @@ impl ApprovalOption {
 }
 
 /// How long a transient toast stays on screen before the event loop expires it.
-pub const TOAST_TTL: Duration = Duration::from_secs(4);
+pub const TOAST_TTL: Duration = Duration::from_secs(2);
 
 /// A transient status note shown near the composer for no-op guidance and success
 /// confirmations. Neutral/dim, never red. Auto-expires: the event loop clears it
@@ -467,9 +525,8 @@ pub struct TuiToast {
     pub shown_at: Option<Instant>,
 }
 
-/// Session permission mode, cycled with Tab. Mirrors the Claude Code model
-/// (normal / auto-accept-edits / plan) and is always shown in the status footer so
-/// armed autonomy is never a surprise.
+/// Session permission mode, cycled with Tab. Every mode is enforced by the
+/// runtime policy used for the submitted turn.
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub enum PermissionMode {
     /// Every side-effecting action prompts for approval.
@@ -479,16 +536,19 @@ pub enum PermissionMode {
     AutoAcceptEdits,
     /// Read-only: the agent may analyze and propose but not make changes.
     Plan,
+    /// Registered side-effecting tools execute without interactive approval.
+    Yolo,
 }
 
 impl PermissionMode {
-    /// Cycle to the next mode (Tab): normal → auto-accept-edits → plan → …
+    /// Cycle to the next mode (Tab): normal -> auto-edit -> plan -> yolo -> normal.
     #[must_use]
     pub const fn next(self) -> Self {
         match self {
             Self::Normal => Self::AutoAcceptEdits,
             Self::AutoAcceptEdits => Self::Plan,
-            Self::Plan => Self::Normal,
+            Self::Plan => Self::Yolo,
+            Self::Yolo => Self::Normal,
         }
     }
 
@@ -499,6 +559,7 @@ impl PermissionMode {
             Self::Normal => "normal",
             Self::AutoAcceptEdits => "auto-edit",
             Self::Plan => "plan",
+            Self::Yolo => "yolo",
         }
     }
 }
@@ -703,6 +764,18 @@ impl TuiApp {
         self.turn_started_at.is_some()
     }
 
+    /// Transcript item under the pointer, if any. Used to brighten collapsible
+    /// thinking headers on hover.
+    #[must_use]
+    pub fn hovered_transcript_item(&self) -> Option<usize> {
+        let (column, row) = self.pointer?;
+        match crate::hit_test::hit_test_transcript(self, column, row) {
+            Some(crate::TranscriptHit::ToggleReasoning { index })
+            | Some(crate::TranscriptHit::ToggleToolOutput { index }) => Some(index),
+            None => None,
+        }
+    }
+
     /// The explicit, UI-facing turn state. This is the single source of truth for
     /// "what is the turn doing right now", combining the authoritative turn clock
     /// (`turn_started_at`), the cancel flag, and the streaming-derived phase.
@@ -849,9 +922,14 @@ impl TuiApp {
         };
         let next = (elapsed.as_millis() / SPINNER_FRAME_INTERVAL_MS) as usize % SPINNER_FRAME_COUNT;
         let next_seconds = elapsed.as_secs();
-        let changed = next != self.spinner_frame || next_seconds != self.elapsed_seconds;
+        let mut changed = next != self.spinner_frame || next_seconds != self.elapsed_seconds;
         self.spinner_frame = next;
         self.elapsed_seconds = next_seconds;
+        // Live thinking headers (`[3s · 100 tokens]`) tick with the spinner so
+        // the render layer stays pure (no Instant::now in paint).
+        if self.transcript.refresh_thinking_stats(now) {
+            changed = true;
+        }
         changed
     }
 
@@ -874,41 +952,37 @@ impl TuiApp {
             }
             TuiAction::ClearTranscript => {
                 self.transcript = TranscriptState::default();
+                self.selection.clear();
                 TuiEffect::None
             }
             TuiAction::ScrollTranscriptUp => {
                 // Mouse-wheel notches scroll a few lines so the transcript moves at a
                 // readable pace; PageUp uses ScrollTranscriptPageUp for full pages.
-                self.selection.clear();
+                // Transcript selections use absolute wrapped rows, so scrolling
+                // preserves both committed highlights and an in-progress drag.
                 self.transcript.scroll_up(self.transcript_scroll_step());
                 TuiEffect::None
             }
             TuiAction::ScrollTranscriptDown => {
-                self.selection.clear();
                 self.transcript.scroll_down(self.transcript_scroll_step());
                 TuiEffect::None
             }
             TuiAction::ScrollTranscriptPageUp => {
-                self.selection.clear();
                 self.transcript.scroll_up(self.transcript_page_lines());
                 TuiEffect::None
             }
             TuiAction::ScrollTranscriptPageDown => {
-                self.selection.clear();
                 self.transcript.scroll_down(self.transcript_page_lines());
                 TuiEffect::None
             }
             TuiAction::ScrollTranscriptTop => {
-                self.selection.clear();
                 self.transcript.scroll_to_top();
                 TuiEffect::None
             }
             TuiAction::ScrollTranscriptBottom => {
-                self.selection.clear();
                 self.transcript.scroll_to_bottom();
                 TuiEffect::None
             }
-            TuiAction::CopyLatestOutput => self.copy_latest_output(),
             TuiAction::ToggleToolOutput => {
                 if self.transcript.toggle_latest_tool_output() {
                     TuiEffect::None
@@ -924,6 +998,10 @@ impl TuiApp {
                 let _ = crate::hit_test::toggle_tool_output_at(&mut self.transcript, index);
                 TuiEffect::None
             }
+            TuiAction::PointerMove { column, row } => {
+                self.pointer = Some((column, row));
+                TuiEffect::None
+            }
             TuiAction::TranscriptClick { column, row } => {
                 // Ignore clicks while a modal owns the screen — they would
                 // otherwise punch through to transcript items behind the overlay.
@@ -931,6 +1009,7 @@ impl TuiApp {
                     || self.model_picker.is_open()
                     || self.session_panel.is_open()
                     || self.theme_picker.is_open()
+                    || self.status_panel.is_open()
                 {
                     return TuiEffect::None;
                 }
@@ -951,11 +1030,33 @@ impl TuiApp {
                     || self.model_picker.is_open()
                     || self.session_panel.is_open()
                     || self.theme_picker.is_open()
+                    || self.status_panel.is_open()
                 {
                     return TuiEffect::None;
                 }
-                // Starting a new gesture clears any previous committed highlight.
-                self.selection.begin_drag(column, row);
+                // Bind the gesture to the surface it starts in: a drag begun
+                // inside the composer's text area selects composer input, anything
+                // else selects the transcript. Starting a new gesture clears any
+                // previous committed highlight.
+                let (region, geo) = match crate::selection::ContentGeometry::composer_from_app(self)
+                {
+                    Some(geo) if geo.contains(column, row) => {
+                        (crate::selection::SelectionRegion::Composer, geo)
+                    }
+                    _ => {
+                        let Some(geo) = crate::selection::ContentGeometry::from_app(self) else {
+                            return TuiEffect::None;
+                        };
+                        (crate::selection::SelectionRegion::Transcript, geo)
+                    }
+                };
+                let viewport_start = if region == crate::selection::SelectionRegion::Transcript {
+                    crate::selection::transcript_viewport_start(self, &geo)
+                } else {
+                    0
+                };
+                self.selection
+                    .begin_drag(column, row, region, &geo, viewport_start);
                 TuiEffect::None
             }
             TuiAction::SelectionDragUpdate { column, row } => {
@@ -965,29 +1066,41 @@ impl TuiApp {
             TuiAction::SelectionDragEnd { column, row } => {
                 // Final pointer position may differ from the last drag update.
                 self.selection.update_drag(column, row);
-                let Some(geo) = crate::selection::ContentGeometry::from_app(self) else {
+                // Map the pointer against the geometry of the region the gesture
+                // began in, so a composer drag commits composer-local columns.
+                let geo = match self.selection.region {
+                    crate::selection::SelectionRegion::Composer => {
+                        crate::selection::ContentGeometry::composer_from_app(self)
+                    }
+                    crate::selection::SelectionRegion::Transcript => {
+                        crate::selection::ContentGeometry::from_app(self)
+                    }
+                };
+                let Some(geo) = geo else {
                     self.selection.clear();
                     return TuiEffect::None;
                 };
-                if self.selection.end_drag(&geo) {
-                    // Real drag: copy selected text, but KEEP the committed
-                    // highlight so the user can still see what was selected and
-                    // re-copy via /copy or Ctrl+Shift+C if needed.
-                    if let Some(range) = self.selection.committed {
-                        let text = crate::selection::extract_selected_text(self, range);
-                        if text.trim().is_empty() {
-                            self.selection.clear();
-                            TuiEffect::None
-                        } else {
-                            self.copied_output = Some(text.clone());
-                            TuiEffect::CopyToClipboard { text }
-                        }
+                let viewport_start =
+                    if self.selection.region == crate::selection::SelectionRegion::Transcript {
+                        crate::selection::transcript_viewport_start(self, &geo)
                     } else {
-                        TuiEffect::None
-                    }
-                } else {
-                    // Click (no drag): hit-test toggle thinking/tool blocks.
+                        0
+                    };
+                if self.selection.end_drag(&geo, viewport_start) {
+                    // Real drag: copy selected text on release. Keep the
+                    // highlight until the next gesture so the user can see
+                    // what was copied.
+                    self.copy_selection()
+                } else if matches!(
+                    self.selection.region,
+                    crate::selection::SelectionRegion::Transcript
+                ) {
+                    // Click (no drag) in the transcript: hit-test toggle
+                    // thinking/tool blocks. A click in the composer is a no-op
+                    // here (the caret is driven by the widget, not mouse).
                     self.reduce(TuiAction::TranscriptClick { column, row })
+                } else {
+                    TuiEffect::None
                 }
             }
             TuiAction::SelectionClear => {
@@ -1019,8 +1132,9 @@ impl TuiApp {
                     TuiEffect::note("no thinking block is available")
                 }
             }
-            TuiAction::OpenHelp => {
-                self.screen = TuiScreen::Help;
+            TuiAction::OpenCommands => {
+                self.screen = TuiScreen::Chat;
+                self.composer.slash_suggestions = SlashSuggestionState::from_input("/", 0);
                 TuiEffect::None
             }
             TuiAction::OpenChat => {
@@ -1029,6 +1143,9 @@ impl TuiApp {
                 TuiEffect::None
             }
             TuiAction::Composer(action) => {
+                // Typing or caret motion in the composer dismisses any in-app
+                // selection highlight (transcript or composer).
+                self.selection.clear();
                 let effect = self.composer.reduce(action);
                 self.apply_effect(effect)
             }
@@ -1151,6 +1268,10 @@ impl TuiApp {
                 effect
             }
             TuiAction::ModelPicker(action) => self.model_picker.reduce(action),
+            TuiAction::StatusPanelDismiss => {
+                self.status_panel.close();
+                TuiEffect::None
+            }
             TuiAction::DiffPanel(action) => {
                 if let Some(panel) = &mut self.diff_panel {
                     panel.reduce(action);
@@ -1242,15 +1363,14 @@ impl TuiApp {
 
     fn apply_slash_command(&mut self, command: SlashCommand) -> TuiEffect {
         match command {
-            SlashCommand::Help => {
-                self.screen = TuiScreen::Help;
-                TuiEffect::None
-            }
+            SlashCommand::Help => self.reduce(TuiAction::OpenCommands),
             SlashCommand::Status => {
                 self.screen = TuiScreen::Chat;
-                // Side panels are gone; status still refreshes the footer/state
-                // and requests a recovery status snapshot from the runtime.
+                // Refresh the snapshot, surface it as a centered popup (same shape
+                // as the model/session/theme modals), and request a fresh recovery
+                // status snapshot from the runtime to fill in live connection state.
                 self.refresh_status_panel("status");
+                self.status_panel.open();
                 TuiEffect::RecoveryStatus { turn_id: None }
             }
             SlashCommand::Model => {
@@ -1305,7 +1425,6 @@ impl TuiApp {
                 let count = self.transcript.set_all_reasoning_collapsed(collapsed);
                 TuiEffect::note(format!("{count} thinking blocks {label}"))
             }
-            SlashCommand::Copy => self.copy_latest_output(),
             SlashCommand::Compact => TuiEffect::ConversationCompact {
                 max_summary_tokens: DEFAULT_COMPACTION_SUMMARY_TOKENS,
             },
@@ -1352,6 +1471,13 @@ impl TuiApp {
                 self.screen = TuiScreen::Chat;
                 self.session_panel.reduce(SessionPanelAction::Open)
             }
+            SlashCommand::New => {
+                // `/new` starts a fresh session for this workspace. Reuse the
+                // session-panel NewSession path so transcript/state cleanup stays
+                // shared with the picker flow.
+                self.screen = TuiScreen::Chat;
+                self.reduce(TuiAction::SessionPanel(SessionPanelAction::NewSession))
+            }
             SlashCommand::Resume => {
                 self.screen = TuiScreen::Chat;
                 TuiEffect::RecoveryResume {
@@ -1373,13 +1499,20 @@ impl TuiApp {
         }
     }
 
-    fn copy_latest_output(&mut self) -> TuiEffect {
-        let Some(output) = self.transcript.latest_completed_model_body() else {
-            return TuiEffect::note("no completed assistant output is available to copy");
+    fn copy_selection(&mut self) -> TuiEffect {
+        let Some(range) = self.selection.committed else {
+            return TuiEffect::None;
         };
-        let output = output.to_string();
-        self.copied_output = Some(output.clone());
-        TuiEffect::CopyToClipboard { text: output }
+        // Dispatch on the gesture's starting surface so a composer drag never
+        // pulls transcript text (and vice versa).
+        let text = crate::selection::extract_selection(self, range, self.selection.region);
+        if text.trim().is_empty() {
+            // Empty range after normalize — drop the highlight, no clipboard write.
+            self.selection.clear();
+            return TuiEffect::None;
+        }
+        self.copied_output = Some(text.clone());
+        TuiEffect::CopyToClipboard { text }
     }
 
     fn start_recovery_continuation(&mut self) -> TuiEffect {
@@ -1602,6 +1735,7 @@ impl Default for TuiApp {
             approval_selection: ApprovalOption::default(),
             toast: None,
             selection: SelectionState::default(),
+            pointer: None,
         }
     }
 }
@@ -1663,6 +1797,65 @@ pub(crate) fn format_token_count(value: u32) -> String {
         format!("{}k", value / 1_000)
     } else {
         value.to_string()
+    }
+}
+
+#[cfg(test)]
+mod context_window_tests {
+    use super::*;
+
+    #[test]
+    fn render_falls_back_to_pending_unknown() {
+        assert_eq!(ContextWindowState::default().render(), "pending/unknown");
+        assert_eq!(
+            ContextWindowState::pending(Some(128_000)).render(),
+            "pending/128k"
+        );
+    }
+
+    #[test]
+    fn render_bar_falls_back_to_counts_when_usage_unknown() {
+        // No used tokens yet — show the plain counts rather than an empty bar.
+        assert_eq!(
+            ContextWindowState::pending(Some(128_000)).render_bar(),
+            "pending/128k"
+        );
+        assert_eq!(
+            ContextWindowState::default().render_bar(),
+            "pending/unknown"
+        );
+        assert!(ContextWindowState::default().usage_percent().is_none());
+    }
+
+    #[test]
+    fn render_bar_draws_compact_meter_with_token_counts() {
+        let half = ContextWindowState {
+            used_tokens: Some(64_000),
+            total_tokens: Some(128_000),
+        };
+        assert_eq!(half.usage_percent(), Some(50));
+        // Bar + original used/total counts (not a bare percent).
+        assert_eq!(half.render_bar(), "████░░░░ 64k/128k");
+
+        let empty = ContextWindowState {
+            used_tokens: Some(0),
+            total_tokens: Some(128_000),
+        };
+        assert_eq!(empty.render_bar(), "░░░░░░░░ 0/128k");
+
+        let full = ContextWindowState {
+            used_tokens: Some(128_000),
+            total_tokens: Some(128_000),
+        };
+        assert_eq!(full.render_bar(), "████████ 128k/128k");
+
+        // Over-budget estimates clamp the bar to full; counts stay honest.
+        let over = ContextWindowState {
+            used_tokens: Some(200_000),
+            total_tokens: Some(128_000),
+        };
+        assert_eq!(over.usage_percent(), Some(100));
+        assert_eq!(over.render_bar(), "████████ 200k/128k");
     }
 }
 
@@ -1751,20 +1944,22 @@ mod turn_clock_tests {
             "typing must not reset the turn clock"
         );
 
-        // Time advances by three frame intervals while typing continued; the next
+        // Time advances by one frame interval while typing continued; the next
         // refresh (driven by the loop) reflects the true elapsed frame, not frame 0.
-        let later = start + Duration::from_millis(SPINNER_FRAME_INTERVAL_MS as u64 * 3);
+        let later = start + Duration::from_millis(SPINNER_FRAME_INTERVAL_MS as u64);
         assert!(
             app.refresh_spinner(later),
             "spinner advanced despite typing"
         );
-        assert_eq!(app.spinner_frame, 3 % SPINNER_FRAME_COUNT);
+        assert_eq!(app.spinner_frame, 1 % SPINNER_FRAME_COUNT);
 
         // More typing, more elapsed time — still advancing, never frozen.
+        // Pick a step that is not congruent mod SPINNER_FRAME_COUNT so the
+        // frame index actually changes (6-frame star spinner wraps at 6).
         app.reduce(TuiAction::Composer(ComposerAction::InsertChar('!')));
-        let later = start + Duration::from_millis(SPINNER_FRAME_INTERVAL_MS as u64 * 7);
+        let later = start + Duration::from_millis(SPINNER_FRAME_INTERVAL_MS as u64 * 3);
         assert!(app.refresh_spinner(later), "spinner keeps advancing");
-        assert_eq!(app.spinner_frame, 7 % SPINNER_FRAME_COUNT);
+        assert_eq!(app.spinner_frame, 3 % SPINNER_FRAME_COUNT);
     }
 
     #[test]
@@ -1884,6 +2079,10 @@ mod turn_clock_tests {
                 workspace_id,
                 conversation_id,
             }
+        );
+        assert!(
+            !app.session_panel.is_open(),
+            "session panel closes after Enter switch"
         );
         assert!(app.transcript.items.is_empty());
         assert!(!app.turn_active());
@@ -2091,13 +2290,15 @@ mod approval_modal_tests {
     }
 
     #[test]
-    fn cycle_permission_mode_walks_normal_auto_plan() {
+    fn cycle_permission_mode_walks_normal_auto_plan_yolo() {
         let mut app = TuiApp::default();
         assert_eq!(app.permission_mode, PermissionMode::Normal);
         app.reduce(TuiAction::CyclePermissionMode);
         assert_eq!(app.permission_mode, PermissionMode::AutoAcceptEdits);
         app.reduce(TuiAction::CyclePermissionMode);
         assert_eq!(app.permission_mode, PermissionMode::Plan);
+        app.reduce(TuiAction::CyclePermissionMode);
+        assert_eq!(app.permission_mode, PermissionMode::Yolo);
         app.reduce(TuiAction::CyclePermissionMode);
         assert_eq!(app.permission_mode, PermissionMode::Normal);
     }

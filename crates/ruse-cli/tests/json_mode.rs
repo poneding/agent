@@ -96,6 +96,7 @@ fn json_mode_parse_json_local_summary() {
             model_selection: ModelSelection::default(),
             config_path: None,
             config_override: ConfigOverride::default(),
+            permission_mode: Default::default(),
         }
     );
 }
@@ -108,6 +109,7 @@ fn json_mode_renders_parseable_bridge_frames() {
         model_selection: ModelSelection::default(),
         config_path: None,
         config_override: ConfigOverride::default(),
+        permission_mode: Default::default(),
     });
 
     assert!(output.exit);
@@ -166,6 +168,7 @@ fn json_mode_does_not_render_secret_references() {
             .expect("valid model selection"),
         config_path: Some(openai_config_with_inline_key_path(secret_value, &base_url)),
         config_override: ConfigOverride::default(),
+        permission_mode: Default::default(),
     });
 
     assert!(!output.stdout.contains("OPENAI_API_KEY"));

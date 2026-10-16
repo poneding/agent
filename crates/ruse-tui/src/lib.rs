@@ -6,6 +6,7 @@ pub mod approval_panel;
 pub mod command_panel;
 pub mod composer;
 pub mod diff_panel;
+pub mod diff_view;
 pub mod extension_panel;
 pub mod hit_test;
 pub mod markdown_view;
@@ -14,6 +15,7 @@ pub mod palette;
 pub mod render;
 pub mod selection;
 pub mod session_panel;
+pub mod shell_highlight;
 pub mod slash;
 pub mod status_panel;
 pub mod task_panel;
@@ -22,6 +24,7 @@ pub mod terminal_app;
 pub mod theme_picker;
 pub mod trace_panel;
 pub mod transcript;
+pub mod welcome;
 
 pub use app::{
     AllowRule, ApprovalOption, CommandRetryCandidateState, ConnectionState, DiffPanelSource,
@@ -44,7 +47,10 @@ pub use render::{
     paint_transcript_history_lines, render_app, render_app_to_string, render_sticky_chrome,
     sticky_chrome_height, transcript_history_lines,
 };
-pub use selection::{ContentGeometry, SelectionRange, SelectionState, extract_selected_text};
+pub use selection::{
+    ContentGeometry, SelectionRange, SelectionRegion, SelectionState, extract_selected_text,
+    extract_selection,
+};
 pub use session_panel::{SessionPanelAction, SessionPanelState};
 pub use slash::{
     SlashCommand, SlashCommandError, SlashSuggestionItem, SlashSuggestionState,
@@ -74,7 +80,7 @@ pub use theme_picker::{ThemePickerAction, ThemePickerState};
 pub use trace_panel::{TraceEntryKind, TraceFilter, TracePanelEntry, TracePanelState};
 pub use transcript::{
     ReasoningVisibility, TranscriptItem, TranscriptItemKind, TranscriptState, WaitingActivity,
-    friendly_tool_name,
+    estimate_thinking_tokens, friendly_tool_name,
 };
 
 #[must_use]

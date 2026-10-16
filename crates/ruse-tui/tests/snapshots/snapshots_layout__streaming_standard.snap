@@ -22,8 +22,8 @@ expression: "snapshot(&streaming_app(), STANDARD)"
                                                                                         
                                                                                         
                                                                                         
- ⠸ Responding… · 7s · esc/Ctrl+C to interrupt                                           
+ ✺ Responding... · 7s · esc/Ctrl+C to interrupt                                         
  ────────────────────────────────────────────────────────────────────────────────────── 
  ❯ type a message — / for commands · Enter to send                                      
  ────────────────────────────────────────────────────────────────────────────────────── 
-openai / gpt-5.5 · effort xhigh · normal                       ctx pending/128k  ~/agent
+openai / gpt-5.5 · xhigh · idle · normal                           pending/128k  ~/agent

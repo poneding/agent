@@ -51,20 +51,18 @@ fn role_style(role: SegmentRole, base: Style, theme: TerminalTheme) -> Style {
         SegmentRole::Plain => base,
         SegmentRole::Heading(1) => base
             .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
-            .fg(heading_color(theme)),
-        SegmentRole::Heading(_) => base.add_modifier(Modifier::BOLD).fg(heading_color(theme)),
+            .fg(palette.heading()),
+        SegmentRole::Heading(_) => base.add_modifier(Modifier::BOLD).fg(palette.heading()),
         SegmentRole::Bold => base.add_modifier(Modifier::BOLD),
         SegmentRole::Italic => base.add_modifier(Modifier::ITALIC),
         SegmentRole::Strikethrough => base.add_modifier(Modifier::CROSSED_OUT),
-        SegmentRole::Code => base.fg(code_color(theme)),
-        SegmentRole::CodeBlock => base.fg(code_block_color(theme)),
+        SegmentRole::Code => base.fg(palette.code()),
+        SegmentRole::CodeBlock => base.fg(palette.code_block()),
         SegmentRole::CodeBlockBorder => palette.meta(),
-        SegmentRole::Quote => base.add_modifier(Modifier::ITALIC).fg(quote_color(theme)),
+        SegmentRole::Quote => base.add_modifier(Modifier::ITALIC).fg(palette.quote()),
         SegmentRole::QuoteBorder => palette.meta(),
-        SegmentRole::ListBullet => base.fg(list_bullet_color(theme)),
-        SegmentRole::Link => base
-            .add_modifier(Modifier::UNDERLINED)
-            .fg(link_color(theme)),
+        SegmentRole::ListBullet => base.fg(palette.list_bullet()),
+        SegmentRole::Link => base.add_modifier(Modifier::UNDERLINED).fg(palette.link()),
         SegmentRole::LinkUrl => palette.meta(),
         SegmentRole::Hr => palette.meta(),
         SegmentRole::TableBorder => palette.meta(),
@@ -73,7 +71,7 @@ fn role_style(role: SegmentRole, base: Style, theme: TerminalTheme) -> Style {
             if let Some((r, g, b)) = fg {
                 style = style.fg(Color::Rgb(r, g, b));
             } else {
-                style = style.fg(code_block_color(theme));
+                style = style.fg(palette.code_block());
             }
             if bold {
                 style = style.add_modifier(Modifier::BOLD);
@@ -86,60 +84,6 @@ fn role_style(role: SegmentRole, base: Style, theme: TerminalTheme) -> Style {
     }
 }
 
-fn heading_color(theme: TerminalTheme) -> Color {
-    match theme {
-        TerminalTheme::Light => Color::Rgb(0, 105, 145),
-        TerminalTheme::Dark => Color::Rgb(56, 189, 248),
-        TerminalTheme::HighContrast => Color::Yellow,
-        TerminalTheme::System => Color::Cyan,
-    }
-}
-
-fn code_color(theme: TerminalTheme) -> Color {
-    match theme {
-        TerminalTheme::Light => Color::Rgb(180, 83, 9),
-        TerminalTheme::Dark => Color::Rgb(251, 191, 36),
-        TerminalTheme::HighContrast => Color::Yellow,
-        TerminalTheme::System => Color::Yellow,
-    }
-}
-
-fn code_block_color(theme: TerminalTheme) -> Color {
-    match theme {
-        TerminalTheme::Light => Color::Rgb(51, 65, 85),
-        TerminalTheme::Dark => Color::Rgb(226, 232, 240),
-        TerminalTheme::HighContrast => Color::White,
-        TerminalTheme::System => Color::Gray,
-    }
-}
-
-fn quote_color(theme: TerminalTheme) -> Color {
-    match theme {
-        TerminalTheme::Light => Color::Rgb(100, 116, 139),
-        TerminalTheme::Dark => Color::Rgb(148, 163, 184),
-        TerminalTheme::HighContrast => Color::Gray,
-        TerminalTheme::System => Color::Gray,
-    }
-}
-
-fn list_bullet_color(theme: TerminalTheme) -> Color {
-    match theme {
-        TerminalTheme::Light => Color::Rgb(0, 105, 145),
-        TerminalTheme::Dark => Color::Rgb(125, 211, 252),
-        TerminalTheme::HighContrast => Color::Yellow,
-        TerminalTheme::System => Color::Cyan,
-    }
-}
-
-fn link_color(theme: TerminalTheme) -> Color {
-    match theme {
-        TerminalTheme::Light => Color::Rgb(37, 99, 235),
-        TerminalTheme::Dark => Color::Rgb(96, 165, 250),
-        TerminalTheme::HighContrast => Color::Yellow,
-        TerminalTheme::System => Color::Blue,
-    }
-}
-
 /// Reasoning body uses the Reasoning semantic base plus markdown roles.
 #[must_use]
 pub fn reasoning_markdown_lines(
@@ -148,7 +92,13 @@ pub fn reasoning_markdown_lines(
     width: usize,
     streaming: bool,
 ) -> Vec<Line<'static>> {
-    let base = Palette::for_theme(theme).semantic(Semantic::Reasoning);
+    // Only the reasoning body is italic. Headers (Thinking/Thought) stay upright
+    // + bold via the Reasoning semantic; body drops bold and adds italic so the
+    // aside reads as process notes rather than a status label.
+    let base = Palette::for_theme(theme)
+        .semantic(Semantic::Reasoning)
+        .remove_modifier(Modifier::BOLD)
+        .add_modifier(Modifier::ITALIC);
     let lines = markdown_to_lines(body, base, theme, width, streaming);
     // Indent reasoning content as an aside (two spaces), matching the plain path.
     lines

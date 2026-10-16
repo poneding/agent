@@ -2,6 +2,12 @@ use ruse_ui_bridge::UiJsonFrame;
 
 use crate::TuiEffect;
 
+/// The scripted `fake` provider is a test-only backend. Match it by id or kind so
+/// it never appears as a selectable row in the picker.
+fn is_fake_provider(id: &str, kind: &str) -> bool {
+    id.starts_with("fake") || kind.starts_with("fake")
+}
+
 /// A single selectable model provider row in the picker. The catalog tracks one
 /// `default_model` per provider, so each row switches to that provider and its
 /// default model in one step.
@@ -71,6 +77,9 @@ impl ModelPickerState {
                 self.entries = snapshot
                     .providers
                     .iter()
+                    // The `fake`/`fake-scripted` scripted provider is a test-only
+                    // backend; never surface it as a selectable row in the picker.
+                    .filter(|provider| !is_fake_provider(&provider.id, &provider.kind))
                     .map(|provider| ModelPickerEntry {
                         provider_id: provider.id.clone(),
                         model_id: provider.default_model.clone(),

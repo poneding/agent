@@ -142,10 +142,37 @@ fn write_file_tool_creates_file_inside_workspace() {
 
     assert_eq!(output.value["path"], "notes/todo.txt");
     assert_eq!(output.value["bytes"], json!("ship the real agent\n".len()));
+    assert_eq!(output.value["applied"], json!(true));
+    let diff = output.value["diff"].as_str().expect("diff string");
+    assert!(
+        diff.contains("--- notes/todo.txt") && diff.contains("+ship the real agent"),
+        "write must return a unified diff for the TUI: {diff}"
+    );
     assert_eq!(
         fs::read_to_string(temp.path().join("workspace/notes/todo.txt")).expect("read file"),
         "ship the real agent\n"
     );
+}
+
+#[test]
+fn write_file_tool_diff_shows_overwrite_against_previous_content() {
+    let (temp, sandbox) = sandbox_fixture();
+    let path = temp.path().join("workspace/hello.txt");
+    fs::write(&path, "old line\n").expect("seed");
+    let tool = WriteFileTool::new(sandbox);
+
+    let output = tool
+        .execute(ToolInput {
+            value: json!({
+                "path": "hello.txt",
+                "content": "new line\n"
+            }),
+        })
+        .expect("overwrite");
+
+    let diff = output.value["diff"].as_str().expect("diff");
+    assert!(diff.contains("-old line"), "{diff}");
+    assert!(diff.contains("+new line"), "{diff}");
 }
 
 #[test]

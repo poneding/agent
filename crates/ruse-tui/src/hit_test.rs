@@ -120,11 +120,8 @@ fn primary_content_rect(app: &TuiApp) -> Option<(u16, u16, u16, u16)> {
     } else {
         slash_suggestion_height_for_hit(&app.composer.slash_suggestions)
     };
-    let activity_height: u16 = if !approval_visible && app.turn_state().is_active() {
-        2
-    } else {
-        0
-    };
+    let gap_height =
+        crate::render::pre_input_gap_height(approval_visible, app.turn_state().is_active());
     let input_height = if approval_visible {
         approval_panel_height_for(app, height)
     } else {
@@ -132,7 +129,7 @@ fn primary_content_rect(app: &TuiApp) -> Option<(u16, u16, u16, u16)> {
     };
     let footer_height: u16 = if approval_visible { 0 } else { 1 };
 
-    let reserved = activity_height
+    let reserved = gap_height
         .saturating_add(suggestion_height)
         .saturating_add(input_height)
         .saturating_add(footer_height);

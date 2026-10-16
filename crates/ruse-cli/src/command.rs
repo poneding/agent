@@ -719,6 +719,44 @@ impl Default for ModelSelection {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum PermissionMode {
+    #[default]
+    Standard,
+    AutoAcceptEdits,
+    Plan,
+    Yolo,
+}
+
+impl PermissionMode {
+    const fn label(self) -> &'static str {
+        match self {
+            Self::Standard => "standard",
+            Self::AutoAcceptEdits => "auto-edit",
+            Self::Plan => "plan",
+            Self::Yolo => "YOLO",
+        }
+    }
+
+    const fn from_tui(mode: ruse_tui::PermissionMode) -> Self {
+        match mode {
+            ruse_tui::PermissionMode::Normal => Self::Standard,
+            ruse_tui::PermissionMode::AutoAcceptEdits => Self::AutoAcceptEdits,
+            ruse_tui::PermissionMode::Plan => Self::Plan,
+            ruse_tui::PermissionMode::Yolo => Self::Yolo,
+        }
+    }
+
+    const fn into_tui(self) -> ruse_tui::PermissionMode {
+        match self {
+            Self::Standard => ruse_tui::PermissionMode::Normal,
+            Self::AutoAcceptEdits => ruse_tui::PermissionMode::AutoAcceptEdits,
+            Self::Plan => ruse_tui::PermissionMode::Plan,
+            Self::Yolo => ruse_tui::PermissionMode::Yolo,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CliInvocation {
     pub command: CliCommand,
@@ -726,6 +764,7 @@ pub struct CliInvocation {
     pub model_selection: ModelSelection,
     pub config_path: Option<PathBuf>,
     pub config_override: ConfigOverride,
+    pub permission_mode: PermissionMode,
 }
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
@@ -819,11 +858,13 @@ where
     let mut provider = None;
     let mut model = None;
     let mut config_path = None;
+    let mut permission_mode = PermissionMode::Standard;
     let mut args = args.into_iter().map(Into::into);
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--json" => output_mode = OutputMode::Json,
+            "--yolo" => permission_mode = PermissionMode::Yolo,
             "--provider" => provider = Some(take_flag_value(&mut args, &arg)?),
             "--model" => model = Some(take_flag_value(&mut args, &arg)?),
             "--config" => config_path = Some(PathBuf::from(take_flag_value(&mut args, &arg)?)),
@@ -845,6 +886,7 @@ where
         )?,
         config_path,
         config_override,
+        permission_mode,
     })
 }
 
@@ -1152,10 +1194,12 @@ pub fn run_plain_repl_stdio(config_path: Option<PathBuf>, config_override: Confi
 pub fn run_terminal_app_stdio(
     config_path: Option<PathBuf>,
     config_override: ConfigOverride,
+    permission_mode: PermissionMode,
 ) -> i32 {
     let theme_config_path = terminal_theme_write_path(config_path.clone());
     let status = terminal_app_status(config_path.clone(), config_override.clone());
     let mut terminal_config = ruse_tui::TerminalAppConfig::new(status);
+    terminal_config.permission_mode = permission_mode.into_tui();
     terminal_config.theme = terminal_app_theme(config_path.clone(), config_override.clone());
     let initial_session_report =
         current_terminal_session_report(config_path.clone(), config_override.clone()).ok();
@@ -1163,7 +1207,8 @@ pub fn run_terminal_app_stdio(
         .as_ref()
         .and_then(terminal_runtime_identity_from_report)
         .unwrap_or_else(new_terminal_runtime_identity);
-    let session_store = match open_terminal_event_store() {
+    let workspace_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let session_store = match open_terminal_event_store(&workspace_root) {
         Ok(store) => store,
         Err(error) => {
             eprintln!("terminal event store failed: {error}");
@@ -1219,6 +1264,7 @@ pub fn run_terminal_app_stdio(
         session_catalog,
         approval_coordinator,
         approval_continuations,
+        permission_mode,
         active_cancellation,
     });
     match ruse_tui::run_terminal_app_stdio_with_runtimes(
@@ -1244,6 +1290,7 @@ struct CliTerminalCommandRuntime {
     session_catalog: Arc<Mutex<TerminalSessionCatalog>>,
     approval_coordinator: Arc<Mutex<ApprovalCoordinator>>,
     approval_continuations: TerminalApprovalContinuationStore,
+    permission_mode: PermissionMode,
     /// Shared with the turn runtime so approval resume observes Esc/Ctrl+C.
     active_cancellation: SharedTerminalCancellation,
 }
@@ -1309,6 +1356,7 @@ struct TerminalApprovalRuntime<'a> {
     sender: &'a ruse_tui::TerminalFrameSender,
     config_path: &'a Option<PathBuf>,
     config_override: &'a SharedConfigOverride,
+    permission_mode: PermissionMode,
     active_cancellation: &'a SharedTerminalCancellation,
 }
 
@@ -1357,6 +1405,7 @@ impl ruse_tui::TerminalCommandRuntime for CliTerminalCommandRuntime {
                         sender: &sender,
                         config_path: &self.config_path,
                         config_override: &self.config_override,
+                        permission_mode: self.permission_mode,
                         active_cancellation: &self.active_cancellation,
                     },
                     request_id,
@@ -1395,6 +1444,7 @@ impl ruse_tui::TerminalCommandRuntime for CliTerminalCommandRuntime {
                         sender: &sender,
                         config_path: &self.config_path,
                         config_override: &self.config_override,
+                        permission_mode: self.permission_mode,
                         active_cancellation: &self.active_cancellation,
                     },
                     request_id,
@@ -1538,6 +1588,7 @@ impl ruse_tui::TerminalTurnRuntime for CliTerminalTurnRuntime {
             session_catalog: Arc::clone(&self.session_catalog),
             approval_coordinator: Arc::clone(&self.approval_coordinator),
             approval_continuations: Arc::clone(&self.approval_continuations),
+            permission_mode: PermissionMode::from_tui(options.permission_mode),
             cancellation,
             reasoning_effort: options.reasoning_effort,
             sender: &sender,
@@ -1582,6 +1633,7 @@ struct TerminalTurnStreamRequest<'a> {
     session_catalog: Arc<Mutex<TerminalSessionCatalog>>,
     approval_coordinator: Arc<Mutex<ApprovalCoordinator>>,
     approval_continuations: TerminalApprovalContinuationStore,
+    permission_mode: PermissionMode,
     cancellation: ruse_tui::TerminalCancellationToken,
     reasoning_effort: ruse_types::ReasoningEffort,
     sender: &'a ruse_tui::TerminalFrameSender,
@@ -1590,6 +1642,7 @@ struct TerminalTurnStreamRequest<'a> {
 
 const TERMINAL_HISTORY_MESSAGE_LIMIT: usize = 48;
 const TERMINAL_EVENT_STORE_FILE: &str = "terminal-events.sqlite3";
+const TERMINAL_SESSION_STORE_DIR: &str = "terminal-sessions";
 
 type TerminalEventStore = SqliteEventStore;
 
@@ -1643,6 +1696,7 @@ fn run_terminal_turn_stream(
                         approval_continuations: &approval_continuations,
                         event_count,
                     },
+                    request.permission_mode,
                     core_cancellation,
                     reasoning_effort,
                 )
@@ -1751,11 +1805,12 @@ async fn run_terminal_comprehensive_turn_stream(
     input: ComprehensiveTurnInput,
     registry: ModelProviderRegistry,
     sinks: TerminalTurnSinks<'_>,
+    permission_mode: PermissionMode,
     cancellation: CancellationToken,
     reasoning_effort: ruse_types::ReasoningEffort,
 ) -> Result<TerminalTurnCompletion, CliError> {
     let tools = terminal_tool_registry_for_current_dir()?;
-    let policy = terminal_tool_policy()?;
+    let policy = terminal_tool_policy(permission_mode)?;
     // Prefer the session facade so interactive hosts share one prompt entrypoint.
     let session = ruse_core::AgentSession::with_shared_config(
         input.ids,
@@ -2008,6 +2063,7 @@ fn terminal_resolve_approval(
             sinks,
             runtime.config_path,
             runtime.config_override,
+            runtime.permission_mode,
             runtime.active_cancellation,
         )?
     } else {
@@ -2030,10 +2086,11 @@ fn continue_terminal_turn_after_approval(
     sinks: TerminalTurnSinks<'_>,
     config_path: &Option<PathBuf>,
     config_override: &SharedConfigOverride,
+    permission_mode: PermissionMode,
     active_cancellation: &SharedTerminalCancellation,
 ) -> Result<TerminalTurnCompletion, CliError> {
     let tools = terminal_tool_registry_for_current_dir()?;
-    let policy = terminal_tool_policy()?;
+    let policy = terminal_tool_policy(permission_mode)?;
     // Rebuild the full secret resolver (inline config + env) rather than an
     // env-only resolver; otherwise inline `apiKey` values configured directly in
     // the config file fail to resolve on the approval-resume path, even though
@@ -2672,17 +2729,48 @@ fn terminal_session_snapshot_frame_from_report(
     }
 }
 
-fn open_terminal_event_store() -> Result<TerminalEventStore, CliError> {
+/// Open the durable terminal event store for the current working directory.
+///
+/// Sessions are isolated by workspace root so conversations from one project do
+/// not appear in another project's `/sessions` list. The store path is derived
+/// from a stable hash of the canonical workspace path under the platform data
+/// directory.
+fn open_terminal_event_store(workspace_root: &Path) -> Result<TerminalEventStore, CliError> {
     let paths = PlatformPaths::current(PlatformPathOverrides::default()).map_err(|error| {
         CliError::PromptRuntimeFailed {
             message: format!("terminal data directory failed: {error}"),
         }
     })?;
-    TerminalEventStore::open(paths.data_dir.join(TERMINAL_EVENT_STORE_FILE)).map_err(|error| {
-        CliError::PromptRuntimeFailed {
-            message: format!("terminal event database failed: {error}"),
-        }
+    let store_path = terminal_event_store_path(&paths.data_dir, workspace_root);
+    TerminalEventStore::open(store_path).map_err(|error| CliError::PromptRuntimeFailed {
+        message: format!("terminal event database failed: {error}"),
     })
+}
+
+/// Resolve the per-workspace sqlite path used for terminal session history.
+fn terminal_event_store_path(data_dir: &Path, workspace_root: &Path) -> PathBuf {
+    data_dir
+        .join(TERMINAL_SESSION_STORE_DIR)
+        .join(terminal_session_workspace_key(workspace_root))
+        .join(TERMINAL_EVENT_STORE_FILE)
+}
+
+/// Stable filesystem-safe key for a workspace root. Uses the canonical path when
+/// available so relative/`..` and symlink spellings of the same directory share a
+/// store; falls back to the raw path when canonicalize fails (e.g. missing dir).
+fn terminal_session_workspace_key(workspace_root: &Path) -> String {
+    let canonical = workspace_root
+        .canonicalize()
+        .unwrap_or_else(|_| workspace_root.to_path_buf());
+    let bytes = canonical.to_string_lossy();
+    // FNV-1a 64-bit — deterministic across Rust versions, enough uniqueness for
+    // local path isolation without pulling an extra crypto dependency.
+    let mut hash: u64 = 0xcbf29ce484222325;
+    for byte in bytes.as_bytes() {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(0x100000001b3);
+    }
+    format!("{hash:016x}")
 }
 
 fn current_terminal_session_report(
@@ -10321,10 +10409,18 @@ where
 fn render_non_tty_help() -> CliOutput {
     CliOutput::failure(
         [
-            "usage: agent [tui|repl --plain|--prompt <text>|--json --prompt <text>|--config-check|--version]",
+            "usage: ruse [tui|repl --plain|--prompt <text>|--json --prompt <text>|--config-check|--version]",
             "",
-            "agent with no arguments requires an interactive terminal.",
-            "Use agent --prompt \"hello\" or agent --json --prompt \"hello\" for scripts.",
+            "ruse with no arguments opens the interactive TUI and requires a real terminal",
+            "(stdin and stdout must both be TTYs).",
+            "",
+            "  ruse                  # interactive TUI (default)",
+            "  ruse tui              # same as above",
+            "  ruse --prompt \"hi\"   # one-shot prompt (scripts / pipes)",
+            "  ruse --json --prompt \"hi\"",
+            "",
+            "If you just ran `make install`, open a normal terminal tab (not a pipe)",
+            "and run `ruse` again. From a non-TTY host use `ruse --prompt ...`.",
             "",
         ]
         .join("\n"),
@@ -10555,7 +10651,7 @@ fn terminal_tool_registry_for_current_dir() -> Result<ToolRegistry, CliError> {
         message: format!("terminal workspace root is unavailable: {error}"),
     })?;
     let sandbox = WorkspaceSandbox::new(&cwd).map_err(|error| CliError::PromptRuntimeFailed {
-        message: format!("terminal workspace sandbox failed: {error}"),
+        message: format!("terminal workspace setup failed: {error}"),
     })?;
 
     let mut registry = ToolRegistry::default();
@@ -10590,12 +10686,22 @@ fn terminal_tool_registration_error(error: ruse_tool::ToolRegistryError) -> CliE
     }
 }
 
-fn terminal_tool_policy() -> Result<StaticPolicyEngine, CliError> {
-    let allow = PolicyDecision::Allow {
+fn terminal_tool_policy(permission_mode: PermissionMode) -> Result<StaticPolicyEngine, CliError> {
+    let read_allow = PolicyDecision::Allow {
         reason: "terminal policy allows read-only workspace tool".to_string(),
     };
-    let ask = PolicyDecision::Ask {
-        reason: "terminal policy requires approval for side-effecting workspace tool".to_string(),
+    let side_effect_decision = match permission_mode {
+        PermissionMode::Standard => PolicyDecision::Ask {
+            reason: "terminal policy requires approval for side-effecting workspace tool"
+                .to_string(),
+        },
+        PermissionMode::AutoAcceptEdits | PermissionMode::Plan => PolicyDecision::Ask {
+            reason: "terminal policy requires approval for this side effect".to_string(),
+        },
+        PermissionMode::Yolo => PolicyDecision::Allow {
+            reason: "YOLO mode allows registered workspace tool without interactive approval"
+                .to_string(),
+        },
     };
     let mut policy = StaticPolicyEngine::default();
     for tool_name in [
@@ -10607,27 +10713,47 @@ fn terminal_tool_policy() -> Result<StaticPolicyEngine, CliError> {
             CapabilityAction::Read,
             ResourceScope::new(ResourceKind::Tool, tool_name)
                 .map_err(terminal_tool_policy_error)?,
-            allow.clone(),
+            read_allow.clone(),
         );
     }
     policy = policy.with_decision(
         CapabilityAction::Search,
         ResourceScope::new(ResourceKind::Tool, "workspace.search_text")
             .map_err(terminal_tool_policy_error)?,
-        allow.clone(),
+        read_allow,
     );
-    for tool_name in [
-        "workspace.edit_file",
-        "workspace.write_file",
-        "workspace.shell_command",
-    ] {
+    for tool_name in ["workspace.edit_file", "workspace.write_file"] {
+        let decision = match permission_mode {
+            PermissionMode::AutoAcceptEdits | PermissionMode::Yolo => PolicyDecision::Allow {
+                reason: format!(
+                    "{} mode allows registered workspace file edits",
+                    permission_mode.label()
+                ),
+            },
+            PermissionMode::Plan => PolicyDecision::Deny {
+                reason: "plan mode denies workspace modifications".to_string(),
+            },
+            PermissionMode::Standard => side_effect_decision.clone(),
+        };
         policy = policy.with_decision(
             CapabilityAction::Execute,
             ResourceScope::new(ResourceKind::Tool, tool_name)
                 .map_err(terminal_tool_policy_error)?,
-            ask.clone(),
+            decision,
         );
     }
+    let shell_decision = match permission_mode {
+        PermissionMode::Plan => PolicyDecision::Deny {
+            reason: "plan mode denies command execution".to_string(),
+        },
+        _ => side_effect_decision,
+    };
+    policy = policy.with_decision(
+        CapabilityAction::Execute,
+        ResourceScope::new(ResourceKind::Tool, "workspace.shell_command")
+            .map_err(terminal_tool_policy_error)?,
+        shell_decision,
+    );
     Ok(policy)
 }
 
@@ -11235,6 +11361,7 @@ mod terminal_runtime_identity_tests {
             session_catalog: Arc::new(Mutex::new(TerminalSessionCatalog::default())),
             approval_coordinator: Arc::new(Mutex::new(ApprovalCoordinator::default())),
             approval_continuations: Arc::new(Mutex::new(BTreeMap::new())),
+            permission_mode: PermissionMode::Standard,
             active_cancellation: Arc::new(Mutex::new(None)),
         };
 
@@ -11392,6 +11519,32 @@ fallback_provider_ids = []
         let snapshot = shared_config_override_snapshot(&shared);
         assert_eq!(snapshot.provider, None);
         assert_eq!(snapshot.model, None);
+    }
+
+    #[test]
+    fn terminal_session_store_path_is_isolated_by_workspace_root() {
+        let data_dir = PathBuf::from("/tmp/agent-data");
+        let left = terminal_event_store_path(&data_dir, Path::new("/tmp/project-a"));
+        let right = terminal_event_store_path(&data_dir, Path::new("/tmp/project-b"));
+        let same = terminal_event_store_path(&data_dir, Path::new("/tmp/project-a"));
+
+        assert_ne!(
+            left, right,
+            "different workspaces must not share a store path"
+        );
+        assert_eq!(
+            left, same,
+            "same workspace root must reuse the same store path"
+        );
+        assert!(left.starts_with(data_dir.join(TERMINAL_SESSION_STORE_DIR)));
+        assert_eq!(
+            left.file_name().and_then(|name| name.to_str()),
+            Some(TERMINAL_EVENT_STORE_FILE)
+        );
+        assert_ne!(
+            terminal_session_workspace_key(Path::new("/tmp/project-a")),
+            terminal_session_workspace_key(Path::new("/tmp/project-b"))
+        );
     }
 
     #[test]
@@ -11584,9 +11737,10 @@ fallback_provider_ids = []
             "expected tool call in history: {history:?}"
         );
         assert!(
-            history
-                .iter()
-                .any(|m| m.content.contains("tool_result") && m.content.contains("edited")),
+            history.iter().any(|m| {
+                (m.content.contains("tool result") || m.content.contains("[tool result"))
+                    && m.content.contains("edited")
+            }),
             "expected tool result in history: {history:?}"
         );
         assert_eq!(history.last().map(|m| m.content.as_str()), Some("done"));
@@ -11614,7 +11768,7 @@ fallback_provider_ids = []
 
     #[test]
     fn terminal_tool_policy_allows_read_tools_and_asks_for_side_effects() {
-        let policy = terminal_tool_policy().expect("tool policy");
+        let policy = terminal_tool_policy(PermissionMode::Standard).expect("tool policy");
 
         for (tool_name, action) in [
             ("workspace.read_file", CapabilityAction::Read),
@@ -11654,6 +11808,97 @@ fallback_provider_ids = []
                 PolicyDecision::Ask { .. }
             ));
         }
+    }
+
+    #[test]
+    fn terminal_tool_policy_yolo_allows_registered_side_effects_but_not_unknown_tools() {
+        let policy = terminal_tool_policy(PermissionMode::Yolo).expect("YOLO tool policy");
+        for tool_name in [
+            "workspace.edit_file",
+            "workspace.write_file",
+            "workspace.shell_command",
+        ] {
+            let request = ruse_policy::PermissionRequest::new(
+                ActorRef::system(),
+                CapabilityAction::Execute,
+                ResourceScope::new(ResourceKind::Tool, tool_name).expect("scope"),
+                "test YOLO policy",
+                CorrelationId::new(),
+            )
+            .expect("permission request");
+            assert!(matches!(
+                ruse_policy::PolicyEngine::decide(&policy, &request).expect("decision"),
+                PolicyDecision::Allow { reason } if reason.contains("YOLO mode")
+            ));
+        }
+
+        let unknown = ruse_policy::PermissionRequest::new(
+            ActorRef::system(),
+            CapabilityAction::Execute,
+            ResourceScope::new(ResourceKind::Tool, "workspace.unknown").expect("scope"),
+            "test unknown tool",
+            CorrelationId::new(),
+        )
+        .expect("permission request");
+        assert!(matches!(
+            ruse_policy::PolicyEngine::decide(&policy, &unknown).expect("decision"),
+            PolicyDecision::Ask { reason } if reason == "no matching policy rule"
+        ));
+    }
+
+    #[test]
+    fn terminal_tool_policy_enforces_auto_edit_and_plan_modes() {
+        let edit_scope =
+            ResourceScope::new(ResourceKind::Tool, "workspace.edit_file").expect("edit scope");
+        let shell_scope =
+            ResourceScope::new(ResourceKind::Tool, "workspace.shell_command").expect("shell scope");
+
+        let auto_edit =
+            terminal_tool_policy(PermissionMode::AutoAcceptEdits).expect("auto-edit policy");
+        let edit_request = ruse_policy::PermissionRequest::new(
+            ActorRef::system(),
+            CapabilityAction::Execute,
+            edit_scope.clone(),
+            "test auto-edit",
+            CorrelationId::new(),
+        )
+        .expect("edit request");
+        let shell_request = ruse_policy::PermissionRequest::new(
+            ActorRef::system(),
+            CapabilityAction::Execute,
+            shell_scope.clone(),
+            "test auto-edit shell",
+            CorrelationId::new(),
+        )
+        .expect("shell request");
+        assert!(matches!(
+            ruse_policy::PolicyEngine::decide(&auto_edit, &edit_request).expect("edit decision"),
+            PolicyDecision::Allow { .. }
+        ));
+        assert!(matches!(
+            ruse_policy::PolicyEngine::decide(&auto_edit, &shell_request).expect("shell decision"),
+            PolicyDecision::Ask { .. }
+        ));
+
+        let plan = terminal_tool_policy(PermissionMode::Plan).expect("plan policy");
+        assert!(matches!(
+            ruse_policy::PolicyEngine::decide(&plan, &edit_request).expect("edit decision"),
+            PolicyDecision::Deny { .. }
+        ));
+        assert!(matches!(
+            ruse_policy::PolicyEngine::decide(&plan, &shell_request).expect("shell decision"),
+            PolicyDecision::Deny { .. }
+        ));
+    }
+
+    #[test]
+    fn cli_invocation_parses_yolo_as_a_global_permission_override() {
+        let invocation = parse_cli_invocation(["tui", "--yolo"]).expect("parse YOLO");
+        assert_eq!(invocation.command, CliCommand::TuiShell);
+        assert_eq!(invocation.permission_mode, PermissionMode::Yolo);
+
+        let standard = parse_cli_invocation(["tui"]).expect("parse standard");
+        assert_eq!(standard.permission_mode, PermissionMode::Standard);
     }
 }
 
@@ -14897,10 +15142,10 @@ pub enum SlashCommand {
     Memory,
     Theme,
     Thinking,
-    Copy,
     Compact,
     Retry,
     Sessions,
+    New,
     Resume,
     Trace,
     Tasks,
@@ -14928,10 +15173,10 @@ impl SlashCommand {
             UiSlashCommandEffect::OpenMemory => Some(Self::Memory),
             UiSlashCommandEffect::OpenTheme => Some(Self::Theme),
             UiSlashCommandEffect::ConfigureThinking => Some(Self::Thinking),
-            UiSlashCommandEffect::CopyLatestOutput => Some(Self::Copy),
             UiSlashCommandEffect::CompactConversation => Some(Self::Compact),
             UiSlashCommandEffect::RetryLastTurn => Some(Self::Retry),
             UiSlashCommandEffect::OpenSessions => Some(Self::Sessions),
+            UiSlashCommandEffect::NewSession => Some(Self::New),
             UiSlashCommandEffect::ResumeSession => Some(Self::Resume),
             UiSlashCommandEffect::OpenTrace => Some(Self::Trace),
             UiSlashCommandEffect::OpenTasks => Some(Self::Tasks),
@@ -14976,9 +15221,6 @@ pub fn handle_slash_command(input: &str) -> CliOutput {
         Some(SlashCommand::Thinking) => CliOutput::keep_running(
             "Thinking: use `/thinking show-all` or `/thinking hide-all` in the TUI\n",
         ),
-        Some(SlashCommand::Copy) => CliOutput::keep_running(
-            "Copy: open TUI /copy to copy the latest completed assistant output\n",
-        ),
         Some(SlashCommand::Compact) => CliOutput::keep_running(
             "Compact: conversation compaction is available in the TUI runtime path\n",
         ),
@@ -14987,6 +15229,9 @@ pub fn handle_slash_command(input: &str) -> CliOutput {
         ),
         Some(SlashCommand::Sessions) => {
             CliOutput::keep_running("Sessions: run `repo session list` or open TUI /sessions\n")
+        }
+        Some(SlashCommand::New) => {
+            CliOutput::keep_running("New: open TUI /new to start a fresh workspace session\n")
         }
         Some(SlashCommand::Resume) => {
             CliOutput::keep_running("Resume: run `repo session resume` or open TUI /resume\n")

@@ -1,5 +1,9 @@
 //! Centralized, per-theme color palette for the terminal UI.
 //!
+//! Colors are derived from the [ayu](https://github.com/ayu-theme/ayu-colors) light
+//! and dark schemes. Light/Dark (and System→Dark) map onto ayu tokens; HighContrast
+//! keeps the same non-color cues with widened separation.
+//!
 //! Before this module the render layer carried ~10 scattered `match (kind, theme)`
 //! sites, each independently deciding a `Style`. That made the visual language
 //! impossible to audit and easy to drift — and several states were distinguished
@@ -24,6 +28,112 @@
 use ratatui::style::{Color, Modifier, Style};
 
 use crate::{ReasoningEffort, TerminalTheme};
+
+// ---------------------------------------------------------------------------
+// Ayu color tokens (https://github.com/ayu-theme/ayu-colors)
+// ---------------------------------------------------------------------------
+
+/// Build an RGB color from a 0xRRGGBB literal.
+const fn rgb(hex: u32) -> Color {
+    Color::Rgb(
+        ((hex >> 16) & 0xff) as u8,
+        ((hex >> 8) & 0xff) as u8,
+        (hex & 0xff) as u8,
+    )
+}
+
+/// Resolved ayu-derived tokens for one theme variant.
+#[derive(Copy, Clone, Debug)]
+struct AyuTokens {
+    /// Primary editor foreground (`editor.fg`).
+    fg: Color,
+    /// Muted UI / secondary text (`ui.fg` / comment family).
+    muted: Color,
+    /// Soft panel / bubble background.
+    panel: Color,
+    /// Common accent (amber).
+    accent: Color,
+    /// Errors (`common.error` / markup).
+    error: Color,
+    /// Warnings (func / keyword oranges).
+    warning: Color,
+    /// VCS added / success green.
+    success: Color,
+    /// Syntax tag (cyan-blue).
+    tag: Color,
+    /// Syntax entity (blue).
+    entity: Color,
+    /// Syntax string / green prose.
+    string: Color,
+    /// Syntax keyword (orange).
+    keyword: Color,
+    /// VCS removed.
+    removed: Color,
+    /// Selection blue (deepest official blue).
+    selection: Color,
+    /// Effort scale: calm → heat across five *distinct* hue families (5 steps).
+    /// Gray → green → blue → violet → orange. Mid steps deliberately leave the
+    /// blue cluster — a pure-ayu blue ladder was too hard to tell apart at a glance.
+    effort: [Color; 5],
+}
+
+impl AyuTokens {
+    /// Official ayu-light tokens.
+    const fn light() -> Self {
+        Self {
+            fg: rgb(0x5C_61_66),
+            muted: rgb(0x8A_91_99),
+            panel: rgb(0xF3_F4_F5),
+            accent: rgb(0xFF_AA_33),
+            error: rgb(0xE6_50_50),
+            warning: rgb(0xF2_AE_49),
+            success: rgb(0x6C_BF_43),
+            tag: rgb(0x55_B4_D4),
+            entity: rgb(0x39_9E_E6),
+            string: rgb(0x86_B3_00),
+            keyword: rgb(0xFA_8D_3E),
+            removed: rgb(0xFF_73_83),
+            selection: rgb(0x03_5B_D6),
+            // Effort border: one hue family per depth so Shift+Tab is obvious.
+            // minimal gray → low green → medium blue → high violet → xhigh orange.
+            effort: [
+                rgb(0x8A_91_99), // muted gray (minimal)
+                rgb(0x86_B3_00), // string green (low)
+                rgb(0x03_5B_D6), // selection blue (medium)
+                rgb(0x7C_3A_ED), // violet (high — off-ayu, needed for separation)
+                rgb(0xFA_8D_3E), // keyword orange (xhigh)
+            ],
+        }
+    }
+
+    /// Official ayu-dark tokens.
+    const fn dark() -> Self {
+        Self {
+            fg: rgb(0xBF_BD_B6),
+            muted: rgb(0x6C_73_80),
+            panel: rgb(0x0F_13_1A),
+            accent: rgb(0xE6_B4_50),
+            error: rgb(0xD9_57_57),
+            warning: rgb(0xFF_B4_54),
+            success: rgb(0x7F_D9_62),
+            tag: rgb(0x39_BA_E6),
+            entity: rgb(0x59_C2_FF),
+            string: rgb(0xAA_D9_4C),
+            keyword: rgb(0xFF_8F_40),
+            removed: rgb(0xF2_6D_78),
+            selection: rgb(0x40_9F_FF),
+            // Effort border: one hue family per depth so Shift+Tab is obvious.
+            // minimal gray → low green → medium blue → high violet → xhigh orange.
+            effort: [
+                rgb(0x6C_73_80), // muted gray (minimal)
+                rgb(0xAA_D9_4C), // string green (low)
+                rgb(0x40_9F_FF), // selection blue (medium)
+                rgb(0xC4_84_FF), // violet (high — off-ayu, needed for separation)
+                rgb(0xFF_8F_40), // keyword orange (xhigh)
+            ],
+        }
+    }
+}
 
 /// A semantic role a rendered span can play. This is the vocabulary render sites
 /// use to ask the palette for a style, decoupled from concrete colors.
@@ -73,12 +183,32 @@ impl Palette {
         Self { theme }
     }
 
-    /// Theme-aware equivalent of a `text-muted-foreground` token.
+    /// Ayu tokens for the active theme. System follows dark; HighContrast is
+    /// handled at the style layer with named ANSI colors.
+    const fn tokens(self) -> AyuTokens {
+        match self.theme {
+            TerminalTheme::Light => AyuTokens::light(),
+            TerminalTheme::Dark | TerminalTheme::System | TerminalTheme::HighContrast => {
+                AyuTokens::dark()
+            }
+        }
+    }
+
+    /// Theme-aware equivalent of a muted/secondary foreground token.
     fn muted_foreground(self) -> Color {
         match self.theme {
-            TerminalTheme::System | TerminalTheme::Dark => Color::Rgb(148, 163, 184),
-            TerminalTheme::Light => Color::Rgb(100, 116, 139),
             TerminalTheme::HighContrast => Color::Gray,
+            _ => self.tokens().muted,
+        }
+    }
+
+    /// Primary body foreground (editor.fg).
+    #[must_use]
+    pub fn foreground(self) -> Color {
+        match self.theme {
+            TerminalTheme::HighContrast => Color::White,
+            TerminalTheme::System => Color::White,
+            _ => self.tokens().fg,
         }
     }
 
@@ -87,6 +217,7 @@ impl Palette {
     #[must_use]
     pub fn semantic(self, role: Semantic) -> Style {
         let high_contrast = self.theme == TerminalTheme::HighContrast;
+        let t = self.tokens();
         match role {
             // Real errors: red + BOLD. HighContrast swaps red→yellow (red on black
             // can be low-contrast) but keeps BOLD, so the "this is an error" cue is
@@ -96,92 +227,87 @@ impl Palette {
                 if high_contrast {
                     base.fg(Color::Yellow)
                 } else {
-                    base.fg(Color::Red)
+                    base.fg(t.error)
                 }
             }
-            // Warnings: yellow + ITALIC. The italic keeps them distinct from errors
-            // (bold) and from meta (dim) even with no color.
+            // Warnings: yellow/amber + ITALIC. The italic keeps them distinct from
+            // errors (bold) and from meta (dim) even with no color.
             Semantic::Warning => {
                 let base = Style::default().add_modifier(Modifier::ITALIC);
                 if high_contrast {
                     base.fg(Color::Yellow).add_modifier(Modifier::BOLD)
                 } else {
-                    base.fg(Color::Yellow)
+                    base.fg(t.warning)
                 }
             }
-            // Reasoning stays gray across themes so thinking reads as secondary
-            // process context rather than competing with the final answer.
-            Semantic::Reasoning => {
+            // Reasoning chrome (Thinking/Thought headers, stats) stays muted and
+            // upright. Bold is the monochrome cue (same register as tool labels).
+            // Italic is applied only to the expanded reasoning *body* at the
+            // render call site so process notes read as an aside without
+            // slanting the status word itself.
+            Semantic::Reasoning => Style::default()
+                .fg(self.muted_foreground())
+                .add_modifier(Modifier::BOLD),
+            // Tool calls stay muted so shell/tool rows read as secondary process
+            // context (same register as thinking), not as primary prose.
+            Semantic::Tool => {
                 let base = Style::default()
                     .fg(self.muted_foreground())
-                    .add_modifier(Modifier::ITALIC);
+                    .add_modifier(Modifier::BOLD);
                 if high_contrast {
-                    base.add_modifier(Modifier::BOLD)
+                    base.add_modifier(Modifier::ITALIC)
                 } else {
                     base
                 }
             }
-            // Tool calls: cyan/blue + BOLD so the `●` head stands out from prose.
-            Semantic::Tool => {
-                let base = Style::default().add_modifier(Modifier::BOLD);
-                match self.theme {
-                    TerminalTheme::HighContrast => base.fg(Color::Yellow),
-                    TerminalTheme::Dark => base.fg(Color::Cyan),
-                    _ => base.fg(Color::Blue),
-                }
-            }
-            // Approvals: deep green + BOLD. Matches the Allow option color so a resolved
-            // allow reads as "ok", not as an alert. Reject-colored rows are painted at
-            // the call site when the decision is deny.
+            // Approvals: ayu success green + BOLD. Matches the Allow option color so
+            // a resolved allow reads as "ok", not as an alert.
             Semantic::Approval => {
                 let base = Style::default().add_modifier(Modifier::BOLD);
                 if high_contrast {
                     base.fg(Color::Yellow)
                 } else {
-                    base.fg(Color::Rgb(34, 197, 94))
+                    base.fg(t.success)
                 }
             }
             // Attention (pending approvals): same weight as approval; paired with a
             // `⚠` glyph at the call site.
             Semantic::Attention => {
                 let base = Style::default().add_modifier(Modifier::BOLD);
-                match self.theme {
-                    TerminalTheme::HighContrast => base.fg(Color::Yellow),
-                    TerminalTheme::Light => base.fg(Color::Red),
-                    _ => base.fg(Color::Yellow),
+                if high_contrast {
+                    base.fg(Color::Yellow)
+                } else {
+                    base.fg(t.warning)
                 }
             }
             Semantic::ApprovalModal => {
                 let base = Style::default().add_modifier(Modifier::BOLD);
                 match self.theme {
                     TerminalTheme::System | TerminalTheme::HighContrast => base.fg(Color::Yellow),
-                    TerminalTheme::Light => base.fg(Color::Rgb(176, 96, 0)),
-                    TerminalTheme::Dark => base.fg(Color::Rgb(245, 166, 35)),
+                    _ => base.fg(t.accent),
                 }
             }
             Semantic::ModelModal => {
                 let base = Style::default().add_modifier(Modifier::BOLD);
                 match self.theme {
                     TerminalTheme::System | TerminalTheme::HighContrast => base.fg(Color::Cyan),
-                    TerminalTheme::Light => base.fg(Color::Rgb(0, 105, 145)),
-                    TerminalTheme::Dark => base.fg(Color::Rgb(56, 189, 248)),
+                    _ => base.fg(t.entity),
                 }
             }
             Semantic::SessionModal => {
                 let base = Style::default().add_modifier(Modifier::BOLD);
                 match self.theme {
                     TerminalTheme::System | TerminalTheme::HighContrast => base.fg(Color::Green),
-                    TerminalTheme::Light => base.fg(Color::Rgb(20, 125, 75)),
-                    TerminalTheme::Dark => base.fg(Color::Rgb(74, 222, 128)),
+                    _ => base.fg(t.string),
                 }
             }
-            // Activity line spinner/verb: cyan/blue + BOLD.
+            // Activity line spinner/verb: ayu tag/entity blue + BOLD.
             Semantic::Activity => {
                 let base = Style::default().add_modifier(Modifier::BOLD);
                 match self.theme {
                     TerminalTheme::HighContrast => base.fg(Color::Yellow),
-                    TerminalTheme::Light => base.fg(Color::Blue),
-                    _ => base.fg(Color::Cyan),
+                    TerminalTheme::System => base.fg(Color::Cyan),
+                    _ => base.fg(t.tag),
                 }
             }
             // Meta / machinery: secondary text. The non-color cue is ITALIC, not
@@ -194,21 +320,15 @@ impl Palette {
                     TerminalTheme::HighContrast => {
                         base.fg(Color::Yellow).add_modifier(Modifier::BOLD)
                     }
-                    TerminalTheme::Dark => base.fg(Color::Gray),
-                    TerminalTheme::Light => base.fg(Color::DarkGray),
-                    // System keeps the terminal's default foreground (readable on
-                    // any background) and leans on ITALIC alone as the cue.
                     TerminalTheme::System => base.fg(Color::Gray),
+                    _ => base.fg(t.muted),
                 }
             }
-            // User message blocks: background fills mark the bubble; the vertical
-            // padding rows around the text are rendered by the layout layer.
+            // User message blocks: panel fill marks the bubble.
             Semantic::User => match self.theme {
                 TerminalTheme::System => Style::default().bg(Color::DarkGray).fg(Color::White),
-                TerminalTheme::Light => Style::default()
-                    .bg(Color::Rgb(226, 232, 240))
-                    .fg(Color::Black),
-                TerminalTheme::Dark => Style::default().bg(Color::Rgb(39, 49, 68)).fg(Color::White),
+                TerminalTheme::Light => Style::default().bg(t.panel).fg(t.fg),
+                TerminalTheme::Dark => Style::default().bg(t.panel).fg(t.fg),
                 TerminalTheme::HighContrast => Style::default()
                     .bg(Color::Yellow)
                     .fg(Color::Black)
@@ -218,8 +338,7 @@ impl Palette {
             // plain blank row and tool/thinking blocks don't fight a second bg.
             Semantic::Model => match self.theme {
                 TerminalTheme::System => Style::default(),
-                TerminalTheme::Light => Style::default().fg(Color::Black),
-                TerminalTheme::Dark => Style::default().fg(Color::White),
+                TerminalTheme::Light | TerminalTheme::Dark => Style::default().fg(t.fg),
                 TerminalTheme::HighContrast => Style::default()
                     .fg(Color::White)
                     .add_modifier(Modifier::BOLD),
@@ -233,28 +352,35 @@ impl Palette {
     /// color — see `status_done` / `render::status_label_spans`).
     #[must_use]
     pub fn chip(self, role: Semantic) -> Style {
+        let t = self.tokens();
         let base = match role {
-            Semantic::Error => Style::default().fg(Color::White).bg(Color::Red),
-            Semantic::Approval => Style::default()
-                .fg(Color::White)
-                .bg(Color::Rgb(22, 101, 52)), // deep green chip
+            Semantic::Error => Style::default().fg(Color::White).bg(t.error),
+            Semantic::Approval => Style::default().fg(Color::White).bg(t.success),
             Semantic::Reasoning => Style::default().fg(Color::White).bg(Color::DarkGray),
-            Semantic::Tool => Style::default().fg(Color::Black).bg(Color::Cyan),
+            Semantic::Tool => Style::default().fg(Color::Black).bg(t.tag),
             _ => self.meta(),
         };
         // Chips are always bold: the inverted badge plus weight is the non-color cue.
         base.add_modifier(Modifier::BOLD)
     }
 
-    /// Settled / completed status label (e.g. `• Thought` after reasoning finishes).
-    /// Green + BOLD so it contrasts with the muted gray used while still in progress.
+    /// Settled / completed status label. Kept muted (no green/blue) so finished
+    /// thinking and tool rows stay secondary next to the model answer.
     #[must_use]
     pub fn status_done(self) -> Style {
+        self.semantic(Semantic::Reasoning)
+            .add_modifier(Modifier::BOLD)
+    }
+
+    /// Primary text emphasis used when the pointer hovers a collapsible
+    /// thinking header — signals "click to expand" without a triangle glyph.
+    #[must_use]
+    pub fn hover_emphasis(self) -> Style {
         let base = Style::default().add_modifier(Modifier::BOLD);
         match self.theme {
             TerminalTheme::HighContrast => base.fg(Color::Yellow),
-            TerminalTheme::Light => base.fg(Color::Rgb(22, 163, 74)),
-            _ => base.fg(Color::Rgb(74, 222, 128)),
+            TerminalTheme::Light => base.fg(self.tokens().fg),
+            TerminalTheme::Dark | TerminalTheme::System => base.fg(Color::White),
         }
     }
 
@@ -275,35 +401,35 @@ impl Palette {
     pub fn border(self) -> Style {
         match self.theme {
             TerminalTheme::System => Style::default(),
-            TerminalTheme::Light => Style::default().fg(Color::DarkGray),
-            TerminalTheme::Dark => Style::default().fg(Color::Cyan),
+            TerminalTheme::Light => Style::default().fg(self.tokens().muted),
+            TerminalTheme::Dark => Style::default().fg(self.tokens().tag),
             TerminalTheme::HighContrast => Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
         }
     }
 
-    /// Blue-to-purple framing used by the top and bottom composer rules (and the
-    /// matching `❯` prompt marker). Higher effort increases chroma and weight
-    /// without italic — italic on chrome makes the prompt look like emphasis
-    /// rather than a structural frame.
+    /// Composer framing (top/bottom rules + `❯` marker) keyed by reasoning
+    /// effort. Five distinct hue families — gray → green → blue → violet →
+    /// orange — so each Shift+Tab step is obvious even when luminance is
+    /// crushed. Weight steps up with depth (no DIM: many hosts collapse dimmed
+    /// RGB into one muddy tone). No italic on chrome.
     #[must_use]
     pub fn composer_border(self, effort: ReasoningEffort) -> Style {
-        let color = match (self.theme, effort) {
-            (TerminalTheme::Light, ReasoningEffort::Minimal) => Color::Rgb(92, 113, 160),
-            (TerminalTheme::Light, ReasoningEffort::Low) => Color::Rgb(75, 99, 190),
-            (TerminalTheme::Light, ReasoningEffort::Medium) => Color::Rgb(80, 81, 205),
-            (TerminalTheme::Light, ReasoningEffort::High) => Color::Rgb(104, 71, 205),
-            (TerminalTheme::Light, ReasoningEffort::XHigh) => Color::Rgb(126, 61, 190),
-            (_, ReasoningEffort::Minimal) => Color::Rgb(93, 126, 190),
-            (_, ReasoningEffort::Low) => Color::Rgb(82, 120, 220),
-            (_, ReasoningEffort::Medium) => Color::Rgb(108, 99, 235),
-            (_, ReasoningEffort::High) => Color::Rgb(139, 92, 246),
-            (_, ReasoningEffort::XHigh) => Color::Rgb(174, 78, 238),
+        let t = self.tokens();
+        let color = match effort {
+            ReasoningEffort::Minimal => t.effort[0],
+            ReasoningEffort::Low => t.effort[1],
+            ReasoningEffort::Medium => t.effort[2],
+            ReasoningEffort::High => t.effort[3],
+            ReasoningEffort::XHigh => t.effort[4],
         };
+        // Weight alone is the non-color depth cue. BOLD on high/xhigh so the
+        // top two depths also read under monochrome; medium stays quiet.
         let modifier = match effort {
-            ReasoningEffort::Minimal | ReasoningEffort::Low => Modifier::DIM,
-            ReasoningEffort::Medium => Modifier::empty(),
+            ReasoningEffort::Minimal | ReasoningEffort::Low | ReasoningEffort::Medium => {
+                Modifier::empty()
+            }
             ReasoningEffort::High | ReasoningEffort::XHigh => Modifier::BOLD,
         };
         Style::default().fg(color).add_modifier(modifier)
@@ -325,31 +451,190 @@ impl Palette {
     pub fn welcome(self) -> Style {
         match self.theme {
             TerminalTheme::System => Style::default(),
-            TerminalTheme::Light => Style::default().fg(Color::Black),
-            TerminalTheme::Dark => Style::default().fg(Color::White),
+            TerminalTheme::Light | TerminalTheme::Dark => Style::default().fg(self.tokens().fg),
             TerminalTheme::HighContrast => Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
         }
     }
 
+    /// Brand / primary emphasis (welcome logo wordmark fallback, primary facts).
+    #[must_use]
+    pub fn primary(self) -> Style {
+        let base = Style::default().add_modifier(Modifier::BOLD);
+        match self.theme {
+            TerminalTheme::HighContrast => base.fg(Color::White),
+            TerminalTheme::System => base.fg(Color::White),
+            _ => base.fg(self.tokens().fg),
+        }
+    }
+
+    /// Per-letter styles for the welcome `RUSE` wordmark (always bold).
+    ///
+    /// Four **widely separated** ayu hue families so adjacent letters never blend:
+    /// **R** selection/blue → **U** string/green → **S** accent/amber → **E**
+    /// error/red. (Earlier tag+entity and accent+keyword pairs sat in the same
+    /// cool/warm cluster and read as two near-duplicates.) HighContrast / System
+    /// keep the same order with high-visibility ANSI colors.
+    #[must_use]
+    pub fn brand_letter_styles(self) -> [Style; 4] {
+        let bold = Modifier::BOLD;
+        match self.theme {
+            TerminalTheme::HighContrast => [
+                Style::default().fg(Color::Blue).add_modifier(bold),
+                Style::default().fg(Color::Green).add_modifier(bold),
+                Style::default().fg(Color::Yellow).add_modifier(bold),
+                Style::default().fg(Color::Red).add_modifier(bold),
+            ],
+            TerminalTheme::System => [
+                Style::default().fg(Color::Cyan).add_modifier(bold),
+                Style::default().fg(Color::Green).add_modifier(bold),
+                Style::default().fg(Color::Yellow).add_modifier(bold),
+                Style::default().fg(Color::LightRed).add_modifier(bold),
+            ],
+            _ => {
+                let t = self.tokens();
+                [
+                    // Cool deep blue — not the cyan tag, so it stays far from green.
+                    Style::default().fg(t.selection).add_modifier(bold),
+                    // Syntax green — clear jump from blue.
+                    Style::default().fg(t.string).add_modifier(bold),
+                    // Warm amber — clear jump from green.
+                    Style::default().fg(t.accent).add_modifier(bold),
+                    // Error red — clear jump from amber (keyword orange was too close).
+                    Style::default().fg(t.error).add_modifier(bold),
+                ]
+            }
+        }
+    }
+
+    /// Warm accent (welcome logo eyes, common.accent).
+    #[must_use]
+    pub fn accent(self) -> Style {
+        let base = Style::default();
+        match self.theme {
+            TerminalTheme::HighContrast => base.fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            TerminalTheme::System => base.fg(Color::Yellow),
+            _ => base.fg(self.tokens().accent),
+        }
+    }
+
+    /// Frame / cyan accent (welcome logo frame, activity-adjacent chrome).
+    #[must_use]
+    pub fn frame(self) -> Style {
+        let base = Style::default();
+        match self.theme {
+            TerminalTheme::HighContrast => base.fg(Color::Cyan).add_modifier(Modifier::BOLD),
+            TerminalTheme::System => base.fg(Color::Cyan),
+            _ => base.fg(self.tokens().tag),
+        }
+    }
+
+    /// Markdown heading color (ayu entity blue).
+    #[must_use]
+    pub fn heading(self) -> Color {
+        match self.theme {
+            TerminalTheme::HighContrast => Color::Yellow,
+            TerminalTheme::System => Color::Cyan,
+            _ => self.tokens().entity,
+        }
+    }
+
+    /// Inline code color (ayu keyword/func orange).
+    #[must_use]
+    pub fn code(self) -> Color {
+        match self.theme {
+            TerminalTheme::HighContrast | TerminalTheme::System => Color::Yellow,
+            _ => self.tokens().keyword,
+        }
+    }
+
+    /// Fenced code-block body color (primary fg).
+    #[must_use]
+    pub fn code_block(self) -> Color {
+        match self.theme {
+            TerminalTheme::HighContrast => Color::White,
+            TerminalTheme::System => Color::Gray,
+            _ => self.tokens().fg,
+        }
+    }
+
+    /// Block-quote body color (muted).
+    #[must_use]
+    pub fn quote(self) -> Color {
+        match self.theme {
+            TerminalTheme::HighContrast | TerminalTheme::System => Color::Gray,
+            _ => self.tokens().muted,
+        }
+    }
+
+    /// List bullet color (ayu tag cyan-blue).
+    #[must_use]
+    pub fn list_bullet(self) -> Color {
+        match self.theme {
+            TerminalTheme::HighContrast => Color::Yellow,
+            TerminalTheme::System => Color::Cyan,
+            _ => self.tokens().tag,
+        }
+    }
+
+    /// Link color (ayu selection / entity blue).
+    #[must_use]
+    pub fn link(self) -> Color {
+        match self.theme {
+            TerminalTheme::HighContrast => Color::Yellow,
+            TerminalTheme::System => Color::Blue,
+            TerminalTheme::Light => self.tokens().selection,
+            TerminalTheme::Dark => self.tokens().entity,
+        }
+    }
+
+    /// Diff added line style (ayu vcs.added).
+    #[must_use]
+    pub fn diff_added(self) -> Style {
+        let base = Style::default().add_modifier(Modifier::BOLD);
+        match self.theme {
+            TerminalTheme::HighContrast => base.fg(Color::Green),
+            _ => base.fg(self.tokens().success),
+        }
+    }
+
+    /// Diff removed line style (ayu vcs.removed).
+    #[must_use]
+    pub fn diff_removed(self) -> Style {
+        let base = Style::default().add_modifier(Modifier::BOLD);
+        match self.theme {
+            TerminalTheme::HighContrast => base.fg(Color::Red),
+            _ => base.fg(self.tokens().removed),
+        }
+    }
+
+    /// Soft background tint for added diff lines.
+    #[must_use]
+    pub fn diff_added_bg(self) -> Option<Color> {
+        match self.theme {
+            TerminalTheme::Dark | TerminalTheme::System => Some(rgb(0x14_28_18)),
+            TerminalTheme::Light => Some(rgb(0xE6_F4_DE)),
+            TerminalTheme::HighContrast => Some(rgb(0x00_3C_00)),
+        }
+    }
+
+    /// Soft background tint for removed diff lines.
+    #[must_use]
+    pub fn diff_removed_bg(self) -> Option<Color> {
+        match self.theme {
+            TerminalTheme::Dark | TerminalTheme::System => Some(rgb(0x2A_14_16)),
+            TerminalTheme::Light => Some(rgb(0xFC_E8_E8)),
+            TerminalTheme::HighContrast => Some(rgb(0x50_00_00)),
+        }
+    }
+
     /// The style for a selected slash-suggestion row.
+    /// Accent fg + bold only — no reverse/background fill (matches picker rows).
     #[must_use]
     pub fn slash_selected(self) -> Style {
-        match self.theme {
-            TerminalTheme::System | TerminalTheme::Light => Style::default()
-                .fg(Color::Black)
-                .bg(Color::Gray)
-                .add_modifier(Modifier::BOLD),
-            TerminalTheme::Dark => Style::default()
-                .fg(Color::Black)
-                .bg(Color::Cyan)
-                .add_modifier(Modifier::BOLD),
-            TerminalTheme::HighContrast => Style::default()
-                .fg(Color::Black)
-                .bg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        }
+        self.semantic(Semantic::Activity)
+            .add_modifier(Modifier::BOLD)
     }
 
     /// Every semantic role's style, for the accessibility contract test: each must
@@ -431,45 +716,119 @@ mod tests {
     }
 
     #[test]
-    fn composer_effort_scale_uses_distinct_blue_purple_styles() {
+    fn composer_effort_scale_uses_five_distinct_hue_families() {
         for theme in ALL_THEMES {
             let palette = Palette::for_theme(theme);
             let styles = ReasoningEffort::ALL.map(|effort| palette.composer_border(effort));
             for (index, style) in styles.iter().enumerate() {
                 assert!(style.fg.is_some());
                 assert!(styles[..index].iter().all(|prior| prior.fg != style.fg));
+                // DIM collapses RGB on many terminals and hid the scale.
+                assert!(!style.add_modifier.contains(Modifier::DIM));
             }
-            assert!(styles[0].add_modifier.contains(Modifier::DIM));
+            assert!(!styles[0].add_modifier.contains(Modifier::BOLD));
+            assert!(!styles[2].add_modifier.contains(Modifier::BOLD));
             assert!(styles[3].add_modifier.contains(Modifier::BOLD));
             assert!(styles[4].add_modifier.contains(Modifier::BOLD));
             // Chrome must stay upright — italic on the border/`❯` looked like
             // emphasis rather than a frame.
             assert!(!styles[4].add_modifier.contains(Modifier::ITALIC));
         }
+
+        // Light: gray → green → blue → violet → orange.
+        let light = Palette::for_theme(TerminalTheme::Light);
+        assert_eq!(
+            light.composer_border(ReasoningEffort::Minimal).fg,
+            Some(rgb(0x8A_91_99)) // muted gray
+        );
+        assert_eq!(
+            light.composer_border(ReasoningEffort::Low).fg,
+            Some(rgb(0x86_B3_00)) // string green
+        );
+        assert_eq!(
+            light.composer_border(ReasoningEffort::Medium).fg,
+            Some(rgb(0x03_5B_D6)) // selection blue
+        );
+        assert_eq!(
+            light.composer_border(ReasoningEffort::High).fg,
+            Some(rgb(0x7C_3A_ED)) // violet
+        );
+        assert_eq!(
+            light.composer_border(ReasoningEffort::XHigh).fg,
+            Some(rgb(0xFA_8D_3E)) // keyword orange
+        );
+
+        // Dark: gray → green → blue → violet → orange.
+        let dark = Palette::for_theme(TerminalTheme::Dark);
+        assert_eq!(
+            dark.composer_border(ReasoningEffort::Minimal).fg,
+            Some(rgb(0x6C_73_80)) // muted gray
+        );
+        assert_eq!(
+            dark.composer_border(ReasoningEffort::Low).fg,
+            Some(rgb(0xAA_D9_4C)) // string green
+        );
+        assert_eq!(
+            dark.composer_border(ReasoningEffort::Medium).fg,
+            Some(rgb(0x40_9F_FF)) // selection blue
+        );
+        assert_eq!(
+            dark.composer_border(ReasoningEffort::High).fg,
+            Some(rgb(0xC4_84_FF)) // violet
+        );
+        assert_eq!(
+            dark.composer_border(ReasoningEffort::XHigh).fg,
+            Some(rgb(0xFF_8F_40)) // keyword orange
+        );
     }
 
     #[test]
     fn reasoning_status_and_placeholder_use_muted_foreground() {
         for (theme, expected) in [
-            (TerminalTheme::System, Color::Rgb(148, 163, 184)),
-            (TerminalTheme::Dark, Color::Rgb(148, 163, 184)),
-            (TerminalTheme::Light, Color::Rgb(100, 116, 139)),
+            // System follows ayu-dark muted (Gray is reserved for Meta's System path).
+            (TerminalTheme::System, rgb(0x6C_73_80)),
+            (TerminalTheme::Dark, rgb(0x6C_73_80)),
+            (TerminalTheme::Light, rgb(0x8A_91_99)),
             (TerminalTheme::HighContrast, Color::Gray),
         ] {
             let palette = Palette::for_theme(theme);
             let reasoning = palette.semantic(Semantic::Reasoning);
+            let tool = palette.semantic(Semantic::Tool);
             let status = palette.status_bar();
             let placeholder = palette.placeholder();
             let done = palette.status_done();
+            let hover = palette.hover_emphasis();
 
             assert_eq!(reasoning.fg, Some(expected));
+            // Thinking/Thought chrome stays upright + bold; italic is body-only.
+            assert!(
+                !reasoning.add_modifier.contains(Modifier::ITALIC),
+                "Reasoning semantic must not be italic in {theme:?}"
+            );
+            assert!(
+                reasoning.add_modifier.contains(Modifier::BOLD),
+                "Reasoning chrome must keep a non-color cue in {theme:?}"
+            );
+            assert_eq!(tool.fg, Some(expected));
             assert_eq!(status.fg, Some(expected));
             assert_eq!(placeholder.fg, Some(expected));
-            // In-progress reasoning is muted; completed "Thought" is green/bold
-            // with no background fill (the bullet is the non-color cue).
+            // Thinking and completed Thought stay muted; hover lifts to primary.
             assert!(done.add_modifier.contains(Modifier::BOLD));
+            assert!(
+                !done.add_modifier.contains(Modifier::ITALIC),
+                "status_done must stay upright in {theme:?}"
+            );
             assert_eq!(done.bg, None);
-            assert_ne!(done.fg, reasoning.fg);
+            assert_eq!(done.fg, reasoning.fg);
+            assert_eq!(
+                hover.fg,
+                Some(match theme {
+                    TerminalTheme::HighContrast => Color::Yellow,
+                    TerminalTheme::Light => rgb(0x5C_61_66),
+                    TerminalTheme::Dark | TerminalTheme::System => Color::White,
+                })
+            );
+            assert_ne!(hover.fg, reasoning.fg);
             assert_eq!(status.bg, None);
             assert_eq!(placeholder.bg, None);
         }
@@ -527,5 +886,19 @@ mod tests {
             let palette = Palette::for_theme(theme);
             assert_eq!(palette.semantic_styles().len(), 13);
         }
+    }
+
+    #[test]
+    fn light_and_dark_use_official_ayu_accents() {
+        let light = Palette::for_theme(TerminalTheme::Light);
+        let dark = Palette::for_theme(TerminalTheme::Dark);
+        assert_eq!(light.semantic(Semantic::Error).fg, Some(rgb(0xE6_50_50)));
+        assert_eq!(dark.semantic(Semantic::Error).fg, Some(rgb(0xD9_57_57)));
+        assert_eq!(light.semantic(Semantic::Approval).fg, Some(rgb(0x6C_BF_43)));
+        assert_eq!(dark.semantic(Semantic::Approval).fg, Some(rgb(0x7F_D9_62)));
+        assert_eq!(light.semantic(Semantic::Activity).fg, Some(rgb(0x55_B4_D4)));
+        assert_eq!(dark.semantic(Semantic::Activity).fg, Some(rgb(0x39_BA_E6)));
+        assert_eq!(light.heading(), rgb(0x39_9E_E6));
+        assert_eq!(dark.heading(), rgb(0x59_C2_FF));
     }
 }

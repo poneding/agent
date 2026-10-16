@@ -106,6 +106,7 @@ fn agent_entrypoint_preserves_json_prompt_script_mode() {
             model_selection: ModelSelection::default(),
             config_path: None,
             config_override: ConfigOverride::default(),
+            permission_mode: Default::default(),
         }
     );
 

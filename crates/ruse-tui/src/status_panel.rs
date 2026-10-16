@@ -6,6 +6,9 @@ use crate::app::StatusBarState;
 pub struct StatusPanelState {
     pub snapshot: UiTerminalStatusSnapshot,
     pub provider_support: Vec<UiProviderSupportSummary>,
+    /// When true, the status is shown as a centered popup (same shape as the
+    /// model/session/theme modals). Opened by `/status`, dismissed with Esc.
+    pub open: bool,
 }
 
 impl StatusPanelState {
@@ -38,7 +41,21 @@ impl StatusPanelState {
                 diagnostic_count.try_into().unwrap_or(u32::MAX),
             ),
             provider_support: Vec::new(),
+            open: false,
         }
+    }
+
+    #[must_use]
+    pub fn is_open(&self) -> bool {
+        self.open
+    }
+
+    pub fn open(&mut self) {
+        self.open = true;
+    }
+
+    pub fn close(&mut self) {
+        self.open = false;
     }
 
     pub fn reduce_frame(&mut self, frame: &UiJsonFrame) {

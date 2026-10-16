@@ -415,7 +415,7 @@ fn preview_generic(tool_name: &str, input: &ToolInput) -> ToolPreview {
 }
 
 fn require_sandbox(sandbox: Option<&WorkspaceSandbox>) -> Result<&WorkspaceSandbox, ToolError> {
-    sandbox.ok_or_else(|| ToolError::Validation("workspace sandbox is required".to_string()))
+    sandbox.ok_or_else(|| ToolError::Validation("workspace root is required".to_string()))
 }
 
 fn string_field(value: &serde_json::Value, field: &str) -> Result<String, ToolError> {

@@ -8,8 +8,8 @@ expression: "snapshot(&streaming_app(), NARROW)"
                                         
  Here is the plan so far                
                                         
- ⠸ Responding… · 7s · esc/Ctrl+C to inte
+ ✺ Responding... · 7s · esc/Ctrl+C to in
  ────────────────────────────────────── 
  ❯ type a message — / for commands · En 
  ────────────────────────────────────── 
-openai / gpt-5.5  ctx pending/128k  ~/ag
+xhigh · normal     pending/128k  ~/agent

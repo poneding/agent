@@ -1,4 +1,5 @@
 pub mod edit_file;
+pub mod file_diff;
 pub mod git_diff;
 pub mod git_status;
 pub mod read_file;

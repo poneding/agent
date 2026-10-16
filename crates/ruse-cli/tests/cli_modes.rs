@@ -135,6 +135,7 @@ fn cli_modes_render_deterministic_output() {
         model_selection: ModelSelection::default(),
         config_path: Some(fake_config_path()),
         config_override: ConfigOverride::default(),
+        permission_mode: Default::default(),
     });
 
     assert_eq!(output.stdout, "fake response: hello\n");

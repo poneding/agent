@@ -1,6 +1,9 @@
 use std::io;
 
-use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
+use crossterm::event::{
+    DisableBracketedPaste, DisableMouseCapture, EnableBracketedPaste, EnableMouseCapture,
+    KeyboardEnhancementFlags, PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
+};
 use crossterm::execute;
 use crossterm::terminal::{
     EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
@@ -24,6 +27,16 @@ pub trait TerminalModeBackend {
     fn enter_alternate_screen(&mut self) -> Result<(), TerminalModeError>;
     fn enable_mouse_capture(&mut self) -> Result<(), TerminalModeError>;
     fn disable_mouse_capture(&mut self) -> Result<(), TerminalModeError>;
+    /// Ask the host to wrap paste payloads in bracketed-paste CSI so multi-line
+    /// pastes arrive as a single `Event::Paste` instead of a stream of key
+    /// events (where `\n` would otherwise look like Enter → submit, or get
+    /// flattened into one line).
+    fn enable_bracketed_paste(&mut self) -> Result<(), TerminalModeError>;
+    fn disable_bracketed_paste(&mut self) -> Result<(), TerminalModeError>;
+    /// Request Kitty progressive keyboard enhancements so modified keys such as
+    /// Cmd/Super+C can be delivered as distinct events (when the host supports it).
+    fn enable_keyboard_enhancement(&mut self) -> Result<(), TerminalModeError>;
+    fn disable_keyboard_enhancement(&mut self) -> Result<(), TerminalModeError>;
     fn leave_alternate_screen(&mut self) -> Result<(), TerminalModeError>;
     fn disable_raw_mode(&mut self) -> Result<(), TerminalModeError>;
 }
@@ -44,6 +57,12 @@ where
         backend.enable_raw_mode()?;
         backend.enter_alternate_screen()?;
         backend.enable_mouse_capture()?;
+        // Bracketed paste must be on for multi-line pastes to stay multi-line:
+        // without it, hosts inject raw key events and newlines are lost or act
+        // as Enter (submit). Best-effort — unsupported hosts ignore the CSI.
+        backend.enable_bracketed_paste()?;
+        // Best-effort: unsupported hosts ignore the CSI and we still restore on exit.
+        backend.enable_keyboard_enhancement()?;
         Ok(Self {
             backend: Some(backend),
             restored: false,
@@ -55,6 +74,8 @@ where
             return Ok(());
         }
         if let Some(backend) = self.backend.as_mut() {
+            backend.disable_keyboard_enhancement()?;
+            backend.disable_bracketed_paste()?;
             backend.disable_mouse_capture()?;
             backend.leave_alternate_screen()?;
             backend.disable_raw_mode()?;
@@ -115,6 +136,30 @@ impl TerminalModeBackend for CrosstermTerminalBackend {
         execute!(io::stdout(), DisableMouseCapture).map_err(TerminalModeError::from)
     }
 
+    fn enable_bracketed_paste(&mut self) -> Result<(), TerminalModeError> {
+        execute!(io::stdout(), EnableBracketedPaste).map_err(TerminalModeError::from)
+    }
+
+    fn disable_bracketed_paste(&mut self) -> Result<(), TerminalModeError> {
+        execute!(io::stdout(), DisableBracketedPaste).map_err(TerminalModeError::from)
+    }
+
+    fn enable_keyboard_enhancement(&mut self) -> Result<(), TerminalModeError> {
+        // DISAMBIGUATE alone is enough for Super/Cmd-modified letters on Kitty-
+        // protocol terminals (Ghostty, Kitty, WezTerm, recent iTerm2). REPORT_ALL
+        // is intentionally omitted — it rewrites every plain key as CSI-u and is
+        // more likely to break hosts that only partially implement the protocol.
+        execute!(
+            io::stdout(),
+            PushKeyboardEnhancementFlags(KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES)
+        )
+        .map_err(TerminalModeError::from)
+    }
+
+    fn disable_keyboard_enhancement(&mut self) -> Result<(), TerminalModeError> {
+        execute!(io::stdout(), PopKeyboardEnhancementFlags).map_err(TerminalModeError::from)
+    }
+
     fn leave_alternate_screen(&mut self) -> Result<(), TerminalModeError> {
         execute!(io::stdout(), LeaveAlternateScreen).map_err(TerminalModeError::from)
     }
@@ -162,6 +207,26 @@ impl TerminalModeBackend for FixtureTerminalBackend {
 
     fn disable_mouse_capture(&mut self) -> Result<(), TerminalModeError> {
         self.push("disable_mouse_capture");
+        Ok(())
+    }
+
+    fn enable_bracketed_paste(&mut self) -> Result<(), TerminalModeError> {
+        self.push("enable_bracketed_paste");
+        Ok(())
+    }
+
+    fn disable_bracketed_paste(&mut self) -> Result<(), TerminalModeError> {
+        self.push("disable_bracketed_paste");
+        Ok(())
+    }
+
+    fn enable_keyboard_enhancement(&mut self) -> Result<(), TerminalModeError> {
+        self.push("enable_keyboard_enhancement");
+        Ok(())
+    }
+
+    fn disable_keyboard_enhancement(&mut self) -> Result<(), TerminalModeError> {
+        self.push("disable_keyboard_enhancement");
         Ok(())
     }
 

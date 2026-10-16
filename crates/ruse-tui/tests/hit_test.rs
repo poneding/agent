@@ -138,6 +138,34 @@ fn click_outside_transcript_is_a_noop() {
 }
 
 #[test]
+fn mouse_move_maps_to_pointer_move() {
+    use crossterm::event::{KeyModifiers, MouseEvent, MouseEventKind};
+    use ruse_tui::mouse_event_to_action;
+
+    assert_eq!(
+        mouse_event_to_action(MouseEvent {
+            kind: MouseEventKind::Moved,
+            column: 6,
+            row: 2,
+            modifiers: KeyModifiers::NONE,
+        }),
+        Some(TuiAction::PointerMove { column: 6, row: 2 })
+    );
+
+    let mut app = app_with_size(80, 24);
+    app.transcript.push(TranscriptItem::new(
+        TranscriptItemKind::Reasoning,
+        "thinking",
+        "plan body",
+        false,
+    ));
+    app.reduce(TuiAction::PointerMove { column: 2, row: 0 });
+    assert_eq!(app.pointer, Some((2, 0)));
+    // Hovering the thinking header reports that item for brighten-on-hover.
+    assert_eq!(app.hovered_transcript_item(), Some(0));
+}
+
+#[test]
 fn mouse_down_left_maps_to_selection_drag_start() {
     use crossterm::event::{KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
     use ruse_tui::mouse_event_to_action;
@@ -202,33 +230,86 @@ fn click_without_drag_still_toggles_via_drag_end() {
 }
 
 #[test]
-fn drag_select_copies_selected_text() {
+fn drag_select_copies_on_mouse_up() {
     use ruse_tui::{ContentGeometry, extract_selected_text};
 
     let mut app = app_with_size(80, 24);
     app.transcript
         .push(TranscriptItem::completed_model("hello selectable world"));
 
-    // Drag across the content area.
+    // Drag across the content area — highlight commits and auto-copies on release.
     app.reduce(TuiAction::SelectionDragStart { column: 2, row: 0 });
     app.reduce(TuiAction::SelectionDragUpdate { column: 20, row: 0 });
     let effect = app.reduce(TuiAction::SelectionDragEnd { column: 20, row: 0 });
+    assert!(app.selection.committed.is_some());
     match effect {
         ruse_tui::TuiEffect::CopyToClipboard { text } => {
             assert!(
                 text.contains("hello") || text.contains("selectable") || !text.is_empty(),
-                "drag should copy some transcript text, got {text:?}"
+                "mouse-up should copy selected text, got {text:?}"
             );
         }
-        other => panic!("expected CopyToClipboard, got {other:?}"),
+        other => panic!("expected CopyToClipboard on drag end, got {other:?}"),
     }
-    assert!(app.selection.committed.is_some());
+    assert!(app.copied_output.is_some());
 
     // Extract path stays consistent with the committed range.
     if let Some(range) = app.selection.committed {
         let extracted = extract_selected_text(&app, range);
         assert!(!extracted.is_empty());
         let _ = ContentGeometry::from_app(&app);
+    }
+}
+
+#[test]
+fn composer_drag_select_copies_composer_text() {
+    use ruse_tui::{ComposerAction, ContentGeometry, SelectionRegion, extract_selection};
+
+    let mut app = app_with_size(80, 24);
+    app.reduce(TuiAction::Composer(ComposerAction::InsertText(
+        "paste me please".to_string(),
+    )));
+
+    let geo = ContentGeometry::composer_from_app(&app).expect("composer text area");
+    // Drag across the first few cells of the composer text area.
+    let start_col = geo.x;
+    let end_col = geo
+        .x
+        .saturating_add(8)
+        .min(geo.x.saturating_add(geo.width.saturating_sub(1)));
+    let row = geo.y;
+
+    app.reduce(TuiAction::SelectionDragStart {
+        column: start_col,
+        row,
+    });
+    assert_eq!(app.selection.region, SelectionRegion::Composer);
+    app.reduce(TuiAction::SelectionDragUpdate {
+        column: end_col,
+        row,
+    });
+    let effect = app.reduce(TuiAction::SelectionDragEnd {
+        column: end_col,
+        row,
+    });
+
+    assert!(
+        app.selection.committed.is_some(),
+        "composer drag should commit a range"
+    );
+    match effect {
+        ruse_tui::TuiEffect::CopyToClipboard { text } => {
+            assert!(
+                text.contains("paste") || text.contains("me") || !text.is_empty(),
+                "composer mouse-up should copy composer text, got {text:?}"
+            );
+            // Must come from the composer, not the (empty) transcript.
+            if let Some(range) = app.selection.committed {
+                let extracted = extract_selection(&app, range, SelectionRegion::Composer);
+                assert_eq!(extracted, text);
+            }
+        }
+        other => panic!("expected CopyToClipboard from composer drag, got {other:?}"),
     }
 }
 

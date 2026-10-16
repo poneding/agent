@@ -1,19 +1,20 @@
 ---
 source: crates/ruse-tui/tests/snapshots_layout.rs
+assertion_line: 113
 expression: "snapshot(&welcome_app(), STANDARD)"
 ---
-AGENT                                                                                   
                                                                                         
-openai / gpt-5.5  ready                                                                 
-context pending/128k                                                                    
                                                                                         
-Workspace                                                                               
-  ~/agent                                                                               
-  idle · new session                                                                    
+   ╭ ─◯  ◯─ ╮      Model                                                                
+ ╭─┤────────┤─╮    openai / gpt-5.5                                                     
+   │  RUSE  │      context pending/128k                                                 
+     v0.1.0                                                                             
+                   Workspace                                                            
+                   ~/agent                                                              
+                   idle · new session                                                   
                                                                                         
-Extensions                                                                              
-  plugin and MCP health pending                                                         
-                                                                                        
+                   Extensions                                                           
+                   plugin and MCP health pending                                        
                                                                                         
                                                                                         
                                                                                         
@@ -25,4 +26,4 @@ Extensions
  ────────────────────────────────────────────────────────────────────────────────────── 
  ❯ type a message — / for commands · Enter to send                                      
  ────────────────────────────────────────────────────────────────────────────────────── 
-openai / gpt-5.5 · effort xhigh · normal                       ctx pending/128k  ~/agent
+openai / gpt-5.5 · xhigh · idle · normal                           pending/128k  ~/agent

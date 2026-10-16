@@ -14,6 +14,17 @@ use crate::{SlashCommand, SlashCommandError, SlashSuggestionState};
 /// Dim placeholder shown in an empty composer.
 pub const COMPOSER_PLACEHOLDER: &str = "type a message — / for commands · Enter to send";
 
+/// Normalize a paste payload so line breaks survive `TextArea::insert_str`.
+/// Clipboard text may use `\r\n` (Windows) or bare `\r` (old Mac); the widget
+/// only treats `\n` as a line split, so we rewrite both forms first.
+#[must_use]
+pub(crate) fn normalize_pasted_text(text: &str) -> String {
+    if !text.as_bytes().contains(&b'\r') {
+        return text.to_string();
+    }
+    text.replace("\r\n", "\n").replace('\r', "\n")
+}
+
 /// Build a fresh, consistently-configured text area. The widget renders its own
 /// cursor as a styled cell by default; we disable that (the render layer sets the
 /// real terminal cursor from `TextArea::cursor()` instead, so there is exactly one
@@ -126,11 +137,14 @@ impl ComposerState {
     pub fn reduce(&mut self, action: ComposerAction) -> TuiEffect {
         match action {
             ComposerAction::InsertText(text) => {
-                // Bracketed paste arrives as one atomic event. Insert it verbatim
-                // (including any embedded newlines) WITHOUT submitting — a pasted
-                // multi-line string must never trigger a submit.
+                // Bracketed paste arrives as one atomic event. Insert it as
+                // multi-line text WITHOUT submitting — a pasted multi-line
+                // string must never trigger a submit. Normalize CRLF / bare CR
+                // so macOS/Windows clipboard payloads keep their line breaks
+                // (`tui-textarea` only splits on `\n`).
                 self.history_cursor = None;
-                self.textarea.insert_str(&text);
+                let normalized = normalize_pasted_text(&text);
+                self.textarea.insert_str(&normalized);
                 self.refresh_slash_suggestions();
                 TuiEffect::None
             }
@@ -143,6 +157,15 @@ impl ComposerState {
             ComposerAction::Backspace => {
                 self.history_cursor = None;
                 self.textarea.delete_char();
+                self.refresh_slash_suggestions();
+                TuiEffect::None
+            }
+            ComposerAction::DeleteToLineStart => {
+                // Ctrl+U (readline `unix-line-discard`): delete from the caret back
+                // to the start of the current line. At the head of a line this joins
+                // with the previous line, matching the widget's own behavior.
+                self.history_cursor = None;
+                self.textarea.delete_line_by_head();
                 self.refresh_slash_suggestions();
                 TuiEffect::None
             }
@@ -303,6 +326,8 @@ pub enum ComposerAction {
     InsertText(String),
     InsertChar(char),
     Backspace,
+    /// Ctrl+U: delete from the caret back to the start of the current line.
+    DeleteToLineStart,
     InsertNewline,
     ToggleMultiline,
     Submit,

@@ -44,6 +44,12 @@ impl Tool for WriteFileTool {
             .sandbox
             .resolve_write_path(path)
             .map_err(|error| ToolError::Validation(error.to_string()))?;
+        // Capture previous content *before* overwrite so the TUI can show a diff.
+        let previous = if resolved.is_file() {
+            std::fs::read_to_string(&resolved).unwrap_or_default()
+        } else {
+            String::new()
+        };
         if let Some(parent) = resolved.parent() {
             std::fs::create_dir_all(parent)
                 .map_err(|error| ToolError::Execution(error.to_string()))?;
@@ -51,10 +57,13 @@ impl Tool for WriteFileTool {
         std::fs::write(&resolved, content)
             .map_err(|error| ToolError::Execution(error.to_string()))?;
 
+        let diff = crate::builtins::file_diff::unified_file_diff(path, &previous, content);
         Ok(ToolOutput {
             value: json!({
                 "path": path,
-                "bytes": content.len()
+                "bytes": content.len(),
+                "applied": true,
+                "diff": diff
             }),
         })
     }

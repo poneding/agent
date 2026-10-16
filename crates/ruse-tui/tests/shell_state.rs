@@ -25,7 +25,7 @@ fn shell_state_starts_on_chat_screen_with_stable_status() {
 }
 
 #[test]
-fn shell_state_reducer_handles_resize_help_and_quit() {
+fn shell_state_reducer_handles_resize_command_menu_and_quit() {
     let mut app = TuiApp::default();
 
     app.reduce(TuiAction::Resize {
@@ -40,8 +40,16 @@ fn shell_state_reducer_handles_resize_help_and_quit() {
         }
     );
 
-    app.reduce(TuiAction::OpenHelp);
-    assert_eq!(app.screen, TuiScreen::Help);
+    app.reduce(TuiAction::OpenCommands);
+    assert_eq!(app.screen, TuiScreen::Chat);
+    assert!(app.composer.slash_suggestions.visible());
+    assert!(
+        app.composer
+            .slash_suggestions
+            .matches
+            .iter()
+            .all(|item| item.name != "help")
+    );
 
     app.reduce(TuiAction::OpenChat);
     assert_eq!(app.screen, TuiScreen::Chat);
@@ -61,6 +69,8 @@ fn terminal_mode_guard_restores_terminal_on_drop() {
             "enable_raw_mode",
             "enter_alternate_screen",
             "enable_mouse_capture",
+            "enable_bracketed_paste",
+            "enable_keyboard_enhancement",
         ]
     );
 
@@ -71,6 +81,10 @@ fn terminal_mode_guard_restores_terminal_on_drop() {
             "enable_raw_mode",
             "enter_alternate_screen",
             "enable_mouse_capture",
+            "enable_bracketed_paste",
+            "enable_keyboard_enhancement",
+            "disable_keyboard_enhancement",
+            "disable_bracketed_paste",
             "disable_mouse_capture",
             "leave_alternate_screen",
             "disable_raw_mode",
@@ -91,6 +105,8 @@ fn terminal_mode_guard_drop_restores_when_not_restored_explicitly() {
     assert_eq!(
         backend.calls(),
         &[
+            "disable_keyboard_enhancement",
+            "disable_bracketed_paste",
             "disable_mouse_capture",
             "leave_alternate_screen",
             "disable_raw_mode",

@@ -48,7 +48,14 @@ impl SessionPanelState {
                 self.focus_previous();
                 TuiEffect::None
             }
-            SessionPanelAction::SwitchFocused => self.switch_focused(),
+            SessionPanelAction::SwitchFocused => {
+                let effect = self.switch_focused();
+                // Enter confirms a selection and always dismisses the picker, same as
+                // model/theme modals. A successful switch closes; a no-focus diagnostic
+                // also closes so the user is not left stuck on an empty picker.
+                self.open = false;
+                effect
+            }
         }
     }
 

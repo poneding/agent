@@ -256,19 +256,41 @@ impl TurnEngine {
             }
         }
 
+        // Recover tool calls the model wrote as plain text (imitating the
+        // history wire format) so they execute instead of rendering as junk.
+        let (clean_message, text_calls) =
+            crate::text_tool_call::extract_text_tool_calls(&final_message);
+        for call in &text_calls {
+            events.push(event(
+                input.ids,
+                ActorRef::system(),
+                RuntimeEventPayload::ToolCallProposed(ToolCallProposed {
+                    call_id: call.call_id.clone(),
+                    tool_name: call.tool_name.clone(),
+                    input_json: call.input_json.clone(),
+                }),
+            ));
+        }
+        if !text_calls.is_empty() {
+            final_message = clean_message;
+        }
+
         events.push(state_changed(
             input.ids,
             TurnState::ModelStreaming,
             TurnState::Finalizing,
             "model output collected",
         ));
-        events.push(event(
-            input.ids,
-            ActorRef::system(),
-            RuntimeEventPayload::FinalResponseProduced(FinalResponseProduced {
-                message: final_message.clone(),
-            }),
-        ));
+        // Suppress empty finals that were only recovered tool-call dumps.
+        if !final_message.trim().is_empty() || text_calls.is_empty() {
+            events.push(event(
+                input.ids,
+                ActorRef::system(),
+                RuntimeEventPayload::FinalResponseProduced(FinalResponseProduced {
+                    message: final_message.clone(),
+                }),
+            ));
+        }
         events.push(state_changed(
             input.ids,
             TurnState::Finalizing,
@@ -530,19 +552,39 @@ fn handle_model_stream_event(state: &mut TurnStreamState, stream_event: ModelStr
 }
 
 fn queue_final_events(state: &mut TurnStreamState) {
+    // Recover plain-text tool_call dumps into real ToolCallProposed events.
+    let (clean_message, text_calls) =
+        crate::text_tool_call::extract_text_tool_calls(&state.final_message);
+    for call in &text_calls {
+        state.pending.push_back(event(
+            state.ids,
+            ActorRef::system(),
+            RuntimeEventPayload::ToolCallProposed(ToolCallProposed {
+                call_id: call.call_id.clone(),
+                tool_name: call.tool_name.clone(),
+                input_json: call.input_json.clone(),
+            }),
+        ));
+    }
+    if !text_calls.is_empty() {
+        state.final_message = clean_message;
+    }
+
     state.pending.push_back(state_changed(
         state.ids,
         TurnState::ModelStreaming,
         TurnState::Finalizing,
         "model output collected",
     ));
-    state.pending.push_back(event(
-        state.ids,
-        ActorRef::system(),
-        RuntimeEventPayload::FinalResponseProduced(FinalResponseProduced {
-            message: state.final_message.clone(),
-        }),
-    ));
+    if !state.final_message.trim().is_empty() || text_calls.is_empty() {
+        state.pending.push_back(event(
+            state.ids,
+            ActorRef::system(),
+            RuntimeEventPayload::FinalResponseProduced(FinalResponseProduced {
+                message: state.final_message.clone(),
+            }),
+        ));
+    }
     state.pending.push_back(state_changed(
         state.ids,
         TurnState::Finalizing,

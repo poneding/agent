@@ -38,6 +38,7 @@ pub mod settings;
 pub mod startup_migration;
 pub mod task_review;
 pub mod terminal_session;
+pub mod text_tool_call;
 pub mod tool_loop;
 pub mod trace;
 pub mod turn;

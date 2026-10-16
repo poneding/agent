@@ -260,13 +260,16 @@ where
         if pending.is_empty() {
             return;
         }
+        // Narrative form — not a wire protocol. Models that saw
+        // `tool_call id=… name=… input=…` as assistant text would imitate it
+        // as prose and the TUI would show raw dumps instead of running tools.
         let body = pending
             .iter()
             .map(|(call_id, name, input)| {
-                format!("tool_call id={call_id} name={name} input={input}")
+                format!("[used tool {name} (call_id={call_id})]\narguments: {input}")
             })
             .collect::<Vec<_>>()
-            .join("\n");
+            .join("\n\n");
         out.push(PromptMessage {
             role: "assistant".to_string(),
             content: redact_secret_like_text(&body),
@@ -304,8 +307,8 @@ where
                 messages.push(PromptMessage {
                     role: "user".to_string(),
                     content: redact_secret_like_text(&format!(
-                        "tool_result id={} observation={}",
-                        observed.call_id, observation
+                        "[tool result call_id={}]\n{observation}",
+                        observed.call_id
                     )),
                 });
             }
@@ -314,7 +317,7 @@ where
                 messages.push(PromptMessage {
                     role: "user".to_string(),
                     content: redact_secret_like_text(&format!(
-                        "tool_result id={} error={} message={}",
+                        "[tool error call_id={} code={}]\n{}",
                         failed.call_id, failed.error_code, failed.message
                     )),
                 });
@@ -449,7 +452,7 @@ mod tests {
         assert_eq!(history[1].role, "assistant");
         assert!(history[1].content.contains("workspace.edit_file"));
         assert_eq!(history[2].role, "user");
-        assert!(history[2].content.contains("tool_result"));
+        assert!(history[2].content.contains("tool result"));
         assert_eq!(history[3].content, "done");
     }
 

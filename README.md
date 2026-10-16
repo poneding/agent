@@ -118,6 +118,8 @@ ruse-cli team merge-readiness --fixture conflict --dry-run
 
 Run `cargo xtask help` for the full command list.
 
+On Unix, the root [`Makefile`](Makefile) wraps the same workflows for day-to-day use (`make help`, `make install`, `make check`, `make test`, `make ci`, packaging targets, and more). Quality targets call `cargo xtask`; prefer xtask directly when you need flags that Make does not expose.
+
 `cargo xtask desktop-test` is the Desktop product gate. It runs the Desktop Rust contracts, UI bridge Desktop smoke, Tauri command tests, frontend Vitest suite, and frontend production build.
 
 ## Default Configuration
@@ -145,6 +147,16 @@ terminal:
 ```
 
 If `config.yaml` is absent, legacy `~/.ruse/agent.toml` is still loaded as a compatibility fallback with a migration diagnostic. New docs, examples, and generated config should use `config.yaml`.
+
+## Permission Modes
+
+Interactive CLI/TUI tool calls use real policy decisions before execution:
+
+- Standard mode allows registered read-only workspace tools and asks for approval before file writes, edits, or shell commands.
+- `ruse --yolo` (or `ruse tui --yolo`) allows those registered side-effecting tools without interactive approval.
+- Unknown tools remain fail-closed and still require approval.
+
+YOLO mode changes only the approval policy. Workspace path confinement, process sandboxing, network restrictions, command timeouts, tool schemas, audit events, and other runtime safety boundaries remain enforced.
 
 ## M56 Golden Path
 

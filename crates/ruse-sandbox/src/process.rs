@@ -48,7 +48,8 @@ impl ProcessSandboxPlan {
         match mode {
             ProcessSandboxMode::PathOnly => Self {
                 mode,
-                profile_label: "workspace_path",
+                // Public audit label — never mention OS machinery (seatbelt/bwrap).
+                profile_label: "workspace",
                 seatbelt_profile: None,
                 workspace_root,
             },
@@ -59,9 +60,9 @@ impl ProcessSandboxPlan {
                     Self {
                         mode,
                         profile_label: if allow_network {
-                            "workspace_seatbelt_net"
+                            "workspace_process_net"
                         } else {
-                            "workspace_seatbelt"
+                            "workspace_process"
                         },
                         seatbelt_profile: Some(profile),
                         workspace_root,
@@ -72,7 +73,7 @@ impl ProcessSandboxPlan {
                     let _ = allow_network;
                     Self {
                         mode: ProcessSandboxMode::PathOnly,
-                        profile_label: "workspace_path",
+                        profile_label: "workspace",
                         seatbelt_profile: None,
                         workspace_root,
                     }
@@ -97,6 +98,103 @@ impl ProcessSandboxPlan {
         let mut command = Command::new(program);
         command.args(args);
         command
+    }
+}
+
+/// Rewrite process diagnostics so tool results look like normal command failures.
+///
+/// macOS `sandbox-exec` prints implementation details when the wrapped program
+/// cannot start, e.g.:
+/// `sandbox-exec: execvp() of 'python' failed: No such file or directory`
+///
+/// Agents and the UI should only see the command outcome, not seatbelt mechanics.
+pub fn sanitize_command_stderr(stderr: &str) -> String {
+    if !contains_process_sandbox_marker(stderr) {
+        return stderr.to_string();
+    }
+
+    let trailing_newline = stderr.ends_with('\n');
+    let mut out = stderr
+        .lines()
+        .map(rewrite_process_sandbox_line)
+        .collect::<Vec<_>>()
+        .join("\n");
+    // `str::lines` drops the final empty segment after a trailing newline.
+    if trailing_newline && !out.is_empty() {
+        out.push('\n');
+    }
+    out
+}
+
+/// Rewrite spawn / ToolError messages that accidentally name the process wrapper.
+pub fn sanitize_execution_error(message: &str) -> String {
+    if !contains_process_sandbox_marker(message) {
+        return message.to_string();
+    }
+    let cleaned = sanitize_command_stderr(message);
+    if !cleaned.trim().is_empty() && !contains_process_sandbox_marker(&cleaned) {
+        return cleaned;
+    }
+    // Last resort: never hand the wrapper binary name to agents/UI.
+    if message.contains("No such file") || message.to_ascii_lowercase().contains("not found") {
+        "failed to start command: program not found".to_string()
+    } else {
+        "failed to start command".to_string()
+    }
+}
+
+fn contains_process_sandbox_marker(text: &str) -> bool {
+    text.contains("sandbox-exec")
+        || text.contains("seatbelt")
+        || text.contains("bwrap:")
+        || text.contains("bubblewrap")
+}
+
+fn rewrite_process_sandbox_line(line: &str) -> String {
+    let trimmed = line.trim_start();
+
+    if let Some(rest) = trimmed.strip_prefix("sandbox-exec:").map(str::trim_start) {
+        return rewrite_sandbox_exec_rest(rest);
+    }
+    if let Some(rest) = trimmed.strip_prefix("bwrap:").map(str::trim_start) {
+        return if rest.is_empty() {
+            String::new()
+        } else {
+            rest.to_string()
+        };
+    }
+    if trimmed.to_ascii_lowercase().contains("seatbelt")
+        || trimmed.to_ascii_lowercase().contains("bubblewrap")
+        || trimmed.contains("sandbox-exec")
+    {
+        // Drop opaque policy/wrapper lines rather than paraphrasing unknown text.
+        return String::new();
+    }
+    line.to_string()
+}
+
+fn rewrite_sandbox_exec_rest(rest: &str) -> String {
+    // sandbox-exec: execvp() of 'python' failed: No such file or directory
+    if let Some(of_part) = rest.strip_prefix("execvp()") {
+        if let Some(prog_and_rest) = of_part.trim_start().strip_prefix("of '") {
+            if let Some((prog, after_prog)) = prog_and_rest.split_once('\'') {
+                let reason = after_prog
+                    .trim_start()
+                    .strip_prefix("failed:")
+                    .map(str::trim_start)
+                    .filter(|s| !s.is_empty())
+                    .unwrap_or("command failed");
+                return format!("{prog}: {reason}");
+            }
+        }
+        return "command not found".to_string();
+    }
+
+    // Other sandbox-exec messages: drop the wrapper name, keep the diagnostic.
+    if rest.is_empty() {
+        String::new()
+    } else {
+        rest.to_string()
     }
 }
 
@@ -143,8 +241,31 @@ mod tests {
         fs::create_dir(&root).expect("ws");
         let sandbox = WorkspaceSandbox::new(&root).expect("sandbox");
         let plan = ProcessSandboxPlan::for_workspace(&sandbox, ProcessSandboxMode::PathOnly, false);
-        assert_eq!(plan.profile_label, "workspace_path");
+        assert_eq!(plan.profile_label, "workspace");
         assert!(plan.seatbelt_profile.is_none());
+    }
+
+    #[test]
+    fn sanitize_rewrites_sandbox_exec_execvp_failures() {
+        let raw = "sandbox-exec: execvp() of 'python' failed: No such file or directory\n";
+        assert_eq!(
+            sanitize_command_stderr(raw),
+            "python: No such file or directory\n"
+        );
+        assert_eq!(
+            sanitize_command_stderr("hello from program\n"),
+            "hello from program\n"
+        );
+        assert_eq!(
+            sanitize_command_stderr(
+                "sandbox-exec: execvp() of 'foo' failed: No such file or directory\nreal line\n"
+            ),
+            "foo: No such file or directory\nreal line\n"
+        );
+        assert_eq!(
+            sanitize_execution_error("failed to spawn sandbox-exec: No such file or directory"),
+            "failed to start command: program not found"
+        );
     }
 
     #[test]
@@ -158,7 +279,8 @@ mod tests {
         #[cfg(target_os = "macos")]
         {
             assert!(plan.seatbelt_profile.is_some());
-            assert!(plan.profile_label.contains("seatbelt"));
+            assert_eq!(plan.profile_label, "workspace_process");
+            assert!(!plan.profile_label.contains("seatbelt"));
             let profile = plan.seatbelt_profile.as_deref().unwrap();
             assert!(profile.contains("subpath"));
             assert!(profile.contains("deny network"));
@@ -166,7 +288,7 @@ mod tests {
         #[cfg(not(target_os = "macos"))]
         {
             assert!(plan.seatbelt_profile.is_none());
-            assert_eq!(plan.profile_label, "workspace_path");
+            assert_eq!(plan.profile_label, "workspace");
         }
     }
 }

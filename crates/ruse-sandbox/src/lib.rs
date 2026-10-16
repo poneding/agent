@@ -15,4 +15,6 @@ pub use platform::{
     CapabilityStatus, PlatformCapabilityReport, PlatformReportError, PluginIsolationCapability,
     SandboxCapability, SecretProviderCapability,
 };
-pub use process::{ProcessSandboxMode, ProcessSandboxPlan};
+pub use process::{
+    ProcessSandboxMode, ProcessSandboxPlan, sanitize_command_stderr, sanitize_execution_error,
+};

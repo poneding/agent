@@ -4,7 +4,10 @@ use std::process::{ExitStatus, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use ruse_sandbox::{ProcessSandboxMode, ProcessSandboxPlan, WorkspaceSandbox};
+use ruse_sandbox::{
+    ProcessSandboxMode, ProcessSandboxPlan, WorkspaceSandbox, sanitize_command_stderr,
+    sanitize_execution_error,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -21,14 +24,14 @@ pub struct ShellCommandTool {
     allow_network: bool,
 }
 
+/// Result returned to the agent / UI. Keep this free of process-sandbox
+/// implementation fields (`sandbox_profile`, seatbelt labels, wrapper names).
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ShellCommandResult {
     pub status: i32,
     pub stdout: String,
     pub stderr: String,
     pub timed_out: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub sandbox_profile: Option<String>,
 }
 
 #[derive(Debug)]
@@ -85,12 +88,15 @@ impl Tool for ShellCommandTool {
     fn definition(&self) -> ToolDefinition {
         ToolDefinition {
             name: ToolName::new("workspace.shell_command").expect("static tool name is valid"),
-            description: "Execute a controlled workspace-confined command".to_string(),
+            description: "Execute a command in the workspace. Prefer program + args (e.g. program=ls, args=[\"-la\"]). Shell snippets with &&/|/redirects are also accepted as program with empty args and run via /bin/sh -c.".to_string(),
             input_schema: json!({
                 "type": "object",
                 "required": ["program"],
                 "properties": {
-                    "program": { "type": "string" },
+                    "program": {
+                        "type": "string",
+                        "description": "Executable name/path, or a full shell snippet when args is empty"
+                    },
                     "args": {
                         "type": "array",
                         "items": { "type": "string" }
@@ -131,8 +137,9 @@ impl Tool for ShellCommandTool {
             ProcessSandboxPlan::for_workspace(&self.sandbox, self.process_mode, self.allow_network);
         let output = execute_command(input, &cwd, &plan)?;
         Ok(ToolOutput {
-            value: serde_json::to_value(output)
-                .map_err(|error| ToolError::Execution(error.to_string()))?,
+            value: serde_json::to_value(output).map_err(|error| {
+                ToolError::Execution(sanitize_execution_error(&error.to_string()))
+            })?,
         })
     }
 }
@@ -225,49 +232,54 @@ fn execute_command(
     cwd: &Path,
     plan: &ProcessSandboxPlan,
 ) -> Result<ShellCommandResult, ToolError> {
-    let program = resolve_program(&input.program);
-    let mut command = plan.wrap_command(&program, &input.args);
+    // Models often pass `program: "ls -la"` or `program: "pwd && ls"` with an
+    // empty args array. Without normalization the OS looks for a binary whose
+    // *name* is the whole string → "ls -la: No such file or directory".
+    let (program_name, args) = normalize_shell_invocation(&input.program, input.args);
+    let program = resolve_program(&program_name);
+    let mut command = plan.wrap_command(&program, &args);
+    // env_clear() drops PATH; re-inject a safe base so bare names (ls, git)
+    // still resolve inside the child after Seatbelt wrapping.
     command
         .current_dir(cwd)
         .env_clear()
+        .envs(base_process_env())
         .envs(&input.env)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
 
     let mut child = command
         .spawn()
-        .map_err(|error| ToolError::Execution(error.to_string()))?;
+        .map_err(|error| ToolError::Execution(sanitize_execution_error(&error.to_string())))?;
     let started = Instant::now();
 
     loop {
         if child
             .try_wait()
-            .map_err(|error| ToolError::Execution(error.to_string()))?
+            .map_err(|error| ToolError::Execution(sanitize_execution_error(&error.to_string())))?
             .is_some()
         {
-            let output = child
-                .wait_with_output()
-                .map_err(|error| ToolError::Execution(error.to_string()))?;
+            let output = child.wait_with_output().map_err(|error| {
+                ToolError::Execution(sanitize_execution_error(&error.to_string()))
+            })?;
             return Ok(ShellCommandResult {
                 status: status_code(output.status),
                 stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-                stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+                stderr: sanitize_command_stderr(&String::from_utf8_lossy(&output.stderr)),
                 timed_out: false,
-                sandbox_profile: Some(plan.profile_label.to_string()),
             });
         }
 
         if started.elapsed() >= input.timeout {
             kill_child(&mut child)?;
-            let output = child
-                .wait_with_output()
-                .map_err(|error| ToolError::Execution(error.to_string()))?;
+            let output = child.wait_with_output().map_err(|error| {
+                ToolError::Execution(sanitize_execution_error(&error.to_string()))
+            })?;
             return Ok(ShellCommandResult {
                 status: -1,
                 stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-                stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+                stderr: sanitize_command_stderr(&String::from_utf8_lossy(&output.stderr)),
                 timed_out: true,
-                sandbox_profile: Some(plan.profile_label.to_string()),
             });
         }
 
@@ -279,12 +291,122 @@ fn kill_child(child: &mut std::process::Child) -> Result<(), ToolError> {
     match child.kill() {
         Ok(()) => Ok(()),
         Err(error) if error.kind() == std::io::ErrorKind::InvalidInput => Ok(()),
-        Err(error) => Err(ToolError::Execution(error.to_string())),
+        Err(error) => Err(ToolError::Execution(sanitize_execution_error(
+            &error.to_string(),
+        ))),
     }
 }
 
 fn status_code(status: ExitStatus) -> i32 {
     status.code().unwrap_or(-1)
+}
+
+/// Normalize model-supplied `program`/`args` into a real exec pair.
+///
+/// - Shell metacharacters → `/bin/sh -c '<snippet>'` (when no separate args, or
+///   the program string itself is the full snippet)
+/// - Space-separated `ls -a` → always `ls` + `[-a, …]` so the OS never looks for
+///   a binary literally named `ls -a` (that yields `ls -a: No such file…`)
+/// - Extra `args` are appended after any tokens split out of `program`
+fn normalize_shell_invocation(program: &str, args: Vec<String>) -> (String, Vec<String>) {
+    let trimmed = program.trim();
+    if trimmed.is_empty() {
+        return (program.to_string(), args);
+    }
+
+    // Full shell snippet in `program` (with or without empty args).
+    // Only when args is empty — if args is non-empty the model already split argv.
+    if args.is_empty() && needs_shell(trimmed) {
+        #[cfg(windows)]
+        {
+            return (
+                "cmd.exe".to_string(),
+                vec!["/C".to_string(), trimmed.to_string()],
+            );
+        }
+        #[cfg(not(windows))]
+        {
+            return (
+                shell_binary().to_string(),
+                vec!["-c".to_string(), trimmed.to_string()],
+            );
+        }
+    }
+
+    // Always split whitespace in the program field when it's not a path.
+    // Models frequently send program="ls -a" (and sometimes also args=["-a"]).
+    // Leaving the space in the executable name makes execvp fail every time.
+    if !has_path_separator(trimmed) && trimmed.chars().any(char::is_whitespace) {
+        let mut parts = trimmed
+            .split_whitespace()
+            .map(str::to_string)
+            .collect::<Vec<_>>();
+        if parts.len() > 1 {
+            let prog = parts.remove(0);
+            // Drop duplicate leading flags if the model both inlined and passed them.
+            let mut merged = parts;
+            for a in args {
+                if !merged.contains(&a) {
+                    merged.push(a);
+                }
+            }
+            return (prog, merged);
+        }
+    }
+
+    (trimmed.to_string(), args)
+}
+
+fn needs_shell(command: &str) -> bool {
+    command.contains("&&")
+        || command.contains("||")
+        || command.contains(';')
+        || command.contains('|')
+        || command.contains('>')
+        || command.contains('<')
+        || command.contains('`')
+        || command.contains('$')
+        || command.contains('(')
+        || command.contains(')')
+        || command.contains('\n')
+        || command.contains('"')
+        || command.contains('\'')
+}
+
+fn shell_binary() -> &'static str {
+    if cfg!(windows) {
+        "cmd.exe"
+    } else if Path::new("/bin/sh").is_file() {
+        "/bin/sh"
+    } else {
+        "sh"
+    }
+}
+
+/// Minimal environment preserved after `env_clear` so PATH lookups and relative
+/// tools keep working inside the child process.
+fn base_process_env() -> BTreeMap<String, String> {
+    const KEYS: &[&str] = &[
+        "PATH", "HOME", "USER", "LOGNAME", "LANG", "LC_ALL", "LC_CTYPE", "TERM", "TMPDIR", "TMP",
+        "TEMP", "SHELL",
+    ];
+    let mut env = BTreeMap::new();
+    for key in KEYS {
+        if let Ok(value) = std::env::var(key) {
+            env.insert((*key).to_string(), value);
+        }
+    }
+    // Always ensure PATH is non-empty on Unix so bare names resolve.
+    if !env.contains_key("PATH") {
+        #[cfg(windows)]
+        env.insert("PATH".to_string(), String::new());
+        #[cfg(not(windows))]
+        env.insert(
+            "PATH".to_string(),
+            "/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin".to_string(),
+        );
+    }
+    env
 }
 
 fn resolve_program(program: &str) -> PathBuf {
@@ -341,7 +463,7 @@ fn validate_program_path_confined(
                     std::path::Component::ParentDir => {
                         if !out.pop() {
                             return Err(ToolError::Validation(format!(
-                                "program path is outside the workspace sandbox: {program}"
+                                "program path is outside the workspace: {program}"
                             )));
                         }
                     }
@@ -353,7 +475,7 @@ fn validate_program_path_confined(
         };
         if !normalized.starts_with(sandbox.root()) {
             return Err(ToolError::Validation(format!(
-                "program path is outside the workspace sandbox: {program}"
+                "program path is outside the workspace: {program}"
             )));
         }
         return Ok(());
@@ -369,7 +491,7 @@ fn validate_program_path_confined(
     match path.canonicalize() {
         Ok(canonical) if canonical.starts_with(sandbox.root()) => Ok(()),
         Ok(_) | Err(_) => Err(ToolError::Validation(format!(
-            "program path is outside the workspace sandbox: {program}"
+            "program path is outside the workspace: {program}"
         ))),
     }
 }

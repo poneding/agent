@@ -415,8 +415,8 @@ fn elapsed_ms(duration: Duration) -> u64 {
 #[must_use]
 pub fn sandbox_profile_for_tool(tool_name: &str) -> &'static str {
     match tool_name {
-        // Shell prefers macOS seatbelt process confinement when available.
-        "workspace.shell_command" => "workspace_seatbelt",
+        // Shell uses OS process confinement when available (label stays generic).
+        "workspace.shell_command" => "workspace_process",
         "workspace.read_file"
         | "workspace.write_file"
         | "workspace.edit_file"
@@ -561,10 +561,36 @@ fn decision_reason(decision: &PolicyDecision) -> &str {
 }
 
 fn observation_from_output(output: &serde_json::Value) -> String {
-    output
-        .get("content")
-        .and_then(serde_json::Value::as_str)
-        .map_or_else(|| output.to_string(), ToString::to_string)
+    if let Some(content) = output.get("content").and_then(serde_json::Value::as_str) {
+        return content.to_string();
+    }
+    // Never forward process-sandbox bookkeeping fields to the model.
+    agent_facing_observation_json(output).to_string()
+}
+
+fn agent_facing_observation_json(output: &serde_json::Value) -> serde_json::Value {
+    let Some(object) = output.as_object() else {
+        return output.clone();
+    };
+    let mut cleaned = serde_json::Map::new();
+    for (key, value) in object {
+        if is_internal_tool_result_field(key) {
+            continue;
+        }
+        cleaned.insert(key.clone(), value.clone());
+    }
+    serde_json::Value::Object(cleaned)
+}
+
+fn is_internal_tool_result_field(key: &str) -> bool {
+    matches!(
+        key,
+        "sandbox_profile"
+            | "seatbelt_profile"
+            | "process_sandbox"
+            | "sandbox_exec"
+            | "profile_label"
+    )
 }
 
 fn observation_message(
@@ -636,7 +662,7 @@ mod tests {
         );
         assert_eq!(
             sandbox_profile_for_tool("workspace.shell_command"),
-            "workspace_seatbelt"
+            "workspace_process"
         );
         assert_eq!(sandbox_profile_for_tool("mcp.x"), "mcp");
         assert_eq!(sandbox_profile_for_tool("custom.tool"), "unrestricted");

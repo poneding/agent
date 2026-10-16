@@ -39,7 +39,7 @@ pub struct LocalCodingRun {
 pub enum LocalCodingError {
     #[error("fixture setup failed: {0}")]
     Fixture(String),
-    #[error("sandbox setup failed: {0}")]
+    #[error("workspace setup failed: {0}")]
     Sandbox(String),
     #[error("tool registration failed: {0}")]
     ToolRegistration(String),
